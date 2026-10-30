@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 const { describe, it } = require('node:test')
 const { strict: assert } = require('node:assert')
+const { createHash } = require('node:crypto')
 const { Ed25519KeyPair, HomeCommunityNative, X25519KeyPair } = require('../')
 
 const signKeys = Ed25519KeyPair.generate().toBuffer()
@@ -17,6 +18,8 @@ const home = create()
 const signKeyPair = new Ed25519KeyPair(signKeys.publicKey, signKeys.privateKey)
 const encryptionKeyPair = new X25519KeyPair(encryptionKeys.publicKey, encryptionKeys.privateKey)
 const message = Buffer.from('gradido')
+const text = 'gradido'
+const sha256 = (data) => createHash('sha256').update(data).digest('base64')
 
 describe('HomeCommunityNative', () => {
   describe('constructor', () => {
@@ -79,23 +82,55 @@ describe('HomeCommunityNative', () => {
     const homePublicOnly = new X25519KeyPair(encryptionKeys.publicKey)
 
     it('encrypts for a peer, who decrypts it with the home public key', () => {
-      const box = home.encrypt(message, peerPublicOnly)
-      assert.deepEqual(peer.decrypt(box, homePublicOnly), { success: true, value: message })
+      const box = home.encrypt(text, peerPublicOnly)
+      assert.deepEqual(peer.decrypt(box, homePublicOnly), { success: true, value: text })
     })
 
     it('decrypts what a peer encrypted for it', () => {
-      const box = peer.encrypt(message, homePublicOnly)
-      assert.deepEqual(home.decrypt(box, peerPublicOnly), { success: true, value: message })
+      const box = peer.encrypt(text, homePublicOnly)
+      assert.deepEqual(home.decrypt(box, peerPublicOnly), { success: true, value: text })
     })
 
     it('refuses a peer with private key', () => {
-      assert.throws(() => home.encrypt(message, peer), /recipient to carry only a public key/)
+      assert.throws(() => home.encrypt(text, peer), /recipient to carry only a public key/)
     })
 
     it('answers a malformed ciphertext as failure', () => {
-      const result = home.decrypt(Buffer.alloc(3), peerPublicOnly)
+      const result = home.decrypt(Buffer.alloc(3).toString('base64'), peerPublicOnly)
       assert.equal(result.success, false)
       assert.equal(result.error.name, 'MalformedCiphertext')
+    })
+  })
+
+  describe('sha256', () => {
+    it('hashes the UTF-8 bytes of a string, as base64', () => {
+      for (const data of ['gradido', 'Grüße ✓', '']) {
+        assert.equal(home.sha256(data), sha256(data))
+      }
+    })
+
+    it('throws for anything but a string', () => {
+      assert.throws(() => home.sha256(message), /data to be a string/)
+    })
+  })
+
+  describe('encryptAndHash', () => {
+    const peer = X25519KeyPair.generate()
+    const peerPublicOnly = new X25519KeyPair(peer.publicKeyToBuffer())
+    const homePublicOnly = new X25519KeyPair(encryptionKeys.publicKey)
+
+    it('hands out a box the peer decrypts, and the hash of its base64 text', () => {
+      const { box, hash } = home.encryptAndHash(text, peerPublicOnly)
+      assert.deepEqual(peer.decrypt(box, homePublicOnly), { success: true, value: text })
+      assert.equal(hash, sha256(box))
+    })
+
+    it('throws as encrypt does', () => {
+      assert.throws(
+        () => home.encryptAndHash(text, peer),
+        /encryptAndHash\] Expected recipient to carry only a public key/,
+      )
+      assert.throws(() => home.encryptAndHash(message, peerPublicOnly), /payload to be a string/)
     })
   })
 

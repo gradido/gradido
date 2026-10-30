@@ -194,6 +194,8 @@ export class Ed25519KeyPair {
  *
  * A ciphertext is one format byte (1 for encrypt, 2 for encryptSecret), a random 24 bytes
  * nonce, then the encrypted payload with its 16 bytes MAC -- payload size + 41 bytes.
+ * encrypt and decrypt take the payload as a string (UTF-8) and the ciphertext as standard base64
+ * with padding; encryptSecret and decryptSecret stay with bytes.
  *
  * Programmer errors throw, as with Ed25519KeyPair; a ciphertext that does not decrypt is an
  * expected failure and comes back as a Result.
@@ -210,10 +212,16 @@ export class X25519KeyPair {
 
   public hasPrivateKey(): boolean
 
-  /** @param recipient - with public key only */
-  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
-  /** @param sender - with public key only */
-  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+  /**
+   * @param recipient - with public key only
+   * @returns the ciphertext as base64
+   */
+  public encrypt(payload: string, recipient: X25519KeyPair): string
+  /**
+   * @param box - the ciphertext as base64; anything else fails as MalformedCiphertext
+   * @param sender - with public key only
+   */
+  public decrypt(box: string, sender: X25519KeyPair): Result<string, DecryptError>
 
   public encryptSecret(payload: Uint8Array): Buffer
   public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
@@ -251,12 +259,27 @@ export class HomeCommunityNative {
   /** @param signature - 64 bytes; another size throws, check it where it comes in */
   public verify(message: Uint8Array, signature: Uint8Array): boolean
 
-  /** @param recipient - with its public key only */
-  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
-  /** @param sender - with its public key only */
-  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+  /**
+   * @param recipient - with its public key only
+   * @returns the ciphertext as base64
+   */
+  public encrypt(payload: string, recipient: X25519KeyPair): string
+  /**
+   * @param box - the ciphertext as base64; anything else fails as MalformedCiphertext
+   * @param sender - with its public key only
+   */
+  public decrypt(box: string, sender: X25519KeyPair): Result<string, DecryptError>
   public encryptSecret(payload: Uint8Array): Buffer
   public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
+
+  /** @returns the SHA-256 of data's UTF-8 bytes as base64 */
+  public sha256(data: string): string
+  /**
+   * encrypt, and sha256 over the resulting base64 text.
+   * @param recipient - with its public key only
+   * @returns box: the ciphertext as base64, hash: its sha256 as base64
+   */
+  public encryptAndHash(payload: string, recipient: X25519KeyPair): { box: string; hash: string }
 }
 
 /**

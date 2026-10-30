@@ -32,9 +32,9 @@ namespace gradido::crypto {
 
         // encrypt and decrypt on `keys`, for every class that holds X25519Keys; `where` names the
         // method in the errors. All need keys with private key.
-        // (payload, recipient: X25519KeyPair with public key only) -> Buffer
+        // (payload: string, recipient: X25519KeyPair with public key only) -> base64 string
         static Napi::Value EncryptWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where);
-        // (box, sender: X25519KeyPair with public key only) -> Result<Buffer, DecryptError>
+        // (box: base64 string, sender: X25519KeyPair with public key only) -> Result<string, DecryptError>
         static Napi::Value DecryptWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where);
         // (payload) -> Buffer
         static Napi::Value EncryptSecretWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where);
