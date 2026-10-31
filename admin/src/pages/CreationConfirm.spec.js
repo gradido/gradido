@@ -1,10 +1,11 @@
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { CONFIG } from '@/config'
 import { useAdminStore } from '@/store/useAdminStore'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
@@ -63,6 +64,7 @@ const stubs = {
   UserQuery: true,
   BButton: true,
   OpenCreationsTable: true,
+  AiChat: true,
   DecisionModal: true,
   CreaEvaluationModal: true,
   ThemedSelect: themedSelect,
@@ -659,6 +661,65 @@ describe('CreationConfirm', () => {
       await mountAs({ role: 'ADMIN' })
       await openTab('denied')
       expect(table().props('showCrea')).toBe(true)
+    })
+
+    // The table keeps its last buttons clear of the Crea button in the corner (OpenCreationsTable.css):
+    // at the desk, and only where that button stands. A plain moderator keeps the room.
+    describe('the room beside the Crea button', () => {
+      const wasActive = CONFIG.ANTHROPIC_ACTIVE
+      afterEach(() => {
+        CONFIG.ANTHROPIC_ACTIVE = wasActive
+      })
+
+      const chatShown = () => wrapper.findComponent({ name: 'AiChat' }).exists()
+      const roomKept = () => table().classes('beside-crea-chat')
+
+      it.each(['ADMIN', 'MODERATOR_AI'])(
+        'is kept at the desk for %s, who has the button',
+        async (role) => {
+          CONFIG.ANTHROPIC_ACTIVE = true
+          await mountAs({ role })
+          expect(chatShown()).toBe(true)
+          expect(roomKept()).toBe(true)
+          // And for the rest of what the table carries, the class beside it stays.
+          expect(table().classes('mt-4')).toBe(true)
+        },
+      )
+
+      it('is kept where the viewport is unknown, which behaves as the desk', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        viewport.value = 'desktop'
+        await mountAs({ role: 'ADMIN' })
+        expect(roomKept()).toBe(true)
+        viewport.value = 'unknown'
+        await nextTick()
+        expect(roomKept()).toBe(true)
+      })
+
+      it('is not kept on a phone: the card has no room, it rolls away from the button', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        await mountAs({ role: 'ADMIN' })
+        expect(roomKept()).toBe(true)
+
+        viewport.value = 'mobile'
+        await nextTick()
+        expect(chatShown()).toBe(true)
+        expect(roomKept()).toBe(false)
+      })
+
+      it('is not kept for a moderator without Crea', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        await mountAs({ role: 'MODERATOR' })
+        expect(chatShown()).toBe(false)
+        expect(roomKept()).toBe(false)
+      })
+
+      it('is not kept where Crea is switched off', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = false
+        await mountAs({ role: 'ADMIN' })
+        expect(chatShown()).toBe(false)
+        expect(roomKept()).toBe(false)
+      })
     })
 
     it('the all tab tells the table to show the status', async () => {
