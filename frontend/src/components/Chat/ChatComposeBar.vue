@@ -289,6 +289,8 @@
         :aria-describedby="describedBy"
         data-test="chat-compose-field"
         @input="grow"
+        @focus="fieldOutOfSight.start"
+        @blur="fieldOutOfSight.stop"
         @keydown.enter="sendOnModifiedEnter"
         @keydown.esc="cancelEditByKey"
       />
@@ -481,6 +483,7 @@ import { chatNotifyFor } from '@/utils/chatNotify'
 import { offersEmojiPicker } from '@/utils/emojiChoice'
 import { isComputer } from '@/utils/isComputer'
 import { pasteIsFor } from '@/utils/pastedImage'
+import { useFieldOutOfSight } from '@/composables/useFieldOutOfSight'
 import { usePastedImage } from '@/composables/usePastedImage'
 import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
 
@@ -597,6 +600,7 @@ const replyingTitle = computed(() =>
 
 const root = ref(null)
 const field = ref(null)
+const fieldOutOfSight = useFieldOutOfSight(field)
 /**
  * What the member left in a bar for this conversation before this one (`draft`): the words, the
  * picture, the box where they set it themselves. This bar begins with it -- the window was
