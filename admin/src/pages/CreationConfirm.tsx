@@ -184,6 +184,7 @@ export const CreationConfirm = defineComponent({
     const role = computed(() => store.moderator?.role ?? null)
     const isAdmin = computed(() => role.value === 'ADMIN')
     const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
+    const showCreaChat = computed(() => CONFIG.ANTHROPIC_ACTIVE && isAiUser.value)
     // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
     // there only on still-open contributions (see creaOpenOnly), so they can jump straight
     // from a participant's history to an open item. Administrators additionally see it on the
@@ -775,8 +776,10 @@ export const CreationConfirm = defineComponent({
             </BTab>
           </BTabs>
         </div>
+        {/* At the desk the table keeps its last buttons clear of the Crea button in the corner, and
+            only where that button stands: a card has no room for it, it rolls away instead. */}
         <OpenCreationsTable
-          class='mt-4'
+          class={['mt-4', { 'beside-crea-chat': showCreaChat.value && !phone.value }]}
           items={items.value}
           fields={fields.value}
           hideResubmission={hideResubmission.value}
@@ -813,7 +816,7 @@ export const CreationConfirm = defineComponent({
           limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
           noGotoEndButtons={phone.value}
         />
-        {CONFIG.ANTHROPIC_ACTIVE && isAiUser.value ? <AiChat /> : null}
+        {showCreaChat.value ? <AiChat /> : null}
         {/* Every decision asks once more, in a dialog that scrolls where the window is short.
             Escape, its × and the backdrop close it as its cancel does; none of them sends
             anything. */}
