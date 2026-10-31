@@ -3272,4 +3272,65 @@ describe('ChatComposeBar', () => {
     // Gegenprobe: the white tick would not do on the light green -- which is why it has its own.
     expect(contrast(colour(button, 'color'), colour(dark, 'background'))).toBeLessThan(3)
   })
+
+  // The rule has its own spec (useFieldOutOfSight); here: that it hangs on this bar's field.
+  describe('on Android, a swipe that takes the field out of sight', () => {
+    const swipeAway = () => {
+      const touch = (type, fingers) => {
+        const event = new Event(type, { bubbles: true })
+        event.touches = Array.from({ length: fingers }, () => ({}))
+        document.body.dispatchEvent(event)
+      }
+      touch('touchstart', 1)
+      touch('touchmove', 1)
+      window.visualViewport.dispatchEvent(new Event('scroll'))
+      touch('touchend', 0)
+      vi.advanceTimersByTime(1000)
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers()
+      vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Linux; Android 10; K')
+      window.innerHeight = 783
+      // A keyboard open, and the visible part moved up to the window's top: the field at 695 is under it.
+      vi.stubGlobal(
+        'visualViewport',
+        Object.assign(new EventTarget(), { height: 471, offsetTop: 0, scale: 1 }),
+      )
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      vi.unstubAllGlobals()
+      vi.restoreAllMocks()
+    })
+
+    it('leaves the field, and the words stay in it', async () => {
+      mountBar({}, { attachTo: document.body })
+      const field = wrapper.find('[data-test="chat-compose-field"]')
+      await field.setValue('Halb geschrieben')
+      field.element.getBoundingClientRect = () => ({ top: 695, bottom: 733 })
+      field.element.focus()
+      expect(document.activeElement).toBe(field.element)
+
+      swipeAway()
+
+      expect(document.activeElement).not.toBe(field.element)
+      expect(field.element.value).toBe('Halb geschrieben')
+    })
+
+    it('listens only while the field holds the focus', () => {
+      mountBar({}, { attachTo: document.body })
+      const scroll = (spy) => spy.mock.calls.filter(([type]) => type === 'scroll')
+      const on = vi.spyOn(window.visualViewport, 'addEventListener')
+      const off = vi.spyOn(window.visualViewport, 'removeEventListener')
+      const field = wrapper.find('[data-test="chat-compose-field"]').element
+      expect(scroll(on)).toEqual([])
+      field.focus()
+      expect(scroll(on)).toHaveLength(1)
+      expect(scroll(off)).toEqual([])
+      field.blur()
+      expect(scroll(off)).toHaveLength(1)
+    })
+  })
 })
