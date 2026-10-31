@@ -22,6 +22,7 @@ describe('useFieldOutOfSight', () => {
   let viewport
   let wrapper
   let field
+  let around
   let userAgent
   let composable
 
@@ -44,25 +45,26 @@ describe('useFieldOutOfSight', () => {
   }
   const swipe = (offsetTop) => {
     touch('touchstart', 1)
-    touch('touchmove', 1)
     moveVisiblePart(offsetTop)
     touch('touchend', 0)
   }
   const atRest = () => vi.advanceTimersByTime(WELL_PAST_REST)
 
-  const mountField = () => {
+  const mountField = ({ inWindow = true } = {}) => {
     const Host = defineComponent({
       setup() {
         const element = ref(null)
         composable = useFieldOutOfSight(element)
-        return () =>
+        const textarea = () =>
           h('textarea', { ref: element, onFocus: composable.start, onBlur: composable.stop })
+        return () =>
+          inWindow ? h('div', { class: 'window', tabindex: -1 }, [textarea()]) : textarea()
       },
     })
     wrapper = mount(Host, { attachTo: document.body })
     field = wrapper.find('textarea').element
+    around = inWindow ? wrapper.find('.window').element : null
     field.getBoundingClientRect = () => ({ top: FIELD_TOP, bottom: FIELD_BOTTOM })
-    vi.spyOn(field, 'blur')
   }
 
   beforeEach(() => {
@@ -88,10 +90,12 @@ describe('useFieldOutOfSight', () => {
       openKeyboard()
     })
 
-    it('leaves the field once a swipe has taken it out of sight', () => {
+    it('hands the focus to the window once a swipe has taken the field out of sight', () => {
+      const focus = vi.spyOn(around, 'focus')
       swipe(150)
       atRest()
-      expect(document.activeElement).not.toBe(field)
+      expect(document.activeElement).toBe(around)
+      expect(focus).toHaveBeenCalledWith({ preventScroll: true })
     })
 
     it('stays where a swipe leaves the field in sight', () => {
@@ -105,17 +109,16 @@ describe('useFieldOutOfSight', () => {
       swipe(middle - WITH_KEYBOARD + 1)
       atRest()
       expect(document.activeElement).toBe(field)
-      field.focus()
       swipe(middle - WITH_KEYBOARD - 1)
       atRest()
-      expect(document.activeElement).not.toBe(field)
+      expect(document.activeElement).toBe(around)
     })
 
     it('leaves the field when it went out of sight over the top as well', () => {
       field.getBoundingClientRect = () => ({ top: 10, bottom: 48 })
       swipe(150)
       atRest()
-      expect(document.activeElement).not.toBe(field)
+      expect(document.activeElement).toBe(around)
     })
 
     it('waits for the visible part to rest', () => {
@@ -125,52 +128,75 @@ describe('useFieldOutOfSight', () => {
       vi.advanceTimersByTime(300)
       moveVisiblePart(150)
       vi.advanceTimersByTime(300)
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
       atRest()
-      expect(field.blur).toHaveBeenCalledTimes(1)
+      expect(document.activeElement).toBe(around)
     })
 
     it('waits for the last finger to leave the screen', () => {
       touch('touchstart', 2)
-      touch('touchmove', 2)
       moveVisiblePart(150)
       touch('touchend', 1)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
       touch('touchend', 0)
       atRest()
-      expect(field.blur).toHaveBeenCalledTimes(1)
+      expect(document.activeElement).toBe(around)
     })
 
-    it('does not leave while a finger holds the visible part still', () => {
+    it('waits while a new finger holds the visible part still, and counts from the first', () => {
       swipe(150)
       vi.advanceTimersByTime(100)
       touch('touchstart', 1)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
+      touch('touchend', 0)
+      atRest()
+      expect(document.activeElement).toBe(around)
     })
 
     it('counts a swipe the screen broke off, as one the finger ended', () => {
       touch('touchstart', 1)
-      touch('touchmove', 1)
       moveVisiblePart(150)
       touch('touchcancel', 0)
       atRest()
-      expect(field.blur).toHaveBeenCalledTimes(1)
+      expect(document.activeElement).toBe(around)
     })
 
-    it('leaves a field alone that the browser moved, with no finger moving', () => {
+    it('leaves a field alone that the browser moved, with no finger on the screen', () => {
       moveVisiblePart(150)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
     })
 
     it('leaves a field alone after a tap, however the visible part stands', () => {
       moveVisiblePart(150)
+      atRest()
       touch('touchstart', 1)
       touch('touchend', 0)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
+    })
+
+    it('leaves a covered field alone when a finger only rolled the thread', () => {
+      // The keyboard opened and the browser did not bring the field up: covered before the finger.
+      moveVisiblePart(0)
+      atRest()
+      touch('touchstart', 1)
+      document.body.dispatchEvent(new Event('touchmove', { bubbles: true }))
+      touch('touchend', 0)
+      atRest()
+      expect(document.activeElement).toBe(field)
+    })
+
+    it('ignores a move of less than a pixel on the screen', () => {
+      moveVisiblePart(0)
+      atRest()
+      touch('touchstart', 1)
+      moveVisiblePart(0.5)
+      touch('touchend', 0)
+      atRest()
+      expect(document.activeElement).toBe(field)
     })
 
     it('forgets a swipe once it has looked, so the browser moving later decides nothing', () => {
@@ -178,46 +204,56 @@ describe('useFieldOutOfSight', () => {
       atRest()
       moveVisiblePart(150)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
     })
 
     it('leaves the field alone in a page zoomed by hand', () => {
       viewport.scale = 1.5
       swipe(150)
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(field)
     })
 
     it('does not look any more once the field has given up the focus by itself', () => {
       swipe(150)
       field.blur()
-      vi.mocked(field.blur).mockClear()
       atRest()
-      expect(field.blur).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(document.body)
     })
 
     it('takes back every listener when the bar goes with the field in focus', () => {
       const off = vi.spyOn(document, 'removeEventListener')
       wrapper.unmount()
       wrapper = null
-      expect(off.mock.calls.filter(([type]) => type.startsWith('touch'))).toHaveLength(4)
+      expect(off.mock.calls.filter(([type]) => type.startsWith('touch'))).toHaveLength(3)
     })
+  })
+
+  it('just gives up the focus where there is no window around the field', () => {
+    wrapper.unmount()
+    mountField({ inWindow: false })
+    field.focus()
+    openKeyboard()
+    swipe(150)
+    atRest()
+    expect(document.activeElement).toBe(document.body)
   })
 
   it('leaves the field alone with no keyboard open (closed with the back key)', () => {
     field.focus()
     closeKeyboard()
     field.getBoundingClientRect = () => ({ top: 900, bottom: 940 })
-    swipe(0)
+    swipe(30)
     atRest()
-    expect(field.blur).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field)
   })
 
   it('hears no finger before the field holds the focus', () => {
     openKeyboard()
+    const focus = vi.spyOn(around, 'focus')
     swipe(150)
     atRest()
-    expect(field.blur).not.toHaveBeenCalled()
+    expect(focus).not.toHaveBeenCalled()
   })
 
   it('takes back every listener when the field gives up the focus', () => {
@@ -231,7 +267,7 @@ describe('useFieldOutOfSight', () => {
       inputs(onDocument)
         .map(([type]) => type)
         .sort(),
-    ).toEqual(['touchcancel', 'touchend', 'touchmove', 'touchstart'])
+    ).toEqual(['touchcancel', 'touchend', 'touchstart'])
     expect(inputs(onViewport).map(([type]) => type)).toEqual(['scroll'])
     field.blur()
     expect(inputs(offDocument)).toEqual(expect.arrayContaining(inputs(onDocument)))
@@ -239,18 +275,16 @@ describe('useFieldOutOfSight', () => {
     expect(inputs(offViewport)).toEqual(inputs(onViewport))
   })
 
-  it('starts afresh on every focus: an old swipe does not count', () => {
+  it('starts afresh on every focus: a finger from before does not count', () => {
     field.focus()
     openKeyboard()
     touch('touchstart', 1)
-    touch('touchmove', 1)
     field.blur()
-    vi.mocked(field.blur).mockClear()
     field.focus()
     moveVisiblePart(150)
     touch('touchend', 0)
     atRest()
-    expect(field.blur).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field)
   })
 
   it.each([
@@ -264,7 +298,7 @@ describe('useFieldOutOfSight', () => {
     openKeyboard()
     swipe(150)
     atRest()
-    expect(field.blur).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field)
     expect(listening).not.toHaveBeenCalled()
     expect(onDocument.mock.calls.filter(([type]) => type.startsWith('touch'))).toEqual([])
   })

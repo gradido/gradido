@@ -5,13 +5,15 @@ import { onBeforeUnmount } from 'vue'
 const KEYBOARD_PX = 120
 // Nothing moved for this long: the visible part rests, the swing after a swipe included.
 const REST_MS = 350
+// Less than this on the screen is no movement: fractions of a pixel from the page's scale.
+const MOVED_PX = 1
 
 const isAndroid = () => /Android/.test(window.navigator?.userAgent ?? '')
 
 /**
- * A finger that takes the field out of sight has left it: the field gives up the focus, and the
- * keyboard goes with it. The window then stands as after a tap beside the field -- the head at the
- * top, the bar at the bottom, the words still in the field.
+ * A finger that takes the field out of sight has left it: the focus goes where a tap beside the
+ * field puts it, to the window around it, and the keyboard goes with it. The window then stands as
+ * after that tap -- the head at the top, the bar at the bottom, the words still in the field.
  *
  * Chrome on Android (since 108) lets a keyboard shrink only the visible part of the page. The
  * window stays as high as it was, and a swipe can move the visible part over it. Without this the
@@ -19,8 +21,12 @@ const isAndroid = () => /Android/.test(window.navigator?.userAgent ?? '')
  * measured 31.10.2026: Chrome 133 over the whole window, Brave 1.98 over the bar). A swipe back
  * does not bring it up while the thread stands at its end: `overscroll-behavior: contain`.
  *
- * ⛔ Only a finger that moved decides. The browser moves the visible part too, when the keyboard
- * opens and with every letter, and a field that is covered for a moment then has not been left.
+ * ⛔ Only a field that moved on the screen under a finger decides. The browser moves the visible
+ * part too, when the keyboard opens and with every letter, and a finger that only rolled the thread
+ * has not taken away a field that was covered before it came.
+ *
+ * ⛔ Not `blur` where there is a window: with nothing in focus the bar takes the focus back when a
+ * message on its way lands (`focusStaysHere` in ChatComposeBar), and the keyboard with it.
  *
  * ⛔ Android only (Bernd, 31.10.2026): the iPhone has no such problem and stays as it is, Chrome and
  * Brave on it included, so asked of the system and not of the browser's name. Nothing listens there.
@@ -33,8 +39,13 @@ const isAndroid = () => /Android/.test(window.navigator?.userAgent ?? '')
 export const useFieldOutOfSight = (field) => {
   let viewport = null
   let fingers = 0
-  let fingerMoved = false
+  let fieldWasAt = null
   let rest = null
+
+  const fieldOnScreen = () => {
+    const box = field.value?.getBoundingClientRect()
+    return box ? box.top - viewport.offsetTop : null
+  }
 
   const keyboardIsOpen = () =>
     Math.abs(viewport.scale - 1) < 0.01 && window.innerHeight - viewport.height > KEYBOARD_PX
@@ -46,11 +57,18 @@ export const useFieldOutOfSight = (field) => {
     return middle < viewport.offsetTop || middle > viewport.offsetTop + viewport.height
   }
 
+  const leave = () => {
+    const around = field.value.parentElement?.closest('[tabindex]')
+    if (around) around.focus({ preventScroll: true })
+    else field.value.blur()
+  }
+
   const look = () => {
     rest = null
-    if (fingers > 0 || !fingerMoved) return
-    fingerMoved = false
-    if (keyboardIsOpen() && fieldIsOutOfSight()) field.value.blur()
+    if (fingers > 0 || fieldWasAt === null) return
+    const moved = Math.abs(fieldOnScreen() - fieldWasAt) > MOVED_PX
+    fieldWasAt = null
+    if (moved && keyboardIsOpen() && fieldIsOutOfSight()) leave()
   }
 
   const lookAtRest = () => {
@@ -59,10 +77,8 @@ export const useFieldOutOfSight = (field) => {
   }
 
   const onTouchStart = (event) => {
+    if (fieldWasAt === null) fieldWasAt = fieldOnScreen()
     fingers = event.touches.length
-  }
-  const onTouchMove = () => {
-    fingerMoved = true
   }
   const onTouchEnd = (event) => {
     fingers = event.touches.length
@@ -76,7 +92,6 @@ export const useFieldOutOfSight = (field) => {
     clearTimeout(rest)
     viewport.removeEventListener('scroll', lookAtRest)
     document.removeEventListener('touchstart', onTouchStart, heard)
-    document.removeEventListener('touchmove', onTouchMove, heard)
     document.removeEventListener('touchend', onTouchEnd, heard)
     document.removeEventListener('touchcancel', onTouchEnd, heard)
     viewport = null
@@ -86,10 +101,9 @@ export const useFieldOutOfSight = (field) => {
     stop()
     viewport = isAndroid() ? (window.visualViewport ?? null) : null
     if (!viewport) return
-    fingerMoved = false
+    fieldWasAt = null
     viewport.addEventListener('scroll', lookAtRest)
     document.addEventListener('touchstart', onTouchStart, heard)
-    document.addEventListener('touchmove', onTouchMove, heard)
     document.addEventListener('touchend', onTouchEnd, heard)
     document.addEventListener('touchcancel', onTouchEnd, heard)
   }

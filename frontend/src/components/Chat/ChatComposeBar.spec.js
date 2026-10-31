@@ -3275,6 +3275,7 @@ describe('ChatComposeBar', () => {
 
   // The rule has its own spec (useFieldOutOfSight); here: that it hangs on this bar's field.
   describe('on Android, a swipe that takes the field out of sight', () => {
+    const fieldOf = () => wrapper.find('[data-test="chat-compose-field"]')
     const swipeAway = () => {
       const touch = (type, fingers) => {
         const event = new Event(type, { bubbles: true })
@@ -3282,20 +3283,29 @@ describe('ChatComposeBar', () => {
         document.body.dispatchEvent(event)
       }
       touch('touchstart', 1)
-      touch('touchmove', 1)
+      window.visualViewport.offsetTop = 0
       window.visualViewport.dispatchEvent(new Event('scroll'))
       touch('touchend', 0)
       vi.advanceTimersByTime(1000)
+    }
+    /** The bar inside what stands around it in the app: a window that can hold the focus. */
+    const mountInWindow = (props) => {
+      const around = document.createElement('div')
+      around.tabIndex = -1
+      document.body.append(around)
+      mountBar(props, { attachTo: around })
+      fieldOf().element.getBoundingClientRect = () => ({ top: 695, bottom: 733 })
+      return around
     }
 
     beforeEach(() => {
       vi.useFakeTimers()
       vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue('Linux; Android 10; K')
       window.innerHeight = 783
-      // A keyboard open, and the visible part moved up to the window's top: the field at 695 is under it.
+      // A keyboard open, and the field above it, where the browser brought it up.
       vi.stubGlobal(
         'visualViewport',
-        Object.assign(new EventTarget(), { height: 471, offsetTop: 0, scale: 1 }),
+        Object.assign(new EventTarget(), { height: 471, offsetTop: 312, scale: 1 }),
       )
     })
 
@@ -3306,25 +3316,39 @@ describe('ChatComposeBar', () => {
     })
 
     it('leaves the field, and the words stay in it', async () => {
-      mountBar({}, { attachTo: document.body })
-      const field = wrapper.find('[data-test="chat-compose-field"]')
-      await field.setValue('Halb geschrieben')
-      field.element.getBoundingClientRect = () => ({ top: 695, bottom: 733 })
-      field.element.focus()
-      expect(document.activeElement).toBe(field.element)
+      const around = mountInWindow()
+      await fieldOf().setValue('Halb geschrieben')
+      fieldOf().element.focus()
+      expect(document.activeElement).toBe(fieldOf().element)
 
       swipeAway()
 
-      expect(document.activeElement).not.toBe(field.element)
-      expect(field.element.value).toBe('Halb geschrieben')
+      expect(document.activeElement).toBe(around)
+      expect(fieldOf().element.value).toBe('Halb geschrieben')
+    })
+
+    it('stays left when a message on its way lands: the keyboard does not come back', async () => {
+      const around = mountInWindow()
+      await fieldOf().setValue('Auf dem Weg')
+      fieldOf().element.focus()
+      await wrapper.find('[data-test="chat-compose-send"]').trigger('click')
+      await wrapper.setProps({ sending: true })
+
+      swipeAway()
+      expect(document.activeElement).toBe(around)
+
+      await wrapper.setProps({ sending: false })
+      await flushPromises()
+      expect(fieldOf().element.value).toBe('')
+      expect(document.activeElement).toBe(around)
     })
 
     it('listens only while the field holds the focus', () => {
-      mountBar({}, { attachTo: document.body })
+      mountInWindow()
       const scroll = (spy) => spy.mock.calls.filter(([type]) => type === 'scroll')
       const on = vi.spyOn(window.visualViewport, 'addEventListener')
       const off = vi.spyOn(window.visualViewport, 'removeEventListener')
-      const field = wrapper.find('[data-test="chat-compose-field"]').element
+      const field = fieldOf().element
       expect(scroll(on)).toEqual([])
       field.focus()
       expect(scroll(on)).toHaveLength(1)
