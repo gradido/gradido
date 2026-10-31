@@ -480,7 +480,7 @@
   "footer": {
     "app_version": "Uygulama sürümü {version}",
     "copyright": {
-      "link": "Gradido-Akademie Yönetim Konsolu",
+      "link": "Gradido Yönetim Alanı",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
