@@ -34,10 +34,10 @@ namespace gradido {
         Napi::Value Decrypt(const Napi::CallbackInfo& info);
         Napi::Value EncryptSecret(const Napi::CallbackInfo& info);
         Napi::Value DecryptSecret(const Napi::CallbackInfo& info);
-        // (data: string) -> sha256 as base64 string
-        Napi::Value Sha256(const Napi::CallbackInfo& info);
-        // (payload: string, recipient: X25519KeyPair with public key only) -> { box, hash }, both base64 strings
+        // (payload: string, recipient: X25519KeyPair with public key only) -> { box: Buffer, hash: generic hash (BLAKE2b) of box as base64 string }
         Napi::Value EncryptAndHash(const Napi::CallbackInfo& info);
+        // (box: Buffer, sender: X25519KeyPair with public key only) -> Result<{ payload: string, hash: generic hash (BLAKE2b) of box as base64 string }, DecryptError>
+        Napi::Value DecryptAndHash(const Napi::CallbackInfo& info);
 
         crypto::Ed25519Keys mSignKeys;
         crypto::X25519Keys mEncryptionKeys;

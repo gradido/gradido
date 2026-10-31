@@ -7,6 +7,7 @@ const {
   signKeyPairDeriveUuid,
   signKeyPairDerive,
   hashGeneric,
+  hashGenericBase64,
 } = require('../')
 
 const communitySeed = 'a84bfff0cb3195357b03c0aeb90306da50bc88e73b9437a70cc8e7d6d091af40'
@@ -136,6 +137,20 @@ describe('Crypto', () => {
         Buffer.from(result).toString('hex'),
         '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e',
       )
+    })
+    it('generic hash as base64', () => {
+      const result = hashGenericBase64(new Uint8Array(Buffer.from(communitySeed, 'hex')))
+      assert.equal(
+        Buffer.from(result, 'base64').toString('hex'),
+        '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e',
+      )
+    })
+    it('generic hash as base64 of a string is the one of its UTF-8 bytes', () => {
+      assert.equal(hashGenericBase64('Grüße'), hashGenericBase64(Buffer.from('Grüße', 'utf8')))
+    })
+    it('generic hash as base64 refuses anything else', () => {
+      assert.throws(() => hashGenericBase64(1), TypeError)
+      assert.throws(() => hashGenericBase64(), TypeError)
     })
   })
 })

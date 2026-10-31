@@ -3,27 +3,24 @@
 #include "AddonData.h"
 #include "napiUtils.h"
 
-#include "arnm/converter.h"
-
 #include <string>
-#include <vector>
 
 namespace gradido::crypto {
 
     namespace {
         // the failure result decrypt hands back for what checkCiphertext refused
-        Napi::Value ciphertextFailure(Napi::Env env, DecryptResult result, const uint8_t* box, size_t boxSize, uint8_t format)
+        Napi::Value ciphertextFailure(Napi::Env env, DecryptResult result, const Napi::Buffer<uint8_t>& box, uint8_t format)
         {
             switch (result) {
             case DecryptResult::MALFORMED_CIPHERTEXT:
                 return failureResult(
                     env, "MalformedCiphertext",
-                    "ciphertext is " + std::to_string(boxSize) + " bytes, at least " + std::to_string(X25519Keys::overhead(format)) + " expected"
+                    "ciphertext is " + std::to_string(box.Length()) + " bytes, at least " + std::to_string(X25519Keys::overhead(format)) + " expected"
                 );
             case DecryptResult::UNKNOWN_VERSION:
                 return failureResult(
                     env, "UnknownVersion",
-                    "ciphertext has format " + std::to_string(box[0]) + ", expected " + std::to_string(format)
+                    "ciphertext has format " + std::to_string(box.Data()[0]) + ", expected " + std::to_string(format)
                 );
             case DecryptResult::SUCCESS:
             case DecryptResult::DECRYPT_FAILED:
@@ -97,45 +94,32 @@ namespace gradido::crypto {
         if (recipient == nullptr) {
             return env.Null();
         }
-        std::vector<uint8_t> box(X25519Keys::overhead(X25519Keys::FORMAT_BOX) + payload.size());
-        if (!keys.encrypt(box.data(), reinterpret_cast<const uint8_t*>(payload.data()), payload.size(), recipient->publicKey())) {
+        auto box = Napi::Buffer<uint8_t>::New(env, X25519Keys::overhead(X25519Keys::FORMAT_BOX) + payload.size());
+        if (!keys.encrypt(box.Data(), reinterpret_cast<const uint8_t*>(payload.data()), payload.size(), recipient->publicKey())) {
             Napi::Error::New(env, std::string("[") + where + "] recipient's public key is unusable (a point of low order)").ThrowAsJavaScriptException();
             return env.Null();
         }
-        // only the ciphertext goes through arnm's base64, which is not constant time
-        std::string base64(ARNM_BASE64_STRING_LENGTH(box.size()), '\0');
-        arnm_result result = arnm_binary_to_base64(base64.data(), box.data(), static_cast<uint32_t>(box.size()));
-        if (result != ARNM_SUCCESS) {
-            Napi::Error::New(env, std::string("[") + where + "] arnm_binary_to_base64 failed: " + arnm_result_to_string(result)).ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        return Napi::String::New(env, base64);
+        return box;
     }
 
     Napi::Value X25519KeyPair::DecryptWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where)
     {
         Napi::Env env = info.Env();
-        if (!info[0].IsString()) {
-            Napi::TypeError::New(env, std::string("[") + where + "] Expected box to be a base64 string").ThrowAsJavaScriptException();
+        if (!info[0].IsBuffer()) {
+            Napi::TypeError::New(env, std::string("[") + where + "] Expected box to be a Uint8Array").ThrowAsJavaScriptException();
             return env.Null();
         }
+        Napi::Buffer<uint8_t> box = info[0].As<Napi::Buffer<uint8_t>>();
         const X25519Keys* sender = UnwrapPublicOnlyPeer(info, 1, where, "sender");
         if (sender == nullptr) {
             return env.Null();
         }
-        // our own copy of the characters, decoded over itself
-        std::string encoded = info[0].As<Napi::String>().Utf8Value();
-        uint32_t boxSize = 0;
-        if (arnm_binary_from_base64_insitu(encoded.data(), static_cast<uint32_t>(encoded.size()), &boxSize) != ARNM_SUCCESS) {
-            return failureResult(env, "MalformedCiphertext", "ciphertext is not base64");
-        }
-        const uint8_t* box = reinterpret_cast<const uint8_t*>(encoded.data());
-        DecryptResult check = X25519Keys::checkCiphertext(box, boxSize, X25519Keys::FORMAT_BOX);
+        DecryptResult check = X25519Keys::checkCiphertext(box.Data(), box.Length(), X25519Keys::FORMAT_BOX);
         if (check != DecryptResult::SUCCESS) {
-            return ciphertextFailure(env, check, box, boxSize, X25519Keys::FORMAT_BOX);
+            return ciphertextFailure(env, check, box, X25519Keys::FORMAT_BOX);
         }
-        std::string payload(boxSize - X25519Keys::overhead(X25519Keys::FORMAT_BOX), '\0');
-        if (keys.decrypt(reinterpret_cast<uint8_t*>(payload.data()), box, boxSize, sender->publicKey()) != DecryptResult::SUCCESS) {
+        std::string payload(box.Length() - X25519Keys::overhead(X25519Keys::FORMAT_BOX), '\0');
+        if (keys.decrypt(reinterpret_cast<uint8_t*>(payload.data()), box.Data(), box.Length(), sender->publicKey()) != DecryptResult::SUCCESS) {
             return failureResult(env, "DecryptFailed", "ciphertext was altered, or not encrypted by sender for this key pair");
         }
         return successResult(env, Napi::String::New(env, payload));
@@ -164,7 +148,7 @@ namespace gradido::crypto {
         Napi::Buffer<uint8_t> box = info[0].As<Napi::Buffer<uint8_t>>();
         DecryptResult check = X25519Keys::checkCiphertext(box.Data(), box.Length(), X25519Keys::FORMAT_SECRET);
         if (check != DecryptResult::SUCCESS) {
-            return ciphertextFailure(env, check, box.Data(), box.Length(), X25519Keys::FORMAT_SECRET);
+            return ciphertextFailure(env, check, box, X25519Keys::FORMAT_SECRET);
         }
         auto payload = Napi::Buffer<uint8_t>::New(env, box.Length() - X25519Keys::overhead(X25519Keys::FORMAT_SECRET));
         if (keys.decryptSecret(payload.Data(), box.Data(), box.Length()) != DecryptResult::SUCCESS) {

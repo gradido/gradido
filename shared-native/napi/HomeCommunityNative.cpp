@@ -2,35 +2,14 @@
 #include "Ed25519KeyPair.h"
 #include "KeyPair.h"
 #include "X25519KeyPair.h"
+#include "crypto.h"
 #include "napiUtils.h"
-
-#include "arnm/converter.h"
-
-#include <sodium.h>
-
-#include <string>
 
 namespace gradido {
 
     using crypto::Ed25519KeyPair;
     using crypto::Keys;
     using crypto::X25519KeyPair;
-
-    namespace {
-        // a hash is public, arnm's base64 not being constant time carries nothing here
-        Napi::Value sha256Base64(Napi::Env env, const std::string& data)
-        {
-            uint8_t hash[crypto_hash_sha256_BYTES];
-            crypto_hash_sha256(hash, reinterpret_cast<const uint8_t*>(data.data()), data.size());
-            char base64[ARNM_BASE64_STRING_LENGTH(sizeof(hash)) + 1];
-            arnm_result result = arnm_binary_to_base64(base64, hash, sizeof(hash));
-            if (result != ARNM_SUCCESS) {
-                Napi::Error::New(env, std::string("[HomeCommunityNative] arnm_binary_to_base64 failed: ") + arnm_result_to_string(result)).ThrowAsJavaScriptException();
-                return env.Null();
-            }
-            return Napi::String::New(env, base64);
-        }
-    } // namespace
 
     Napi::Object HomeCommunityNative::Init(Napi::Env env, Napi::Object exports)
     {
@@ -41,8 +20,8 @@ namespace gradido {
             InstanceMethod("decrypt", &HomeCommunityNative::Decrypt),
             InstanceMethod("encryptSecret", &HomeCommunityNative::EncryptSecret),
             InstanceMethod("decryptSecret", &HomeCommunityNative::DecryptSecret),
-            InstanceMethod("sha256", &HomeCommunityNative::Sha256),
             InstanceMethod("encryptAndHash", &HomeCommunityNative::EncryptAndHash),
+            InstanceMethod("decryptAndHash", &HomeCommunityNative::DecryptAndHash),
         });
         exports.Set(NAME, func);
         return exports;
@@ -106,16 +85,6 @@ namespace gradido {
         return X25519KeyPair::DecryptSecretWith(info, mEncryptionKeys, "HomeCommunityNative.decryptSecret");
     }
 
-    Napi::Value HomeCommunityNative::Sha256(const Napi::CallbackInfo& info)
-    {
-        Napi::Env env = info.Env();
-        if (!info[0].IsString()) {
-            Napi::TypeError::New(env, "[HomeCommunityNative.sha256] Expected data to be a string").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        return sha256Base64(env, info[0].As<Napi::String>().Utf8Value());
-    }
-
     Napi::Value HomeCommunityNative::EncryptAndHash(const Napi::CallbackInfo& info)
     {
         Napi::Env env = info.Env();
@@ -124,8 +93,36 @@ namespace gradido {
             return env.Null();
         }
         Napi::Object result = Napi::Object::New(env);
+        Napi::Buffer<uint8_t> boxBytes = box.As<Napi::Buffer<uint8_t>>();
+        Napi::Value hash = crypto::HashGenericBase64(env, boxBytes.Data(), boxBytes.Length());
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
         result.Set("box", box);
-        result.Set("hash", sha256Base64(env, box.As<Napi::String>().Utf8Value()));
+        result.Set("hash", hash);
+        return result;
+    }
+
+    Napi::Value HomeCommunityNative::DecryptAndHash(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        Napi::Value decrypted = X25519KeyPair::DecryptWith(info, mEncryptionKeys, "HomeCommunityNative.decryptAndHash");
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        Napi::Object result = decrypted.As<Napi::Object>();
+        if (!result.Get("success").ToBoolean().Value()) {
+            return result;
+        }
+        Napi::Buffer<uint8_t> boxBytes = info[0].As<Napi::Buffer<uint8_t>>();
+        Napi::Value hash = crypto::HashGenericBase64(env, boxBytes.Data(), boxBytes.Length());
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        Napi::Object value = Napi::Object::New(env);
+        value.Set("payload", result.Get("value"));
+        value.Set("hash", hash);
+        result.Set("value", value);
         return result;
     }
 

@@ -1,5 +1,6 @@
 #include <napi.h>
 #include "napiUtils.h"
+#include "arnm/converter.h"
 #include "gradido_blockchain_core/const.h"
 #include "gradido_blockchain_core/crypto/hash.h"
 #include "gradido_blockchain_core/crypto/sign.h"
@@ -180,6 +181,45 @@ namespace gradido::crypto {
         }
 
         return resultBuffer;
+    }
+
+    Napi::Value HashGenericBase64(Napi::Env env, const uint8_t* data, size_t size)
+    {
+        uint8_t hash[GENERIC_HASH_SIZE];
+        arnm_result result = grdc_hash_generic(hash, data, size);
+        if (result != ARNM_SUCCESS) {
+            Napi::Error::New(env, std::string("[hashGenericBase64] Failed to calculate generic hash, result: ") + grd_result_to_string(result))
+                .ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        // a hash is public, arnm's base64 not being constant time carries nothing here
+        char base64[ARNM_BASE64_STRING_LENGTH(GENERIC_HASH_SIZE) + 1];
+        result = arnm_binary_to_base64(base64, hash, GENERIC_HASH_SIZE);
+        if (result != ARNM_SUCCESS) {
+            Napi::Error::New(env, std::string("[hashGenericBase64] arnm_binary_to_base64 failed: ") + arnm_result_to_string(result))
+                .ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        return Napi::String::New(env, base64);
+    }
+
+    Napi::Value HashGenericBase64(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        if (info.Length() != 1) {
+            Napi::TypeError::New(env, "[hashGenericBase64] Expected one argument: data (string or Uint8Array)").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        if (info[0].IsString()) {
+            std::string data = info[0].As<Napi::String>().Utf8Value();
+            return HashGenericBase64(env, reinterpret_cast<const uint8_t*>(data.data()), data.size());
+        }
+        if (!info[0].IsBuffer()) {
+            Napi::TypeError::New(env, "[hashGenericBase64] Expected data to be a string or Uint8Array").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        Napi::Buffer<uint8_t> data = info[0].As<Napi::Buffer<uint8_t>>();
+        return HashGenericBase64(env, data.Data(), data.Length());
     }
 
 } // namespace gradido::crypto
