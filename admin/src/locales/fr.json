@@ -480,7 +480,7 @@
   "footer": {
     "app_version": "Version de l'app {version}",
     "copyright": {
-      "link": "Console d'administration de la Gradido-Akademie",
+      "link": "Espace d'administration Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
