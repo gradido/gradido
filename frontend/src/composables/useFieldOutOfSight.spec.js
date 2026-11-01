@@ -48,10 +48,11 @@ describe('useFieldOutOfSight', () => {
     viewport.height = WITH_KEYBOARD
     viewport.dispatchEvent(new Event('resize'))
   }
-  const touch = (type, fingers, screenY = FINGER_AT) => {
+  // `fingers`: how many are on the screen after this. `finger`: the one this event is about.
+  const touch = (type, fingers, screenY = FINGER_AT, finger = 0) => {
     const event = new Event(type, { bubbles: true })
-    event.touches = Array.from({ length: fingers }, () => ({ screenY }))
-    event.changedTouches = [{ screenY }]
+    event.touches = Array.from({ length: fingers }, (_, identifier) => ({ identifier, screenY }))
+    event.changedTouches = [{ identifier: finger, screenY }]
     document.body.dispatchEvent(event)
   }
   const swipe = (offsetTop) => {
@@ -151,12 +152,12 @@ describe('useFieldOutOfSight', () => {
 
     it('waits for the last finger to leave the screen', () => {
       touch('touchstart', 1)
-      touch('touchstart', 2)
+      touch('touchstart', 2, FINGER_AT, 1)
       moveVisiblePart(150)
       touch('touchend', 1, FINGER_AT + SWIPE_PX)
       atRest()
       expect(document.activeElement).toBe(field)
-      touch('touchend', 0, FINGER_AT + SWIPE_PX)
+      touch('touchend', 0, FINGER_AT + SWIPE_PX, 1)
       atRest()
       expect(document.activeElement).toBe(around)
     })
@@ -164,9 +165,32 @@ describe('useFieldOutOfSight', () => {
     it('keeps counting from the first finger when a second one lands during the swipe', () => {
       touch('touchstart', 1)
       moveVisiblePart(150)
-      touch('touchstart', 2, FINGER_AT + SWIPE_PX)
+      touch('touchstart', 2, FINGER_AT + SWIPE_PX, 1)
       touch('touchend', 1, FINGER_AT + SWIPE_PX)
-      touch('touchend', 0, FINGER_AT + SWIPE_PX)
+      touch('touchend', 0, FINGER_AT + SWIPE_PX, 1)
+      atRest()
+      expect(document.activeElement).toBe(around)
+    })
+
+    it('counts the travel of each finger from where that finger came down', () => {
+      // Two fingers that stay where they are, far apart: neither travelled.
+      moveVisiblePart(0)
+      atRest()
+      touch('touchstart', 1, FINGER_AT)
+      touch('touchstart', 2, FINGER_AT + SWIPE_PX, 1)
+      moveVisiblePart(150)
+      touch('touchend', 1, FINGER_AT + SWIPE_PX, 1)
+      touch('touchend', 0, FINGER_AT, 0)
+      atRest()
+      expect(document.activeElement).toBe(field)
+    })
+
+    it('counts a finger that travelled while another one rests on the screen', () => {
+      touch('touchstart', 1, FINGER_AT)
+      moveVisiblePart(150)
+      touch('touchstart', 2, FINGER_AT + SWIPE_PX, 1)
+      touch('touchend', 1, FINGER_AT + SWIPE_PX, 0)
+      touch('touchend', 0, FINGER_AT + SWIPE_PX, 1)
       atRest()
       expect(document.activeElement).toBe(around)
     })
@@ -319,6 +343,22 @@ describe('useFieldOutOfSight', () => {
       expect(document.activeElement).toBe(field)
     })
 
+    it('does not hold a swipe that left the field in sight against the tap right after it', () => {
+      // The keyboard shut, a window that can roll (a phone on its side): a finger rolls it, and
+      // within the rest a tap into the field. The keyboard comes and covers the field.
+      viewport.height = PAGE
+      touch('touchstart', 1)
+      moveVisiblePart(10)
+      touch('touchend', 0, FINGER_AT + SWIPE_PX)
+      vi.advanceTimersByTime(100)
+      touch('touchstart', 1)
+      touch('touchend', 0)
+      keyboardArrives()
+      atRest()
+      expect(document.activeElement).toBe(field)
+      expect(bar.scrollIntoView).toHaveBeenCalledTimes(1)
+    })
+
     it('counts the lower edge here: a tall field with its middle in sight still gets brought up', () => {
       const edge = WITH_KEYBOARD
       field.getBoundingClientRect = () => ({ top: edge - 90, bottom: edge + 60 })
@@ -451,6 +491,19 @@ describe('useFieldOutOfSight', () => {
     expect(inputs(offDocument)).toEqual(expect.arrayContaining(inputs(onDocument)))
     expect(inputs(offDocument)).toHaveLength(inputs(onDocument).length)
     expect(inputs(offViewport)).toEqual(inputs(onViewport))
+  })
+
+  it('hears no second finger either, when the first came down before the focus', () => {
+    touch('touchstart', 1)
+    field.focus()
+    openKeyboard()
+    const focus = vi.spyOn(around, 'focus')
+    touch('touchstart', 2, FINGER_AT, 1)
+    moveVisiblePart(150)
+    touch('touchend', 1, FINGER_AT + SWIPE_PX, 1)
+    touch('touchend', 0, FINGER_AT + SWIPE_PX, 0)
+    atRest()
+    expect(focus).not.toHaveBeenCalled()
   })
 
   it('starts afresh on every focus: a finger never heard lifting holds nothing back', () => {

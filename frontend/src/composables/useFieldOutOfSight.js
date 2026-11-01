@@ -53,7 +53,7 @@ export const useFieldOutOfSight = (field, bar) => {
   let viewport = null
   let fingers = 0
   let fieldWasAt = null
-  let fingerWasAt = null
+  const fingerCameDownAt = new Map()
   let fingerTravelled = false
   let swiped = false
   let viewportResized = false
@@ -88,8 +88,8 @@ export const useFieldOutOfSight = (field, bar) => {
   // What the finger before the next one did. Read at rest, not when it lifts: the visible part is
   // still catching up with a quick flick then.
   const settleFinger = () => {
-    if (fingerTravelled && Math.abs(fieldOnScreen() - fieldWasAt) > MOVED_PX) swiped = true
-    fieldWasAt = null
+    const moved = fieldWasAt !== null && Math.abs(fieldOnScreen() - fieldWasAt) > MOVED_PX
+    if (fingerTravelled && moved) swiped = true
     fingerTravelled = false
   }
 
@@ -119,15 +119,21 @@ export const useFieldOutOfSight = (field, bar) => {
   const onTouchStart = (event) => {
     if (event.touches.length === 1) {
       settleFinger()
+      // A swipe that left the field in sight is over: what moves it from now on is not its doing.
+      swiped = swiped && fieldIsOutOfSight()
       fieldWasAt = fieldOnScreen()
-      fingerWasAt = event.touches[0].screenY
+    }
+    for (const touch of Array.from(event.changedTouches)) {
+      fingerCameDownAt.set(touch.identifier, touch.screenY)
     }
     fingers = event.touches.length
   }
   const onTouchEnd = (event) => {
     fingers = event.touches.length
-    const travelled = Math.abs(event.changedTouches[0].screenY - fingerWasAt) > TAPPED_PX
-    if (fieldWasAt !== null && travelled) fingerTravelled = true
+    for (const touch of Array.from(event.changedTouches)) {
+      const cameDownAt = fingerCameDownAt.get(touch.identifier)
+      if (Math.abs(touch.screenY - cameDownAt) > TAPPED_PX) fingerTravelled = true
+    }
     lookAtRest()
   }
 
@@ -150,7 +156,6 @@ export const useFieldOutOfSight = (field, bar) => {
     if (!viewport) return
     fingers = 0
     fieldWasAt = null
-    fingerTravelled = false
     swiped = false
     viewportResized = false
     viewport.addEventListener('scroll', lookAtRest)

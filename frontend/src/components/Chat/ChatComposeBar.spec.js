@@ -3279,8 +3279,8 @@ describe('ChatComposeBar', () => {
     const swipeAway = () => {
       const touch = (type, fingers, screenY) => {
         const event = new Event(type, { bubbles: true })
-        event.touches = Array.from({ length: fingers }, () => ({ screenY }))
-        event.changedTouches = [{ screenY }]
+        event.touches = Array.from({ length: fingers }, () => ({ identifier: 0, screenY }))
+        event.changedTouches = [{ identifier: 0, screenY }]
         document.body.dispatchEvent(event)
       }
       touch('touchstart', 1, 400)
