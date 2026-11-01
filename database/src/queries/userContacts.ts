@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, isNull, like, sql } from 'drizzle-orm'
+import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -97,28 +97,6 @@ export async function dbRemoveUserContact(userContactId: number): Promise<number
     return rows[0] ? rows[0].affectedRows : 0
   }
   return 0
-}
-
-/**
- * The members who hold an address containing this text - under ANY of their rows, current,
- * earlier or pending - each id once. This is how the admin search finds somebody by the
- * address the GDT server still knows them by. Not a join: `User.userContacts` has no
- * usable join column (its inverse side is the `email_id` relation), so the ids are looked
- * up here and handed to the user query.
- *
- * `%` and `_` in the text act as wildcards, as they did in TypeORM's `Like`.
- */
-export async function dbFindUserIdsByEmailLike(searchCriteria: string): Promise<number[]> {
-  const rows = await drizzleDb()
-    .select({ userId: userContactsTable.userId })
-    .from(userContactsTable)
-    .where(
-      and(
-        like(userContactsTable.email, `%${searchCriteria}%`),
-        isNull(userContactsTable.deletedAt),
-      ),
-    )
-  return [...new Set(rows.map((row) => row.userId))]
 }
 
 /**
