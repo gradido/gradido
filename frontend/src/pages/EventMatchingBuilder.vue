@@ -177,18 +177,19 @@
 
 <script setup>
 /**
- * Event matching, the host's side: three fields, and out of them the link that puts an event
- * into its guests' accounts as their first entry on the map -- with its QR code and a
- * paragraph for the invitation.
+ * Project matching (in the code: event matching, its first name), the host's side: three fields,
+ * and out of them the link that puts a project into the accounts of its people as their first
+ * entry on the map -- with its QR code and a paragraph for the invitation.
  *
  * The page is public (a host needs no account) and stateless: what is typed here goes into
  * the link and nowhere else -- no request carries it, no store and no storage keeps it. The
- * link is the whole result. It is made for the entrance at `/event`, a page of its own that
+ * link is the whole result. It is made for the entrance at `/project`, a page of its own that
  * reads it from the address and is built beside this one. What the two agree on is written
  * down outside the code, as a contract, because a link that has gone out in a mail or onto a
  * slide has to keep working: the path, the four parameters `interest`, `details`, `remote`
- * and `v`, and the limits below. ⛔ Never rename one of them, and never add a fifth without
- * the entrance reading it.
+ * and `v`, and the limits below. ⛔ Never rename a parameter, and never add a fifth without
+ * the entrance reading it. A path gets a new name only beside the old one: the first links
+ * went out with `/event`, and that address stays (routes.js).
  */
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -205,7 +206,7 @@ const SENTENCE_MAX = 160
 const DETAILS_MAX = 300
 // The version of the link's form. A later one may add parameters, never give one a new meaning.
 const LINK_VERSION = '1'
-const CODE_FILE_NAME = 'gradido-event-matching.png'
+const CODE_FILE_NAME = 'gradido-project-matching.png'
 // What a QR code holds at the error level the coin in its middle needs (`qrCodeOptions`,
 // level H): 1273 bytes in its largest form, and the link is plain ASCII once it is encoded.
 // A letter outside ASCII takes six characters or more there, so a long text in Cyrillic or
@@ -238,8 +239,8 @@ const clip = (text, max) => {
   return last >= 0xd800 && last <= 0xdbff ? cut.slice(0, -1) : cut
 }
 
-// "Kongress " -- a suggestion, not a rule. With the word in front the sentence also reads
-// for a title like "Deutschland am Abgrund"; whoever writes "Training ..." instead gets that.
+// "Projekt " -- a suggestion, not a rule. With the word in front the sentence also reads
+// for a title like "Deutschland am Abgrund"; whoever writes "Verein ..." instead gets that.
 const suggestion = () => `${t('eventMatching.builder.sentenceDefault')} `
 // What the field was given, kept apart from what stands in it: the result below appears once
 // the host has written something of their own, and that is measured against this.
@@ -250,7 +251,7 @@ const remote = ref(true)
 
 // The suggestion follows the language for as long as nobody has written in the field. Once
 // somebody has, both stay: the field as it is, and `suggested` as the word that was given --
-// the bare word of the language before is nobody's event in the new language either.
+// the bare word of the language before is nobody's project in the new language either.
 watch(locale, () => {
   if (sentence.value !== suggested.value) return
   suggested.value = suggestion()
@@ -278,7 +279,7 @@ const wholeSentence = computed(() => {
 // configuration always names it; the address in the address bar stands in where it does not.
 const link = computed(() => {
   if (!ready.value) return ''
-  const address = new URL('/event', CONFIG.COMMUNITY_URL || window.location.origin)
+  const address = new URL('/project', CONFIG.COMMUNITY_URL || window.location.origin)
   address.searchParams.set('interest', interest.value)
   address.searchParams.set('details', explanation.value)
   address.searchParams.set('remote', remote.value ? '1' : '0')

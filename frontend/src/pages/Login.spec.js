@@ -333,7 +333,7 @@ describe('Login', () => {
     })
 
     /**
-     * An event link was opened in this browser before anybody was signed in (`/event?…`,
+     * An event link was opened in this browser before anybody was signed in (`/project?…`,
      * routes/guards.js): the store has kept the entry it offers, with the moment it was kept,
      * and the sign-in is where there is a member to offer it to -- on their entries, in the
      * form for a new one.
