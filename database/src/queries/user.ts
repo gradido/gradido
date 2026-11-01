@@ -1,4 +1,18 @@
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
@@ -558,6 +572,63 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
       return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
+}
+
+/**
+ * Whether a word turns up in a member: in the first name, the last name, ANY of their addresses
+ * or ANY name they own.
+ *
+ * Every address, current, earlier or pending, not only the current one: somebody arriving from
+ * the GDT server holds the address that was first, which may well be one the member has since
+ * changed. A deleted address does not count. Usernames the same way: the one somebody was known
+ * by counts as much as the current one. `exists` rather than a join, which would name a member
+ * once per matching row.
+ *
+ * `%` and `_` in the word act as wildcards.
+ */
+const memberHasWord = (word: string) => {
+  const pattern = `%${word}%`
+  return or(
+    like(usersTable.firstName, pattern),
+    like(usersTable.lastName, pattern),
+    exists(
+      drizzleDb()
+        .select({ id: userContactsTable.id })
+        .from(userContactsTable)
+        .where(
+          and(
+            eq(userContactsTable.userId, usersTable.id),
+            like(userContactsTable.email, pattern),
+            isNull(userContactsTable.deletedAt),
+          ),
+        ),
+    ),
+    exists(
+      drizzleDb()
+        .select({ id: userAliasesTable.id })
+        .from(userAliasesTable)
+        .where(
+          and(eq(userAliasesTable.userId, usersTable.id), like(userAliasesTable.alias, pattern)),
+        ),
+    ),
+  )
+}
+
+/**
+ * The admin's member search: the members in whom every one of these words turns up, each id once.
+ * One word may sit in the name and the next in an address, so "Michael Müller" finds "Michael E."
+ * "Müller", whichever word comes first. Deleted members are included; the user query decides who
+ * is shown.
+ *
+ * One statement however many words there are: `shared`'s `searchWords` caps them, and this is
+ * asked again with every key the moderator presses.
+ */
+export async function dbFindUserIdsWithEveryWord(words: string[]): Promise<number[]> {
+  const rows = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(and(...words.map(memberHasWord)))
+  return rows.map((row) => row.id)
 }
 
 /**
