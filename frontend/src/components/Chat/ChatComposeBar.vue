@@ -600,7 +600,7 @@ const replyingTitle = computed(() =>
 
 const root = ref(null)
 const field = ref(null)
-const fieldOutOfSight = useFieldOutOfSight(field)
+const fieldOutOfSight = useFieldOutOfSight(field, root)
 /**
  * What the member left in a bar for this conversation before this one (`draft`): the words, the
  * picture, the box where they set it themselves. This bar begins with it -- the window was

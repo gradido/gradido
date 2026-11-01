@@ -3277,15 +3277,16 @@ describe('ChatComposeBar', () => {
   describe('on Android, a swipe that takes the field out of sight', () => {
     const fieldOf = () => wrapper.find('[data-test="chat-compose-field"]')
     const swipeAway = () => {
-      const touch = (type, fingers) => {
+      const touch = (type, fingers, screenY) => {
         const event = new Event(type, { bubbles: true })
-        event.touches = Array.from({ length: fingers }, () => ({}))
+        event.touches = Array.from({ length: fingers }, () => ({ screenY }))
+        event.changedTouches = [{ screenY }]
         document.body.dispatchEvent(event)
       }
-      touch('touchstart', 1)
+      touch('touchstart', 1, 400)
       window.visualViewport.offsetTop = 0
       window.visualViewport.dispatchEvent(new Event('scroll'))
-      touch('touchend', 0)
+      touch('touchend', 0, 530)
       vi.advanceTimersByTime(1000)
     }
     /** The bar inside what stands around it in the app: a window that can hold the focus. */
@@ -3313,6 +3314,20 @@ describe('ChatComposeBar', () => {
       vi.useRealTimers()
       vi.unstubAllGlobals()
       vi.restoreAllMocks()
+    })
+
+    it('brings this whole bar up when the keyboard left the field covered', () => {
+      mountInWindow()
+      const bar = wrapper.find('[data-test="chat-compose"]').element
+      bar.scrollIntoView = vi.fn()
+      fieldOf().element.focus()
+
+      window.visualViewport.offsetTop = 0
+      window.visualViewport.dispatchEvent(new Event('resize'))
+      vi.advanceTimersByTime(1000)
+
+      expect(bar.scrollIntoView).toHaveBeenCalledTimes(1)
+      expect(document.activeElement).toBe(fieldOf().element)
     })
 
     it('leaves the field, and the words stay in it', async () => {
