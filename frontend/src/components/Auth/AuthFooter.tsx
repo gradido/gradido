@@ -33,7 +33,7 @@ export const AuthFooter = defineComponent({
                 {/* A page of this wallet, so it opens in place. Only where the route exists:
                     routes.js registers it with the same flag. */}
                 {eventMatching ? (
-                  <BNavItem to='/event-matching' data-test='footer-event-matching'>
+                  <BNavItem to='/project-matching' data-test='footer-event-matching'>
                     {t('footer.eventMatching')}
                   </BNavItem>
                 ) : null}

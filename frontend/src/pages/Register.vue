@@ -7,7 +7,7 @@
       <p v-if="referrerAlias" class="alert gradido-border-radius" data-test="register-shown-by">
         {{ $t('site.signup.shownBy', { name: referrerAlias }) }}
       </p>
-      <!-- An event link offered an entry in this browser within the last hour (`/event?…`,
+      <!-- An event link offered an entry in this browser within the last hour (`/project?…`,
            Event-Matching): said here once more, because it goes along with the registration
            and becomes the newcomer's first entry once they have confirmed their address. The
            words are the link's -- text, never markup, and never handed to a message as one. -->
@@ -145,7 +145,7 @@ const guarantorExpiredOnArrival = hasGuarantorCode && !guarantorActive
 const guarantorFailed = ref(false)
 const guarantorLimited = ref(false)
 
-// What an event link offered in this browser before anybody was signed in (`/event?…`,
+// What an event link offered in this browser before anybody was signed in (`/project?…`,
 // routes/guards.js): the entry "I love ‹summary›", kept in the store for an hour
 // (keptEventMatchingEntry). The registration takes it along, and the server notes it at the
 // account it opens -- it becomes an entry when the address is confirmed, also where the mail
