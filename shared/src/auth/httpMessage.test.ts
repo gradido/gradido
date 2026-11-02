@@ -66,8 +66,8 @@ describe('verifyHttpMessage', () => {
 
   it('refuses another nonce', async () => {
     const result = verifyHttpMessage(await signed(response), 'b'.repeat(32))
-    expect(result).rejects.toBeInstanceOf(InvalidResponseSignatureError)
-    expect(result).rejects.toThrow('nonce is not the one of the request')
+    await expect(result).rejects.toBeInstanceOf(InvalidResponseSignatureError)
+    await expect(result).rejects.toThrow('nonce is not the one of the request')
   })
 
   it('refuses another digest', async () => {
@@ -75,21 +75,21 @@ describe('verifyHttpMessage', () => {
     const fields = message.fields.map((field) =>
       field.name === 'content-digest' ? { ...field, value: 'blake2b-256=:BBBB:' } : field,
     )
-    expect(verifyHttpMessage({ ...message, fields })).rejects.toMatchObject({
+    await expect(verifyHttpMessage({ ...message, fields })).rejects.toMatchObject({
       code: 'VerificationFailed',
     })
   })
 
   it('refuses another path', async () => {
     const message = await signed(request)
-    expect(
+    await expect(
       verifyHttpMessage({ ...message, targetUri: targetUri.replace('route', 'other') }),
     ).rejects.toMatchObject({ code: 'VerificationFailed' })
   })
 
   it('refuses a response to another request', async () => {
     const message = await signed(response)
-    expect(
+    await expect(
       verifyHttpMessage(
         {
           ...message,
@@ -117,7 +117,7 @@ describe('verifyHttpMessage', () => {
       signer,
     })
     const headers = appendSignature(new Headers(), signature)
-    expect(
+    await expect(
       verifyHttpMessage({
         ...request,
         fields: [...fieldsWithBody, ...[...headers].map(([name, value]) => ({ name, value }))],
@@ -138,7 +138,7 @@ describe('verifyHttpMessage', () => {
       signer,
     })
     const headers = appendSignature(new Headers(), signature)
-    expect(
+    await expect(
       verifyHttpMessage(
         {
           ...response,
@@ -161,7 +161,7 @@ describe('verifyHttpMessage', () => {
       signer: { algorithm: 'ed25519', sign: (data) => other.sign(data) },
     })
     const headers = appendSignature(new Headers(), signature)
-    expect(
+    await expect(
       verifyHttpMessage({
         ...request,
         fields: [...fieldsWithBody, ...[...headers].map(([name, value]) => ({ name, value }))],
@@ -176,7 +176,7 @@ describe('verifyHttpMessage', () => {
       signer: { algorithm: 'ed25519', sign: () => new Uint8Array(64) },
     })
     const headers = appendSignature(new Headers(), signature)
-    expect(
+    await expect(
       verifyHttpMessage({
         ...request,
         fields: [...fieldsWithBody, ...[...headers].map(([name, value]) => ({ name, value }))],
@@ -185,13 +185,13 @@ describe('verifyHttpMessage', () => {
   })
 
   it('refuses a message without signature', async () => {
-    expect(verifyHttpMessage(request)).rejects.toMatchObject({ code: 'MissingField' })
+    await expect(verifyHttpMessage(request)).rejects.toMatchObject({ code: 'MissingField' })
   })
 
   it('refuses a signature made too long ago', async () => {
     setSystemTime(new Date(Date.now() - 10 * 1000))
     const message = await signed(request)
     setSystemTime()
-    expect(verifyHttpMessage(message)).rejects.toMatchObject({ code: 'PolicyViolation' })
+    await expect(verifyHttpMessage(message)).rejects.toMatchObject({ code: 'PolicyViolation' })
   })
 })

@@ -255,6 +255,15 @@ export async function dbFindUserByGradidoId(
 ): Promise<Result<UserSelect, DBNotFoundError | DBDuplicateEntryError>> {
   let rows = await drizzleDb().select().from(usersTable).where(eq(usersTable.gradidoId, gradidoId))
   if (rows.length === 1) {
+    if (communityUuid && rows[0].communityUuid !== communityUuid) {
+      return {
+        success: false,
+        error: new DBNotFoundError(
+          'users',
+          `gradido_id = ${gradidoId} AND communityUuid = ${communityUuid}`,
+        ),
+      }
+    }
     return { success: true, value: rows[0] }
   }
   if (!rows.length) {

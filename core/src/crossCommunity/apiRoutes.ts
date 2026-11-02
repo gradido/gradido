@@ -4,14 +4,12 @@ import {
   getHomeCommunityDrizzle,
   UserSelect,
 } from 'database'
-import { Context, Elysia, StatusMap, status } from 'elysia'
-import { ElysiaCustomStatusResponse } from 'elysia/error'
+import { Context, Elysia, ElysiaCustomStatusResponse, StatusMap, status } from 'elysia'
 import { FieldOccurrence } from 'http-message-sig'
 import { getLogger } from 'log4js'
 import {
   AppContext,
   communityInfoWireSchema,
-  FEDERATION_REQUEST_TIMEOUT_MS,
   Result,
   signatureNonceSchema,
   signHttpMessage,
@@ -32,10 +30,7 @@ import {
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.crossCommunity.apiRoutes`)
 
-export const apiRoutesV1 = new Elysia({
-  prefix: 'v1',
-  serve: { idleTimeout: FEDERATION_REQUEST_TIMEOUT_MS },
-})
+export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
   // public routes: the answer is signed with the home community's Ed25519 key (RFC 9421), with the
   // exchangeId of the request as nonce, and carries that exchangeId in its body too
   .get(

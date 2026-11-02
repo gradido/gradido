@@ -17,8 +17,7 @@ export const avatarDateSchema = v.pipe(
     return (
       !Number.isNaN(time) &&
       time >= TRANSFER_AVATAR_DATE_EARLIEST.getTime() &&
-      time <= Date.now() + TRANSFER_AVATAR_DATE_MAX_AHEAD_MS &&
-      new Date(time).toISOString() === value
+      time <= Date.now() + TRANSFER_AVATAR_DATE_MAX_AHEAD_MS
     )
   }),
   v.transform((value) => new Date(value)),

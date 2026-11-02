@@ -8,6 +8,7 @@ import { AppDatabase } from 'database'
 import { type AnyElysia, Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
 import { Logger } from 'log4js'
+import { FEDERATION_REQUEST_TIMEOUT_S } from 'shared'
 import { DataSource } from 'typeorm'
 import { CONFIG } from '@/config'
 // graphql
@@ -56,7 +57,9 @@ export const createServer = async (
   const apiPath = `/api/${CONFIG.FEDERATION_API}`
 
   // Elysia Server
-  const app = new Elysia({ serve: { maxRequestBodySize: MAX_REQUEST_BODY_SIZE } })
+  const app = new Elysia({
+    serve: { maxRequestBodySize: MAX_REQUEST_BODY_SIZE, idleTimeout: FEDERATION_REQUEST_TIMEOUT_S },
+  })
     // cors
     .use(cors)
     // Helmet helps secure Elysia apps by setting HTTP response headers.

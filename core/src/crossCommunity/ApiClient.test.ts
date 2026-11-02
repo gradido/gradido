@@ -356,14 +356,14 @@ describe('ApiClient.postprocessResponse', () => {
 
   it('refuses a body whose digest does not match', async () => {
     const answer = await signedAnswer(box(), 'application/octet-stream', nonce, request, box())
-    expect(client().post(answer, request, nonce, true)).rejects.toBeInstanceOf(
+    await expect(client().post(answer, request, nonce, true)).rejects.toBeInstanceOf(
       InvalidResponseSignatureError,
     )
   })
 
   it('refuses another nonce', async () => {
     const answer = await signedAnswer(box(), 'application/octet-stream', 'd'.repeat(32), request)
-    expect(client().post(answer, request, nonce, true)).rejects.toThrow(
+    await expect(client().post(answer, request, nonce, true)).rejects.toThrow(
       'nonce is not the one of the request',
     )
   })
@@ -372,12 +372,12 @@ describe('ApiClient.postprocessResponse', () => {
     const answer = await signedAnswer(box(), 'application/octet-stream', nonce, request)
     const other = new Client('http://peer/', Ed25519KeyPair.generate())
     other.publicEncryptionKey = new X25519KeyPair(recipientKeys.publicKey)
-    expect(other.post(answer, request, nonce, true)).rejects.toThrow('Wrong signer')
+    await expect(other.post(answer, request, nonce, true)).rejects.toThrow('Wrong signer')
   })
 
   it('fails for a box it cannot decrypt', async () => {
     const empty = new Uint8Array(3)
     const answer = await signedAnswer(empty, 'application/octet-stream', nonce, request)
-    expect(client().post(answer, request, nonce, true)).rejects.toBeInstanceOf(Error)
+    await expect(client().post(answer, request, nonce, true)).rejects.toBeInstanceOf(Error)
   })
 })

@@ -291,15 +291,15 @@ The uuid is an identifier, not a secret. It is part of every user address, of tr
 1. The *backend* (`validateCommunities`) reads in batches of 100 the announced entries of `federated_communities` that are not verified since their last announcement.
 2. For each entry of a batch, all in parallel, it sends one request to the federation-module at the announced url:
 
-   `GET https://<foreign.url>/peer-api/v1/communityInfos?nonce=<128 random bits as hex>`
+   `GET https://<foreign.url>/peer-api/v1/communityInfos?exchangeId=<128 random bits as hex>`
 
    A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up for this round. A batch therefore takes as long as its slowest community, at most the timeout: a round over 1000 communities takes a few seconds, and no more than about 50 seconds however many of them do not answer.
 3. The federation-module of the foreign community answers with its community infos (uuid, name, description, creation date, public key, public JWT key, hiero topic id) and signs the answer with the Ed25519 key of its home community as an HTTP Message Signature ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421)):
    * covered components: `@status`, `content-type`, `content-digest`, and of the request answered `@method;req` and `@path;req`
-   * the body is covered through `content-digest` (SHA-256, [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530))
-   * signature parameters: `keyid` (the public key as hex, the same key the DHT announces), `alg="ed25519"` and the `nonce` of the request
+   * the body is covered through `content-digest` (BLAKE2b-256, in the format of [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530))
+   * signature parameters: `keyid` (the public key as hex, the same key the DHT announces), `alg="ed25519"`, `created` and, as `nonce`, the `exchangeId` of the request
 
-   Only an answer that passed the response schema is signed. A request without a nonce of exactly 32 hex characters, and an answer that does not fit the schema, get a 422 without signature. Error answers carry no signature and no data; the backend never takes community infos from them.
+   Only an answer that passed the response schema is signed. A request without an `exchangeId` of exactly 32 hex characters, and an answer that does not fit the schema, get a 422 without signature. Error answers carry no signature and no data; the backend never takes community infos from them.
 4. The backend accepts the answer only if
    * it carries exactly one signature, and that one names the **announced** public key as `keyid` and verifies against it, not against a key the answer names,
    * the nonce is the one of its own request,
@@ -316,13 +316,13 @@ The uuid is an identifier, not a secret. It is part of every user address, of tr
    * a known community answering with another public key or another url is not changed, the difference is logged. How an admin confirms a legitimate change of url or key is not designed yet; until then such a community keeps its stored url and key,
    * the unique keys of `communities` (`uuid_key`, `public_key_key`, `url_key`) refuse a new community that claims the uuid, key or url of another one; the refusal is logged and the next community is processed.
 
-The nonce makes an answer fresh: it answers this one request and no other, so a recorded answer cannot be replayed. No `created` or `expires` parameter is used, so the clocks of the two community servers do not have to agree. Binding method and path keeps a signed answer of another route of the same community from passing as this one. Scheme, host and port are not covered, because a proxy in front of the federation-module changes them.
+The nonce makes an answer fresh: it answers this one request and no other, so a recorded answer cannot be replayed. Every signature also carries `created`, and it is accepted only for `FEDERATION_REQUEST_TIMEOUT_S` (5 seconds) after that, with 1 second of clock skew. The clocks of the community servers therefore have to run as exactly as possible: activating a time synchronization service is part of the server setup. Binding method and path keeps a signed answer of another route of the same community from passing as this one. Scheme, host and port are not covered, because a proxy in front of the federation-module changes them.
 
 The nonce is the only part of the signed data the requesting side chooses. It is restricted to 32 hex characters and placed as a parameter into a signature base built by RFC 9421, which always starts with `"@status":`. A requester therefore cannot make the community sign bytes of its choice, nor anything that could be mistaken for another format signed with the same key: the endpoint is no signing oracle.
 
 The public JWT key arrives inside the signed answer. It used to be fetched from the url without any signature, so whoever answered at the url could hand out a key of its own; now it is vouched for by the key the DHT announced.
 
-The implementation is `shared/src/crypto/signedResponse.ts` (on top of [http-message-sig](https://www.npmjs.com/package/http-message-sig)), used by the `communityInfos` route in `core/src/crossCommunity/apiRoutes.ts` and by `ApiClient` beside it.
+The implementation is `shared/src/auth/httpMessage.ts` (on top of [http-message-sig](https://www.npmjs.com/package/http-message-sig)), used by the `communityInfos` route in `core/src/crossCommunity/apiRoutes.ts` and by `ApiClient` beside it.
 
 #### Why the former handshake was replaced
 
