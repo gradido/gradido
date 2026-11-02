@@ -1,9 +1,8 @@
 // AI-GENERATED — not an architecture reference
 
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase, transactionLinkFactory } from 'database'
+import { AppDatabase, creationFactory, nMonthsBefore, transactionLinkFactory } from 'database'
 import { CONFIG } from '@/config'
-import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
@@ -35,7 +34,7 @@ beforeAll(async () => {
   await userFactory(testEnv, bibiBloxberg)
   // the creation is only confirmed by a moderator, and the factory looks for this one
   await userFactory(testEnv, peterLustig)
-  await creationFactory(testEnv, {
+  await creationFactory({
     email: 'bibi@bloxberg.de',
     amount: 1000,
     memo: 'Herzlich Willkommen bei Gradido!',

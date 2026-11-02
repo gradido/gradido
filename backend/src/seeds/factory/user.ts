@@ -7,8 +7,8 @@ import { UserInterface } from '@/seeds/users/UserInterface'
 const SEED_USER_PASSWORD = 'Aa12345_'
 
 export const userFactory = async (_client: any, user: UserInterface): Promise<User> => {
-  const homeCom = await writeHomeCommunityEntry()
-  const dbUser = await userFactoryDb(user, homeCom)
+  await writeHomeCommunityEntry()
+  const dbUser = await userFactoryDb(user)
 
   if (user.emailChecked) {
     const passwortHash = await encryptPassword(dbUser, SEED_USER_PASSWORD)

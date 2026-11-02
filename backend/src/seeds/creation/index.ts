@@ -1,7 +1,7 @@
 export { creations } from 'database'
 
 /*
-import { nMonthsBefore } from '@/seeds/factory/creation'
+import { nMonthsBefore } from 'database'
 
 import { CreationInterface } from './CreationInterface'
 

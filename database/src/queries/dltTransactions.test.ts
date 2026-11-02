@@ -3,7 +3,6 @@ import { LedgerAnchor } from 'shared-native'
 import { clearDatabase } from '../../migration/clear'
 import {
   Contribution as DbContribution,
-  Transaction as DbTransaction,
   User as DbUser,
   DltTransactionType,
   TransactionTypeId,
@@ -25,7 +24,7 @@ const appDB = AppDatabase.getInstance()
 let bibi: DbUser
 let peter: DbUser
 let contribution: DbContribution
-let transferTransactions: DbTransaction[] = []
+let transferTransactions: { id: number }[] = []
 let transactionLink: { id: number }
 
 beforeAll(async () => {

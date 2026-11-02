@@ -11,6 +11,7 @@ import {
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  creationFactory,
   DBInsertFailed,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
@@ -28,7 +29,6 @@ import { reencodeImage } from 'shared-native'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import { deleteTransactionLink, login, redeemTransactionLink } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -343,7 +343,7 @@ beforeAll(async () => {
   await userFactory(testEnv, peterLustig)
   bibi = await userFactory(testEnv, bibiBloxberg)
   await userFactory(testEnv, bobBaumeister)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 
 afterAll(async () => {

@@ -5,9 +5,10 @@ import { GradidoUnit } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { TransactionTypeId } from '../enum'
 import { transactionReadsStartTable, transactionReadsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
-import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
+import { createTransaction, foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -56,6 +57,16 @@ beforeAll(async () => {
     return { send: send.id, receive: receive.id }
   }
   // Dates only go forward: a booking takes its balance from the member's last one.
+  // Peter sends more than he ever receives here.
+  await createTransaction(
+    GradidoUnit.fromNumber(1000),
+    'to send from',
+    peter,
+    bibi,
+    TransactionTypeId.CREATION,
+    day(0),
+    day(0),
+  )
   fromSarah = (
     await foreignReceive(
       bibi,

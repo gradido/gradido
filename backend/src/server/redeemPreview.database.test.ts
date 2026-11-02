@@ -10,6 +10,7 @@ import {
 } from '@test/helpers'
 import {
   AppDatabase,
+  creationFactory,
   TransactionLink as DbTransactionLink,
   thankYouGreetingPicturesTable,
   User,
@@ -18,7 +19,6 @@ import { and, eq } from 'drizzle-orm'
 import { gql } from 'graphql-tag'
 import { CONFIG } from '@/config'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   createTransactionLink,
@@ -183,7 +183,7 @@ beforeAll(async () => {
   // The admin has to exist for creationFactory.
   await userFactory(testEnv, peterLustig)
   bibi = await userFactory(testEnv, bibiBloxberg)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 
 afterAll(async () => {

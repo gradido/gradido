@@ -4,6 +4,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { processXComCompleteTransaction } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   Transaction as DbTransaction,
   dbInsertTransactionPassOn,
   dbSelectReceivedTransferOfUser,
@@ -15,7 +16,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import { login, sendCoins } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -117,8 +117,8 @@ beforeAll(async () => {
   peter = await userFactory(testEnv, peterLustig)
   bibi = await userFactory(testEnv, bibiBloxberg)
   raeuber = await userFactory(testEnv, raeuberHotzenplotz)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'raeuber@hotzenplotz.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'raeuber@hotzenplotz.de')!)
 
   await loginAs('raeuber@hotzenplotz.de')
   const thanked = await send('bibi@bloxberg.de', THANKS_MEMO)

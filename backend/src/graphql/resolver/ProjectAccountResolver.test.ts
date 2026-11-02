@@ -2,13 +2,12 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { sendCreationRightRequestSupportEmail } from 'core'
-import { AppDatabase, Event as DbEvent, User as DbUser, EventType } from 'database'
+import { AppDatabase, creationFactory, Event as DbEvent, User as DbUser, EventType } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { RESTRICTED_FOR_PROJECT_ACCOUNT } from '@/auth/RESTRICTED_FOR_PROJECT_ACCOUNT'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { USER_RIGHTS } from '@/auth/USER_RIGHTS'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContribution,
@@ -146,7 +145,7 @@ describe('every existing account is a person who may create', () => {
 
 describe('declaring a project account', () => {
   it('is refused while the account has open contributions', async () => {
-    await creationFactory(testEnv, {
+    await creationFactory({
       email: 'raeuber@hotzenplotz.de',
       amount: 50,
       memo: 'Im Wald aufgeraeumt und Holz gesammelt',

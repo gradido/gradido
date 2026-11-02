@@ -1,49 +1,120 @@
-import { Decay, fullName, GradidoUnit } from 'shared'
-import { Transaction, User } from '../../entity'
+import { Decay, GradidoUnit } from 'shared'
+import { drizzleDb } from '../../AppDatabase'
+import { User } from '../../entity'
 import { TransactionTypeId } from '../../enum'
-import { getLastTransaction } from '../../queries'
+import {
+  dbInsertTransactions,
+  dbSelectLastTransaction,
+  dbUpdateLinkedTransactionId,
+} from '../../queries/transactions'
+import { TransactionInsert } from '../../schemas/drizzle.schema'
+import { SeedUserRef, seedUserRefOf } from './user'
 
+/**
+ * A transfer between two members of this community: a SEND row with the amount negative and a
+ * RECEIVE row with it positive, as the server books them, that name each other. Each is built on
+ * the last booking of its member.
+ *
+ * ⚠️ Seed a member's bookings in CHRONOLOGICAL order, see foreignReceive. And the sender needs the
+ * amount on that date, after decay: a seed that spends what nobody has throws here, not at some
+ * later booking of theirs, where decay refuses the negative balance without saying why.
+ */
 export async function transferGradidos(
   sendUser: User,
   recipientUser: User,
   amount: GradidoUnit,
   memo: string,
   balanceDate: Date,
-  store: boolean = true,
-): Promise<[Transaction, Transaction]> {
-  // send transaction
-  const sendResolver = createTransaction(
-    amount,
-    memo,
-    sendUser,
-    recipientUser,
-    TransactionTypeId.SEND,
-    balanceDate,
-    undefined,
-    undefined,
-    store,
-  )
+): Promise<[SeedTransfer, SeedTransfer]> {
+  return drizzleDb().transaction(async (tx) => {
+    const sender = seedUserRefOf(sendUser)
+    const recipient = seedUserRefOf(recipientUser)
+    const send = bookingRow(
+      amount.negated(),
+      memo,
+      sender,
+      recipient,
+      TransactionTypeId.SEND,
+      balanceDate,
+      await dbSelectLastTransaction(sendUser.id, tx),
+    )
+    if ((send.balance as GradidoUnit).isNegative()) {
+      throw new Error(
+        `${sender.name} cannot send ${amount.toString(2)} GDD on ${balanceDate.toISOString()}: ` +
+          `the balance would be ${(send.balance as GradidoUnit).toString(2)}`,
+      )
+    }
+    const receive = bookingRow(
+      amount,
+      memo,
+      recipient,
+      sender,
+      TransactionTypeId.RECEIVE,
+      balanceDate,
+      await dbSelectLastTransaction(recipientUser.id, tx),
+    )
+    const [sendId, receiveId] = await dbInsertTransactions([send, receive], tx)
+    await dbUpdateLinkedTransactionId(sendId, receiveId, tx)
+    await dbUpdateLinkedTransactionId(receiveId, sendId, tx)
+    return [
+      { ...send, id: sendId, linkedTransactionId: receiveId },
+      { ...receive, id: receiveId, linkedTransactionId: sendId },
+    ]
+  })
+}
 
-  // receive transaction
-  const receiveResolver = createTransaction(
-    amount,
-    memo,
-    recipientUser,
-    sendUser,
-    TransactionTypeId.RECEIVE,
-    balanceDate,
-    undefined,
-    undefined,
-    store,
-  )
+/** A row of a transfer as transferGradidos writes it, with both ids known. */
+export type SeedTransfer = TransactionInsert & { id: number; linkedTransactionId: number }
 
-  const [tx1, tx2] = await Promise.all([sendResolver, receiveResolver])
-  if (store) {
-    tx1.linkedTransactionId = tx2.id
-    tx2.linkedTransactionId = tx1.id
-    return await Promise.all([tx1.save(), tx2.save()])
+/** What a booking builds on: the last one of its member. */
+export interface LastBooking {
+  id: number
+  balance: GradidoUnit | null
+  balanceDate: Date
+}
+
+/** One `transactions` row, built on the member's last booking. */
+export function bookingRow(
+  amount: GradidoUnit,
+  memo: string,
+  user: SeedUserRef,
+  // the counterparty as the row names them: a member of another community has no id here, and
+  // not always a name
+  linkedUser: Omit<SeedUserRef, 'id' | 'name'> & { id: number | null; name: string | null },
+  type: TransactionTypeId,
+  balanceDate: Date,
+  lastBooking: LastBooking | null,
+  creationDate?: Date | null,
+): TransactionInsert {
+  let newBalance = new GradidoUnit(0n)
+  let decay: Decay | null = null
+  if (lastBooking) {
+    // the column is nullable, a booking of these factories always has a balance
+    decay = lastBooking.balance!.calculateDecay(lastBooking.balanceDate, balanceDate)
+    newBalance = decay.balance
   }
-  return [tx1, tx2]
+  const row: TransactionInsert = {
+    typeId: type,
+    memo,
+    userId: user.id,
+    userGradidoId: user.gradidoId,
+    userName: user.name,
+    userCommunityUuid: user.communityUuid,
+    linkedUserId: linkedUser.id,
+    linkedUserGradidoId: linkedUser.gradidoId,
+    linkedUserName: linkedUser.name,
+    linkedUserCommunityUuid: linkedUser.communityUuid,
+    previous: lastBooking ? lastBooking.id : null,
+    amount,
+    balance: newBalance.add(amount),
+    balanceDate,
+    decay: decay ? decay.decay : new GradidoUnit(0n),
+    decayStart: decay ? decay.start : null,
+  }
+  if (creationDate) {
+    row.creationDate = creationDate
+  }
+  return row
 }
 
 /**
@@ -51,9 +122,7 @@ export async function transferGradidos(
  * user id, the uuid pair and the name as it arrived on the row.
  *
  * `transferGradidos` cannot do this -- it takes two local `User` entities and copies the
- * counterparty's id from the second. Written as its own function rather than by widening
- * `createTransaction`, so that the balance path every existing test seed depends on stays
- * untouched.
+ * counterparty's id from the second.
  *
  * ⚠️ Seed a member's bookings in CHRONOLOGICAL order, as with every factory here: the
  * balance comes from their last booking and the decay is computed between the two dates,
@@ -77,35 +146,25 @@ export async function foreignReceive(
   },
   balanceDate: Date,
   amount: GradidoUnit = new GradidoUnit(10000n),
-): Promise<Transaction> {
-  const lastTransaction = await getLastTransaction(user.id)
-  let newBalance = new GradidoUnit(0n)
-  let decay: Decay | null = null
-  if (lastTransaction) {
-    decay = lastTransaction.balance.calculateDecay(lastTransaction.balanceDate, balanceDate)
-    newBalance = decay.balance
-  }
-  newBalance = newBalance.add(amount)
-
-  const transaction = new Transaction()
-  transaction.typeId = TransactionTypeId.RECEIVE
-  transaction.memo = 'from afar'
-  transaction.userId = user.id
-  transaction.userGradidoID = user.gradidoID
-  transaction.userName = fullName(user.firstName, user.lastName)
-  transaction.userCommunityUuid = user.communityUuid
-  transaction.linkedUserId = counterparty.linkedUserId ?? null
-  transaction.linkedUserCommunityUuid = counterparty.communityUuid
-  transaction.linkedUserGradidoID = counterparty.gradidoID
-  transaction.linkedUserName = counterparty.name
-  transaction.previous = lastTransaction ? lastTransaction.id : null
-  transaction.amount = amount
-  transaction.balance = newBalance
-  transaction.balanceDate = balanceDate
-  transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
-  transaction.decayStart = decay ? decay.start : null
-
-  return transaction.save()
+): Promise<TransactionInsert & { id: number }> {
+  return drizzleDb().transaction(async (tx) => {
+    const row = bookingRow(
+      amount,
+      'from afar',
+      seedUserRefOf(user),
+      {
+        id: counterparty.linkedUserId ?? null,
+        gradidoId: counterparty.gradidoID,
+        communityUuid: counterparty.communityUuid,
+        name: counterparty.name,
+      },
+      TransactionTypeId.RECEIVE,
+      balanceDate,
+      await dbSelectLastTransaction(user.id, tx),
+    )
+    const [id] = await dbInsertTransactions([row], tx)
+    return { ...row, id }
+  })
 }
 
 export async function createTransaction(
@@ -116,43 +175,17 @@ export async function createTransaction(
   type: TransactionTypeId,
   balanceDate: Date,
   creationDate?: Date,
-  id?: number,
-  store: boolean = true,
-): Promise<Transaction> {
-  const lastTransaction = await getLastTransaction(user.id)
-  // balance and decay calculation
-  let newBalance = new GradidoUnit(0n)
-  let decay: Decay | null = null
-  if (lastTransaction) {
-    const lastTransactionBalance = lastTransaction.balance
-    decay = lastTransactionBalance.calculateDecay(lastTransaction.balanceDate, balanceDate)
-    newBalance = decay.balance
-  }
-  newBalance = newBalance.add(amount)
-
-  const transaction = new Transaction()
-  if (id) {
-    transaction.id = id
-  }
-  transaction.typeId = type
-  transaction.memo = memo
-  transaction.userId = user.id
-  transaction.userGradidoID = user.gradidoID
-  transaction.userName = fullName(user.firstName, user.lastName)
-  transaction.userCommunityUuid = user.communityUuid
-  transaction.linkedUserId = linkedUser.id
-  transaction.linkedUserGradidoID = linkedUser.gradidoID
-  transaction.linkedUserName = fullName(linkedUser.firstName, linkedUser.lastName)
-  transaction.linkedUserCommunityUuid = linkedUser.communityUuid
-  transaction.previous = lastTransaction ? lastTransaction.id : null
-  transaction.amount = amount
-  if (creationDate) {
-    transaction.creationDate = creationDate
-  }
-  transaction.balance = newBalance
-  transaction.balanceDate = balanceDate
-  transaction.decay = decay ? decay.decay : new GradidoUnit(0n)
-  transaction.decayStart = decay ? decay.start : null
-
-  return store ? transaction.save() : transaction
+): Promise<TransactionInsert & { id: number }> {
+  const row = bookingRow(
+    amount,
+    memo,
+    seedUserRefOf(user),
+    seedUserRefOf(linkedUser),
+    type,
+    balanceDate,
+    await dbSelectLastTransaction(user.id),
+    creationDate,
+  )
+  const [id] = await dbInsertTransactions([row])
+  return { ...row, id }
 }

@@ -11,6 +11,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { sendTransactionLinkRedeemedEmail } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   ContributionLink as DbContributionLink,
   Event as DbEvent,
   dbInsertEvent,
@@ -25,7 +26,6 @@ import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -1011,7 +1011,7 @@ describe('TransactionLinkResolver', () => {
           // bibi needs GDDs
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
 
-          await creationFactory(testEnv, bibisCreation!)
+          await creationFactory(bibisCreation!)
           // bibis transaktion links
           const bibisTransaktionLinks = transactionLinks.filter(
             (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',

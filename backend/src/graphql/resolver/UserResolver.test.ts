@@ -31,6 +31,7 @@ import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
+  CommunitiesSelect,
   contributionLinkFactory,
   Community as DbCommunity,
   Event as DbEvent,
@@ -38,6 +39,7 @@ import {
   dbInsertMatchingEntry,
   dbInsertUserAlias,
   transactionLinkFactory as dbTransactionLinkFactory,
+  dbUpdateHomeCommunity,
   userFactory as dbUserFactory,
   drizzleDb,
   EventType,
@@ -408,7 +410,7 @@ describe('UserResolver', () => {
       const PASSWORD = 'Aa12345_'
       let bob: User
       let hawking: User
-      let homeCom: DbCommunity
+      let homeCom: CommunitiesSelect
 
       const code = (userId = bob.id, now = new Date()): string =>
         mintGuarantorCode(userId, homeCom.communityUuid as string, now).code
@@ -703,7 +705,7 @@ describe('UserResolver', () => {
       let peter: User
       let garrick: User
       let hawking: User
-      let homeCom: DbCommunity
+      let homeCom: CommunitiesSelect
 
       const register = (email: string, extra: Record<string, unknown>) =>
         mutate({
@@ -724,16 +726,13 @@ describe('UserResolver', () => {
       // Accounts a member vouches for already, as a table or a link left them.
       const earlierGuests = async (member: User, count: number, tag: string) => {
         for (let n = 0; n < count; n++) {
-          const guest = await dbUserFactory(
-            {
-              alias: `${tag}${n}`,
-              email: `${tag}${n}@earlier.de`,
-              firstName: 'Earlier',
-              lastName: 'Guest',
-              emailChecked: false,
-            },
-            homeCom,
-          )
+          const guest = await dbUserFactory({
+            alias: `${tag}${n}`,
+            email: `${tag}${n}@earlier.de`,
+            firstName: 'Earlier',
+            lastName: 'Guest',
+            emailChecked: false,
+          })
           await User.update(guest.id, {
             referrerId: member.id,
             passwordEncryptionType: PasswordEncryptionType.GRADIDO_ID,
@@ -1132,7 +1131,7 @@ describe('UserResolver', () => {
     // pool's size is read from the driver rather than assumed.
     describe('with only one connection left in the pool', () => {
       let bob: User
-      let homeCom: DbCommunity
+      let homeCom: CommunitiesSelect
 
       beforeAll(async () => {
         await cleanDB()
@@ -3989,7 +3988,7 @@ describe('UserResolver', () => {
   // (Einstellungen › Nachrichten, Bernd, 28.09.2026). Stored from updateUserInfos, handed to its
   // owner, and to nobody else: `user()` hands out any member by alias to anyone logged in.
   describe('the switch for the transfers in the conversations', () => {
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let owner: User
 
     beforeAll(async () => {
@@ -4064,7 +4063,7 @@ describe('UserResolver', () => {
   // of members who never allowed the GMS would be readable by everyone.
   describe('aboutMe visibility', () => {
     const ABOUT_ME_TEXT = 'Ich fliege gern und helfe beim Zaubern.'
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let author: User
 
     beforeAll(async () => {
@@ -4137,7 +4136,7 @@ describe('UserResolver', () => {
     // Two places, so that one member's answer cannot pass for the other's.
     const BIBIS_PLACE = { longitude: 9.573224, latitude: 49.679437 }
     const BOBS_PLACE = { longitude: 13.404954, latitude: 52.520008 }
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let bibi: User
     let bob: User
     let openLinkCode: string
@@ -4276,7 +4275,7 @@ describe('UserResolver', () => {
     const BIBIS_PLACE = { longitude: 9.573224, latitude: 49.679437 }
     const originalGms = CONFIG.GMS_ACTIVE
     const originalMatching = CONFIG.MATCHING_ACTIVE
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let bibi: User
     let bob: User
     let openLinkCode: string
@@ -4537,7 +4536,7 @@ describe('UserResolver', () => {
       gmsPublishName: PublishNameType[row.gmsPublishName],
       humhubPublishName: PublishNameType[row.humhubPublishName],
     })
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let owner: User
     let linkCode: string
 
@@ -4680,7 +4679,7 @@ describe('UserResolver', () => {
   // Until 11.09.2026 every member held VIEW_USER_CONTACT, so `user()` handed anybody's
   // address to anyone logged in.
   describe('emailContact visibility', () => {
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let bibi: User
 
     beforeAll(async () => {
@@ -4747,7 +4746,7 @@ describe('UserResolver', () => {
     const JPEG_FULL_BASE64 = TEST_AVATAR_FULL_BASE64
     const bothPictures = { avatarSmall: JPEG_BASE64, avatarFull: JPEG_FULL_BASE64 }
 
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let owner: User
     let requester: User
 
@@ -5652,9 +5651,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       member = await userFactory(testEnv, bibiBloxberg)
       // The member is already published over there, and has one live entry with them.
@@ -5803,9 +5801,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       member = await userFactory(testEnv, bibiBloxberg)
       await User.update(
@@ -5871,9 +5868,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       member = await userFactory(testEnv, bibiBloxberg)
       await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
@@ -5940,9 +5936,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       // On the map, with one live entry, and noted as held by the GMS.
       member = await userFactory(testEnv, bibiBloxberg)
@@ -6072,9 +6067,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       member = await userFactory(testEnv, bibiBloxberg)
       await User.update({ id: member.id }, { gmsAllowed: false, gmsRegistered: false })
@@ -6161,9 +6155,8 @@ describe('UserResolver', () => {
 
     beforeAll(async () => {
       await cleanDB()
-      const homeCom = await writeHomeCommunityEntry()
-      homeCom.gmsApiKey = 'gms-test-key'
-      await DbCommunity.save(homeCom)
+      await writeHomeCommunityEntry()
+      await dbUpdateHomeCommunity({ gmsApiKey: 'gms-test-key' })
 
       // Exactly who the invitation is for: not taking part, never sent to the GMS.
       const member = await userFactory(testEnv, bibiBloxberg)

@@ -1,93 +1,120 @@
 // AI-GENERATED — not an architecture reference
-import { Decay, GradidoUnit } from 'shared'
-import { DrizzleTransaction } from '../../AppDatabase'
-import { Contribution, Transaction, User } from '../../entity'
+import { fullName, GradidoUnit } from 'shared'
+import { DrizzleTransaction, drizzleDb } from '../../AppDatabase'
+import { User } from '../../entity'
 import { ContributionStatus, ContributionType, TransactionTypeId } from '../../enum'
-import { findUserByIdentifier } from '../../queries'
 import { dbInsertContributions } from '../../queries/contributions'
-import { dbInsertTransactions } from '../../queries/transactions'
+import { dbInsertTransactions, dbSelectLastTransaction } from '../../queries/transactions'
+import { dbFindUserByEmail } from '../../queries/user'
 import { ContributionsInsert, TransactionInsert } from '../../schemas/drizzle.schema'
 import { CreationInterface } from '../creation/CreationInterface'
-import { createTransaction } from './transaction'
-import { SeedUserRef } from './user'
+import { bookingRow, LastBooking } from './transaction'
+import { SeedUserRef, seedUserRefOf } from './user'
 
 export function nMonthsBefore(date: Date, months = 1): string {
   return new Date(date.getFullYear(), date.getMonth() - months, 1).toISOString()
 }
 
+/**
+ * One creation as a member files it, confirmed by the moderator if the creation says so.
+ *
+ * ⚠️ Seed a member's bookings in CHRONOLOGICAL order, see foreignReceive.
+ */
 export async function creationFactory(
   creation: CreationInterface,
   user?: User | null,
   moderatorUser?: User | null,
-): Promise<Contribution> {
-  if (!user) {
-    user = await findUserByIdentifier(creation.email)
-  }
-  if (!user) {
-    throw new Error(`User ${creation.email} not found`)
-  }
-  const contribution = await createContribution(creation, user)
+): Promise<ContributionsInsert & { id: number }> {
+  const member = await seedUserRefByEmail(creation.email, user, `User ${creation.email} not found`)
+  const contribution = contributionRow(creation, member)
   if (creation.confirmed) {
-    if (!moderatorUser) {
-      moderatorUser = await findUserByIdentifier('peter@lustig.de')
-    }
-    if (!moderatorUser) {
-      throw new Error('Moderator user not found')
-    }
-    await confirmTransaction(creation, contribution, moderatorUser)
+    const moderator = await seedUserRefByEmail(
+      'peter@lustig.de',
+      moderatorUser,
+      'Moderator user not found',
+    )
+    const balanceDate = getBalanceDate(creation)
+    return drizzleDb().transaction(async (tx) => {
+      const booking = creationBookingRow(
+        creation,
+        contribution,
+        balanceDate,
+        member,
+        moderator,
+        await dbSelectLastTransaction(member.id, tx),
+      )
+      const [transactionId] = await dbInsertTransactions([booking], tx)
+      confirmContribution(contribution, balanceDate, moderator, transactionId)
+      const [id] = await dbInsertContributions([contribution], tx)
+      return { ...contribution, id }
+    })
   }
-  return contribution
+  const [id] = await dbInsertContributions([contribution])
+  return { ...contribution, id }
 }
 
-export async function createContribution(
-  creation: CreationInterface,
-  user: User,
-  store: boolean = true,
-): Promise<Contribution> {
-  const contribution = new Contribution()
-  contribution.user = user
-  contribution.userId = user.id
-  contribution.amount = GradidoUnit.fromNumber(creation.amount)
-  contribution.createdAt = new Date()
-  contribution.contributionDate = getContributionDate(creation)
-  contribution.memo = creation.memo
-  contribution.contributionType = ContributionType.USER
-  contribution.contributionStatus = ContributionStatus.PENDING
-
-  return store ? contribution.save() : contribution
+async function seedUserRefByEmail(
+  email: string,
+  user: User | null | undefined,
+  notFound: string,
+): Promise<SeedUserRef> {
+  if (user) {
+    return seedUserRefOf(user)
+  }
+  const found = await dbFindUserByEmail(email)
+  if (!found) {
+    throw new Error(notFound)
+  }
+  return {
+    id: found.id,
+    gradidoId: found.gradidoId,
+    communityUuid: found.communityUuid,
+    name: fullName(found.firstName ?? '', found.lastName ?? ''),
+  }
 }
 
-export async function confirmTransaction(
+function contributionRow(creation: CreationInterface, user: SeedUserRef): ContributionsInsert {
+  return {
+    userId: user.id,
+    amount: GradidoUnit.fromNumber(creation.amount),
+    createdAt: new Date(),
+    contributionDate: getContributionDate(creation),
+    memo: creation.memo,
+    type: ContributionType.USER,
+    status: ContributionStatus.PENDING,
+  }
+}
+
+function creationBookingRow(
   creation: CreationInterface,
-  contribution: Contribution,
-  moderatorUser: User,
-  transactionId?: number,
-  store: boolean = true,
-): Promise<{ contribution: Contribution; transaction: Transaction }> {
-  const balanceDate = getBalanceDate(creation)
-  const transaction = await createTransaction(
-    contribution.amount,
-    contribution.memo,
-    contribution.user,
-    moderatorUser,
+  contribution: ContributionsInsert,
+  balanceDate: Date,
+  user: SeedUserRef,
+  moderator: SeedUserRef,
+  lastBooking: LastBooking | null,
+): TransactionInsert {
+  return bookingRow(
+    GradidoUnit.fromNumber(creation.amount),
+    creation.memo,
+    user,
+    moderator,
     TransactionTypeId.CREATION,
     balanceDate,
+    lastBooking,
     contribution.contributionDate,
-    transactionId,
-    store,
   )
+}
+
+function confirmContribution(
+  contribution: ContributionsInsert,
+  balanceDate: Date,
+  moderator: SeedUserRef,
+  transactionId: number,
+): void {
   contribution.confirmedAt = balanceDate
-  contribution.confirmedBy = moderatorUser.id
-  contribution.transactionId = transaction.id
-  contribution.transaction = transaction
-  contribution.contributionStatus = ContributionStatus.CONFIRMED
-
-  if (store) {
-    await contribution.save()
-    await transaction.save()
-  }
-
-  return { contribution, transaction }
+  contribution.confirmedBy = moderator.id
+  contribution.transactionId = transactionId
+  contribution.status = ContributionStatus.CONFIRMED
 }
 
 function getContributionDate(creation: CreationInterface): Date {
@@ -127,7 +154,7 @@ export function sortCreationsByBalanceDate(creations: CreationInterface[]): Date
  */
 export interface SeedBookingState {
   nextTransactionId: number
-  lastBookings: Map<number, { id: number; balance: GradidoUnit; balanceDate: Date }>
+  lastBookings: Map<number, LastBooking>
 }
 
 /** For an empty database: no transaction yet, and every balance starts from nothing. */
@@ -162,53 +189,24 @@ export function buildSeedCreationRows(
     if (!user) {
       throw new Error(`User ${creation.email} not found`)
     }
-    const amount = GradidoUnit.fromNumber(creation.amount)
-    const contribution: ContributionsInsert = {
-      userId: user.id,
-      amount,
-      createdAt: new Date(),
-      contributionDate: getContributionDate(creation),
-      memo: creation.memo,
-      type: ContributionType.USER,
-      status: ContributionStatus.PENDING,
-    }
+    const contribution = contributionRow(creation, user)
     if (creation.confirmed) {
-      const lastBooking = state.lastBookings.get(user.id)
-      let balance = new GradidoUnit(0n)
-      let decay: Decay | null = null
-      if (lastBooking) {
-        decay = lastBooking.balance.calculateDecay(lastBooking.balanceDate, balanceDate)
-        balance = decay.balance
-      }
-      balance = balance.add(amount)
-
-      const transactionId = state.nextTransactionId++
-      rows.transactions.push({
-        id: transactionId,
-        typeId: TransactionTypeId.CREATION,
-        memo: creation.memo,
-        userId: user.id,
-        userGradidoId: user.gradidoId,
-        userName: user.name,
-        userCommunityUuid: user.communityUuid,
-        linkedUserId: moderator.id,
-        linkedUserGradidoId: moderator.gradidoId,
-        linkedUserName: moderator.name,
-        linkedUserCommunityUuid: moderator.communityUuid,
-        previous: lastBooking ? lastBooking.id : null,
-        amount,
-        creationDate: contribution.contributionDate,
-        balance,
+      const booking = creationBookingRow(
+        creation,
+        contribution,
         balanceDate,
-        decay: decay ? decay.decay : new GradidoUnit(0n),
-        decayStart: decay ? decay.start : null,
+        user,
+        moderator,
+        state.lastBookings.get(user.id) ?? null,
+      )
+      const transactionId = state.nextTransactionId++
+      rows.transactions.push({ ...booking, id: transactionId })
+      state.lastBookings.set(user.id, {
+        id: transactionId,
+        balance: booking.balance as GradidoUnit,
+        balanceDate,
       })
-      state.lastBookings.set(user.id, { id: transactionId, balance, balanceDate })
-
-      contribution.confirmedAt = balanceDate
-      contribution.confirmedBy = moderator.id
-      contribution.transactionId = transactionId
-      contribution.status = ContributionStatus.CONFIRMED
+      confirmContribution(contribution, balanceDate, moderator, transactionId)
     }
     rows.contributions.push(contribution)
   }

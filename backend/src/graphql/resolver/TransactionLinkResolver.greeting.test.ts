@@ -3,6 +3,7 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  creationFactory,
   DBInsertFailed,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
@@ -17,7 +18,6 @@ import { GraphQLError } from 'graphql'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import { createTransactionLink, deleteTransactionLink, login } from '@/seeds/graphql/mutations'
 import {
@@ -110,7 +110,7 @@ beforeAll(async () => {
   // The admin has to exist for creationFactory.
   await userFactory(testEnv, peterLustig)
   bibi = await userFactory(testEnv, bibiBloxberg)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 
 afterAll(async () => {

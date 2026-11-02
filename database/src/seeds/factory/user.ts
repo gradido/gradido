@@ -156,6 +156,15 @@ export interface SeedUserRef {
   name: string
 }
 
+export function seedUserRefOf(user: User): SeedUserRef {
+  return {
+    id: user.id,
+    gradidoId: user.gradidoID,
+    communityUuid: user.communityUuid,
+    name: fullName(user.firstName, user.lastName),
+  }
+}
+
 /** The rows of one batch of seed users. */
 export interface SeedUserRows {
   users: SeedUserRow[]
