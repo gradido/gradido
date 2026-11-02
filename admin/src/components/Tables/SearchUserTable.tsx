@@ -15,7 +15,6 @@ import { useAdminStore } from '@/store/useAdminStore'
 import IPhCaretDown from '~icons/ph/caret-down'
 import IPhCaretUpFill from '~icons/ph/caret-up-fill'
 import circleSlash from '../../assets/icons/circle-slash.png'
-import elopageFavicon from '../../assets/icons/elopage_favicon.png'
 import envelope from '../../assets/icons/envelope.png'
 import person from '../../assets/icons/person.png'
 import { ChangeUserRoleFormular, type Role } from '../ChangeUserRoleFormular'
@@ -37,7 +36,6 @@ export type MemberRow = {
   createdAt?: string
   emailChecked?: boolean
   emailConfirmationSend?: string | null
-  hasElopage?: boolean
   enabled?: boolean
   deletedAt?: string | Date | null
   role?: Role | null
@@ -275,22 +273,19 @@ export const SearchUserTable = defineComponent({
 
     /**
      * A member's state in words (Bernd, 23.10.2026, AO-006): deleted -- or else an address not
-     * confirmed and no purchase at Elopage, either or both -- and active where none of them is.
-     * The search delivers no `enabled`. Badges on the card a member is on a phone; at the desk
-     * the same words stand beside their symbols (statusCell).
+     * confirmed -- and active where neither is. The search delivers no `enabled`. Badges on the
+     * card a member is on a phone; at the desk the same words stand beside their symbols
+     * (statusCell). "No purchase at Elopage" was a third state until 29.10.2026: nothing a
+     * moderator does hangs on it, so it went, and the search no longer counts purchases.
      */
     const statusBadges = (item: MemberRow): { word: string; tone: string }[] => {
       if (item.deletedAt) {
         return [{ word: t('deleted'), tone: 'text-bg-danger' }]
       }
-      const badges: { word: string; tone: string }[] = []
       if (!item.emailChecked) {
-        badges.push({ word: t('userStatus.emailUnconfirmed'), tone: 'text-bg-warning' })
+        return [{ word: t('userStatus.emailUnconfirmed'), tone: 'text-bg-warning' }]
       }
-      if (!item.hasElopage) {
-        badges.push({ word: t('userStatus.noElopage'), tone: 'text-bg-secondary' })
-      }
-      return badges.length > 0 ? badges : [{ word: t('enabled'), tone: 'text-bg-success' }]
+      return [{ word: t('enabled'), tone: 'text-bg-success' }]
     }
 
     /**
@@ -298,12 +293,11 @@ export const SearchUserTable = defineComponent({
      *
      * The words stand from 1200px on. Narrower, the column they need made the others break:
      * every row grew by one or two lines (at 768, 800 and 992 to 1024px), and the table reached
-     * past the window (51px at 950px, 14px at 992px, where it does not without them). Below
-     * 1200px the cell is the one of before, to the pixel -- hence the wrappers and margins as
-     * they were (with the words, half the margin behind them). From 1200px on the words still
-     * cost a line in the rows or in the head at some widths up to 1440px. Measured in the built
-     * bundle with a 36-character address, 23.10.2026. A screen reader hears the word from the
-     * symbol's `alt` on every width, so the word beside it is hidden from it.
+     * past the window (51px at 950px, 14px at 992px, where it does not without them). Measured
+     * in the built bundle with a 36-character address, 23.10.2026, while the cell still carried
+     * the Elopage symbol beside the envelope. The margins are the ones of before (with the
+     * words, half the margin behind them). A screen reader hears the word from the symbol's
+     * `alt` on every width, so the word beside it is hidden from it.
      */
     const statusWord = (word: string) => (
       <small class='ms-2 d-none d-xl-inline' aria-hidden='true'>
@@ -329,37 +323,20 @@ export const SearchUserTable = defineComponent({
             {statusWord(t('deleted'))}
           </span>
         ) : null}
-        {!row.item.deletedAt ? (
-          <span class='d-flex gap-2'>
-            {!row.item.emailChecked ? (
-              <span class='d-inline-flex align-items-center me-3 me-xl-2'>
-                <div
-                  class='rounded-circle position-relative'
-                  style='background-color: #dc3545; width: 40px; height: 40px'
-                >
-                  <img
-                    src={envelope}
-                    alt={t('userStatus.emailUnconfirmed')}
-                    style='transform: translate(30%, 30%); width: 25px; height: 25px'
-                    class='position-absolute'
-                  />
-                </div>
-                {statusWord(t('userStatus.emailUnconfirmed'))}
-              </span>
-            ) : null}
-            <div>
-              {!row.item.hasElopage ? (
-                <span class='d-inline-flex align-items-center me-3 me-xl-2'>
-                  <img
-                    class='rounded-circle bg-red-dark'
-                    src={elopageFavicon}
-                    alt={t('userStatus.noElopage')}
-                    style='background-color: #dc3545; width: 40px; height: 40px'
-                  />
-                  {statusWord(t('userStatus.noElopage'))}
-                </span>
-              ) : null}
+        {!row.item.deletedAt && !row.item.emailChecked ? (
+          <span class='d-inline-flex align-items-center me-3 me-xl-2'>
+            <div
+              class='rounded-circle position-relative'
+              style='background-color: #dc3545; width: 40px; height: 40px'
+            >
+              <img
+                src={envelope}
+                alt={t('userStatus.emailUnconfirmed')}
+                style='transform: translate(30%, 30%); width: 25px; height: 25px'
+                class='position-absolute'
+              />
             </div>
+            {statusWord(t('userStatus.emailUnconfirmed'))}
           </span>
         ) : null}
         {/* The caret points up while the row is open. It asked whether `detailsShowing` was

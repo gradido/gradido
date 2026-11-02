@@ -93,6 +93,7 @@ describe('NavBar', () => {
       routes: [
         { path: '/', name: 'home', component: Page },
         { path: '/user', name: 'user', component: Page },
+        { path: '/statistic', name: 'statistic', component: Page },
         { path: '/creation-confirm', name: 'creation-confirm', component: Page },
         { path: '/contribution-links', name: 'contribution-links', component: Page },
         { path: '/federation', name: 'federation', component: Page },
@@ -158,7 +159,7 @@ describe('NavBar', () => {
 
     it('gathers what informs under one menu', () => {
       expect(menu('information').find('.dropdown-toggle').text()).toBe('navbar.information')
-      expect(menuLinks('information')).toEqual(['/federation', HELP])
+      expect(menuLinks('information')).toEqual(['/federation', '/statistic', HELP])
     })
 
     it('gathers the settings under one menu', () => {
@@ -190,6 +191,16 @@ describe('NavBar', () => {
       expect(help.find('.navbar-external').exists()).toBe(true)
       // Nothing else leaves the interface.
       expect(wrapper.findAll('[target="_blank"]')).toHaveLength(2)
+    })
+
+    it('marks the statistic under its menu', async () => {
+      route.current.name = 'statistic'
+      await wrapper.vm.$nextTick()
+      expect(menu('information').find('.dropdown-toggle').classes()).toContain('active')
+      const marked = menu('information')
+        .findAll('.dropdown-item.active')
+        .map((item) => item.attributes('href'))
+      expect(marked).toEqual(['/statistic'])
     })
 
     describe('on a page of a group', () => {
@@ -229,9 +240,9 @@ describe('NavBar', () => {
         // they cannot do — create, change, delete — is hidden on the page itself. It is the
         // one settings page they see, so it stands in the bar rather than alone in a menu.
         expect(barLinks()).toEqual(['/user', '/creation-confirm', '/contribution-links'])
-        expect(menuLinks('information')).toEqual([HELP])
+        expect(menuLinks('information')).toEqual(['/statistic', HELP])
         expect(menu('settings').exists()).toBe(false)
-        expect(listed()).toEqual(['navbar.information', HELP])
+        expect(listed()).toEqual(['navbar.information', '/statistic', HELP])
       })
     })
 
@@ -243,9 +254,9 @@ describe('NavBar', () => {
 
       it('leaves them out just the same', () => {
         expect(barLinks()).toEqual(['/user', '/creation-confirm', '/contribution-links'])
-        expect(menuLinks('information')).toEqual([HELP])
+        expect(menuLinks('information')).toEqual(['/statistic', HELP])
         expect(menu('settings').exists()).toBe(false)
-        expect(listed()).toEqual(['navbar.information', HELP])
+        expect(listed()).toEqual(['navbar.information', '/statistic', HELP])
       })
     })
   })

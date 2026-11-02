@@ -64,21 +64,25 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
     ]
   : []
 
-// Event matching: the page on which a host builds the link that puts their event into their
-// guests' accounts as a first matching entry. Public, because a host needs no account for
-// it, and in the layout of the sign-in pages, whose footer links to it.
+// Project matching ("Projekt-Matching"; in the code it keeps its first name, event matching,
+// which reaches into the database and the API): the page on which a host builds the link that
+// puts their project into the accounts of its people as a first matching entry. Public, because
+// a host needs no account for it, and in the layout of the sign-in pages, whose footer links to
+// it. Its first address leads on to this one, for whoever kept it in a bookmark or a mail, and
+// so does the German spelling, which is what the page's German name makes people type.
 //
 // Registered only with MATCHING_ACTIVE, for the reason given above: the link it builds ends
 // in a matching entry, so on an instance without matching the page would build links that
 // lead nowhere. The footer link hangs on the same flag (AuthFooter.tsx).
 //
-// And the entrance of such a link, `community-host/event?interest=…`: it offers whoever opens
+// And the entrance of such a link, `community-host/project?interest=…`: it offers whoever opens
 // it one entry for the matching. Public for the same reason as the Gradido address -- it
 // arrives out of a mail or off a slide, in a browser that is mostly not signed in. What the
 // link says is read by a guard (routes/guards.js, by the name of this record): with a session
 // running it leads on to the member's entries and this page is never shown. ⛔ The path and
 // the names of its parameters are a promise (utils/eventMatchingLink): a link that stands in a
-// mail has to work for good.
+// mail has to work for good. So `/event`, the address the first links went out with, stays this
+// same page beside the new one, with its name and its meta, and is never taken away.
 //
 // queryStaysBehind: the query of that address is what the link offers, in somebody else's
 // words. The links of the bar above the page -- "register", "sign in" -- hand a page's query on
@@ -87,12 +91,21 @@ const matchingRoutes = CONFIG.MATCHING_ACTIVE
 const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
   ? [
       {
-        path: '/event-matching',
+        path: '/project-matching',
         component: () => import('@/pages/EventMatchingBuilder'),
       },
       {
+        path: '/event-matching',
+        redirect: '/project-matching',
+      },
+      {
+        path: '/projekt-matching',
+        redirect: '/project-matching',
+      },
+      {
         name: 'EventMatchingLanding',
-        path: '/event',
+        path: '/project',
+        alias: '/event',
         component: () => import('@/pages/EventMatchingLanding'),
         meta: { queryStaysBehind: true },
       },

@@ -68,6 +68,28 @@
     min-height: 2.75rem;
   }
 
+  /* The tabs of a page: the symbol above the word and a number at the corner, so that they stand
+     in one line (Bernd, 23.10.2026, AO-003). Measured that day with the five of the creation page:
+     in German, English, Italian and Turkish from 320px on, in all languages but Russian and Greek
+     from 390px on. The page's own tabs only: the form in an opened row has tabs of its own
+     (message, note, text), and they stand outside these. */
+  .page-tabs .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.1;
+  }
+
+  .page-tabs .nav-link svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
   /* A pager that shows `‹`, three numbers and `›` here (PHONE_PAGER_LIMIT). Below 576px
      bootstrap-vue-next hides the number beside the first or the last one (`bv-d-sm-down-none`,
      meant for the page next to an ellipsis, and these pagers have none): at page 1 it would read

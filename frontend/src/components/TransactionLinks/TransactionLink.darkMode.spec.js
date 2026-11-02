@@ -120,6 +120,36 @@ describe('TransactionLink in dark mode', () => {
 })
 
 /**
+ * "Per E-Mail" is the one real link in the menu of a row, and links are green in the dark stylesheet.
+ * Measured in the built wallet: rgb(61, 184, 95) among neighbours of rgb(228, 228, 228). The dark
+ * rule for links has a `:not`, which the weighing above refuses, so it is written out: 0,2,1.
+ */
+describe('the entry for a mail in the menu', () => {
+  const unscoped = () => {
+    const { descriptor } = parse(readFileSync(COMPONENT, 'utf8'), { filename: COMPONENT })
+    return withoutComments(descriptor.styles.find((style) => !style.scoped).content)
+  }
+  const OWN = '.dark-mode .transaction-link .transaction-link-menu a.dropdown-item'
+
+  it('takes the colour of its neighbours', () => {
+    const [body] = unscoped()
+      .split(OWN)[1]
+      .match(/\{[^}]*\}/)
+
+    expect(body).toMatch(/color:\s*var\(--text\)/)
+    expect(darkCss()).toMatch(/\.dark-mode \.dropdown-item\s*\{\s*color:\s*var\(--text\)/)
+  })
+
+  it('outweighs the rule that makes links green', () => {
+    expect(darkCss()).toMatch(/\.dark-mode a:not\(\.btn\)\s*\{\s*color:\s*var\(--link\)/)
+    const [ids, classes] = specificity(OWN)
+
+    expect([ids, classes]).toEqual([0, 4])
+    expect(classes).toBeGreaterThan(2)
+  })
+})
+
+/**
  * The memo fades with its row, in both modes (Bernd, 23.09.2026). It has a colour of its own for
  * an open link, and a colour set on an element beats the one its row hands down, however
  * !important that was: in an expired row the memo stayed at --bs-secondary-color, darker than the

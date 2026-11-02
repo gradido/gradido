@@ -3818,6 +3818,47 @@ describe('UserResolver', () => {
           })
         })
 
+        // Every word of the text has to turn up in a member. What a word finds is the query's
+        // own test (dbFindUserIdsWithEveryWord); here it reaches the list, its count and filters.
+        describe('by several words', () => {
+          const searched = async (text: string, filters: object | null = null) => {
+            const res: any = await query({
+              query: searchUsers,
+              variables: { ...variablesWithoutTextAndFilters, query: text, filters },
+            })
+            expect(res.errors).toBeUndefined()
+            return res.data.searchUsers
+          }
+
+          it.each(['peter lustig', 'lustig peter', '  lustig   peter '])(
+            'finds the one member both words turn up in: "%s"',
+            async (text) => {
+              expect(await searched(text)).toEqual({ userCount: 1, userList: [allUsers.peter] })
+            },
+          )
+
+          it('finds nobody where one of the words turns up in somebody else only', async () => {
+            expect(await searched('peter hawking')).toEqual({ userCount: 0, userList: [] })
+          })
+
+          it('keeps the filters', async () => {
+            const onlyDeleted = { byActivated: null, byDeleted: true }
+            const notDeleted = { byActivated: null, byDeleted: false }
+            expect(await searched('stephen hawking', onlyDeleted)).toEqual({
+              userCount: 1,
+              userList: [allUsers.stephen],
+            })
+            expect(await searched('stephen hawking', notDeleted)).toEqual({
+              userCount: 0,
+              userList: [],
+            })
+          })
+
+          it('reads a text of nothing but spaces as no text', async () => {
+            expect((await searched('   ')).userCount).toBe(4)
+          })
+        })
+
         // Every name is the member's own row in user_aliases, the current one and the ones
         // they held before, and the search reads them all.
         describe('by username', () => {

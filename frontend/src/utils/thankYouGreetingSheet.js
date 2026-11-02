@@ -166,7 +166,7 @@ const SLOGAN_LEADING = 1.3
 // Code and sentences stand in the middle of the room above the foot, lifted as the front is.
 const BACK_LIFT = mm(5.5)
 
-const loadImage = (source) =>
+export const loadImage = (source) =>
   new Promise((resolve, reject) => {
     const image = new Image()
     image.onload = () => resolve(image)

@@ -347,17 +347,37 @@ describe('the phone rules of the contribution page and the member search', () =>
     expect(desk).not.toContain('row-details-card')
   })
 
-  it('sets the tab symbols above their words in CreationConfirm.css, and has no overlay any more', () => {
-    const css = read(STYLES.page)
-    const phone = phoneRules(css)
-
+  it('sets the tab symbols above their words in App.css, for both pages that have such tabs', () => {
     expect(
-      ruleFor(phone, '.creation-confirm .creation-tabs .nav-link')?.declarations,
+      ruleFor(phoneRules(read(STYLES.app)), '.page-tabs .nav-link')?.declarations,
     ).toMatchObject({
       display: 'flex',
       'flex-direction': 'column',
       'align-items': 'center',
     })
+    for (const page of ['CreationConfirm.tsx', 'UserSearch.tsx']) {
+      expect(readFileSync(join(here, 'pages', page), 'utf8')).toMatch(
+        /<BTabs[^>]*class='[^']*\bpage-tabs\b/,
+      )
+    }
+  })
+
+  // Bernd, 30.10.2026: toasts and the notifications of the system lie over the × of a field that
+  // reaches the right edge. This one ends before them; on a phone it is narrower anyway.
+  it('ends the search field of the member search before the messages at the top right', () => {
+    const css = read(join(here, 'pages', 'UserSearch.module.css'))
+    expect(ruleFor(rules(outsideMedia(css)), '.searchField')?.declarations).toEqual({
+      'max-width': '36rem',
+    })
+    expect(readFileSync(join(here, 'pages', 'UserSearch.tsx'), 'utf8')).toMatch(
+      /<UserQuery[^>]*classes\.searchField/,
+    )
+  })
+
+  it('keeps the number at the corner of its tab in CreationConfirm.css, and has no overlay any more', () => {
+    const css = read(STYLES.page)
+    const phone = phoneRules(css)
+
     expect(ruleFor(phone, '.creation-confirm .tab-badge')?.declarations).toMatchObject({
       position: 'absolute',
     })
@@ -463,19 +483,16 @@ describe('the phone rules of the contribution page and the member search', () =>
   it('makes the open Crea chat a sheet over the whole width on a phone, and keeps the box at the desk', () => {
     const css = read(STYLES.creaChat)
     const phone = phoneRules(css)
+    // From the corner, where it stands at the desk as well, over the whole width.
     expect(ruleFor(phone, '.chatContainer')?.declarations).toEqual({
       left: '0',
-      right: '0',
-      bottom: '0',
       'font-size': '0.875rem',
     })
-    // The button that opens it keeps its place, 20px from the corner.
-    expect(ruleFor(phone, '.chatToggleButton')?.declarations).toEqual({
-      bottom: '20px',
-      right: '20px',
-    })
+    // The button that opens it stands in the corner here too.
+    expect(ruleFor(phone, '.chatToggleButton')).toBeUndefined()
     expect(ruleFor(phone, '.chatWindow')?.declarations).toMatchObject({
       width: '100%',
+      margin: '0',
       'border-radius': '0.5rem 0.5rem 0 0',
     })
     // vh first, dvh second: an engine without dvh drops the second line and keeps the first.
@@ -494,8 +511,8 @@ describe('the phone rules of the contribution page and the member search', () =>
     const desk = rules(outsideMedia(css))
     expect(ruleFor(desk, '.chatContainer')?.declarations).toMatchObject({
       position: 'fixed',
-      bottom: '20px',
-      right: '20px',
+      bottom: '0',
+      right: '0',
       'font-size': '12px',
     })
     // The button that opens it stands absolutely, at every width: the container, which spans the
@@ -509,6 +526,7 @@ describe('the phone rules of the contribution page and the member search', () =>
     expect(ruleFor(desk, '.chatWindow')?.declarations).toMatchObject({
       width: '550px',
       height: '480px',
+      margin: '0 20px 20px 0',
     })
     expect(ruleFor(desk, '.chatClearButton')?.declarations).toEqual({ 'font-size': '12px' })
     expect(ruleFor(desk, '.copyClipboardButton')?.declarations).toMatchObject({
@@ -516,6 +534,26 @@ describe('the phone rules of the contribution page and the member search', () =>
       top: '20%',
       right: '-12%',
     })
+  })
+
+  // Bernd, 31.10.2026: the Crea button two thirds as large, in the very corner of the window, and
+  // the last button of a row clear of it at the desk, at that button's height as well.
+  it('holds the last column of the table clear of the Crea button in the corner', () => {
+    const chat = rules(outsideMedia(read(STYLES.creaChat)))
+    const button = ruleFor(chat, '.bgCreaImg')?.declarations
+    expect(button).toMatchObject({ width: '84px', height: '48px' })
+    // Still as tall as a finger needs: this is the one size it has on a phone as well.
+    expect(Number.parseInt(button.height, 10)).toBeGreaterThanOrEqual(44)
+
+    const lastCell = ruleFor(
+      rules(outsideMedia(read(STYLES.table))),
+      '.open-creations-table.beside-crea-chat > table > tbody > tr > td:last-child:not([colspan])',
+    )
+    // The page's own edge counts: `p-3`, Bootstrap's 16px.
+    const layout = readFileSync(join(here, 'layouts', 'defaultLayout.tsx'), 'utf8')
+    expect(layout).toContain("class='wrapper p-3'")
+    const fromTheEdge = Number.parseInt(lastCell?.declarations['padding-right'], 10) + 16
+    expect(fromTheEdge - Number.parseInt(button.width, 10)).toBe(12)
   })
 
   it('lets a row of the creation groups wrap on a phone, and keeps the row of before at the desk', () => {

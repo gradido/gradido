@@ -27,7 +27,7 @@ const mountFooter = async (locale = 'de') => {
     history: createMemoryHistory(),
     routes: [
       { path: '/login', component: page },
-      { path: '/event-matching', component: page },
+      { path: '/project-matching', component: page },
     ],
   })
   router.push('/login')
@@ -59,14 +59,14 @@ describe('AuthFooter', () => {
     expect(privacy.attributes('target')).toBe('_blank')
   })
 
-  describe('event matching', () => {
+  describe('project matching', () => {
     it('stands third, after the privacy policy', async () => {
       const { wrapper } = await mountFooter()
 
       expect(footerLinks(wrapper).map((link) => link.text())).toEqual([
         de.footer.imprint,
         de.footer.privacy_policy,
-        'Event-Matching',
+        'Projekt-Matching',
       ])
     })
 
@@ -75,7 +75,7 @@ describe('AuthFooter', () => {
       const { wrapper } = await mountFooter()
       const link = wrapper.find('[data-test="footer-event-matching"] a')
 
-      expect(link.attributes('href')).toBe('/event-matching')
+      expect(link.attributes('href')).toBe('/project-matching')
       expect(link.attributes('target')).toBeUndefined()
     })
 
@@ -85,7 +85,7 @@ describe('AuthFooter', () => {
       await wrapper.find('[data-test="footer-event-matching"] a').trigger('click')
       await flushPromises()
 
-      expect(router.currentRoute.value.path).toBe('/event-matching')
+      expect(router.currentRoute.value.path).toBe('/project-matching')
     })
 
     // Three links take a second line on most screens. The list is then as wide as the page;
@@ -125,9 +125,9 @@ describe('AuthFooter', () => {
         ),
       )
 
-      expect(names.de).toBe('Event-Matching')
+      expect(names.de).toBe('Projekt-Matching')
       for (const language of ['el', 'en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'tr']) {
-        expect(names[language], language).toBe('Event Matching')
+        expect(names[language], language).toBe('Project Matching')
       }
     })
   })

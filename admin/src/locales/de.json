@@ -19,7 +19,6 @@
     "signature-missing": "Deine Signatur ist noch nicht gesetzt — Du trägst sie im Crea-Fenster eines Beitrags ein."
   },
   "alias": "Alias",
-  "all_emails": "Alle Nutzer",
   "appOutdated": {
     "reload": "Neu laden",
     "text": "Es gibt eine neuere Fassung."
@@ -363,10 +362,18 @@
     "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
     "update_creation": "Schöpfung aktualisieren"
   },
+  "dashboard": {
+    "resubmission": "Außerdem: {n} auf Wiedervorlage",
+    "today": "Heute: {n} offene Schöpfungen",
+    "todayNone": "Heute: keine offenen Schöpfungen",
+    "todayOne": "Heute: eine offene Schöpfung",
+    "waitingForMember": "{n} wartet auf das Mitglied | {n} warten auf das Mitglied",
+    "waitingForModeration": "{n} wartet auf die Moderation | {n} warten auf die Moderation",
+    "welcome": "Willkommen im Admin-Bereich"
+  },
   "delete": "Löschen",
   "delete_user": "Nutzer löschen",
   "deleted": "gelöscht",
-  "deleted_user": "Alle gelöschten Nutzer",
   "deny": "Ablehnen",
   "description": "Beschreibung",
   "details": "Details",
@@ -419,7 +426,7 @@
       "accountsNew": "Neue Konten",
       "accountsTotal": "Konten insgesamt",
       "accountsViaAddress": "davon über Adresse oder Visitenkarte",
-      "accountsViaEvent": "davon über Event-Link",
+      "accountsViaEvent": "davon über Projekt-Matching",
       "accountsViaLink": "davon über Einlöse-Link",
       "accountsViaTableCode": "davon über Tisch-Code",
       "activeAccounts": "Aktive Konten (gesamt: 30 Tage)",
@@ -462,10 +469,7 @@
       "videoRoomsCreated": "Videoräume vergeben"
     },
     "since": "Stichtag",
-    "title": "Zahlen",
-    "today": "Heute: {n} offene Schöpfungen",
-    "todayNone": "Heute: keine offenen Schöpfungen",
-    "todayOne": "Heute: eine offene Schöpfung",
+    "title": "Statistik",
     "weekCurrent": "läuft",
     "weeks": "Nach Wochen"
   },
@@ -476,7 +480,7 @@
   "footer": {
     "app_version": "App version {version}",
     "copyright": {
-      "link": "Gradido Akademie Adminkonsole",
+      "link": "Gradido Admin-Bereich",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -551,9 +555,10 @@
     "logout": "Abmelden",
     "menu": "Menü",
     "my-account": "Mein Konto",
-    "projectBranding": "Projekte",
+    "projectBranding": "Projekt-Branding",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",
+    "statistic": "Statistik",
     "theme": {
       "dark": "Dunkel",
       "light": "Hell",
@@ -600,18 +605,18 @@
     }
   },
   "projectBranding": {
-    "addTooltip": "Neuen Projekt Branding Eintrag hinzufügen",
+    "addTooltip": "Neuen Projekt-Branding-Eintrag hinzufügen",
     "chosenSpace": "Gewählter Space: {space}",
-    "created": "Neuer Projekt Branding Eintrag wurde erstellt.",
-    "error": "Fehler beim Erstellen des Projekt Branding Eintrags: {message}",
+    "created": "Neuer Projekt-Branding-Eintrag wurde erstellt.",
+    "error": "Fehler beim Erstellen des Projekt-Branding-Eintrags: {message}",
     "newUserToSpace": "Benutzer hinzufügen?",
     "newUserToSpaceTooltip": "Neue Benutzer automatisch zum Space hinzufügen, falls Space vorhanden",
     "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
     "openSpaceInHumhub": "In Humhub öffnen",
     "selectSpace": "Humhub Space auswählen",
     "spaceId": "Humhub Space ID",
-    "title": "Projekt Brandings",
-    "updated": "Projekt Branding Eintrag wurde aktualisiert."
+    "title": "Projekt-Branding",
+    "updated": "Projekt-Branding-Eintrag wurde aktualisiert."
   },
   "redeemed": "eingelöst",
   "refresh": "Aktualisieren",
@@ -686,7 +691,6 @@
     "text_false": " Die letzte Email wurde am {date} Uhr an das Mitglied ({email}) gesendet.",
     "text_true": " Die Email wurde bestätigt."
   },
-  "unregistered_emails": "Nur unregistrierte Nutzer",
   "userRole": {
     "creationAllowed": {
       "help": "Ein Projekt-Konto (Verein, Projekt, Geschäft) schöpft nicht, es empfängt Dank. Ausschalten kann das Mitglied selbst; einschalten nur ein Administrator.",
@@ -720,9 +724,17 @@
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
     "tabTitle": "Nutzer-Rolle"
   },
+  "userSearch": {
+    "hits": "{count} Treffer",
+    "tabs": {
+      "all": "Alle",
+      "deleted": "Gelöscht",
+      "enabled": "Aktiviert",
+      "unconfirmed": "Unbestätigt"
+    }
+  },
   "userStatus": {
-    "emailUnconfirmed": "E-Mail nicht bestätigt",
-    "noElopage": "ohne Elopage-Kauf"
+    "emailUnconfirmed": "E-Mail nicht bestätigt"
   },
   "user_deleted": "Nutzer ist gelöscht.",
   "user_memo_search": "Benutzer- und Text-Suche",

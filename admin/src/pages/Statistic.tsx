@@ -4,7 +4,6 @@ import {
   BButton,
   BFormGroup,
   BFormInput,
-  BLink,
   BTableSimple,
   BTbody,
   BTd,
@@ -15,12 +14,10 @@ import {
 import { computed, defineComponent, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
-import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
 import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
-import { useAdminStore } from '@/store/useAdminStore'
-import classes from './Overview.module.css'
+import classes from './Statistic.module.css'
 
 type FigureRow = {
   key: string
@@ -63,46 +60,11 @@ const storedDay = () => {
 // below, once they are there, the weeks: their Mondays, then the same groups by week.
 const COPIED_MS = 2000
 
-export const Overview = defineComponent({
-  name: 'Overview',
+export const Statistic = defineComponent({
+  name: 'Statistic',
   setup() {
-    const store = useAdminStore()
     const { t, d, n } = useI18n()
     const { toastError } = useAppToast()
-
-    // Today's open creations -- the query that also fills the badge in the menu (NavBar), so it
-    // stays here with its commit.
-    const {
-      result: creations,
-      onResult,
-      onError,
-    } = useQuery(adminListContributionsCount, {
-      filter: {
-        statusFilter: ['IN_PROGRESS', 'PENDING'],
-        hideResubmission: true,
-      },
-    })
-
-    onResult(({ data }) => {
-      store.setOpenCreations(data?.adminListContributions.contributionCount)
-    })
-
-    onError((error) => {
-      toastError(error.message)
-    })
-
-    const openCreations = computed<number | undefined>(
-      () => creations.value?.adminListContributions.contributionCount,
-    )
-    const todayText = computed(() => {
-      if (!openCreations.value) {
-        return t('figures.todayNone')
-      }
-      if (openCreations.value === 1) {
-        return t('figures.todayOne')
-      }
-      return t('figures.today', { n: openCreations.value })
-    })
 
     const today = dayOf(new Date())
     const sinceDay = ref(storedDay() ?? dayOf(new Date(Date.now() - SINCE_DEFAULT_DAYS * DAY_MS)))
@@ -138,11 +100,10 @@ export const Overview = defineComponent({
       () => figuresResult.value?.communityFigures ?? null,
     )
 
-    // The totals since the beginning, from the query the page /statistic had: its sums take the
-    // server seconds, so they come on their own and their group stands once they are there. Asked
-    // once a session, as they were there; an error here leaves the other groups alone. The account
-    // counts of that query are not shown: the group "Accounts" counts them without the rows the
-    // federation keeps for members of other communities.
+    // The totals since the beginning: their sums take the server seconds, so they come on their
+    // own and their group stands once they are there. Asked once a session; an error here leaves
+    // the other groups alone. The account counts of that query are not shown: the group "Accounts"
+    // counts them without the rows the federation keeps for members of other communities.
     const {
       result: statisticsResult,
       loading: statisticsLoading,
@@ -192,7 +153,7 @@ export const Overview = defineComponent({
     // A column a figure does not have comes as null.
     const shown = (value: unknown) =>
       value === null || value === undefined ? '–' : n(value as number)
-    // The sums of the totals come as GradidoUnit, a decimal string: two places, as /statistic had.
+    // The sums of the totals come as GradidoUnit, a decimal string: two places.
     const shownGdd = (value: unknown) =>
       value === null || value === undefined ? '–' : n(Number(value), 'decimal')
 
@@ -453,17 +414,8 @@ export const Overview = defineComponent({
     onBeforeUnmount(endPress)
 
     return () => (
-      <div class='admin-overview'>
+      <div class='admin-statistic'>
         <h2 class='h4 mb-3'>{t('figures.title')}</h2>
-        {/* Room below the link, so that a finger on a phone takes it and not the date field
-            (Bernd, 25.10.2026). */}
-        <p class={[classes.figuresToday, 'mb-4']}>
-          {creations.value ? (
-            <BLink data-test='open-creations' to='/creation-confirm'>
-              {todayText.value}
-            </BLink>
-          ) : null}
-        </p>
         <BFormGroup
           label={t('figures.since')}
           labelFor='figures-since'

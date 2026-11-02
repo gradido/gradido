@@ -129,7 +129,7 @@ export const CreationConfirm = defineComponent({
     let keptSearchOnTrial = query.value !== ''
     // The count of the badges in the menu and on the tab, asked for on its own where the page
     // opens with a search: its list counts only what the search leaves (coderabbit, #4206). With
-    // the overview's query; none where the page opens on the whole list, whose answer says it.
+    // the start page's query; none where the page opens on the whole list, whose answer says it.
     if (keptSearchOnTrial) {
       apolloClient
         .query({
@@ -184,6 +184,7 @@ export const CreationConfirm = defineComponent({
     const role = computed(() => store.moderator?.role ?? null)
     const isAdmin = computed(() => role.value === 'ADMIN')
     const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
+    const showCreaChat = computed(() => CONFIG.ANTHROPIC_ACTIVE && isAiUser.value)
     // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
     // there only on still-open contributions (see creaOpenOnly), so they can jump straight
     // from a participant's history to an open item. Administrators additionally see it on the
@@ -684,7 +685,7 @@ export const CreationConfirm = defineComponent({
     // The listeners of the table are hyphenated as well: its events are declared kebab-case,
     // and that is the name the types give their handlers.
     // The title of a tab keeps its word and its number in elements of their own: on a phone the
-    // symbol stands above the word and the number at the corner (CreationConfirm.css).
+    // symbol stands above the word and the number at the corner (App.css, CreationConfirm.css).
     return () => (
       <div class='creation-confirm'>
         {/* The search and the group side by side, both on the page's ground with an edge, and
@@ -721,7 +722,7 @@ export const CreationConfirm = defineComponent({
           </p>
         ) : null}
         <div>
-          <BTabs v-model={shownTab.value} class='creation-tabs' contentClass='mt-3' fill>
+          <BTabs v-model={shownTab.value} class='creation-tabs page-tabs' contentClass='mt-3' fill>
             <BTab active title-link-attributes={{ 'data-test': 'open' }}>
               {{
                 title: () => [
@@ -749,7 +750,7 @@ export const CreationConfirm = defineComponent({
             <BTab title-link-attributes={{ 'data-test': 'denied' }}>
               {{
                 title: () => [
-                  <IBiXCircle class='text-warning' />,
+                  <IBiXCircle class='text-warning-emphasis' />,
                   ' ',
                   <span class='tab-word'>{t('contributions.denied')}</span>,
                 ],
@@ -775,8 +776,10 @@ export const CreationConfirm = defineComponent({
             </BTab>
           </BTabs>
         </div>
+        {/* At the desk the table keeps its last buttons clear of the Crea button in the corner, and
+            only where that button stands: a card has no room for it, it rolls away instead. */}
         <OpenCreationsTable
-          class='mt-4'
+          class={['mt-4', { 'beside-crea-chat': showCreaChat.value && !phone.value }]}
           items={items.value}
           fields={fields.value}
           hideResubmission={hideResubmission.value}
@@ -813,7 +816,7 @@ export const CreationConfirm = defineComponent({
           limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
           noGotoEndButtons={phone.value}
         />
-        {CONFIG.ANTHROPIC_ACTIVE && isAiUser.value ? <AiChat /> : null}
+        {showCreaChat.value ? <AiChat /> : null}
         {/* Every decision asks once more, in a dialog that scrolls where the window is short.
             Escape, its × and the backdrop close it as its cancel does; none of them sends
             anything. */}

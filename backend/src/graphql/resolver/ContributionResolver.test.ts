@@ -3039,6 +3039,47 @@ describe('ContributionResolver', () => {
           })
         })
 
+        // Every word of the text has to turn up somewhere in the row, in any order.
+        describe('with several words', () => {
+          const countFor = async (text: string): Promise<number> => {
+            const res: any = await query({
+              query: adminListContributions,
+              variables: { filter: { query: text }, paginated: { pageSize: 20 } },
+            })
+            expect(res.errors).toBeUndefined()
+            return res.data.adminListContributions.contributionCount
+          }
+
+          it.each([
+            ['first and last name', 'Peter Lustig', 4],
+            ['last and first name', 'Lustig Peter', 4],
+            ['spaces around and between them', '  Peter   Lustig ', 4],
+            ['a name and the memo', 'Peter firefighter', 1],
+            ['a name and the address', 'Räuber raeuber@hotzenplotz.de', 3],
+            ['a name and the username', 'Peter PeterL', 4],
+            ['a word in somebody else only', 'Peter Hotzenplotz', 0],
+            ['a word in nobody', 'Peter nobody-here', 0],
+          ])('%s', async (_name, text, expected) => {
+            expect(await countFor(text)).toBe(expected)
+          })
+
+          it('finds a member past what stands between first and last name', async () => {
+            const raeuber = await User.findOneOrFail({ where: { firstName: 'Räuber' } })
+            await User.update({ id: raeuber.id }, { firstName: 'Räuber E.' })
+            try {
+              expect(await countFor('Räuber Hotzenplotz')).toBe(3)
+            } finally {
+              await User.update({ id: raeuber.id }, { firstName: 'Räuber' })
+            }
+          })
+
+          it('reads a text of nothing but spaces as no text', async () => {
+            const everything = await countFor('')
+            expect(everything).toBeGreaterThan(4)
+            expect(await countFor('   ')).toBe(everything)
+          })
+        })
+
         // test for case sensitivity and email
         it('returns only contributions of the queried user email', async () => {
           const {

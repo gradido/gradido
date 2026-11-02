@@ -14,7 +14,6 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbConfirmRegistrationContact,
   dbFindConfirmedUserContactEmails,
-  dbFindUserIdsByEmailLike,
   dbInsertUserContact,
   dbIsUserContactFieldExist,
   dbPurgeExpiredEmailChanges,
@@ -115,14 +114,6 @@ describe('userContacts.queries', () => {
         'bibi@bloxberg.de',
       ])
       expect(await dbFindConfirmedUserContactEmails(peter.id)).toEqual(['peter@lustig.de'])
-    })
-  })
-
-  describe('dbFindUserIdsByEmailLike', () => {
-    it('names a member once for any of their living rows, and not for a deleted one', async () => {
-      expect(await dbFindUserIdsByEmailLike('bibi-typed')).toEqual([bibi.id])
-      expect(await dbFindUserIdsByEmailLike('bloxberg')).toEqual([bibi.id])
-      expect(await dbFindUserIdsByEmailLike('bibi-gone')).toEqual([])
     })
   })
 

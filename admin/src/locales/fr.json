@@ -19,7 +19,6 @@
     "signature-missing": "Ta signature n'est pas encore définie : tu la saisis dans la fenêtre Crea d'une contribution."
   },
   "alias": "Alias",
-  "all_emails": "Tous les utilisateurs",
   "appOutdated": {
     "reload": "Recharger",
     "text": "Nouvelle version disponible."
@@ -363,10 +362,18 @@
     "toasted_update": "La création ouverte ({value} GDD) pour {email} a été modifiée et est prête à être confirmée.",
     "update_creation": "Mettre à jour la création"
   },
+  "dashboard": {
+    "resubmission": "En plus : {n} avec rappel",
+    "today": "Aujourd'hui : {n} créations ouvertes",
+    "todayNone": "Aujourd'hui : aucune création ouverte",
+    "todayOne": "Aujourd'hui : une création ouverte",
+    "waitingForMember": "{n} attend le membre | {n} attend le membre | {n} attendent le membre",
+    "waitingForModeration": "{n} attend la modération | {n} attend la modération | {n} attendent la modération",
+    "welcome": "Bienvenue dans l'espace d'administration"
+  },
   "delete": "Supprimer",
   "delete_user": "Supprimer l'utilisateur",
   "deleted": "supprimé",
-  "deleted_user": "Tous les utilisateurs supprimés",
   "deny": "Refuser",
   "description": "Description",
   "details": "Détails",
@@ -419,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -462,10 +469,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Statistique",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -476,7 +480,7 @@
   "footer": {
     "app_version": "Version de l'app {version}",
     "copyright": {
-      "link": "Console d'administration de la Gradido-Akademie",
+      "link": "Espace d'administration Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -551,9 +555,10 @@
     "logout": "Déconnexion",
     "menu": "Menu",
     "my-account": "Mon compte",
-    "projectBranding": "Projets",
+    "projectBranding": "Image du projet",
     "projectBrandingTooltip": "Utilise ton propre logo sur la page de connexion de Gradido et ajoute de nouveaux utilisateurs à un espace Humhub",
     "settings": "Configuration",
+    "statistic": "Statistique",
     "theme": {
       "dark": "Sombre",
       "light": "Clair",
@@ -686,7 +691,6 @@
     "text_false": "Le dernier e-mail a été envoyé au membre ({email}) le {date}.",
     "text_true": "L'e-mail a été confirmé."
   },
-  "unregistered_emails": "Uniquement les utilisateurs non inscrits",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -720,9 +724,17 @@
     "successfullyChangedTo": "L'utilisateur est maintenant « {role} ».",
     "tabTitle": "Rôle de l'utilisateur"
   },
+  "userSearch": {
+    "hits": "{count} résultat | {count} résultat | {count} résultats",
+    "tabs": {
+      "all": "Tous",
+      "deleted": "Supprimés",
+      "enabled": "Activés",
+      "unconfirmed": "Non confirmés"
+    }
+  },
   "userStatus": {
-    "emailUnconfirmed": "E-mail non confirmé",
-    "noElopage": "sans achat Elopage"
+    "emailUnconfirmed": "E-mail non confirmé"
   },
   "user_deleted": "L'utilisateur est supprimé.",
   "user_memo_search": "Recherche d'utilisateur et de texte",

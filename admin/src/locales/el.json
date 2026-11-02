@@ -19,7 +19,6 @@
     "signature-missing": "Η υπογραφή σου δεν έχει οριστεί ακόμη — τη συμπληρώνεις στο παράθυρο Crea μιας συνεισφοράς."
   },
   "alias": "Ψευδώνυμο",
-  "all_emails": "Όλοι οι χρήστες",
   "appOutdated": {
     "reload": "Ανανέωση",
     "text": "Υπάρχει νεότερη έκδοση."
@@ -363,10 +362,18 @@
     "toasted_update": "Η ανοιχτή δημιουργία ({value} GDD) για {email} τροποποιήθηκε και είναι έτοιμη για επιβεβαίωση.",
     "update_creation": "Ενημέρωση δημιουργίας"
   },
+  "dashboard": {
+    "resubmission": "Επιπλέον: {n} με υπενθύμιση",
+    "today": "Σήμερα: {n} ανοιχτές δημιουργίες",
+    "todayNone": "Σήμερα: καμία ανοιχτή δημιουργία",
+    "todayOne": "Σήμερα: μία ανοιχτή δημιουργία",
+    "waitingForMember": "{n} περιμένει το μέλος | {n} περιμένουν το μέλος",
+    "waitingForModeration": "{n} περιμένει τον συντονισμό | {n} περιμένουν τον συντονισμό",
+    "welcome": "Καλώς ήρθες στον χώρο διαχείρισης"
+  },
   "delete": "Διαγραφή",
   "delete_user": "Διαγραφή χρήστη",
   "deleted": "διαγράφηκε",
-  "deleted_user": "Όλοι οι διαγραμμένοι χρήστες",
   "deny": "Απόρριψη",
   "description": "Περιγραφή",
   "details": "Λεπτομέρειες",
@@ -419,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -462,10 +469,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Στατιστικά",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -476,7 +480,7 @@
   "footer": {
     "app_version": "Έκδοση εφαρμογής {version}",
     "copyright": {
-      "link": "Κονσόλα διαχείρισης Gradido-Akademie",
+      "link": "Χώρος διαχείρισης Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -551,9 +555,10 @@
     "logout": "Αποσύνδεση",
     "menu": "Μενού",
     "my-account": "Ο λογαριασμός μου",
-    "projectBranding": "Έργα",
+    "projectBranding": "Επωνυμία έργου",
     "projectBrandingTooltip": "Χρησιμοποίησε το δικό σου λογότυπο στη σύνδεση Gradido και πρόσθεσε νέους χρήστες σε έναν χώρο Humhub",
     "settings": "Ρυθμίσεις",
+    "statistic": "Στατιστικά",
     "theme": {
       "dark": "Σκοτεινό",
       "light": "Φωτεινό",
@@ -686,7 +691,6 @@
     "text_false": "Το τελευταίο email στάλθηκε στο μέλος ({email}) στις {date}.",
     "text_true": "Το email επιβεβαιώθηκε."
   },
-  "unregistered_emails": "Μόνο μη εγγεγραμμένοι χρήστες",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -720,9 +724,17 @@
     "successfullyChangedTo": "Ο χρήστης είναι τώρα «{role}».",
     "tabTitle": "Ρόλος χρήστη"
   },
+  "userSearch": {
+    "hits": "{count} αποτέλεσμα | {count} αποτελέσματα",
+    "tabs": {
+      "all": "Όλοι",
+      "deleted": "Διαγραμμένοι",
+      "enabled": "Ενεργοί",
+      "unconfirmed": "Μη επιβεβαιωμένοι"
+    }
+  },
   "userStatus": {
-    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε",
-    "noElopage": "χωρίς αγορά Elopage"
+    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε"
   },
   "user_deleted": "Ο χρήστης διαγράφηκε.",
   "user_memo_search": "Αναζήτηση χρήστη και κειμένου",

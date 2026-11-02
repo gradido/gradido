@@ -759,7 +759,7 @@ describe('Register', () => {
 
   /**
    * Event-Matching: an event link was opened in this browser before anybody was signed in
-   * (`/event?interest=…`), and the store has kept the entry it offers, for an hour. The
+   * (`/project?interest=…`), and the store has kept the entry it offers, for an hour. The
    * registration takes it along; the server notes it at the account it opens and makes the
    * entry once the address is confirmed. Every test above runs without one, unchanged.
    */

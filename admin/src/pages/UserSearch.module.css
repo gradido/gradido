@@ -1,10 +1,15 @@
-.userSearchFirstDiv {
-  text-align: right;
+/* The field ends where the messages begin: toasts and the notifications of the system (a calendar,
+   say) come in at the top right of the window and lay themselves over the × (Bernd, 30.10.2026).
+   36rem leaves them their 400px from a window of 992px on, where the table starts. On a phone the
+   field is narrower than this anyway, and fills its line. */
+.searchField {
+  max-width: 36rem;
 }
 
-/* Scoped, this reached only the icons in the filter buttons: nothing else of the page is an
-   img or an svg carrying its mark. */
-.userSearchFirstDiv img,
-.userSearchFirstDiv svg {
-  vertical-align: text-bottom;
+/* A line of its own also before the number is there: the list does not move when it comes. */
+.hits {
+  min-height: 1.5em;
+  margin: 0.75rem 0 0.25rem 0.5rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.875rem;
 }

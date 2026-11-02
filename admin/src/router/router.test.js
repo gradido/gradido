@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const mockComponents = {
-  overview: { name: 'overview' },
+  dashboard: { name: 'dashboard' },
   notFound: { name: 'not-found' },
   UserSearch: { name: 'UserSearch' },
   CreationConfirm: { name: 'CreationConfirm' },
@@ -12,7 +12,7 @@ const mockComponents = {
 
 vi.mock('./routes', () => ({
   routes: [
-    { path: '/', component: () => Promise.resolve(mockComponents.overview) },
+    { path: '/', component: () => Promise.resolve(mockComponents.dashboard) },
     { path: '/logout', component: () => Promise.resolve(mockComponents.notFound) },
     { path: '/user', component: () => Promise.resolve(mockComponents.UserSearch) },
     { path: '/creation-confirm', component: () => Promise.resolve(mockComponents.CreationConfirm) },
@@ -90,7 +90,7 @@ describe('Router', () => {
 
       it('has "/" as default', async () => {
         const component = await routes.find((r) => r.path === '/').component()
-        expect(component.name).toBe('overview')
+        expect(component.name).toBe('dashboard')
       })
 
       it('loads the "NotFoundPage" component for logout', async () => {

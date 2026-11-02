@@ -1,4 +1,11 @@
-import { ContactOrigin, GradidoUnit, Order, PasswordEncryptionType } from 'shared'
+import {
+  ContactOrigin,
+  GradidoUnit,
+  OptInType,
+  Order,
+  PasswordEncryptionType,
+  UserContactType,
+} from 'shared'
 import { v4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import {
@@ -11,6 +18,7 @@ import {
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
+import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -39,6 +47,7 @@ import {
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserIdByUuids,
+  dbFindUserIdsWithEveryWord,
   dbFindUserLoginByEmail,
   dbFindUserWithContactById,
   dbHasGuestRegisteredByLink,
@@ -759,6 +768,121 @@ describe('user.queries', () => {
 
     it('answers an empty map for an empty list', async () => {
       expect(await findUserNamesByIds([])).toEqual(new Map())
+    })
+  })
+
+  describe('dbFindUserIdsWithEveryWord', () => {
+    let michaelMueller: DbUser
+    let michaelMerz: DbUser
+    let peter: DbUser
+
+    const insertAddress = (
+      userId: number,
+      email: string,
+      {
+        deletedAt = null,
+        emailChecked = true,
+        optIn = OptInType.EMAIL_OPT_IN_REGISTER,
+      }: { deletedAt?: Date | null; emailChecked?: boolean; optIn?: OptInType } = {},
+    ) =>
+      drizzleDb().insert(userContactsTable).values({
+        userId,
+        email,
+        type: UserContactType.USER_CONTACT_EMAIL,
+        emailChecked,
+        emailOptInTypeId: optIn,
+        deletedAt,
+      })
+
+    const found = async (...words: string[]) => (await dbFindUserIdsWithEveryWord(words)).sort()
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      const homeCom = await createCommunity(false)
+      michaelMueller = await userFactory(
+        {
+          ...bibiBloxberg,
+          firstName: 'Michael E.',
+          lastName: 'Müller',
+          email: 'willkommen@dorf.example',
+          alias: 'MichaelEM',
+        },
+        homeCom,
+      )
+      michaelMerz = await userFactory(
+        {
+          ...bobBaumeister,
+          firstName: 'Michael',
+          lastName: 'Merz',
+          email: 'honey@melon.example',
+          alias: 'MichaelM',
+        },
+        homeCom,
+      )
+      peter = await userFactory(peterLustig, homeCom)
+    })
+
+    it('finds a member by two words, past what stands between them, in either order', async () => {
+      expect(await found('michael', 'müller')).toEqual([michaelMueller.id])
+      expect(await found('müller', 'michael')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'e.', 'müller')).toEqual([michaelMueller.id])
+    })
+
+    it('finds everybody a single word turns up in', async () => {
+      expect(await found('michael')).toEqual([michaelMueller.id, michaelMerz.id].sort())
+    })
+
+    it('asks every word: one nobody here has leaves nobody', async () => {
+      expect(await found('michael', 'lustig')).toEqual([])
+      expect(await found('peter', 'michael')).toEqual([])
+      expect(await found('michael', 'nobody-here')).toEqual([])
+    })
+
+    it('takes parts of words, whatever the capitalisation', async () => {
+      expect(await found('MICH', 'mÜl')).toEqual([michaelMueller.id])
+    })
+
+    it('finds a word in the address and in the username', async () => {
+      expect(await found('michael', 'willkommen')).toEqual([michaelMueller.id])
+      expect(await found('merz', 'melon')).toEqual([michaelMerz.id])
+      expect(await found('peterl')).toEqual([peter.id])
+      expect(await found('michaelm', 'merz')).toEqual([michaelMerz.id])
+    })
+
+    it('reads every address a member holds, and not a deleted one', async () => {
+      await insertAddress(michaelMueller.id, 'first-address@dorf.example')
+      await insertAddress(michaelMueller.id, 'pending-address@dorf.example', {
+        emailChecked: false,
+        optIn: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      await insertAddress(michaelMueller.id, 'gone-address@dorf.example', {
+        deletedAt: new Date(),
+      })
+      expect(await found('michael', 'first-address')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'pending-address')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'gone-address')).toEqual([])
+    })
+
+    it('reads every name a member owned', async () => {
+      const held = await dbInsertUserAlias({
+        userId: peter.id,
+        alias: 'peter-was',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
+      expect(held.success).toBe(true)
+      expect(await found('r-wa', 'lustig')).toEqual([peter.id])
+    })
+
+    it('names a member once, however many of their rows match', async () => {
+      await insertAddress(peter.id, 'same-word-one@lustig.example')
+      await insertAddress(peter.id, 'same-word-two@lustig.example')
+      expect(await found('same-word')).toEqual([peter.id])
+    })
+
+    it('finds a deleted member too: the search decides who is shown', async () => {
+      await DbUser.update({ id: michaelMerz.id }, { deletedAt: new Date() })
+      expect(await found('merz')).toEqual([michaelMerz.id])
+      await DbUser.update({ id: michaelMerz.id }, { deletedAt: null })
     })
   })
 

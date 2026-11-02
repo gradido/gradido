@@ -31,7 +31,7 @@ describe('UserAdmin', () => {
       creationAllowed: true,
       ...more,
     }) as User
-  const row = (more: Partial<User> = {}) => new UserAdmin(member(more), [], false, '')
+  const row = (more: Partial<User> = {}) => new UserAdmin(member(more), [], '')
 
   beforeEach(() => {
     CONFIG.GMS_ACTIVE = true

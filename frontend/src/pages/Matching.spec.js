@@ -983,7 +983,7 @@ describe('Matching', () => {
     })
 
     /**
-     * An event link (`/event?interest=…`, utils/eventMatchingLink) hands its entry over with
+     * An event link (`/project?interest=…`, utils/eventMatchingLink) hands its entry over with
      * `unlessThere`: the page makes it at once, without the form, and the server says whether
      * it was there already -- then nothing is said at all (KA-014).
      */

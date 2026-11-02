@@ -112,6 +112,19 @@ describe('useCopyLinks', () => {
     )
   })
 
+  // For a way that can carry only so much (useSendByEmail): the words stand on the page the link
+  // opens, and the link is what must arrive.
+  describe('the short text', () => {
+    it('of a plain link is the text without the message', () => {
+      const { linkText, shortLinkText } = withLinks()
+      const lines = linkText.value.split('\n')
+
+      expect(shortLinkText.value.split('\n')).toEqual([lines[0], lines[2], lines[3], lines[4]])
+      expect(shortLinkText.value).toContain(PROPS.link)
+      expect(shortLinkText.value).not.toContain(PROPS.memo)
+    })
+  })
+
   describe('share', () => {
     it("hands the text to the device's share sheet, with the link in it once", async () => {
       const { share: shareLink, linkText } = withLinks()
@@ -163,6 +176,11 @@ describe('useCopyLinks', () => {
     const GREETING = { motif: 'bouquet', line: 'Danke für Deine Hilfe!', recipientName: 'Sarah' }
     const greeted = (locale = 'de', greeting = GREETING) =>
       withLinks(locale, { ...PROPS, memo: 'Danke für Deine Hilfe!\nFür Samstag', greeting })
+
+    it('is its own short text: it goes without the words anyway', () => {
+      const { linkText, shortLinkText } = greeted()
+      expect(shortLinkText.value).toBe(linkText.value)
+    })
 
     it('names the person, carries the link on a line of its own, and ends as the plain text does', () => {
       expect(greeted().linkText.value).toBe(

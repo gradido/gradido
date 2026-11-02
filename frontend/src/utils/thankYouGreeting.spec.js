@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect } from 'vitest'
-import { greetingMemo, greetingParts } from './thankYouGreeting'
+import { greetingMemo, greetingParts, lineFromMemo } from './thankYouGreeting'
 
 const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\n\nEure Oma'
@@ -66,5 +66,54 @@ describe('greetingParts', () => {
     ]) {
       expect(greetingParts(greetingMemo(line, words), line)).toEqual({ line, words })
     }
+  })
+})
+
+describe('lineFromMemo', () => {
+  const FIRST = 'Danke für Deine Hilfe!'
+
+  it('is the whole message where it is one line of at most 80 characters', () => {
+    expect(lineFromMemo(FIRST)).toBe(FIRST)
+    expect(lineFromMemo('x'.repeat(80))).toBe('x'.repeat(80))
+  })
+
+  it('is nothing where that one line is longer', () => {
+    expect(lineFromMemo('x'.repeat(81))).toBeNull()
+  })
+
+  it('is the first of two lines', () => {
+    expect(lineFromMemo(`${FIRST}\nOhne Dich stünde die Bank noch schief.`)).toBe(FIRST)
+    expect(lineFromMemo(`${FIRST}\nZwei\n\nund mehr`)).toBe(FIRST)
+  })
+
+  // The server asks for one line break between the line and the words, and something after it.
+  it('is nothing with an empty line after the first, or nothing after the break', () => {
+    expect(lineFromMemo(`${FIRST}\n\nOhne Dich`)).toBeNull()
+    expect(lineFromMemo(`${FIRST}\n`)).toBeNull()
+  })
+
+  it('is nothing where there is only a line break, or nothing at all', () => {
+    expect(lineFromMemo('\n')).toBeNull()
+    expect(lineFromMemo('\nOhne Dich')).toBeNull()
+    expect(lineFromMemo('')).toBeNull()
+  })
+
+  // ⛔ The server trims the line and holds the untrimmed memo against it: these would be refused.
+  it('is nothing where the first line begins or ends with a space', () => {
+    expect(lineFromMemo(` ${FIRST}`)).toBeNull()
+    expect(lineFromMemo(`${FIRST} `)).toBeNull()
+    expect(lineFromMemo(`${FIRST} \nBis bald`)).toBeNull()
+    expect(lineFromMemo(` ${FIRST}\nBis bald`)).toBeNull()
+  })
+
+  it('is nothing where the first line holds a control character', () => {
+    expect(lineFromMemo(`${FIRST}\r\nBis bald`)).toBeNull()
+    expect(lineFromMemo('Danke\tfür alles\nBis bald')).toBeNull()
+    expect(lineFromMemo('Danke\u2028für alles')).toBeNull()
+  })
+
+  it('takes a first line of 80 characters with words after it, and not one of 81', () => {
+    expect(lineFromMemo(`${'x'.repeat(80)}\nWorte`)).toBe('x'.repeat(80))
+    expect(lineFromMemo(`${'x'.repeat(81)}\nWorte`)).toBeNull()
   })
 })

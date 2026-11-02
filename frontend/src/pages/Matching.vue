@@ -591,7 +591,7 @@ function openNew({ summary = '', details = '', matchingType = null, remote = fal
 }
 
 /**
- * The entry an event link offers (`/event?interest=…`), handed over by the link's guard or the
+ * The entry an event link offers (`/project?interest=…`), handed over by the link's guard or the
  * sign-in (utils/eventMatchingLink, `unlessThere`): made at once, without a form -- the tap on
  * the link is the yes (KA-014). The server compares it with the member's own entries
  * (`acceptEventMatchingEntry`): where the member has that sentence already, live or paused,

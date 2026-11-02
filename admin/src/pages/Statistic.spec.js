@@ -3,16 +3,13 @@
 import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { h, nextTick, ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
-import { adminListContributionsCount } from '@/graphql/adminListContributions.graphql'
 import { communityFigureSeries } from '@/graphql/communityFigureSeries.graphql'
 import { communityFigures } from '@/graphql/communityFigures.graphql'
 import { communityStatistics } from '@/graphql/communityStatistics'
-import { useAdminStore } from '@/store/useAdminStore'
-import { adminStore } from '../../test/adminStore'
-import { Overview } from './Overview'
+import { Statistic } from './Statistic'
 
 vi.mock('@vue/apollo-composable')
 vi.mock('@/composables/useToast')
@@ -107,22 +104,8 @@ const STATISTICS = {
   },
 }
 
-const createAdminStore = () => adminStore({ openCreations: 0 })
-
-// The router link, as far as the page uses it: where it goes, and its text.
-const BLinkStub = {
-  props: ['to'],
-  setup(props, { slots }) {
-    return () => h('a', { 'data-to': props.to }, slots.default?.())
-  },
-}
-
-describe('Overview', () => {
+describe('Statistic', () => {
   let wrapper
-  let store
-  let creationsResult
-  let onCreationsResult
-  let onCreationsError
   let figuresResult
   let figuresVariables
   let figuresOptions
@@ -137,23 +120,13 @@ describe('Overview', () => {
   let onSeriesError
   const mockToastError = vi.fn()
 
-  const mountPage = () =>
-    mount(Overview, {
-      global: {
-        plugins: [store],
-        stubs: { BLink: BLinkStub },
-      },
-    })
+  const mountPage = () => mount(Statistic)
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-18T10:00:00.000Z'))
     localStorage.clear()
     mockToastError.mockClear()
-    store = createAdminStore()
-    creationsResult = ref(null)
-    onCreationsResult = vi.fn()
-    onCreationsError = vi.fn()
     figuresResult = ref(null)
     onFiguresError = vi.fn()
     statisticsResult = ref(null)
@@ -164,9 +137,6 @@ describe('Overview', () => {
 
     // Each query answers as itself: a page that asked the wrong one would get nothing.
     useQuery.mockImplementation((document, variables, options) => {
-      if (document === adminListContributionsCount) {
-        return { result: creationsResult, onResult: onCreationsResult, onError: onCreationsError }
-      }
       if (document === communityFigures) {
         figuresVariables = variables
         figuresOptions = options
@@ -220,50 +190,6 @@ describe('Overview', () => {
       .find(`[data-test="figure-${key}"]`)
       .findAll('th, td')
       .map((cell) => cell.text())
-
-  describe('today', () => {
-    beforeEach(() => {
-      wrapper = mountPage()
-    })
-
-    it('asks for the open creations as before', () => {
-      expect(useQuery).toHaveBeenCalledWith(adminListContributionsCount, {
-        filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
-      })
-    })
-
-    it('passes the open creations on to the badge in the menu', () => {
-      const [handler] = onCreationsResult.mock.calls[0]
-      handler({ data: { adminListContributions: { contributionCount: 3 } } })
-      expect(useAdminStore(store).openCreations).toBe(3)
-    })
-
-    it('says nothing about them before the answer is there', () => {
-      expect(wrapper.find('[data-test="open-creations"]').exists()).toBe(false)
-    })
-
-    it('shows the open creations of today as a link to them', async () => {
-      creationsResult.value = { adminListContributions: { contributionCount: 3 } }
-      await nextTick()
-      const link = wrapper.find('[data-test="open-creations"]')
-      expect(link.text()).toBe('figures.today {"n":3}')
-      expect(link.attributes('data-to')).toBe('/creation-confirm')
-    })
-
-    it('says "one" and "none" in words', async () => {
-      creationsResult.value = { adminListContributions: { contributionCount: 1 } }
-      await nextTick()
-      expect(wrapper.find('[data-test="open-creations"]').text()).toBe('figures.todayOne')
-      creationsResult.value = { adminListContributions: { contributionCount: 0 } }
-      await nextTick()
-      expect(wrapper.find('[data-test="open-creations"]').text()).toBe('figures.todayNone')
-    })
-
-    it('tells an error of the open creations', () => {
-      onCreationsError.mock.calls[0][0]({ message: 'Test error' })
-      expect(mockToastError).toHaveBeenCalledWith('Test error')
-    })
-  })
 
   describe('the chosen day', () => {
     it('counts from four weeks back where this device keeps no day', () => {

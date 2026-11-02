@@ -19,7 +19,6 @@
     "signature-missing": "A tua assinatura ainda não está definida — podes indicá-la na janela Crea de uma contribuição."
   },
   "alias": "Alias",
-  "all_emails": "Todos os utilizadores",
   "appOutdated": {
     "reload": "Recarregar",
     "text": "Existe uma versão mais recente."
@@ -363,10 +362,18 @@
     "toasted_update": "A criação aberta ({value} GDD) para {email} foi alterada e está pronta para confirmação.",
     "update_creation": "Atualizar a criação"
   },
+  "dashboard": {
+    "resubmission": "Além disso: {n} com lembrete",
+    "today": "Hoje: {n} criações abertas",
+    "todayNone": "Hoje: nenhuma criação aberta",
+    "todayOne": "Hoje: uma criação aberta",
+    "waitingForMember": "{n} aguarda o membro | {n} aguardam o membro",
+    "waitingForModeration": "{n} aguarda a moderação | {n} aguardam a moderação",
+    "welcome": "Damos-te as boas-vindas à área de administração"
+  },
   "delete": "Eliminar",
   "delete_user": "Eliminar utilizador",
   "deleted": "eliminado",
-  "deleted_user": "Todos os utilizadores eliminados",
   "deny": "Rejeitar",
   "description": "Descrição",
   "details": "Detalhes",
@@ -419,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -462,10 +469,7 @@
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Estatística",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -476,7 +480,7 @@
   "footer": {
     "app_version": "Versão da app {version}",
     "copyright": {
-      "link": "Consola de administração da Gradido-Akademie",
+      "link": "Área de administração Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -551,9 +555,10 @@
     "logout": "Terminar sessão",
     "menu": "Menu",
     "my-account": "A minha conta",
-    "projectBranding": "Projetos",
+    "projectBranding": "Marca do projeto",
     "projectBrandingTooltip": "Usa o teu próprio logótipo no início de sessão do Gradido e adiciona novos utilizadores a um espaço Humhub",
     "settings": "Definições",
+    "statistic": "Estatística",
     "theme": {
       "dark": "Escuro",
       "light": "Claro",
@@ -686,7 +691,6 @@
     "text_false": "O último e-mail foi enviado ao membro ({email}) em {date}.",
     "text_true": "O e-mail foi confirmado."
   },
-  "unregistered_emails": "Apenas utilizadores não registados",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -720,9 +724,17 @@
     "successfullyChangedTo": "O utilizador é agora «{role}».",
     "tabTitle": "Função do utilizador"
   },
+  "userSearch": {
+    "hits": "{count} resultado | {count} resultados",
+    "tabs": {
+      "all": "Todos",
+      "deleted": "Eliminados",
+      "enabled": "Ativados",
+      "unconfirmed": "Não confirmados"
+    }
+  },
   "userStatus": {
-    "emailUnconfirmed": "E-mail não confirmado",
-    "noElopage": "sem compra Elopage"
+    "emailUnconfirmed": "E-mail não confirmado"
   },
   "user_deleted": "O utilizador está eliminado.",
   "user_memo_search": "Pesquisa de utilizador e texto",

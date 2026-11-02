@@ -177,6 +177,16 @@
   border-color: #6e727a;
 }
 
+/* The desk, where the Crea button stands in the corner of the window (CreationConfirm hands the
+   class on): the last button of a row keeps clear of it, so that it can be pressed at that
+   button's height as well (Bernd, 31.10.2026). The 84px of the Crea button (AiChat.module.css) and
+   12px between the two, less the 16px the page keeps at its edge (`p-3`, defaultLayout.tsx): 80px.
+   On the row's own cells only: an opened row's details span the row (`colspan`), and a table
+   inside them is not the page's. */
+.open-creations-table.beside-crea-chat > table > tbody > tr > td:last-child:not([colspan]) {
+  padding-right: 80px;
+}
+
 /* A phone: every row is a card -- the stacked row of the table with the cells CreationConfirm
    hands it there (head, text, buttons). Below this width the table stacks (`stacked='lg'`). */
 @media (width < 992px) {

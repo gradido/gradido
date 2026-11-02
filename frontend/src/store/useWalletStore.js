@@ -171,7 +171,7 @@ export const useWalletStore = defineStore('wallet', {
       if (isNaN(pubId)) pubId = null
       this.publisherId = pubId
     },
-    // What an event link offered somebody who was not signed in (`/event?interest=…`,
+    // What an event link offered somebody who was not signed in (`/project?interest=…`,
     // utils/eventMatchingLink): the entry "I love ‹summary›", as `{ summary, details, remote,
     // keptAt }`, or null. Written where the wallet is entered (routes/guards.js), for the sign-in
     // that follows: the sign-in page takes it out and opens the form for a new entry with it

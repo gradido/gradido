@@ -34,9 +34,9 @@ const PHONE_STYLES = [
   join(src, 'components', 'CreationFormular.module.css'),
   join(src, 'components', 'ConfirmRegisterMailFormular.css'),
   join(src, 'components', 'MemberWalletLink.module.css'),
-  // The other side of the same width: where the figures table of the start page stops stacking,
-  // a label of the weeks below it keeps to one line.
-  join(src, 'pages', 'Overview.module.css'),
+  // The other side of the same width: where the figures table of the statistic page stops
+  // stacking, a label of the weeks below it keeps to one line.
+  join(src, 'pages', 'Statistic.module.css'),
 ]
 
 // Every table of the admin that stacks, and the width below which it does. Each names its width
@@ -48,7 +48,7 @@ const STACKING_TABLES = {
   [join(src, 'components', 'Tables', 'SearchUserTable.tsx')]: PHONE_BREAKPOINT_PX,
   [join(src, 'components', 'CreationTransactionList.tsx')]: PHONE_BREAKPOINT_PX,
   [join(src, 'components', 'TransactionLinkList.tsx')]: PHONE_BREAKPOINT_PX,
-  [join(src, 'pages', 'Overview.tsx')]: PHONE_BREAKPOINT_PX,
+  [join(src, 'pages', 'Statistic.tsx')]: PHONE_BREAKPOINT_PX,
   [join(src, 'components', 'ContributionLink', 'ContributionLinkList.tsx')]: 1200,
 }
 

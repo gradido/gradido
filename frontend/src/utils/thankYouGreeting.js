@@ -46,3 +46,30 @@ export const greetingParts = (memo, line) => {
     ? { line, words }
     : { line: null, words: text }
 }
+
+/** As on the server: no control character, and neither of Unicode's own line separators. */
+const isOneLine = (text) => !/[\p{Cc}\p{Zl}\p{Zp}]/u.test(text)
+
+/**
+ * The line of a greeting that is made out of a message as it stands (the send form, ZE-037): the
+ * first line of the message, where the server takes it as the greeting's line -- or null, and the
+ * greeting goes without one. The message itself is never rewritten.
+ *
+ * ⛔ The server trims the line FIRST and then holds the UNTRIMMED memo against it
+ * (backend/src/data/ThankYouGreeting.schema.ts). A first line with a space at its end would pass
+ * here without the trim check and be refused there: no link, and no mail. The drift test holds
+ * every answer of this function against the server's rule.
+ *
+ * @param {string} memo the message as the member wrote it
+ * @returns {string | null}
+ */
+export const lineFromMemo = (memo) => {
+  const lineEnd = memo.indexOf('\n')
+  const candidate = lineEnd === -1 ? memo : memo.slice(0, lineEnd)
+  return candidate === candidate.trim() &&
+    isOneLine(candidate) &&
+    candidate.length <= THANK_YOU_LINE_MAX_CHARS &&
+    greetingParts(memo, candidate).line !== null
+    ? candidate
+    : null
+}
