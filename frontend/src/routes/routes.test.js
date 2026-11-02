@@ -17,7 +17,8 @@ const matchingPathsOf = (routes) => pathsOf(routes).filter((path) => path.starts
 // Everything the flag switches on: the matching pages, and the page that builds the links
 // which end in a matching entry.
 const hangsOnMatching = (path) =>
-  path.startsWith('/matching') || path === '/event-matching' || path === '/event'
+  path.startsWith('/matching') ||
+  ['/project-matching', '/event-matching', '/projekt-matching', '/project'].includes(path)
 
 afterEach(() => {
   vi.doUnmock('@/config')
@@ -203,20 +204,33 @@ describe('routes', () => {
       expect(entry.redirect()).toEqual({ path: '/matching/entries' })
     })
 
-    // Event matching, the host's page. Without `requiresAuth`, which is what makes it public
+    // Project matching, the host's page. Without `requiresAuth`, which is what makes it public
     // AND what puts it into the layout whose footer links to it.
-    it('registers the page that builds event links, for everybody', async () => {
+    it('registers the page that builds the links, for everybody', async () => {
       const routes = await loadRoutes(true)
-      const builder = routes.filter((route) => route.path === '/event-matching')
+      const builder = routes.filter((route) => route.path === '/project-matching')
       expect(builder).toHaveLength(1)
       expect(builder[0].meta?.requiresAuth).not.toBe(true)
     })
 
-    it('keeps that page ahead of the catch-all, or it would never be reached', async () => {
-      const paths = pathsOf(await loadRoutes(true))
-      expect(paths.indexOf('/event-matching')).toBeGreaterThan(-1)
-      expect(paths.indexOf('/event-matching')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
-    })
+    // Whoever has the page's first address in a bookmark or a mail arrives under the new name,
+    // and so does whoever types the German name the way the page spells it.
+    it.each([['/event-matching'], ['/projekt-matching']])(
+      'leads %s on to that page',
+      async (path) => {
+        const routes = await loadRoutes(true)
+        expect(routes.find((route) => route.path === path).redirect).toBe('/project-matching')
+      },
+    )
+
+    it.each([['/project-matching'], ['/event-matching'], ['/projekt-matching']])(
+      'keeps %s ahead of the catch-all, or it would never be reached',
+      async (path) => {
+        const paths = pathsOf(await loadRoutes(true))
+        expect(paths.indexOf(path)).toBeGreaterThan(-1)
+        expect(paths.indexOf(path)).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+      },
+    )
   })
 
   describe('with MATCHING_ACTIVE off', () => {
@@ -226,8 +240,11 @@ describe('routes', () => {
 
     // An instance without matching has no entries for such a link to end in. The page would
     // build links that lead nowhere, so it is not there either.
-    it('does not register the page that builds event links', async () => {
-      expect(pathsOf(await loadRoutes(false))).not.toContain('/event-matching')
+    it('does not register the page that builds the links, under either address', async () => {
+      const paths = pathsOf(await loadRoutes(false))
+      expect(paths).not.toContain('/project-matching')
+      expect(paths).not.toContain('/event-matching')
+      expect(paths).not.toContain('/projekt-matching')
     })
 
     it('leaves the catch-all in place, so /matching lands on not found', async () => {
@@ -248,12 +265,12 @@ describe('routes', () => {
   })
 
   /**
-   * The entrance of an event link, `/event?interest=…` (Event-Matching). It offers an entry
-   * for the matching and the map on which the people of an event find each other -- so it
-   * exists where the matching does, and nowhere else.
+   * The entrance of a link, `/project?interest=…` (or `/event?…`, the address of the first ones).
+   * It offers an entry for the matching and the map on which the people of a project find each
+   * other -- so it exists where the matching does, and nowhere else.
    */
-  describe('the entrance of an event link', () => {
-    const entranceOf = (routes) => routes.find((route) => route.path === '/event')
+  describe('the entrance of a link', () => {
+    const entranceOf = (routes) => routes.find((route) => route.path === '/project')
 
     it('is registered with the matching, under the name its guard reads', async () => {
       const entrance = entranceOf(await loadRoutes(true))
@@ -273,8 +290,13 @@ describe('routes', () => {
     it('stands ahead of the catch-all, which would swallow it', async () => {
       const paths = pathsOf(await loadRoutes(true))
 
-      expect(paths.indexOf('/event')).toBeGreaterThan(-1)
-      expect(paths.indexOf('/event')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+      expect(paths.indexOf('/project')).toBeGreaterThan(-1)
+      expect(paths.indexOf('/project')).toBeLessThan(paths.indexOf('/:catchAll(.*)'))
+    })
+
+    // ⛔ The links of the first weeks went out with this address, and have to work for good.
+    it('keeps answering at the address of the first links', async () => {
+      expect(entranceOf(await loadRoutes(true)).alias).toBe('/event')
     })
 
     // The query of this address is what the link offers, in somebody else's words. The links
@@ -290,7 +312,7 @@ describe('routes', () => {
     it('is the only route whose query stays behind', async () => {
       const staying = (await loadRoutes(true)).filter((route) => route.meta?.queryStaysBehind)
 
-      expect(staying.map((route) => route.path)).toEqual(['/event'])
+      expect(staying.map((route) => route.path)).toEqual(['/project'])
     })
 
     // Without the matching the link lands on "not found", instead of promising a map this

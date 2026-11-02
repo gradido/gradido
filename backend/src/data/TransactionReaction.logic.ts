@@ -9,7 +9,9 @@ import {
  * How many reactions to transfers one HTTP request may set or take back
  * (setTransactionReaction), over every alias -- counted in RequestBudget (server/context.ts): a
  * document may repeat the field any number of times. The wallet sends one a request; ten rather
- * than one for the reason CHAT_REACTIONS_MAX_PER_REQUEST gives.
+ * than one for the reason CHAT_REACTIONS_MAX_PER_REQUEST gives. Since W1 it is the number of
+ * mails one request may wait for as well: a first reaction mails the giver, awaited
+ * (notifyGiverOfReaction), so ten first reactions in one document are ten mails in a row.
  */
 export const TRANSACTION_REACTIONS_MAX_PER_REQUEST = 10
 
@@ -122,3 +124,60 @@ export const canReactToBooking = (
 ): boolean =>
   (booking.typeId as TransactionTypeId) === TransactionTypeId.RECEIVE &&
   isTransferAmongMembersHere(booking, membersHere)
+
+/**
+ * What becomes of the mail about a reaction (W1, the first wave back: "Dein Dank ist
+ * angekommen" to whoever sent the transfer -- the giver of the thank-you), and why not.
+ */
+export type ReactionMailDecision = 'MAIL' | 'TAKEN_BACK' | 'NOT_THE_FIRST' | 'MUTED' | 'NO_ADDRESS'
+
+/**
+ * Whether the giver is mailed about a reaction to their transfer (W1), decided on four facts
+ * and nothing else -- the resolver and the delivery gather them, this says what they mean:
+ * - MAIL only where an emoji is SET: a reaction taken back tells the giver nothing;
+ * - and only where no reaction stood at the booking before this one (`hadReaction`): the first
+ *   reaction mails, another emoji in its place stays silent. Taken back and set again, the row
+ *   was gone in between -- that is a first reaction once more, and it mails (W1, decision 3;
+ *   whoever does that on purpose is answered by the mute mark, not by a counter);
+ * - and not where the giver muted the conversation with the recipient (E-024): the one brake
+ *   there is, no setting of its own (E-020). Where the two have no conversation, nothing is muted.
+ *   Not the giver's switch "transfers in the chat and by mail" (users.transfersInChat): that is
+ *   the recipient's word on mails about transfers RECEIVED and on bookings in their own
+ *   conversations -- weighed and left aside here (W1, decision 7);
+ * - and not where the giver has no address to mail to.
+ *
+ * Nothing about the mail of a transfer received, nothing about a counter, nothing about a
+ * suggestion to thank back (Wellen § 4): the wave runs outward, and the water stays still.
+ */
+export const reactionMailDecision = ({
+  emoji,
+  hadReaction,
+  giverMutedAt,
+  giverHasAddress,
+}: {
+  /** The emoji set, or null where the reaction was taken back. */
+  emoji: string | null
+  /** Whether a reaction stood at the booking before this one -- read before the write. */
+  hadReaction: boolean
+  /**
+   * When the giver muted the conversation with the recipient; null where they did not, or
+   * where the two have no conversation yet.
+   */
+  giverMutedAt: Date | null
+  /** Whether the giver has an e-mail address on record. */
+  giverHasAddress: boolean
+}): ReactionMailDecision => {
+  if (emoji === null) {
+    return 'TAKEN_BACK'
+  }
+  if (hadReaction) {
+    return 'NOT_THE_FIRST'
+  }
+  if (giverMutedAt !== null) {
+    return 'MUTED'
+  }
+  if (!giverHasAddress) {
+    return 'NO_ADDRESS'
+  }
+  return 'MAIL'
+}

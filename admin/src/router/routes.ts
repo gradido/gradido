@@ -8,7 +8,7 @@ export const routes = [
   } as RouteRecordRaw,
   {
     path: '/',
-    component: () => import('@/pages/Overview').then((m) => m.Overview),
+    component: () => import('@/pages/Dashboard').then((m) => m.Dashboard),
   },
   {
     // TODO: Implement a "You are logged out"-Page
@@ -19,6 +19,11 @@ export const routes = [
     path: '/user',
     name: 'user',
     component: () => import('@/pages/UserSearch').then((m) => m.UserSearch),
+  },
+  {
+    path: '/statistic',
+    name: 'statistic',
+    component: () => import('@/pages/Statistic').then((m) => m.Statistic),
   },
   {
     path: '/creation-confirm',

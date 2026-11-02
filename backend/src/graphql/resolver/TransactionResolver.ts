@@ -28,6 +28,7 @@ import {
   dbFindMemberAvatarTimestamps,
   dbHasRegisterRedeemEvent,
   dbInsertEvent,
+  dbInsertTransactionPassOn,
   dbInsertTransactionPicture,
   dbSelectThankYouCardLabels,
   dbSelectThankYouGreetingsByLinkIds,
@@ -54,7 +55,6 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
 import {
   TRANSACTION_PICTURES_MAX_PER_REQUEST,
@@ -87,6 +87,7 @@ import {
   prefetchedLookups,
   remoteUserFromBooking,
 } from './util/counterparty'
+import { acceptedPassOnOrigin } from './util/transactionPassOn'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -137,6 +138,13 @@ export const executeTransaction = async (
    * rows, as the card is -- each of the two members gets the picture through their own row.
    */
   transactionPictureId?: number | null,
+  /**
+   * The received thank-you this transfer passes on (`transaction_pass_ons`), if it passes one
+   * on: the sender's own RECEIVE booking, as sendCoins read it (acceptedPassOnOrigin). Noted
+   * for the sender's SEND row only, after the commit -- the trail of the thank-you, which
+   * nobody is shown.
+   */
+  passOnOf?: number | null,
 ): Promise<boolean> => {
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
@@ -200,25 +208,17 @@ export const executeTransaction = async (
     await queryRunner.startTransaction('REPEATABLE READ')
     logger.debug(`open Transaction to write...`)
     try {
-      // Through the shared rule, like the contribution and link paths. A bare `.alias`
-      // here wrote `null` for anybody who has not picked a name yet -- and it wrote it
-      // PERMANENTLY, into the most common booking type there is, where a legacy alias of
-      // one or two characters would also have stood while every other screen showed the
-      // identifier. Both names are read twice below, so they are worked out once.
-      const senderName = new PublishNameLogic(sender).getPublicAlias()
-      const recipientName = new PublishNameLogic(recipient).getPublicAlias()
-
       // transaction
       const transactionSend = new dbTransaction()
       transactionSend.typeId = TransactionTypeId.SEND
       transactionSend.memo = memo
       transactionSend.userId = sender.id
       transactionSend.userGradidoID = sender.gradidoID
-      transactionSend.userName = senderName
+      transactionSend.userName = sender.alias
       transactionSend.userCommunityUuid = sender.communityUuid
       transactionSend.linkedUserId = recipient.id
       transactionSend.linkedUserGradidoID = recipient.gradidoID
-      transactionSend.linkedUserName = recipientName
+      transactionSend.linkedUserName = recipient.alias
       transactionSend.linkedUserCommunityUuid = recipient.communityUuid
       transactionSend.amount = negativeAmount
       transactionSend.balance = sendBalance.balance
@@ -239,11 +239,11 @@ export const executeTransaction = async (
       transactionReceive.memo = memo
       transactionReceive.userId = recipient.id
       transactionReceive.userGradidoID = recipient.gradidoID
-      transactionReceive.userName = recipientName
+      transactionReceive.userName = recipient.alias
       transactionReceive.userCommunityUuid = recipient.communityUuid
       transactionReceive.linkedUserId = sender.id
       transactionReceive.linkedUserGradidoID = sender.gradidoID
-      transactionReceive.linkedUserName = senderName
+      transactionReceive.linkedUserName = sender.alias
       transactionReceive.linkedUserCommunityUuid = sender.communityUuid
       transactionReceive.amount = amount
       const receiveBalance = await calculateBalance(recipient.id, amount, receivedCallDate)
@@ -297,6 +297,19 @@ export const executeTransaction = async (
         involvedTransactionId: transactionReceive.id,
         amountGdd4: transactionReceive.amount,
       })
+      // The trail of a thank-you passed on, noted for the SEND row (migration 0166). ⛔ In a catch
+      // of its own: the booking is committed above, and the catch below would tell the wallet of
+      // a failed transfer for one that went out. A trail that cannot be written is missing, and
+      // the log says so.
+      if (passOnOf) {
+        try {
+          await dbInsertTransactionPassOn(transactionSend.id, passOnOf)
+        } catch (error) {
+          // The driver's code, never the error: the message of a failed Drizzle query carries
+          // the statement and its parameters.
+          logger.error('pass-on not traced', transactionSend.id, driverCodeOfFailedQuery(error))
+        }
+      }
       // update dltTransaction with transactionId
       const startTime = new Date()
       const dltTransaction = await dltTransactionPromise
@@ -324,7 +337,7 @@ export const executeTransaction = async (
         email: recipient.emailContact.email,
         language: recipient.language,
         memo,
-        senderAlias: new PublishNameLogic(sender).getPublicAlias(),
+        senderAlias: sender.alias,
         // The reply button in the mail opens the conversation with the sender, so the mail
         // carries these instead of the sender's e-mail address.
         senderUuid: sender.gradidoID,
@@ -343,7 +356,7 @@ export const executeTransaction = async (
         lastName: sender.lastName,
         email: sender.emailContact.email,
         language: sender.language,
-        senderAlias: new PublishNameLogic(recipient).getPublicAlias(),
+        senderAlias: recipient.alias,
         // The community, not an address. The field used to be called `senderEmail`
         // while both live callers passed a community name, with the real address
         // commented out beside it -- a name that invited the next person to put the
@@ -820,6 +833,7 @@ export class TransactionResolver {
       memo,
       motif,
       picture: photoInput,
+      passOnOf,
     }: TransactionSendArgs,
     @Ctx() context: Context,
   ): Promise<boolean> {
@@ -842,7 +856,7 @@ export class TransactionResolver {
     // Of the picture the log gets that there is one, and of which kind.
     const pictureKind = picture ? ('motif' in picture ? 'motif' : 'photo') : 'none'
     logger.debug(
-      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo}, picture=${pictureKind})`,
+      `sendCoins(recipientCommunityIdentifier=${recipientCommunityIdentifier}, recipientIdentifier=${recipientIdentifier}, amount=${amount}, memo=${memo}, picture=${pictureKind}, passOnOf=${passOnOf ?? 'none'})`,
     )
     const senderUser = getUser(context)
     if (!recipientCommunityIdentifier || (await isHomeCommunity(recipientCommunityIdentifier))) {
@@ -862,9 +876,22 @@ export class TransactionResolver {
         logger.error(errmsg)
         throw new Error(errmsg)
       }
+      // The received thank-you this transfer passes on, where the wallet names one: read as the
+      // sender's own before the booking, and dropped where it is not -- never a refusal.
+      const passOnOrigin = await acceptedPassOnOrigin(passOnOf, senderUser.id, logger)
 
       if (!picture) {
-        await executeTransaction(amount, memo, senderUser, recipientUser, logger)
+        await executeTransaction(
+          amount,
+          memo,
+          senderUser,
+          recipientUser,
+          logger,
+          null,
+          null,
+          null,
+          passOnOrigin,
+        )
       } else {
         // ⛔ The picture goes first. It is filed through Drizzle, the booking is written through
         // TypeORM -- two connection pools, no shared transaction --, so the order decides what a
@@ -897,6 +924,7 @@ export class TransactionResolver {
             null,
             null,
             filed.value,
+            passOnOrigin,
           )
         } catch (error) {
           await removeUnbookedTransactionPicture(filed.value, senderUser.id)
@@ -909,6 +937,12 @@ export class TransactionResolver {
       // before the other community hears of the transfer.
       if (picture) {
         throw new LogError('A picture can only be sent to a member of the own community')
+      }
+      // Nor does the trail of a thank-you passed on: the other community books the transfer on
+      // a way of its own (processXComCompleteTransaction). What the wallet named is dropped, and
+      // the transfer goes out as any other.
+      if (passOnOf) {
+        logger.warn('passOnOf dropped: ACROSS_THE_BORDER', passOnOf)
       }
       await processXComCompleteTransaction(
         senderUser.communityUuid,

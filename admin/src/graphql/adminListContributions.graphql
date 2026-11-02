@@ -33,6 +33,8 @@ query adminListContributions(
       updatedByUserName
       contributionStatus
       messagesCount
+      lastMessageType
+      lastMessageByModerator
       moderatorId
       moderatorUserName
       userId
@@ -68,6 +70,29 @@ query adminListContributionsCount(
 ) {
   adminListContributions(
     filter: $filter
+  ) {
+    contributionCount
+  }
+}
+
+
+# The open creations of the admin's start page, in one request. What waits for the moderation and
+# what waits for the member are the two halves of the tab "open" of the creation page, with what
+# it hides until its resubmission date. What is hidden has no filter of its own: it is all that is
+# open, less the two.
+query adminOpenCreationCounts {
+  waitingForModeration: adminListContributions(
+    filter: { statusFilter: [PENDING], hideResubmission: true }
+  ) {
+    contributionCount
+  }
+  waitingForMember: adminListContributions(
+    filter: { statusFilter: [IN_PROGRESS], hideResubmission: true }
+  ) {
+    contributionCount
+  }
+  allOpen: adminListContributions(
+    filter: { statusFilter: [IN_PROGRESS, PENDING], hideResubmission: false }
   ) {
     contributionCount
   }

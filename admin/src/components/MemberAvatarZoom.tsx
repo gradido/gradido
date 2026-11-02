@@ -84,8 +84,9 @@ export const MemberAvatarZoom = defineComponent({
     // twice.
     //
     // A picture needs neither a title bar nor buttons: it closes on a tap beside it or with
-    // Escape, both of which the modal does by itself. The name a header would have carried
-    // goes to `aria-label`, so a screen reader still says whose face this is.
+    // Escape, both of which the modal does by itself, and on a tap on the picture (below). The
+    // name a header would have carried goes to `aria-label`, so a screen reader still says whose
+    // face this is.
     return () => (
       <BModal
         modelValue={Boolean(shown.value)}
@@ -104,26 +105,39 @@ export const MemberAvatarZoom = defineComponent({
             and the white box cut the circle (Bernd, 12.09.2026). Here nothing can overflow:
             the box is the box, and `object-fit: cover` decides what of the picture fills it.
             Same presentation as the wallet's zoom, for the same picture. */}
-        <div class={classes.memberAvatarZoomStage}>
-          {shown.value ? (
-            <img
-              class={classes.memberAvatarZoomImage}
-              src={shown.value.src}
-              alt={shown.value.label}
-              data-test='member-avatar-zoom-small'
-            />
-          ) : null}
-          {/* The full size arrives on top of the small one: the swap is a sharpening rather
-              than a blink, because the small rendition stays until the big one has decoded. */}
-          {fullSource.value ? (
-            <img
-              class={[classes.memberAvatarZoomImage, 'member-avatar-zoom-image-full']}
-              src={fullSource.value}
-              alt=''
-              data-test='member-avatar-zoom-full'
-            />
-          ) : null}
-        </div>
+        {/* A tap on the picture closes it again, as a tap anywhere does in the wallet's zoom
+            (AvatarZoom.vue). Only a tap beside the window's box did here, and a moderator had
+            to go looking for that place (Bernd, 25.10.2026). The area spans the box's whole
+            width, so the room beside the round face closes it as well. A button, so that a
+            keyboard reaches it and a screen reader names it (coderabbit, #4199); Escape stays. */}
+        <button
+          type='button'
+          class={classes.memberAvatarZoomCloser}
+          aria-label={t('close')}
+          data-test='member-avatar-zoom-closer'
+          onClick={closeMemberAvatarZoom}
+        >
+          <span class={classes.memberAvatarZoomStage}>
+            {shown.value ? (
+              <img
+                class={classes.memberAvatarZoomImage}
+                src={shown.value.src}
+                alt={shown.value.label}
+                data-test='member-avatar-zoom-small'
+              />
+            ) : null}
+            {/* The full size arrives on top of the small one: the swap is a sharpening rather
+                than a blink, because the small rendition stays until the big one has decoded. */}
+            {fullSource.value ? (
+              <img
+                class={[classes.memberAvatarZoomImage, 'member-avatar-zoom-image-full']}
+                src={fullSource.value}
+                alt=''
+                data-test='member-avatar-zoom-full'
+              />
+            ) : null}
+          </span>
+        </button>
       </BModal>
     )
   },

@@ -1,3 +1,5 @@
+/* 300pt (400px) at the desk, as before; never wider than the card it stands in -- on a phone
+   the selects reached past it. */
 .role-select {
-  width: 300pt;
+  width: min(300pt, 100%);
 }

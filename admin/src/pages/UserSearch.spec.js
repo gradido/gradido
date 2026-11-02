@@ -1,8 +1,10 @@
 import { useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
-import { BButton } from 'bootstrap-vue-next'
+import { BPagination } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
+import { adminStore } from '../../test/adminStore'
 import { UserSearch } from './UserSearch'
 
 // Mock the composables and components
@@ -10,29 +12,34 @@ vi.mock('@vue/apollo-composable')
 vi.mock('../composables/useCreationMonths', () => ({
   useCreationMonths: () => ({
     creationLabel: () => 'Creation Date',
+    creationMonthShorts: () => ['Aug', 'Sep', 'Oct'],
   }),
 }))
-const { mockToastSuccess, mockT, route } = vi.hoisted(() => ({
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
+const { mockToastError, mockToastSuccess, mockT, route } = vi.hoisted(() => ({
+  mockToastError: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockT: vi.fn((key) => key), // Mock translation function
   route: { query: {} },
 }))
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: mockT }),
+  useI18n: () => ({ t: mockT, locale: { value: 'de' } }),
 }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({
+    toastError: mockToastError,
     toastSuccess: mockToastSuccess,
   }),
 }))
 vi.mock('vue-router', () => ({
   useRoute: () => route,
 }))
-
-// Mock icon components
-const mockIconComponent = {
-  template: '<span>Icon</span>',
-}
 
 const mockSearchUsers = {
   userCount: 4,
@@ -84,8 +91,14 @@ const mockSearchUsers = {
   ],
 }
 
+// What the composable hands the page besides the answer
+const noFailure = () => ({ error: { value: null }, onError: vi.fn() })
+
 describe('UserSearch', () => {
   let wrapper
+
+  // What the page asks the server for right now: the variables are a function of its state.
+  const asked = () => useQuery.mock.lastCall[1]()
 
   const mountPage = (stubs = {}) =>
     mount(UserSearch, {
@@ -94,25 +107,28 @@ describe('UserSearch', () => {
           UserQuery: true,
           SearchUserTable: true,
           BPagination: true,
-          BButton: true,
-          IBiEnvelope: mockIconComponent,
-          IBiXCircle: mockIconComponent,
           ...stubs,
         },
         mocks: {
           $t: mockT,
         },
+        // The moderator whose last search the page keeps (utils/lastSearch.ts).
+        plugins: [adminStore({ moderator: { gradidoID: 'moderator-gid' } })],
       },
     })
 
   beforeEach(() => {
     route.query = {}
+    // No last search left behind by a test before (utils/lastSearch.ts).
+    window.localStorage.clear()
+    viewport.value = 'unknown'
     mockToastSuccess.mockClear()
+    mockToastError.mockClear()
     // Mock the useQuery composable, with a copy per test: the page writes role changes into
     // the list it was handed.
     useQuery.mockReturnValue({
+      ...noFailure(),
       result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
-      refetch: vi.fn(),
     })
 
     wrapper = mountPage()
@@ -126,7 +142,7 @@ describe('UserSearch', () => {
     // Force a re-render
     await nextTick()
 
-    expect(mockT).toHaveBeenCalledWith('user_search')
+    expect(mockT).toHaveBeenCalledWith('userSearch.tabs.all')
   })
 
   // The search finds members by username, so the table has to show the name it matched.
@@ -141,65 +157,326 @@ describe('UserSearch', () => {
     expect(fields.find((field) => field.key === 'alias').label).toBe('username')
   })
 
-  // Measured in the built admin: without these the table reaches past the window between
-  // 768 and about 880 px (a long address next to a 20-character username).
-  it('lets the username break always and the address in the narrow band', () => {
+  // A username may always break; the address stays whole. It broke only between 768 and 850px,
+  // where the table stood until the boundary moved to 992px (AO-010): from there on it fits
+  // beside the username column, measured in the built admin with a 36-character address.
+  it('lets the username break always and keeps the address whole', () => {
     const fields = wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')
     expect(fields.find((field) => field.key === 'alias').tdClass).toBe('text-break')
-    expect(fields.find((field) => field.key === 'email').tdClass).toBe('user-search-narrow-break')
+    expect(fields.find((field) => field.key === 'email')).not.toHaveProperty('tdClass')
   })
 
-  it('renders unconfirmed emails button', () => {
-    const button = wrapper.find('.unconfirmedRegisterMails')
-    expect(button.exists()).toBe(true)
-  })
+  // Below 992px every member is a card: one cell that says what the seven columns say
+  // (SearchUserTable, the slot `cell(memberCard)`).
+  describe('the fields on either side of the phone boundary', () => {
+    const fieldKeys = () =>
+      wrapper
+        .findComponent({ name: 'SearchUserTable' })
+        .props('fields')
+        .map((field) => field.key)
+    const SEVEN = ['email', 'firstName', 'lastName', 'alias', 'creation', 'createdAt', 'status']
 
-  it('renders deleted user search button', () => {
-    const button = wrapper.find('.deletedUserSearch')
-    expect(button.exists()).toBe(true)
-  })
-
-  it('handles unconfirmed register mails button click', async () => {
-    const button = wrapper.find('.unconfirmedRegisterMails')
-    await button.trigger('click')
-    expect(useQuery().refetch).toHaveBeenCalled()
-  })
-
-  it('handles deleted user search button click', async () => {
-    const button = wrapper.find('.deletedUserSearch')
-    await button.trigger('click')
-    expect(useQuery().refetch).toHaveBeenCalled()
-  })
-
-  describe('the filter buttons', () => {
-    // The words of a button, behind its icon
-    const label = (button) => button.text().replace(/^Icon\s*/, '')
-
-    beforeEach(() => {
-      wrapper = mountPage({ BButton })
+    it('on a phone the table gets one card field', async () => {
+      viewport.value = 'mobile'
+      await nextTick()
+      expect(fieldKeys()).toEqual(['memberCard'])
+      expect(wrapper.findComponent({ name: 'SearchUserTable' }).props('fields')[0].label).toBe('')
     })
 
-    it('says all addresses before a filter is set', () => {
-      expect(label(wrapper.find('.unconfirmedRegisterMails'))).toBe('all_emails')
-      expect(label(wrapper.find('.deletedUserSearch'))).toBe('all_emails')
+    it.each(['unknown', 'desktop'])(
+      'at the desk the fields are the seven of before (%s)',
+      async (side) => {
+        viewport.value = side
+        await nextTick()
+        expect(fieldKeys()).toEqual(SEVEN)
+      },
+    )
+
+    it('goes back to the seven when the window grows past the boundary', async () => {
+      viewport.value = 'mobile'
+      await nextTick()
+      viewport.value = 'desktop'
+      await nextTick()
+      expect(fieldKeys()).toEqual(SEVEN)
+    })
+  })
+
+  // The card names each amount of `creation` by its month; the page knows the months.
+  it('hands the table the short names of the three months', () => {
+    expect(wrapper.findComponent({ name: 'SearchUserTable' }).props('creationMonths')).toEqual([
+      'Aug',
+      'Sep',
+      'Oct',
+    ])
+  })
+
+  // The real pager, counted by what it draws: names of props are the library's to give.
+  it('the pager shows three numbers and no end buttons on a phone, five and the end buttons at the desk', async () => {
+    useQuery.mockReturnValue({
+      ...noFailure(),
+      result: { value: { searchUsers: { ...structuredClone(mockSearchUsers), userCount: 300 } } },
+    })
+    wrapper = mountPage({ BPagination })
+    const pager = () => wrapper.findComponent(BPagination)
+    const drawn = () =>
+      pager()
+        .findAll('li')
+        .map((item) => item.text())
+
+    expect(drawn()).toEqual(['«', '‹', '1', '2', '3', '4', '…', '›', '»'])
+
+    viewport.value = 'mobile'
+    await nextTick()
+    expect(drawn()).toEqual(['‹', '1', '2', '3', '›'])
+    // ... and all three stay in sight below 576px, where the library hides one (App.css).
+    expect(pager().classes()).toContain('phone-pager')
+  })
+
+  // ⭐ Bernd, 30.10.2026: tabs as on the creation page, where the two buttons said "Alle Nutzer"
+  // twice and a click on one forgot the text in the field and the page in the pager.
+  describe('the status tabs', () => {
+    const NOBODY_LEFT_OUT = { byActivated: null, byDeleted: null }
+    const STATUS = {
+      enabled: { byActivated: true, byDeleted: false },
+      unconfirmed: { byActivated: false, byDeleted: false },
+      deleted: { byActivated: null, byDeleted: true },
+    }
+    const links = () => wrapper.findAll('.page-tabs .nav-link')
+    const shownWord = () => wrapper.find('.page-tabs .nav-link.active .tab-word').text()
+    const pick = async (index) => {
+      await links()[index].trigger('click')
+      await flushPromises()
+    }
+    const searchField = () => wrapper.findComponent({ name: 'UserQuery' })
+    const pager = () => wrapper.findComponent({ name: 'BPagination' })
+
+    beforeEach(async () => {
+      await flushPromises()
     })
 
-    it('switches to the unconfirmed addresses and back', async () => {
-      const button = wrapper.find('.unconfirmedRegisterMails')
-      await button.trigger('click')
-      expect(label(button)).toBe('unregistered_emails')
-      expect(useQuery.mock.lastCall[1].filters).toEqual({ byActivated: false, byDeleted: null })
-      await button.trigger('click')
-      expect(label(button)).toBe('all_emails')
+    it('are four, in the words of the status column, all members first', () => {
+      expect(links().map((link) => link.find('.tab-word').text())).toEqual([
+        'userSearch.tabs.all',
+        'userSearch.tabs.enabled',
+        'userSearch.tabs.unconfirmed',
+        'userSearch.tabs.deleted',
+      ])
+      expect(shownWord()).toBe('userSearch.tabs.all')
+      expect(asked().filters).toEqual(NOBODY_LEFT_OUT)
     })
 
-    it('switches to the deleted members and back', async () => {
-      const button = wrapper.find('.deletedUserSearch')
-      await button.trigger('click')
-      expect(label(button)).toBe('deleted_user')
-      expect(useQuery.mock.lastCall[1].filters).toEqual({ byActivated: null, byDeleted: true })
-      await button.trigger('click')
-      expect(label(button)).toBe('all_emails')
+    // Each member under one tab beside "all", as the status column names them: a deleted member
+    // whose address was never confirmed is deleted, and not under "unconfirmed".
+    it.each([
+      [1, 'enabled'],
+      [2, 'unconfirmed'],
+      [3, 'deleted'],
+    ])('tab %i asks for what the status column calls %s', async (index, status) => {
+      await pick(index)
+      expect(asked().filters).toEqual(STATUS[status])
+      await pick(0)
+      expect(asked().filters).toEqual(NOBODY_LEFT_OUT)
+    })
+
+    it('keep the text in the field', async () => {
+      searchField().vm.$emit('update:modelValue', 'bibi')
+      await flushPromises()
+      await pick(3)
+      expect(asked()).toMatchObject({ query: 'bibi', filters: STATUS.deleted })
+      expect(searchField().props('modelValue')).toBe('bibi')
+    })
+
+    it('lead to the first page of the list they show', async () => {
+      pager().vm.$emit('update:modelValue', 3)
+      await flushPromises()
+      expect(asked().currentPage).toBe(3)
+      await pick(2)
+      expect(asked().currentPage).toBe(1)
+      expect(pager().props('modelValue')).toBe(1)
+    })
+
+    it('leave the page alone while the moderator turns the pages', async () => {
+      await pick(2)
+      pager().vm.$emit('update:modelValue', 2)
+      await flushPromises()
+      expect(asked()).toMatchObject({ currentPage: 2, filters: STATUS.unconfirmed })
+    })
+
+    it('keep their tab when the moderator types, and the text leads to the first page too', async () => {
+      await pick(1)
+      pager().vm.$emit('update:modelValue', 3)
+      await flushPromises()
+      searchField().vm.$emit('update:modelValue', 'bibi')
+      await flushPromises()
+      expect(asked()).toMatchObject({ query: 'bibi', filters: STATUS.enabled, currentPage: 1 })
+    })
+
+    // `fetchPolicy` stood among the variables, where the client took it for a variable and
+    // answered a tab it had seen from its cache: a member deleted since was back in the list.
+    it('ask the server each time', () => {
+      expect(useQuery.mock.lastCall[2]).toEqual({ fetchPolicy: 'no-cache' })
+      expect(asked()).not.toHaveProperty('fetchPolicy')
+    })
+
+    // Bernd, 26.10.2026, for the creation page: "merk Dir auch den Reiter, so wie die Suche".
+    describe('the tab this moderator left the page on', () => {
+      it('is the one the page opens with, from the first question on', async () => {
+        keepLastTab('/user', 'moderator-gid', 3)
+        wrapper = mountPage()
+        expect(asked().filters).toEqual(STATUS.deleted)
+        await flushPromises()
+        expect(shownWord()).toBe('userSearch.tabs.deleted')
+        expect(asked().filters).toEqual(STATUS.deleted)
+      })
+
+      it('is kept as it changes', async () => {
+        await pick(2)
+        expect(lastTab('/user', 'moderator-gid', 4)).toBe(2)
+        await pick(0)
+        expect(lastTab('/user', 'moderator-gid', 4)).toBe(0)
+      })
+
+      it('gives way to everybody on an entry link, which looks for one member', async () => {
+        keepLastTab('/user', 'moderator-gid', 3)
+        route.query = { search: 'bibi' }
+        wrapper = mountPage()
+        expect(asked().filters).toEqual(NOBODY_LEFT_OUT)
+        await flushPromises()
+        expect(shownWord()).toBe('userSearch.tabs.all')
+        expect(lastTab('/user', 'moderator-gid', 4)).toBe(0)
+      })
+
+      it('is kept for each moderator', () => {
+        keepLastTab('/user', 'another-moderator', 3)
+        wrapper = mountPage()
+        expect(asked().filters).toEqual(NOBODY_LEFT_OUT)
+      })
+    })
+
+    // The list's answer in words of their own, also at 0.
+    describe('the number of hits', () => {
+      const hits = () => wrapper.find('[data-test="user-search-hits"]')
+
+      it('says how many the list holds, as the pager counts them', () => {
+        expect(mockT).toHaveBeenCalledWith('userSearch.hits', { count: '4' }, 4)
+        expect(hits().text()).toBe('userSearch.hits')
+        expect(hits().attributes('role')).toBe('status')
+      })
+
+      it('groups the digits as the language of the moderator does', () => {
+        useQuery.mockReturnValue({
+          ...noFailure(),
+          result: {
+            value: { searchUsers: { ...structuredClone(mockSearchUsers), userCount: 6116 } },
+          },
+        })
+        wrapper = mountPage()
+        expect(mockT).toHaveBeenCalledWith('userSearch.hits', { count: '6.116' }, 6116)
+      })
+
+      it('says nothing before the first answer, and then what it found', async () => {
+        const result = ref(null)
+        useQuery.mockReturnValue({ ...noFailure(), result })
+        wrapper = mountPage()
+        expect(hits().text()).toBe('')
+        result.value = { searchUsers: structuredClone(mockSearchUsers) }
+        await flushPromises()
+        expect(hits().text()).toBe('userSearch.hits')
+      })
+
+      it('says 0 where nobody is found', async () => {
+        mockT.mockClear()
+        useQuery.mockReturnValue({
+          ...noFailure(),
+          result: { value: { searchUsers: { userCount: 0, userList: [] } } },
+        })
+        route.query = { search: 'nobody' }
+        wrapper = mountPage()
+        await flushPromises()
+        expect(mockT).toHaveBeenCalledWith('userSearch.hits', { count: '0' }, 0)
+      })
+
+      // The rows are still those of the list before: a number under the new tab would confirm them.
+      it('says nothing where the question failed', () => {
+        useQuery.mockReturnValue({
+          result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
+          error: { value: { message: 'no answer' } },
+          onError: vi.fn(),
+        })
+        wrapper = mountPage()
+        expect(hits().text()).toBe('')
+      })
+    })
+
+    it('say so where the question fails, as the creation page does', () => {
+      const onError = vi.fn()
+      useQuery.mockReturnValue({
+        result: { value: { searchUsers: structuredClone(mockSearchUsers) } },
+        error: { value: null },
+        onError,
+      })
+      wrapper = mountPage()
+      onError.mock.lastCall[0]({ message: 'no answer' })
+      expect(mockToastError).toHaveBeenCalledWith('no answer')
+    })
+
+    // The real pager: it takes a page back to the number of pages it has, 0 on an empty list. A
+    // page 0 is refused, and the page would not answer again until it is opened anew.
+    describe('and the pages of a list that changes under them', () => {
+      const answer = (userCount, userList = structuredClone(mockSearchUsers.userList)) => ({
+        searchUsers: { userCount, userList },
+      })
+      let result
+      const realPager = () => wrapper.findComponent(BPagination)
+
+      beforeEach(async () => {
+        result = ref(answer(300))
+        useQuery.mockReturnValue({ ...noFailure(), result })
+        wrapper = mountPage({ BPagination })
+        await flushPromises()
+      })
+
+      it('never ask for a page 0: not on a page past an empty list, and not after it', async () => {
+        realPager().vm.$emit('update:modelValue', 3)
+        await flushPromises()
+        expect(asked().currentPage).toBe(3)
+
+        result.value = answer(0, [])
+        await flushPromises()
+        expect(asked().currentPage).toBe(1)
+
+        await pick(2)
+        expect(asked().currentPage).toBe(1)
+        await pick(3)
+        expect(asked().currentPage).toBe(1)
+
+        result.value = answer(100)
+        await flushPromises()
+        expect(asked().currentPage).toBe(1)
+        expect(realPager().find('.page-item.active').text()).toBe('1')
+      })
+
+      it('take a page the pager writes as 0 for the first', async () => {
+        realPager().vm.$emit('update:modelValue', 0)
+        await flushPromises()
+        expect(asked().currentPage).toBe(1)
+      })
+
+      it('go to the last page there is where the list ends before the one asked for', async () => {
+        realPager().vm.$emit('update:modelValue', 5)
+        await flushPromises()
+        result.value = answer(30, [])
+        await flushPromises()
+        expect(asked().currentPage).toBe(2)
+      })
+
+      it('leave a page alone that the list has', async () => {
+        realPager().vm.$emit('update:modelValue', 2)
+        await flushPromises()
+        result.value = answer(26)
+        await flushPromises()
+        expect(asked().currentPage).toBe(2)
+      })
     })
   })
 
@@ -210,9 +487,143 @@ describe('UserSearch', () => {
       await flushPromises()
     })
 
-    it('fills the query field with it and searches', () => {
+    // Its first question is the search: it used to ask for everybody first and then again.
+    it('fills the query field with it and asks for it at once', () => {
       expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('bibi')
-      expect(useQuery().refetch).toHaveBeenCalledWith({ query: 'bibi' })
+      expect(asked()).toMatchObject({ query: 'bibi' })
+    })
+  })
+
+  // `searchUsers` takes one text; a repeated parameter in the address is none.
+  it('takes no repeated search parameter for a search', () => {
+    route.query = { search: ['bibi', 'benjamin'] }
+    wrapper = mountPage()
+    expect(asked()).toMatchObject({ query: '' })
+    expect(wrapper.findComponent({ name: 'UserQuery' }).props('modelValue')).toBe('')
+  })
+
+  // ⭐ Bernd, 26.10.2026: the page opens with the last search, kept on this device for each
+  // moderator without end (utils/lastSearch.ts).
+  describe('the last search', () => {
+    const searchField = () => wrapper.findComponent({ name: 'UserQuery' })
+    const answering = (userCount) => ({
+      searchUsers: { userCount, userList: structuredClone(mockSearchUsers.userList) },
+    })
+
+    it('is the one the page opens with, however it is reached', () => {
+      keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+      wrapper = mountPage()
+      expect(asked()).toMatchObject({ query: 'bibi@bloxberg.de' })
+      expect(searchField().props('modelValue')).toBe('bibi@bloxberg.de')
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
+
+    it('is kept as it changes', async () => {
+      wrapper = mountPage()
+      searchField().vm.$emit('update:modelValue', 'bibi@bloxberg.de')
+      await flushPromises()
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
+
+    it('gives way to the search of an entry link, which is the last one then', () => {
+      keepLastSearch('/user', 'moderator-gid', 'peter')
+      route.query = { search: 'bibi' }
+      wrapper = mountPage()
+      expect(asked()).toMatchObject({ query: 'bibi' })
+      expect(lastSearch('/user', 'moderator-gid')).toBe('bibi')
+    })
+
+    describe('where the first answer finds nobody', () => {
+      beforeEach(() => {
+        useQuery.mockReturnValue({ ...noFailure(), result: { value: answering(0) } })
+      })
+
+      it('gives way to everybody', async () => {
+        keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+        wrapper = mountPage()
+        await flushPromises()
+        expect(searchField().props('modelValue')).toBe('')
+        expect(asked()).toMatchObject({ query: '' })
+        expect(lastSearch('/user', 'moderator-gid')).toBe('')
+      })
+
+      // Everybody, as the moderator asked: a kept tab that finds nobody is no list to open on.
+      it('gives way to everybody with a kept tab as well', async () => {
+        keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+        keepLastTab('/user', 'moderator-gid', 3)
+        wrapper = mountPage()
+        await flushPromises()
+        expect(searchField().props('modelValue')).toBe('')
+        expect(asked()).toMatchObject({
+          query: '',
+          filters: { byActivated: null, byDeleted: null },
+        })
+        expect(wrapper.find('.page-tabs .nav-link.active .tab-word').text()).toBe(
+          'userSearch.tabs.all',
+        )
+        expect(lastTab('/user', 'moderator-gid', 4)).toBe(0)
+      })
+
+      // Its answer is the one about to be replaced: "0 hits" under "all" would be read out.
+      it('says no number until everybody has answered', async () => {
+        const result = ref(null)
+        useQuery.mockReturnValue({ ...noFailure(), result })
+        keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+        wrapper = mountPage()
+        const hits = () => wrapper.find('[data-test="user-search-hits"]').text()
+
+        result.value = answering(0)
+        await flushPromises()
+        expect(asked()).toMatchObject({ query: '' })
+        expect(hits()).toBe('')
+
+        result.value = answering(4)
+        await flushPromises()
+        expect(hits()).toBe('userSearch.hits')
+      })
+
+      // As it is in use: the tabs stand and show the kept one before the first answer comes.
+      it('shows the tab of everybody too, where the answer comes after the page stood', async () => {
+        const result = ref(null)
+        useQuery.mockReturnValue({ ...noFailure(), result })
+        keepLastTab('/user', 'moderator-gid', 3)
+        wrapper = mountPage()
+        await flushPromises()
+        const shown = () => wrapper.find('.page-tabs .nav-link.active .tab-word').text()
+        expect(shown()).toBe('userSearch.tabs.deleted')
+
+        result.value = answering(0)
+        await flushPromises()
+        expect(shown()).toBe('userSearch.tabs.all')
+      })
+
+      it('gives way to everybody with a kept tab alone', async () => {
+        keepLastTab('/user', 'moderator-gid', 2)
+        wrapper = mountPage()
+        await flushPromises()
+        expect(asked().filters).toEqual({ byActivated: null, byDeleted: null })
+        expect(lastTab('/user', 'moderator-gid', 4)).toBe(0)
+      })
+
+      it('leaves the search of an entry link alone', async () => {
+        route.query = { search: 'bibi' }
+        wrapper = mountPage()
+        await flushPromises()
+        expect(searchField().props('modelValue')).toBe('bibi')
+        expect(asked()).toMatchObject({ query: 'bibi' })
+      })
+    })
+
+    it('leaves a search alone that the moderator changed before the first answer came', async () => {
+      const result = ref(null)
+      useQuery.mockReturnValue({ ...noFailure(), result })
+      keepLastSearch('/user', 'moderator-gid', 'bibi@bloxberg.de')
+      wrapper = mountPage()
+      searchField().vm.$emit('update:modelValue', 'nobody@example.org')
+      await flushPromises()
+      result.value = answering(0)
+      await flushPromises()
+      expect(searchField().props('modelValue')).toBe('nobody@example.org')
     })
   })
 
@@ -315,7 +726,7 @@ describe('UserSearch', () => {
 
     beforeEach(() => {
       answer = deepFreeze({ searchUsers: structuredClone(mockSearchUsers) })
-      useQuery.mockReturnValue({ result: { value: answer }, refetch: vi.fn() })
+      useQuery.mockReturnValue({ ...noFailure(), result: { value: answer } })
       wrapper = mountPage()
       mockToastSuccess.mockClear()
     })

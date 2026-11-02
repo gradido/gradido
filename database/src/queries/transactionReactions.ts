@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { eq, inArray } from 'drizzle-orm'
+import { count, eq, gte, inArray } from 'drizzle-orm'
 import { drizzleDb } from '../AppDatabase'
 import { transactionReactionsTable, transactionsTable } from '../schemas/drizzle.schema'
+import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 
 /**
  * The reaction to a transfer, set or replaced (migration 0159): one row a transfer, hung on the
@@ -71,4 +72,28 @@ export async function dbSelectTransactionReactions(
     .from(transactionReactionsTable)
     .innerJoin(transactionsTable, eq(transactionsTable.id, transactionReactionsTable.transactionId))
     .where(inArray(transactionReactionsTable.transactionId, transactionIds))
+}
+
+/**
+ * How many transfers their recipient answered with a reaction, from each moment on by the moment
+ * it was first set -- one statement, one number per moment (the figures of the admin's start
+ * page, figureCounts.ts). Another emoji in the place of the first keeps the row and its moment
+ * (dbUpsertTransactionReaction); a reaction taken back is gone (dbDeleteTransactionReaction).
+ */
+export async function dbCountTransactionReactions(froms: (Date | null)[]): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(transactionReactionsTable.createdAt)))
+    .from(transactionReactionsTable)
+  return countsOfRow(row, froms)
+}
+
+/** dbCountTransactionReactions by calendar week: in each week from `from` on. */
+export async function dbCountTransactionReactionsByWeek(from: Date): Promise<WeeklyCount[]> {
+  const week = weekStartOf(transactionReactionsTable.createdAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(transactionReactionsTable)
+    .where(gte(transactionReactionsTable.createdAt, from))
+    .groupBy(week)
+    .orderBy(week)
 }

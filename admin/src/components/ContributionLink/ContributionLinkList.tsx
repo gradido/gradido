@@ -66,10 +66,14 @@ export const ContributionLinkList = defineComponent({
     // the same way. That is what this function is for: one line to change, one answer.
     const validityDate = (value: string) => new Date(value)
 
+    // Every column under a translated head: on a phone a stacked cell shows it as its name, and
+    // at the desk the heads were English ("Amount", "Memo"). The four buttons of a row share
+    // one column; four columns of them made the table 85.5px wider than a 1024px window
+    // (measured 23.10.2026).
     const fields = computed<TableFieldRaw<ContributionLinkRow>[]>(() => [
-      'name',
-      'memo',
-      'amount',
+      { key: 'name', label: t('contributionLink.name') },
+      { key: 'memo', label: t('contributionLink.memo') },
+      { key: 'amount', label: t('contributionLink.amount') },
       { key: 'cycle', label: t('contributionLink.cycle') },
       { key: 'maxPerCycle', label: t('contributionLink.maxPerCycle') },
       {
@@ -82,9 +86,7 @@ export const ContributionLinkList = defineComponent({
         label: t('contributionLink.validTo'),
         formatter: (value) => (value ? d(validityDate(value as string)) : ''),
       },
-      ...(isAdmin.value ? ['delete', 'edit'] : []),
-      'show',
-      'cheque',
+      { key: 'actions', label: t('actions') },
     ])
 
     const { mutate: deleteContributionLinkMutation } = useMutation(deleteContributionLink)
@@ -158,49 +160,65 @@ export const ContributionLinkList = defineComponent({
 
     return () => (
       <div class='contribution-link-list'>
-        <BTable items={props.items} fields={fields.value} striped hover stacked='lg'>
+        {/* Below 1200px the cells of a link stand under each other, each under the name of its
+            column; from there on the table. ⛔ `xl`, not the `lg` of the other tables: with its
+            eight columns the table still stood 13.6px past a 1024px window (the head
+            "Wiederholungen" is one word, and a name of a link is long), measured in the built
+            admin, 23.10.2026. The names stand in every cell, and the library shows them only
+            while the table stacks. */}
+        <BTable items={props.items} fields={fields.value} striped hover stacked='xl' labelStacked>
           {{
-            'cell(delete)': (data: CellScope) => (
-              <BButton
-                variant='danger'
-                size='md'
-                class='me-2 test-delete-link'
-                onClick={() => handleDelete(data)}
-              >
-                <IBiTrash />
-              </BButton>
-            ),
-            'cell(edit)': (data: CellScope) => (
-              <BButton
-                variant='success'
-                size='md'
-                class='me-2'
-                onClick={() => editContributionLink(data.item)}
-              >
-                <IBiPencil />
-              </BButton>
-            ),
-            'cell(show)': (data: CellScope) => (
-              <BButton
-                variant='info'
-                size='md'
-                class='me-2 test-show'
-                onClick={() => showContributionLink(data.item)}
-              >
-                <IBiEye />
-              </BButton>
-            ),
-            'cell(cheque)': (data: CellScope) => (
-              <BButton
-                variant='secondary'
-                size='md'
-                class='me-2 test-download-cheque'
-                title={t('thank-you-cheque.download')}
-                aria-label={t('thank-you-cheque.download')}
-                onClick={() => downloadCheque(data.item)}
-              >
-                <IBiDownload />
-              </BButton>
+            // Side by side, at the desk as on a phone. Each button is a symbol and nothing else,
+            // so its name is all a screen reader has of it, and its tooltip the moderator's.
+            // Only administrators may change a starting balance: a moderator gets the two that
+            // reveal and print the link.
+            'cell(actions)': (data: CellScope) => (
+              <span class='text-nowrap'>
+                {isAdmin.value ? (
+                  <BButton
+                    variant='danger'
+                    size='md'
+                    class='me-2 test-delete-link'
+                    title={t('delete')}
+                    aria-label={t('delete')}
+                    onClick={() => handleDelete(data)}
+                  >
+                    <IBiTrash />
+                  </BButton>
+                ) : null}
+                {isAdmin.value ? (
+                  <BButton
+                    variant='success'
+                    size='md'
+                    class='me-2 test-edit-link'
+                    title={t('edit')}
+                    aria-label={t('edit')}
+                    onClick={() => editContributionLink(data.item)}
+                  >
+                    <IBiPencil />
+                  </BButton>
+                ) : null}
+                <BButton
+                  variant='info'
+                  size='md'
+                  class='me-2 test-show'
+                  title={t('contributionLink.show')}
+                  aria-label={t('contributionLink.show')}
+                  onClick={() => showContributionLink(data.item)}
+                >
+                  <IBiEye />
+                </BButton>
+                <BButton
+                  variant='secondary'
+                  size='md'
+                  class='test-download-cheque'
+                  title={t('thank-you-cheque.download')}
+                  aria-label={t('thank-you-cheque.download')}
+                  onClick={() => downloadCheque(data.item)}
+                >
+                  <IBiDownload />
+                </BButton>
+              </span>
             ),
           }}
         </BTable>

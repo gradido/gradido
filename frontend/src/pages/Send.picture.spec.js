@@ -8,6 +8,7 @@ import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { encodeChatImage } from '@/utils/chatImage'
 import { THANK_YOU_PICTURE_SMALL } from '@/utils/thankYouPicture'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import { walletStore } from '@test/walletStore'
 
 /**
  * A picture with a transfer (ZE-016), on the page that holds it: where the picture lives, what
@@ -43,9 +44,24 @@ vi.mock('@/components/GddSend/TransactionResultLink', () => ({
 }))
 
 const t = (key) => key
-vi.mock('vue-i18n', () => ({ useI18n: () => ({ t }) }))
-vi.mock('vue-router', () => ({ useRouter: vi.fn(() => ({ push: vi.fn() })) }))
-vi.mock('@vue/apollo-composable', () => ({ useMutation: vi.fn() }))
+// `useI18n` only: the store the page asks (usePassOnDraft) loads the wallet's own i18n, which is
+// made with the real `createI18n`.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t }),
+}))
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({ params: {}, query: {} })),
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
+// "Jetzt prüfen" asks after the recipient (Send.recipient.spec.js holds that): found, here.
+const queryMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { user: { alias: 'Dave-Bank', gradidoID: 'uuid-dave' } } }),
+)
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: vi.fn(() => ({ client: { query: queryMock, readQuery: vi.fn() } })),
+  useMutation: vi.fn(),
+}))
 
 const toastError = vi.hoisted(() => vi.fn())
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastError }) }))
@@ -94,7 +110,13 @@ describe('Send, a picture with a transfer', () => {
     vi.mocked(encodeChatImage).mockResolvedValue(SMALL)
     wrapper = shallowMount(Send, {
       props: { balance: 1000, GdtBalance: 500 },
-      global: { mocks: { $t: t }, stubs: { 'gdd-send': true } },
+      // The page asks the store who is signed in, for a thank-you handed over to be passed on
+      // (usePassOnDraft). Here nothing is handed over.
+      global: {
+        plugins: [walletStore({ gradidoID: 'uuid-emma' })],
+        mocks: { $t: t },
+        stubs: { 'gdd-send': true },
+      },
     })
   })
 
@@ -107,7 +129,7 @@ describe('Send, a picture with a transfer', () => {
   describe('what the mutation carries', () => {
     it('a motif, as `motif` and nothing else of a picture', async () => {
       await choose({ motif: 'giving-hands' })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       await wrapper.vm.sendTransaction()
 
@@ -125,7 +147,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('a photo, as `picture`: the small rendition alone, encoded with the chat’s encoder right before', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
       expect(encodeChatImage).not.toHaveBeenCalled()
 
       await wrapper.vm.sendTransaction()
@@ -141,7 +163,7 @@ describe('Send, a picture with a transfer', () => {
     })
 
     it('neither of the two arguments without a picture', async () => {
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       await wrapper.vm.sendTransaction()
 
@@ -157,7 +179,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('no picture to a member of another community -- and the picture stays in the page', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer({ targetCommunity: AWAY }))
+      await wrapper.vm.setTransaction(transfer({ targetCommunity: AWAY }))
 
       expect(wrapper.vm.pictureToSend).toBeNull()
       await wrapper.vm.sendTransaction()
@@ -169,7 +191,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('no picture with a link', async () => {
       await choose({ motif: 'bouquet' })
-      wrapper.vm.setTransaction({ selected: SEND_TYPES.link, amount: 5, memo: 'Ein Link' })
+      await wrapper.vm.setTransaction({ selected: SEND_TYPES.link, amount: 5, memo: 'Ein Link' })
 
       expect(wrapper.vm.pictureToSend).toBeNull()
       await wrapper.vm.sendTransaction()
@@ -182,7 +204,7 @@ describe('Send, a picture with a transfer', () => {
   describe('what the check view is handed', () => {
     it('the picture that goes with this transfer', async () => {
       await choose({ motif: 'bouquet' })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       expect(wrapper.vm.pictureToSend).toEqual({ motif: 'bouquet' })
     })
@@ -190,11 +212,11 @@ describe('Send, a picture with a transfer', () => {
     it('none where none goes: another community, and back again once the recipient is at home', async () => {
       await choose({ motif: 'bouquet' })
 
-      wrapper.vm.setTransaction(transfer({ targetCommunity: AWAY }))
+      await wrapper.vm.setTransaction(transfer({ targetCommunity: AWAY }))
       expect(wrapper.vm.pictureToSend).toBeNull()
 
       wrapper.vm.onBack()
-      wrapper.vm.setTransaction(transfer({ targetCommunity: HOME }))
+      await wrapper.vm.setTransaction(transfer({ targetCommunity: HOME }))
       expect(wrapper.vm.pictureToSend).toEqual({ motif: 'bouquet' })
     })
   })
@@ -203,7 +225,7 @@ describe('Send, a picture with a transfer', () => {
     // ⛔ `transactionData` is reactive and bound as a whole onto the form and the check view.
     it('beside the transfer’s fields, never among them', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       expect(wrapper.vm.transactionData).not.toHaveProperty('picture')
       expect(Object.keys(wrapper.vm.transactionData)).not.toContain('photo')
@@ -211,7 +233,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('"Zurück" from the check view finds it where it was', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       wrapper.vm.onBack()
 
@@ -221,7 +243,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('is gone after the transfer was sent, with the other entries', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       await wrapper.vm.sendTransaction()
 
@@ -233,7 +255,7 @@ describe('Send, a picture with a transfer', () => {
     it('stands with the other entries again where the sending failed', async () => {
       sendCoinsMock.mockRejectedValue(new Error('Unable to save the picture of the transfer'))
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       await wrapper.vm.sendTransaction()
 
@@ -244,7 +266,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('is gone after a link was made, too: nothing lingers for the next transfer', async () => {
       await choose({ motif: 'bouquet' })
-      wrapper.vm.setTransaction({ selected: SEND_TYPES.link, amount: 5, memo: 'Ein Link' })
+      await wrapper.vm.setTransaction({ selected: SEND_TYPES.link, amount: 5, memo: 'Ein Link' })
 
       await wrapper.vm.sendTransaction()
 
@@ -254,7 +276,7 @@ describe('Send, a picture with a transfer', () => {
     // ⛔ Never the store (mirrored into localStorage), never the device's storage.
     it('leaves nothing of the photo in the device’s storage', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
       await wrapper.vm.sendTransaction()
 
       const stored = JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage })
@@ -274,7 +296,7 @@ describe('Send, a picture with a transfer', () => {
 
     it('sends nothing, says why in the chat’s sentence, and puts the entries back', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
 
       await wrapper.vm.sendTransaction()
 
@@ -291,11 +313,11 @@ describe('Send, a picture with a transfer', () => {
 
     it('can be sent again afterwards', async () => {
       await choose({ photo: PHOTO })
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
       await wrapper.vm.sendTransaction()
       vi.mocked(encodeChatImage).mockResolvedValue(SMALL)
 
-      wrapper.vm.setTransaction(transfer())
+      await wrapper.vm.setTransaction(transfer())
       await wrapper.vm.sendTransaction()
 
       expect(sendCoinsMock).toHaveBeenCalledTimes(1)
@@ -308,7 +330,7 @@ describe('Send, a picture with a transfer', () => {
     let encoded
     vi.mocked(encodeChatImage).mockReturnValue(new Promise((resolve) => (encoded = resolve)))
     await choose({ photo: PHOTO })
-    wrapper.vm.setTransaction(transfer())
+    await wrapper.vm.setTransaction(transfer())
 
     const first = wrapper.vm.sendTransaction()
     const second = wrapper.vm.sendTransaction()
@@ -329,7 +351,10 @@ describe('Send, a picture with a transfer', () => {
     const FormStub = { name: 'TransactionForm' }
     const CheckStub = { name: 'TransactionConfirmationSend' }
     const mountWithSteps = () =>
-      mount(Send, { props: { balance: 1000, GdtBalance: 500 }, global: { mocks: { $t: t } } })
+      mount(Send, {
+        props: { balance: 1000, GdtBalance: 500 },
+        global: { plugins: [walletStore({ gradidoID: 'uuid-emma' })], mocks: { $t: t } },
+      })
 
     it('the form gets the page’s picture, and what the form says of it is the page’s from then on', async () => {
       const page = mountWithSteps()
@@ -346,7 +371,7 @@ describe('Send, a picture with a transfer', () => {
     it('the check view gets the picture that goes with this transfer', async () => {
       const page = mountWithSteps()
       page.vm.picture = { motif: 'bouquet' }
-      page.vm.setTransaction(transfer())
+      await page.vm.setTransaction(transfer())
       await nextTick()
 
       expect(page.findComponent(CheckStub).props('picture')).toEqual({ motif: 'bouquet' })
@@ -355,7 +380,7 @@ describe('Send, a picture with a transfer', () => {
     it('the check view gets none for a member of another community, though the page still holds one', async () => {
       const page = mountWithSteps()
       page.vm.picture = { motif: 'bouquet' }
-      page.vm.setTransaction(transfer({ targetCommunity: AWAY }))
+      await page.vm.setTransaction(transfer({ targetCommunity: AWAY }))
       await nextTick()
 
       expect(page.findComponent(CheckStub).props('picture')).toBeNull()
@@ -364,7 +389,7 @@ describe('Send, a picture with a transfer', () => {
   })
 
   it('makes ONE transfer of a double press without a picture, too', async () => {
-    wrapper.vm.setTransaction(transfer())
+    await wrapper.vm.setTransaction(transfer())
 
     await Promise.all([wrapper.vm.sendTransaction(), wrapper.vm.sendTransaction()])
 

@@ -42,10 +42,7 @@ export async function userFactory(
   dbUser.emailId = dbUserContact.id
   dbUser.emailContact = dbUserContact
   dbUser = await dbUser.save()
-
-  if (dbUser.alias) {
-    await createUserAlias(dbUser.id, dbUser.alias)
-  }
+  await createUserAlias(dbUser.id, dbUser.alias)
 
   const userRole = user.role as RoleNames
   if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
@@ -63,9 +60,7 @@ export async function createUser(
   const dbUser = new User()
   dbUser.firstName = user.firstName ?? ''
   dbUser.lastName = user.lastName ?? ''
-  if (user.alias) {
-    dbUser.alias = user.alias
-  }
+  dbUser.alias = user.alias
   dbUser.language = user.language ?? 'en'
   dbUser.createdAt = user.createdAt ?? new Date()
   dbUser.deletedAt = user.deletedAt ?? null
@@ -76,7 +71,7 @@ export async function createUser(
       : AccountState.REGISTERED
   dbUser.publisherId = user.publisherId ?? 0
   dbUser.humhubAllowed = true
-  dbUser.gradidoID = v4()
+  dbUser.gradidoID = user.gradidoId ?? v4()
 
   if (user.emailChecked) {
     // dbUser.password =
@@ -199,7 +194,7 @@ export function buildSeedUserRows(
     const userRow: SeedUserRow = {
       id,
       emailId: id,
-      gradidoId: v4(),
+      gradidoId: user.gradidoId ?? v4(),
       communityUuid,
       firstName: user.firstName ?? '',
       lastName: user.lastName ?? '',
@@ -213,11 +208,9 @@ export function buildSeedUserRows(
           : AccountState.REGISTERED,
       publisherId: user.publisherId ?? 0,
       humhubAllowed: true,
+      alias: user.alias,
     }
-    if (user.alias) {
-      userRow.alias = user.alias
-      rows.userAliases.push({ userId: id, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED })
-    }
+    rows.userAliases.push({ userId: id, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED })
     if (user.emailChecked) {
       userRow.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
     }

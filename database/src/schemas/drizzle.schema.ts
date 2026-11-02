@@ -725,6 +725,48 @@ export const transactionReactionsTable = mysqlTable(
 export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
 export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
 
+// Received transfers the member has seen (migration 0165, Chat E-086): one row a transfer, hung
+// on the recipient's RECEIVE booking as a reaction is. A transfer received after the start
+// (`transactionReadsStartTable`) without a row here counts as unread -- the gold dot, the bold
+// line under the name, the mark in the menu.
+export const transactionReadsTable = mysqlTable('transaction_reads', {
+  transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+// One row (`id` 1): the highest booking id when migration 0165 ran. Transfers received up to it
+// count as seen.
+export const transactionReadsStartTable = mysqlTable('transaction_reads_start', {
+  id: tinyint({ unsigned: true }).primaryKey().notNull(),
+  transactionId: int('transaction_id', { unsigned: true }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+})
+
+// Transfers that pass a received thank-you on (migration 0166, the trail of the waves of
+// gratitude): one row for the sender's SEND booking of such a transfer, naming the RECEIVE
+// booking of the same member it passes on. Written after the booking (executeTransaction);
+// nothing shows it. One thank-you may be passed on by more than one transfer.
+export const transactionPassOnsTable = mysqlTable(
+  'transaction_pass_ons',
+  {
+    transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
+    originTransactionId: int('origin_transaction_id', { unsigned: true }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    index('transaction_pass_ons_origin_transaction_id_idx').on(table.originTransactionId),
+  ],
+)
+
+export type TransactionPassOnSelect = typeof transactionPassOnsTable.$inferSelect
+export type TransactionPassOnInsert = typeof transactionPassOnsTable.$inferInsert
+
 export const transactionLinksTable = mysqlTable(
   'transaction_links',
   {
@@ -766,8 +808,10 @@ export const usersTable = mysqlTable(
     communityUuid: varchar('community_uuid', { length: 36 })
       .collate('utf8mb4_general_ci')
       .notNull(),
-    alias: varchar({ length: 20 }).default(sql`NULL`),
-    emailId: int('email_id').default(sql`NULL`),
+    // Mandatory since migration 0164, for the cached copies of members of other communities
+    // (`foreign = 1`) as well: they are filed with the alias that community sent, or not at all.
+    alias: varchar({ length: 20 }).notNull(),
+    emailId: int('email_id').default(sql`NULL`), // TODO: check if it is possible to set to not null
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),
     gmsPublishName: int('gms_publish_name', { unsigned: true }).default(0).notNull(),
@@ -987,6 +1031,59 @@ export const userFavoritesTable = mysqlTable(
 
 export type UserFavoriteSelect = typeof userFavoritesTable.$inferSelect
 export type UserFavoriteInsert = typeof userFavoritesTable.$inferInsert
+
+/** What a member's own note is about (migration 0167): a person, or a group they belong to. */
+export type UserNoteSubjectKind = 'member' | 'group'
+
+// A member's own notes (migration 0167). The primary key IS the rule "one note per member and
+// subject": writing it again replaces it.
+export const userNotesTable = mysqlTable(
+  'user_notes',
+  {
+    userId: int('user_id', { unsigned: true }).notNull(),
+    subjectKind: varchar('subject_kind', { length: 16 }).$type<UserNoteSubjectKind>().notNull(),
+    // A person's community; '' for a group, which its uuid alone names.
+    subjectCommunityUuid: varchar('subject_community_uuid', { length: 36 }).notNull(),
+    // A person's gradido id, or a group's uuid.
+    subjectUuid: varchar('subject_uuid', { length: 36 }).notNull(),
+    note: text().notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .onUpdateNow({ fsp: 3 })
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.subjectKind, table.subjectCommunityUuid, table.subjectUuid],
+    }),
+  ],
+)
+
+export type UserNoteSelect = typeof userNotesTable.$inferSelect
+export type UserNoteInsert = typeof userNotesTable.$inferInsert
+
+// The moderation's remark on a member (migration 0168). The primary key IS the rule "one remark
+// per member": every moderator writes on the same row, and writing it again replaces it.
+export const userRemarksTable = mysqlTable('user_remarks', {
+  // The member the remark is about.
+  userId: int('user_id', { unsigned: true }).primaryKey().notNull(),
+  remark: text().notNull(),
+  // The moderator who wrote it last.
+  updatedBy: int('updated_by', { unsigned: true }).notNull(),
+  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .notNull(),
+  updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+    .default(sql`current_timestamp(3)`)
+    .onUpdateNow({ fsp: 3 })
+    .notNull(),
+})
+
+export type UserRemarkSelect = typeof userRemarksTable.$inferSelect
+export type UserRemarkInsert = typeof userRemarksTable.$inferInsert
 
 export const userCreationGroupsTable = mysqlTable(
   'user_creation_groups',

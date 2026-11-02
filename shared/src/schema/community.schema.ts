@@ -13,6 +13,7 @@ import {
   x25519PrivateKeySchema,
   x25519PublicKeySchema,
 } from './base.schema'
+import { signatureNonceSchema } from './federation.schema'
 import { hieroIdSchema } from './typeGuard.schema'
 
 export const homeCommunityInsertSchema = v.object({
@@ -89,6 +90,7 @@ export const communityInfoWireSchema = v.object({
   publicJwtKey: publicJwtKeySchema,
   publicEncryptionKey: publicKeyHexStringSchema,
   hieroTopicId: v.nullable(hieroIdSchema),
+  exchangeId: signatureNonceSchema,
 })
 
 export const foreignCommunityInfoSchema = v.object({

@@ -23,7 +23,6 @@ jest.mock('database', () => ({
   dbLockUserRowDrizzle: jest.fn(),
   dbReleaseUnconfirmedEmailChangeFor: jest.fn(),
   dbRemoveUser: jest.fn(),
-  dbRemoveUserAlias: jest.fn(),
   dbRemoveUserContact: jest.fn(),
   dbUserUpdateField: jest.fn(),
   dbUserUpdatePassword: jest.fn(),
@@ -80,7 +79,6 @@ import {
   dbLockUserRowDrizzle,
   dbReleaseUnconfirmedEmailChangeFor,
   dbRemoveUser,
-  dbRemoveUserAlias,
   dbRemoveUserContact,
   dbUserUpdateField,
   dbUserUpdatePassword,
@@ -279,62 +277,110 @@ describe('RegisterUserRole', () => {
     })
   })
 
+  // The name is found before the member's row is written - the row has to carry it
+  // (`users.alias` is NOT NULL) - and recorded as the member's once the account stands.
   describe('alias', () => {
-    it('assigns first name plus one letter when that is free', async () => {
+    const insertedUserAlias = () =>
+      (mocked(dbInsertUser).mock.calls[0][0] as { alias?: string | null }).alias
+    const namesAskedAbout = (): string[][] =>
+      mocked(dbFindUserAliasesExisting).mock.calls.map(([names]) => names)
+
+    it('assigns first name plus one letter when that is free, asking once', async () => {
       await new RegisterUserRole(input()).run(logger)
+
+      expect(namesAskedAbout()).toEqual([expect.arrayContaining(['BerndH', 'BerndHue'])])
+      expect(insertedUserAlias()).toBe('BerndH')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        {
-          alias: 'BerndH',
-          userId: USER_ID,
-          origin: ALIAS_ORIGIN_ASSIGNED,
-        },
+        { alias: 'BerndH', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
         tx,
       )
-      expect(dbFindUserAliasesExisting).not.toHaveBeenCalled()
-      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndH', tx)
     })
 
     it('walks on to the next name when that is taken, in its own spelling', async () => {
-      mocked(dbInsertUserAlias).mockResolvedValueOnce(duplicateAlias('BerndH'))
       mocked(dbFindUserAliasesExisting).mockResolvedValue(['berndh'])
 
       await new RegisterUserRole(input()).run(logger)
 
-      expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
-        {
-          alias: 'BerndHue',
-          userId: USER_ID,
-          origin: ALIAS_ORIGIN_ASSIGNED,
-        },
+      expect(insertedUserAlias()).toBe('BerndHue')
+      expect(dbInsertUserAlias).toHaveBeenCalledWith(
+        { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
         tx,
       )
-      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue', tx)
+    })
+
+    // The second query is for the rare case only; the usual registration costs one.
+    it('asks about the numbered forms only once every plain name is taken', async () => {
+      mocked(dbFindUserAliasesExisting)
+        .mockImplementationOnce(async (names: string[]) => names)
+        .mockResolvedValueOnce([])
+
+      await new RegisterUserRole(input()).run(logger)
+
+      expect(namesAskedAbout()).toHaveLength(2)
+      expect(namesAskedAbout()[1]).toEqual(expect.arrayContaining(['BerndH1', 'BerndH99']))
+      expect(namesAskedAbout()[1]).not.toContain('BerndH')
+      expect(insertedUserAlias()).toBe('BerndH1')
     })
 
     it('keeps the alias the member chose', async () => {
       await new RegisterUserRole(input({ alias: 'bernd-the-gardener' })).run(logger)
+
+      expect(namesAskedAbout()[0][0]).toBe('bernd-the-gardener')
+      expect(insertedUserAlias()).toBe('bernd-the-gardener')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        {
-          alias: 'bernd-the-gardener',
-          userId: USER_ID,
-          origin: ALIAS_ORIGIN_CHOSEN,
-        },
+        { alias: 'bernd-the-gardener', userId: USER_ID, origin: ALIAS_ORIGIN_CHOSEN },
         tx,
       )
     })
 
     // A name the system builds is a proposal and costs none of the member's four picks.
     it('hands out a proposal, not a pick, when the chosen alias is taken', async () => {
-      mocked(dbInsertUserAlias).mockResolvedValueOnce(duplicateAlias('bernd-the-gardener'))
+      mocked(dbFindUserAliasesExisting).mockResolvedValue(['bernd-the-gardener'])
 
       await new RegisterUserRole(input({ alias: 'bernd-the-gardener' })).run(logger)
 
+      expect(insertedUserAlias()).toBe('BerndH')
+      expect(dbInsertUserAlias).toHaveBeenCalledWith(
+        { alias: 'BerndH', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        tx,
+      )
+    })
+
+    // Somebody took the name between the lookup over the pool and the write: the name is
+    // looked up once more - over the pool again, the transaction's read view is from before
+    // that other name was committed - written again, and the row of the account is brought up
+    // to date with it.
+    it('walks on to another name when the one looked up was taken in the meantime', async () => {
+      mocked(dbInsertUserAlias)
+        .mockResolvedValueOnce(duplicateAlias('BerndH'))
+        .mockResolvedValueOnce({ success: true, value: ALIAS_ID })
+      mocked(dbFindUserAliasesExisting).mockResolvedValueOnce([]).mockResolvedValueOnce(['berndh'])
+
+      await new RegisterUserRole(input()).run(logger)
+
+      // Not insertedUserAlias(): the role writes the new name back onto the row it handed
+      // dbInsertUser, so the mock's copy of it carries the second name as well.
+      expect(mocked(dbInsertUserAlias).mock.calls[0][0].alias).toBe('BerndH')
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[1][1]).toBeUndefined()
       expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
-        {
-          alias: 'BerndH',
-          userId: USER_ID,
-          origin: ALIAS_ORIGIN_ASSIGNED,
-        },
+        { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        tx,
+      )
+      expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue', tx)
+    })
+
+    // The last rung, which must never fail: the gradido id is unique by itself. Cut where it
+    // ends on a hex digit - one character more would end on a hyphen, and the schema refuses.
+    it('falls back to the gradido id when every name is taken', async () => {
+      mocked(dbFindUserAliasesExisting).mockImplementation(async (names: string[]) => names)
+
+      await new RegisterUserRole(input()).run(logger)
+
+      const row = mocked(dbInsertUser).mock.calls[0][0] as { alias: string; gradidoId: string }
+      expect(row.alias).toBe(row.gradidoId.slice(0, 18).toLowerCase())
+      expect(row.alias).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}$/)
+      expect(dbInsertUserAlias).toHaveBeenCalledWith(
+        { alias: row.alias, userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
         tx,
       )
     })
@@ -344,14 +390,13 @@ describe('RegisterUserRole', () => {
   // transaction by throwing, and the database takes back what was written. Nothing deletes by
   // hand any more, and nothing after the transaction runs.
   it('fails the transaction and sends nothing when storing fails half way', async () => {
-    mocked(dbUserUpdateField).mockImplementation(async (_id, field) => (field === 'alias' ? 0 : 1))
+    mocked(dbInsertUserAlias).mockResolvedValue(duplicateAlias('BerndH'))
 
-    await expect(new RegisterUserRole(input()).run(logger)).rejects.toThrow(
-      'Error while storing the generated alias',
+    await expect(new RegisterUserRole(input()).run(logger)).rejects.toBeInstanceOf(
+      DBDuplicateEntryError,
     )
     expect(dbRemoveUser).not.toHaveBeenCalled()
     expect(dbRemoveUserContact).not.toHaveBeenCalled()
-    expect(dbRemoveUserAlias).not.toHaveBeenCalled()
     expect(sendAccountActivationEmail).not.toHaveBeenCalled()
     expect(dbInsertEvent).not.toHaveBeenCalled()
   })
@@ -535,11 +580,11 @@ describe('RegisterUserRole with the entry of an event link', () => {
   })
 
   it('notes nothing where storing the account fails before', async () => {
-    mocked(dbUserUpdateField).mockImplementation(async (_id, field) => (field === 'alias' ? 0 : 1))
+    mocked(dbInsertUserAlias).mockResolvedValue(duplicateAlias('BerndH'))
 
     await expect(
       new RegisterUserRole(input({ eventMatchingEntry: eventEntry })).run(logger),
-    ).rejects.toThrow('Error while storing the generated alias')
+    ).rejects.toBeInstanceOf(DBDuplicateEntryError)
     expect(dbInsertEventMatchingEntry).not.toHaveBeenCalled()
   })
 })
@@ -593,6 +638,7 @@ describe('RegisterUserRole with an address that is taken', () => {
 
     // Never 0: the resolver answers `id !== 0`, so a 0 would give the taken address away.
     expect(answer).toBeGreaterThan(0)
+    // No name is recorded for an account that is not opened.
     expect(dbInsertUserAlias).not.toHaveBeenCalled()
     expect(sendAccountActivationEmail).not.toHaveBeenCalled()
     expect(insertedEvents()).toEqual([
@@ -1025,9 +1071,13 @@ describe('RegisterUserFromVouchingLinkRole', () => {
         dbFindTransactionLinkWithOwner,
         dbHasGuestRegisteredByLink,
         dbInsertUser,
+        dbInsertUserAlias,
       ]) {
         expect(firstCall(dbLockUserRowDrizzle)).toBeLessThan(firstCall(later))
       }
+      // The name is looked up before, over the pool: a plain read through the transaction
+      // would fix what it sees before the lock.
+      expect(mocked(dbFindUserAliasesExisting).mock.calls[0]).toHaveLength(1)
       expect(tx.execute).not.toHaveBeenCalled()
     })
 

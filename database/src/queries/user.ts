@@ -1,15 +1,35 @@
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  getColumns,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { alias as aliasedTable, type BuildAliasTable, unionAll } from 'drizzle-orm/mysql-core'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
+  Alias,
+  aliasSchema,
   ContactOrigin,
+  emailSchema,
   GradidoUnit,
   PasswordEncryptionType,
-  publicAlias,
   Result,
+  UserIdentifier,
   Uuidv4,
+  uuidv4Schema,
   VoidResult,
 } from 'shared'
+import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
 import {
@@ -140,34 +160,24 @@ export async function dbFindUserById(
 
 export async function dbFindUserWithContactById(
   userId: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<DbUser | null> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .select({
-      user: usersTable,
+      ...getColumns(usersTable),
       emailContact: userContactsTable,
     })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
 
-  const item = rows[0]
-  if (item) {
-    return { ...item.user, emailContact: item.emailContact }
-  }
-  return null
+  return rows[0] ?? null
 }
 
 export async function dbInsertUser(
   user: UserInsert,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<Result<number, DBInsertFailed<UserInsert> | DBDuplicateEntryError>> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   try {
     const rows = await tx.insert(usersTable).values(user)
     const firstRow = rows[0]
@@ -232,6 +242,74 @@ export async function dbFindUserIdByUuids(
     .where(and(eq(usersTable.communityUuid, communityUuid), eq(usersTable.gradidoId, gradidoID)))
     .limit(1)
   return rows[0]?.id ?? null
+}
+
+/*
+ * Find user by gradido id, assuming that there should be normally no collision between gradido ids from different communities
+ * but this function handle this nearly impossible case nevertheless.
+ * With communityIdentifier on collision, it will retry with community identifier, without it will return DBDuplicateEntryError
+ */
+export async function dbFindUserByGradidoId(
+  gradidoId: Uuidv4,
+  communityUuid?: Uuidv4,
+): Promise<Result<UserSelect, DBNotFoundError | DBDuplicateEntryError>> {
+  let rows = await drizzleDb().select().from(usersTable).where(eq(usersTable.gradidoId, gradidoId))
+  if (rows.length === 1) {
+    if (communityUuid && rows[0].communityUuid !== communityUuid) {
+      return {
+        success: false,
+        error: new DBNotFoundError(
+          'users',
+          `gradido_id = ${gradidoId} AND communityUuid = ${communityUuid}`,
+        ),
+      }
+    }
+    return { success: true, value: rows[0] }
+  }
+  if (!rows.length) {
+    return { success: false, error: new DBNotFoundError('users', `gradido_id = ${gradidoId}`) }
+  }
+  if (communityUuid) {
+    rows = await drizzleDb()
+      .select()
+      .from(usersTable)
+      .where(and(eq(usersTable.gradidoId, gradidoId), eq(usersTable.communityUuid, communityUuid)))
+    if (rows.length === 1) {
+      return { success: true, value: rows[0] }
+    } else {
+      return { success: false, error: new DBNotFoundError('users', `gradido_id = ${gradidoId}`) }
+    }
+  }
+  return { success: false, error: new DBDuplicateEntryError('users', 'gradido_id', gradidoId) }
+}
+
+// if searched by alias, there is a high probability for collision with other communities, so we need also the community uuid here
+export async function dbFindUserByAlias(
+  alias: Alias,
+  communityUuid: Uuidv4,
+): Promise<UserSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .where(and(eq(usersTable.alias, alias), eq(usersTable.communityUuid, communityUuid)))
+  return rows[0] ?? null
+}
+
+// communityIdentifier as hint for filter especially on alias case or on gradido id duplicates
+export async function dbFindUserByIdentifier(
+  userIdentifier: UserIdentifier,
+  communityUuid: Uuidv4,
+): Promise<UserSelect | null> {
+  // fast path on gradido id, I assume that nearly no collision will occur, even with ignoring community identifier
+  if (v.safeParse(uuidv4Schema, userIdentifier).success) {
+    const findUserResult = await dbFindUserByGradidoId(userIdentifier, communityUuid)
+    return findUserResult.success ? findUserResult.value : null
+    // emails are unique and currently only stored for our own users, so we don't need to check the community identifier here either
+  } else if (v.safeParse(emailSchema, userIdentifier).success) {
+    return dbFindUserByEmail(userIdentifier)
+  } else {
+    return dbFindUserByAlias(v.parse(aliasSchema, userIdentifier), communityUuid)
+  }
 }
 
 export async function dbIsHomeCommunityUserExistByUuid(gradidoId: Uuidv4): Promise<boolean> {
@@ -377,22 +455,27 @@ export async function dbSelectUsersByUuids(
 }
 
 /**
- * Files a member of another community this server holds no row for: `foreign` and the pair,
- * nothing else. It is the row the receiving side of a transfer files for its sender
+ * Files a member of another community this server holds no row for: `foreign`, the pair and
+ * the alias, nothing else. It is the row the receiving side of a transfer files for its sender
  * (federation's `storeForeignUser`), filed here for a chat message that arrives before any
- * transfer did (E-034). The alias follows through `dbUpdateForeignUserAlias`, which also brings
- * an existing row up to date.
+ * transfer did (E-034). The alias is part of the row from the start - `users.alias` is NOT NULL
+ * (migration 0164) - and `dbUpdateForeignUserAlias` brings an existing row up to date.
  *
  * Hands back the id of the foreign row that holds the pair afterwards. A pair that is on file
- * already stays as it is (`uuid_key` turns the insert into a no-op), so two first messages
- * arriving at once end up with one row. A pair held by a member of THIS community is not
- * turned into a foreign one: there is no foreign row for it afterwards, and that comes back as
- * DBInsertFailed.
+ * already stays as it is (`uuid_key` turns the insert into a no-op, the alias included), so
+ * two first messages arriving at once end up with one row. Nothing is filed, and DBInsertFailed
+ * comes back, in two cases: a pair held by a member of THIS community is not turned into a
+ * foreign one, and an alias another row of that community still holds (`alias_key`; that row
+ * has not caught up with a rename over there) is not taken from it.
  */
+
 export async function dbInsertForeignUser(member: {
   communityUuid: string
   gradidoId: string
-}): Promise<Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string }>>> {
+  alias: string
+}): Promise<
+  Result<number, DBInsertFailed<{ communityUuid: string; gradidoId: string; alias: string }>>
+> {
   await drizzleDb()
     .insert(usersTable)
     .values({
@@ -400,6 +483,7 @@ export async function dbInsertForeignUser(member: {
       accountState: AccountState.FOREIGN,
       communityUuid: member.communityUuid,
       gradidoId: member.gradidoId,
+      alias: member.alias,
     })
     .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
   const rows = await drizzleDb()
@@ -540,7 +624,7 @@ export async function dbLocalUserGradidoIdExist(
  * So: if a later round is tempted to "fix" this the way the mails were fixed -- it was
  * looked at, and this is the answer. What must not happen is the reverse: this function
  * must not grow a second caller that shows the result to MEMBERS. Everything on that side
- * goes through `publicAlias` in `shared`.
+ * hands out `users.alias`.
  */
 export async function findUserNamesByIds(userIds: number[]): Promise<Map<number, string>> {
   const users = await drizzleDb()
@@ -554,6 +638,63 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
       return [user.id, `${user.firstName} ${user.lastName}`]
     }),
   )
+}
+
+/**
+ * Whether a word turns up in a member: in the first name, the last name, ANY of their addresses
+ * or ANY name they own.
+ *
+ * Every address, current, earlier or pending, not only the current one: somebody arriving from
+ * the GDT server holds the address that was first, which may well be one the member has since
+ * changed. A deleted address does not count. Usernames the same way: the one somebody was known
+ * by counts as much as the current one. `exists` rather than a join, which would name a member
+ * once per matching row.
+ *
+ * `%` and `_` in the word act as wildcards.
+ */
+const memberHasWord = (word: string) => {
+  const pattern = `%${word}%`
+  return or(
+    like(usersTable.firstName, pattern),
+    like(usersTable.lastName, pattern),
+    exists(
+      drizzleDb()
+        .select({ id: userContactsTable.id })
+        .from(userContactsTable)
+        .where(
+          and(
+            eq(userContactsTable.userId, usersTable.id),
+            like(userContactsTable.email, pattern),
+            isNull(userContactsTable.deletedAt),
+          ),
+        ),
+    ),
+    exists(
+      drizzleDb()
+        .select({ id: userAliasesTable.id })
+        .from(userAliasesTable)
+        .where(
+          and(eq(userAliasesTable.userId, usersTable.id), like(userAliasesTable.alias, pattern)),
+        ),
+    ),
+  )
+}
+
+/**
+ * The admin's member search: the members in whom every one of these words turns up, each id once.
+ * One word may sit in the name and the next in an address, so "Michael Müller" finds "Michael E."
+ * "Müller", whichever word comes first. Deleted members are included; the user query decides who
+ * is shown.
+ *
+ * One statement however many words there are: `shared`'s `searchWords` caps them, and this is
+ * asked again with every key the moderator presses.
+ */
+export async function dbFindUserIdsWithEveryWord(words: string[]): Promise<number[]> {
+  const rows = await drizzleDb()
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(and(...words.map(memberHasWord)))
+  return rows.map((row) => row.id)
 }
 
 /**
@@ -701,11 +842,8 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
   userId: number,
   field: K,
   value: UserInsert[K],
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .update(usersTable)
     .set({
@@ -792,9 +930,6 @@ const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMem
  *
  * `users.referrer_id` has been written since 2022 and this was its first reader; the
  * contact list is the second and third (`dbSelectReferralContactsByUserId` below).
- * Through `publicAlias`, because the wallet puts the answer in front of the member and a
- * stored alias of one or two characters is not a name (the rule lives in `shared` so all
- * three packages give the same answer).
  *
  * A referrer whose account is gone is no answer: the wallet would offer to thank somebody
  * who cannot receive anything. That condition is `reachableOnTrace` above, shared with
@@ -806,7 +941,7 @@ const confirmedArrival = (member: TraceMember, address: TraceAddress, notThisMem
 export async function dbFindReferrerAlias(userId: number): Promise<string | null> {
   const referrer = aliasedTable(usersTable, 'referrer')
   const rows = await drizzleDb()
-    .select({ alias: referrer.alias, gradidoId: referrer.gradidoId })
+    .select({ alias: referrer.alias })
     .from(usersTable)
     .innerJoin(referrer, eq(usersTable.referrerId, referrer.id))
     .where(
@@ -817,7 +952,7 @@ export async function dbFindReferrerAlias(userId: number): Promise<string | null
       ),
     )
     .limit(1)
-  return rows.length ? publicAlias(rows[0].alias, rows[0].gradidoId) : null
+  return rows.length ? rows[0].alias : null
 }
 
 /**
@@ -866,7 +1001,7 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
   return {
     userId: rows[0].id,
     gradidoId: rows[0].gradidoId,
-    alias: publicAlias(rows[0].alias, rows[0].gradidoId),
+    alias: rows[0].alias,
     firstName: rows[0].firstName,
     lastName: rows[0].lastName,
     createdAt: rows[0].createdAt,
@@ -878,12 +1013,10 @@ export async function dbFindLatestArrival(referrerId: number): Promise<ReferralA
  * One arrival as the tile shows it: who they are, who they are called, when they got
  * here, and whether it is the only one.
  *
- * `gradidoId` was already being selected -- `publicAlias` needs it -- and is now handed
- * on, so the tile can offer a way to REACH this person rather than only name them
- * (ZE-010). It tells the caller nothing they were not being told already: where there is
- * no user name, `publicAlias` puts the identifier itself in `alias`, and the contact list
- * has been naming the same arrival to the same member since the referral trace became its
- * second source.
+ * `gradidoId` is handed on so the tile can offer a way to REACH this person rather than
+ * only name them (ZE-010). It tells the caller nothing they were not being told already:
+ * the contact list has been naming the same arrival to the same member since the referral
+ * trace became its second source.
  *
  * ⛔ Still no count, and still only the one latest arrival (ZE-007): a way to reach one
  * person is a mirror, a list of them with a number over it is a score.
@@ -968,11 +1101,6 @@ export type ReferralContact = {
  * then both sides open at once. It is a window, not a state; an account can be inside it
  * and signed in, because assisted registration (EM-013) sets a password before the address
  * is confirmed.
- *
- * ⛔ `alias` is the stored one, raw, exactly as the booking branch of the contact list
- * hands it over -- NOT `publicAlias`. The list searches on this field, and the fallback to
- * the gradidoID would let a search for a member's id match a person no booking would match.
- * The resolver builds the name from the `users` row it loads anyway.
  *
  * ⚠️ No cap, and NOTHING measured bounds this set. The 713 counterparties measured for the
  * busiest account were counted on `transactions`; arrivals are an independent quantity, and

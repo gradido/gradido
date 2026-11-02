@@ -19,7 +19,6 @@
     "signature-missing": "Η υπογραφή σου δεν έχει οριστεί ακόμη — τη συμπληρώνεις στο παράθυρο Crea μιας συνεισφοράς."
   },
   "alias": "Ψευδώνυμο",
-  "all_emails": "Όλοι οι χρήστες",
   "appOutdated": {
     "reload": "Ανανέωση",
     "text": "Υπάρχει νεότερη έκδοση."
@@ -118,10 +117,17 @@
     "changeGroupDone": "Η ομάδα δημιουργίας άλλαξε.",
     "changeGroupHint": "Ανάλογα με τις ορατές ομάδες σου, η συνεισφορά μπορεί να μην εμφανίζεται πλέον στη λίστα σου.",
     "changeGroupQuestion": "Μετακίνηση αυτής της συνεισφοράς από {from} σε {to};",
+    "confirm": "Επιβεβαίωση",
     "confirmedBy": "Επιβεβαιώθηκε από {name}.",
     "createdBy": "Δημιουργήθηκε από {name}.",
     "deletedBy": "Διαγράφηκε από {name}.",
     "deniedBy": "Απορρίφθηκε από {name}.",
+    "detailsState": {
+      "answer": "απάντηση του μέλους",
+      "changed": "τροποποιήθηκε από το μέλος",
+      "conversation": "συνομιλία",
+      "question": "στάλθηκε ερώτηση"
+    },
     "noGroup": "(χωρίς ομάδα)"
   },
   "contributionLink": {
@@ -148,6 +154,7 @@
       }
     },
     "saveChange": "Αποθήκευση αλλαγών",
+    "show": "Εμφάνιση συνδέσμου",
     "validFrom": "Ημερομηνία έναρξης",
     "validTo": "Ημερομηνία λήξης"
   },
@@ -198,6 +205,8 @@
     "memoTooLong": "The contribution text is too long (max. {max} characters) – please shorten it a little.",
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
+    "readsRemark": "Η Crea τη διαβάζει επίσης",
+    "readsRemarkHint": "Ενεργοποιήστε μόνο αν οι παρατηρήσεις δεν περιέχουν προσωπικά δεδομένα!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Υπενθύμιση",
@@ -295,9 +304,8 @@
   "createdAt": "Ημερομηνία δημιουργίας",
   "creation": "Δημιουργία",
   "creationGroupFilter": {
-    "all": "(όλα)",
+    "all": "(με και χωρίς ομάδα)",
     "grouped": "(όλες οι ομάδες)",
-    "label": "Creation group:",
     "untagged": "(χωρίς ομάδα)"
   },
   "creationGroupsAdmin": {
@@ -354,10 +362,18 @@
     "toasted_update": "Η ανοιχτή δημιουργία ({value} GDD) για {email} τροποποιήθηκε και είναι έτοιμη για επιβεβαίωση.",
     "update_creation": "Ενημέρωση δημιουργίας"
   },
+  "dashboard": {
+    "resubmission": "Επιπλέον: {n} με υπενθύμιση",
+    "today": "Σήμερα: {n} ανοιχτές δημιουργίες",
+    "todayNone": "Σήμερα: καμία ανοιχτή δημιουργία",
+    "todayOne": "Σήμερα: μία ανοιχτή δημιουργία",
+    "waitingForMember": "{n} περιμένει το μέλος | {n} περιμένουν το μέλος",
+    "waitingForModeration": "{n} περιμένει τον συντονισμό | {n} περιμένουν τον συντονισμό",
+    "welcome": "Καλώς ήρθες στον χώρο διαχείρισης"
+  },
   "delete": "Διαγραφή",
   "delete_user": "Διαγραφή χρήστη",
   "deleted": "διαγράφηκε",
-  "deleted_user": "Όλοι οι διαγραμμένοι χρήστες",
   "deny": "Απόρριψη",
   "description": "Περιγραφή",
   "details": "Λεπτομέρειες",
@@ -400,6 +416,7 @@
       "accounts": "Accounts",
       "conversations": "Conversations",
       "firstCreation": "First thanks",
+      "greetings": "Thank-you greetings",
       "map": "Map",
       "thanks": "Thanking",
       "totals": "Totals"
@@ -409,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -426,8 +443,14 @@
       "firstCreationsDone": "First creations done",
       "firstCreationsReview": "First creations sent to review",
       "firstCreationsSkipped": "First creations skipped",
+      "firstSenders": "First-time senders (accounts with their first transfer)",
       "gddCreated": "GDD created",
       "gddSent": "GDD sent",
+      "greetingsAccepted": "Accepted",
+      "greetingsExpired": "Expired",
+      "greetingsSent": "Sent",
+      "greetingsWithAccount": "of which with a new account",
+      "greetingsWithPhoto": "of which with a photo of their own",
       "groupsNew": "New groups",
       "hellosFromMap": "Hello said from the map",
       "homesSet": "Home set",
@@ -435,18 +458,18 @@
       "membersOnMap": "People on the Gradido map (all communities)",
       "membersWithEntry": "People with an entry",
       "returners": "Returners (after 90 quiet days)",
+      "thanksAnswered": "Thanks answered (the recipient's reaction)",
+      "thanksPassedOn": "Thanks passed on",
       "totalGradidoAvailable": "Total GDD in circulation",
       "totalGradidoCreated": "Total GDD created, exact",
       "totalGradidoDecayed": "Total GDD decayed",
       "totalGradidoUnbookedDecayed": "decay not yet booked",
       "transfersSent": "Transfers sent",
+      "transfersWithPicture": "Transfers with a picture",
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Στατιστικά",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -457,7 +480,7 @@
   "footer": {
     "app_version": "Έκδοση εφαρμογής {version}",
     "copyright": {
-      "link": "Κονσόλα διαχείρισης Gradido-Akademie",
+      "link": "Χώρος διαχείρισης Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -508,7 +531,8 @@
     "request": "Η καταχώριση αποθηκεύτηκε."
   },
   "moderator": {
-    "history": "Τα δεδομένα τροποποιήθηκαν. Αυτά είναι τα παλιά δεδομένα.",
+    "change": "Αλλαγή",
+    "history": "Αυτά είναι τα παλιά δεδομένα.",
     "memo": "Επεξεργασία κειμένου",
     "memo-modified": "Το κείμενο επεξεργάστηκε από {name}",
     "memo-tooltip": "Επεξεργασία του κειμένου της συνεισφοράς",
@@ -517,11 +541,11 @@
     "moderator": "Συντονιστής",
     "notice": "Σημείωση",
     "notice-tooltip": "Η σημείωση είναι ορατή μόνο στους συντονιστές",
-    "request": "Αυτό το μήνυμα είναι ορατό μόνο στους συντονιστές!",
     "show-submission-form": "αναμονή για υπενθύμιση;"
   },
   "name": "Όνομα",
   "navbar": {
+    "appearance": "Εμφάνιση",
     "automaticContributions": "Αρχικό υπόλοιπο",
     "chat": "Chat",
     "crea": "Crea",
@@ -531,9 +555,15 @@
     "logout": "Αποσύνδεση",
     "menu": "Μενού",
     "my-account": "Ο λογαριασμός μου",
-    "projectBranding": "Έργα",
+    "projectBranding": "Επωνυμία έργου",
     "projectBrandingTooltip": "Χρησιμοποίησε το δικό σου λογότυπο στη σύνδεση Gradido και πρόσθεσε νέους χρήστες σε έναν χώρο Humhub",
     "settings": "Ρυθμίσεις",
+    "statistic": "Στατιστικά",
+    "theme": {
+      "dark": "Σκοτεινό",
+      "light": "Φωτεινό",
+      "system": "Ακολούθησε τη ρύθμιση συστήματος (προεπιλογή)"
+    },
     "user_search": "Αναζήτηση χρηστών"
   },
   "notice": "Ειδοποίηση",
@@ -589,12 +619,31 @@
     "updated": "Η καταχώριση επωνυμίας έργου ενημερώθηκε."
   },
   "redeemed": "εξαργυρώθηκε",
+  "refresh": "Ανανέωση",
   "registered": "Εγγεγραμμένος",
   "registered_at": "Εγγράφηκε στις",
+  "remark": {
+    "done": "Τέλος",
+    "failed": "Δεν αποθηκεύτηκε.",
+    "failedClosed": "Η παρατήρηση για το μέλος {name} δεν αποθηκεύτηκε.",
+    "label": "Παρατήρηση",
+    "lastChanged": "Τελευταία αλλαγή: {name}, {date}",
+    "lastChangedNoName": "Τελευταία αλλαγή: {date}",
+    "private": "Ορατή σε όλους τους συντονιστές, όχι στο μέλος: {name}.",
+    "privateWithCrea": "Ορατή σε όλους τους συντονιστές, όχι στο μέλος: {name}. Η Crea τη διαβάζει μόνο κατόπιν αιτήματος.",
+    "retry": "Νέα προσπάθεια",
+    "saved": "Αποθηκεύτηκε",
+    "saving": "Αποθήκευση…",
+    "title": "Παρατήρηση για το μέλος: {name}"
+  },
   "removeNotSelf": "Ως διαχειριστής/συντονιστής, δεν μπορείς να διαγράψεις τον εαυτό σου.",
   "reset": "Επαναφορά",
   "save": "Αποθήκευση",
+  "search": {
+    "clear": "Καθαρισμός αναζήτησης"
+  },
   "send": "Αποστολή",
+  "show_details": "Εμφάνιση λεπτομερειών",
   "status": "Κατάσταση",
   "success": "Επιτυχία",
   "text": "Κείμενο",
@@ -642,7 +691,6 @@
     "text_false": "Το τελευταίο email στάλθηκε στο μέλος ({email}) στις {date}.",
     "text_true": "Το email επιβεβαιώθηκε."
   },
-  "unregistered_emails": "Μόνο μη εγγεγραμμένοι χρήστες",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -675,6 +723,18 @@
     },
     "successfullyChangedTo": "Ο χρήστης είναι τώρα «{role}».",
     "tabTitle": "Ρόλος χρήστη"
+  },
+  "userSearch": {
+    "hits": "{count} αποτέλεσμα | {count} αποτελέσματα",
+    "tabs": {
+      "all": "Όλοι",
+      "deleted": "Διαγραμμένοι",
+      "enabled": "Ενεργοί",
+      "unconfirmed": "Μη επιβεβαιωμένοι"
+    }
+  },
+  "userStatus": {
+    "emailUnconfirmed": "Το e-mail δεν επιβεβαιώθηκε"
   },
   "user_deleted": "Ο χρήστης διαγράφηκε.",
   "user_memo_search": "Αναζήτηση χρήστη και κειμένου",

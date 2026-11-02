@@ -34,7 +34,7 @@ const mountCopy = () => {
     global: {
       plugins: [i18n],
       components: { BButton },
-      stubs: { IBiShare: true, IBiLock: true, IBiCopy: true },
+      stubs: { IBiShare: true, IBiEnvelope: true, IBiLock: true, IBiCopy: true },
     },
   })
 }
@@ -54,6 +54,25 @@ describe('ClipboardCopy', () => {
   afterEach(() => {
     delete window.navigator.clipboard
     delete window.navigator.share
+  })
+
+  // "Per E-Mail" (ZE-037): a plain link has no picture, so this only opens the mail program.
+  it('offers the mail program under sharing, with the text it shows', () => {
+    const wrapper = mountCopy()
+    const button = wrapper.find('[data-test="emailButton"]')
+    const url = new URL(button.attributes('href'))
+
+    expect(button.element.tagName).toBe('A')
+    expect(button.text()).toBe('Per E-Mail')
+    expect(url.pathname).toBe('')
+    expect(url.searchParams.get('subject')).toBe('Ein Dank von bernd')
+    expect(url.searchParams.get('body')).toBe(
+      wrapper.find('[data-test="copyLinkWithText"]').text().replace(/\n/g, '\r\n'),
+    )
+    expect(wrapper.find('[data-test="emailHint"]').text()).toBe('Öffnet Dein E-Mail-Programm.')
+    // A link in the words of a screen reader too: a "button" would be pressed with the space bar,
+    // and a link does not answer to that.
+    expect(button.attributes('role')).toBe('link')
   })
 
   it('sends with its button exactly the text it shows', async () => {

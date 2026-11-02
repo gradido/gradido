@@ -24,6 +24,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { reachableCommunities } from '@/graphql/communities.graphql'
 import { useAppToast } from '@/composables/useToast'
@@ -42,6 +43,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'communitiesLoaded'])
 
 const route = useRoute()
+const { t } = useI18n()
 const { toastError } = useAppToast()
 
 const communities = ref([])
@@ -113,7 +115,7 @@ function setDefaultCommunity() {
       updateCommunity(foundCommunity)
       return
     }
-    toastError('invalid community identifier in url')
+    toastError(t('form.community-not-reachable'))
   }
 
   if (validCommunityIdentifier.value && !communityIdentifier.value) {

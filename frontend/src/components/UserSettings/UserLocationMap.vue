@@ -1,11 +1,5 @@
 <template>
   <div>
-    <coordinates-display
-      v-if="map && showCoordinates"
-      :community-position="communityPosition"
-      :user-position="userPosition"
-      @centerMap="handleMapCenter"
-    />
     <div ref="mapContainer" class="map-container" :style="{ height }" />
 
     <!-- The address search. It is this component's own element, and initMap hangs it on
@@ -26,7 +20,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { loadMapEngine } from '@/utils/mapEngine'
-import CoordinatesDisplay from '@/components/UserSettings/CoordinatesDisplay.vue'
 import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
 import { useI18n } from 'vue-i18n'
 import { useGmsBase } from '@/composables/useGmsBase'
@@ -36,50 +29,23 @@ const mapContainer = ref(null)
 const searchHost = ref(null)
 const map = ref(null)
 const userMarker = ref(null)
-const communityMarker = ref(null)
 const userPosition = ref({ lat: 0, lng: 0 })
-const communityPosition = ref({ lat: 0, lng: 0 })
 const defaultZoom = 13
 // Held so unmounting can call it off; initMap runs a quarter second after mount.
 let initTimer = null
 
-/**
- * The classic map pin, drawn here rather than fetched.
- *
- * Until now the two pins were PNGs from raw.githubusercontent.com and cdnjs, so opening
- * the settings page told two foreign servers about it; and the map seam takes a marker as
- * markup, which is what every other marker of both maps already is. Same size and same
- * point as the images they replace (25 x 41, the tip at 12/41), so nothing moves.
- */
-function pinHtml(colour) {
-  return `<div style="width:25px;height:41px;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.4))">
-      <svg viewBox="0 0 25 41" width="25" height="41" style="display:block" aria-hidden="true">
-        <path d="M12.5 0.5a12 12 0 0 0-12 12c0 9.3 12 27.9 12 27.9s12-18.6 12-27.9a12 12 0 0 0-12-12z" fill="${colour}" stroke="#fff" stroke-width="1"/>
-        <circle cx="12.5" cy="12.5" r="4.2" fill="#fff"/>
-      </svg>
-    </div>`
-}
-
-// The colours of the images they replace: the member's own place red, the community's blue.
-const USER_PIN = '#cb2b3e'
-const COMMUNITY_PIN = '#2a81cb'
-
 const emit = defineEmits(['update:userPosition'])
 
+/**
+ * The map of the matching's home tab. It once served the old GMS settings dialog as well, with
+ * a coordinates readout, a classic pin and the community's own point as a second, labelled pin;
+ * that dialog went with the old member search, and so did all three. The community's point
+ * still decides where the map opens for a member without a home - the page hands it over as
+ * `userMarkerCoords` then (Matching.vue).
+ */
 const props = defineProps({
   userMarkerCoords: Object,
-  // The community's own point, as a pin with its label - the settings page shows it.
-  // Left out, there is no such pin at all: the matching tab dropped it (Bernd,
-  // 11.09.2026: nobody needs the community's centre there, and it only confused
-  // wherever a home stood right on it).
-  communityMarkerCoords: Object,
-  // optional map height; default keeps the settings-page usage unchanged
   height: { type: String, default: '400px' },
-  // the settings page shows the coordinates readout; the matching tab hides it
-  showCoordinates: { type: Boolean, default: true },
-  // 'pin' (default, the settings page) or 'home' — the matching tab shows the
-  // same gold heart-house as the big map, so home reads the same everywhere.
-  userIcon: { type: String, default: 'pin' },
 })
 
 const { t, locale } = useI18n()
@@ -96,9 +62,6 @@ const provider = makeGeoProvider({
 onMounted(async () => {
   if (props.userMarkerCoords) {
     userPosition.value = props.userMarkerCoords
-  }
-  if (props.communityMarkerCoords) {
-    communityPosition.value = props.communityMarkerCoords
   }
   initTimer = setTimeout(() => initMap(), 250)
   window.addEventListener('resize', handleResize)
@@ -149,61 +112,27 @@ function buildMap(createMap) {
 
     map.value.addZoomControl('topleft')
 
-    // User marker (movable). The matching tab asks for the home house — the same
-    // "you" as the big map; the settings page keeps the classic pin.
-    const homeIcon = props.userIcon === 'home'
-
-    const userIconDef = homeIcon
-      ? {
-          className: 'own-home',
-          html: `<div style="width:34px;height:34px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))">
-              <svg viewBox="0 0 16 16" width="34" height="34" style="display:block" aria-hidden="true">
-                <g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g>
-              </svg>
-            </div>`,
-          size: [34, 34],
-          anchor: [17, 32],
-        }
-      : {
-          className: 'gk-pin',
-          html: pinHtml(USER_PIN),
-          size: [25, 41],
-          anchor: [12, 41],
-          popupAnchor: [1, -34],
-        }
-
+    // The member's home (movable): the same gold heart-house as the big map, so home reads
+    // the same everywhere. It needs no label.
+    //
     // Interactive (the engine's default), because draggable alone is not enough: a marker
     // that takes no tap lets it through to the map, so it cannot be picked up either, and
     // the dragend handler below would never run. Setting the position by clicking the map
-    // would still work, which is why such a pin once read as a working map. The community
-    // marker stays non-interactive - it is a label, not a control.
-    //
-    // The home house needs no label; the pin explains itself with a popup.
+    // would still work, which is why such a marker once read as a working map.
     userMarker.value = map.value.marker({
       lat: userPosition.value.lat,
       lng: userPosition.value.lng,
-      ...userIconDef,
+      className: 'own-home',
+      html: `<div style="width:34px;height:34px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))">
+          <svg viewBox="0 0 16 16" width="34" height="34" style="display:block" aria-hidden="true">
+            <g fill="#c69130"><path d="M7.293 1.5a1 1 0 0 1 1.414 0L11 3.793V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v3.293l2.354 2.353a.5.5 0 0 1-.708.707L8 2.207L1.354 8.853a.5.5 0 1 1-.708-.707z"/><path d="m14 9.293l-6-6l-6 6V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5zm-6-.811c1.664-1.673 5.825 1.254 0 5.018c-5.825-3.764-1.664-6.691 0-5.018"/></g>
+          </svg>
+        </div>`,
+      size: [34, 34],
+      anchor: [17, 32],
       draggable: true,
-      popup: homeIcon ? null : t('settings.GMS.map.userLocationLabel'),
       onDragEnd: onMarkerDragEnd,
     })
-
-    // Community marker (fixed), only where one was given: the settings page shows
-    // the community's pin with its label; the matching tab gives none. Without the
-    // guard it would stand at the 0/0 this component starts from.
-    if (props.communityMarkerCoords) {
-      communityMarker.value = map.value.marker({
-        lat: communityPosition.value.lat,
-        lng: communityPosition.value.lng,
-        className: 'gk-pin',
-        html: pinHtml(COMMUNITY_PIN),
-        size: [25, 41],
-        anchor: [12, 41],
-        popupAnchor: [1, -34],
-        interactive: false,
-        popup: t('settings.GMS.map.communityLocationLabel'),
-      })
-    }
 
     map.value.on('click', updateUserPosition)
 
@@ -244,7 +173,6 @@ function updateUserPosition(latlng) {
   userPosition.value = { lat: latlng.lat, lng: latlng.lng }
   if (userMarker.value) {
     userMarker.value.setPosition(latlng)
-    userMarker.value.openPopup()
   }
   centerMapOnUser()
   emit('update:userPosition', userPosition.value)
@@ -257,20 +185,6 @@ function centerMapOnUser() {
       duration: 0.5,
     })
   }
-}
-
-function centerMapOnCommunity() {
-  if (map.value && communityPosition.value) {
-    map.value.setView(communityPosition.value, map.value.getZoom(), {
-      animate: true,
-      duration: 0.5,
-    })
-  }
-}
-
-function handleMapCenter(centerMode) {
-  if (centerMode === 'USER') centerMapOnUser()
-  else centerMapOnCommunity()
 }
 
 watch(userPosition, (newPosition) => {

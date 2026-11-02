@@ -9,6 +9,8 @@ import {
   dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
+  dbSelectDirectChatPartnersWithUnread,
+  dbSelectUnreadReceivedTransfers,
 } from 'database'
 import {
   CHAT_EDITS_SETTLE_MS,
@@ -35,6 +37,10 @@ jest.mock('database', () => {
     // No group among these conversations: the messages here are between two members (P5 asks
     // for every page and update which of its conversations are groups).
     dbSelectChatGroupUuids: jest.fn(async () => new Map()),
+    // The transfers the caller has not seen (Chat E-086): none unless a test says so.
+    dbSelectTransactionReadsStart: jest.fn(async () => 1000),
+    dbSelectUnreadReceivedTransfers: jest.fn(async () => []),
+    dbSelectDirectChatPartnersWithUnread: jest.fn(async () => []),
   }
 })
 
@@ -65,6 +71,12 @@ const infos = dbSelectChatMessageImageInfos as jest.MockedFunction<
 >
 const reactionRows = dbSelectChatMessageReactions as jest.MockedFunction<
   typeof dbSelectChatMessageReactions
+>
+const unreadTransfers = dbSelectUnreadReceivedTransfers as jest.MockedFunction<
+  typeof dbSelectUnreadReceivedTransfers
+>
+const partnersWithUnread = dbSelectDirectChatPartnersWithUnread as jest.MockedFunction<
+  typeof dbSelectDirectChatPartnersWithUnread
 >
 
 /** A request of Lena's, with a budget of its own. */
@@ -147,6 +159,10 @@ beforeEach(() => {
   reactedAfter.mockReset()
   infos.mockReset()
   reactionRows.mockReset()
+  unreadTransfers.mockReset()
+  partnersWithUnread.mockReset()
+  unreadTransfers.mockResolvedValue([])
+  partnersWithUnread.mockResolvedValue([])
   infos.mockResolvedValue([])
   reactionRows.mockResolvedValue([])
   since.mockResolvedValue({ messages: [], hasMore: false })
@@ -200,6 +216,8 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       editedCursor: SETTLED_CURSOR,
       reacted: [],
       reactedCursor: SETTLED_CURSOR,
+      unreadTransfers: 0,
+      latestUnreadTransferId: null,
     })
   })
 
@@ -215,6 +233,8 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       editedCursor: SETTLED_CURSOR,
       reacted: [],
       reactedCursor: SETTLED_CURSOR,
+      unreadTransfers: 0,
+      latestUnreadTransferId: null,
     })
     expect(since).not.toHaveBeenCalled()
     expect(editedAfter).not.toHaveBeenCalled()
@@ -549,5 +569,76 @@ describe('newChatMessagesSince, the messages with changed reactions', () => {
       [],
     ])
     expect(update.messages.map((message) => message.reactedAt)).toEqual([null, before(500), null])
+  })
+})
+
+/**
+ * The transfers the caller received and has not seen count as unread too (Chat E-086): a person
+ * once in the mark in the menu, whether a message of theirs waits as well -- and the two numbers
+ * the wallet asks its lists again on.
+ */
+describe('newChatMessagesSince, the transfers not seen', () => {
+  const PAUL = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+  /** Lena's request with her users id and her switch "Überweisungen im Chat". */
+  const lenaWith = (transfersInChat: boolean): Context => ({
+    ...lenasRequest(),
+    user: { id: 17, communityUuid: HOME, gradidoID: LENA, transfersInChat } as unknown as DbUser,
+  })
+  const askAs = (context: Context) =>
+    new ChatResolver().newChatMessagesSince(
+      { afterId: null, limit: null, editedCursor: null, reactedCursor: null },
+      context,
+    )
+
+  beforeEach(() => {
+    summary.mockResolvedValue(standing(40, 1))
+  })
+
+  it('counts a person whose transfer waits, beside the conversations', async () => {
+    unreadTransfers.mockResolvedValue([
+      { communityUuid: HOME, gradidoId: PAUL, count: 2, latestId: 1207 },
+    ])
+
+    const update = await askAs(lenaWith(true))
+
+    expect(update.unreadConversations).toBe(2)
+    expect(update.unreadTransfers).toBe(2)
+    expect(update.latestUnreadTransferId).toBe(1207)
+    // Her own bookings only, above the start of the counting.
+    expect(unreadTransfers).toHaveBeenCalledWith(17, 1000)
+  })
+
+  // Max's message waits and his transfer too: one person, one thing to see to.
+  it('counts a person once whose message waits as well', async () => {
+    unreadTransfers.mockResolvedValue([
+      { communityUuid: HOME, gradidoId: MAX.toUpperCase(), count: 1, latestId: 1300 },
+    ])
+    partnersWithUnread.mockResolvedValue([{ communityUuid: HOME, gradidoId: MAX }])
+
+    const update = await askAs(lenaWith(true))
+
+    expect(update.unreadConversations).toBe(1)
+    expect(update.unreadTransfers).toBe(1)
+  })
+
+  it('does not ask the conversations for their persons where no transfer waits', async () => {
+    const update = await askAs(lenaWith(true))
+
+    expect(update.unreadConversations).toBe(1)
+    expect(update).toMatchObject({ unreadTransfers: 0, latestUnreadTransferId: null })
+    expect(partnersWithUnread).not.toHaveBeenCalled()
+  })
+
+  // Switched out of her conversations, a transfer stands nowhere she reads it.
+  it('reads no transfer for a member who keeps them out of her conversations', async () => {
+    unreadTransfers.mockResolvedValue([
+      { communityUuid: HOME, gradidoId: PAUL, count: 2, latestId: 1207 },
+    ])
+
+    const update = await askAs(lenaWith(false))
+
+    expect(update.unreadConversations).toBe(1)
+    expect(update).toMatchObject({ unreadTransfers: 0, latestUnreadTransferId: null })
+    expect(unreadTransfers).not.toHaveBeenCalled()
   })
 })

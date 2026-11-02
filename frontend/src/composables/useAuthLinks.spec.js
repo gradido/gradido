@@ -75,9 +75,9 @@ describe('useAuthLinks', () => {
   })
 
   /**
-   * The entrance of an event link (`/event?interest=…`, Event-Matching). Its query is what the
+   * The entrance of an event link (`/project?interest=…`). Its query is what the
    * link offers -- somebody else's words -- and whatever else stands in such an address is not
-   * the link's to say either: a referrer, a guarantor code, a project. The route says so
+   * the link's to say either: a referrer, a guarantor code, a project branding. The route says so
    * (`queryStaysBehind`, routes.js), and the two links of the bar above the page hand none of
    * it on to the registration or the sign-in.
    */

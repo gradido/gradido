@@ -274,7 +274,6 @@ describe('dbFindTransactionLinkForPreview', () => {
   const PLAIN = 'a1f9c2d41b7e19981fa0d001'
   const MOTIF = 'b2e0d5a2996c19981fa0d002'
   const PHOTO = 'c3d1e6b3447d19981fa0d003'
-  const NO_USERNAME = 'd4c2f7c4558e19981fa0d004'
   const CLOSED = 'e5b3a8d5669f19981fa0d005'
   const NO_MAKER = 'f6a4b9e6770a19981fa0d006'
   const TWINS = 'a7b5c0f7881b19981fa0d007'
@@ -395,17 +394,6 @@ describe('dbFindTransactionLinkForPreview', () => {
       ]),
     )
     expect(found?.pictures).toHaveLength(2)
-  })
-
-  it('reads a member without a username as the maker all the same', async () => {
-    await linkWithCode(NO_USERNAME, peter)
-
-    expect((await dbFindTransactionLinkForPreview(NO_USERNAME))?.maker).toEqual({
-      alias: null,
-      gradidoId: peter.gradidoID,
-      language: 'de',
-      deletedAt: null,
-    })
   })
 
   // No condition on the state: the rule that reads the columns stands in the backend.

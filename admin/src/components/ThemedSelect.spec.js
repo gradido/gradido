@@ -1,4 +1,7 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { ThemedSelect } from './ThemedSelect'
@@ -61,5 +64,23 @@ describe('ThemedSelect', () => {
     const wrapper = createWrapper({ disabled: true, dataTest: 'group' })
     expect(toggle(wrapper).attributes('disabled')).toBeDefined()
     expect(wrapper.find('[data-test="group"]').exists()).toBe(true)
+  })
+
+  // A group's name with its tag can be long. Bootstrap keeps a dropdown's label and its options
+  // on one line, and the label ran out of its box and widened the page (coderabbit, #4198). jsdom
+  // lays nothing out, so the stylesheet is read for its rules.
+  it('lets a long label and a long option break inside their box', () => {
+    const here = dirname(fileURLToPath(import.meta.url))
+    const scss = readFileSync(join(here, 'ThemedSelect.scss'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\s+/g, ' ')
+    const label = scss.match(
+      /\.themed-select \{ width: 100%; > \.btn\.themed-select-toggle \{([^}]*)\}/,
+    )
+    const option = scss.match(/\.themed-select \{[^}]*\} \.dropdown-item \{([^}]*)\}/)
+    for (const block of [label?.[1], option?.[1]]) {
+      expect(block).toContain('white-space: normal;')
+      expect(block).toContain('overflow-wrap: anywhere;')
+    }
   })
 })

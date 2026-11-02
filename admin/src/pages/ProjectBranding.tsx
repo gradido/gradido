@@ -94,6 +94,9 @@ export const ProjectBranding = defineComponent({
             <BButton
               {...{ animation: animation.value, 'font-scale': '2' }}
               data-test='project-branding-refresh-btn'
+              // A symbol and nothing else: the name is all a screen reader has of it.
+              title={t('refresh')}
+              aria-label={t('refresh')}
               // ⚠️ The click event is what refetch receives as its variables, as before.
               onClick={refetch as unknown as (event: MouseEvent) => void}
             >
@@ -102,16 +105,29 @@ export const ProjectBranding = defineComponent({
           </div>
         </div>
         <BListGroup>
-          <BRow>
-            <BCol cols='3' class='ms-1'>
+          {/* The heads of the columns, from 992px on. Below that every entry is a card whose
+              values carry a small name of their own (ProjectBrandingItem): at 320px "Benutzer
+              hinzufügen?" stood in a column 52px wide and ran into the next one (measured
+              23.10.2026). A head may break inside a word rather than do that, should one word of
+              it be wider than its column. */}
+          <BRow class='d-none d-lg-flex'>
+            <BCol cols='3' class='ms-1 text-break'>
               {t('name')} + {t('link')}
             </BCol>
-            <BCol cols='2'>{t('alias')}</BCol>
-            <BCol cols='2' title={t('projectBranding.newUserToSpaceTooltip')}>
+            <BCol cols='2' class='text-break'>
+              {t('alias')}
+            </BCol>
+            <BCol cols='2' class='text-break' title={t('projectBranding.newUserToSpaceTooltip')}>
               {t('projectBranding.newUserToSpace')}
             </BCol>
-            <BCol cols='3'>{t('logo')}</BCol>
-            {store.moderator!.role === 'ADMIN' ? <BCol cols='1'>{t('actions')}</BCol> : null}
+            <BCol cols='3' class='text-break'>
+              {t('logo')}
+            </BCol>
+            {store.moderator!.role === 'ADMIN' ? (
+              <BCol cols='1' class='text-break'>
+                {t('actions')}
+              </BCol>
+            ) : null}
           </BRow>
           {projectBrandings.value.map((item) => (
             <BListGroupItem key={item.id}>

@@ -74,7 +74,10 @@ export const ContributionLink = defineComponent({
           ) : null}
 
           <BCollapse id='newContribution' v-model={visible.value} class='mt-2'>
-            <BCard>
+            {/* On a phone this card keeps no side room of its own: inside the card of the page it
+                left the form 220px of a 320px window (measured 23.10.2026). From 992px on the
+                16px of a card body, as before. */}
+            <BCard bodyClass='px-0 px-lg-3'>
               <p class='h2 ms-5'>{t('contributionLink.contributionLinks')}</p>
               <ContributionLinkForm
                 contributionLinkData={contributionLinkData.value}

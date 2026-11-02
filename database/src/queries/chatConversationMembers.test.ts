@@ -3,7 +3,12 @@ import { and, eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { ChatMessageSelect, chatConversationMembersTable, chatMessagesTable } from '../schemas'
+import {
+  ChatMessageSelect,
+  chatConversationMembersTable,
+  chatConversationsTable,
+  chatMessagesTable,
+} from '../schemas'
 import {
   ChatMemberRef,
   dbDeleteChatConversationMember,
@@ -11,10 +16,12 @@ import {
   dbSelectChatConversationMember,
   dbSelectChatConversationMembers,
   dbSelectChatUnreadSummary,
+  dbSelectDirectChatPartnersWithUnread,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
   dbUpdateChatConversationMemberRole,
 } from './chatConversationMembers'
+import { dbEnsureDirectChatConversation, dbInsertChatGroup } from './chatConversations'
 import { dbInsertChatMessage } from './chatMessages'
 
 const appDB = AppDatabase.getInstance()
@@ -443,6 +450,101 @@ describe('dbSelectChatUnreadSummary', () => {
     const { now: _then, ...asMax } = await dbSelectChatUnreadSummary(MAX)
     expect(await dbSelectChatUnreadSummary(shouting)).toMatchObject(asMax)
     expect(asMax).toEqual({ latestId: filed[5].id, unreadConversations: 2 })
+  })
+})
+
+/**
+ * The persons the beat counts already when a transfer of theirs waits too (Chat E-086): the other
+ * member of each direct conversation with something unread -- never a group, never her own
+ * message, never what lies below her pointer.
+ */
+describe('dbSelectDirectChatPartnersWithUnread', () => {
+  const pair = (): ChatMemberRef => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  const RITA = pair()
+  const SAM = pair()
+  const TOM = pair()
+  const UTE = pair()
+  const conversations: number[] = []
+  const messages: number[] = []
+
+  const file = async (conversationId: number, sender: ChatMemberRef): Promise<number> => {
+    const stored = await dbInsertChatMessage({
+      messageUuid: uuidv4(),
+      conversationId,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      subject: null,
+      body: 'hello',
+      notify: 'email',
+      deliveryState: 'delivered',
+    })
+    if (!stored.success) {
+      throw new Error('fixture: a message was not filed')
+    }
+    messages.push(stored.value.id)
+    return stored.value.id
+  }
+
+  let withSam: number
+  let withTom: number
+  let withUte: number
+  let samsSecond: number
+
+  beforeAll(async () => {
+    withSam = (await dbEnsureDirectChatConversation(RITA, SAM)).id
+    withTom = (await dbEnsureDirectChatConversation(RITA, TOM)).id
+    withUte = (await dbEnsureDirectChatConversation(RITA, UTE)).id
+    const group = await dbInsertChatGroup({
+      groupUuid: uuidv4(),
+      title: 'Garten',
+      homeCommunityUuid: HOME,
+      createdBy: RITA,
+    })
+    await dbInsertChatConversationMembers(group.id, [RITA, SAM, TOM])
+    conversations.push(withSam, withTom, withUte, group.id)
+    // Sam wrote twice, Rita answered Tom, Ute wrote once and Rita read it, Tom wrote in the group.
+    await file(withSam, SAM)
+    samsSecond = await file(withSam, SAM)
+    await file(withTom, RITA)
+    const utes = await file(withUte, UTE)
+    await dbUpdateChatConversationMemberLastRead(withUte, RITA, utes)
+    await file(group.id, TOM)
+  })
+
+  afterAll(async () => {
+    for (const id of messages) {
+      await db.delete(chatMessagesTable).where(eq(chatMessagesTable.id, id))
+    }
+    for (const id of conversations) {
+      await db.delete(chatConversationsTable).where(eq(chatConversationsTable.id, id))
+      await db
+        .delete(chatConversationMembersTable)
+        .where(eq(chatConversationMembersTable.conversationId, id))
+    }
+  })
+
+  it('names the other member of each direct conversation in which something waits for her', async () => {
+    expect(await dbSelectDirectChatPartnersWithUnread(RITA)).toEqual([SAM])
+  })
+
+  // To Sam, Rita's answer to Tom means nothing; Tom waits on nobody: his own message only.
+  it('is hers alone', async () => {
+    expect(await dbSelectDirectChatPartnersWithUnread(TOM)).toEqual([RITA])
+    expect(await dbSelectDirectChatPartnersWithUnread(SAM)).toEqual([])
+  })
+
+  it('names nobody once she read it all', async () => {
+    await dbUpdateChatConversationMemberLastRead(withSam, RITA, samsSecond)
+    expect(await dbSelectDirectChatPartnersWithUnread(RITA)).toEqual([])
+  })
+
+  it('answers for the member named in capitals, as the column compares', async () => {
+    await file(withSam, SAM)
+    const shouting = {
+      communityUuid: RITA.communityUuid.toUpperCase(),
+      gradidoId: RITA.gradidoId.toUpperCase(),
+    }
+    expect(await dbSelectDirectChatPartnersWithUnread(shouting)).toEqual([SAM])
   })
 })
 

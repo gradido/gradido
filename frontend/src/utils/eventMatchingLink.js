@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 /**
- * The event link of Event-Matching: `community-host/event?interest=…&details=…&remote=1&v=1`.
- * A host builds it for the people of a congress, a training or a course; whoever opens it is
- * offered one entry for the matching, an interest -- "I love ‹interest›".
+ * The link of project matching: `community-host/project?interest=…&details=…&remote=1&v=1`, or
+ * `/event?…` as the first links have it (the code keeps that first name, event matching). A host
+ * builds it for the people of a project -- an association, a congress, a course; whoever opens it
+ * is offered one entry for the matching, an interest -- "I love ‹interest›".
  *
  * The parameters are a promise. A link that stands in a mail or on a slide has to work for good,
  * so none of the names below is ever renamed, and what is not known is passed over without a
@@ -23,9 +24,10 @@
  * without a form, and stands in the member's list to be paused or deleted (KA-014).
  *
  * (One parameter of another kind works in this address as in that of every page of the same
- * layout: `project`, which the layout reads off the address itself. It names a project this
- * community has set up, and a sign-in then leads to that project's space -- the link's entry
- * is let go, as with every sign-in that has a place of its own to lead to.)
+ * layout: `project`, which the layout reads off the address itself. It names a project branding
+ * this community has set up in the admin (a logo and a space, nothing to do with the project a
+ * link is built for), and a sign-in then leads to that space -- the link's entry is let go, as
+ * with every sign-in that has a place of its own to lead to.)
  */
 
 /** As long as the sentence of an entry may be (the column, and the field of the form). */

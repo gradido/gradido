@@ -19,8 +19,9 @@ import {
 } from 'database'
 import { internet, name } from 'faker/locale/en'
 import { getLogger } from 'log4js'
-import { AppContext } from 'shared'
+import { AppContext, additionalAliasVariants, aliasCandidates, findFirstFreeAlias } from 'shared'
 import { MonotonicTimer } from 'shared-native'
+import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { initLogging } from '@/server/logger'
 import { buildHomeCommunity } from './community'
@@ -37,15 +38,41 @@ const RANDOM_USER_COUNT = 100
 const MODERATOR_EMAIL = 'peter@lustig.de'
 const logger = getLogger('seed')
 
+// The first free name of the ladder registration climbs (RegisterUserRole.getFreeAlias): the
+// candidates as they are, then numbered, then the gradido id. Lowercased into `taken`, because
+// the column compares case-insensitively.
+function seedAlias(
+  firstName: string,
+  lastName: string,
+  email: string,
+  gradidoId: string,
+  taken: Set<string>,
+): string {
+  const candidates = aliasCandidates({ firstName, lastName, email })
+  const alias =
+    findFirstFreeAlias([...taken], candidates) ??
+    findFirstFreeAlias([...taken], additionalAliasVariants(candidates)) ??
+    gradidoId.slice(0, 18).toLowerCase()
+  taken.add(alias.toLowerCase())
+  return alias
+}
+
 // the standard users first, then the random ones - made only when their batch comes
-function seedUser(index: number): UserInterface {
+function seedUser(index: number, taken: Set<string>): UserInterface {
   if (index < users.length) {
     return users[index]
   }
+  const firstName = name.firstName()
+  const lastName = name.lastName()
+  const email = internet.email()
+  // Drawn here, not in the factory: the ladder's last rung is built from it.
+  const gradidoId = uuidv4()
   return {
-    firstName: name.firstName(),
-    lastName: name.lastName(),
-    email: internet.email(),
+    alias: seedAlias(firstName, lastName, email, gradidoId, taken),
+    gradidoId,
+    firstName,
+    lastName,
+    email,
     language: Math.random() < 0.5 ? 'en' : 'de',
   }
 }
@@ -63,12 +90,14 @@ async function seedUsers(
     ...creations.map((creation) => creation.email),
     ...transactionLinks.map((transactionLink) => transactionLink.email),
   ])
+  // This run's own record of the names handed out, the standard users' included, so no two collide.
+  const taken = new Set(users.map((user) => user.alias.toLowerCase()))
   const refsByEmail = new Map<string, SeedUserRef>()
   const total = users.length + RANDOM_USER_COUNT
   for (let offset = 0; offset < total; offset += BATCH_SIZE) {
     const batch: UserInterface[] = []
     for (let index = offset; index < Math.min(offset + BATCH_SIZE, total); index++) {
-      batch.push(seedUser(index))
+      batch.push(seedUser(index, taken))
     }
     const rows = buildSeedUserRows(batch, offset + 1, communityUuid, referencedEmails)
     await hashSeedUserPasswords(rows)

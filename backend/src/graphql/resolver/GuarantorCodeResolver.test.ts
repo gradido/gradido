@@ -142,16 +142,6 @@ describe('GuarantorCodeResolver', () => {
     expect(data.guarantorCode.unconfirmedGuests).toEqual([])
   })
 
-  // The expected answer for a member without a user name, on every visit: no code, and no
-  // error either, so the wallet offers no new try and the log holds no error line.
-  it('mints none for a member without a user name, and says so without an error', async () => {
-    await loginAs('peter@lustig.de')
-    await expect(query({ query: guarantorCode })).resolves.toMatchObject({
-      data: { guarantorCode: null },
-      errors: undefined,
-    })
-  })
-
   // A session does not outlive the deletion of its account: the auth layer finds no member
   // behind the token any more. A code of theirs would open accounts with nobody recorded as
   // having vouched - the registration does not find a deleted member.
@@ -211,16 +201,6 @@ describe('GuarantorCodeResolver', () => {
       expect((await query({ query: guarantorCode })).errors).toBeUndefined()
 
       expect(await codesShown(bob)).toHaveLength(before.length + 2)
-    })
-
-    it('notes nothing for a member without a user name', async () => {
-      await loginAs('peter@lustig.de')
-      const before = await codesShown()
-      await expect(query({ query: guarantorCode })).resolves.toMatchObject({
-        data: { guarantorCode: null },
-      })
-
-      expect(await codesShown()).toHaveLength(before.length)
     })
   })
 

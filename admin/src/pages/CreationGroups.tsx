@@ -275,6 +275,7 @@ export const CreationGroups = defineComponent({
           >
             {adoptionState(tag)}
           </span>
+          <span class={classes.creationGroupBreak} aria-hidden='true' />
           <BButton
             size='sm'
             variant='outline-secondary'

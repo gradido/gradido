@@ -9,14 +9,11 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Trouve les membres de toutes les communautés sur une carte.",
-    "title": "Geo Matching System GMS (en développement)"
-  },
   "Humhub": {
     "desc": "Ensemble, nous nous soutenons mutuellement – avec attention, dans la culture des cercles.",
     "title": "Cercles Gradido"
   },
+  "adminWayBack": "Retour à l'Admin",
   "advanced-calculation": "Calcul avancé",
   "answerNow": "→ Répondre maintenant !",
   "appOutdated": {
@@ -126,19 +123,6 @@
       "button": "Configurer..."
     },
     "text": "Cercles locaux, cercles d'études, projets, événements et congrès"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Ouvrir la recherche de membres...",
-      "disabled-button": "GMS offline...",
-      "text": "Trouve des membres de toutes les communautés sur une carte."
-    },
-    "headline": "Recherche géographique de membres (bêta)",
-    "info": "Comment ça marche",
-    "not-allowed": {
-      "button": "Indiquer ta position...",
-      "text": "Pour trouver d'autres membres près de chez toi, indique dès maintenant ta position sur la carte !"
-    }
   },
   "chatForward": {
     "byEmailMany": "Également par e-mail aux {count} contacts",
@@ -250,6 +234,22 @@
     "sent": "Envoyé.",
     "sentMailed": "Envoyé. {name} reçoit un e-mail.",
     "toConversation": "Ouvrir la conversation"
+  },
+  "chatNote": {
+    "done": "Terminé",
+    "failed": "Non enregistré.",
+    "failedClosed": "Ta note n'a pas été enregistrée. Ouvre-la pour réessayer.",
+    "loadFailed": "La note n'a pas pu être chargée.",
+    "placeholderGroup": "Que veux-tu retenir sur ce groupe ?",
+    "placeholderMember": "Que veux-tu retenir sur {name} ? Par exemple, son nom complet.",
+    "private": "Toi seul la vois.",
+    "retry": "Réessayer",
+    "saved": "Enregistré",
+    "saving": "Enregistrement …",
+    "title": "Ma note"
+  },
+  "chatPreview": {
+    "by": "{name} :"
   },
   "chatSearch": {
     "capped": "Les {count} derniers messages ont été parcourus.",
@@ -623,20 +623,20 @@
       "detailsHint": "Une ou deux phrases qui expliquent ton thème.",
       "detailsMissing": "Saisis maintenant les détails ci-dessus — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici.",
       "downloadCode": "Télécharger le QR code",
-      "intro": "Toute personne qui ouvre ce lien reçoit dans son compte Gradido ton congrès comme première entrée sur la carte — et trouve les autres personnes de ton congrès.",
+      "intro": "Toute personne qui ouvre ce lien reçoit dans son compte Gradido ton projet comme première entrée sur la carte — et trouve les autres personnes de ton projet.",
       "linkCopied": "Lien copié.",
       "linkLabel": "Ton lien",
       "mailCopied": "Paragraphe copié.",
       "mailLabel": "Ton paragraphe pour l'e-mail",
-      "mailText": "Gradido inclus : avec ce lien, tu obtiens ton compte Gradido, 100 Gradido pour commencer et la carte qui mène aux personnes de notre congrès. La carte ne montre ta position qu'aux membres, et seulement de façon approximative.",
+      "mailText": "Gradido inclus : avec ce lien, tu obtiens ton compte Gradido, 100 Gradido pour commencer et la carte qui mène aux personnes de notre projet. La carte ne montre ta position qu'aux membres, et seulement de façon approximative.",
       "nothingStored": "Rien n'est enregistré. Tu crées le lien, tu le transmets.",
-      "remoteHint": "Tes participants apparaissent alors aussi dans la recherche suprarégionale.",
-      "sentenceDefault": "Congrès",
-      "sentenceHint": "Le nom court de ton congrès, tel que tes participants le diraient. Le mot « Congrès » peut rester devant — « Formation », « Cours » ou « Retraite » conviennent aussi.",
+      "remoteHint": "Les personnes de ton projet apparaissent alors aussi dans la recherche suprarégionale.",
+      "sentenceDefault": "le projet",
+      "sentenceHint": "Le nom court de ton projet, tel qu'on le dit à l'oral. Les mots « le projet » peuvent rester devant — « l'association », « le congrès » ou « le cours » conviennent aussi.",
       "sentencePreview": "« {sentence} »",
-      "subtitle": "Ton lien pour ton congrès, ta formation, ton cours",
-      "title": "Event Matching",
-      "waiting": "Saisis ci-dessus le nom de ton congrès — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici."
+      "subtitle": "Ton lien pour ton projet : association, mouvement, congrès, cours",
+      "title": "Project Matching",
+      "waiting": "Saisis ci-dessus le nom de ton projet — ton lien, ton QR code et un paragraphe pour ton e-mail apparaîtront ici."
     },
     "home": {
       "text": "Pour que vous vous retrouviez entre personnes partageant les mêmes intérêts : indique sur la carte où tu habites. Tu verras alors les autres qui ont ajouté « {sentence} », et ils te verront. Seuls les membres voient la carte. Tu décides avec quelle précision : « Approximative » te montre dans une zone, jamais devant ta porte. Et tu peux te retirer à tout moment.",
@@ -646,7 +646,7 @@
       "added": "Ton entrée a été ajoutée : {sentence}",
       "firstEntry": "Ta première entrée :",
       "haveAccount": "J'ai déjà un compte",
-      "headline": "La carte qui te mène aux personnes de ton congrès",
+      "headline": "La carte qui te mène aux personnes de ton projet",
       "otherCommunity": "Ton compte est dans une autre communauté ? Alors identifie-toi là-bas et saisis la phrase à la main.",
       "register": "Créer un compte"
     },
@@ -740,7 +740,7 @@
       "link": "Académie Gradido",
       "year": "© {year}"
     },
-    "eventMatching": "Event Matching",
+    "eventMatching": "Project Matching",
     "imprint": "Notification légale",
     "inspector": "Inspecteur (expérimental)",
     "privacy_policy": "Politique de confidentialité",
@@ -756,6 +756,7 @@
     "change": "Changer",
     "check_now": "Vérifier maintenant",
     "close": "Fermer",
+    "community-not-reachable": "Cette communauté n'est pas joignable pour le moment. Vérifie quelle communauté est sélectionnée.",
     "current_available": "Actuellement disponible",
     "current_balance": "Solde actuel",
     "date": "Date",
@@ -783,6 +784,19 @@
     "password_new_repeat": "Répète le nouveau mot de passe",
     "password_old": "Ancien mot de passe",
     "recipient": "Destinataire",
+    "recipient-not-found": {
+      "by-email": "Sinon, envoie ton remerciement par e-mail : Gradido crée pour cela un lien qui attend {days} jours. Il permet de créer un compte — ou de recevoir le remerciement sur un compte existant.",
+      "change-address": "Modifier l'adresse",
+      "change-entry": "Modifier la saisie",
+      "choose-community": "Choisir la communauté",
+      "no-answer": "Le serveur n'a pas répondu. Réessaie.",
+      "other-community": "Cette adresse appartient-elle à un membre d'une autre communauté ? Alors choisis cette communauté.",
+      "other-community-entry": "Est-ce un membre d'une autre communauté ? Alors choisis cette communauté.",
+      "send-by-email": "Envoyer le remerciement par e-mail",
+      "title-email": "Il n'y a aucun compte avec cette adresse dans {community}.",
+      "title-gradido-id": "Il n'y a aucun compte avec cet ID Gradido dans {community}.",
+      "title-username": "Il n'y a aucun compte avec ce nom d'utilisateur dans {community}."
+    },
     "recipientCommunity": "Communauté du destinataire",
     "reply": "Répondre",
     "reset": "Réinitialiser",
@@ -864,6 +878,8 @@
   },
   "gddKonto": "Compte GDD",
   "gdd_per_link": {
+    "by-email": "Par e-mail",
+    "by-email-to": "Par e-mail à {address}",
     "choose-amount": "Sélectionne le montant que tu souhaites envoyer et saisis un message. Le message est obligatoire.",
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
@@ -872,6 +888,7 @@
     "deleted": "Le lien a été supprimé !",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
     "duplicate": "Dupliquer",
+    "email-subject": "{name} t'envoie un remerciement",
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
     "header": "Créer un lien, un chèque et un QR code",
@@ -883,9 +900,12 @@
     "link-overview": "Aperçu du lien",
     "links_open": "{n} ouverts",
     "links_sum": "Liens, chèques, QR codes, petits mots",
+    "memo-stays-on-page": "Ton message est trop long pour l'e-mail : il figure sur la page que le lien ouvre.",
     "no-account": "Tu n'as pas encore de compte Gradido ?",
     "no-redeem": "Tu n'es pas autorisé à percevoir ton propre lien !",
     "not-copied": "Malheureusement, ton appareil ne permet pas de copier ! Copie le lien manuellement, s'il te plaît !",
+    "opens-mail-program": "Ton logiciel de messagerie s'ouvrira.",
+    "picture-in-clipboard": "L'image sera alors dans le presse-papier — colle-la si tu veux.",
     "recipientCommunityRedirection": "Pour créditer, rediriger vers :",
     "recipientCommunitySelection": "Choisir la communauté Gradido :",
     "redeem": "Encaisser",
@@ -1243,8 +1263,7 @@
     "settings": "Configuration",
     "show-friends": "Montre-le à tes amis",
     "thank-you-greeting": "Mot de remerciement",
-    "transactions": "Tes transactions",
-    "usersearch": "Recherche géographique de membres (bèta)"
+    "transactions": "Tes transactions"
   },
   "public-profile": {
     "address": "Adresse Gradido",
@@ -1342,22 +1361,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Les données ne sont pas exportées vers le GMS",
-      "enabled": "Les données sont exportées vers le GMS",
       "location": {
-        "button": "Clique ici !",
-        "label": "Emplacement précis",
-        "saveLocation": "Enregistrer l'emplacement",
         "updateSuccess": "Emplacement enregistré avec succès"
       },
-      "location-format": "Afficher la position sur la carte :",
       "map": {
-        "communityCoords": "Emplacement de ta communauté : Lat {lat}, Long {lng}",
-        "communityLocationLabel": "Emplacement de ta communauté",
-        "headline": "Capture de la localisation géographique de l'utilisateur",
-        "search": "Rechercher un emplacement",
-        "userCoords": "Ton emplacement : Lat {lat}, Long {lng}",
-        "userLocationLabel": "Ton emplacement"
+        "search": "Rechercher un emplacement"
       },
       "publish-location": {
         "approximate": "Position approximative",
@@ -1371,7 +1379,7 @@
       "visibility": "Montrer mon image aux autres membres",
       "visibilityInfo": "Les autres membres voient ton image, par exemple à côté des transactions que vous partagez. Quand le réglage est désactivé, ce sont tes initiales qui apparaissent, comme avant."
     },
-    "community": "Cercles et recherche de membres",
+    "community": "Cercles",
     "creationAccount": {
       "confirm": {
         "declare": "Passer en compte projet",
@@ -1666,12 +1674,16 @@
     "done": {
       "another": "Encore un pour quelqu'un d'autre",
       "edit-hint": "Tu peux modifier la phrase avant l'envoi. Tes mots ne figurent que sur la carte.",
+      "edit-hint-plain": "Tu peux modifier le texte avant l'envoi.",
       "find-again": "Tu le retrouveras dans {transactions}, sous « {links} ».",
       "link-hint": "Toute personne qui a le lien peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
       "link-hint-photo": "Toute personne qui a le lien voit ta photo et peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
       "sentence-lead": "Cette phrase l'accompagne :",
+      "sentence-lead-plain": "Ce texte l'accompagne :",
       "title": "Ton mot de remerciement est prêt.",
       "title-for": "Ton mot de remerciement pour {name} est prêt.",
+      "title-for-address": "Ton remerciement pour {address} est prêt.",
+      "title-plain": "Ton remerciement est prêt.",
       "waits-until": "Il attend jusqu'au {date}."
     },
     "entry": {
@@ -1735,6 +1747,7 @@
     "received-title": "Un mot de remerciement pour toi",
     "share": {
       "copied": "La phrase et le lien ont été copiés dans le presse-papier. Tu peux maintenant les coller dans un e-mail ou un message.",
+      "email-subject": "{name} t'envoie un mot de remerciement",
       "line1": "J'ai un mot de remerciement pour toi :",
       "line1-for": "{name}, j'ai un mot de remerciement pour toi :"
     },
@@ -1759,6 +1772,21 @@
       "own-words": "Tes mots"
     }
   },
+  "thanksArrival": {
+    "answer": "Répondre",
+    "from": "{name} te remercie avec {amount}.",
+    "later": "Plus tard",
+    "title": "Le remerciement est arrivé."
+  },
+  "thanksNudge": {
+    "afterCall": "Veux-tu remercier {name} pour la conversation ?",
+    "afterGroupCall": "Veux-tu dire merci pour la conversation ?",
+    "notNow": "Pas maintenant",
+    "passOn": "Transmettre ce merci ?",
+    "say": "Dire merci",
+    "someone": "Remercier quelqu'un",
+    "whom": "Qui veux-tu remercier ?"
+  },
   "time": {
     "days": "Jours",
     "hours": "Heures",
@@ -1775,17 +1803,11 @@
     "nullTransactions": "Tu n'as pas encore de transaction effectuée sur ton compte.",
     "onlyWith": "{n} opération avec {name} | {n} opérations avec {name}",
     "onlyWithSomeone": "Uniquement les opérations avec un membre",
-    "receiverDeleted": "Le compte du destinataire n'existe plus",
     "receiverNotFound": "Destinataire inconnu",
     "show_all": "Voir toutes les <strong>{count}</strong> transactions."
   },
   "transaction-link": {
     "send_you": "veut t'envoyer"
-  },
-  "usersearch": {
-    "button": "Commence la recherche d'utilisateurs...",
-    "headline": "Recherche géographique d'utilisateurs",
-    "text": "Quelle que soit la communauté à laquelle tu appartiens, le système de géo-matching te permet de trouver des membres de toutes les communautés sur une carte géographique. Tu peux filtrer selon les offres et les besoins et afficher les utilisateurs qui te correspondent.\n\nEn cliquant sur le bouton, une nouvelle fenêtre de navigateur s'ouvre et t'affiche les utilisateurs de ton entourage sur une carte."
   },
   "via_card": "par carte",
   "via_greeting": "par un mot",

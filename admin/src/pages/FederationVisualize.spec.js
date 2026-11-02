@@ -104,6 +104,21 @@ describe('FederationVisualize', () => {
     expect(mockToastError).toHaveBeenCalledWith('Test error')
   })
 
+  // A symbol and nothing else.
+  it('the refresh button has a name', () => {
+    const button = wrapper.find('[data-test="federation-communities-refresh-btn"]')
+    expect(button.attributes('aria-label')).toBe('refresh')
+    expect(button.attributes('title')).toBe('refresh')
+  })
+
+  // The head stands from 992px on; below that a community is a card whose values carry their
+  // own small names (CommunityVisualizeItem).
+  it('the head hides below the boundary', () => {
+    expect(wrapper.find('.list-group > .row').classes()).toEqual(
+      expect.arrayContaining(['d-none', 'd-lg-flex']),
+    )
+  })
+
   it('renders correct column headers', () => {
     const columns = wrapper.findAll('.list-group > .row > div')
     expect(columns[0].text()).toBe('federation.verified')

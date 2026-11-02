@@ -18,6 +18,7 @@ import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import FirstCreation from '@/components/FirstCreation.vue'
 import EventMatchingHomeInvitation from '@/components/EventMatchingHomeInvitation.vue'
 import CONFIG from '@/config'
+import { forgetWayBack, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
 
 // `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL`, which node rejects.
 const here = dirname(fileURLToPath(import.meta.url))
@@ -1645,6 +1646,23 @@ describe('DashboardLayout', () => {
       window.name = ''
       window.opener = null
       window.location.hash = ''
+      forgetWayBack()
+    })
+
+    // A moderator a pin, a bubble or an arrow of the admin interface sent here: the entry leads
+    // to the page they came from, as the bar "Zurück zum Admin" does (utils/adminWayBack, with
+    // its own tests), and not to the start of the admin interface (Bernd, 25.10.2026).
+    it('leads to the page of the admin interface the moderator came from', async () => {
+      useWalletStore(store).gradidoID = 'aaaa-anna'
+      rememberWayBack('/creation-confirm', 'aaaa-anna')
+      CONFIG.ADMIN_AUTH_URL = '#admin-authenticate?token='
+
+      await pressAdmin()
+
+      expect(closeSpy).not.toHaveBeenCalled()
+      expect(window.location.hash).toBe('#admin-authenticate?token=&redirect=%2Fcreation-confirm')
+      expect(wayBackFor('aaaa-anna')).toBeNull()
+      expect(logoutSpy).not.toHaveBeenCalled()
     })
 
     it('closes the window the admin interface opened for the map, and signs nobody out', async () => {

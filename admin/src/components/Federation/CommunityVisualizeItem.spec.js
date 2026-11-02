@@ -500,6 +500,11 @@ describe('CommunityVisualizeItem', () => {
   }
 
   const columns = () => wrapper.findAll('.community-visualize-item > .row:first-child > div')
+  // The value of a column, without the small name a phone shows above it (`d-lg-none`).
+  const valueIn = (column) => {
+    const label = column.find('.d-lg-none')
+    return label.exists() ? column.text().slice(label.text().length).trim() : column.text()
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -562,12 +567,12 @@ describe('CommunityVisualizeItem', () => {
           addSuffix: true,
           locale: dateLocale,
         })
-        expect(columns()[3].text()).toBe(expectedString)
+        expect(valueIn(columns()[3])).toBe(expectedString)
       })
 
       it('computes empty string when lastAnnouncedAt is null', () => {
         wrapper = createWrapper({ item: createItem({ federatedCommunities: [] }) })
-        expect(columns()[3].text()).toBe('')
+        expect(valueIn(columns()[3])).toBe('')
       })
     })
 
@@ -592,13 +597,80 @@ describe('CommunityVisualizeItem', () => {
           addSuffix: true,
           locale: dateLocale,
         })
-        expect(columns()[4].text()).toBe(expectedString)
+        expect(valueIn(columns()[4])).toBe(expectedString)
       })
 
       it('computes empty string when createdAt is null', () => {
         wrapper = createWrapper({ item: createItem({ createdAt: null }) })
-        expect(columns()[4].text()).toBe('')
+        expect(valueIn(columns()[4])).toBe('')
       })
+    })
+  })
+
+  // On a phone a community is a card: every column takes the whole width, and a value carries a
+  // small name of its own; from 992px on the columns of before, under the head of the list.
+  it('every value carries its small label below the boundary', () => {
+    const label = (column) => column.find('.d-lg-none')
+    expect(columns().map((column) => column.classes().sort())).toEqual([
+      ['col-12', 'col-lg-1'],
+      ['col-12', 'col-lg', 'text-break'],
+      ['col-12', 'col-lg'],
+      ['col-12', 'col-lg-2'],
+      ['col-12', 'col-lg-2'],
+    ])
+    expect(columns().map((column) => label(column).text())).toEqual([
+      'federation.verified',
+      'federation.url',
+      'federation.name',
+      'federation.lastAnnouncedAt',
+      'federation.createdAt',
+    ])
+    for (const column of columns()) {
+      expect(label(column).classes()).toEqual(
+        expect.arrayContaining(['d-block', 'd-lg-none', 'small', 'text-body-secondary']),
+      )
+      expect(column.element.firstElementChild).toBe(label(column).element)
+    }
+  })
+
+  describe('opened', () => {
+    const nestedHead = () => wrapper.find('.details .list-group-item .list-group > .row')
+
+    // Six heads over the six cells of a federation: "API Version" stood twice, and every head
+    // after it stood one cell to the right of its cell.
+    it('the nested header has six columns', async () => {
+      await wrapper.find('.row').trigger('click')
+      expect(
+        nestedHead()
+          .findAll(':scope > div')
+          .map((column) => column.text()),
+      ).toEqual([
+        'federation.verified',
+        'federation.apiVersion',
+        'federation.createdAt',
+        'federation.lastAnnouncedAt',
+        'federation.verifiedAt',
+        'federation.lastErrorAt',
+      ])
+      // ... from 992px on, as the head of the list.
+      expect(nestedHead().classes()).toEqual(expect.arrayContaining(['d-none', 'd-lg-flex']))
+    })
+
+    // A key is one word: the opened home community was 698px wide at 320px.
+    it('long keys may break', async () => {
+      wrapper = createWrapper({
+        item: createItem({ foreign: true, hieroTopicId: '0.0.4815162342' }),
+      })
+      await wrapper.find('.row').trigger('click')
+      const lines = wrapper.findAll('.details > div > .list-group > .list-group-item')
+      const line = (key) => lines.find((item) => item.text().startsWith(key))
+      for (const key of [
+        'federation.communityUuid',
+        'federation.publicKey',
+        'federation.hieroTopicId',
+      ]) {
+        expect(line(key)?.classes(), key).toContain('text-break')
+      }
     })
   })
 

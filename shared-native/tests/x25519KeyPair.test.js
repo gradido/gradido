@@ -20,6 +20,7 @@ const aliceSecret =
   '02539ab8119db1815847a7b33b554b91724fb43cc09e67fa58e15251320fa8007aae4c50de7d57c739869f08bcf6d4dd'
 
 const message = Buffer.from('gradido')
+const text = 'gradido'
 
 const fromHex = ({ publicKey, privateKey }) =>
   new X25519KeyPair(
@@ -76,34 +77,41 @@ describe('X25519KeyPair', () => {
     const bobKeys = fromHex(bob)
 
     it('decrypts what the other side encrypted', () => {
-      const box = aliceKeys.encrypt(message, publicOf(bobKeys))
-      assert.equal(box.length, message.length + 41)
+      const box = aliceKeys.encrypt(text, publicOf(bobKeys))
+      assert.equal(box.length, text.length + 41)
       assert.equal(box[0], 1)
-      assert.deepEqual(bobKeys.decrypt(box, publicOf(aliceKeys)), { success: true, value: message })
+      assert.deepEqual(bobKeys.decrypt(box, publicOf(aliceKeys)), { success: true, value: text })
+    })
+
+    it('keeps a payload beyond ASCII, and an empty one', () => {
+      for (const payload of ['Grüße ✓ 🌱', '']) {
+        const box = aliceKeys.encrypt(payload, publicOf(bobKeys))
+        assert.deepEqual(bobKeys.decrypt(box, publicOf(aliceKeys)), {
+          success: true,
+          value: payload,
+        })
+      }
     })
 
     it('still decrypts a ciphertext of an earlier build', () => {
       const result = bobKeys.decrypt(Buffer.from(aliceToBobBox, 'hex'), publicOf(aliceKeys))
-      assert.deepEqual(result, { success: true, value: message })
+      assert.deepEqual(result, { success: true, value: text })
     })
 
     it('uses a fresh nonce each time', () => {
       const bobPublic = publicOf(bobKeys)
-      assert.notDeepEqual(
-        aliceKeys.encrypt(message, bobPublic),
-        aliceKeys.encrypt(message, bobPublic),
-      )
+      assert.notDeepEqual(aliceKeys.encrypt(text, bobPublic), aliceKeys.encrypt(text, bobPublic))
     })
 
     it('fails for another sender', () => {
-      const box = aliceKeys.encrypt(message, publicOf(bobKeys))
+      const box = aliceKeys.encrypt(text, publicOf(bobKeys))
       const result = bobKeys.decrypt(box, publicOf(X25519KeyPair.generate()))
       assert.equal(result.success, false)
       assert.equal(result.error.name, 'DecryptFailed')
     })
 
     it('fails for an altered ciphertext', () => {
-      const box = aliceKeys.encrypt(message, publicOf(bobKeys))
+      const box = aliceKeys.encrypt(text, publicOf(bobKeys))
       box[box.length - 1] ^= 1
       assert.equal(bobKeys.decrypt(box, publicOf(aliceKeys)).error.name, 'DecryptFailed')
     })
@@ -115,6 +123,11 @@ describe('X25519KeyPair', () => {
       )
     })
 
+    it('throws for a payload that is no string and a box that is no bytes', () => {
+      assert.throws(() => aliceKeys.encrypt(message, publicOf(bobKeys)), /payload to be a string/)
+      assert.throws(() => bobKeys.decrypt('AAAA', publicOf(aliceKeys)), /box to be a Uint8Array/)
+    })
+
     it('fails for a ciphertext of encryptSecret', () => {
       assert.equal(
         bobKeys.decrypt(bobKeys.encryptSecret(message), publicOf(aliceKeys)).error.name,
@@ -123,29 +136,29 @@ describe('X25519KeyPair', () => {
     })
 
     it('throws for a peer that carries a private key', () => {
-      assert.throws(() => aliceKeys.encrypt(message, bobKeys), /only a public key/)
-      const box = aliceKeys.encrypt(message, publicOf(bobKeys))
+      assert.throws(() => aliceKeys.encrypt(text, bobKeys), /only a public key/)
+      const box = aliceKeys.encrypt(text, publicOf(bobKeys))
       assert.throws(() => bobKeys.decrypt(box, aliceKeys), /only a public key/)
     })
 
     it('throws for a peer that is not an X25519KeyPair', () => {
       const ed25519 = new Ed25519KeyPair(Buffer.from(bob.publicKey, 'hex'))
-      assert.throws(() => aliceKeys.encrypt(message, ed25519), /to be an X25519KeyPair/)
+      assert.throws(() => aliceKeys.encrypt(text, ed25519), /to be an X25519KeyPair/)
       assert.throws(
-        () => aliceKeys.encrypt(message, { publicKey: bob.publicKey }),
+        () => aliceKeys.encrypt(text, { publicKey: bob.publicKey }),
         /to be an X25519KeyPair/,
       )
     })
 
     it('throws for an object that only has the prototype of an X25519KeyPair', () => {
       const prototypeOnly = Object.create(X25519KeyPair.prototype)
-      assert.throws(() => aliceKeys.encrypt(message, prototypeOnly), /Invalid argument/)
+      assert.throws(() => aliceKeys.encrypt(text, prototypeOnly), /Invalid argument/)
       assert.throws(() => aliceKeys.decrypt(Buffer.alloc(64), prototypeOnly), /Invalid argument/)
     })
 
     it('throws without own private key', () => {
       assert.throws(
-        () => publicOf(aliceKeys).encrypt(message, publicOf(bobKeys)),
+        () => publicOf(aliceKeys).encrypt(text, publicOf(bobKeys)),
         /Needs a private key/,
       )
       assert.throws(
@@ -190,7 +203,7 @@ describe('X25519KeyPair', () => {
     })
 
     it('fails for a ciphertext of encrypt', () => {
-      const box = aliceKeys.encrypt(message, new X25519KeyPair(Buffer.from(bob.publicKey, 'hex')))
+      const box = aliceKeys.encrypt(text, new X25519KeyPair(Buffer.from(bob.publicKey, 'hex')))
       assert.equal(aliceKeys.decryptSecret(box).error.name, 'UnknownVersion')
     })
 

@@ -341,6 +341,7 @@ describe('the keying of a matching entry', () => {
       {
         id: KEYED,
         gradidoId: '90000000-0000-4000-8000-000000000901',
+        alias: 'keyed',
         language: 'de',
         gmsAllowed: 1,
         communityUuid: HOME_COMMUNITY,
@@ -351,6 +352,7 @@ describe('the keying of a matching entry', () => {
       {
         id: NOT_ALLOWED,
         gradidoId: '90000000-0000-4000-8000-000000000902',
+        alias: 'notAllowed',
         language: 'de',
         gmsAllowed: 0,
         communityUuid: HOME_COMMUNITY,
@@ -360,6 +362,7 @@ describe('the keying of a matching entry', () => {
       {
         id: DELETED,
         gradidoId: '90000000-0000-4000-8000-000000000903',
+        alias: 'deletedOne',
         language: 'de',
         gmsAllowed: 1,
         deletedAt: new Date(),
@@ -372,6 +375,7 @@ describe('the keying of a matching entry', () => {
         id: FOREIGN,
         gradidoId: '90000000-0000-4000-8000-000000000904',
         language: 'de',
+        alias: 'farAway',
         gmsAllowed: 1,
         foreign: 1,
         communityUuid: '99999999-9999-4999-8999-999999999999',

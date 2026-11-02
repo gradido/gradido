@@ -4,6 +4,8 @@ import { BPagination, BTable } from 'bootstrap-vue-next'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
+import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { listTransactionLinksAdmin } from '../graphql/listTransactionLinksAdmin'
 
 type TransactionLink = {
@@ -20,6 +22,9 @@ export const TransactionLinkList = defineComponent({
   setup(props) {
     const { t, d } = useI18n()
     const { toastError } = useAppToast()
+    // The table and the pager of a phone: `unknown` -- no matchMedia -- keeps the desk's.
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const items = ref([])
     const rows = ref(0)
@@ -45,7 +50,9 @@ export const TransactionLinkList = defineComponent({
       },
       {
         key: 'contributionStatus',
-        label: 'status',
+        // Translated like the other heads; it read `status` in every language. On a phone the
+        // stacked cell shows it as its name.
+        label: t('transactionlist.status'),
         // BTable always hands the row over; the type only says it might not.
         formatter: (_value: unknown, _key?: unknown, row?: unknown) => {
           const item = row as TransactionLink
@@ -92,18 +99,30 @@ export const TransactionLinkList = defineComponent({
         {items.value.length > 0 ? (
           <div>
             <div class='h3'>{t('transactionlink.name')}</div>
-            <BTable striped hover fields={fields.value} items={items.value} />
+            {/* On a phone the cells of a link stand under each other, each under the name of
+                its column; at the desk the table it has always been, without the names in its
+                cells. */}
+            <BTable
+              striped
+              hover
+              stacked='lg'
+              labelStacked={phone.value}
+              fields={fields.value}
+              items={items.value}
+            />
           </div>
         ) : null}
+        {/* As on the pages: three numbers on a phone, five places and « » at the desk. */}
         <BPagination
           v-model={currentPage.value}
+          class='phone-pager'
           pills
           size='lg'
           perPage={perPage.value}
           totalRows={rows.value}
           align='center'
-          // ⚠️ No prop of BPagination: it lands on the element as an attribute, as it did
-          hide-ellipsis={true}
+          limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
+          noGotoEndButtons={phone.value}
         />
       </div>
     )

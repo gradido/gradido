@@ -5,6 +5,12 @@
   transition: background-color 0.2s ease-in-out;
 }
 
+/* The dark mode (App.css): a field's ground and a light blue, 5.9 on it. */
+:root[data-bs-theme='dark'] .spaces > :global(.list-group-item-action:hover:not(.active)) {
+  background-color: var(--bs-secondary-bg);
+  color: #7cc0ee;
+}
+
 .spaces > :global(.list-group-item-action.active) > a {
   color: white;
 }

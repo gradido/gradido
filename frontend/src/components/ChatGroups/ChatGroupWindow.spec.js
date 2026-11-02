@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
+import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 
@@ -26,6 +27,10 @@ vi.mock('vue-i18n', () => ({
 
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', communityUuid: 'home-uuid' }))
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
+
+/** Where the window leads: the send form with a member chosen under a call (W2). */
+const routerPush = vi.hoisted(() => vi.fn())
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: routerPush }) }))
 
 const { toastSuccess, toastError } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
@@ -54,9 +59,20 @@ const video = vi.hoisted(() => ({
   edit: vi.fn(),
   edits: vi.fn(),
 }))
+/**
+ * The question for the member's own note on the group (useChatWindowNote), apart from the members'
+ * question; unanswered, there is none. And what the server answers when it is saved.
+ */
+const noteAsked = vi.hoisted(() => vi.fn(async () => ({ data: { userNote: null } })))
+const noteSaved = vi.hoisted(() => vi.fn(async () => ({ data: { setUserNote: true } })))
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: (document) => ({ mutate: (variables) => saved(document, variables) }),
-  useApolloClient: () => ({ client: { query: (options) => asked(options) } }),
+  useApolloClient: () => ({
+    client: {
+      query: (options) => (options.query === userNoteQuery ? noteAsked(options) : asked(options)),
+      mutate: (options) => noteSaved(options),
+    },
+  }),
 }))
 
 const facesAsked = vi.hoisted(() => vi.fn())
@@ -106,6 +122,39 @@ const searchSteps = []
 describe('ChatGroupWindow', () => {
   let wrapper
 
+  /**
+   * The member's own note on the group (Bernd, 27.10.2026), as in the contact window: the button
+   * comes with the answer, at the row's left end; a tap lays the note over the conversation.
+   */
+  describe('the note', () => {
+    const noteButton = () => wrapper.find('[data-test="chat-group-window-note"]')
+
+    it('asks for the note on the group by its uuid, and comes at the left end of the row', async () => {
+      mountWindow()
+      await flushPromises()
+      expect(noteAsked).toHaveBeenCalledWith(
+        expect.objectContaining({ variables: { about: { groupUuid: 'cafe-uuid' } } }),
+      )
+      const row = wrapper.find('.chat-group-window-top').element.children
+      expect(row[0].getAttribute('data-test')).toBe('chat-group-window-note')
+      expect(row[1].getAttribute('data-test')).toBe('chat-group-window-search')
+    })
+
+    it('lays the note over the conversation, and the search closes it', async () => {
+      noteAsked.mockResolvedValueOnce({ data: { userNote: 'Jeden ersten Samstag' } })
+      mountWindow()
+      await flushPromises()
+      expect(noteButton().find('i-mdi-note-text').exists()).toBe(true)
+      await noteButton().trigger('click')
+      expect(wrapper.find('[data-test="thread"] [data-test="chat-note"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="chat-note-field"]').element.value).toBe(
+        'Jeden ersten Samstag',
+      )
+      await wrapper.find('[data-test="chat-group-window-search"]').trigger('click')
+      expect(wrapper.find('[data-test="chat-note"]').exists()).toBe(false)
+    })
+  })
+
   const mountWindow = (group = {}) => {
     wrapper = mount(ChatGroupWindow, {
       props: { modelValue: true, group: { ...GROUP, ...group } },
@@ -129,8 +178,15 @@ describe('ChatGroupWindow', () => {
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
             name: 'ChatThread',
-            props: { group: Object, search: String },
-            emits: ['openMember', 'search', 'duplicateVideo', 'editVideo', 'forwardMessage'],
+            props: { group: Object, search: String, groupMembers: Array },
+            emits: [
+              'openMember',
+              'search',
+              'duplicateVideo',
+              'editVideo',
+              'forwardMessage',
+              'thank',
+            ],
             inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
             methods: {
               deliver(message) {
@@ -143,8 +199,9 @@ describe('ChatGroupWindow', () => {
                 searchSteps.push(direction)
               },
             },
+            // The window lays the member's note over the thread through the slot `cover`.
             template:
-              '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search" />',
+              '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search"><slot name="cover" /></div>',
           },
           IMdiMagnify: true,
           IMdiChevronUp: true,
@@ -631,6 +688,52 @@ describe('ChatGroupWindow', () => {
   it('hands the thread its group', () => {
     mountWindow()
     expect(find('thread').attributes('data-group')).toBe('cafe-uuid')
+  })
+
+  /**
+   * W2 in a group (Bernd, 28.10.2026): under a video call of the member's own, "Jemandem danken"
+   * shows the members -- the window hands its members to the thread, and takes a member chosen
+   * to the send form with them, the way the contact window's "Gradido senden" goes.
+   */
+  describe('the thanks after a video call', () => {
+    const thread = () => wrapper.findComponent({ name: 'ChatThread' })
+
+    beforeEach(() => {
+      routerPush.mockClear()
+    })
+
+    it('hands the thread the members it holds', async () => {
+      mountWindow()
+      expect(thread().props('groupMembers')).toEqual([])
+
+      await flushPromises()
+
+      expect(thread().props('groupMembers')).toEqual(MEMBERS)
+    })
+
+    it('takes a member chosen to the send form with them named, and closes', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+
+      expect(routerPush).toHaveBeenCalledWith({
+        path: '/send/home-uuid/carla-id',
+        query: { art: 'send' },
+      })
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    })
+
+    // Nobody the send form could name: nothing happens, and the window stays.
+    it('goes nowhere for a member without a community', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', { ...MEMBERS[2].user, communityUuid: null })
+
+      expect(routerPush).not.toHaveBeenCalled()
+      expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
   })
 
   // E-053: a name tapped over a message or in the list of members -- the page knows who is a

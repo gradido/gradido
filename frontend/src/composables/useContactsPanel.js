@@ -223,7 +223,10 @@ export const refreshContactsPanel = (apolloClient) => {
   // transfer itself has already moved the session clock; after a chat message arrived nobody
   // did anything here, and a list asked again must not keep an unattended wallet signed in
   // (plugins/apolloProvider.js).
-  const quiet = { renewSession: false }
+  //
+  // ⛔ `queryDeduplication: false`: the fresh request has to leave. Apollo would otherwise hand it
+  // the answer of the same question still on the wire -- the one that left before the event.
+  const quiet = { renewSession: false, queryDeduplication: false }
   const jobs = [load(apolloClient, 'page', '', quiet)]
   if (state.search !== '') {
     jobs.push(load(apolloClient, 'matches', state.search, quiet))

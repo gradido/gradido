@@ -885,6 +885,7 @@ describe('EmailChangeResolver', () => {
       // an unconfirmed address, and the first attempt at this test failed on exactly that.
       resetToken()
       holder = await userFactory(testEnv, {
+        alias: 'HolderO',
         email: 'holder@example.org',
         firstName: 'Holder',
         lastName: 'OfAddresses',
@@ -957,6 +958,7 @@ describe('EmailChangeResolver', () => {
     beforeAll(async () => {
       resetToken()
       racer = await userFactory(testEnv, {
+        alias: 'RacerO',
         email: 'racer@example.org',
         firstName: 'Racer',
         lastName: 'OfTabs',

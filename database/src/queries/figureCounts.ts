@@ -33,6 +33,36 @@ export const rowsFrom =
   (from: Date | null): SQL<number> =>
     from === null ? count() : count(sql`case when ${gte(column, from)} then 1 end`)
 
+/**
+ * Of the rows rowsFrom counts, the ones a condition holds for as well; every such row for `null`.
+ * The condition is asked of each row in the same statement -- an `exists` on another table.
+ */
+export const rowsFromWhere =
+  (column: MySqlColumn, condition: SQL) =>
+  (from: Date | null): SQL<number> =>
+    count(
+      sql`case when ${from === null ? condition : sql`${gte(column, from)} and ${condition}`} then 1 end`,
+    )
+
+/**
+ * A moment the statement derives rather than reads -- the first of several rows, `min()` in a
+ * derived table -- at or after `from`. A derived value has no column type: `from` is put into the
+ * form of the column the moment is derived from, as a comparison with that column would put it.
+ */
+export const derivedAtOrAfter = (
+  moment: SQL.Aliased<Date>,
+  derivedFrom: MySqlColumn,
+  from: Date,
+): SQL => gte(moment, sql.param(from, derivedFrom))
+
+/** rowsFrom for a derived moment (derivedAtOrAfter); every row for `null`. */
+export const derivedRowsFrom =
+  (moment: SQL.Aliased<Date>, derivedFrom: MySqlColumn) =>
+  (from: Date | null): SQL<number> =>
+    from === null
+      ? count()
+      : count(sql`case when ${derivedAtOrAfter(moment, derivedFrom, from)} then 1 end`)
+
 // The same counts by calendar week, for the series below the table: one statement per count,
 // grouped by the week a row lies in. A week without a row is not in the answer; the caller lays
 // the answer on its weeks.
@@ -47,7 +77,8 @@ export type WeeklyCount = { weekStart: string; n: number }
  * as both writers keep it: the backend, which runs with TZ=UTC, and the database, whose
  * `current_timestamp` fills most of the counted columns in the time zone of its host -- set up in
  * UTC (deployment/bare_metal/setup.md). A day rather than a YEARWEEK number, which would have to
- * be turned back into its Monday.
+ * be turned back into its Monday. A moment the statement derives (derivedRowsFrom) lies in its
+ * week the same way.
  */
-export const weekStartOf = (column: MySqlColumn): SQL<string> =>
+export const weekStartOf = (column: MySqlColumn | SQL.Aliased<Date>): SQL<string> =>
   sql<string>`date_format(date_sub(date(${column}), interval weekday(${column}) day), '%Y-%m-%d')`

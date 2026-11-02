@@ -1,6 +1,6 @@
 import { Community as DbCommunity } from 'database'
-import { createEncryptionKeyPair, createKeyPair, HomeCommunityInsertInput } from 'shared'
-import { Ed25519KeyPair } from 'shared-native'
+import { createKeyPair, HomeCommunityInsertInput } from 'shared'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -35,9 +35,9 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
-      const encryptionKeyPair = createEncryptionKeyPair()
-      homeCom.publicEncryptionKey = encryptionKeyPair.publicKey
-      homeCom.privateEncryptionKey = encryptionKeyPair.privateKey
+      const encryptionKeyPair = X25519KeyPair.generate()
+      homeCom.publicEncryptionKey = encryptionKeyPair.publicKeyToBuffer()
+      homeCom.privateEncryptionKey = encryptionKeyPair.privateKeyToBuffer()
       await DbCommunity.insert(homeCom)
     }
     return homeCom
@@ -53,7 +53,7 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
  */
 export async function buildHomeCommunity(): Promise<HomeCommunityInsertInput> {
   const { publicKey, privateKey } = signingKeys()
-  const encryptionKeyPair = createEncryptionKeyPair()
+  const encryptionKeyPair = X25519KeyPair.generate()
   const jwtKeyPair = await createKeyPair()
   return {
     publicKey,
@@ -65,7 +65,7 @@ export async function buildHomeCommunity(): Promise<HomeCommunityInsertInput> {
     creationDate: new Date(),
     publicJwtKey: jwtKeyPair.publicKey,
     privateJwtKey: jwtKeyPair.privateKey,
-    publicEncryptionKey: encryptionKeyPair.publicKey,
-    privateEncryptionKey: encryptionKeyPair.privateKey,
+    publicEncryptionKey: encryptionKeyPair.publicKeyToBuffer(),
+    privateEncryptionKey: encryptionKeyPair.privateKeyToBuffer(),
   }
 }

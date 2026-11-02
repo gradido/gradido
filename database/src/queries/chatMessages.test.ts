@@ -18,6 +18,7 @@ import {
   dbInsertChatMessage,
   dbSelectChatMessageForMember,
   dbSelectChatMessagesByConversationId,
+  dbSelectChatMessagesByIds,
   dbSelectChatMessagesByUuids,
   dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
@@ -1227,5 +1228,60 @@ describe('dbSelectChatMessagesByUuids', () => {
     expect(answer.replyToMessageUuid).toBe(QUOTED)
     const [quoted] = await dbSelectChatMessagesByUuids([QUOTED])
     expect(quoted.replyToMessageUuid).toBeNull()
+  })
+})
+
+/**
+ * The latest message of each conversation the contact list or the list of groups shows a line of
+ * (E-083): the messages by their ids, in one query.
+ */
+describe('dbSelectChatMessagesByIds', () => {
+  const LISTED = 862
+  const OLGA: ChatMemberRef = { communityUuid: HOME, gradidoId: uuidv4() }
+  const ids: Record<string, number> = {}
+
+  beforeAll(async () => {
+    for (const body of ['the first', 'the second', 'deleted later']) {
+      const stored = await dbInsertChatMessage(
+        message(uuidv4(), {
+          conversationId: LISTED,
+          senderCommunityUuid: OLGA.communityUuid,
+          senderGradidoId: OLGA.gradidoId,
+          subject: null,
+          body,
+        }),
+      )
+      if (!stored.success) {
+        throw new Error(`fixture: "${body}" was not filed`)
+      }
+      ids[body] = stored.value.id
+    }
+    await db
+      .update(chatMessagesTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(chatMessagesTable.id, ids['deleted later']))
+  })
+  afterAll(async () => {
+    await db.delete(chatMessagesTable).where(eq(chatMessagesTable.conversationId, LISTED))
+  })
+
+  const bodies = async (asked: number[]) =>
+    (await dbSelectChatMessagesByIds(asked)).map((row) => row.body).sort()
+
+  it('hands back the messages named, each once, whole', async () => {
+    expect(await bodies([ids['the first'], ids['the second'], ids['the first']])).toEqual([
+      'the first',
+      'the second',
+    ])
+    const [row] = await dbSelectChatMessagesByIds([ids['the second']])
+    expect(row).toMatchObject({ id: ids['the second'], conversationId: LISTED })
+  })
+
+  it('leaves out a message marked deleted, and an id nothing is filed under', async () => {
+    expect(await bodies([ids['deleted later'], 99999999])).toEqual([])
+  })
+
+  it('asks nothing for an empty list', async () => {
+    expect(await dbSelectChatMessagesByIds([])).toEqual([])
   })
 })

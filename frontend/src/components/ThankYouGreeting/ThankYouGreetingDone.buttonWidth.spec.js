@@ -27,12 +27,14 @@ const rule = (selector) => {
 }
 
 describe('ThankYouGreetingDone, the width of its buttons', () => {
-  it.each(['thank-you-greeting-share', 'thank-you-greeting-copy', 'thank-you-greeting-print'])(
-    '%s is a button of the card',
-    (test) => {
-      expect(button(test)).toContain('class="tyg-done-button"')
-    },
-  )
+  it.each([
+    'thank-you-greeting-share',
+    'thank-you-greeting-email',
+    'thank-you-greeting-copy',
+    'thank-you-greeting-print',
+  ])('%s is a button of the card', (test) => {
+    expect(button(test)).toContain('class="tyg-done-button"')
+  })
 
   it('the line of text under them is not', () => {
     expect(button('thank-you-greeting-save')).not.toBeNull()
@@ -42,6 +44,11 @@ describe('ThankYouGreetingDone, the width of its buttons', () => {
   it('a button fills a narrow card and stops at the width of the sheet, in the middle', () => {
     expect(rule('.tyg-done-button')).toMatch(/width:\s*min\(24rem,\s*100%\)/)
     expect(rule('.tyg-done-button')).toMatch(/align-self:\s*center/)
+  })
+
+  // An address on the button is one unbreakable run unless it has a hyphen.
+  it('a button lets a long address break, and it stays inside', () => {
+    expect(rule('.tyg-done-button')).toMatch(/overflow-wrap:\s*anywhere/)
   })
 
   it('the rule is read from the code, not from a comment', () => {

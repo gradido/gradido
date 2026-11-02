@@ -56,6 +56,15 @@ export class SendCoinsResolver {
     if (methodLogger.isDebugEnabled()) {
       methodLogger.debug(`voteForSendCoins() via apiVersion=1_0 ...`, authArgs)
     }
+    // The sender is filed here as a foreign user once the coins have moved, and that row
+    // cannot be written without an alias (storeForeignUser; `users.alias` is NOT NULL). A
+    // payload without one is turned away here, before anything stands that would have to be
+    // taken back -- the settle asks once more, this being a second payload.
+    if (!authArgs.senderAlias) {
+      const errmsg = `voteForSendCoins without senderAlias of requesting community with publicKey=${args.publicKey}`
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
+    }
     // first check if receiver community is correct
     const recipientCom = await DbCommunity.findOneBy({
       communityUuid: authArgs.recipientCommunityUuid,
@@ -110,7 +119,7 @@ export class SendCoinsResolver {
       pendingTx.creationDate = new Date()
       pendingTx.linkedUserCommunityUuid = authArgs.senderCommunityUuid
       pendingTx.linkedUserGradidoID = authArgs.senderUserUuid
-      pendingTx.linkedUserName = authArgs.senderAlias! // senderUserName
+      pendingTx.linkedUserName = authArgs.senderAlias // senderUserName
       pendingTx.memo = authArgs.memo
       pendingTx.previous = receiveBalance ? receiveBalance.lastTransactionId : null
       pendingTx.state = PendingTransactionState.NEW
@@ -256,6 +265,14 @@ export class SendCoinsResolver {
     }
     if (methodLogger.isDebugEnabled()) {
       methodLogger.debug(`settleSendCoins() via apiVersion=1_0 ...`, authArgs)
+    }
+    // Before the booking, not after: storeForeignUser answers false for a sender without an
+    // alias, but by then the receive transaction would stand and the sender's side would
+    // settle on the acknowledge -- booked on both sides, with no row for whom it came from.
+    if (!authArgs.senderAlias) {
+      const errmsg = `settleSendCoins without senderAlias of requesting community with publicKey=${args.publicKey}`
+      methodLogger.error(errmsg)
+      throw new Error(errmsg)
     }
     // first check if receiver community is correct
     const homeCom = await DbCommunity.findOneBy({

@@ -4,23 +4,29 @@
   width: 75%;
 }
 
-.is-moderator-message {
-  background-color: rgb(228 237 245);
-}
-
-.is-moderator-hidden-message {
-  background-color: rgb(217 161 228);
-}
-
 .is-user {
   clear: both;
   width: 75%;
 }
 
-.is-user-message {
-  background-color: rgb(236 235 213);
+/* Every message in a neutral grey, in the light and in the dark (Bernd, 25.10.2026): the colours
+   of a row already tell open, confirmed, denied and deleted apart, and the bubbles' own blue,
+   beige, violet and yellow looked garish in the dark. Who wrote a message shows by the side it
+   leans to, a note and a change by their head. The ground of a field, which stands off the card
+   in both modes. */
+.message-bubble {
+  background-color: var(--bs-secondary-bg);
 }
 
-.is-user-history-message {
-  background-color: rgb(235 226 57);
+.message-kind {
+  font-weight: 600;
+}
+
+/* A phone: a message takes more of the narrow window, and the side it leans to still shows
+   who wrote it. */
+@media (width < 992px) {
+  .is-moderator,
+  .is-user {
+    width: 90%;
+  }
 }

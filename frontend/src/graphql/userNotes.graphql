@@ -1,0 +1,23 @@
+# AI-GENERATED — not an architecture reference
+# A member's own note on a person or a group (Bernd, 27.10.2026): only the member reads it.
+# `$about` names a person (`member`, the pair the contact window holds) or a group (`groupUuid`).
+# The server keeps `$note` out of its log (filterVariables), and the answer of a request that read
+# a note as well; both names are what it looks for.
+query userNoteQuery($about: UserNoteSubjectInput!) {
+  userNote(about: $about)
+}
+
+mutation setUserNoteMutation($about: UserNoteSubjectInput!, $note: String!) {
+  setUserNote(about: $about, note: $note)
+}
+
+# Every note the member keeps, for the search of "Kontakte & Chat": a person by the pair, a group
+# by its uuid.
+query userNotesQuery {
+  userNotes {
+    communityUuid
+    gradidoID
+    groupUuid
+    note
+  }
+}

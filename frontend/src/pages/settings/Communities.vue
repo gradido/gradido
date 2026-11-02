@@ -1,7 +1,11 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
+  <!-- Only the circles. The member search that stood beside them went with the old GMS: its
+       three settings (where you live, how exactly, whether others may find you) are the ones
+       the matching asks on its home tab, and that is the one place for them now. This page
+       is registered only where HumHub is switched on (routes.js). -->
   <settings-section :title="$t('settings.community')">
-    <div v-if="isHumhub" class="mt-3">
+    <div class="mt-3">
       <BRow>
         <BCol cols="12" md="6" lg="6">
           <div class="h3">{{ $t('Humhub.title') }}</div>
@@ -23,78 +27,20 @@
            technical account key over there and stays untouched underneath. -->
       <div class="h4">{{ $t('Humhub.desc') }}</div>
     </div>
-    <div v-if="isGMS" class="mt-3">
-      <BRow>
-        <BCol cols="12" md="6" lg="6">
-          <div class="h3">{{ $t('GMS.title') }}</div>
-        </BCol>
-        <BCol cols="12" md="6" lg="6" class="text-start">
-          <user-settings-switch
-            :initial-value="store.gmsAllowed"
-            :attr-name="'gmsAllowed'"
-            :enabled-text="$t('settings.GMS.enabled')"
-            :disabled-text="$t('settings.GMS.disabled')"
-            @value-changed="gmsStateSwitch"
-          />
-        </BCol>
-      </BRow>
-      <div class="h4 mt-3">{{ $t('GMS.desc') }}</div>
-      <div v-if="gmsAllowed">
-        <BRow class="mb-4">
-          <BCol cols="12" md="6" lg="6">
-            {{ $t('settings.GMS.location-format') }}
-          </BCol>
-          <BCol cols="12" md="6" lg="6">
-            <user-g-m-s-location-format />
-          </BCol>
-        </BRow>
-        <BRow class="mb-5">
-          <BCol cols="12" md="6" lg="6">
-            {{ $t('settings.GMS.location.label') }}
-          </BCol>
-          <BCol cols="12" md="6" lg="6">
-            <user-gms-location-capturing />
-          </BCol>
-        </BRow>
-      </div>
-    </div>
-    <div v-else>
-      <BRow>
-        <BCol cols="12" md="6" lg="6">
-          <div class="h3 text-muted">{{ $t('GMS.title') }}</div>
-        </BCol>
-        <BCol cols="12" md="6" lg="6" class="text-end">
-          <user-settings-switch :disabled="true" />
-        </BCol>
-      </BRow>
-      <div class="h4 mt-3 text-muted">{{ $t('GMS.desc') }}</div>
-    </div>
   </settings-section>
 </template>
 <script setup>
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
-import CONFIG from '@/config'
 import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
-import UserGMSLocationFormat from '@/components/UserSettings/UserGMSLocationFormat'
-import UserGmsLocationCapturing from '@/components/UserSettings/UserGmsLocationCapturing'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
 const store = useWalletStore()
 
-const gmsAllowed = ref(store.gmsAllowed)
 const humhubAllowed = ref(store.humhubAllowed)
 
 const isHumhubActivated = computed(() => humhubAllowed.value === true)
-
-// setting if gms and/or humhub are enabled in frontend config .env
-const isGMS = CONFIG.GMS_LEGACY_ACTIVE
-const isHumhub = CONFIG.HUMHUB_ACTIVE
-
-const gmsStateSwitch = (eventData) => {
-  gmsAllowed.value = eventData
-}
 
 const humhubStateSwitch = (eventData) => {
   humhubAllowed.value = eventData

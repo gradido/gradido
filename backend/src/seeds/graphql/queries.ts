@@ -186,7 +186,6 @@ export const searchUsers = gql`
         email
         creation
         emailChecked
-        hasElopage
         emailConfirmationSend
         deletedAt
         role
@@ -995,6 +994,16 @@ export const contactList = gql`
         origin
         unreadChatMessages
         lastChatMessageAt
+        chatPreview {
+          mine
+          excerpt
+          hasImage
+          amount
+          unread
+          senderUser {
+            gradidoID
+          }
+        }
       }
     }
   }
@@ -1151,6 +1160,16 @@ const chatGroupFields = `
   memberCount
   unreadMessages
   lastMessageAt
+  chatPreview {
+    mine
+    excerpt
+    hasImage
+    amount
+    senderUser {
+      gradidoID
+      alias
+    }
+  }
 `
 
 export const chatGroups = gql`
@@ -1264,6 +1283,33 @@ export const chatVideoServers = gql`
         latencyMs
         picks
       }
+    }
+  }
+`
+
+export const userNote = gql`
+  query ($about: UserNoteSubjectInput!) {
+    userNote(about: $about)
+  }
+`
+
+export const userRemark = gql`
+  query ($userId: Int!) {
+    userRemark(userId: $userId) {
+      remark
+      updatedAt
+      updatedByName
+    }
+  }
+`
+
+export const userNotes = gql`
+  query {
+    userNotes {
+      communityUuid
+      gradidoID
+      groupUuid
+      note
     }
   }
 `

@@ -27,12 +27,22 @@ export async function storeForeignUser(
           recipCom.communityUuid,
           committingResult.recipGradidoID,
         )
+        // A row without an alias cannot be filed: `users.alias` is NOT NULL (migration 0164),
+        // and the recipient's community, which runs that migration too, sends it. An answer
+        // without one is already turned away before anything settles
+        // (processXComPendingSendCoins); this is the guard the type still asks for.
+        if (!committingResult.recipAlias) {
+          logger.error(
+            'recipient came without an alias, not stored as foreign user:',
+            recipCom.communityUuid,
+            committingResult.recipGradidoID,
+          )
+          return null
+        }
         let foreignUser = DbUser.create()
         foreignUser.foreign = true
         foreignUser.accountState = AccountState.FOREIGN
-        if (committingResult.recipAlias !== null) {
-          foreignUser.alias = committingResult.recipAlias
-        }
+        foreignUser.alias = committingResult.recipAlias
         foreignUser.communityUuid = recipCom.communityUuid
         if (committingResult.recipFirstName !== null) {
           foreignUser.firstName = committingResult.recipFirstName
@@ -82,7 +92,9 @@ export async function storeForeignUser(
         if (committingResult.recipLastName !== null) {
           user.lastName = committingResult.recipLastName
         }
-        if (committingResult.recipAlias !== null) {
+        // An alias the partner did not send is not a difference, and never clears the one on
+        // file: a row without one cannot be stored.
+        if (committingResult.recipAlias) {
           user.alias = committingResult.recipAlias
         }
         /*

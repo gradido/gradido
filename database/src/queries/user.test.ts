@@ -1,4 +1,11 @@
-import { ContactOrigin, GradidoUnit, Order, PasswordEncryptionType } from 'shared'
+import {
+  ContactOrigin,
+  GradidoUnit,
+  OptInType,
+  Order,
+  PasswordEncryptionType,
+  UserContactType,
+} from 'shared'
 import { v4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import {
@@ -11,6 +18,7 @@ import {
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
+import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { foreignReceive, transferGradidos } from '../seeds/factory/transaction'
@@ -39,6 +47,7 @@ import {
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserIdByUuids,
+  dbFindUserIdsWithEveryWord,
   dbFindUserLoginByEmail,
   dbFindUserWithContactById,
   dbHasGuestRegisteredByLink,
@@ -76,9 +85,7 @@ describe('user.queries', () => {
       await dbDeleteAllRowsExceptMigrations()
 
       const homeCom = await createCommunity(false)
-      const bibi = bibiBloxberg
-      bibi.alias = 'b-b'
-      await userFactory(bibi, homeCom)
+      await userFactory({ ...bibiBloxberg, alias: 'b-b' }, homeCom)
     })
 
     it('should return true if alias exists', async () => {
@@ -461,6 +468,7 @@ describe('user.queries', () => {
       // a member of another community, filed here without a contact
       const foreign = DbUser.create()
       foreign.foreign = true
+      foreign.alias = 'FarAway'
       foreign.communityUuid = PEER
       foreign.gradidoID = FOREIGN
       await foreign.save()
@@ -562,6 +570,9 @@ describe('user.queries', () => {
     const storedRow = async (communityUuid: string, gradidoID: string, foreign = true) => {
       const row = DbUser.create()
       row.foreign = foreign
+      // Every row carries a name (`users.alias` is NOT NULL): a foreign one the name its
+      // community sent.
+      row.alias = foreign ? `far${gradidoID.slice(-2)}` : 'notForeign'
       row.communityUuid = communityUuid
       row.gradidoID = gradidoID
       return await row.save()
@@ -613,8 +624,12 @@ describe('user.queries', () => {
       bibi = await userFactory(bibiBloxberg)
     })
 
-    it('files an unknown member as foreign, with the pair and nothing else', async () => {
-      const filed = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: NEWCOMER })
+    it('files an unknown member as foreign, with the pair and the alias, nothing else', async () => {
+      const filed = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: NEWCOMER,
+        alias: 'newcomer',
+      })
 
       const row = await rowOf(NEWCOMER)
       expect(filed).toEqual({ success: true, value: row.id })
@@ -622,7 +637,7 @@ describe('user.queries', () => {
         foreign: true,
         communityUuid: PEER,
         gradidoID: NEWCOMER,
-        alias: null,
+        alias: 'newcomer',
         firstName: null,
         lastName: null,
         emailId: null,
@@ -631,15 +646,28 @@ describe('user.queries', () => {
 
     // Two first messages at the same moment: the second insert meets the first row.
     it('files one row for a pair that is on file already, and hands back its id', async () => {
-      const first = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: TWICE })
-      const second = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: TWICE })
+      const first = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: TWICE,
+        alias: 'twice',
+      })
+      const second = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: TWICE,
+        alias: 'twiceAgain',
+      })
 
       expect(second).toEqual(first)
       expect(await DbUser.count({ where: { gradidoID: TWICE } })).toBe(1)
+      expect((await rowOf(TWICE)).alias).toBe('twice')
     })
 
     it('never turns a member of this community into a foreign one', async () => {
-      const filed = await dbInsertForeignUser({ communityUuid: home, gradidoId: bibi.gradidoID })
+      const filed = await dbInsertForeignUser({
+        communityUuid: home,
+        gradidoId: bibi.gradidoID,
+        alias: 'notBibi',
+      })
 
       expect(filed).toEqual({ success: false, error: expect.any(DBInsertFailed) })
       expect(await rowOf(bibi.gradidoID)).toMatchObject({ id: bibi.id, foreign: false })
@@ -647,7 +675,11 @@ describe('user.queries', () => {
     })
 
     it('sets the alias of a foreign row, and takes the same alias again as done', async () => {
-      const filed = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: RENAMED })
+      const filed = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: RENAMED,
+        alias: 'renamed',
+      })
       if (!filed.success) {
         throw filed.error
       }
@@ -661,11 +693,14 @@ describe('user.queries', () => {
 
     // A rename over there that this server has not seen yet: the old row still holds the name.
     it('keeps the alias a row had when another row of that community holds the new one', async () => {
-      const holder = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: HOLDER })
+      const holder = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: HOLDER,
+        alias: 'taken',
+      })
       if (!holder.success) {
         throw holder.error
       }
-      await dbUpdateForeignUserAlias(holder.value, 'taken')
       const renamed = await rowOf(RENAMED)
 
       const updated = await dbUpdateForeignUserAlias(renamed.id, 'taken')
@@ -673,6 +708,34 @@ describe('user.queries', () => {
       expect(updated).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
       expect((await rowOf(RENAMED)).alias).toBe('annaFar')
       expect((await rowOf(HOLDER)).alias).toBe('taken')
+    })
+
+    it('files nothing for a newcomer under an alias another row of that community holds', async () => {
+      const newcomer = v4()
+
+      const filed = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: newcomer,
+        alias: 'taken',
+      })
+
+      expect(filed).toEqual({ success: false, error: expect.any(DBInsertFailed) })
+      expect(await DbUser.count({ where: { gradidoID: newcomer } })).toBe(0)
+      expect((await rowOf(HOLDER)).alias).toBe('taken')
+    })
+
+    // The name is taken within its community only (`alias_key` is alias + community).
+    it('files a member of another community under an alias this community holds', async () => {
+      const namesake = v4()
+
+      const filed = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: namesake,
+        alias: bibi.alias,
+      })
+
+      expect(filed).toEqual({ success: true, value: expect.any(Number) })
+      expect((await rowOf(namesake)).alias).toBe(bibi.alias)
     })
 
     it('writes no alias onto a member of this community', async () => {
@@ -705,6 +768,121 @@ describe('user.queries', () => {
 
     it('answers an empty map for an empty list', async () => {
       expect(await findUserNamesByIds([])).toEqual(new Map())
+    })
+  })
+
+  describe('dbFindUserIdsWithEveryWord', () => {
+    let michaelMueller: DbUser
+    let michaelMerz: DbUser
+    let peter: DbUser
+
+    const insertAddress = (
+      userId: number,
+      email: string,
+      {
+        deletedAt = null,
+        emailChecked = true,
+        optIn = OptInType.EMAIL_OPT_IN_REGISTER,
+      }: { deletedAt?: Date | null; emailChecked?: boolean; optIn?: OptInType } = {},
+    ) =>
+      drizzleDb().insert(userContactsTable).values({
+        userId,
+        email,
+        type: UserContactType.USER_CONTACT_EMAIL,
+        emailChecked,
+        emailOptInTypeId: optIn,
+        deletedAt,
+      })
+
+    const found = async (...words: string[]) => (await dbFindUserIdsWithEveryWord(words)).sort()
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      const homeCom = await createCommunity(false)
+      michaelMueller = await userFactory(
+        {
+          ...bibiBloxberg,
+          firstName: 'Michael E.',
+          lastName: 'Müller',
+          email: 'willkommen@dorf.example',
+          alias: 'MichaelEM',
+        },
+        homeCom,
+      )
+      michaelMerz = await userFactory(
+        {
+          ...bobBaumeister,
+          firstName: 'Michael',
+          lastName: 'Merz',
+          email: 'honey@melon.example',
+          alias: 'MichaelM',
+        },
+        homeCom,
+      )
+      peter = await userFactory(peterLustig, homeCom)
+    })
+
+    it('finds a member by two words, past what stands between them, in either order', async () => {
+      expect(await found('michael', 'müller')).toEqual([michaelMueller.id])
+      expect(await found('müller', 'michael')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'e.', 'müller')).toEqual([michaelMueller.id])
+    })
+
+    it('finds everybody a single word turns up in', async () => {
+      expect(await found('michael')).toEqual([michaelMueller.id, michaelMerz.id].sort())
+    })
+
+    it('asks every word: one nobody here has leaves nobody', async () => {
+      expect(await found('michael', 'lustig')).toEqual([])
+      expect(await found('peter', 'michael')).toEqual([])
+      expect(await found('michael', 'nobody-here')).toEqual([])
+    })
+
+    it('takes parts of words, whatever the capitalisation', async () => {
+      expect(await found('MICH', 'mÜl')).toEqual([michaelMueller.id])
+    })
+
+    it('finds a word in the address and in the username', async () => {
+      expect(await found('michael', 'willkommen')).toEqual([michaelMueller.id])
+      expect(await found('merz', 'melon')).toEqual([michaelMerz.id])
+      expect(await found('peterl')).toEqual([peter.id])
+      expect(await found('michaelm', 'merz')).toEqual([michaelMerz.id])
+    })
+
+    it('reads every address a member holds, and not a deleted one', async () => {
+      await insertAddress(michaelMueller.id, 'first-address@dorf.example')
+      await insertAddress(michaelMueller.id, 'pending-address@dorf.example', {
+        emailChecked: false,
+        optIn: OptInType.EMAIL_OPT_IN_CHANGE,
+      })
+      await insertAddress(michaelMueller.id, 'gone-address@dorf.example', {
+        deletedAt: new Date(),
+      })
+      expect(await found('michael', 'first-address')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'pending-address')).toEqual([michaelMueller.id])
+      expect(await found('michael', 'gone-address')).toEqual([])
+    })
+
+    it('reads every name a member owned', async () => {
+      const held = await dbInsertUserAlias({
+        userId: peter.id,
+        alias: 'peter-was',
+        origin: ALIAS_ORIGIN_CHOSEN,
+      })
+      expect(held.success).toBe(true)
+      expect(await found('r-wa', 'lustig')).toEqual([peter.id])
+    })
+
+    it('names a member once, however many of their rows match', async () => {
+      await insertAddress(peter.id, 'same-word-one@lustig.example')
+      await insertAddress(peter.id, 'same-word-two@lustig.example')
+      expect(await found('same-word')).toEqual([peter.id])
+    })
+
+    it('finds a deleted member too: the search decides who is shown', async () => {
+      await DbUser.update({ id: michaelMerz.id }, { deletedAt: new Date() })
+      expect(await found('merz')).toEqual([michaelMerz.id])
+      await DbUser.update({ id: michaelMerz.id }, { deletedAt: null })
     })
   })
 
@@ -914,12 +1092,6 @@ describe('user.queries', () => {
         await expect(dbFindReferrerAlias(stranger.id)).resolves.toBeNull()
       })
 
-      it('falls back to the gradidoID when the name is too short to be one', async () => {
-        await DbUser.update(host.id, { alias: 'ab' })
-        await expect(dbFindReferrerAlias(newer.id)).resolves.toBe(host.gradidoID)
-        await DbUser.update(host.id, { alias: 'host-bibi' })
-      })
-
       it('is null when the referrer has deleted their account', async () => {
         await DbUser.update(host.id, { deletedAt: new Date() })
         await expect(dbFindReferrerAlias(newer.id)).resolves.toBeNull()
@@ -1060,17 +1232,6 @@ describe('user.queries', () => {
         expect(rows[1].firstAt).toEqual(newer.createdAt)
       })
 
-      it('hands the alias over RAW, not through publicAlias', async () => {
-        // ⛔ Deliberately different from dbFindReferrerAlias, which falls back to the
-        // gradidoID for a name too short to be one. The contact list SEARCHES this field,
-        // and the fallback would let a search for an id match a person no booking matches.
-        await DbUser.update(host.id, { alias: 'ab' })
-        const rows = await traceOf(newer.id)
-        expect(rows[0].alias).toBe('ab')
-        expect(rows[0].alias).not.toBe(host.gradidoID)
-        await DbUser.update(host.id, { alias: 'host-bibi' })
-      })
-
       it('answers nobody for a member at neither end of the trace', async () => {
         await expect(dbSelectReferralContactsByUserId(stranger.id)).resolves.toEqual([])
       })
@@ -1200,6 +1361,7 @@ describe('user.queries', () => {
         // PARTLY_ACTIVATED_GUARANTOR: it holds no password and cannot act before confirming.
         it('counts neither a classic registration nor the guests of another member', async () => {
           const classic = await userFactory({
+            alias: 'ClassicG',
             email: 'classic@table.example',
             firstName: 'Classic',
             lastName: 'Guest',
@@ -1244,6 +1406,7 @@ describe('user.queries', () => {
       // RegisterUserFromTransactionLinkRole writes the referrer and this event.
       const linkGuest = async (name: string, referrer: DbUser, linkId: number) => {
         const guest = await userFactory({
+          alias: `${name}G`,
           email: `${name}@link.example`,
           firstName: name,
           lastName: 'Guest',
@@ -1367,6 +1530,7 @@ describe('user.queries', () => {
       it('lets the one that waited count what the one before it stored', async () => {
         const before = await dbCountUnconfirmedVouchedAccounts(peter.id)
         const newcomer = await userFactory({
+          alias: 'NewC',
           email: 'newcomer@link.example',
           firstName: 'New',
           lastName: 'Comer',
@@ -1424,6 +1588,7 @@ describe('user.queries', () => {
       // a registration with it has to answer as for any taken address, not collide.
       it('finds a deleted member too', async () => {
         const gone = await userFactory({
+          alias: 'GoneM',
           email: 'gone@example.org',
           firstName: 'Gone',
           lastName: 'Member',
@@ -1436,6 +1601,7 @@ describe('user.queries', () => {
     describe('dbInsertUser, dbFindUserWithContactById and dbRemoveUser', () => {
       const newUser = () => ({
         gradidoId: v4(),
+        alias: `new${Math.floor(Math.random() * 1_000_000)}`,
         communityUuid: homeCommunityUuid,
         firstName: 'New',
         lastName: 'Member',
@@ -1474,6 +1640,7 @@ describe('user.queries', () => {
 
       it('finds the member together with their address, and removes them for good', async () => {
         const created = await userFactory({
+          alias: 'WithC',
           email: 'with-contact@example.org',
           firstName: 'With',
           lastName: 'Contact',
@@ -1504,8 +1671,12 @@ describe('user.queries', () => {
       await dbUserUpdateField(bob.id, 'deletedAt', daysAgo(1))
       await userFactory(stephenHawking, homeCom)
       // Two members of another community, one of them deleted: nobody's account here.
-      await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
-      const gone = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4(), alias: 'FarOne' })
+      const gone = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: v4(),
+        alias: 'FarTwo',
+      })
       if (!gone.success) {
         throw gone.error
       }
@@ -1550,7 +1721,11 @@ describe('user.queries', () => {
       // Deleted in 2018, says the seed.
       await userFactory(stephenHawking, homeCom)
       // A member of another community, deleted in the first week: nobody's account here.
-      const gone = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      const gone = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: v4(),
+        alias: 'FarGone',
+      })
       if (!gone.success) {
         throw gone.error
       }
@@ -1598,7 +1773,11 @@ describe('user.queries', () => {
       const stephen = await userFactory(stephenHawking, homeCom)
       await dbUserUpdateField(stephen.id, 'location', home(0.1218, 52.2053))
       await dbUserUpdateField(stephen.id, 'gmsAllowed', true)
-      const foreign = await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4() })
+      const foreign = await dbInsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: v4(),
+        alias: 'FarAway',
+      })
       if (!foreign.success) {
         throw foreign.error
       }

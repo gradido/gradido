@@ -20,8 +20,9 @@ describe('memberAlias', () => {
     expect(memberAlias('bernd', 'uuid-1')).toBe('bernd')
   })
 
-  // Accounts from before the user name became compulsory. `…/u/<uuid>` resolves, so this
-  // is a working address and not a placeholder.
+  // A member of whom the server has no alias on file, such as a stranger from another
+  // community in the contact list. `…/u/<uuid>` resolves, so this is a working address and
+  // not a placeholder.
   it('falls back to the Gradido ID', () => {
     expect(memberAlias('', 'uuid-1')).toBe('uuid-1')
     expect(memberAlias(undefined, 'uuid-1')).toBe('uuid-1')

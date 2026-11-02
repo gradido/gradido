@@ -9,14 +9,11 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Vind leden van alle gemeenschappen op een kaart.",
-    "title": "Geo Matching System GMS (in ontwikkeling)"
-  },
   "Humhub": {
     "desc": "Samen ondersteunen we elkaar – aandachtig, in kringcultuur.",
     "title": "Gradido-kringen"
   },
+  "adminWayBack": "Terug naar Admin",
   "advanced-calculation": "Voorcalculatie",
   "answerNow": "→ Nu antwoorden!",
   "appOutdated": {
@@ -126,19 +123,6 @@
       "button": "Configureren..."
     },
     "text": "Lokale kringen, studiekringen, projecten, evenementen en congressen"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Leden zoeken openen...",
-      "disabled-button": "GMS offline...",
-      "text": "Vind leden van alle gemeenschappen op een kaart."
-    },
-    "headline": "Geografisch leden zoeken (bèta)",
-    "info": "Zo gaat dat",
-    "not-allowed": {
-      "button": "Locatie invoeren",
-      "text": "Om andere leden in jouw omgeving te vinden, voer nu je locatie in op de kaart!"
-    }
   },
   "chatForward": {
     "byEmailMany": "Ook per e-mail aan de {count} contacten",
@@ -250,6 +234,22 @@
     "sent": "Verstuurd.",
     "sentMailed": "Verstuurd. {name} krijgt een e-mail.",
     "toConversation": "Naar het gesprek"
+  },
+  "chatNote": {
+    "done": "Klaar",
+    "failed": "Niet opgeslagen.",
+    "failedClosed": "Je notitie is niet opgeslagen. Open hem om het opnieuw te proberen.",
+    "loadFailed": "De notitie kon niet worden geladen.",
+    "placeholderGroup": "Wat wil je onthouden over deze groep?",
+    "placeholderMember": "Wat wil je onthouden over {name}? Bijvoorbeeld de volledige naam.",
+    "private": "Alleen jij ziet hem.",
+    "retry": "Opnieuw proberen",
+    "saved": "Opgeslagen",
+    "saving": "Wordt opgeslagen …",
+    "title": "Mijn notitie"
+  },
+  "chatPreview": {
+    "by": "{name}:"
   },
   "chatSearch": {
     "capped": "De laatste {count} berichten zijn doorzocht.",
@@ -623,20 +623,20 @@
       "detailsHint": "Een of twee zinnen die je onderwerp uitleggen.",
       "detailsMissing": "Vul hierboven nu ook de details in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail.",
       "downloadCode": "QR-code downloaden",
-      "intro": "Wie deze link opent, krijgt in het Gradido-account jouw congres als eerste vermelding op de kaart — en vindt de andere mensen van je congres.",
+      "intro": "Wie deze link opent, krijgt in het Gradido-account jouw project als eerste vermelding op de kaart — en vindt de andere mensen van je project.",
       "linkCopied": "Link gekopieerd.",
       "linkLabel": "Jouw link",
       "mailCopied": "Alinea gekopieerd.",
       "mailLabel": "Jouw alinea voor de e-mail",
-      "mailText": "Gradido inbegrepen: met deze link krijg je jouw Gradido-account, 100 Gradido om te beginnen en de kaart die je naar de mensen van ons congres brengt. De kaart toont je locatie alleen aan leden, en alleen ongeveer.",
+      "mailText": "Gradido inbegrepen: met deze link krijg je jouw Gradido-account, 100 Gradido om te beginnen en de kaart die je naar de mensen van ons project brengt. De kaart toont je locatie alleen aan leden, en alleen ongeveer.",
       "nothingStored": "Er wordt niets opgeslagen. Jij maakt de link, jij geeft hem door.",
-      "remoteHint": "Je deelnemers verschijnen dan ook in de bovenregionale zoekresultaten.",
-      "sentenceDefault": "Congres",
-      "sentenceHint": "De korte naam van je congres, zoals je deelnemers het zouden zeggen. Het woord “Congres” ervoor mag blijven staan — “Training”, “Cursus” of “Retreat” kan ook.",
+      "remoteHint": "De mensen van je project verschijnen dan ook in de bovenregionale zoekresultaten.",
+      "sentenceDefault": "Project",
+      "sentenceHint": "De korte naam van je project, zoals je het in een gesprek zegt. Het woord “Project” ervoor mag blijven staan — “Vereniging”, “Congres” of “Cursus” kan ook.",
       "sentencePreview": "“{sentence}”",
-      "subtitle": "Jouw link voor jouw congres, jouw training, jouw cursus",
-      "title": "Event Matching",
-      "waiting": "Vul hierboven de naam van je congres in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail."
+      "subtitle": "Jouw link voor jouw project: vereniging, beweging, congres, cursus",
+      "title": "Project Matching",
+      "waiting": "Vul hierboven de naam van je project in — dan verschijnen hier je link, je QR-code en een alinea voor je e-mail."
     },
     "home": {
       "text": "Zo vinden jullie elkaar als gelijkgestemden: zet je thuis op de kaart. Dan zie je de anderen die '{sentence}' hebben toegevoegd — en zij zien jou. Alleen leden zien de kaart. Jij bepaalt hoe precies: 'Ongeveer' toont je binnen een omgeving, nooit aan je voordeur. En je kunt er op elk moment weer af.",
@@ -646,7 +646,7 @@
       "added": "Je vermelding is toegevoegd: {sentence}",
       "firstEntry": "Je eerste vermelding:",
       "haveAccount": "Ik heb al een account",
-      "headline": "De kaart naar de mensen van je congres",
+      "headline": "De kaart naar de mensen van je project",
       "otherCommunity": "Staat je account in een andere gemeenschap? Meld je dan daar aan en voer de zin met de hand in.",
       "register": "Account aanmaken"
     },
@@ -740,7 +740,7 @@
       "link": "Gradido-Academie",
       "year": "© {year}"
     },
-    "eventMatching": "Event Matching",
+    "eventMatching": "Project Matching",
     "imprint": "Colofon",
     "inspector": "Inspecteur (experimenteel)",
     "privacy_policy": "Privacyverklaring",
@@ -756,6 +756,7 @@
     "change": "Wijzigen",
     "check_now": "Nu controleren",
     "close": "Sluiten",
+    "community-not-reachable": "Deze gemeenschap is op dit moment niet bereikbaar. Controleer welke gemeenschap is gekozen.",
     "current_available": "Momenteel beschikbaar",
     "current_balance": "Actueel banksaldo",
     "date": "Datum",
@@ -783,6 +784,19 @@
     "password_new_repeat": "Nieuw wachtwoord herhalen",
     "password_old": "Oud wachtwoord",
     "recipient": "Ontvanger",
+    "recipient-not-found": {
+      "by-email": "Stuur anders je bedankje per e-mail: Gradido maakt daarvoor een link aan die {days} dagen wacht. Daarmee wordt een account aangemaakt — of komt het bedankje op een bestaand account.",
+      "change-address": "Adres wijzigen",
+      "change-entry": "Invoer wijzigen",
+      "choose-community": "Gemeenschap selecteren",
+      "no-answer": "De server heeft niet geantwoord. Probeer het opnieuw.",
+      "other-community": "Hoort het adres bij een lid van een andere gemeenschap? Selecteer dan die gemeenschap.",
+      "other-community-entry": "Hoort dit bij een lid van een andere gemeenschap? Selecteer dan die gemeenschap.",
+      "send-by-email": "Bedankje per e-mail sturen",
+      "title-email": "Er is in {community} geen account met dit adres.",
+      "title-gradido-id": "Er is in {community} geen account met deze Gradido-ID.",
+      "title-username": "Er is in {community} geen account met deze gebruikersnaam."
+    },
     "recipientCommunity": "Gemeenschap van de ontvanger",
     "reply": "Antwoord",
     "reset": "Resetten",
@@ -864,6 +878,8 @@
   },
   "gddKonto": "GDD-account",
   "gdd_per_link": {
+    "by-email": "Per e-mail",
+    "by-email-to": "Per e-mail naar {address}",
     "choose-amount": "Kies een bedrag dat je versturen wil en vul een bericht in. Het bericht is verplicht.",
     "copy-link": "Link kopiëren",
     "copy-link-with-text": "Link en tekst kopiëren",
@@ -872,6 +888,7 @@
     "deleted": "De link werd verwijderd!",
     "disbured": "De overdracht van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
     "duplicate": "Dupliceren",
+    "email-subject": "Een bedankje van {name}",
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Link, cheque en QR-code aanmaken",
@@ -883,9 +900,12 @@
     "link-overview": "Overzicht links",
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR-codes, groetjes",
+    "memo-stays-on-page": "Je bericht is te lang voor de mail: het staat op de pagina die de link opent.",
     "no-account": "Je hebt nog geen Gradido rekening?",
     "no-redeem": "Je mag je eigen link niet inwisselen!",
     "not-copied": "Jouw apparaat laat het kopiëren helaas niet toe! Kopieer de link alsjeblieft met de hand!",
+    "opens-mail-program": "Opent je e-mailprogramma.",
+    "picture-in-clipboard": "De afbeelding staat dan op het klembord — plak die erin als je wilt.",
     "recipientCommunityRedirection": "Naar crediteren doorsturen naar:",
     "recipientCommunitySelection": "Gradido-gemeenschap selecteren:",
     "redeem": "Inwisselen",
@@ -1243,8 +1263,7 @@
     "settings": "Instellingen",
     "show-friends": "Laat het je vrienden zien",
     "thank-you-greeting": "Dankgroetje",
-    "transactions": "Jouw transacties",
-    "usersearch": "Geografisch leden zoeken (bèta)"
+    "transactions": "Jouw transacties"
   },
   "public-profile": {
     "address": "Gradido-adres",
@@ -1342,22 +1361,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Gegevens worden niet naar GMS geëxporteerd",
-      "enabled": "Gegevens worden naar GMS geëxporteerd",
       "location": {
-        "button": "Klik hier!",
-        "label": "Exacte locatie",
-        "saveLocation": "Locatie opslaan",
         "updateSuccess": "Locatie succesvol opgeslagen"
       },
-      "location-format": "Positie op de kaart tonen:",
       "map": {
-        "communityCoords": "Locatie van je gemeenschap: Lat {lat}, Lng {lng}",
-        "communityLocationLabel": "Locatie van je gemeenschap",
-        "headline": "Geografische locatiebepaling van de gebruiker",
-        "search": "Zoek een locatie",
-        "userCoords": "Jouw locatie: Lat {lat}, Lng {lng}",
-        "userLocationLabel": "Jouw locatie"
+        "search": "Zoek een locatie"
       },
       "publish-location": {
         "approximate": "Geschatte positie",
@@ -1371,7 +1379,7 @@
       "visibility": "Mijn afbeelding aan andere leden tonen",
       "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
     },
-    "community": "Kringen en ledenzoeker",
+    "community": "Kringen",
     "creationAccount": {
       "confirm": {
         "declare": "Omzetten naar projectaccount",
@@ -1666,12 +1674,16 @@
     "done": {
       "another": "Nog een voor iemand anders",
       "edit-hint": "Je kunt de zin vóór het versturen aanpassen. Jouw woorden staan pas op de kaart.",
+      "edit-hint-plain": "Je kunt de tekst vóór het versturen aanpassen.",
       "find-again": "Je vindt het terug onder {transactions}, bij “{links}”.",
       "link-hint": "Wie de link heeft, kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
       "link-hint-photo": "Wie de link heeft, ziet je foto en kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
       "sentence-lead": "Deze zin reist mee:",
+      "sentence-lead-plain": "Deze tekst reist mee:",
       "title": "Je dankgroetje is klaar.",
       "title-for": "Je dankgroetje voor {name} is klaar.",
+      "title-for-address": "Je bedankje voor {address} is klaar.",
+      "title-plain": "Je bedankje is klaar.",
       "waits-until": "Het wacht tot {date}."
     },
     "entry": {
@@ -1735,6 +1747,7 @@
     "received-title": "Een dankgroetje voor jou",
     "share": {
       "copied": "De zin en de link zijn naar het klembord gekopieerd. Je kunt ze nu in een e-mail of bericht plakken.",
+      "email-subject": "Een dankgroetje van {name}",
       "line1": "Ik heb een dankgroetje voor je:",
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
     },
@@ -1759,6 +1772,21 @@
       "own-words": "Jouw woorden"
     }
   },
+  "thanksArrival": {
+    "answer": "Antwoorden",
+    "from": "{name} bedankt jou met {amount}.",
+    "later": "Later",
+    "title": "Je bedankje is er."
+  },
+  "thanksNudge": {
+    "afterCall": "Wil je {name} bedanken voor het gesprek?",
+    "afterGroupCall": "Wil je bedankt zeggen voor het gesprek?",
+    "notNow": "Niet nu",
+    "passOn": "Dank doorgeven?",
+    "say": "Bedanken",
+    "someone": "Iemand bedanken",
+    "whom": "Wie wil je bedanken?"
+  },
   "time": {
     "days": "Dagen",
     "hours": "Uren",
@@ -1775,17 +1803,11 @@
     "nullTransactions": "Je hebt nog geen transacties op jouw rekening.",
     "onlyWith": "{n} boeking met {name} | {n} boekingen met {name}",
     "onlyWithSomeone": "Alleen boekingen met een lid",
-    "receiverDeleted": "De rekening van de ontvanger werd verwijderd",
     "receiverNotFound": "Ontvanger niet gevonden",
     "show_all": "Alle <strong>{count}</strong> Transacties bekijken."
   },
   "transaction-link": {
     "send_you": "stuurt jou"
-  },
-  "usersearch": {
-    "button": "Start het zoeken naar gebruikers...",
-    "headline": "Geografisch zoeken naar gebruikers",
-    "text": "Het maakt niet uit tot welke community je behoort, met het Geo Matching System kun je leden van alle communities vinden op een kaart. Je kunt filteren op aanbiedingen en vereisten en de gebruikers weergeven die aan je profiel voldoen.\n\nDe knop opent een nieuw browservenster waarin de gebruikers in je omgeving op een kaart worden weergegeven."
   },
   "via_card": "via een kaart",
   "via_greeting": "via een groetje",

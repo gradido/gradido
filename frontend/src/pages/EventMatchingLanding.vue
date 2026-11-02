@@ -55,10 +55,11 @@
 
 <script setup>
 /**
- * The page behind an event link, `community-host/event?interest=…` (Event-Matching), for
- * somebody who is not signed in. A host hands the link to the people of a congress, a training
- * or a course; it offers whoever opens it one entry for the matching -- "I love ‹interest›" --
- * and with it the map on which the people of that event find each other.
+ * The page behind the link of project matching, `community-host/project?interest=…` (or
+ * `/event?…`, the address of the first links), for somebody who is not signed in. A host hands
+ * the link to the people of a project -- an association, a congress, a course; it offers whoever
+ * opens it one entry for the matching -- "I love ‹interest›" -- and with it the map on which the
+ * people of that project find each other.
  *
  * ## It shows, and does nothing
  *

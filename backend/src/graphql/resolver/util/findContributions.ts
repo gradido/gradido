@@ -1,6 +1,7 @@
 import { Paginated } from '@arg/Paginated'
 import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
 import { AppDatabase, Contribution as DbContribution } from 'database'
+import { searchWords } from 'shared'
 import { Brackets, In, IsNull, LessThanOrEqual, Like, SelectQueryBuilder } from 'typeorm'
 
 import { LogError } from '@/server/LogError'
@@ -152,24 +153,22 @@ export const findContributions = async (
     )
   }
   queryBuilder.printSql()
-  if (filter.query) {
-    const queryString = '%' + filter.query + '%'
+  // Every word of the text has to turn up somewhere in the row, in any order, so that "Michael
+  // Müller" finds "Michael E." "Müller". One word may sit in the name and the next in the memo.
+  searchWords(filter.query ?? '').forEach((word, index) => {
+    const wordKey = `word${index}`
     queryBuilder.andWhere(
       new Brackets((qb) => {
-        qb.where({ memo: Like(queryString) })
+        qb.where({ memo: Like(`%${word}%`) })
         if (relations?.user) {
-          qb.orWhere('user.first_name LIKE :firstName', { firstName: queryString })
-            .orWhere('user.last_name LIKE :lastName', { lastName: queryString })
-            .orWhere('user.alias LIKE :alias', { alias: queryString })
-            .orWhere("LOWER(CONCAT(user.first_name, ' ', user.last_name)) LIKE LOWER(:fullName)", {
-              fullName: queryString.toLowerCase(),
-            })
-            .orWhere('emailContact.email LIKE :emailContact', { emailContact: queryString })
-            .orWhere({ memo: Like(queryString) })
+          qb.orWhere(`user.first_name LIKE :${wordKey}`, { [wordKey]: `%${word}%` })
+            .orWhere(`user.last_name LIKE :${wordKey}`)
+            .orWhere(`user.alias LIKE :${wordKey}`)
+            .orWhere(`emailContact.email LIKE :${wordKey}`)
         }
       }),
     )
-  }
+  })
   // Creation-group filter from the admin UI (a single selected group). Separate from the
   // free-text `query` above, so both can be applied at the same time.
   if (filter.creationGroup) {

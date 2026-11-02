@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { inArray } from 'drizzle-orm'
+import { inArray, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
@@ -122,10 +122,15 @@ const statementsOf = async (run: () => Promise<unknown>): Promise<string[]> => {
 }
 
 const cleanUp = async (): Promise<void> => {
+  // By code as well: a link another file left behind may carry one of these codes, and of a
+  // code that two links carry the readers find nothing.
   await db.delete(transactionLinksTable).where(
-    inArray(
-      transactionLinksTable.id,
-      LINKS.map((link) => link.id),
+    or(
+      inArray(
+        transactionLinksTable.id,
+        LINKS.map((link) => link.id),
+      ),
+      inArray(transactionLinksTable.code, CODES),
     ),
   )
   await db.delete(usersTable).where(inArray(usersTable.id, [MAKER, GONE_MAKER]))
@@ -144,10 +149,11 @@ beforeAll(async () => {
   // The readers name the member who made a link: a row for the one whose account stands, and
   // one for the member whose account is deleted. (Raw rows, with what the schema requires.)
   await db.insert(usersTable).values([
-    { id: MAKER, gradidoId: gid(MAKER), communityUuid: HOME_COMMUNITY },
+    { id: MAKER, gradidoId: gid(MAKER), alias: 'maker', communityUuid: HOME_COMMUNITY },
     {
       id: GONE_MAKER,
       gradidoId: gid(GONE_MAKER),
+      alias: 'goneMaker',
       communityUuid: HOME_COMMUNITY,
       deletedAt: MAKER_DELETED_AT,
     },

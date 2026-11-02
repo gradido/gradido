@@ -10,6 +10,13 @@ import { CreationTransactionList } from './CreationTransactionList'
 vi.mock('@vue/apollo-composable')
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 
 const contributions = [
   {
@@ -42,6 +49,7 @@ describe('CreationTransactionList', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    viewport.value = 'unknown'
     mockResult = ref(null)
     useQuery.mockReturnValue({
       result: mockResult,
@@ -154,5 +162,50 @@ describe('CreationTransactionList', () => {
     expect(wrapper.find('#collapse-1').text()).toContain(
       'transactionlist.submitted math.equals help.transactionlist.submitted',
     )
+  })
+
+  // On a phone the cells of a contribution stand under each other (the stylesheet stacks the
+  // table below 992px), each under the name of its column. At the desk no cell carries a name:
+  // the table is the one it has always been.
+  it.each([
+    ['mobile', true],
+    ['desktop', false],
+    ['unknown', false],
+  ])('the table stacks on a phone and labels every cell (%s)', async (side, labelled) => {
+    viewport.value = side
+    await showContributions()
+
+    expect(wrapper.find('table').classes()).toContain('b-table-stacked-lg')
+    const labels = wrapper
+      .findAll('tbody tr')[0]
+      .findAll('td')
+      .map((cell) => cell.find('label.b-table-stacked-label'))
+    expect(labels).toHaveLength(6)
+    if (labelled) {
+      expect(labels.map((label) => label.text())).toEqual([
+        'transactionlist.submitted',
+        'transactionlist.period',
+        'transactionlist.confirmed',
+        'transactionlist.status',
+        'transactionlist.amount',
+        'transactionlist.memo',
+      ])
+    } else {
+      expect(labels.some((label) => label.exists())).toBe(false)
+    }
+  })
+
+  // The real pager, counted by what it draws: names of props are the library's to give.
+  it('the pager follows the phone: three numbers and no end buttons there, five places and « » at the desk', async () => {
+    await showContributions(300)
+    const drawn = () => wrapper.findAll('.pagination li').map((item) => item.text())
+
+    expect(drawn()).toEqual(['«', '‹', '1', '2', '3', '4', '…', '›', '»'])
+
+    viewport.value = 'mobile'
+    await nextTick()
+    expect(drawn()).toEqual(['‹', '1', '2', '3', '›'])
+    // ... and all three stay in sight below 576px, where the library hides one (App.css).
+    expect(wrapper.find('.pagination').classes()).toContain('phone-pager')
   })
 })

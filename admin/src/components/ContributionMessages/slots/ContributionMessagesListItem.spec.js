@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemberAvatar } from '@/components/MemberAvatar'
@@ -15,11 +18,12 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+// The parser shows what it was handed: the text, and the type it takes a change apart by.
 vi.mock('@/components/ContributionMessages/ParseMessage', () => ({
   ParseMessage: {
     name: 'ParseMessage',
-    template: '<div>{{ message }}</div>',
-    props: ['message'],
+    template: '<div :data-type="type">{{ message }}</div>',
+    props: ['message', 'type'],
   },
 }))
 
@@ -139,6 +143,15 @@ This message also contains a link: https://gradido.net/de/
       expect(wrapper.text()).toContain('moderator.history')
     })
 
+    // Bernd, 25.10.2026: a change showed its raw text, date string and dashes. The parser takes
+    // it apart by the message's type, which the box now hands it under the name the message
+    // carries; under another name it never arrived.
+    it('hands the parser the type, by which it takes a change apart', () => {
+      expect(wrapper.find('[data-test="moderator-message"]').attributes('data-type')).toBe(
+        'HISTORY',
+      )
+    })
+
     it('renders the message', () => {
       expect(wrapper.find('[data-test="moderator-message"]').text()).toContain(
         'Sun Nov 13 2022 13:05:48 GMT+0100 (Central European Standard Time)',
@@ -164,31 +177,86 @@ describe('the box a message stands in', () => {
       },
     }).find('.contribution-messages-list-item > div')
 
-  it('marks a note only the moderation sees, and says so', () => {
+  // Bernd, 25.10.2026: every message in the same neutral grey; the side says who wrote it, a
+  // note and a change say what they are in their head, with the sticky note and the pencil.
+  it('marks a note only the moderation sees, and says so in its head', () => {
     const box = boxOf({ type: 'MODERATOR', userId: 107 })
     expect(box.classes()).toEqual(
-      expect.arrayContaining(['text-end', 'is-moderator', 'is-moderator-hidden-message']),
+      expect.arrayContaining(['text-end', 'is-moderator', 'message-bubble', 'is-note']),
     )
-    expect(box.text()).toContain('moderator.request')
+    const kind = box.find('[data-test="message-kind"]')
+    expect(kind.text()).toContain('moderator.notice')
+    expect(kind.attributes('title')).toBe('moderator.notice-tooltip')
+    expect(kind.find('.visually-hidden').text()).toContain('moderator.notice-tooltip')
+    expect(kind.find('svg').exists()).toBe(true)
+    // In place of the word "Moderator", and without the line below that said who sees it.
+    expect(box.find('[data-test="moderator-label"]').exists()).toBe(false)
+    expect(box.text()).not.toContain('moderator.request')
   })
 
-  it("marks the history of the member's own contribution", () => {
+  it("marks the member's change of the contribution on the member's side", () => {
     const box = boxOf({ type: 'HISTORY', userId: 108, message: 'a\n---\nb\n---\n1' })
     expect(box.classes()).toEqual(
-      expect.arrayContaining(['text-start', 'is-user', 'is-user-history-message']),
+      expect.arrayContaining(['text-start', 'is-user', 'message-bubble', 'is-change']),
     )
-    expect(box.text()).toContain('moderator.history')
+    expect(box.find('[data-test="message-kind"]').text()).toBe('moderator.change')
+    expect(box.find('[data-test="history-label"]').text()).toBe('moderator.history')
+  })
+
+  // A change stood on the member's side whoever made it; it leans to its author now.
+  it("marks the moderation's change on the moderation's side, in place of the word", () => {
+    const box = boxOf({ type: 'HISTORY', userId: 107, message: 'a\n---\nb\n---\n1' })
+    expect(box.classes()).toEqual(
+      expect.arrayContaining(['text-end', 'is-moderator', 'message-bubble', 'is-change']),
+    )
+    expect(box.find('[data-test="message-kind"]').text()).toBe('moderator.change')
+    expect(box.find('[data-test="moderator-label"]').exists()).toBe(false)
   })
 
   it('marks a message of the moderation', () => {
     const box = boxOf({ type: 'DIALOG', userId: 107 })
-    expect(box.classes()).toEqual(expect.arrayContaining(['is-moderator', 'is-moderator-message']))
-    expect(box.text()).not.toContain('moderator.request')
+    expect(box.classes()).toEqual(expect.arrayContaining(['is-moderator', 'message-bubble']))
+    expect(box.find('[data-test="moderator-label"]').text()).toBe('moderator.moderator')
+    expect(box.find('[data-test="message-kind"]').exists()).toBe(false)
   })
 
   it("marks the member's own message", () => {
     const box = boxOf({ type: 'DIALOG', userId: 108 })
-    expect(box.classes()).toEqual(expect.arrayContaining(['is-user', 'is-user-message']))
+    expect(box.classes()).toEqual(expect.arrayContaining(['is-user', 'message-bubble']))
+    expect(box.classes()).not.toContain('is-change')
+    expect(box.find('[data-test="message-kind"]').exists()).toBe(false)
+  })
+})
+
+/**
+ * The head of a message on a phone. Its parts follow one another without a space, so as plain
+ * text they were one word, and a narrow message broke it anywhere -- inside the date, inside the
+ * name. As boxes of their own the line breaks between them.
+ */
+describe('the head of a message', () => {
+  const headOf = (message) =>
+    createWrapper({
+      contributionUserId: 108,
+      message: {
+        id: 121,
+        message: 'text',
+        createdAt: '2022-08-29T12:23:27.000Z',
+        type: 'DIALOG',
+        userAlias: 'peterl',
+        ...message,
+      },
+    })
+
+  it.each([
+    ['of the moderation', 107, ['moderator-label', 'moderator-date', 'moderator-name']],
+    ['of the member', 108, ['user-name', 'user-date']],
+  ])('stands in boxes of their own, %s', (_, userId, parts) => {
+    const wrapper = headOf({ userId })
+    for (const part of parts) {
+      expect(wrapper.find(`[data-test="${part}"]`).classes(), part).toContain('d-inline-block')
+    }
+    // The face is a box of its own already.
+    expect(wrapper.find('[data-test="member-avatar"]').classes()).toContain('d-inline-flex')
   })
 })
 
@@ -302,5 +370,24 @@ describe('the face beside a message', () => {
       src: 'data:image/jpeg;base64,her-face',
     })
     wrapper.unmount()
+  })
+})
+
+// Every bubble in the grey of a field (Bernd, 25.10.2026), which Bootstrap turns with the mode:
+// no colour of its own, light or dark. Vitest hands stylesheets to the tests as empty strings, so
+// the sheet itself is read, its comments taken out first.
+describe('the stylesheet of a message', () => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  const css = readFileSync(join(here, 'ContributionMessagesListItem.css'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  )
+
+  it('gives every bubble the grey of a field, in both modes', () => {
+    expect(css.replace(/\s+/g, ' ')).toContain(
+      '.message-bubble { background-color: var(--bs-secondary-bg); }',
+    )
+    expect(css.match(/background-color/g)).toHaveLength(1)
+    expect(css).not.toContain('data-bs-theme')
   })
 })

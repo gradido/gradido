@@ -1,4 +1,5 @@
-import { PeerApiClientCache } from 'core'
+import { randomBytes } from 'node:crypto'
+import { ApiClientCache } from 'core'
 import {
   CommunitiesInsert,
   CommunityUniqueKey,
@@ -20,7 +21,7 @@ import {
   foreignCommunityUpdatesSchema,
   Uuidv4,
 } from 'shared'
-import { Ed25519KeyPair } from 'shared-native'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
@@ -173,12 +174,17 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
 
   // the announced public key as a key pair, as soon as it is used as a key
   const keyPair = new Ed25519KeyPair(fedComB.publicKey)
-  const peerClient = PeerApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
+  const peerClient = ApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
   // the client refuses an answer whose signature does not verify against that key
-  const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos()
+  const exchangeId = randomBytes(16).toString('hex')
+  const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos(exchangeId)
   // TODO: write last error into db
   if (!rawPubComInfo) {
     logger.warn('missing result of getPublicCommunityInfo', error?.value)
+    return null
+  }
+  if (rawPubComInfo.exchangeId !== exchangeId) {
+    logger.warn(`response don't use our own exchange id`)
     return null
   }
   const pubComInfo = v.parse(foreignCommunityInfoSchema, rawPubComInfo)
@@ -199,6 +205,7 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
     )
     return null
   }
+  peerClient.publicEncryptionKey = new X25519KeyPair(pubComInfo.publicEncryptionKey)
   return {
     foreignCommunity: {
       foreign: true,

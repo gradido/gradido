@@ -186,6 +186,13 @@
       "subject": "Пользователь {senderAlias} принял вашу благодарность",
       "title": "Пользователь {senderAlias} принял вашу благодарность"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "Пользователь {recipientAlias} ({recipientCommunity}) обрадовался вашей благодарности:",
+      "memo": "Сообщение: {transactionMemo}",
+      "subject": "Ваша благодарность дошла",
+      "title": "Ваша благодарность дошла",
+      "yourThanksTo": "Ваша благодарность пользователю {recipientAlias}"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "вы только что получили {transactionAmount} GDD от {senderAlias}.",
       "subject": "Пользователь {senderAlias} отправил вам {transactionAmount} Gradido",
@@ -244,8 +251,6 @@
   "redeemPreview": {
     "description": "Помогать. Дарить. Благодарить.",
     "greetingTitle": "{name} шлёт вам открытку с благодарностью",
-    "greetingTitleWithoutName": "Открытка с благодарностью для вас",
-    "linkTitle": "{name} шлёт вам благодарность",
-    "linkTitleWithoutName": "Благодарность для вас"
+    "linkTitle": "{name} шлёт вам благодарность"
   }
 }

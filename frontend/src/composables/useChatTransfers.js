@@ -24,7 +24,9 @@ const isTransfer = (booking) => booking.typeId === 'SEND' || booking.typeId === 
  *
  * `transfers` oldest first, as the thread reads its messages; `settled` once the first page
  * answered or failed -- a failure leaves the conversation as it was without transfers, and says
- * nothing. `hasMore` where the list holds older bookings than the pages asked for.
+ * nothing. `failed` where that first page did not come: the empty list is then not "none", and
+ * what reads it as "no transfer since" (the thank-you line under a video call) stays quiet.
+ * `hasMore` where the list holds older bookings than the pages asked for.
  *
  * ⛔ Read once, and not on the chat's beat: the reaction the other person sets to a transfer is
  * there when the conversation is opened the next time. One's own is taken at once
@@ -40,6 +42,7 @@ const isTransfer = (booking) => booking.typeId === 'SEND' || booking.typeId === 
 export const useChatTransfers = (apolloClient, member, { enabled = true } = {}) => {
   const transfers = ref([])
   const settled = ref(!enabled)
+  const failed = ref(false)
   const hasMore = ref(false)
   let pages = 0
 
@@ -68,7 +71,9 @@ export const useChatTransfers = (apolloClient, member, { enabled = true } = {}) 
 
   if (enabled) {
     askNextPage()
-      .catch(() => {})
+      .catch(() => {
+        failed.value = true
+      })
       .finally(() => {
         settled.value = true
       })
@@ -90,5 +95,5 @@ export const useChatTransfers = (apolloClient, member, { enabled = true } = {}) 
     )
   }
 
-  return { transfers, settled, hasMore, loadOlderTransfers, takeReaction }
+  return { transfers, settled, failed, hasMore, loadOlderTransfers, takeReaction }
 }

@@ -6,6 +6,7 @@
           v-bind="transactionData"
           v-model:picture="picture"
           :balance="balance"
+          :checking="checkingRecipient"
           @send-email="sendEmail"
           @set-transaction="setTransaction"
           @set-send-type="handleSendTypeChange"
@@ -44,6 +45,25 @@
           @on-back="onBack"
         ></transaction-result-send-error>
       </template>
+      <template #recipientNotFound>
+        <recipient-not-found
+          :identifier="transactionData.identifier"
+          :community-name="transactionData.targetCommunity?.name ?? ''"
+          :is-email="isEmailIdentifier(transactionData.identifier)"
+          :can-choose-community="canChooseCommunity"
+          :busy="loading"
+          @send-by-email="sendByEmail"
+          @choose-community="onBack"
+          @change-recipient="onBack"
+        ></recipient-not-found>
+      </template>
+      <template #sendByEmailReady>
+        <thank-you-greeting-done
+          :created="madeForEmail"
+          :email-address="emailAddress"
+          @another="onBack"
+        ></thank-you-greeting-done>
+      </template>
       <template #transactionResultLink>
         <transaction-result-link
           :link="link"
@@ -74,7 +94,7 @@
 import { useI18n } from 'vue-i18n'
 import { computed, ref, reactive, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMutation } from '@vue/apollo-composable'
+import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
 import TransactionForm from '@/components/GddSend/TransactionForm'
 import TransactionConfirmationSend from '@/components/GddSend/TransactionConfirmationSend'
@@ -83,11 +103,31 @@ import SuccessMessage from '@/components/SuccessMessage'
 import SendEmailResultError from '@/components/GddSend/SendEmailResultError'
 import TransactionResultSendError from '@/components/GddSend/TransactionResultSendError'
 import TransactionResultLink from '@/components/GddSend/TransactionResultLink'
-import { sendCoins, createTransactionLink, sendEmail as sendEmailMut } from '@/graphql/mutations.js'
+import RecipientNotFound from '@/components/GddSend/RecipientNotFound.vue'
+import ThankYouGreetingDone from '@/components/ThankYouGreeting/ThankYouGreetingDone.vue'
+import { linkAmountMax } from '@/constants'
+import {
+  addThankYouGreetingPicture,
+  sendCoins,
+  createTransactionLink,
+  sendEmail as sendEmailMut,
+} from '@/graphql/mutations.js'
+import { reachableCommunities } from '@/graphql/communities.graphql'
+import { user as userQuery } from '@/graphql/queries'
+import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useAppToast } from '@/composables/useToast'
+import { memberAlias } from '@/utils/gradidoAddress'
+import { isRecipientNotFoundError, isUserNotFoundAnswer } from '@/utils/recipientNotFound'
 import { SEND_TYPES } from '@/utils/sendTypes'
-import { chatImageProblemWords, encodeChatImage } from '@/utils/chatImage'
-import { THANK_YOU_PICTURE_SMALL, thankYouPictureInput } from '@/utils/thankYouPicture'
+import { chatImageProblemWords, chatImageRefusal, encodeChatImage } from '@/utils/chatImage'
+import { lineFromMemo } from '@/utils/thankYouGreeting'
+import {
+  encodeThankYouPictures,
+  THANK_YOU_PICTURE_SMALL,
+  thankYouPictureInput,
+} from '@/utils/thankYouPicture'
+import { isEmailIdentifier } from '@/validationSchemas'
 
 const { t } = useI18n()
 const EMPTY_TRANSACTION_DATA = {
@@ -97,14 +137,16 @@ const EMPTY_TRANSACTION_DATA = {
   memo: '',
 }
 
-defineProps({
+const props = defineProps({
   balance: { type: Number, default: 0 },
   GdtBalance: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['set-tunneled-email', 'update-transactions'])
 
+const route = useRoute()
 const router = useRouter()
+const { client: apolloClient } = useApolloClient()
 const { toastError, toastSuccess } = useAppToast()
 
 const transactionData = reactive({ ...EMPTY_TRANSACTION_DATA })
@@ -136,6 +178,20 @@ const pictureToSend = computed(() =>
 )
 
 /**
+ * The received thank-you this visit's transfer passes on, where "Jemandem danken" led here
+ * (usePassOnDraft) -- or null. The trail of the thank-you (`passOnOf` of sendCoins); nothing of
+ * it is shown.
+ *
+ * Taken once, when the page is made, and kept HERE, beside `transactionData` as the picture is:
+ * the form is taken down between the steps, and "Zurück" finds it here. "Zurücksetzen" leaves it,
+ * a transfer that was sent lets it go, one that failed keeps it. Named with a transfer to a member
+ * of this community only -- a link, a letter and a member of another community go without it.
+ *
+ * ⛔ Never in the store, the device's storage or Apollo's cache (usePassOnDraft says why).
+ */
+const passOnOf = ref(usePassOnDraft().take())
+
+/**
  * The picture as the mutation takes it: `{ motif }`, or `{ picture }` -- the photo in the
  * chat's measure (THANK_YOU_PICTURE_SMALL), encoded now, right before it is sent --, or nothing.
  * Rejects with a ChatImageError where the photo cannot be made small enough.
@@ -157,6 +213,7 @@ const pictureArguments = async (chosen) => {
 const forgetEntries = () => {
   Object.assign(transactionData, EMPTY_TRANSACTION_DATA)
   picture.value = null
+  passOnOf.value = null
 }
 const error = ref(false)
 const errorResult = ref('')
@@ -170,6 +227,25 @@ const validUntil = ref(null)
 const { mutate: sendCoinsMutation } = useMutation(sendCoins)
 const { mutate: createTransactionLinkMutation } = useMutation(createTransactionLink)
 const { mutate: sendEmailMutation } = useMutation(sendEmailMut)
+const { mutate: addGreetingPictureMutation } = useMutation(addThankYouGreetingPicture)
+
+/** "Jetzt prüfen" is asking the server about the recipient: the form takes no second press. */
+const checkingRecipient = ref(false)
+/** How long that answer is waited for, before the form is the member's again. */
+const RECIPIENT_CHECK_MAX_MS = 15000
+/** The step for a recipient nobody has: whether there is another community to choose. */
+const canChooseCommunity = ref(false)
+/**
+ * The link that was made for a mail (`sendByEmail`), as "Fertig" shows it, and the address the
+ * mail is for.
+ *
+ * ⛔ The wallet keeps the address here, in the memory of this page, and nowhere else: never the
+ * store, the device's storage, the link or an event (ZE-037). And BESIDE `transactionData`: that
+ * one is bound as a whole onto the form and the check view. It goes when the member leaves this
+ * view, or the page with its memory.
+ */
+const madeForEmail = shallowRef(null)
+const emailAddress = ref('')
 
 const handleSendTypeChange = (sendType) => {
   // console.log('handleSendTypeChange', sendType)
@@ -185,8 +261,93 @@ const handleSendTypeChange = (sendType) => {
   // console.log('currentTransactionStep', currentTransactionStep.value)
 }
 
-function setTransaction(data) {
+/**
+ * Whether "Jetzt prüfen" can ask the server about this recipient first: a transfer to somebody
+ * typed into the form, in this community. `user` knows the members of this community only -- for
+ * another one the question stays with "Jetzt senden".
+ *
+ * ⚠️ Not on /send/<community>/<user>: there the form has asked already, and its recipient is empty
+ * until the answer has come.
+ */
+const canAskFirst = ({ selected, targetCommunity }) =>
+  selected === SEND_TYPES.send && targetCommunity?.foreign !== true && !route.params.userIdentifier
+
+/** Nobody has that account: the step that says so, and what can be done about it. */
+function showRecipientNotFound() {
+  // The list the switch in the form asked for, as it stands in the cache: no second list.
+  const communities = apolloClient.readQuery({ query: reachableCommunities })?.reachableCommunities
+  canChooseCommunity.value = (communities?.length ?? 0) > 1
+  currentTransactionStep.value = TRANSACTION_STEPS.recipientNotFound
+}
+
+/**
+ * "Jetzt prüfen" for a member of this community (ZE-037): found, and the check view names them by
+ * their user name (NU-018: never the real name); not found, and the step for that. Anything else
+ * that goes wrong is said as it is, and the form stays. ⛔ Never "no account" because the network
+ * was gone (isUserNotFoundAnswer).
+ *
+ * Asked anew at every press and kept nowhere (`no-cache`): an address without an account a minute
+ * ago may have one now, and what was typed has no place in Apollo's cache.
+ *
+ * ⛔ What was pressed goes over to the page only with the answer. Where an error leaves the form
+ * standing, `transactionData` is still what its "Zurücksetzen" goes back to.
+ *
+ * ⛔ The answer counts on the address it was asked on: a contact tapped in the meantime names
+ * another recipient, and this answer must not take that one's form away. A line that gives no answer
+ * (RECIPIENT_CHECK_MAX_MS) must not hold the form either: it is the whole of the member's work.
+ */
+async function checkRecipient(pressed) {
+  checkingRecipient.value = true
+  const askedOn = route.fullPath
+  let giveUp
+  const tooLate = new Promise((_resolve, reject) => {
+    giveUp = setTimeout(
+      () => reject(new Error(t('form.recipient-not-found.no-answer'))),
+      RECIPIENT_CHECK_MAX_MS,
+    )
+  })
+  try {
+    const { data } = await Promise.race([
+      apolloClient.query({
+        query: userQuery,
+        variables: {
+          identifier: pressed.identifier,
+          communityIdentifier: pressed.targetCommunity.uuid,
+        },
+        fetchPolicy: 'no-cache',
+        // A press after RECIPIENT_CHECK_MAX_MS has to ask anew: Apollo would hang it on the request
+        // that is still open, and that one gives no answer.
+        context: { queryDeduplication: false },
+      }),
+      tooLate,
+    ])
+    if (route.fullPath !== askedOn) return
+    Object.assign(transactionData, pressed, {
+      userName: memberAlias(data.user.alias, data.user.gradidoID),
+    })
+    currentTransactionStep.value = TRANSACTION_STEPS.transactionConfirmationSend
+  } catch (err) {
+    if (route.fullPath !== askedOn) return
+    if (isUserNotFoundAnswer(err)) {
+      Object.assign(transactionData, pressed, { userName: '' })
+      showRecipientNotFound()
+    } else {
+      toastError(err.message)
+    }
+  } finally {
+    clearTimeout(giveUp)
+    checkingRecipient.value = false
+  }
+}
+
+async function setTransaction(data) {
   // console.log('Send.vue: setTransaction', data)
+  // One question for one press: Enter beside a tap, or a second tap while the answer is on its way.
+  if (checkingRecipient.value) return
+  if (canAskFirst(data)) {
+    await checkRecipient(data)
+    return
+  }
   Object.assign(transactionData, data)
   switch (data.selected) {
     case SEND_TYPES.send:
@@ -270,13 +431,19 @@ async function sendTransaction() {
         currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
         return
       }
-      // Without a picture the mutation carries neither of the two arguments.
+      // Without a picture the mutation carries neither of the two arguments -- and without a
+      // thank-you passed on to a member of this community, no `passOnOf` either.
+      const passingOn =
+        passOnOf.value && transactionData.targetCommunity?.foreign !== true
+          ? { passOnOf: passOnOf.value }
+          : {}
       await sendCoinsMutation({
         recipientCommunityIdentifier: transactionData.targetCommunity.uuid,
         recipientIdentifier: transactionData.identifier,
         amount: transactionData.amount.toString(),
         memo: transactionData.memo,
         ...withPicture,
+        ...passingOn,
       })
 
       error.value = false
@@ -318,9 +485,17 @@ async function sendTransaction() {
     }
   } catch (err) {
     if (transactionData.selected === SEND_TYPES.send) {
-      errorResult.value = err.message
-      error.value = true
-      currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError
+      // Nobody has that account after all -- in another community, whose answer comes only now, or
+      // here, where the account is gone since "Jetzt prüfen": the same step, not the dead end.
+      // ⚠️ With a recipient to show: on /send/<community>/<user> it stays empty where the form's
+      // own question found nobody.
+      if (isRecipientNotFoundError(err.message) && transactionData.identifier) {
+        showRecipientNotFound()
+      } else {
+        errorResult.value = err.message
+        error.value = true
+        currentTransactionStep.value = TRANSACTION_STEPS.transactionResultSendError
+      }
     } else if (transactionData.selected === SEND_TYPES.email) {
       errorResult.value = err.message
       error.value = true
@@ -334,7 +509,92 @@ async function sendTransaction() {
   }
 }
 
-function onBack() {
+/**
+ * "Dank per E-Mail schicken": the link is made out of what stands in the form, without another
+ * form in between -- as a thank-you greeting where a picture was chosen, as a plain link where
+ * none was. The mail itself is the member's own, from the view this leads to.
+ *
+ * With a photo it is the chain of the greeting's page (pages/ThankYouGreeting.vue says why):
+ * both renditions, the link with the small one, the large one in a request of its own, which may
+ * fail without a word. A photo that cannot be made small enough makes nothing.
+ *
+ * ⛔ What is made is what stands at this press: taken before anything waits, and let go only when
+ * the link is there. `pictureToSend` and not `picture`: a picture chosen before the member named
+ * another community is no part of this any more, the form has said so.
+ */
+async function sendByEmail() {
+  // One link for one press.
+  if (loading.value) return
+  const { amount: linkAmount, memo: linkMemo, identifier: address } = transactionData
+  const chosen = pictureToSend.value
+  // A link holds a little more than its amount: the server would refuse this in its own words.
+  // The amount is changed in the form, so that is where this leads back to.
+  const amountMax = linkAmountMax(props.balance)
+  if (linkAmount > amountMax) {
+    toastError(t('form.validation.amount.max', { max: amountMax }))
+    currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+    return
+  }
+  loading.value = true
+  try {
+    const pictures = chosen?.photo
+      ? await encodeThankYouPictures(chosen.photo.source, chosen.photo.edit)
+      : null
+    // A greeting needs a picture: without one this is a plain link. Its name stays empty, an
+    // address says nothing about one, and on the card it would stand printed.
+    const greeting = chosen && {
+      ...(pictures ? { picture: thankYouPictureInput(pictures.small) } : { motif: chosen.motif }),
+      line: lineFromMemo(linkMemo),
+      recipientName: null,
+    }
+    const result = await createTransactionLinkMutation({
+      amount: linkAmount.toString(),
+      memo: linkMemo,
+      ...(greeting ? { greeting } : {}),
+    })
+    const made = result.data.createTransactionLink
+    // The member's own photo, for their list of links: not asked for again a moment later.
+    if (pictures) rememberGreetingPicture(made.id, pictures.small.data)
+    if (pictures?.large) {
+      try {
+        await addGreetingPictureMutation({
+          linkId: made.id,
+          picture: thankYouPictureInput(pictures.large),
+        })
+      } catch {
+        // The greeting stands without it.
+      }
+    }
+    madeForEmail.value = { ...made, picture: chosen?.photo?.preview ?? null }
+    emailAddress.value = address
+    forgetEntries()
+    updateTransactions({})
+    currentTransactionStep.value = TRANSACTION_STEPS.sendByEmailReady
+  } catch (err) {
+    if (err?.name === 'ChatImageError') {
+      toastError(chatImageProblemWords(err.problem, t))
+      currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+    } else if (chatImageRefusal(err) === 'IMAGE_NOT_ACCEPTED') {
+      toastError(t('chatThread.imageNotAccepted'))
+    } else {
+      toastError(err.message)
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+async function onBack() {
+  // `?art` is the command that opened the form, and the member has chosen another tab since. The form
+  // is built anew now and would obey it again: "Adresse ändern" would lead to the link tab, which has
+  // no address field. So it leaves the address first. (Here and not at the tab: a change of address
+  // brings the window to the top of the page, and a member choosing a tab stands further down.)
+  if (route.query.art && route.query.art !== transactionData.selected) {
+    const { art: _answered, ...query } = route.query
+    await router.replace({ path: route.path, query, hash: route.hash })
+  }
+  emailAddress.value = ''
+  madeForEmail.value = null
   currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
 }
 

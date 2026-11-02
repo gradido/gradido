@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterAll, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
 
-const mockConfig = { GMS_ACTIVE: false, HUMHUB_ACTIVE: false }
+const mockConfig = { HUMHUB_ACTIVE: false }
 vi.mock('@/config', () => ({
   default: new Proxy({}, { get: (_target, key) => mockConfig[key] }),
 }))
@@ -83,18 +83,18 @@ describe('the settings menu', () => {
   })
 
   /**
-   * ⛔ Not merely hidden: without GMS or HumHub the route is not registered either, so the
-   * page cannot be reached by typing the address. Entry and route have to agree.
+   * ⛔ Not merely hidden: without HumHub the route is not registered either, so the page
+   * cannot be reached by typing the address. Entry and route have to agree.
    */
-  it('leaves out the circles while neither service is switched on', async () => {
+  it('leaves out the circles while HumHub is switched off', async () => {
     const wrapper = await mountMenu()
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(false)
   })
 
-  it('shows the circles where one of them is', async () => {
-    mockConfig.GMS_LEGACY_ACTIVE = true
+  it('shows the circles where HumHub is switched on', async () => {
+    mockConfig.HUMHUB_ACTIVE = true
     const wrapper = await mountMenu()
-    mockConfig.GMS_LEGACY_ACTIVE = false
+    mockConfig.HUMHUB_ACTIVE = false
 
     expect(wrapper.find('[data-test="settings-menu-communities"]').exists()).toBe(true)
   })
@@ -253,10 +253,7 @@ describe('the settings menu', () => {
       expect(wrapper.find('[data-test="settings-state-thank-you-card"]').exists()).toBe(false)
     })
 
-    /**
-     * ⚠️ No state on the circles: TWO switches sit behind that entry (GMS and HumHub), and
-     * one word cannot say what two switches stand at.
-     */
+    // ⚠️ No state beside an entry that is a page of its own rather than one switch.
     it('says nothing beside the entries that have no single state', async () => {
       const wrapper = await mountMenu()
 

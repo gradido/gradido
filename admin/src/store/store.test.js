@@ -144,7 +144,9 @@ describe('Pinia Store', () => {
 
       expect(localStorageMock.clear).not.toHaveBeenCalled()
       // Exactly two removals: the admin's own blob, and the token both apps keep -- signing
-      // out here signs the wallet out as well (utils/authToken.ts). Naming the theme key alone
+      // out here signs the wallet out as well (utils/authToken.ts). Not the last searches of the
+      // user search and the creation page either, which wait for the moderator without end
+      // (utils/lastSearch.ts, Bernd, 26.10.2026). Naming the theme key alone
       // would still pass if the logout started removing some other key the wallet owns;
       // counting closes that off without having to list every key there is.
       expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2)

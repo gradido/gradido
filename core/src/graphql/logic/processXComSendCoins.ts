@@ -14,13 +14,12 @@ import {
   UserLoggingView,
 } from 'database'
 // import { LogError } from '@server/LogError'
-import { getLogger } from 'log4js'
+import { getLogger, Logger } from 'log4js'
 import {
   CommandJwtPayloadType,
   encryptAndSign,
   GradidoUnit,
   PendingTransactionState,
-  publicAlias,
   SendCoinsJwtPayloadType,
   SendCoinsResponseJwtPayloadType,
   verifyAndDecrypt,
@@ -49,6 +48,31 @@ import { storeLinkAsRedeemed } from './storeLinkAsRedeemed'
 
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.logic.processXComSendCoins.${method}`)
+
+// The receiver holds a pending transaction and this side none yet, so it is taken back there:
+// FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS further tries after the first. The send ends either
+// way -- with `reason` once the receiver let go, and saying so when it never did.
+const revertReceiverPendingTransaction = async (
+  client: V1_0_SendCoinsClient,
+  args: EncryptedTransferArgs,
+  reason: string,
+  methodLogger: Logger,
+): Promise<never> => {
+  let revertCount = 0
+  methodLogger.debug('first try to revertSendCoins of receiver')
+  do {
+    if (await client.revertSendCoins(args)) {
+      methodLogger.debug(`revertSendCoins()-1_0... successfull after revertCount=${revertCount}`)
+      // treat revertingSendCoins as an error of the whole sendCoins-process
+      methodLogger.error(reason)
+      throw new Error(reason)
+    }
+  } while (CONFIG_CORE.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS > revertCount++)
+  const errmsg =
+    `Error in reverting receiver pending transaction even after revertCount=${revertCount}` + reason
+  methodLogger.error(errmsg)
+  throw new Error(errmsg)
+}
 
 export async function processXComCompleteTransaction(
   senderCommunityUuid: string,
@@ -193,7 +217,7 @@ export async function processXComCompleteTransaction(
           lastName: senderUser.lastName,
           email: senderUser.emailContact.email,
           language: senderUser.language,
-          senderAlias: publicAlias(foreignUser.alias, foreignUser.gradidoID),
+          senderAlias: foreignUser.alias,
           senderCommunity: recipientCom.name!,
           // The pair of whoever accepted, for the mail's button into the conversation with
           // them: the id the other server answered with, as the foreign user was just stored
@@ -325,6 +349,19 @@ export async function processXComPendingSendCoins(
           throw new Error('Error in X-Com-TX protocol...')
         }
         if (voteResult && voteResult.vote) {
+          // Once the coins have moved, the recipient is filed here as a foreign user, and that
+          // row cannot be written without an alias (storeForeignUser; `users.alias` is NOT
+          // NULL). An answer without one is refused now, while only the receiver's pending
+          // transaction stands and can be taken back -- not after the settle, which would
+          // leave a booking on both sides and no row for whom it went to.
+          if (!voteResult.recipAlias) {
+            await revertReceiverPendingTransaction(
+              client,
+              args,
+              `voteForSendCoins-response of community with publicKey ${receiverCom.publicKey.toString('hex')} names no alias for the recipient`,
+              methodLogger,
+            )
+          }
           methodLogger.debug('prepare pendingTransaction for sender...')
           // writing the pending transaction on receiver-side was successfull, so now write the sender side
           try {
@@ -340,13 +377,7 @@ export async function processXComPendingSendCoins(
             if (voteResult.recipGradidoID) {
               pendingTx.linkedUserGradidoID = voteResult.recipGradidoID
             }
-            if (voteResult.recipAlias) {
-              //voteResult.recipFirstName && voteResult.recipLastName) {
-              pendingTx.linkedUserName = voteResult.recipAlias // fullName(
-              // voteResult.recipFirstName,
-              // voteResult.recipLastName,
-              // )
-            }
+            pendingTx.linkedUserName = voteResult.recipAlias
             pendingTx.memo = memo
             pendingTx.previous = senderBalance ? senderBalance.lastTransactionId : null
             pendingTx.state = PendingTransactionState.NEW
@@ -367,28 +398,10 @@ export async function processXComPendingSendCoins(
             await DbPendingTransaction.insert(pendingTx)
             methodLogger.debug('sender pendingTx successfully inserted...')
           } catch (err) {
-            methodLogger.error(
-              `Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`,
-            )
-            // revert the existing pending transaction on receiver side
-            let revertCount = 0
-            methodLogger.debug('first try to revertSendCoins of receiver')
-            do {
-              if (await client.revertSendCoins(args)) {
-                methodLogger.debug(
-                  `revertSendCoins()-1_0... successfull after revertCount=${revertCount}`,
-                )
-                // treat revertingSendCoins as an error of the whole sendCoins-process
-                const errmsg = `Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`
-                methodLogger.error(errmsg)
-                throw new Error(errmsg)
-              }
-            } while (CONFIG_CORE.FEDERATION_XCOM_MAXREPEAT_REVERTSENDCOINS > revertCount++)
-            const errmsg =
-              `Error in reverting receiver pending transaction even after revertCount=${revertCount}` +
-              JSON.stringify(err, null, 2)
+            const errmsg = `Error in writing sender pending transaction: ${JSON.stringify(err, null, 2)}`
             methodLogger.error(errmsg)
-            throw new Error(errmsg)
+            // revert the existing pending transaction on receiver side
+            await revertReceiverPendingTransaction(client, args, errmsg, methodLogger)
           }
           methodLogger.debug('voteForSendCoins()-1_0... successfull')
           return voteResult

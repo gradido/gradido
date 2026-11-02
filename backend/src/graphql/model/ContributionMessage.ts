@@ -2,8 +2,6 @@ import { ContributionMessage as DbContributionMessage } from 'database'
 import { avatarColorIndex } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 
-import { PublishNameLogic } from '@/data/PublishName.logic'
-
 @ObjectType()
 export class ContributionMessage {
   constructor(dbContributionMessage: DbContributionMessage) {
@@ -13,7 +11,9 @@ export class ContributionMessage {
     this.createdAt = dbContributionMessage.createdAt
     this.updatedAt = dbContributionMessage.updatedAt
     this.type = dbContributionMessage.type
-    this.userAlias = user ? new PublishNameLogic(user).getPublicAlias() : null
+    // `user` is a relation and not always loaded (adminListContributions asks for the
+    // messages without their writers), like the lines below.
+    this.userAlias = user?.alias ?? null
     this.userAvatarColorIndex = user ? avatarColorIndex(user.firstName, user.lastName) : null
     this.userId = user?.id ?? null
     // The pair that names a member everywhere else in the wallet, so the thread can ask for

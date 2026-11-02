@@ -16,6 +16,7 @@ vi.mock('vue-i18n', () => ({
           ? `${key} ${JSON.stringify(values)}`
           : key,
     d: (date, format) => `${format}(${date.toISOString()})`,
+    n: (value) => `n(${value})`,
   }),
 }))
 
@@ -46,6 +47,25 @@ const mountRow = (group = {}) =>
       },
     },
   })
+
+// The rules of a component's style block, by selector, with the comments taken out.
+const rulesOf = (file) => {
+  const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+    .split('<style')[1]
+    .replace(/^[^>]*>/, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+  const rules = new Map()
+  for (const [, selectors, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const declarations = Object.fromEntries(
+      body
+        .split(';')
+        .map((part) => part.split(':').map((half) => half.trim().replace(/\s+/g, ' ')))
+        .filter(([name]) => name),
+    )
+    for (const selector of selectors.split(',')) rules.set(selector.trim(), declarations)
+  }
+  return rules
+}
 
 describe('ChatGroupRow', () => {
   it('shows the name, the community and how many and how recently', () => {
@@ -98,6 +118,12 @@ describe('ChatGroupRow', () => {
       const row = mountRow({ unreadMessages: 1, mutedByMe: true })
       expect(row.find('[data-test="chat-unread-contact-dot"]').exists()).toBe(true)
     })
+
+    // Beside the last line, the latest message (E-085): the rule below says where.
+    it('carries the rule that sets it beside the last line', () => {
+      const dot = mountRow({ unreadMessages: 3 }).find('[data-test="chat-unread-contact-dot"]')
+      expect(dot.classes()).toContain('chat-group-row-dot')
+    })
   })
 
   describe('the crossed bell', () => {
@@ -126,22 +152,6 @@ describe('ChatGroupRow', () => {
    * the two files together -- a heart of another size moves every contact's dot.
    */
   describe("the heart's room", () => {
-    const rulesOf = (file) => {
-      const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
-        .split('<style')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-      const rules = new Map()
-      for (const [, selectors, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-        const declarations = Object.fromEntries(
-          body
-            .split(';')
-            .map((part) => part.split(':').map((half) => half.trim().replace(/\s+/g, ' ')))
-            .filter(([name]) => name),
-        )
-        for (const selector of selectors.split(',')) rules.set(selector.trim(), declarations)
-      }
-      return rules
-    }
     const heart = rulesOf('../FavoriteHeart.vue').get('.favorite-heart-icon')
     const row = rulesOf('ChatGroupRow.vue')
 
@@ -162,6 +172,92 @@ describe('ChatGroupRow', () => {
       })
       const mark = mountRow({ mutedByMe: true }).find('[data-test="chat-group-muted"]')
       expect(mark.find('.chat-group-row-muted-icon').exists()).toBe(true)
+    })
+  })
+
+  /**
+   * ⛔ The dot beside the last line, the latest message (E-085): at the foot of the text, raised
+   * by half of what a line of small text leaves around it. The two rows share the rule, so the
+   * dots of the two lists stand at one height, and the 9 px in it is the dot's own size.
+   */
+  describe('the dot beside the last line', () => {
+    const dot = rulesOf('ChatGroupRow.vue').get('.chat-group-row-dot')
+
+    it('stands at the foot of the text, raised to the middle of a line of small text', () => {
+      expect(dot).toEqual({
+        'align-self': 'flex-end',
+        'margin-bottom': 'calc((1.2em - 9px) / 2)',
+      })
+    })
+
+    it("is the contact row's rule", () => {
+      const contact = rulesOf('../Contacts/ContactRow.vue').get('.contact-row-dot')
+      expect(contact).toBeDefined()
+      expect(contact).toEqual(dot)
+    })
+
+    it("reckons with the dot's own size", () => {
+      expect(rulesOf('../Chat/ChatUnreadDot.vue').get('.chat-unread-contact-dot')).toMatchObject({
+        width: '9px',
+        height: '9px',
+      })
+    })
+  })
+
+  /**
+   * The line of the latest message (E-083): who wrote it and the beginning of its words, instead
+   * of the community's line -- a group is named a community only where it is the member's own
+   * (chatGroupsOf) --, and always the last line of the row, as in the contact row (E-085).
+   */
+  describe('the line of the latest message', () => {
+    const FROM_ELFI = {
+      mine: false,
+      excerpt: 'Morgen um zehn im Garten?',
+      hasImage: false,
+      amount: null,
+      senderUser: { communityUuid: 'home', gradidoID: 'elfi-id', alias: 'Elfi' },
+    }
+    const lineOf = (row) => row.find('[data-test="chat-preview-line"]')
+
+    it("stands instead of the community's line, with who wrote it", () => {
+      const row = mountRow({ chatPreview: FROM_ELFI })
+      expect(row.find('[data-test="chat-group-community"]').exists()).toBe(false)
+      expect(lineOf(row).text()).toBe('chatPreview.by {"name":"Elfi"} Morgen um zehn im Garten?')
+    })
+
+    it('stands last, under how many and how recently', () => {
+      const row = mountRow({ chatPreview: FROM_ELFI })
+      const text = row.find('[data-test="chat-group-row-open"]').text()
+      expect(text.indexOf('Gradido-Café Berlin')).toBeLessThan(
+        text.indexOf('chatGroup.memberCount:5'),
+      )
+      expect(text.indexOf('chatGroup.memberCount:5')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect([...row.find('.chat-group-row-text').element.children].at(-1)).toBe(
+        lineOf(row).element,
+      )
+    })
+
+    it('leaves the community where the group has no message yet', () => {
+      const row = mountRow({ chatPreview: null, lastMessageAt: null })
+      expect(lineOf(row).exists()).toBe(false)
+      expect(row.find('[data-test="chat-group-community"]').text()).toBe('KI Playground')
+    })
+
+    it("is dark while something waits unread, and not for one's own message", () => {
+      expect(lineOf(mountRow({ chatPreview: FROM_ELFI, unreadMessages: 3 })).classes()).toContain(
+        'fw-semibold',
+      )
+      expect(
+        lineOf(mountRow({ chatPreview: FROM_ELFI, unreadMessages: 0 })).classes(),
+      ).not.toContain('fw-semibold')
+      expect(
+        lineOf(
+          mountRow({
+            chatPreview: { ...FROM_ELFI, mine: true, senderUser: null },
+            unreadMessages: 3,
+          }),
+        ).classes(),
+      ).not.toContain('fw-semibold')
     })
   })
 })

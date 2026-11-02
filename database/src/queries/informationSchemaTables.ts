@@ -37,7 +37,7 @@ export async function dbDeleteAllRowsExceptMigrations(): Promise<void> {
  * 1 again, in one round trip. For the seed, which wants the same ids on every run.
  *
  * TRUNCATE costs per table, empty or not (see dbDeleteAllRowsExceptMigrations), so it runs only
- * where the counter has moved: a table with `auto_increment` at 1 never held a row. Seven tables
+ * where the counter has moved: a table with `auto_increment` at 1 never held a row. Some tables
  * have no counter (`auto_increment` is NULL) and so nothing that shows whether they held rows or
  * needs a reset - they get the DELETE, which costs next to nothing when empty.
  *

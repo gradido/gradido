@@ -382,6 +382,43 @@ export const sendTransactionLinkRedeemedEmail = (
 }
 
 /**
+ * The mail to whoever sent a transfer -- the giver of the thank-you -- when its recipient
+ * reacted to it with an emoji for the FIRST time (W1, the first wave back: "Dein Dank ist
+ * angekommen"). The "recipient" of this mail's fields is the person who reacted: the mail is
+ * about them, and goes to the giver. Alias and community, never a real name: this mail is
+ * read by a third party to them.
+ *
+ * `emoji` stands in the sentence and nowhere else -- never in the subject, which mail clients
+ * garble with an emoji in it. `transactionAmount` and `transactionMemo` say which thank-you is
+ * meant; no value in another currency beside it (the thank-you register, Wellen § 4).
+ *
+ * `recipientUuid` and `recipientCommunityUuid` name the recipient as the contact page does.
+ * With both, the mail has a button into the conversation with them; without either it has
+ * none (the template decides, as in the mail about an accepted link above).
+ */
+export const sendTransactionReactionReceivedEmail = (
+  data: EmailCommonData & {
+    recipientAlias: string
+    recipientCommunity: string
+    emoji: string
+    transactionAmount: GradidoUnit
+    transactionMemo: string
+    recipientUuid?: string | null
+    recipientCommunityUuid?: string | null
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'transactionReactionReceived',
+    locals: {
+      ...data,
+      transactionAmount: decimalSeparatorByLanguage(data.transactionAmount, data.language),
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
+/**
  * The uuids are what makes a reply possible, so they decide whether the template shows
  * the reply button - the sender's e-mail address no longer appears in this mail at all.
  *

@@ -16,6 +16,11 @@
   border-bottom: 1px solid rgb(0 0 0 / 7.5%);
 }
 
+/* The dark mode (App.css): the line in the bridge's faint white. */
+:root[data-bs-theme='dark'] .chatServerRow {
+  border-bottom-color: var(--bs-border-color-translucent);
+}
+
 .chatServerWhat {
   flex: 2 1 16rem;
   min-width: 0;

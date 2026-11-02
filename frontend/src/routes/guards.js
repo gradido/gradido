@@ -153,9 +153,10 @@ const addNavigationGuards = (router, store, apollo) => {
     return to.name === 'Login' ? next({ path: '/overview' }) : next()
   })
 
-  // ⭐ The event link, `/event?interest=…` (Event-Matching, utils/eventMatchingLink): a host
-  // hands it to the people of a congress, and it offers whoever opens it one entry for the
-  // matching -- "I love ‹interest›". What becomes of it depends on who opens it:
+  // ⭐ The link of project matching, `/project?interest=…` or `/event?…`, the address of the
+  // first ones (utils/eventMatchingLink): a host hands it to the people of a project, and it
+  // offers whoever opens it one entry for the matching -- "I love ‹interest›". What becomes of
+  // it depends on who opens it:
   //
   // - No sentence in it: no event link. On to the sign-in page, without a word.
   // - A session runs: on to the member's entries at once, where the entry is made without a

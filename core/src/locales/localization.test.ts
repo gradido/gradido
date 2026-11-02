@@ -135,20 +135,16 @@ describe('translateForLocale', () => {
 })
 
 /**
- * What a messenger is shown of a redeem link (backend, server/redeemPreview.ts): four titles
+ * What a messenger is shown of a redeem link (backend, server/redeemPreview.ts): two titles
  * and the line under them. The backend writes them into a document in the sender's language
  * and escapes them there; a catalog without one of them would hand out the English phrase
  * under its own language.
  */
 describe('the phrases of the preview of a redeem link', () => {
   const namingTheSender = ['redeemPreview.greetingTitle', 'redeemPreview.linkTitle']
-  const namingNobody = [
-    'redeemPreview.description',
-    'redeemPreview.greetingTitleWithoutName',
-    'redeemPreview.linkTitleWithoutName',
-  ]
+  const namingNobody = ['redeemPreview.description']
 
-  it('are these five in each of the ten catalogs, in words of its own', () => {
+  it('are these three in each of the ten catalogs, in words of its own', () => {
     for (const locale of locales) {
       const own = Object.keys(catalogOf(locale)).filter((key) => key.startsWith('redeemPreview.'))
       expect({ locale, own: own.sort() }).toEqual({

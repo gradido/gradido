@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { sendTransactionReceivedEmail } from 'core'
+import { sendTransactionReactionReceivedEmail, sendTransactionReceivedEmail } from 'core'
 import {
   AppDatabase,
   Transaction as DbTransaction,
@@ -12,6 +12,7 @@ import {
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { gql } from 'graphql-tag'
+import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
@@ -21,7 +22,9 @@ import {
   createTransactionLink,
   login,
   redeemTransactionLink,
+  sendChatMessage,
   sendCoins,
+  setChatConversationMuted,
   setTransactionReaction,
 } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -37,7 +40,10 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
  * in TransactionReactionResolver.setTransactionReaction.test.ts, where each answer of the
  * database can be brought about.
  */
-// The mails are watched, to see that a reaction sends none. Nothing is sent either way.
+// The mails are watched, not sent: the ones about a transfer, which a reaction must not send
+// again, and the one about a first reaction (W1), which it does -- answered as a mail that went
+// out, as the transport would. The chat's mail is watched too: a test opens a conversation to
+// mute it. Nothing is sent either way.
 jest.mock('core', () => {
   const original = jest.requireActual('core')
   return {
@@ -45,12 +51,17 @@ jest.mock('core', () => {
     ...original,
     sendTransactionLinkRedeemedEmail: jest.fn(async () => null),
     sendTransactionReceivedEmail: jest.fn(async () => null),
+    sendTransactionReactionReceivedEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+    sendCustomEmail: jest.fn(async () => null),
   }
 })
 
 CONFIG.DLT_ACTIVE = false
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
+const mailLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.transactionReactionMail`,
+)
 
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
@@ -68,6 +79,11 @@ const BREAD = 'Für das Brot'
 const JAM = 'Für die Marmelade'
 const TO_BOB = 'Für den Zaun'
 const BACK = 'Und zurück'
+// Four more from Bibi to Peter, for the mail about a first reaction (W1).
+const CAKE = 'Für den Kuchen'
+const FLOWERS = 'Für die Blumen'
+const TEA = 'Für den Tee'
+const WINE = 'Für den Wein'
 const GREETING = 'Einfach so — weil es Dich gibt.\nLieber Peter, danke!'
 const ELSEWHERE = '99999999-9999-4999-8999-999999999999'
 const SARAH = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
@@ -146,6 +162,22 @@ const reactionRowsOf = (transactionId: number) =>
     .select()
     .from(transactionReactionsTable)
     .where(eq(transactionReactionsTable.transactionId, transactionId))
+
+/** The mails about a first reaction handed to core since the last clear, one entry a mail. */
+const mailed = () =>
+  (sendTransactionReactionReceivedEmail as jest.Mock).mock.calls.map(([data]) => data)
+const clearMails = () => (sendTransactionReactionReceivedEmail as jest.Mock).mockClear()
+
+/** Bibi mutes the conversation with Peter, or lifts it. */
+const bibiMutesPeter = async (muted: boolean) => {
+  await loginAs('bibi@bloxberg.de')
+  const result = await mutate({
+    mutation: setChatConversationMuted,
+    variables: { ref: { communityUuid: peter.communityUuid, gradidoID: peter.gradidoID }, muted },
+  })
+  expect(result.errors).toBeUndefined()
+  expect(result.data.setChatConversationMuted).toBe(true)
+}
 
 // Peter's rows and Bibi's, read once the transfers are booked.
 let peters: { bread: Booking; jam: Booking; greeting: Booking; sarah: Booking; lotte: Booking }
@@ -303,7 +335,7 @@ describe('the recipient reacts', () => {
   })
 
   // The mail of a transfer is the one a reaction could be mistaken for: it is not sent again.
-  // (That the resolver sends none at all is plain from what it imports.)
+  // The mail a first reaction does send (W1) is held in the block below.
   it('sends no mail of a transfer again, and writes no error', () => {
     expect(sendTransactionReceivedEmail).not.toHaveBeenCalled()
     expect(logErrorLogger.error).not.toHaveBeenCalled()
@@ -352,6 +384,156 @@ describe('the recipient reacts', () => {
     expect(rowOf(await listOf('peter@lustig.de'), 'SEND', BACK).reaction).toBe(HEART)
     // And the transfers the other way keep their own.
     expect(rowOf(await listOf('peter@lustig.de'), 'RECEIVE', BREAD).reaction).toBe(SEEDLING)
+  })
+})
+
+/**
+ * W1, the first wave back: the first reaction to a transfer mails whoever sent it -- the giver of
+ * the thank-you -- that it arrived; another emoji in its place and a reaction taken back stay
+ * silent; a giver who muted the conversation with the recipient gets nothing (E-024); taken back
+ * and set anew mails again. Measured at what the mail function is handed, with a database.
+ */
+describe('the giver is mailed about the first reaction', () => {
+  // The jam stands without a reaction afterwards, as the blocks below expect it.
+  afterAll(async () => {
+    await loginAs('peter@lustig.de')
+    await reacted(peters.jam.id, null)
+    clearMails()
+  })
+
+  // Of everything above: three transfers got their first reaction, one of them after another
+  // emoji had replaced the first -- and nothing else went out.
+  it('mailed the first reaction to each of three transfers above, and nothing else', () => {
+    expect(mailed().map((mail) => [mail.email, mail.transactionMemo, mail.emoji])).toEqual([
+      ['bibi@bloxberg.de', BREAD, HEART],
+      ['bibi@bloxberg.de', GREETING, THUMB],
+      ['peter@lustig.de', BACK, HEART],
+    ])
+  })
+
+  it('mails the giver once, with the recipient’s alias and community, the emoji, the amount, the memo and the way into the conversation', async () => {
+    clearMails()
+    await loginAs('peter@lustig.de')
+
+    expect(await reacted(peters.jam.id, HEART)).toBe(HEART)
+
+    expect(mailed()).toEqual([
+      {
+        firstName: 'Bibi',
+        lastName: 'Bloxberg',
+        email: 'bibi@bloxberg.de',
+        language: 'de',
+        recipientAlias: 'PeterL',
+        recipientCommunity: CONFIG.COMMUNITY_NAME,
+        emoji: HEART,
+        transactionAmount: GradidoUnit.fromNumber(5),
+        transactionMemo: JAM,
+        recipientUuid: peter.gradidoID,
+        recipientCommunityUuid: peter.communityUuid,
+      },
+    ])
+    expect(mailLogger.info).toHaveBeenCalledWith(
+      `transaction reaction mail sent: transaction_id=${peters.jam.id}`,
+    )
+  })
+
+  it('mails nothing for another emoji in its place, nor for the reaction taken back', async () => {
+    clearMails()
+
+    expect(await reacted(peters.jam.id, SEEDLING)).toBe(SEEDLING)
+    expect(await reacted(peters.jam.id, null)).toBeNull()
+
+    expect(mailed()).toEqual([])
+    expect(await reactionRowsOf(peters.jam.id)).toEqual([])
+  })
+
+  // The row was gone in between: a first reaction once more (W1, decision 3).
+  it('mails again where the reaction was taken back and set anew', async () => {
+    clearMails()
+
+    expect(await reacted(peters.jam.id, THUMB)).toBe(THUMB)
+
+    expect(mailed().map((mail) => [mail.email, mail.transactionMemo, mail.emoji])).toEqual([
+      ['bibi@bloxberg.de', JAM, THUMB],
+    ])
+  })
+
+  it('mails nothing while the giver has the conversation with the recipient muted, and again once it is lifted', async () => {
+    // There is no conversation of the two yet: Bibi's first chat message opens it, then she
+    // mutes it, and sends two more thank-yous.
+    await loginAs('bibi@bloxberg.de')
+    const hello = await mutate({
+      mutation: sendChatMessage,
+      variables: {
+        ref: { communityUuid: peter.communityUuid, gradidoID: peter.gradidoID },
+        body: 'Hallo Peter!',
+        notify: 'NONE',
+      },
+    })
+    expect(hello.errors).toBeUndefined()
+    await bibiMutesPeter(true)
+    await send('peter@lustig.de', CAKE)
+    await send('peter@lustig.de', FLOWERS)
+    const cake = rowOf(await listOf('peter@lustig.de'), 'RECEIVE', CAKE)
+    const flowers = rowOf(await listOf('peter@lustig.de'), 'RECEIVE', FLOWERS)
+    clearMails()
+
+    expect(await reacted(cake.id, HEART)).toBe(HEART)
+
+    expect(mailed()).toEqual([])
+    expect(await reactionRowsOf(cake.id)).toHaveLength(1)
+    expect(mailLogger.info).toHaveBeenCalledWith(
+      `transaction reaction mail not sent: transaction_id=${cake.id} MUTED`,
+    )
+
+    await bibiMutesPeter(false)
+    await loginAs('peter@lustig.de')
+    expect(await reacted(flowers.id, HEART)).toBe(HEART)
+
+    expect(mailed().map((mail) => [mail.email, mail.transactionMemo])).toEqual([
+      ['bibi@bloxberg.de', FLOWERS],
+    ])
+  })
+
+  it('mails nothing where the giver has no address, and says so in the log', async () => {
+    await loginAs('bibi@bloxberg.de')
+    await send('peter@lustig.de', TEA)
+    const tea = rowOf(await listOf('peter@lustig.de'), 'RECEIVE', TEA)
+    // Bibi loses her address row for a moment -- nobody to mail.
+    await User.update({ id: bibi.id }, { emailId: null })
+    clearMails()
+
+    try {
+      expect(await reacted(tea.id, HEART)).toBe(HEART)
+
+      expect(mailed()).toEqual([])
+      expect(await reactionRowsOf(tea.id)).toHaveLength(1)
+      expect(mailLogger.info).toHaveBeenCalledWith(
+        `transaction reaction mail not sent: transaction_id=${tea.id} NO_ADDRESS`,
+      )
+    } finally {
+      await User.update({ id: bibi.id }, { emailId: bibi.emailId })
+    }
+  })
+
+  // ⛔ The reaction is stored before the mail, and the answer is the same whatever the mail did.
+  it('answers the emoji, with the reaction stored, where the mail throws', async () => {
+    await loginAs('bibi@bloxberg.de')
+    await send('peter@lustig.de', WINE)
+    const wine = rowOf(await listOf('peter@lustig.de'), 'RECEIVE', WINE)
+    clearMails()
+    ;(sendTransactionReactionReceivedEmail as jest.Mock).mockRejectedValueOnce(
+      new Error('smtp down'),
+    )
+
+    expect(await reacted(wine.id, HEART)).toBe(HEART)
+
+    expect(mailed()).toHaveLength(1)
+    expect(await reactionRowsOf(wine.id)).toMatchObject([{ transactionId: wine.id, emoji: HEART }])
+    expect(mailLogger.error).toHaveBeenCalledWith(
+      `transaction reaction mail failed: transaction_id=${wine.id} (Error)`,
+    )
+    expect(logErrorLogger.error).not.toHaveBeenCalled()
   })
 })
 

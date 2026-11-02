@@ -36,6 +36,14 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
+
 // The calendar of the reminder, reduced to what the form reads of it: its v-model.
 vi.mock('vue3-datepicker', () => ({
   default: {
@@ -100,6 +108,7 @@ describe('ContributionMessagesFormular', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    viewport.value = 'unknown'
     mockMutate.mockResolvedValue({})
     useCreaClipboard().setLastResponse('')
     useCreaSupplement().setLastSupplement('')
@@ -368,5 +377,30 @@ describe('ContributionMessagesFormular', () => {
     useCreaSupplement().setLastSupplement('a note')
     await nextTick()
     expect(append().exists()).toBe(true)
+  })
+
+  // Twelve rows would push the save button out of a short phone window.
+  it.each([
+    ['mobile', '6'],
+    ['desktop', '12'],
+    ['unknown', '12'],
+  ])('the text areas have six rows on a phone and twelve at the desk (%s)', async (side, rows) => {
+    viewport.value = side
+    wrapper = await mountForm()
+    for (const index of [0, 1, 2]) {
+      await openTab(index)
+      expect(textareas().map((area) => area.attributes('rows'))).toContain(rows)
+    }
+    expect(wrapper.findAll('textarea').every((area) => area.attributes('rows') === rows)).toBe(true)
+  })
+
+  // The day and the time of a reminder stand side by side where there is room and one under
+  // the other where there is not.
+  it('lets the day and the time of a reminder wrap', async () => {
+    wrapper = await mountForm()
+    await reminderBox().setValue(true)
+    const row = datepicker().element.parentElement
+    expect(row.classList).toContain('flex-wrap')
+    expect(row.classList).toContain('gap-2')
   })
 })

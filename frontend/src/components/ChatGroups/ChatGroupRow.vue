@@ -20,19 +20,30 @@
             {{ group.title }}
           </span>
           <!-- The community in a line of its own, as the contact row has it (E-026: in P5 the
-               group's and every member's). -->
+               group's and every member's) -- until the group has a latest message: its line
+               stands instead of this one (E-083). A group is named a community only where it is
+               the member's own (chatGroupsOf), and that is the name the line stands in for. -->
           <span
-            v-if="group.communityName"
+            v-if="group.communityName && !group.chatPreview"
             class="small text-muted d-block"
             data-test="chat-group-community"
           >
             {{ group.communityName }}
           </span>
           <span class="small text-muted d-block" data-test="chat-group-meta">{{ meta }}</span>
+          <!-- The beginning of the latest message and who wrote it (E-083) -- always the last
+               line, under how many and how recently, as in the contact row (E-085); dark while
+               one waits unread. -->
+          <chat-preview-line
+            v-if="group.chatPreview"
+            :preview="group.chatPreview"
+            :unread="group.unreadMessages > 0 && !group.chatPreview.mine"
+          />
         </span>
         <!-- What waits unread for the member -- also in a muted group: muting holds back the
-             mails, not the messages, and the mark in the menu counts it too (E-024). -->
-        <chat-unread-dot :count="group.unreadMessages" class="ms-2" />
+             mails, not the messages, and the mark in the menu counts it too (E-024). Beside the
+             last line, the latest message, as in the contact row (E-085). -->
+        <chat-unread-dot :count="group.unreadMessages" class="chat-group-row-dot ms-2" />
       </button>
     </BCol>
     <!-- Where a contact has its heart: the crossed bell of a group the member muted (E-024), a
@@ -57,13 +68,15 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BCol, BRow } from 'bootstrap-vue-next'
 import AppAvatar from '@/components/AppAvatar.vue'
+import ChatPreviewLine from '@/components/Chat/ChatPreviewLine.vue'
 import ChatUnreadDot from '@/components/Chat/ChatUnreadDot.vue'
 import { chatGroupAvatar, chatGroupMeta } from '@/components/ChatGroups/chatGroupDisplay'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 /**
  * One chat group (P5) in the list on "Kontakte & Chat": its square, its name, its community, how
- * many are in it and when the latest message came -- the gold dot while one waits unread, the
+ * many are in it and when the latest message came -- and last the beginning of that message, which
+ * then stands instead of the community (E-083, E-085) --, the gold dot while one waits unread, the
  * crossed bell where the member muted it.
  *
  * `group` is one of `chatGroupsQuery` (graphql/chatGroups.graphql). The row says which group was
@@ -111,6 +124,13 @@ const meta = computed(() => chatGroupMeta(props.group, { t, d }))
   display: block;
   flex: 1;
   min-width: 0;
+}
+
+/* The dot beside the last line, the latest message: the contact row's rule (ContactRow), so the
+   dots of the two lists stand at one height. */
+.chat-group-row-dot {
+  align-self: flex-end;
+  margin-bottom: calc((1.2em - 9px) / 2);
 }
 
 /* One line, however long the name (the server allows 100 characters): cut with an ellipsis, as

@@ -1,13 +1,21 @@
 import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { flushPromises, mount } from '@vue/test-utils'
 import { BPagination, BTabs, createBootstrap } from 'bootstrap-vue-next'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppToast } from '@/composables/useToast'
+import { CONFIG } from '@/config'
 import { useAdminStore } from '@/store/useAdminStore'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { adminStore } from '../../test/adminStore'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
+import { confirmContribution } from '../graphql/confirmContribution'
+import { denyContribution } from '../graphql/denyContribution'
 import { CreationConfirm } from './CreationConfirm'
 
 vi.mock('@vue/apollo-composable')
@@ -22,6 +30,14 @@ vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
 }))
 vi.mock('vue-i18n')
 vi.mock('@/composables/useToast')
+
+// Which side of the phone boundary the window is on, set per test. jsdom has no matchMedia, so
+// the real composable would answer `unknown` everywhere.
+const { viewport } = await vi.hoisted(async () => {
+  const { ref } = await import('vue')
+  return { viewport: ref('unknown') }
+})
+vi.mock('@/composables/useViewport', () => ({ useViewport: () => viewport }))
 
 const createAdminStore = () => adminStore({ openCreations: 0 })
 
@@ -48,7 +64,8 @@ const stubs = {
   UserQuery: true,
   BButton: true,
   OpenCreationsTable: true,
-  Overlay: true,
+  AiChat: true,
+  DecisionModal: true,
   CreaEvaluationModal: true,
   ThemedSelect: themedSelect,
   BModal: modal,
@@ -68,6 +85,7 @@ describe('CreationConfirm', () => {
   const mockD = vi.fn((date) => date.toISOString())
 
   beforeEach(() => {
+    viewport.value = 'unknown'
     store = createAdminStore()
     vi.spyOn(useAdminStore(store), 'setOpenCreations')
 
@@ -131,6 +149,47 @@ describe('CreationConfirm', () => {
     }
     await nextTick()
   }
+
+  // When a refetch is done, the composable hands the query's state out once more: no list while
+  // a later one is on its way, or the same list again (vue-apollo-composable, `refetch`).
+  describe('an answer handed out again after a refetch', () => {
+    const listOf = (ids) => ({
+      adminListContributions: {
+        contributionCount: ids.length,
+        contributionList: ids.map((id) => ({ id })),
+      },
+    })
+
+    it('takes one without a list for none: the rows stay as they are', async () => {
+      await simulateQueryResult(listOf([501, 502]))
+      const rows = table().props('items')
+      mockOnResultCallback({ loading: true, data: undefined })
+      await nextTick()
+      expect(table().props('items')).toBe(rows)
+    })
+
+    // The composable sets its `result` first and hands the answer out a tick later; another
+    // answer can come in between.
+    it('draws the rows from the answer it is handed, not from the result held beside it', async () => {
+      mockResult.value = listOf([601])
+      mockOnResultCallback({ data: listOf([501, 502]) })
+      await nextTick()
+      expect(
+        table()
+          .props('items')
+          .map((item) => item.id),
+      ).toEqual([501, 502])
+    })
+
+    it('takes the same list again for no new one: the rows stay as they are', async () => {
+      const list = listOf([501, 502])
+      await simulateQueryResult(list)
+      const rows = table().props('items')
+      mockOnResultCallback({ data: list })
+      await nextTick()
+      expect(table().props('items')).toBe(rows)
+    })
+  })
 
   it('initializes with correct default values', () => {
     expect(firstListQuery()).toEqual({
@@ -229,6 +288,15 @@ describe('CreationConfirm', () => {
         }),
       }),
     )
+  })
+
+  // Bernd, 25.10.2026: the search and the group's choice side by side, the choice without a
+  // word before it; each of its texts names the group, "(alle)" became "(mit und ohne Gruppe)".
+  it('sets the group beside the search, without a word before it', () => {
+    const row = wrapper.find('.creation-filters')
+    expect(row.findComponent({ name: 'UserQuery' }).exists()).toBe(true)
+    expect(row.findComponent({ name: 'ThemedSelect' }).exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('creationGroupFilter.label')
   })
 
   it('offers all, all groups and no group before the real groups', () => {
@@ -478,5 +546,616 @@ describe('CreationConfirm', () => {
 
     expect(bulkModal().props('modelValue')).toBe(false)
     expect(mockToastWarning).toHaveBeenCalled()
+  })
+
+  // A phone below the boundary where the tables stack, the desk above it. `unknown` -- no
+  // matchMedia -- has to behave as the desk.
+  describe('on a phone and at the desk', () => {
+    const fieldKeys = () =>
+      table()
+        .props('fields')
+        .map((field) => field.key)
+
+    // BTabs draws its tab buttons once its tabs have registered, a tick after mounting.
+    const mountAs = async (moderator) => {
+      wrapper = mount(CreationConfirm, {
+        global: {
+          plugins: [adminStore({ openCreations: 0, moderator }), createBootstrap()],
+          stubs,
+        },
+      })
+      await nextTick()
+    }
+
+    it('on a phone the table gets head, text and actions as its fields', async () => {
+      viewport.value = 'mobile'
+      await nextTick()
+      for (const name of TABS) {
+        await openTab(name)
+        expect(fieldKeys(), name).toEqual(['phoneHead', 'phoneMemo', 'phoneActions'])
+      }
+    })
+
+    // The columns of before, tab by tab, held so that the desk cannot change unnoticed: once for
+    // a moderator who has no Crea, once for an administrator, who has it on every tab.
+    const DESK_WITHOUT_CREA = {
+      open: [
+        'bookmark',
+        'deny',
+        'searchUser',
+        'name',
+        'amount',
+        'memo',
+        'contributionDate',
+        'editCreation',
+        'confirm',
+      ],
+      confirmed: [
+        'searchUser',
+        'name',
+        'amount',
+        'memo',
+        'contributionDate',
+        'createdAt',
+        'closedAt',
+        'chatCreation',
+      ],
+      all: [
+        'contributionStatus',
+        'searchUser',
+        'name',
+        'amount',
+        'memo',
+        'contributionDate',
+        'createdAt',
+        'closedAt',
+        'chatCreation',
+      ],
+    }
+    DESK_WITHOUT_CREA.denied = DESK_WITHOUT_CREA.confirmed
+    DESK_WITHOUT_CREA.deleted = DESK_WITHOUT_CREA.confirmed
+
+    const withCrea = (keys, before) => {
+      const at = keys.indexOf(before)
+      return [...keys.slice(0, at), 'creaEvaluate', ...keys.slice(at)]
+    }
+    const DESK_ADMIN = {
+      open: withCrea(DESK_WITHOUT_CREA.open, 'editCreation'),
+      confirmed: withCrea(DESK_WITHOUT_CREA.confirmed, 'chatCreation'),
+      denied: withCrea(DESK_WITHOUT_CREA.denied, 'chatCreation'),
+      deleted: withCrea(DESK_WITHOUT_CREA.deleted, 'chatCreation'),
+      all: withCrea(DESK_WITHOUT_CREA.all, 'chatCreation'),
+    }
+
+    it.each(['unknown', 'desktop'])(
+      'at the desk the fields are the ones of before, tab by tab (%s)',
+      async (side) => {
+        viewport.value = side
+        await nextTick()
+        for (const name of TABS) {
+          await openTab(name)
+          expect(fieldKeys(), name).toEqual(DESK_WITHOUT_CREA[name])
+        }
+
+        await mountAs({ role: 'ADMIN' })
+        for (const name of TABS) {
+          await openTab(name)
+          expect(fieldKeys(), name).toEqual(DESK_ADMIN[name])
+        }
+      },
+    )
+
+    // At the desk the page leaves the Crea column out where the tab or the role offers none; a
+    // card has no columns and has to be told.
+    it('tells the table whether this tab offers Crea to this moderator', async () => {
+      expect(table().props('showCrea')).toBe(false)
+
+      await mountAs({ role: 'MODERATOR_AI' })
+      const offered = []
+      for (const name of TABS) {
+        await openTab(name)
+        offered.push(table().props('showCrea'))
+      }
+      expect(offered).toEqual([true, false, false, false, true])
+
+      await mountAs({ role: 'ADMIN' })
+      await openTab('denied')
+      expect(table().props('showCrea')).toBe(true)
+    })
+
+    // The table keeps its last buttons clear of the Crea button in the corner (OpenCreationsTable.css):
+    // at the desk, and only where that button stands. A plain moderator keeps the room.
+    describe('the room beside the Crea button', () => {
+      const wasActive = CONFIG.ANTHROPIC_ACTIVE
+      afterEach(() => {
+        CONFIG.ANTHROPIC_ACTIVE = wasActive
+      })
+
+      const chatShown = () => wrapper.findComponent({ name: 'AiChat' }).exists()
+      const roomKept = () => table().classes('beside-crea-chat')
+
+      it.each(['ADMIN', 'MODERATOR_AI'])(
+        'is kept at the desk for %s, who has the button',
+        async (role) => {
+          CONFIG.ANTHROPIC_ACTIVE = true
+          await mountAs({ role })
+          expect(chatShown()).toBe(true)
+          expect(roomKept()).toBe(true)
+          // And for the rest of what the table carries, the class beside it stays.
+          expect(table().classes('mt-4')).toBe(true)
+        },
+      )
+
+      it('is kept where the viewport is unknown, which behaves as the desk', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        viewport.value = 'desktop'
+        await mountAs({ role: 'ADMIN' })
+        expect(roomKept()).toBe(true)
+        viewport.value = 'unknown'
+        await nextTick()
+        expect(roomKept()).toBe(true)
+      })
+
+      it('is not kept on a phone: the card has no room, it rolls away from the button', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        await mountAs({ role: 'ADMIN' })
+        expect(roomKept()).toBe(true)
+
+        viewport.value = 'mobile'
+        await nextTick()
+        expect(chatShown()).toBe(true)
+        expect(roomKept()).toBe(false)
+      })
+
+      it('is not kept for a moderator without Crea', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = true
+        await mountAs({ role: 'MODERATOR' })
+        expect(chatShown()).toBe(false)
+        expect(roomKept()).toBe(false)
+      })
+
+      it('is not kept where Crea is switched off', async () => {
+        CONFIG.ANTHROPIC_ACTIVE = false
+        await mountAs({ role: 'ADMIN' })
+        expect(chatShown()).toBe(false)
+        expect(roomKept()).toBe(false)
+      })
+    })
+
+    it('the all tab tells the table to show the status', async () => {
+      expect(table().props('showStatus')).toBe(false)
+      await openTab('all')
+      expect(table().props('showStatus')).toBe(true)
+      await openTab('deleted')
+      expect(table().props('showStatus')).toBe(false)
+    })
+
+    // The real pager, counted by what it draws: names of props are the library's to give.
+    it('the pager shows three numbers and no end buttons on a phone, five places and the end buttons at the desk', async () => {
+      const drawn = () =>
+        pagination()
+          .findAll('li')
+          .map((item) => item.text())
+      await simulateQueryResult({
+        adminListContributions: { contributionCount: 300, contributionList: openItems(25, 7) },
+      })
+
+      expect(drawn()).toEqual(['«', '‹', '1', '2', '3', '4', '…', '›', '»'])
+
+      viewport.value = 'mobile'
+      await nextTick()
+      expect(drawn()).toEqual(['‹', '1', '2', '3', '›'])
+      // ... and all three stay in sight below 576px, where the library hides one (App.css).
+      expect(pagination().classes()).toContain('phone-pager')
+    })
+
+    // The word and the number in elements of their own, so a phone can set the symbol above
+    // the word and the number at the corner. The symbols take Bootstrap's colours as classes.
+    it('each tab title carries its word in a span of its own', async () => {
+      useAdminStore(store).$patch({ openCreations: 3 })
+      await nextTick()
+      // The page's own tabs carry a class of their own: the phone rules for them must not reach
+      // the tabs of the form in an opened row.
+      expect(wrapper.find('.creation-tabs .nav-tabs').exists()).toBe(true)
+      const links = wrapper.findAll('.creation-tabs .nav-link')
+
+      expect(links.map((link) => link.find('.tab-word').text())).toEqual([
+        'contributions.open',
+        'contributions.confirms',
+        'contributions.denied',
+        'contributions.deleted',
+        'contributions.all',
+      ])
+      expect(links[0].find('.tab-badge').text()).toBe('3')
+      expect(links.map((link) => link.find('svg').classes())).toEqual([
+        ['text-primary'],
+        ['text-success'],
+        // Plain `text-warning` stood at 1.63:1 on the light ground; this yellow holds on both.
+        ['text-warning-emphasis'],
+        ['text-danger'],
+        [],
+      ])
+      for (const link of links) {
+        expect(link.find('svg').attributes('style')).toBeUndefined()
+      }
+    })
+
+    it('the checkbox has a label that names it', async () => {
+      // jsdom fires the box's change only where it hangs in the document.
+      wrapper = mount(CreationConfirm, {
+        global: { plugins: [store, createBootstrap()], stubs },
+        attachTo: document.body,
+      })
+      const box = wrapper.find('input#hide-resubmission')
+      const label = wrapper.find('label[for="hide-resubmission"]')
+      expect(label.text()).toBe('hide_resubmission')
+      expect(box.element.checked).toBe(true)
+
+      // A tap on the word ticks the box.
+      await label.trigger('click')
+      expect(box.element.checked).toBe(false)
+      expect(mockRefetch).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filter: expect.objectContaining({ hideResubmission: false }),
+        }),
+      )
+      wrapper.unmount()
+    })
+  })
+
+  describe('the decision dialog', () => {
+    const contribution = { id: 7, amount: '100', memo: 'x', user: { firstName: 'Anna' } }
+    const another = { id: 8, amount: '50', memo: 'y', user: { firstName: 'Ben' } }
+    const dialog = () => wrapper.findComponent({ name: 'DecisionModal' })
+
+    // The dialog with its slots drawn, and a button that can be pressed.
+    const pressable = {
+      ...stubs,
+      BButton: {
+        name: 'BButton',
+        render() {
+          return h('button', this.$slots.default?.())
+        },
+      },
+      DecisionModal: {
+        name: 'DecisionModal',
+        props: { modelValue: Boolean, item: Object },
+        render() {
+          return h('div', { class: 'decision-stub' }, [
+            this.$slots.title?.(),
+            this.$slots['submit-btn']?.(),
+          ])
+        },
+      },
+    }
+    const mountPressable = () =>
+      mount(CreationConfirm, { global: { plugins: [store, createBootstrap()], stubs: pressable } })
+    const press = () => wrapper.find('.decision-stub button').trigger('click')
+    const listed = () =>
+      table()
+        .props('items')
+        .map((row) => row.id)
+
+    // Every decision the page sends, held until the test answers it. (The group change still
+    // listens through onDone and onError.)
+    const answersOnHold = () => {
+      const sent = []
+      useMutation.mockImplementation((mutation) => ({
+        mutate: (variables) =>
+          new Promise((resolve, reject) => {
+            sent.push({ mutation, variables, resolve, reject })
+          }),
+        onDone: vi.fn(),
+        onError: vi.fn(),
+      }))
+      return sent
+    }
+    const withTwoOpen = async () => {
+      mockToastSuccess.mockClear()
+      mockToastError.mockClear()
+      const sent = answersOnHold()
+      wrapper = mountPressable()
+      await simulateQueryResult({
+        adminListContributions: { contributionCount: 2, contributionList: [contribution, another] },
+      })
+      return sent
+    }
+
+    it('confirming opens the decision modal with the contribution and closes it on cancel', async () => {
+      expect(dialog().props('modelValue')).toBe(false)
+
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().props('item')).toEqual(contribution)
+
+      await dialog().vm.$emit('overlay-cancel')
+      expect(dialog().props('modelValue')).toBe(false)
+    })
+
+    // Escape, the × and the backdrop close it through the v-model.
+    it('closes when the dialog says it was closed, and sends nothing', async () => {
+      await table().vm.$emit('show-overlay', contribution, 'deny')
+      await dialog().vm.$emit('update:modelValue', false)
+      expect(dialog().props('modelValue')).toBe(false)
+      expect(mockMutate).not.toHaveBeenCalled()
+    })
+
+    // The dialog with its slots drawn, and a button that can be pressed: the button of the
+    // dialog carries out the decision it was opened for, on the contribution it was opened for.
+    it.each([
+      ['confirm', confirmContribution],
+      ['deny', denyContribution],
+      ['delete', adminDeleteContribution],
+    ])(
+      'the button in the dialog carries out "%s" for its contribution',
+      async (decision, document) => {
+        const sent = answersOnHold()
+        wrapper = mountPressable()
+
+        await table().vm.$emit('show-overlay', contribution, decision)
+        await press()
+
+        expect(sent.map(({ mutation, variables }) => [mutation, variables])).toEqual([
+          [document, { id: 7 }],
+        ])
+        expect(wrapper.find('.decision-stub').text()).toContain(`overlay.${decision}.title`)
+        // A refusal comes back to the page as an error, whoever else listens for one.
+        expect(useMutation).toHaveBeenCalledWith(document, { throws: 'always' })
+      },
+    )
+
+    /**
+     * ⛔ The answer belongs to the contribution the decision was sent for. The dialog can be
+     * closed while the answer is on its way, and opened for another contribution; the answer
+     * then took THAT one out of the list and closed its dialog, while the decided one stayed.
+     */
+    it('takes a late answer back to its own contribution, not to the dialog open by then', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      // Closed while the answer is on its way, and opened for Ben.
+      await dialog().vm.$emit('update:modelValue', false)
+      await table().vm.$emit('show-overlay', another, 'delete')
+
+      sent[0].resolve({})
+      await flushPromises()
+
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess).toHaveBeenCalledWith('creation_form.toasted_created')
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().props('item')).toEqual(another)
+    })
+
+    it('closes the dialog when the answer comes for the contribution it shows', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'deny')
+      await press()
+      expect(dialog().props('modelValue')).toBe(true)
+
+      sent[0].resolve({})
+      await flushPromises()
+
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess).toHaveBeenCalledWith('creation_form.toasted_denied')
+      expect(dialog().props('modelValue')).toBe(false)
+    })
+
+    it('sends a decision once, however often the button is pressed while it is on its way', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'delete')
+      await press()
+      await press()
+
+      expect(sent).toHaveLength(1)
+      sent[0].resolve({})
+      await flushPromises()
+      expect(listed()).toEqual([8])
+      expect(mockToastSuccess.mock.calls).toEqual([['creation_form.toasted_delete']])
+    })
+
+    it('keeps a refused contribution, says why, and lets it be decided again', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+
+      sent[0].reject(new Error('already confirmed'))
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('already confirmed')
+      expect(mockToastSuccess).not.toHaveBeenCalled()
+      expect(listed()).toEqual([7, 8])
+      expect(dialog().props('modelValue')).toBe(false)
+
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      expect(sent).toHaveLength(2)
+    })
+
+    it('leaves the dialog of another contribution open when a late answer is a refusal', async () => {
+      const sent = await withTwoOpen()
+      await table().vm.$emit('show-overlay', contribution, 'confirm')
+      await press()
+      await dialog().vm.$emit('update:modelValue', false)
+      await table().vm.$emit('show-overlay', another, 'deny')
+
+      sent[0].reject(new Error('already confirmed'))
+      await flushPromises()
+
+      expect(mockToastError).toHaveBeenCalledWith('already confirmed')
+      expect(listed()).toEqual([7, 8])
+      expect(dialog().props('modelValue')).toBe(true)
+      expect(dialog().props('item')).toEqual(another)
+    })
+  })
+
+  // ⭐ Bernd, 26.10.2026: "Im Admin merken wir uns sowohl bei der Nutzer-Suche als auch bei der
+  // Schöpfung die jeweils letzte Auswahl, und die speichern wir im Local Storage. Die Speicherung
+  // ist auf unbegrenzte Zeit." (utils/lastSearch.ts)
+  describe('the last search', () => {
+    const MODERATOR = { gradidoID: 'moderator-gid', communityUuid: 'home', role: 'ADMIN' }
+    const listOf = (ids) => ({
+      adminListContributions: {
+        contributionCount: ids.length,
+        contributionList: ids.map((id) => ({ id })),
+      },
+    })
+    let moderatorStore
+    // The count of all open contributions, asked for on its own (the start page's query).
+    const countQuery = vi.fn()
+
+    // A page of its own per test, for the moderator.
+    beforeEach(() => {
+      wrapper.unmount()
+      window.localStorage.clear()
+      countQuery.mockReset()
+      countQuery.mockResolvedValue({ data: { adminListContributions: { contributionCount: 7 } } })
+      useApolloClient.mockReturnValue({ client: { query: countQuery } })
+    })
+
+    const mountPage = () => {
+      const plugin = adminStore({ openCreations: 0, moderator: MODERATOR })
+      moderatorStore = useAdminStore(plugin)
+      vi.spyOn(moderatorStore, 'setOpenCreations')
+      wrapper = mount(CreationConfirm, {
+        global: { plugins: [plugin, createBootstrap()], stubs },
+      })
+    }
+
+    it('is the one the page opens with, however it is reached', () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      expect(firstListQuery().filter.query).toBe('bibi@bloxberg.de')
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+      // Still kept: the next visit opens with it as well.
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
+    })
+
+    it('is kept as it changes, a member picked with the magnifier as well', async () => {
+      mountPage()
+      await table().vm.$emit('search-for-email', 'bibi@bloxberg.de')
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('bibi@bloxberg.de')
+      await search().vm.$emit('update:modelValue', '')
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('')
+    })
+
+    it('gives way to the whole list where it finds nothing any more', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      mockRefetch.mockClear()
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('')
+      expect(mockRefetch).toHaveBeenCalledWith(
+        expect.objectContaining({ filter: expect.objectContaining({ query: '' }) }),
+      )
+      expect(lastSearch('/creation-confirm', 'moderator-gid')).toBe('')
+    })
+
+    it('stays where it finds something', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await simulateQueryResult(listOf([501]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+      expect(table().props('items')).toHaveLength(1)
+    })
+
+    it('decides on the first list only: a later one that finds nothing leaves the search', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await simulateQueryResult(listOf([501]))
+      // Asked again once the moderator confirmed it, say: the search finds nothing now.
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    it('leaves a search alone that the moderator changed before the first list came', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await search().vm.$emit('update:modelValue', 'nobody@example.org')
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('nobody@example.org')
+    })
+
+    it('leaves it alone where the moderator chose another tab before the first list came', async () => {
+      keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+      mountPage()
+      await nextTick()
+      await openTab('confirmed')
+      await simulateQueryResult(listOf([]))
+      expect(search().props('modelValue')).toBe('bibi@bloxberg.de')
+    })
+
+    // Bernd, 26.10.2026: "merk Dir auch den Reiter, so wie die Suche" -- a search kept on another
+    // tab than "open" found nothing there and gave way to the whole open list.
+    describe('the last tab', () => {
+      const activeTab = () =>
+        wrapper.findAll('.nav-link').findIndex((link) => link.classes().includes('active'))
+
+      it('is the tab the page opens on, its list asked for at once', async () => {
+        keepLastTab('/creation-confirm', 'moderator-gid', 1)
+        mountPage()
+        expect(firstListQuery().filter.statusFilter).toEqual(['CONFIRMED'])
+        await flushPromises()
+        expect(activeTab()).toBe(1)
+      })
+
+      it('is kept as the moderator picks one, the first as none', async () => {
+        mountPage()
+        await flushPromises()
+        await openTab('denied')
+        expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(2)
+        await openTab('open')
+        expect(lastTab('/creation-confirm', 'moderator-gid', 5)).toBe(0)
+      })
+
+      it('is shown without asking for another list and without ending the trial of the search', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        keepLastTab('/creation-confirm', 'moderator-gid', 1)
+        mountPage()
+        await flushPromises()
+        expect(activeTab()).toBe(1)
+        expect(
+          mockRefetch.mock.calls.every(([asked]) => asked.filter.statusFilter[0] === 'CONFIRMED'),
+        ).toBe(true)
+        await simulateQueryResult(listOf([]))
+        expect(search().props('modelValue')).toBe('')
+        expect(activeTab()).toBe(1)
+      })
+    })
+
+    // The badges in the menu and on the tab count all open contributions: the page opens with
+    // a search now, not only after typing (coderabbit, #4206).
+    describe('the count of open contributions', () => {
+      it('is asked for on its own where the page opens with a search', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        expect(countQuery).toHaveBeenCalledWith(
+          expect.objectContaining({
+            query: adminListContributionsCount,
+            variables: {
+              filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+            },
+          }),
+        )
+        expect(moderatorStore.setOpenCreations).toHaveBeenCalledWith(7)
+      })
+
+      it('never comes from the few a search leaves', async () => {
+        keepLastSearch('/creation-confirm', 'moderator-gid', 'bibi@bloxberg.de')
+        mountPage()
+        await flushPromises()
+        await simulateQueryResult(listOf([501]))
+        expect(moderatorStore.setOpenCreations).not.toHaveBeenCalledWith(1)
+        await search().vm.$emit('update:modelValue', '')
+        await simulateQueryResult(listOf([501, 502, 503]))
+        expect(moderatorStore.setOpenCreations).toHaveBeenLastCalledWith(3)
+      })
+
+      it('is not asked for on its own where the page opens on the whole list', async () => {
+        mountPage()
+        await flushPromises()
+        expect(countQuery).not.toHaveBeenCalled()
+      })
+    })
   })
 })

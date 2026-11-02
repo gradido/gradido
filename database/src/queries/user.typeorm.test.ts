@@ -370,6 +370,7 @@ describe('user.typeorm.queries', () => {
       // PARTLY_ACTIVATED_GUARANTOR: it holds no password and cannot act before confirming.
       it('counts neither a classic registration nor the guests of another member', async () => {
         const classic = await userFactory({
+          alias: 'ClassicG',
           email: 'classic@table.example',
           firstName: 'Classic',
           lastName: 'Guest',

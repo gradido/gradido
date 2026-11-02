@@ -40,6 +40,10 @@ vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
 }))
 
+// The row takes the router when it is made, for "Jemandem danken" (W2, its own spec): a stand-in,
+// so that it is not looked for in a test that installs none.
+vi.mock('vue-router', () => ({ useRouter: () => ({ push: () => {} }) }))
+
 const BOOKING = {
   id: 7,
   typeId: 'SEND',

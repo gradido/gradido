@@ -2,6 +2,7 @@ import { RoleNames } from '../../enum'
 import { UserInterface } from './UserInterface'
 
 export const peterLustig: UserInterface = {
+  alias: 'PeterL',
   email: 'peter@lustig.de',
   firstName: 'Peter',
   lastName: 'Lustig',

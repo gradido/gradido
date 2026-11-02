@@ -183,6 +183,10 @@ query newChatMessagesSince(
       ...chatMessageFields
     }
     reactedCursor
+    # The transfers the member received and has not seen (Chat E-086): how many, and the newest by
+    # its booking's id. The lists are asked again when either moves (useChatUpdates).
+    unreadTransfers
+    latestUnreadTransferId
   }
 }
 
@@ -190,6 +194,19 @@ query newChatMessagesSince(
 # never moves it back and takes only an id of this conversation.
 mutation markChatConversationRead($ref: MemberAvatarRefInput!, $upToMessageId: Int!) {
   markChatConversationRead(ref: $ref, upToMessageId: $upToMessageId)
+}
+
+# Marks the transfers the member received from the person as seen, up to the newest one the
+# thread has shown (Chat E-086): its booking's id. The server takes only the member's own RECEIVE
+# bookings from that person, and answers how many it marked just now.
+mutation markChatTransfersSeen($ref: MemberAvatarRefInput!, $upToTransactionId: Int!) {
+  markChatTransfersSeen(ref: $ref, upToTransactionId: $upToTransactionId)
+}
+
+# Marks one transfer the member received as seen: opened in the booking list (Chat E-086). False
+# where the id is no RECEIVE booking of the member's.
+mutation markTransferSeen($transactionId: Int!) {
+  markTransferSeen(transactionId: $transactionId)
 }
 
 # Writes one message to the person named by the pair, and answers with one's OWN copy -- the

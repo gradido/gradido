@@ -19,7 +19,6 @@
     "signature-missing": "Aún no has definido tu firma: la introduces en la ventana de Crea de cualquier contribución."
   },
   "alias": "Alias",
-  "all_emails": "Todos los usuarios",
   "appOutdated": {
     "reload": "Recargar",
     "text": "Hay una versión más reciente."
@@ -118,10 +117,17 @@
     "changeGroupDone": "Grupo de creación cambiado.",
     "changeGroupHint": "Según tus grupos visibles, la contribución puede dejar de aparecer en tu lista.",
     "changeGroupQuestion": "¿Mover esta contribución de {from} a {to}?",
+    "confirm": "Confirmar",
     "confirmedBy": "Confirmado por {name}.",
     "createdBy": "Creado por {name}.",
     "deletedBy": "Eliminado por {name}.",
     "deniedBy": "Rechazado por {name}.",
+    "detailsState": {
+      "answer": "respuesta del miembro",
+      "changed": "modificado por el miembro",
+      "conversation": "conversación",
+      "question": "pregunta enviada"
+    },
     "noGroup": "(sin grupo)"
   },
   "contributionLink": {
@@ -148,6 +154,7 @@
       }
     },
     "saveChange": "Guardar cambios",
+    "show": "Mostrar el enlace",
     "validFrom": "Fecha de inicio",
     "validTo": "Fecha de fin"
   },
@@ -198,6 +205,8 @@
     "memoTooLong": "The contribution text is too long (max. {max} characters) – please shorten it a little.",
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
+    "readsRemark": "Crea también la lee",
+    "readsRemarkHint": "¡Activar solo si las observaciones no contienen datos personales!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Recordatorio",
@@ -295,9 +304,8 @@
   "createdAt": "Creado el",
   "creation": "Creación",
   "creationGroupFilter": {
-    "all": "(todas)",
+    "all": "(con y sin grupo)",
     "grouped": "(todos los grupos)",
-    "label": "Creation group:",
     "untagged": "(sin grupo)"
   },
   "creationGroupsAdmin": {
@@ -354,10 +362,18 @@
     "toasted_update": "La creación abierta ({value} GDD) para {email} se ha modificado y está lista para su confirmación.",
     "update_creation": "Actualizar creación"
   },
+  "dashboard": {
+    "resubmission": "Además: {n} con recordatorio",
+    "today": "Hoy: {n} creaciones abiertas",
+    "todayNone": "Hoy: ninguna creación abierta",
+    "todayOne": "Hoy: una creación abierta",
+    "waitingForMember": "{n} espera al miembro | {n} esperan al miembro",
+    "waitingForModeration": "{n} espera la moderación | {n} esperan la moderación",
+    "welcome": "Te damos la bienvenida al área de administración"
+  },
   "delete": "Eliminar",
   "delete_user": "Eliminar usuario",
   "deleted": "eliminado",
-  "deleted_user": "Todos los usuarios eliminados",
   "deny": "Rechazar",
   "description": "Descripción",
   "details": "Detalles",
@@ -400,6 +416,7 @@
       "accounts": "Accounts",
       "conversations": "Conversations",
       "firstCreation": "First thanks",
+      "greetings": "Thank-you greetings",
       "map": "Map",
       "thanks": "Thanking",
       "totals": "Totals"
@@ -409,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -426,8 +443,14 @@
       "firstCreationsDone": "First creations done",
       "firstCreationsReview": "First creations sent to review",
       "firstCreationsSkipped": "First creations skipped",
+      "firstSenders": "First-time senders (accounts with their first transfer)",
       "gddCreated": "GDD created",
       "gddSent": "GDD sent",
+      "greetingsAccepted": "Accepted",
+      "greetingsExpired": "Expired",
+      "greetingsSent": "Sent",
+      "greetingsWithAccount": "of which with a new account",
+      "greetingsWithPhoto": "of which with a photo of their own",
       "groupsNew": "New groups",
       "hellosFromMap": "Hello said from the map",
       "homesSet": "Home set",
@@ -435,18 +458,18 @@
       "membersOnMap": "People on the Gradido map (all communities)",
       "membersWithEntry": "People with an entry",
       "returners": "Returners (after 90 quiet days)",
+      "thanksAnswered": "Thanks answered (the recipient's reaction)",
+      "thanksPassedOn": "Thanks passed on",
       "totalGradidoAvailable": "Total GDD in circulation",
       "totalGradidoCreated": "Total GDD created, exact",
       "totalGradidoDecayed": "Total GDD decayed",
       "totalGradidoUnbookedDecayed": "decay not yet booked",
       "transfersSent": "Transfers sent",
+      "transfersWithPicture": "Transfers with a picture",
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Estadística",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -457,7 +480,7 @@
   "footer": {
     "app_version": "Versión de la app {version}",
     "copyright": {
-      "link": "Consola de administración de la Gradido-Akademie",
+      "link": "Área de administración de Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -508,7 +531,8 @@
     "request": "La entrada se ha guardado."
   },
   "moderator": {
-    "history": "Los datos se han modificado. Estos son los datos anteriores.",
+    "change": "Cambio",
+    "history": "Estos son los datos anteriores.",
     "memo": "Editar texto",
     "memo-modified": "Texto editado por {name}",
     "memo-tooltip": "Editar el texto de la contribución",
@@ -517,11 +541,11 @@
     "moderator": "Moderador",
     "notice": "Nota",
     "notice-tooltip": "La nota solo es visible para los moderadores",
-    "request": "¡Este mensaje solo es visible para los moderadores!",
     "show-submission-form": "¿esperar al recordatorio?"
   },
   "name": "Nombre",
   "navbar": {
+    "appearance": "Apariencia",
     "automaticContributions": "Saldo inicial",
     "chat": "Chat",
     "crea": "Crea",
@@ -531,9 +555,15 @@
     "logout": "Cerrar sesión",
     "menu": "Menú",
     "my-account": "Mi cuenta",
-    "projectBranding": "Proyectos",
+    "projectBranding": "Marca del proyecto",
     "projectBrandingTooltip": "Usa tu propio logotipo en el inicio de sesión de Gradido y añade nuevos usuarios a un espacio de Humhub",
     "settings": "Configuración",
+    "statistic": "Estadística",
+    "theme": {
+      "dark": "Oscuro",
+      "light": "Claro",
+      "system": "Seguir la configuración del sistema (predeterminado)"
+    },
     "user_search": "Búsqueda de usuarios"
   },
   "notice": "Aviso",
@@ -589,12 +619,31 @@
     "updated": "La entrada de marca del proyecto se ha actualizado."
   },
   "redeemed": "canjeado",
+  "refresh": "Actualizar",
   "registered": "Registrado",
   "registered_at": "Registrado el",
+  "remark": {
+    "done": "Listo",
+    "failed": "No guardado.",
+    "failedClosed": "La observación sobre {name} no se guardó.",
+    "label": "Observación",
+    "lastChanged": "Último cambio: {name}, {date}",
+    "lastChangedNoName": "Último cambio: {date}",
+    "private": "La ven todos los moderadores, no {name}.",
+    "privateWithCrea": "La ven todos los moderadores, no {name}. Crea solo la lee si se lo pides.",
+    "retry": "Reintentar",
+    "saved": "Guardado",
+    "saving": "Guardando…",
+    "title": "Observación sobre {name}"
+  },
   "removeNotSelf": "Como administrador/moderador, no puedes eliminarte a ti mismo.",
   "reset": "Restablecer",
   "save": "Guardar",
+  "search": {
+    "clear": "Borrar la búsqueda"
+  },
   "send": "Enviar",
+  "show_details": "Mostrar detalles",
   "status": "Estado",
   "success": "Éxito",
   "text": "Texto",
@@ -642,7 +691,6 @@
     "text_false": "El último correo se envió al miembro ({email}) el {date}.",
     "text_true": "El correo se ha confirmado."
   },
-  "unregistered_emails": "Solo usuarios no registrados",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -675,6 +723,18 @@
     },
     "successfullyChangedTo": "El usuario es ahora «{role}».",
     "tabTitle": "Rol del usuario"
+  },
+  "userSearch": {
+    "hits": "{count} resultado | {count} resultados",
+    "tabs": {
+      "all": "Todos",
+      "deleted": "Eliminados",
+      "enabled": "Activados",
+      "unconfirmed": "Sin confirmar"
+    }
+  },
+  "userStatus": {
+    "emailUnconfirmed": "Correo electrónico no confirmado"
   },
   "user_deleted": "El usuario está eliminado.",
   "user_memo_search": "Búsqueda de usuario y texto",

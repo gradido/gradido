@@ -1,5 +1,5 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator'
-import { Field, Float, InputType } from 'type-graphql'
+import { IsInt, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator'
+import { Field, Float, InputType, Int } from 'type-graphql'
 
 // One contribution inside a batch (E-020). Only the fields the batch prompt needs
 // per item: the text plus the entered GDD amount and the date. The money/context
@@ -46,6 +46,16 @@ export class CreaBatchInput {
   @IsOptional()
   @IsString()
   uiLanguage?: string | null
+
+  // The member the contribution is from: the backend reads the moderation's remark on them and
+  // gives it to Crea without their names (Bernd, 28.10.2026; crea/memberRemark.ts). Sent only where
+  // the moderator lets Crea read it ("Crea liest mit", off at each opening of the window). The id,
+  // not the remark: the remark stays out of the request log (server/plugins.ts).
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  userId?: number | null
 
   // The moderator's target decision when deviating from Crea's overall recommendation
   // (E-017 / E-020): confirm | inquire | deny. Only set on the batch rewrite call

@@ -45,9 +45,11 @@ export const communityHost = (url) => {
 /**
  * The alias a member's address is built on.
  *
- * The Gradido ID stands in for accounts from before the user name became compulsory.
- * `findUserByIdentifier` resolves a UUID as readily as a name, so `…/u/<uuid>` is a
- * working address rather than a placeholder -- checked against the send form.
+ * The Gradido ID stands in where the server sends no alias: a member of another community
+ * of whom nothing but the id is on file here (the contact list, a chat). Every member's
+ * own row carries an alias since migration 0164. `findUserByIdentifier` resolves a UUID as
+ * readily as a name, so `…/u/<uuid>` is a working address rather than a placeholder --
+ * checked against the send form.
  *
  * One line, and it lives here anyway: it stood written out in three places, and two of
  * them print. If the rule ever changes, exactly one of them would have been updated.
@@ -59,16 +61,9 @@ export const communityHost = (url) => {
  * one letter off on the field name (see useThankYouCheque). A member with neither value
  * is nobody the wallet can name, and an empty line says that better than the word.
  *
- * ⛔ The threshold, not mere truthiness. A stored name of one or two characters predates
- * the rule and is not one, so it falls back to the identifier -- which is what the server
- * does everywhere else (`shared`'s `publicAlias`). Without it the wallet printed
- * `host/u/ab` on somebody's card while every mail about them said `host/u/<uuid>`: two
- * addresses for one person, and one of them on paper. That is the exact disagreement the
- * comment at the top of this file says this module exists to prevent.
- *
- * ⚠️ The rule is written out here rather than imported: the wallet has no dependency on
- * `shared`, which is a package boundary and not an oversight. `gradidoAddress.drift.spec.js`
- * runs this function against `publicAlias` so the two copies cannot part company unnoticed.
+ * The threshold, not mere truthiness: a name the server hands out has at least three
+ * characters (`aliasSchema` in `shared`), so anything shorter is no name and the identifier
+ * stands in -- the same address every mail about the member carries.
  *
  * @param {string} username
  * @param {string} gradidoID

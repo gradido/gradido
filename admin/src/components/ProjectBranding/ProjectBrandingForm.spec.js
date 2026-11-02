@@ -121,10 +121,16 @@ describe('ProjectBrandingForm', () => {
     expect(wrapper.find('.btn-outline-secondary').attributes('title')).toBe('Green')
   })
 
+  // It was titled "Select Space" in every language.
+  it("the space dialog is titled in the admin's language", () => {
+    const modal = createWrapper().findComponent({ name: 'BModal' })
+    expect(modal.props('title')).toBe('select a space')
+  })
+
   it('opens the list of spaces, and takes the space chosen there', async () => {
     const wrapper = createWrapper()
     const modal = wrapper.findComponent({ name: 'BModal' })
-    expect(modal.props()).toMatchObject({ modelValue: false, title: 'Select Space' })
+    expect(modal.props('modelValue')).toBe(false)
     expect(modal.props('noFooter')).not.toBe(undefined)
     await wrapper.find('.btn-outline-secondary').trigger('click')
     expect(modal.props('modelValue')).toBe(true)

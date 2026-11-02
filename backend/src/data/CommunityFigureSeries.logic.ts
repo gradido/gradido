@@ -1,12 +1,19 @@
 // AI-GENERATED — not an architecture reference
 import {
+  dbCountAcceptedThankYouGreetingsByWeek,
   dbCountAndSumTransactionsOfTypeByWeek,
   dbCountChatConversationsOfKindByWeek,
   dbCountDistinctUsersOfTypeByWeek,
   dbCountEventsOfTypesByWeek,
+  dbCountExpiredThankYouGreetingsByWeek,
   dbCountFirstCreationMembersByWeek,
+  dbCountFirstSendersByWeek,
   dbCountMatchingEntriesByTypeByWeek,
   dbCountRegisterEventsWithReferrerByWeek,
+  dbCountThankYouGreetingsByWeek,
+  dbCountTransactionPassOnsByWeek,
+  dbCountTransactionReactionsByWeek,
+  dbCountTransactionsWithPictureByWeek,
   dbCountUsersDeletedByWeek,
   EventType,
   TransactionTypeId,
@@ -58,8 +65,11 @@ export function weeksFrom(since: Date, now: Date): Date[] {
   return weeks
 }
 
-/** A count of the series, and the rows it answers: one, or more where a count holds several. */
-type Series = (from: Date) => Promise<[key: string, byWeek: WeeklyCount[]][]>
+/**
+ * A count of the series, and the rows it answers: one, or more where a count holds several. Asked
+ * from the first Monday of the series, and up to now where a figure counts up to it.
+ */
+type Series = (from: Date, now: Date) => Promise<[key: string, byWeek: WeeklyCount[]][]>
 
 /** A flow in one count. */
 const byWeek =
@@ -85,6 +95,38 @@ const bookings =
       [gddKey, weeks.map(({ weekStart, gdd }) => ({ weekStart, n: gdd }))],
     ]
   }
+
+/** The thank-you greetings sent, in one count and on two rows: all, and those with a photo. */
+const greetingsSent: Series = async (from) => {
+  const weeks = await dbCountThankYouGreetingsByWeek(from)
+  return [
+    ['greetingsSent', weeks.map(({ weekStart, n }) => ({ weekStart, n }))],
+    [
+      'greetingsWithPhoto',
+      weeks.map(({ weekStart, withPicture }) => ({ weekStart, n: withPicture })),
+    ],
+  ]
+}
+
+/**
+ * The thank-you greetings accepted, in one count and on two rows: all, and those accepted by an
+ * account opened through the greeting itself.
+ */
+const greetingsAccepted: Series = async (from) => {
+  const weeks = await dbCountAcceptedThankYouGreetingsByWeek(from)
+  return [
+    ['greetingsAccepted', weeks.map(({ weekStart, n }) => ({ weekStart, n }))],
+    [
+      'greetingsWithAccount',
+      weeks.map(({ weekStart, withNewAccount }) => ({ weekStart, n: withNewAccount })),
+    ],
+  ]
+}
+
+/** The thank-you greetings whose time ran out unaccepted, the running week up to now. */
+const greetingsExpired: Series = async (from, now) => [
+  ['greetingsExpired', await dbCountExpiredThankYouGreetingsByWeek(from, now)],
+]
 
 /** The entries written of each kind, in one count and on a row each. */
 const entriesByKind: Series = async (from) => {
@@ -126,7 +168,17 @@ const SERIES: Series[] = [
   byWeek('firstCreationsSkipped', firstCreationMembersOf(EventType.FIRST_CREATION_SKIP)),
   byWeek('firstCreationsReview', firstCreationMembersOf(EventType.FIRST_CREATION_REVIEW)),
   bookings(TransactionTypeId.SEND, 'transfersSent', 'gddSent'),
+  // Each account once, in the week of its first SEND row.
+  byWeek('firstSenders', dbCountFirstSendersByWeek),
+  byWeek('transfersWithPicture', (from) =>
+    dbCountTransactionsWithPictureByWeek(TransactionTypeId.SEND, from),
+  ),
+  byWeek('thanksAnswered', dbCountTransactionReactionsByWeek),
+  byWeek('thanksPassedOn', dbCountTransactionPassOnsByWeek),
   bookings(TransactionTypeId.CREATION, 'creationsBooked', 'gddCreated'),
+  greetingsSent,
+  greetingsAccepted,
+  greetingsExpired,
   entriesByKind,
   byWeek('conversationsNew', (from) => dbCountChatConversationsOfKindByWeek('direct', from)),
   byWeek('groupsNew', (from) => dbCountChatConversationsOfKindByWeek('group', from)),
@@ -149,7 +201,7 @@ export async function countCommunityFigureSeries(
   const days = weeks.map((monday) => monday.toISOString().slice(0, 10))
   // A day still to come in another week has no week: nothing to count, from its Monday on.
   const from = weeks[0] ?? mondayOf(since)
-  const answers = await countInTurns(SERIES.map((series) => () => series(from)))
+  const answers = await countInTurns(SERIES.map((series) => () => series(from, now)))
   const rows = answers.flat().map(([key, counted]) => {
     const byDay = new Map(counted.map(({ weekStart, n }) => [weekStart, n]))
     return { key, counts: days.map((day) => byDay.get(day) ?? 0) }

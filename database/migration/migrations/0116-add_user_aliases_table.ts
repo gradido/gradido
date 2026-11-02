@@ -34,8 +34,8 @@ const isValidAlias = (alias: string): boolean =>
 const transliterateForAlias = (text: string): string =>
   transliterateToLatin(text).replace(/[^a-zA-Z0-9]/g, '')
 
-// Proposals for one person, best first; `member<id>` last, which is always valid and free
-// unless somebody hoards its hundred variants.
+// Name- and email-derived proposals for one local member, best first.
+// nameLocalMembers uses a UUID prefix if no proposal is available.
 function aliasCandidates(
   userId: number,
   firstName: string | null,

@@ -2,6 +2,7 @@
   <div id="app" ref="app" :class="darkMode ? 'dark-mode' : ''">
     <BToastOrchestrator />
     <app-outdated-bar />
+    <admin-way-back-bar />
     <div :class="$route.meta.requiresAuth ? 'app-content' : ''">
       <component :is="$route.meta.requiresAuth ? DashboardLayout : AuthLayout" />
       <div class="goldrand position-fixed fixed-bottom zindex1000"></div>
@@ -15,6 +16,7 @@ import { useWalletStore } from '@/store/useWalletStore'
 import DashboardLayout from '@/layouts/DashboardLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import AppOutdatedBar from '@/components/AppOutdatedBar'
+import AdminWayBackBar from '@/components/AdminWayBackBar.vue'
 
 const store = useWalletStore()
 
@@ -61,12 +63,17 @@ watch(
 )
 
 // Keep following the OS while themeMode is 'system' (re-evaluate on OS
-// light/dark change). The initial apply happens in main.js before mount.
+// light/dark change). The initial apply happens in main.js before mount. The mode this
+// device keeps comes first: the admin interface may have written it since this wallet
+// opened, and the apply writes the mode back.
 let themeMediaQuery
 let themeMediaListener
 if (window.matchMedia) {
   themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-  themeMediaListener = () => store.applyTheme()
+  themeMediaListener = () => {
+    store.adoptThemeModeFromDevice()
+    store.applyTheme()
+  }
   themeMediaQuery.addEventListener('change', themeMediaListener)
 }
 

@@ -67,7 +67,14 @@ export const ListHumhubSpaces = defineComponent({
               onClick={() => chooseSpace(space)}
             >
               <div>
-                <input v-model={selectedSpaceId.value} type='radio' value={space.id} class='me-2' />
+                {/* Named after its space: the name beside it is not its label. */}
+                <input
+                  v-model={selectedSpaceId.value}
+                  type='radio'
+                  value={space.id}
+                  class='me-2'
+                  aria-label={space.name}
+                />
                 {` ${toDisplayString(space.name)}`}
               </div>
               <a

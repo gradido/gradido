@@ -349,8 +349,7 @@ import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import { routeSection } from '@/utils/routeSection'
-import { isMapWindowOfAdmin } from '@/utils/adminMapWindow'
-import { handOverAddress, sharesOrigin } from '@/utils/authToken'
+import { goBackToAdmin, wayBackFor } from '@/utils/adminWayBack'
 import CONFIG from '@/config'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import { useAppToast } from '@/composables/useToast'
@@ -737,16 +736,15 @@ const admin = () => {
   // that admin interface is still there behind this window, signed in and where the
   // moderator left it. So the window closes, and nobody is signed out -- the wallet stays
   // signed in as it does when the window is closed by hand (isMapWindowOfAdmin says why this
-  // is not done by going there in this window).
-  if (isMapWindowOfAdmin(window, CONFIG.ADMIN_AUTH_URL)) {
-    window.close()
-    return
-  }
-  window.location.assign(handOverAddress(CONFIG.ADMIN_AUTH_URL, store.token))
-  // Signed out only where the admin interface is on another origin (development), as it always
-  // was: there the token went along in the address. On one origin both apps hold the one token
-  // (utils/authToken.js), and signing out here would sign the admin interface out as well.
-  if (!sharesOrigin(CONFIG.ADMIN_AUTH_URL)) store.logout() // logout without redirect
+  // is not done by going there in this window). Anywhere else it goes to the admin interface:
+  // to the page a pin, bubble or arrow of it was pressed on where the wallet came from one
+  // (the bar "Zurück zum Admin" takes the same way), else to its start (utils/adminWayBack.js).
+  goBackToAdmin({
+    adminAuthUrl: CONFIG.ADMIN_AUTH_URL,
+    token: store.token,
+    back: wayBackFor(store.gradidoID),
+    signOut: () => store.logout(), // logout without redirect
+  })
 }
 </script>
 <style>

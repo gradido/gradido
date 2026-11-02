@@ -6,12 +6,7 @@ import { isFindableOnMap } from '@/graphql/resolver/util/findableOnMap'
 
 @ObjectType()
 export class UserAdmin {
-  constructor(
-    user: User,
-    creation: GradidoUnit[],
-    hasElopage: boolean,
-    emailConfirmationSend: string,
-  ) {
+  constructor(user: User, creation: GradidoUnit[], emailConfirmationSend: string) {
     this.userId = user.id
     this.email = user.emailContact?.email
     this.firstName = user.firstName
@@ -19,7 +14,6 @@ export class UserAdmin {
     this.alias = user.alias || null
     this.creation = creation
     this.emailChecked = user.emailContact?.emailChecked
-    this.hasElopage = hasElopage
     this.deletedAt = user.deletedAt
     this.createdAt = user.createdAt
     this.emailConfirmationSend = emailConfirmationSend
@@ -52,9 +46,6 @@ export class UserAdmin {
 
   @Field(() => Boolean, { nullable: true })
   emailChecked: boolean | null
-
-  @Field(() => Boolean)
-  hasElopage: boolean
 
   @Field(() => Date, { nullable: true })
   deletedAt: Date | null
