@@ -243,12 +243,13 @@ describe('useSendByEmail', () => {
       await expect(written()).resolves.toBe(PNG)
     })
 
-    it('draws the picture 1080 by 750, from the source it was given', async () => {
+    // A mail program pastes it pixel for pixel, and it stands that wide in the mail.
+    it('draws the picture 600 by 417, from the source it was given', async () => {
       const { preparePicture } = use({ text: TEXT, picture: '/img/motif.svg' })
       preparePicture()
       await new Promise((resolve) => setTimeout(resolve))
       expect(sheet.loadImage).toHaveBeenCalledWith('/img/motif.svg')
-      expect(context.drawImage).toHaveBeenCalledWith({ picture: true }, 0, 0, 1080, 750)
+      expect(context.drawImage).toHaveBeenCalledWith({ picture: true }, 0, 0, 600, 417)
       expect(HTMLCanvasElement.prototype.toBlob.mock.calls[0][1]).toBe('image/png')
     })
 
