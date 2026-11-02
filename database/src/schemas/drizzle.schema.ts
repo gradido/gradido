@@ -811,7 +811,7 @@ export const usersTable = mysqlTable(
     // Mandatory since migration 0164, for the cached copies of members of other communities
     // (`foreign = 1`) as well: they are filed with the alias that community sent, or not at all.
     alias: varchar({ length: 20 }).notNull(),
-    emailId: int('email_id').default(sql`NULL`),
+    emailId: int('email_id').default(sql`NULL`), // TODO: check if it is possible to set to not null
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),
     gmsPublishName: int('gms_publish_name', { unsigned: true }).default(0).notNull(),

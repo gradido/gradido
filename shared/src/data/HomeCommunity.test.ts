@@ -28,11 +28,11 @@ describe('HomeCommunity', () => {
     const peerPublicOnly = new X25519KeyPair(peer.publicKeyToBuffer())
     const homePublicOnly = new X25519KeyPair(community.publicEncryptionKey)
 
-    const box = community.encrypt(message, peerPublicOnly)
-    expect(peer.decrypt(box, homePublicOnly)).toEqual({ success: true, value: message })
-    expect(community.decrypt(peer.encrypt(message, homePublicOnly), peerPublicOnly)).toEqual({
+    const box = community.encrypt('gradido', peerPublicOnly)
+    expect(peer.decrypt(box, homePublicOnly)).toEqual({ success: true, value: 'gradido' })
+    expect(community.decrypt(peer.encrypt('gradido', homePublicOnly), peerPublicOnly)).toEqual({
       success: true,
-      value: message,
+      value: 'gradido',
     })
     expect(community.decryptSecret(community.encryptSecret(message))).toEqual({
       success: true,

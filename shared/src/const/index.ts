@@ -226,6 +226,7 @@ export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10
 // accepts the connection and never answers holds a batch of validateCommunities for the 300 s of
 // fetch's own limit, and one that does not accept it for the 10 s of the connect timeout
 export const FEDERATION_REQUEST_TIMEOUT_MS = 5000
+export const FEDERATION_REQUEST_TIMEOUT_S = 5
 export const REDEEM_JWT_TOKEN_EXPIRATION = '10m'
 export const GRADIDO_REALM = 'gradido'
 

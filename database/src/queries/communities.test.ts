@@ -1,11 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import {
-  createEncryptionKeyPair,
-  createKeyPair,
-  Ed25519PublicKey,
-  MissingHomeCommunityError,
-} from 'shared'
+import { createKeyPair, Ed25519PublicKey, MissingHomeCommunityError } from 'shared'
+import { X25519KeyPair } from 'shared-native'
 import { v4 as uuidv4 } from 'uuid'
 import { Community as DbCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
@@ -15,6 +11,7 @@ import { CommunitiesInsert, communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
   dbFindForeignCommunitiesByUuid,
+  dbFindForeignCommunityByPublicKey,
   dbInsertForeignCommunity,
   dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
@@ -86,7 +83,7 @@ describe('community.queries', () => {
   describe('dbInsertHomeCommunity', () => {
     const homeCommunityInput = async () => {
       const jwtKeyPair = await createKeyPair()
-      const encryptionKeyPair = createEncryptionKeyPair()
+      const encryptionKeyPair = X25519KeyPair.generate()
       return {
         publicKey: randomBytes(32),
         privateKey: randomBytes(64),
@@ -97,8 +94,8 @@ describe('community.queries', () => {
         creationDate: new Date('2026-01-01T12:00:00.000Z'),
         publicJwtKey: jwtKeyPair.publicKey,
         privateJwtKey: jwtKeyPair.privateKey,
-        publicEncryptionKey: encryptionKeyPair.publicKey,
-        privateEncryptionKey: encryptionKeyPair.privateKey,
+        publicEncryptionKey: encryptionKeyPair.publicKeyToBuffer(),
+        privateEncryptionKey: encryptionKeyPair.privateKeyToBuffer(),
       }
     }
 
@@ -534,6 +531,27 @@ describe('community.queries', () => {
       await createCommunity(true)
 
       expect((await dbFindForeignCommunitiesByUuid([])).size).toBe(0)
+    })
+  })
+
+  describe('dbSelectForeignCommunityByPublicKey', () => {
+    it('hands out the foreign community with this public key', async () => {
+      await createCommunity(true)
+      const foreign = await createCommunity(true)
+
+      expect(await dbFindForeignCommunityByPublicKey(foreign.publicKey)).toMatchObject({
+        id: foreign.id,
+        communityUuid: foreign.communityUuid,
+        publicEncryptionKey: foreign.publicEncryptionKey,
+      })
+    })
+
+    it('hands out null for the home community and for an unknown key', async () => {
+      const home = await createCommunity(false)
+      await createCommunity(true)
+
+      expect(await dbFindForeignCommunityByPublicKey(home.publicKey)).toBeNull()
+      expect(await dbFindForeignCommunityByPublicKey(randomBytes(32))).toBeNull()
     })
   })
 })

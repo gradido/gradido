@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { DecryptError, HomeCommunityNative, X25519KeyPair } from 'shared-native'
 import { Result } from '../errorTypes'
+import { Uuidv4 } from '../schema'
 
 // The row stores the Ed25519 private key as libsodium (and the dht-node) does: seed || publicKey.
 // HomeCommunityNative keeps the seed only.
@@ -12,6 +13,7 @@ export type HomeCommunityKeys = {
   privateKey: Buffer | null
   publicEncryptionKey: Buffer
   privateEncryptionKey: Buffer | null
+  communityUuid: Uuidv4
 }
 
 /**
@@ -22,6 +24,7 @@ export type HomeCommunityKeys = {
 export class HomeCommunity {
   public readonly publicKey: Buffer
   public readonly publicEncryptionKey: Buffer
+  public readonly communityUuid: Uuidv4
   private readonly native: HomeCommunityNative
 
   /**
@@ -41,6 +44,7 @@ export class HomeCommunity {
     // copies, the row stays the caller's
     this.publicKey = Buffer.from(keys.publicKey)
     this.publicEncryptionKey = Buffer.from(keys.publicEncryptionKey)
+    this.communityUuid = keys.communityUuid
   }
 
   /** @returns the 64 bytes detached Ed25519 signature */
@@ -54,13 +58,34 @@ export class HomeCommunity {
   }
 
   /** @param recipient - with its public key only */
-  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer {
+  public encrypt(payload: string, recipient: X25519KeyPair): Buffer {
     return this.native.encrypt(payload, recipient)
   }
 
   /** @param sender - with its public key only */
-  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError> {
+  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<string, DecryptError> {
     return this.native.decrypt(box, sender)
+  }
+
+  /**
+   * encrypt, and the generic hash (BLAKE2b, 32 bytes, as hashGeneric) over the resulting bytes.
+   * @param recipient - with its public key only
+   * @returns box: the ciphertext, hash: its generic hash as base64
+   */
+  public encryptAndHash(payload: string, recipient: X25519KeyPair): { box: Buffer; hash: string } {
+    return this.native.encryptAndHash(payload, recipient)
+  }
+
+  /**
+   * decrypt, and the generic hash (BLAKE2b, 32 bytes, as hashGeneric) over the bytes of box.
+   * @param sender - with its public key only
+   * @returns payload: the plaintext, hash: the generic hash of box as base64
+   */
+  public decryptAndHash(
+    box: Uint8Array,
+    sender: X25519KeyPair,
+  ): Result<{ payload: string; hash: string }, DecryptError> {
+    return this.native.decryptAndHash(box, sender)
   }
 
   /** for a secret the home community keeps, e.g. in the database */

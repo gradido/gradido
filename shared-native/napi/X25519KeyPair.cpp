@@ -85,17 +85,17 @@ namespace gradido::crypto {
     Napi::Value X25519KeyPair::EncryptWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where)
     {
         Napi::Env env = info.Env();
-        if (!info[0].IsBuffer()) {
-            Napi::TypeError::New(env, std::string("[") + where + "] Expected payload to be a Uint8Array").ThrowAsJavaScriptException();
+        if (!info[0].IsString()) {
+            Napi::TypeError::New(env, std::string("[") + where + "] Expected payload to be a string").ThrowAsJavaScriptException();
             return env.Null();
         }
-        Napi::Buffer<uint8_t> payload = info[0].As<Napi::Buffer<uint8_t>>();
+        const std::string payload = info[0].As<Napi::String>().Utf8Value();
         const X25519Keys* recipient = UnwrapPublicOnlyPeer(info, 1, where, "recipient");
         if (recipient == nullptr) {
             return env.Null();
         }
-        auto box = Napi::Buffer<uint8_t>::New(env, X25519Keys::overhead(X25519Keys::FORMAT_BOX) + payload.Length());
-        if (!keys.encrypt(box.Data(), payload.Data(), payload.Length(), recipient->publicKey())) {
+        auto box = Napi::Buffer<uint8_t>::New(env, X25519Keys::overhead(X25519Keys::FORMAT_BOX) + payload.size());
+        if (!keys.encrypt(box.Data(), reinterpret_cast<const uint8_t*>(payload.data()), payload.size(), recipient->publicKey())) {
             Napi::Error::New(env, std::string("[") + where + "] recipient's public key is unusable (a point of low order)").ThrowAsJavaScriptException();
             return env.Null();
         }
@@ -118,11 +118,11 @@ namespace gradido::crypto {
         if (check != DecryptResult::SUCCESS) {
             return ciphertextFailure(env, check, box, X25519Keys::FORMAT_BOX);
         }
-        auto payload = Napi::Buffer<uint8_t>::New(env, box.Length() - X25519Keys::overhead(X25519Keys::FORMAT_BOX));
-        if (keys.decrypt(payload.Data(), box.Data(), box.Length(), sender->publicKey()) != DecryptResult::SUCCESS) {
+        std::string payload(box.Length() - X25519Keys::overhead(X25519Keys::FORMAT_BOX), '\0');
+        if (keys.decrypt(reinterpret_cast<uint8_t*>(payload.data()), box.Data(), box.Length(), sender->publicKey()) != DecryptResult::SUCCESS) {
             return failureResult(env, "DecryptFailed", "ciphertext was altered, or not encrypted by sender for this key pair");
         }
-        return successResult(env, payload);
+        return successResult(env, Napi::String::New(env, payload));
     }
 
     Napi::Value X25519KeyPair::EncryptSecretWith(const Napi::CallbackInfo& info, const X25519Keys& keys, const char* where)

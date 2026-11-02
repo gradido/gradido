@@ -2,6 +2,7 @@
 #include "Ed25519KeyPair.h"
 #include "KeyPair.h"
 #include "X25519KeyPair.h"
+#include "crypto.h"
 #include "napiUtils.h"
 
 namespace gradido {
@@ -19,6 +20,8 @@ namespace gradido {
             InstanceMethod("decrypt", &HomeCommunityNative::Decrypt),
             InstanceMethod("encryptSecret", &HomeCommunityNative::EncryptSecret),
             InstanceMethod("decryptSecret", &HomeCommunityNative::DecryptSecret),
+            InstanceMethod("encryptAndHash", &HomeCommunityNative::EncryptAndHash),
+            InstanceMethod("decryptAndHash", &HomeCommunityNative::DecryptAndHash),
         });
         exports.Set(NAME, func);
         return exports;
@@ -80,6 +83,47 @@ namespace gradido {
     Napi::Value HomeCommunityNative::DecryptSecret(const Napi::CallbackInfo& info)
     {
         return X25519KeyPair::DecryptSecretWith(info, mEncryptionKeys, "HomeCommunityNative.decryptSecret");
+    }
+
+    Napi::Value HomeCommunityNative::EncryptAndHash(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        Napi::Value box = X25519KeyPair::EncryptWith(info, mEncryptionKeys, "HomeCommunityNative.encryptAndHash");
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        Napi::Object result = Napi::Object::New(env);
+        Napi::Buffer<uint8_t> boxBytes = box.As<Napi::Buffer<uint8_t>>();
+        Napi::Value hash = crypto::HashGenericBase64(env, boxBytes.Data(), boxBytes.Length());
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        result.Set("box", box);
+        result.Set("hash", hash);
+        return result;
+    }
+
+    Napi::Value HomeCommunityNative::DecryptAndHash(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        Napi::Value decrypted = X25519KeyPair::DecryptWith(info, mEncryptionKeys, "HomeCommunityNative.decryptAndHash");
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        Napi::Object result = decrypted.As<Napi::Object>();
+        if (!result.Get("success").ToBoolean().Value()) {
+            return result;
+        }
+        Napi::Buffer<uint8_t> boxBytes = info[0].As<Napi::Buffer<uint8_t>>();
+        Napi::Value hash = crypto::HashGenericBase64(env, boxBytes.Data(), boxBytes.Length());
+        if (env.IsExceptionPending()) {
+            return env.Null();
+        }
+        Napi::Object value = Napi::Object::New(env);
+        value.Set("payload", result.Get("value"));
+        value.Set("hash", hash);
+        result.Set("value", value);
+        return result;
     }
 
 } // namespace gradido

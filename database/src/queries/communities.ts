@@ -268,6 +268,17 @@ export async function dbFindForeignCommunitiesByUuid(
   return map
 }
 
+// the foreign community a signed request names with its public key, null for an unknown key
+export async function dbFindForeignCommunityByPublicKey(
+  publicKey: Buffer,
+): Promise<CommunitiesSelect | null> {
+  const resultRows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(and(eq(communitiesTable.publicKey, publicKey), eq(communitiesTable.foreign, true)))
+  return resultRows[0] ?? null
+}
+
 /**
  * The other communities this one may ask about their members' pictures: foreign, through the
  * authentication handshake, with a JWT key to seal the question for, and a uuid to file the

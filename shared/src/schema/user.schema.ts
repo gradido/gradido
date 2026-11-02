@@ -1,4 +1,6 @@
 import * as v from 'valibot'
+import { emailSchema, uuidv4Schema } from './base.schema'
+import { avatarDateSchema } from './picture.schema'
 
 // Kept beside the regex that enforces them, so a change to one is a change to the
 // other in the same glance. Anything generating an alias has to respect both bounds.
@@ -49,6 +51,8 @@ export const aliasSchema = v.pipe(
   v.check((val) => !RESERVED_ALIAS.includes(val.toLowerCase()), 'Given alias is not allowed'),
 )
 
+export type Alias = v.InferOutput<typeof aliasSchema>
+
 // TODO: use this schemas in backend, think about case which currently not fullfil the regex
 // (some user start there name with : )
 export const firstNameSchema = v.pipe(
@@ -67,3 +71,16 @@ export const lastNameSchema = v.pipe(
 )
 // Off for now, see firstNameSchema.
 // .regex(VALID_NAME_REGEX)
+
+export const userIdentifierSchema = v.union([uuidv4Schema, aliasSchema, emailSchema])
+
+export type UserIdentifier = v.InferOutput<typeof userIdentifierSchema>
+
+export const userPublicInfoSchema = v.object({
+  alias: aliasSchema,
+  gradidoId: uuidv4Schema,
+  communityUuid: uuidv4Schema,
+  avatarUpdatedAt: v.nullish(avatarDateSchema),
+})
+
+export type UserPublicInfo = v.InferOutput<typeof userPublicInfoSchema>
