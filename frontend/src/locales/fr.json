@@ -756,6 +756,7 @@
     "change": "Changer",
     "check_now": "Vérifier maintenant",
     "close": "Fermer",
+    "community-not-reachable": "Cette communauté n'est pas joignable pour le moment. Vérifie quelle communauté est sélectionnée.",
     "current_available": "Actuellement disponible",
     "current_balance": "Solde actuel",
     "date": "Date",

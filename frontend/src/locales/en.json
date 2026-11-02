@@ -756,6 +756,7 @@
     "change": "Change",
     "check_now": "Check now",
     "close": "Close",
+    "community-not-reachable": "This community cannot be reached right now. Please check which community is selected.",
     "current_available": "Currently available",
     "current_balance": "Current Balance",
     "date": "Date",
