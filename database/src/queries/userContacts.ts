@@ -205,3 +205,14 @@ export async function dbConfirmRegistrationContact(contactId: number): Promise<n
   )
   return rows[0] ? rows[0].affectedRows : 0
 }
+
+// One statement for all the rows it is given
+export async function dbInsertUserContacts(
+  userContacts: UserContactInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (userContacts.length === 0) {
+    return
+  }
+  await tx.insert(userContactsTable).values(userContacts)
+}

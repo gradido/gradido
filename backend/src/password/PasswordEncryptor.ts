@@ -1,6 +1,5 @@
-import { delay } from 'core'
 import { DbUser, User } from 'database'
-import { AppContext, PasswordHashPriority, ResourceExhausted, Result } from 'shared'
+import { AppContext, delay, PasswordHashPriority, ResourceExhausted, Result } from 'shared'
 
 import { getUserCryptographicSalt } from './EncryptorUtils'
 import { PasswordDataInput } from './passwordData.schema'

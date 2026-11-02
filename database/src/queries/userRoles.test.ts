@@ -4,7 +4,7 @@ import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { isDuplicateEntry } from '../errorTypes'
 import { userRolesTable } from '../schemas'
-import { dbRemoveUserRoles, dbUpsertUserRole } from './userRoles'
+import { dbInsertUserRoles, dbRemoveUserRoles, dbUpsertUserRole } from './userRoles'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -100,5 +100,39 @@ describe('userRoles query test', () => {
     await dbRemoveUserRoles([])
 
     expect(await rolesOf(BYSTANDER)).toHaveLength(1)
+  })
+})
+
+describe('dbInsertUserRoles', () => {
+  const FIRST = 20000
+  const rows = Array.from({ length: 3 }, (_, i) => ({ userId: FIRST + i, role: 'MODERATOR' }))
+  const countFrom = async (userId: number) =>
+    (await db.select().from(userRolesTable)).filter((row) => row.userId >= userId).length
+
+  afterEach(async () => {
+    await db.delete(userRolesTable)
+  })
+
+  it('writes every row it is given', async () => {
+    await dbInsertUserRoles(rows)
+
+    expect(await countFrom(FIRST)).toBe(3)
+  })
+
+  it('writes inside the transaction it is given', async () => {
+    await expect(
+      drizzleDb().transaction(async (tx) => {
+        await dbInsertUserRoles(rows, tx)
+        throw new Error('roll back')
+      }),
+    ).rejects.toThrow('roll back')
+
+    expect(await countFrom(FIRST)).toBe(0)
+  })
+
+  it('writes nothing for an empty list', async () => {
+    await dbInsertUserRoles([])
+
+    expect(await countFrom(FIRST)).toBe(0)
   })
 })

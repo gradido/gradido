@@ -1,11 +1,12 @@
 import { and, count, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
-import { transactionsTable, usersTable } from '../schemas'
+import { TransactionInsert, transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
 import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
@@ -700,4 +701,15 @@ export async function dbCountAndSumTransactionsOfTypeByWeek(
     .where(and(eq(transactionsTable.typeId, typeId), gte(transactionsTable.balanceDate, from)))
     .groupBy(week)
     .orderBy(week)
+}
+
+// One statement for all the rows it is given
+export async function dbInsertTransactions(
+  transactions: TransactionInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (transactions.length === 0) {
+    return
+  }
+  await tx.insert(transactionsTable).values(transactions)
 }

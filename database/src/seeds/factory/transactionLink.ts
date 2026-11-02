@@ -3,7 +3,9 @@ import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
 import { AppDatabase } from '../../AppDatabase'
 import { TransactionLink, User } from '../../entity'
 import { findUserByIdentifier } from '../../queries'
+import { TransactionLinksInsert } from '../../schemas/drizzle.schema'
 import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
+import { SeedUserRef } from './user'
 
 export async function transactionLinkFactory(
   transactionLinkData: TransactionLinkInterface,
@@ -41,32 +43,46 @@ export async function createTransactionLink(
   userId: number,
   store: boolean = true,
 ): Promise<TransactionLink> {
-  const amount = GradidoUnit.fromNumber(transactionLinkData.amount)
-  const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
-  const createdAt = transactionLinkData.createdAt || new Date()
-  const validUntil = Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdAt)
-
-  const transactionLink = new TransactionLink()
-  transactionLink.userId = userId
-  transactionLink.amount = GradidoUnit.fromNumber(transactionLinkData.amount)
-  transactionLink.memo = transactionLinkData.memo
-  transactionLink.holdAvailableAmount = holdAvailableAmount
-  transactionLink.code = transactionLinkCode(createdAt)
-  transactionLink.createdAt = createdAt
-  transactionLink.validUntil = validUntil
-
-  if (transactionLinkData.redeemedAt) {
-    transactionLink.redeemedAt = transactionLinkData.redeemedAt
-  }
-  if (transactionLinkData.redeemedBy) {
-    transactionLink.redeemedBy = transactionLinkData.redeemedBy
-  }
-
-  if (transactionLinkData.deletedAt) {
-    transactionLink.deletedAt = new Date(createdAt.getTime() + 1000)
-  }
-
+  const transactionLink = Object.assign(
+    new TransactionLink(),
+    buildTransactionLinkRow(transactionLinkData, userId),
+  )
   return store ? transactionLink.save() : transactionLink
+}
+
+// The row of one transaction link, for createTransactionLink and the seed alike.
+export function buildTransactionLinkRow(
+  transactionLinkData: TransactionLinkInterface,
+  userId: number,
+): TransactionLinksInsert {
+  const amount = GradidoUnit.fromNumber(transactionLinkData.amount)
+  const createdAt = transactionLinkData.createdAt || new Date()
+  return {
+    userId,
+    amount,
+    memo: transactionLinkData.memo,
+    holdAvailableAmount: amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION)),
+    code: transactionLinkCode(createdAt),
+    createdAt,
+    validUntil: Duration.days(CODE_VALID_DAYS_DURATION).addToDate(createdAt),
+    deletedAt: transactionLinkData.deletedAt ? new Date(createdAt.getTime() + 1000) : undefined,
+    redeemedAt: transactionLinkData.redeemedAt,
+    redeemedBy: transactionLinkData.redeemedBy,
+  }
+}
+
+// The rows of one batch of seed transaction links.
+export function buildSeedTransactionLinkRows(
+  transactionLinks: TransactionLinkInterface[],
+  refsByEmail: Map<string, SeedUserRef>,
+): TransactionLinksInsert[] {
+  return transactionLinks.map((transactionLink) => {
+    const user = refsByEmail.get(transactionLink.email)
+    if (!user) {
+      throw new Error(`User ${transactionLink.email} not found`)
+    }
+    return buildTransactionLinkRow(transactionLink, user.id)
+  })
 }
 
 export const transactionLinkCode = (date: Date): string => {

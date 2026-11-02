@@ -190,3 +190,14 @@ export async function dbFindUserAliasesExisting(
 export async function dbMarkAliasAdopted(id: number): Promise<void> {
   await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_ADOPTED })
 }
+
+// One statement for all the rows it is given
+export async function dbInsertUserAliases(
+  userAliases: UserAliasInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (userAliases.length === 0) {
+    return
+  }
+  await tx.insert(userAliasesTable).values(userAliases)
+}

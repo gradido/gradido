@@ -1,4 +1,4 @@
-import { CONFIG as CORE_CONFIG, delay } from 'core'
+import { CONFIG as CORE_CONFIG } from 'core'
 import {
   AppDatabase,
   dbFindGmsAllowedLocalUserIds,
@@ -6,6 +6,7 @@ import {
   getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
+import { delay } from 'shared'
 import { MonotonicTimer } from 'shared-native'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { sendUsersToGms } from '@/graphql/resolver/util/sendUserToGms'

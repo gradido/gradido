@@ -1,5 +1,4 @@
 import { GradidoUnit } from 'shared'
-import { promisify } from 'util'
 import { translateForLocale } from '../locales/localization'
 
 export { fullName } from 'shared'
@@ -23,8 +22,6 @@ export function resetInterface<T extends Record<string, any>>(obj: T): T {
   }
   return obj
 }
-
-export const delay = promisify(setTimeout)
 
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url.replace(/\/*$/, '/') : url.concat('/')
