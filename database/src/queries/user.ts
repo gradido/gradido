@@ -174,6 +174,15 @@ export async function dbFindUserWithContactById(
   return rows[0] ?? null
 }
 
+/** Names the address a member is reached at: `users.email_id`. */
+export async function dbUpdateUserEmailId(
+  userId: number,
+  emailId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx.update(usersTable).set({ emailId }).where(eq(usersTable.id, userId))
+}
+
 export async function dbInsertUser(
   user: UserInsert,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),

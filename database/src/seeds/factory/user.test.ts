@@ -1,9 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, PasswordEncryptionType } from 'shared'
-import { ALIAS_ORIGIN_ADOPTED } from '../../entity'
+import { AppDatabase, drizzleDb } from '../../AppDatabase'
+import { ALIAS_ORIGIN_ADOPTED, Community } from '../../entity'
 import { AccountState, RoleNames } from '../../enum'
+import { dbDeleteAllRowsExceptMigrations } from '../../queries/informationSchemaTables'
+import { userAliasesTable, userContactsTable, userRolesTable, usersTable } from '../../schemas'
+import { createCommunity } from '../community'
 import { UserInterface } from '../users/UserInterface'
-import { buildSeedUserRows } from './user'
+import { buildSeedUserRows, userFactory } from './user'
 
 const COMMUNITY_UUID = '0bd3a4a9-31a4-4b0a-8f3c-0c1d7a4b6f00'
 const build = (users: UserInterface[]) => buildSeedUserRows(users, 1, COMMUNITY_UUID, new Set())
@@ -115,5 +119,88 @@ describe('buildSeedUserRows', () => {
 
     expect(rows.users[0].alias).toBe('Seedy')
     expect(rows.userAliases).toEqual([{ userId: 1, alias: 'Seedy', origin: ALIAS_ORIGIN_ADOPTED }])
+  })
+})
+
+describe('userFactory', () => {
+  const db = AppDatabase.getInstance()
+  const anna: UserInterface = {
+    alias: 'SeedAnna',
+    email: 'anna@seed.de',
+    firstName: 'Anna',
+    lastName: 'A',
+    emailChecked: true,
+  }
+  let homeCommunity: Community
+
+  beforeAll(async () => {
+    await db.init()
+    await dbDeleteAllRowsExceptMigrations()
+    homeCommunity = await createCommunity(false)
+  })
+
+  afterAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await db.destroy()
+  })
+
+  beforeEach(async () => {
+    await drizzleDb().delete(usersTable)
+    await drizzleDb().delete(userContactsTable)
+    await drizzleDb().delete(userAliasesTable)
+    await drizzleDb().delete(userRolesTable)
+  })
+
+  it('writes member, address and name, the two rows pointing at each other', async () => {
+    const user = await userFactory(anna)
+
+    const [contact] = await drizzleDb().select().from(userContactsTable)
+    expect(contact.userId).toBe(user.id)
+    expect(contact.email).toBe('anna@seed.de')
+    const [row] = await drizzleDb().select().from(usersTable)
+    expect(row.emailId).toBe(contact.id)
+    expect(await drizzleDb().select().from(userAliasesTable)).toEqual([
+      expect.objectContaining({ userId: user.id, alias: 'SeedAnna', origin: ALIAS_ORIGIN_ADOPTED }),
+    ])
+  })
+
+  it('hands back the entity with the address and the community', async () => {
+    const user = await userFactory(anna)
+
+    expect(user.emailContact.email).toBe('anna@seed.de')
+    expect(user.community?.communityUuid).toBe(homeCommunity.communityUuid)
+    expect(user.communityUuid).toBe(homeCommunity.communityUuid)
+    expect(user.accountState).toBe(AccountState.ACTIVATED)
+    expect(user.userRole).toBeUndefined()
+    await user.save()
+  })
+
+  it('hands back the role of an admin, and of nobody else', async () => {
+    const admin = await userFactory({ ...anna, role: RoleNames.ADMIN })
+
+    expect(admin.userRole?.role).toBe(RoleNames.ADMIN)
+    expect(await drizzleDb().select().from(userRolesTable)).toHaveLength(1)
+  })
+
+  it('takes the community it is given', async () => {
+    const other = { communityUuid: homeCommunity.communityUuid }
+    expect((await userFactory(anna, other)).communityUuid).toBe(homeCommunity.communityUuid)
+  })
+
+  it('finds a deleted member too', async () => {
+    const deletedAt = new Date(2026, 0, 1)
+    const user = await userFactory({ ...anna, deletedAt })
+
+    expect(user.accountState).toBe(AccountState.DELETED)
+    expect(user.deletedAt).toEqual(deletedAt)
+  })
+
+  it('leaves nothing behind when the address is taken', async () => {
+    await userFactory(anna)
+
+    await expect(userFactory({ ...anna, alias: 'SeedOther' })).rejects.toThrow()
+
+    expect(await drizzleDb().select().from(usersTable)).toHaveLength(1)
+    expect(await drizzleDb().select().from(userAliasesTable)).toHaveLength(1)
   })
 })
