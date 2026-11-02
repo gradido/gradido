@@ -1,12 +1,14 @@
+// AI-GENERATED — not an architecture reference
 import random from 'random-bigint'
 import {
+  fullName,
   MissingHomeCommunityError,
   OptInType,
   PasswordEncryptionType,
   UserContactType,
 } from 'shared'
 import { v4 } from 'uuid'
-import { AppDatabase } from '../..'
+import { DrizzleTransaction } from '../../AppDatabase'
 import {
   ALIAS_ORIGIN_ADOPTED,
   Community,
@@ -18,6 +20,16 @@ import {
 import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { getHomeCommunity } from '../../queries/communities'
+import { dbInsertUsers } from '../../queries/user'
+import { dbInsertUserAliases } from '../../queries/userAliases'
+import { dbInsertUserContacts } from '../../queries/userContacts'
+import { dbInsertUserRoles } from '../../queries/userRoles'
+import {
+  UserAliasInsert,
+  UserContactInsert,
+  UserInsert,
+  UserRoleInsert,
+} from '../../schemas/drizzle.schema'
 import { UserInterface } from '../users/UserInterface'
 
 export async function userFactory(
@@ -38,65 +50,6 @@ export async function userFactory(
   }
 
   return dbUser
-}
-
-// only use in non-parallel environment (seeding for example)
-export async function userFactoryBulk(
-  users: UserInterface[],
-  homeCommunity?: Community | null,
-): Promise<User[]> {
-  const dbUsers: User[] = []
-  const dbUserContacts: UserContact[] = []
-  const dbUserRoles: UserRole[] = []
-  const dbUserAliases: UserAlias[] = []
-  const lastUser = await User.findOne({ order: { id: 'DESC' }, select: ['id'], where: {} })
-  const lastUserContact = await UserContact.findOne({
-    order: { id: 'DESC' },
-    select: ['id'],
-    where: {},
-  })
-  let userId = lastUser ? lastUser.id + 1 : 1
-  let emailId = lastUserContact ? lastUserContact.id + 1 : 1
-  // console.log(`start with userId: ${userId} and emailId: ${emailId}`)
-  for (const user of users) {
-    const dbUser = await createUser(user, homeCommunity, false)
-    dbUser.id = userId
-    dbUser.emailId = emailId
-
-    const dbUserContact = await createUserContact(user, userId, false)
-    dbUserContact.id = emailId
-    dbUserContact.userId = userId
-    dbUser.emailContact = dbUserContact
-
-    dbUsers.push(dbUser)
-    dbUserContacts.push(dbUserContact)
-
-    const userRole = user.role as RoleNames
-    if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-      dbUserRoles.push(await createUserRole(dbUser.id, userRole, false))
-    }
-    dbUserAliases.push(await createUserAlias(dbUser.id, dbUser.alias, false))
-
-    userId++
-    emailId++
-  }
-
-  const dataSource = AppDatabase.getInstance().getDataSource()
-  await dataSource.transaction(async (transaction) => {
-    // typeorm change my data what I don't want
-    // because of manuel id assignment
-    const dbUsersCopy = dbUsers.map((user) => ({ ...user }))
-    const dbUserContactsCopy = dbUserContacts.map((userContact) => ({ ...userContact }))
-    const dbUserRolesCopy = dbUserRoles.map((userRole) => ({ ...userRole }))
-    const dbUserAliasesCopy = dbUserAliases.map((userAlias) => ({ ...userAlias }))
-    await Promise.all([
-      transaction.getRepository(User).insert(dbUsersCopy),
-      transaction.getRepository(UserContact).insert(dbUserContactsCopy),
-      transaction.getRepository(UserRole).insert(dbUserRolesCopy),
-      transaction.getRepository(UserAlias).insert(dbUserAliasesCopy),
-    ])
-  })
-  return dbUsers
 }
 
 export async function createUser(
@@ -187,4 +140,122 @@ export async function createUserAlias(
   dbUserAlias.alias = alias
   dbUserAlias.origin = ALIAS_ORIGIN_ADOPTED
   return store ? dbUserAlias.save() : dbUserAlias
+}
+
+/** A `users` row as the seed builds it: id, email id and gradido id are known before the write. */
+export type SeedUserRow = UserInsert & { id: number; emailId: number; gradidoId: string }
+
+/**
+ * What the creations and transaction links of the seed need of a member, kept after the rows
+ * of the member are written and let go.
+ */
+export interface SeedUserRef {
+  id: number
+  gradidoId: string
+  communityUuid: string
+  name: string
+}
+
+/** The rows of one batch of seed users. */
+export interface SeedUserRows {
+  users: SeedUserRow[]
+  userContacts: UserContactInsert[]
+  userRoles: UserRoleInsert[]
+  userAliases: UserAliasInsert[]
+  // only the members whose address is in `referencedEmails`
+  refsByEmail: Map<string, SeedUserRef>
+}
+
+/**
+ * The rows createUser, createUserContact, createUserRole and createUserAlias write, for one
+ * batch of users and without touching the database. The ids count from `firstId` in the order
+ * of `users`. For the members whose address is in `referencedEmails` it hands back a
+ * SeedUserRef, so the caller keeps only what later rows refer to.
+ *
+ * ⚠️ For an empty database only: the address of a member gets the same id as the member.
+ * `users.email_id` and `user_contacts.user_id` point at each other, so both have to be known
+ * before either row is written.
+ */
+export function buildSeedUserRows(
+  users: UserInterface[],
+  firstId: number,
+  communityUuid: string,
+  referencedEmails: ReadonlySet<string>,
+): SeedUserRows {
+  const rows: SeedUserRows = {
+    users: [],
+    userContacts: [],
+    userRoles: [],
+    userAliases: [],
+    refsByEmail: new Map(),
+  }
+  users.forEach((user, index) => {
+    const id = firstId + index
+    const userRow: SeedUserRow = {
+      id,
+      emailId: id,
+      gradidoId: user.gradidoId ?? v4(),
+      communityUuid,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      language: user.language ?? 'en',
+      createdAt: user.createdAt ?? new Date(),
+      deletedAt: user.deletedAt ?? null,
+      accountState: user.deletedAt
+        ? AccountState.DELETED
+        : user.emailChecked
+          ? AccountState.ACTIVATED
+          : AccountState.REGISTERED,
+      publisherId: user.publisherId ?? 0,
+      humhubAllowed: true,
+      alias: user.alias,
+    }
+    rows.userAliases.push({ userId: id, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED })
+    if (user.emailChecked) {
+      userRow.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+    }
+    rows.users.push(userRow)
+
+    const contactRow: UserContactInsert = {
+      id,
+      userId: id,
+      email: user.email ?? '',
+      type: UserContactType.USER_CONTACT_EMAIL,
+    }
+    if (user.createdAt) {
+      contactRow.createdAt = user.createdAt
+      contactRow.updatedAt = user.createdAt
+    }
+    if (user.emailChecked) {
+      contactRow.emailVerificationCode = random(64)
+      contactRow.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+      contactRow.emailChecked = true
+    }
+    rows.userContacts.push(contactRow)
+
+    const role = user.role as RoleNames
+    if (role === RoleNames.ADMIN || role === RoleNames.MODERATOR) {
+      rows.userRoles.push({ userId: id, role })
+    }
+    if (user.email && referencedEmails.has(user.email)) {
+      rows.refsByEmail.set(user.email, {
+        id,
+        gradidoId: userRow.gradidoId,
+        communityUuid,
+        name: fullName(user.firstName ?? '', user.lastName ?? ''),
+      })
+    }
+  })
+  return rows
+}
+
+/** Writes what buildSeedUserRows built. One after the other: a transaction is one connection. */
+export async function insertSeedUserRows(
+  rows: SeedUserRows,
+  tx: DrizzleTransaction,
+): Promise<void> {
+  await dbInsertUsers(rows.users, tx)
+  await dbInsertUserContacts(rows.userContacts, tx)
+  await dbInsertUserRoles(rows.userRoles, tx)
+  await dbInsertUserAliases(rows.userAliases, tx)
 }

@@ -64,8 +64,10 @@ export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect> {
  * The home community as it is in the database right now, bypassing the cache.
  * For whoever writes the row and must not decide on a stale copy of it.
  */
-export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null> {
-  const resultRows = await drizzleDb()
+export async function dbSelectHomeCommunity(
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<CommunitiesSelect | null> {
+  const resultRows = await tx
     .select()
     .from(communitiesTable)
     .where(eq(communitiesTable.foreign, false))
@@ -78,13 +80,12 @@ export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null>
  */
 export async function dbInsertHomeCommunity(
   homeCommunity: HomeCommunityInsertInput,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<void> {
-  if (await dbSelectHomeCommunity()) {
+  if (await dbSelectHomeCommunity(tx)) {
     throw new Error('home community already exist, only one is allowed')
   }
-  await drizzleDb()
-    .insert(communitiesTable)
-    .values(v.parse(homeCommunityInsertSchema, homeCommunity))
+  await tx.insert(communitiesTable).values(v.parse(homeCommunityInsertSchema, homeCommunity))
   homeCommunityCache.invalidateEverywhere()
 }
 

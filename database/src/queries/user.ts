@@ -1284,3 +1284,13 @@ export async function dbCountUsersFindable(): Promise<number> {
     )
   return row?.accounts ?? 0
 }
+
+export async function dbInsertUsers(
+  users: UserInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (users.length === 0) {
+    return
+  }
+  await tx.insert(usersTable).values(users)
+}
