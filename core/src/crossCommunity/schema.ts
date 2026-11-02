@@ -43,8 +43,8 @@ export const userPublicInfoWireSchema = v.object({
 export type UserPublicInfoWire = v.InferOutput<typeof userPublicInfoWireSchema>
 
 export const crossGroupTransactionWireSchema = v.object({
-  senderUser: userPublicInfoWireSchema,
-  recipientUser: v.object({
+  sender: userPublicInfoWireSchema,
+  recipient: v.object({
     communityUuid: uuidv4Schema,
     identifier: userIdentifierSchema,
   }),
