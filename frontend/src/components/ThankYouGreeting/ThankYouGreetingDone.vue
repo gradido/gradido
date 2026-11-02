@@ -39,8 +39,10 @@
     </div>
 
     <div class="tyg-done-card bg-white app-box-shadow gradido-border-radius">
-      <!-- The device's share sheet where it has one; elsewhere this copies the sentence. It leads,
-           unless an address is known: then the mail to it does, and this stands behind it. -->
+      <!-- Where an address is known the card holds the mail to it and nothing else (Bernd,
+           02.11.2026): the member came for that, and the other buttons stood in the way. Sharing,
+           copying and paper stay in the menu of the link in the list, as the page says below. -->
+      <!-- The device's share sheet where it has one; elsewhere this copies the sentence. -->
       <BButton
         v-if="!emailAddress"
         variant="gradido"
@@ -75,15 +77,7 @@
         {{ emailHint }}
       </p>
       <BButton
-        v-if="emailAddress"
-        variant="outline-secondary"
-        class="tyg-done-button"
-        data-test="thank-you-greeting-share"
-        @click="share"
-      >
-        {{ $t('gdd_per_link.share') }}
-      </BButton>
-      <BButton
+        v-if="!emailAddress"
         variant="outline-secondary"
         class="tyg-done-button"
         :disabled="!canCopyLink"
@@ -98,7 +92,7 @@
            disabled button loses the keyboard's place; the composable makes one sheet of two taps.
            ⛔ Only a greeting goes onto paper: a plain link has its cheque, elsewhere. -->
       <div
-        v-if="isGreeting"
+        v-if="isGreeting && !emailAddress"
         class="tyg-done-paper"
         role="group"
         aria-labelledby="tyg-done-paper-title"
@@ -213,8 +207,8 @@
  *
  * "Per E-Mail" opens the member's own mail program (useSendByEmail). The send form leads here too,
  * for a thank-you to somebody without an account (pages/Send.vue): with the address in
- * `emailAddress`, and without a greeting where no picture was chosen -- a plain link, whose text
- * then carries the amount and the message.
+ * `emailAddress`, where the mail is all the card holds, and without a greeting where no picture was
+ * chosen -- a plain link, whose text then carries the amount and the message.
  */
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -44,13 +44,23 @@ export const mailtoHref = (address, subject, text) =>
   `mailto:${mailtoAddress(address)}?subject=${encoded(subject)}` +
   `&body=${encoded(text.replace(/\n/g, '\r\n'))}`
 
-/** The picture as the mail gets it: the measure of the messenger's preview, 36 : 25. */
+/**
+ * How wide the picture stands in a mail. A mail program pastes it pixel for pixel: at 1080 it filled
+ * the whole window (Bernd, 02.11.2026: at most 600). The height keeps the motifs' proportions.
+ */
+const PICTURE_WIDTH = 600
+const PICTURE_HEIGHT = Math.round((PICTURE_WIDTH * THANK_YOU_MOTIF_HEIGHT) / THANK_YOU_MOTIF_WIDTH)
+
+/** The picture as the mail gets it. */
 const pictureAsPng = async (source) => {
   const image = await loadImage(source)
   const canvas = document.createElement('canvas')
-  canvas.width = THANK_YOU_MOTIF_WIDTH * 3
-  canvas.height = THANK_YOU_MOTIF_HEIGHT * 3
-  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height)
+  canvas.width = PICTURE_WIDTH
+  canvas.height = PICTURE_HEIGHT
+  const context = canvas.getContext('2d')
+  // A photo comes larger than this, and is made smaller here.
+  context.imageSmoothingQuality = 'high'
+  context.drawImage(image, 0, 0, canvas.width, canvas.height)
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('no picture'))),
