@@ -275,16 +275,17 @@ describe('ThankYouGreetingDone', () => {
       expect(data(wrapper, 'email').classes()).not.toContain('btn-gradido')
     })
 
-    it('leads where an address is known, with the address on it', () => {
+    // Bernd, 02.11.2026: the other buttons stood in the way of what the member came for. They stay
+    // in the menu of the link in the list, and the page says where that is.
+    it('is all the card holds where an address is known, with the address on it', () => {
       const wrapper = withAddress()
 
-      expect(buttons(wrapper).slice(0, 3)).toEqual([
-        `Per E-Mail an ${ADDRESS}`,
-        'Teilen',
-        'Link kopieren',
-      ])
+      expect(buttons(wrapper)).toEqual([`Per E-Mail an ${ADDRESS}`])
       expect(data(wrapper, 'email').classes()).toContain('btn-gradido')
-      expect(data(wrapper, 'share').classes()).not.toContain('btn-gradido')
+      expect(data(wrapper, 'email-hint').exists()).toBe(true)
+      expect(wrapper.find('.tyg-done-paper').exists()).toBe(false)
+      expect(data(wrapper, 'find-again').exists()).toBe(true)
+      expect(data(wrapper, 'another').exists()).toBe(true)
     })
 
     it('is a real link, to no address where none is known', () => {
@@ -379,11 +380,9 @@ describe('ThankYouGreetingDone', () => {
         expect(wrapper.text()).not.toContain('Deine Worte stehen erst auf der Karte')
       })
 
-      it('keeps its sharing, copying, the hints and one more', () => {
+      it('keeps the hints and one more', () => {
         const wrapper = withAddress(plain())
 
-        expect(data(wrapper, 'share').exists()).toBe(true)
-        expect(data(wrapper, 'copy').exists()).toBe(true)
         expect(data(wrapper, 'link-hint').exists()).toBe(true)
         expect(data(wrapper, 'find-again').exists()).toBe(true)
         expect(data(wrapper, 'another').exists()).toBe(true)
