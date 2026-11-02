@@ -583,11 +583,17 @@ function onSubmit() {
   // mutations expect: the bare user name, and the community it belongs to. This used to
   // sit in the else branch alone, which is why a recipient written with a community never
   // reached anybody by e-mail -- the whole string went out as the user name.
+  // Without a community as well: the field has forgiven a space around the address (a paste, the
+  // suggestion of a phone's keyboard), and past this point it would count as somebody else.
   const parts = splitRecipient(transformedForm.identifier)
+  if (parts) transformedForm.identifier = parts.user
   if (parts?.community) {
-    transformedForm.identifier = parts.user
     transformedForm.targetCommunity = findCommunity(parts.community)
   }
+  // The name belongs to the address that named the recipient. The form stays when that address is
+  // left (the menu, "Zurücksetzen"), and the name would go on to the check view, above somebody else
+  // typed into the field: for a member of another community nothing asks about that one.
+  const recipientName = userIdentifier.value ? userName.value : ''
   if (radioSelected.value === SEND_TYPES.email) {
     /*
     console.log(
@@ -602,7 +608,7 @@ function onSubmit() {
     emit('send-email', {
       ...transformedForm,
       selected: radioSelected.value,
-      userName: userName.value,
+      userName: recipientName,
     })
   } else {
     /*
@@ -618,7 +624,7 @@ function onSubmit() {
     emit('set-transaction', {
       ...transformedForm,
       selected: radioSelected.value,
-      userName: userName.value,
+      userName: recipientName,
     })
   }
 }
@@ -631,7 +637,11 @@ function onReset(event) {
   form.amount = props.amount
   form.memo = props.memo
   form.identifier = props.identifier
-  form.targetCommunity = props.targetCommunity
+  // Where the page handed in nothing but the placeholder, back to the community that replaced it:
+  // the switch replaces it only once.
+  form.targetCommunity = props.targetCommunity.uuid
+    ? props.targetCommunity
+    : (communities.value.find((community) => !community.foreign) ?? props.targetCommunity)
   radioSelected.value = SEND_TYPES.send
   router.replace('/send')
 }

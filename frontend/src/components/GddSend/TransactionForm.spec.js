@@ -654,6 +654,121 @@ describe('TransactionForm', () => {
     })
   })
 
+  // What the page goes on with, and what it says when it comes back.
+  describe('around a press', () => {
+    const fill = async (identifier = 'sarah@kongress-beispiel.de') => {
+      wrapper.vm.form.identifier = identifier
+      wrapper.vm.form.amount = '10,00'
+      wrapper.vm.form.memo = 'Test memo'
+      await nextTick()
+    }
+    const pressed = async () => {
+      await wrapper.findComponent(BForm).trigger('submit.prevent')
+      return wrapper.emitted('set-transaction')[0][0]
+    }
+
+    // A paste, or the suggestion of a phone's keyboard. The field forgives the space, so past it the
+    // address must count as what the field took it for -- and be asked after as that.
+    it.each([
+      ['behind', 'sarah@kongress-beispiel.de '],
+      ['before', ' sarah@kongress-beispiel.de'],
+      ['around', '  sarah@kongress-beispiel.de  '],
+    ])('goes on without a space %s the address', async (_where, typed) => {
+      useRoute.mockReturnValue({ params: {}, query: {} })
+      wrapper = createWrapper({ balance: 100.0 })
+      await fill(typed)
+
+      expect((await pressed()).identifier).toBe('sarah@kongress-beispiel.de')
+    })
+
+    it('goes on without a space around a user name', async () => {
+      useRoute.mockReturnValue({ params: {}, query: {} })
+      wrapper = createWrapper({ balance: 100.0 })
+      await fill('Sarah-K ')
+
+      expect((await pressed()).identifier).toBe('Sarah-K')
+    })
+
+    // The placeholder the form starts with has no uuid, and the switch replaces it only once. Reset
+    // to it, "Jetzt prüfen" would find nothing to ask with.
+    describe('"Zurücksetzen"', () => {
+      const HOME = { uuid: 'home-uuid', name: 'Akademie', foreign: false }
+      const AWAY = { uuid: 'away-uuid', name: 'Wien', foreign: true }
+
+      beforeEach(() => {
+        useRoute.mockReturnValue({ params: {}, query: {} })
+      })
+
+      it('goes back to the member’s own community where only the placeholder was handed in', async () => {
+        wrapper = createWrapper({ balance: 100.0 })
+        wrapper.vm.setCommunities([AWAY, HOME])
+        wrapper.vm.form.targetCommunity = AWAY
+
+        await wrapper.find('button[type="reset"]').trigger('click')
+
+        expect(wrapper.vm.form.targetCommunity).toEqual(HOME)
+      })
+
+      it('goes back to the community the page handed in', async () => {
+        wrapper = createWrapper({ balance: 100.0, targetCommunity: AWAY })
+        wrapper.vm.setCommunities([AWAY, HOME])
+        wrapper.vm.form.targetCommunity = HOME
+
+        await wrapper.find('button[type="reset"]').trigger('click')
+
+        expect(wrapper.vm.form.targetCommunity).toEqual(AWAY)
+      })
+    })
+
+    // The last screen before the money: a name left from /send/<community>/<user> would stand there
+    // above somebody else, where the form stays and nothing asks about that one.
+    describe('the name an address gave the recipient', () => {
+      let route
+
+      beforeEach(() => {
+        route = reactive({
+          params: { userIdentifier: 'alice', communityIdentifier: 'c' },
+          query: {},
+        })
+        useRoute.mockReturnValue(route)
+        wrapper = createWrapper({ balance: 100.0 })
+        wrapper.vm.userName = 'Alice'
+      })
+
+      const lastPress = async () => {
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+        return wrapper.emitted('set-transaction').at(-1)[0]
+      }
+
+      it('goes along while that address stands', async () => {
+        await fill('alice')
+
+        expect((await lastPress()).userName).toBe('Alice')
+      })
+
+      it('does not go along once the address is left', async () => {
+        route.params = {}
+        await nextTick()
+        await fill()
+
+        expect((await lastPress()).userName).toBe('')
+      })
+
+      // Coming back to the same contact, the answer comes out of the cache, and nothing sets it anew.
+      it('goes along again on coming back to that address', async () => {
+        route.params = {}
+        await nextTick()
+        await fill()
+        await lastPress()
+
+        route.params = { userIdentifier: 'alice', communityIdentifier: 'c' }
+        await nextTick()
+
+        expect((await lastPress()).userName).toBe('Alice')
+      })
+    })
+  })
+
   describe('with gradido ID', () => {
     beforeEach(async () => {
       vi.mocked(useRoute).mockReturnValue({

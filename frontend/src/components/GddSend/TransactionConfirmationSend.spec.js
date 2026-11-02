@@ -97,6 +97,15 @@ describe('GddSend confirm', () => {
   })
 
   describe('back button', () => {
+    // The answer takes this step down whatever stands there by then, and a transfer is not called
+    // back by walking away from it.
+    it('is shut once the transfer is on its way', async () => {
+      await wrapper.find('button.btn-gradido').trigger('click')
+      const back = wrapper.findAll('button').find((button) => button.text() === 'back')
+
+      expect(back.attributes('disabled')).toBeDefined()
+    })
+
     it('emits on-back event when clicked', async () => {
       await wrapper.find('button:not([variant="gradido"])').trigger('click')
       expect(wrapper.emitted('on-back')).toHaveLength(1)
