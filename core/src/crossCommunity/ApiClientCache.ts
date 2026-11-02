@@ -42,7 +42,7 @@ export class ApiClientCache {
       const com = await dbFindForeignCommunityByPublicKey(Buffer.from(publicKeyHex, 'hex'))
       if (com && com.authenticatedAt) {
         client = this.get(com.url, new Ed25519KeyPair(com.publicKey))
-        if (com.publicEncryptionKey) {
+        if (com.publicEncryptionKey && com.publicEncryptionKey.byteLength > 0) {
           client.publicEncryptionKey = new X25519KeyPair(com.publicEncryptionKey)
         }
         client.communityUuid = com.communityUuid

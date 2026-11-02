@@ -4,7 +4,8 @@ import {
   getHomeCommunityDrizzle,
   UserSelect,
 } from 'database'
-import { Elysia, StatusMap, status } from 'elysia'
+import { Context, Elysia, StatusMap, status } from 'elysia'
+import { ElysiaCustomStatusResponse } from 'elysia/error'
 import { FieldOccurrence } from 'http-message-sig'
 import { getLogger } from 'log4js'
 import {
@@ -44,26 +45,7 @@ export const apiRoutesV1 = new Elysia({
     {
       query: v.object({ exchangeId: signatureNonceSchema }),
       response: communityInfoWireSchema,
-      mapResponse: async ({ responseValue, set, request }) => {
-        const body = JSON.stringify(responseValue)
-        // Elysia sets it only after mapResponse, and not at all on a returned Response; it is signed here
-        set.headers['content-type'] = 'application/json'
-        set.headers['content-digest'] = `blake2b-256=:${hashGenericBase64(body)}:`
-        const status = statusNumber(set.status)
-        const message = {
-          kind: 'response' as const,
-          status,
-          fields: [
-            { name: 'content-digest', value: set.headers['content-digest'] },
-            { name: 'content-type', value: set.headers['content-type'] },
-          ],
-          request,
-        }
-        const { signature, signatureInput } = await signHttpMessage(message)
-        set.headers.Signature = signature
-        set.headers['Signature-Input'] = signatureInput
-        return new Response(body)
-      },
+      mapResponse: signedJsonResponse,
     },
   )
   // every route after this expects its payload signed and encrypted.
@@ -81,10 +63,16 @@ export const apiRoutesV1 = new Elysia({
     }
     request.headers.forEach((value, name) => message.fields.push({ name, value }))
     let senderComPublicKeyHex: string
+    let nonce: string | undefined
     try {
-      senderComPublicKeyHex = await verifyHttpMessage(message)
+      ;({ keyId: senderComPublicKeyHex, nonce } = await verifyHttpMessage(message))
     } catch (error) {
       logger.debug('request without valid signature', error)
+      throw status('Unauthorized')
+    }
+    // signed back with the answer
+    if (!nonce) {
+      logger.debug(`request without nonce, from community: ${senderComPublicKeyHex}`)
       throw status('Unauthorized')
     }
     if (request.headers.get('content-type') !== 'application/octet-stream') {
@@ -99,7 +87,10 @@ export const apiRoutesV1 = new Elysia({
       .getHomeCommunity()
       .decryptAndHash(new Uint8Array(body as ArrayBuffer), senderClient.publicEncryptionKey)
     if (!decryptResult.success) {
-      logger.debug(`error on decrypt from community:  ${senderComPublicKeyHex}`, decryptResult.error)
+      logger.debug(
+        `error on decrypt from community:  ${senderComPublicKeyHex}`,
+        decryptResult.error,
+      )
       throw status('Bad Request')
     }
     // the signature covers the digest header only, the body is bound by comparing it here
@@ -113,7 +104,7 @@ export const apiRoutesV1 = new Elysia({
       logger.debug(`body is no JSON, from community: ${senderComPublicKeyHex}`)
       throw status('Bad Request')
     }
-    return { senderCommunityUuid: senderClient.communityUuid }
+    return { senderCommunityUuid: senderClient.communityUuid, nonce }
   })
   // routes for other communities: derive has verified the signature, decrypted the body and named
   // the community of the signing key
@@ -158,8 +149,46 @@ export const apiRoutesV1 = new Elysia({
     },
     {
       body: crossGroupTransactionWireSchema,
+      mapResponse: signedJsonResponse,
     },
   )
+
+// The part of the Elysia context signedJsonResponse needs, so it can stand in as mapResponse of any
+// route: Context has no responseValue, that is only added for this hook.
+// nonce: what a signed request brought, see derive; a public route has none to sign back
+// Serializes the answer of a route as JSON and signs it with the home community's key. An error
+// answer is not signed and carries no data. status() arrives here as it is, not in set.status: a
+// Response returned without its code would turn a 404 into a 200.
+async function signedJsonResponse<T>({
+  responseValue,
+  set,
+  request,
+  nonce,
+}: Pick<Context, 'request' | 'set'> & { responseValue: T; nonce?: string }) {
+  const isStatus = responseValue instanceof ElysiaCustomStatusResponse
+  const status = isStatus ? (responseValue.code as number) : statusNumber(set.status)
+  const value: unknown = isStatus ? responseValue.response : responseValue
+  if (status >= 400) {
+    return new Response(String(value), { status })
+  }
+  const body = JSON.stringify(value)
+  // Elysia sets it only after mapResponse, and not at all on a returned Response; it is signed here
+  set.headers['content-type'] = 'application/json'
+  set.headers['content-digest'] = `blake2b-256=:${hashGenericBase64(body)}:`
+  const message = {
+    kind: 'response' as const,
+    status,
+    fields: [
+      { name: 'content-digest', value: set.headers['content-digest'] },
+      { name: 'content-type', value: set.headers['content-type'] },
+    ],
+    request,
+  }
+  const { signature, signatureInput } = await signHttpMessage(message, nonce)
+  set.headers.Signature = signature
+  set.headers['Signature-Input'] = signatureInput
+  return new Response(body, { status })
+}
 
 function statusNumber(status?: number | keyof StatusMap): number {
   return typeof status === 'string' ? StatusMap[status] : (status ?? 200)

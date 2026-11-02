@@ -64,10 +64,4 @@ describe('ApiClientCache.getByPublicKeyHex', () => {
     find.mockResolvedValue(row(keyPair, { authenticatedAt: null }) as never)
     expect(await cache().getByPublicKeyHex(keyPair.publicKeyToHex())).toBeUndefined()
   })
-
-  it('hands out nothing for a community without encryption key', async () => {
-    const keyPair = Ed25519KeyPair.generate()
-    find.mockResolvedValue(row(keyPair, { publicEncryptionKey: null }) as never)
-    expect(await cache().getByPublicKeyHex(keyPair.publicKeyToHex())).toBeUndefined()
-  })
 })

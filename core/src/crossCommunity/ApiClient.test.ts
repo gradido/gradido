@@ -209,7 +209,11 @@ describe('ApiClient.emailTransactionReceived', () => {
   }
 
   // what the route answers next
-  let answer: () => Response
+  let answer: (request: Request) => Response | Promise<Response>
+  const nonceOf = (request: Request) =>
+    /;nonce="([^"]+)"/.exec(request.headers.get('signature-input') ?? '')?.[1] ?? ''
+  const signedOk = (request: Request) =>
+    signedAnswer('"OK"', 'application/json', nonceOf(request), request)
   // takes the request as it came over the wire, as a peer that knows nothing but the wire does
   let received: { request: Request; body: Uint8Array } | undefined
   const peer = new Elysia()
@@ -217,7 +221,7 @@ describe('ApiClient.emailTransactionReceived', () => {
       'peer-api/v1/emailTransactionReceived',
       async ({ request, body }) => {
         received = { request, body: new Uint8Array(body as ArrayBuffer) }
-        return answer()
+        return answer(request)
       },
       { parse: 'arrayBuffer' },
     )
@@ -233,7 +237,7 @@ describe('ApiClient.emailTransactionReceived', () => {
   }
 
   it('sends the transaction encrypted for the recipient and signed by the home community', async () => {
-    answer = () => new Response('OK')
+    answer = signedOk
     const { error, status } = await client().emailTransactionReceived(tx)
     expect(error).toBeNull()
     expect(status).toBe(200)
@@ -250,7 +254,7 @@ describe('ApiClient.emailTransactionReceived', () => {
         targetUri: request.url,
         fields,
       }),
-    ).toBe(communityPublicKey.toString('hex'))
+    ).toMatchObject({ keyId: communityPublicKey.toString('hex') })
 
     const plaintext = recipientKeyPair.decrypt(body, homePublicOnly)
     expect(plaintext.success).toBe(true)
@@ -265,11 +269,34 @@ describe('ApiClient.emailTransactionReceived', () => {
     }
   })
 
-  it('takes the answer of the route as it is, it is not signed', async () => {
-    answer = () => new Response('OK')
-    const { error, status } = await client().emailTransactionReceived(tx)
+  it('hands out the answer signed for this request', async () => {
+    answer = signedOk
+    const { data, error } = await client().emailTransactionReceived(tx)
     expect(error).toBeNull()
-    expect(status).toBe(200)
+    expect(data as unknown).toBe('OK')
+  })
+
+  it('refuses an answer that is not signed', async () => {
+    answer = () => new Response('OK')
+    const { data, error } = await client().emailTransactionReceived(tx)
+    expect(data).toBeNull()
+    expect((error?.value as { code?: string } | undefined)?.code).toBe('MissingField')
+  })
+
+  it('refuses a signed answer to another request', async () => {
+    answer = (request) => signedAnswer('"OK"', 'application/json', 'e'.repeat(32), request)
+    const { data, error } = await client().emailTransactionReceived(tx)
+    expect(data).toBeNull()
+    expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
+    expect(String(error?.value)).toContain('nonce is not the one of the request')
+  })
+
+  it('refuses a signed answer whose body is not the one the signature covers', async () => {
+    answer = (request) =>
+      signedAnswer('"OK"', 'application/json', nonceOf(request), request, '"Not OK"')
+    const { data, error } = await client().emailTransactionReceived(tx)
+    expect(data).toBeNull()
+    expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
   })
 
   it('passes an error answer as it is', async () => {

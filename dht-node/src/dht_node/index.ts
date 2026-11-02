@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto'
 import DHT from '@hyperswarm/dht'
 import {
   Community as DbCommunity,
@@ -9,7 +10,6 @@ import {
 } from 'database'
 import { getLogger } from 'log4js'
 import {
-  createEncryptionKeyPair,
   createKeyPair as createJWTKeyPair,
   getChangedFields,
   HomeCommunityUpdateInput,
@@ -270,6 +270,14 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
   } catch (err) {
     throw new Error(`Federation: Error writing HomeCommunity-Entry: ${err}`)
   }
+}
+
+export function createEncryptionKeyPair(): { publicKey: Buffer; privateKey: Buffer } {
+  const jwk = generateKeyPairSync('x25519').privateKey.export({ format: 'jwk' })
+  if (!jwk.x || !jwk.d) {
+    throw new Error('X25519 key exported without its raw parts')
+  }
+  return { publicKey: Buffer.from(jwk.x, 'base64url'), privateKey: Buffer.from(jwk.d, 'base64url') }
 }
 
 /**

@@ -28,7 +28,7 @@ export class ApiClient {
   private encryptSignClient: ElysiaApiRoutesClientType
   private signVerifyClient: ElysiaApiRoutesClientType
   private verifyClient: ElysiaApiRoutesClientType
-  private encryptSignVerfiyClient: ElysiaApiRoutesClientType
+  private encryptSignVerifyClient: ElysiaApiRoutesClientType
   /** the announced X25519 key of the community, a sealed request is encrypted for it */
   public publicEncryptionKey: X25519KeyPair | undefined
   public communityUuid: Uuidv4 | undefined
@@ -59,7 +59,7 @@ export class ApiClient {
         decryptResponse: false,
       }),
     )
-    this.encryptSignVerfiyClient = treaty<typeof apiRoutes>(
+    this.encryptSignVerifyClient = treaty<typeof apiRoutes>(
       url,
       // @ts-expect-error Bun's typeof fetch requires preconnect, https://github.com/oven-sh/bun/issues/27070
       this.fetchWrapper({
@@ -201,7 +201,7 @@ export class ApiClient {
       request,
     }
     response.headers.forEach((value, name) => message.fields.push({ name, value }))
-    const keyId = await verifyHttpMessage(message, nonce)
+    const { keyId } = await verifyHttpMessage(message, nonce)
     if (keyId !== this.keyPair.publicKeyToHex()) {
       throw new InvalidResponseSignatureError('Wrong signer')
     }
@@ -250,7 +250,7 @@ export class ApiClient {
   }
 
   public emailTransactionReceived(tx: CrossGroupTransaction) {
-    return this.encryptSignVerfiyClient['peer-api'].v1.emailTransactionReceived.post(
+    return this.encryptSignVerifyClient['peer-api'].v1.emailTransactionReceived.post(
       v.parse(crossGroupTransactionWireSchema, tx),
     )
   }

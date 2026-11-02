@@ -50,14 +50,15 @@ export const hexBytesSchema = v.pipe(
 export const hexStringSchema = v.pipe(
   v.union([rawHexStringSchema, v.instance(Buffer)]),
   v.transform((hex) => {
-    if (hex instanceof Buffer) {
-      return hex.toString('hex')
+    if (typeof hex === 'string') {
+      return hex
     }
-    return hex
+    return hex.toString('hex')
   }),
 )
 
 export const publicKeyHexStringSchema = v.pipe(hexStringSchema, v.length(64))
+export type PublicKeyHex = v.InferOutput<typeof publicKeyHexStringSchema>
 
 export const uint32Schema = v.pipe(v.number(), v.gtValue(0), v.maxValue(4294967295))
 
@@ -150,7 +151,15 @@ export const locationPointSchema = v.object({
 export type LocationPointInput = v.InferInput<typeof locationPointSchema>
 export type LocationPoint = v.InferOutput<typeof locationPointSchema>
 
-export const gddAmountSchema = v.instance(GradidoUnit)
+export const gddAmountSchema = v.pipe(
+  v.union([v.string(), v.instance(GradidoUnit)]),
+  v.transform((input) => {
+    if (typeof input === 'string') {
+      return GradidoUnit.fromString(input)
+    }
+    return input
+  }),
+)
 export const gddAmountStringSchema = v.pipe(
   v.union([v.pipe(v.string(), v.decimal()), v.instance(GradidoUnit)]),
   v.transform((input) => {

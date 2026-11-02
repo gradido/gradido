@@ -97,7 +97,11 @@ const communityInfoOf = (publicKey: Buffer) => ({
 
 // the peer client of one community, as far as validateCommunities uses it
 const peerClient = (answers: { communityInfos?: unknown } = {}) => ({
-  getCommunityInfos: jest.fn().mockResolvedValue(answers.communityInfos ?? { data: null }),
+  // an honest peer answers with the exchangeId it was asked with
+  getCommunityInfos: jest.fn().mockImplementation(async (exchangeId: string) => {
+    const answer = (answers.communityInfos ?? { data: null }) as { data: object | null }
+    return answer.data ? { ...answer, data: { exchangeId, ...answer.data } } : answer
+  }),
 })
 
 describe('federatedCommunityGetInfoCheckPublicKey', () => {
@@ -113,6 +117,19 @@ describe('federatedCommunityGetInfoCheckPublicKey', () => {
     // the announced key, as a key pair without private key
     expect(keyPair.publicKeyToBuffer()).toEqual(fedCom.publicKey)
     expect(keyPair.hasPrivateKey()).toBe(false)
+  })
+
+  it('hands out nothing when the answer carries another exchangeId', async () => {
+    const fedCom = federatedCommunity(1)
+    mockGetApiClient.mockReturnValue(
+      peerClient({
+        communityInfos: {
+          data: { ...communityInfoOf(fedCom.publicKey), exchangeId: 'b'.repeat(32) },
+        },
+      }),
+    )
+
+    expect(await federatedCommunityGetInfoCheckPublicKey(fedCom)).toBeNull()
   })
 
   it('hands out the parsed answer as foreign community at the announced endpoint', async () => {

@@ -88,7 +88,12 @@ async function sendSealed(from: typeof sender, body = wire()) {
 }
 
 // the body in the clear, signed by signedBy, the signature naming the key of claims
-async function signedPlain(signedBy: typeof sender, claims = signedBy, body = wire()) {
+async function signedPlain(
+  signedBy: typeof sender,
+  claims = signedBy,
+  body = wire(),
+  withNonce = true,
+) {
   const key = new Ed25519KeyPair(signedBy.publicKey, signedBy.privateKey.subarray(0, 32))
   const headers = new Headers({
     'content-type': 'application/json',
@@ -104,10 +109,10 @@ async function signedPlain(signedBy: typeof sender, claims = signedBy, body = wi
     {
       components: ['@method', '@path', 'content-digest', 'content-type'],
       parameters: {
-        keyid: claims.publicKey.toString('base64'),
+        keyid: claims.publicKey.toString('hex'),
         alg: 'ed25519',
         created: Math.floor(Date.now() / 1000),
-        nonce: 'a'.repeat(32),
+        ...(withNonce ? { nonce: 'a'.repeat(32) } : {}),
       },
       signer: { algorithm: 'ed25519', sign: (data) => key.sign(data) },
     },
@@ -178,7 +183,7 @@ describe('GET peer-api/v1/communityInfos', () => {
     expect(error).not.toBeNull()
   })
 
-  it('signs digest and content type of the answer, with the exchangeId of the request', async () => {
+  it('signs digest and content type of the answer, which carries the exchangeId', async () => {
     const target = `${infoUrl}?exchangeId=${exchangeId}`
     const response = await fetch(target)
     const body = await response.text()
@@ -188,16 +193,13 @@ describe('GET peer-api/v1/communityInfos', () => {
     expect(response.headers.get('content-type')).toStartWith('application/json')
     const fields = [...response.headers].map(([name, value]) => ({ name, value }))
     expect(
-      await verifyHttpMessage(
-        {
-          kind: 'response',
-          status: response.status,
-          fields,
-          request: { kind: 'request', method: 'GET', targetUri: target, fields: [] },
-        },
-        exchangeId,
-      ),
-    ).toBe(home.publicKey.toString('hex'))
+      await verifyHttpMessage({
+        kind: 'response',
+        status: response.status,
+        fields,
+        request: { kind: 'request', method: 'GET', targetUri: target, fields: [] },
+      }),
+    ).toMatchObject({ keyId: home.publicKey.toString('hex') })
   })
 
   it('answers nothing signed to a request without a valid exchangeId', async () => {
@@ -228,6 +230,39 @@ describe('POST peer-api/v1/emailTransactionReceived', () => {
       memo: tx.memo,
     })
     expect(mail.transactionAmount.toString()).toBe(tx.amount.toString())
+  })
+
+  it('signs the answer for the sender, with the nonce of its request', async () => {
+    const request = await sendSealed(sender)
+    const target = request.url
+    const response = await fetch(request)
+    const body = await response.text()
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-digest')).toBe(`blake2b-256=:${hashGenericBase64(body)}:`)
+    expect(
+      await verifyHttpMessage(
+        {
+          kind: 'response',
+          status: 200,
+          fields: [...response.headers].map(([name, value]) => ({ name, value })),
+          request: { kind: 'request', method: 'POST', targetUri: target, fields: [] },
+        },
+        'a'.repeat(32),
+      ),
+    ).toMatchObject({ keyId: home.publicKey.toString('hex') })
+  })
+
+  it('answers an error with its status, and without signature', async () => {
+    userSpy.mockResolvedValue(null as never)
+    const response = await fetch(await sendSealed(sender))
+    expect(response.status).toBe(404)
+    expect(response.headers.get('signature')).toBeNull()
+  })
+
+  it('answers 401 to a signature without nonce', async () => {
+    const response = await fetch(await signedPlain(sender, sender, wire(), false))
+    expect(response.status).toBe(401)
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 
   it('reaches the client as a success', async () => {
@@ -351,7 +386,7 @@ describe('POST peer-api/v1/emailTransactionReceived', () => {
   })
 
   it('answers 401 to a request that only names a known key, whatever its content type', async () => {
-    const signatureInput = `sig1=("@method" "@path");keyid="${sender.publicKey.toString('base64')}";alg="ed25519";created=${Math.floor(Date.now() / 1000)};nonce="n"`
+    const signatureInput = `sig1=("@method" "@path");keyid="${sender.publicKey.toString('hex')}";alg="ed25519";created=${Math.floor(Date.now() / 1000)};nonce="n"`
     const form = new URLSearchParams({ memo: 'Danke' }).toString()
     for (const [contentType, body] of [
       [undefined, new TextEncoder().encode(wire())],

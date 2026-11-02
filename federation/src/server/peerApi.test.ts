@@ -8,13 +8,8 @@ import { ApiClient } from 'core'
 import { AppDatabase, dbInsertHomeCommunity, getHomeCommunityDrizzle } from 'database'
 import type { AnyElysia } from 'elysia'
 import { getLogger } from 'log4js'
-import {
-  AppContext,
-  createEncryptionKeyPair,
-  createKeyPair,
-  InvalidResponseSignatureError,
-} from 'shared'
-import { Ed25519KeyPair } from 'shared-native'
+import { AppContext, createKeyPair, InvalidResponseSignatureError } from 'shared'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import { createServer } from './createServer'
 
 // the keys as the dht-node stores them: libsodium, privateKey = seed || publicKey
@@ -23,7 +18,7 @@ const homeKeys = {
   publicKey: homeKeyPair.publicKeyToBuffer(),
   privateKey: Buffer.concat([homeKeyPair.privateKeyToBuffer(), homeKeyPair.publicKeyToBuffer()]),
 }
-const homeEncryptionKeys = createEncryptionKeyPair()
+const homeEncryptionKeys = X25519KeyPair.generate()
 const home = {
   communityUuid: '56a55482-909e-46a4-bfa2-cd025e894eba',
   url: 'http://home.example/api/',
@@ -46,8 +41,8 @@ beforeAll(async () => {
     ...homeKeys,
     publicJwtKey,
     privateJwtKey: jwtKeys.privateKey,
-    publicEncryptionKey: homeEncryptionKeys.publicKey,
-    privateEncryptionKey: homeEncryptionKeys.privateKey,
+    publicEncryptionKey: homeEncryptionKeys.publicKeyToBuffer(),
+    privateEncryptionKey: homeEncryptionKeys.privateKeyToBuffer(),
   })
   // as federation's main does at start
   AppContext.getInstance().setHomeCommunity(await getHomeCommunityDrizzle())
@@ -66,7 +61,7 @@ describe('GET peer-api/v1/communityInfos', () => {
     const { data, error } = await new ApiClient(
       url,
       new Ed25519KeyPair(homeKeys.publicKey),
-    ).getCommunityInfos()
+    ).getCommunityInfos('a'.repeat(32))
 
     expect(error).toBeNull()
     // Eden types the date as the string on the wire, and hands it out read as Date
@@ -78,8 +73,9 @@ describe('GET peer-api/v1/communityInfos', () => {
       publicKey: homeKeys.publicKey.toString('hex'),
       publicJwtKey,
       // the public key only, the private one stays home
-      publicEncryptionKey: homeEncryptionKeys.publicKey.toString('hex'),
+      publicEncryptionKey: homeEncryptionKeys.publicKeyToHex(),
       hieroTopicId: null,
+      exchangeId: 'a'.repeat(32),
     })
   })
 
@@ -87,7 +83,7 @@ describe('GET peer-api/v1/communityInfos', () => {
     const { data, error } = await new ApiClient(
       url,
       new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
-    ).getCommunityInfos()
+    ).getCommunityInfos('a'.repeat(32))
 
     expect(data).toBeNull()
     expect(error?.value).toBeInstanceOf(InvalidResponseSignatureError)
