@@ -8,7 +8,7 @@
     <BRow>
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
-          <BForm role="form" @submit.prevent="onSubmit" @reset="onReset">
+          <BForm role="form" :inert="checking" @submit.prevent="onSubmit" @reset="onReset">
             <div
               class="nav-send-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
               style="margin-bottom: 20px"
@@ -228,7 +228,14 @@
                 class="text-lg-end"
                 @mouseover="disableSmartValidState = true"
               >
-                <BButton block type="submit" variant="gradido" :disabled="formIsInvalid">
+                <BButton
+                  block
+                  type="submit"
+                  variant="gradido"
+                  :disabled="formIsInvalid || checking"
+                >
+                  <!-- The one sign of the question under way: on a slow line it takes a while. -->
+                  <BSpinner v-if="checking" small class="me-2" data-test="checking-recipient" />
                   {{
                     radioSelected === SEND_TYPES.email ? $t('form.sendEmail') : $t('form.check_now')
                   }}
@@ -253,10 +260,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, reactive, onMounted } from 'vue'
+import { ref, computed, defineOptions, watch, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
-import { BLink } from 'bootstrap-vue-next'
+import { BLink, BSpinner } from 'bootstrap-vue-next'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import CommunitySwitch from '@/components/CommunitySwitch.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
@@ -278,6 +285,10 @@ import { useAmountInText } from '@/composables/useAmountInText'
 import { useLinkDraft } from '@/composables/useLinkDraft'
 import { useAppToast } from '@/composables/useToast'
 
+// `transactionData` is bound as a whole onto this form, and it holds more than the form declares:
+// without this the recipient's user name would land on the form as an attribute.
+defineOptions({ inheritAttrs: false })
+
 const props = defineProps({
   balance: { type: Number, default: 0 },
   identifier: { type: String, default: '' },
@@ -295,6 +306,13 @@ const props = defineProps({
    * and "Zurück" finds the picture where it was.
    */
   picture: { type: Object, default: null },
+  /**
+   * The page is asking the server about the recipient ("Jetzt prüfen", pages/Send.vue), with what
+   * stands in the fields at this moment, and its answer takes this form down. So nothing can be
+   * changed until it is in (`inert`, as the map of the matching page holds still while it is saved):
+   * a word corrected or a tab chosen now would be dropped without a sound.
+   */
+  checking: { type: Boolean, default: false },
 })
 
 /**
@@ -308,9 +326,9 @@ const emojiOffered = offersEmojiPicker()
 // ⛔ Without the picture: `form` is what the validation schema casts and what goes on to the
 // page as the transfer's fields -- and a cast lets a field it does not know pass. The picture
 // stays the page's, in a shallowRef beside those fields; a decoded photo made reactive here
-// would be walked through, property by property.
+// would be walked through, property by property. And without `checking`, which is no field.
 const entityDataToForm = computed(() => {
-  const { picture: _picture, ...fields } = props
+  const { picture: _picture, checking: _checking, ...fields } = props
   return fields
 })
 const form = reactive({ ...entityDataToForm.value })
@@ -583,11 +601,17 @@ function onSubmit() {
   // mutations expect: the bare user name, and the community it belongs to. This used to
   // sit in the else branch alone, which is why a recipient written with a community never
   // reached anybody by e-mail -- the whole string went out as the user name.
+  // Without a community as well: the field has forgiven a space around the address (a paste, the
+  // suggestion of a phone's keyboard), and past this point it would count as somebody else.
   const parts = splitRecipient(transformedForm.identifier)
+  if (parts) transformedForm.identifier = parts.user
   if (parts?.community) {
-    transformedForm.identifier = parts.user
     transformedForm.targetCommunity = findCommunity(parts.community)
   }
+  // The name belongs to the address that named the recipient. The form stays when that address is
+  // left (the menu, "Zurücksetzen"), and the name would go on to the check view, above somebody else
+  // typed into the field: for a member of another community nothing asks about that one.
+  const recipientName = userIdentifier.value ? userName.value : ''
   if (radioSelected.value === SEND_TYPES.email) {
     /*
     console.log(
@@ -602,7 +626,7 @@ function onSubmit() {
     emit('send-email', {
       ...transformedForm,
       selected: radioSelected.value,
-      userName: userName.value,
+      userName: recipientName,
     })
   } else {
     /*
@@ -618,7 +642,7 @@ function onSubmit() {
     emit('set-transaction', {
       ...transformedForm,
       selected: radioSelected.value,
-      userName: userName.value,
+      userName: recipientName,
     })
   }
 }
@@ -631,7 +655,11 @@ function onReset(event) {
   form.amount = props.amount
   form.memo = props.memo
   form.identifier = props.identifier
-  form.targetCommunity = props.targetCommunity
+  // Where the page handed in nothing but the placeholder, back to the community that replaced it:
+  // with its empty uuid "Jetzt prüfen" could not ask, and the switch replaces it only once.
+  form.targetCommunity = props.targetCommunity.uuid
+    ? props.targetCommunity
+    : (communities.value.find((community) => !community.foreign) ?? props.targetCommunity)
   radioSelected.value = SEND_TYPES.send
   router.replace('/send')
 }

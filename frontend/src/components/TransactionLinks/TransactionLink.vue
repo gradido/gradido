@@ -65,6 +65,7 @@
           aria-expanded="false"
           size="sm"
           menu-class="transaction-link-menu"
+          @show="validLink && prepareEmailPicture()"
         >
           <template #button-content>
             <!-- What the finger may hit: wider than the button to both sides, on the right up
@@ -85,6 +86,18 @@
           <BDropdownItem v-if="validLink" class="pt-3 test-share-link" @click.stop="share">
             <IBiShare />
             {{ $t('gdd_per_link.share') }}
+          </BDropdownItem>
+          <!-- The member's own mail program, with the sentence and the link; the picture of a
+               greeting goes into the clipboard with the tap (useSendByEmail). A real link: stop the
+               click as the entries around it do, ⛔ never `.prevent` -- that is what opens the mail. -->
+          <BDropdownItem
+            v-if="validLink"
+            class="pt-3 test-email-link"
+            :href="emailHref"
+            @click.stop="copyEmailPicture"
+          >
+            <IBiEnvelope />
+            {{ $t('gdd_per_link.by-email') }}
           </BDropdownItem>
           <!-- A greeting can go onto paper (ZE-017, F8): an A4 sheet that folds into a card,
                printed or saved as a picture -- the day after it was written, on another computer.
@@ -221,6 +234,7 @@ import { useAppToast } from '@/composables/useToast'
 import { useCopyLinks } from '@/composables/useCopyLinks'
 import { greetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
+import { useSendByEmail } from '@/composables/useSendByEmail'
 import { useThankYouCheque } from '@/composables/useThankYouCheque'
 import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
 import { deleteTransactionLink } from '@/graphql/mutations'
@@ -257,12 +271,28 @@ const { t } = useI18n()
 const store = useWalletStore()
 const { toastSuccess, toastError } = useAppToast()
 // A greeting is shared with its own sentence, the one its result page showed (useCopyLinks).
-const { copyLink, share } = useCopyLinks({
+const { copyLink, linkText, shortLinkText, share } = useCopyLinks({
   amount: props.amount,
   validUntil: props.validUntil,
   link: props.link,
   memo: props.memo,
   greeting: props.greeting,
+})
+// The picture of a greeting: its motif, or the small rendition of its photo where the row has it.
+// Made when the menu opens, and not with the row: a list of links would draw a picture for every
+// row. So the tap finds it ready, as the mail program takes the foreground in that same tap.
+const {
+  href: emailHref,
+  copyPicture: copyEmailPicture,
+  preparePicture: prepareEmailPicture,
+} = useSendByEmail({
+  text: linkText,
+  shortText: shortLinkText,
+  greeting: props.greeting,
+  picture: () =>
+    props.greeting?.hasPicture
+      ? (greetingPicture(props.id)?.src ?? null)
+      : (thankYouMotif(props.greeting?.motif, t)?.src ?? null),
 })
 // The cheque is drawn from scratch here: the window that shows the code is closed while
 // this menu is open, so there is nothing on screen to copy the code from.
@@ -392,6 +422,12 @@ const toggleQrModal = () => {
 .transaction-link .transaction-link-menu .dropdown-item:hover,
 .transaction-link .transaction-link-menu .dropdown-item:focus {
   background-color: var(--menu-hover, #eef0f3);
+}
+
+/* "Per E-Mail" is a real link among buttons, and links are green in the dark stylesheet
+   (`.dark-mode a:not(.btn)`): it would be the one coloured entry of the menu. */
+.dark-mode .transaction-link .transaction-link-menu a.dropdown-item {
+  color: var(--text);
 }
 </style>
 <style scoped lang="scss">

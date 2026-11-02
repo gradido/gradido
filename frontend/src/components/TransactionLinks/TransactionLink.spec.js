@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { nextTick } from 'vue'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
 import TransactionLink from './TransactionLink.vue'
 import { createFilters } from '@/filters/amount'
@@ -43,9 +44,22 @@ vi.mock('@/composables/useCopyLinks', () => ({
     mockUseCopyLinks(link)
     return {
       copyLink: vi.fn(),
+      linkText: 'The sentence\nand the link',
       share: (...args) => mockShare(...args),
     }
   },
+}))
+
+// The browser's own clipboard, past the polyfill: nativeClipboard.spec.js holds how it is reached.
+const browser = vi.hoisted(() => ({ takes: false, write: vi.fn() }))
+vi.mock('@/utils/nativeClipboard', () => ({
+  takesPictureInClipboard: () => browser.takes,
+  writePictureToClipboard: (...args) => browser.write(...args),
+}))
+const loadImage = vi.hoisted(() => vi.fn())
+vi.mock('@/utils/thankYouGreetingSheet', async (original) => ({
+  ...(await original()),
+  loadImage: (...args) => loadImage(...args),
 }))
 
 const mockDownloadThankYouCheque = vi.fn()
@@ -127,8 +141,10 @@ describe('TransactionLink.vue', () => {
           },
         },
         gdd_per_link: {
+          'by-email': 'By email',
           'copy-link': 'Copy Link',
           duplicate: 'Duplicate',
+          'email-subject': 'A thank-you from {name}',
           share: 'Share',
           'delete-the-link': 'Delete the Link',
           deleted: 'Link Deleted',
@@ -660,10 +676,11 @@ describe('TransactionLink.vue', () => {
 
     const entries = () => wrapper.findAll('.dropdown-item').map((item) => item.classes())
 
-    it('offers copying, sharing, the cheque, the code, duplicating and deleting, in that order', () => {
+    it('offers copying, sharing, a mail, the cheque, the code, duplicating and deleting, in that order', () => {
       const order = [
         'test-copy-link',
         'test-share-link',
+        'test-email-link',
         'test-download-cheque',
         'test-qr-code',
         'test-duplicate-link',
@@ -692,6 +709,160 @@ describe('TransactionLink.vue', () => {
   })
 
   /**
+   * "Per E-Mail" in the menu (ZE-037): a real link, the library's own, and the tap does not stop it.
+   * ⛔ Only the mail program opens from the tap, so nothing here may `preventDefault`.
+   */
+  describe('the entry for a mail', () => {
+    const OPEN = new Date(Date.now() + 1000000).toISOString()
+    const entry = () => wrapper.find('.test-email-link a')
+    const mountReal = (props) => {
+      wrapper = mount(TransactionLink, {
+        attachTo: document.body,
+        global: {
+          plugins: [i18n, walletStore(EMMA)],
+          mocks: { $filters: { GDD: filters.GDD } },
+          components: { BDropdown, BDropdownItem },
+          stubs: {
+            BCard: true,
+            BCardText: true,
+            IBiThreeDotsVertical: true,
+            IBiClipboard: true,
+            IBiFiles: true,
+            IBiShare: true,
+            IBiEnvelope: true,
+            IBiQrCode: true,
+            IBiDownload: true,
+            IBiPrinter: true,
+            IBiImage: true,
+            IBiDropletHalf: true,
+            IBiTrash: true,
+            ThankYouGreetingPhoto: true,
+          },
+        },
+        props: {
+          holdAvailableAmount: '100',
+          id: 1,
+          amount: 200,
+          validUntil: OPEN,
+          link: 'https://x.example/redeem/abc',
+          memo: 'Die Nachricht',
+          ...props,
+        },
+      })
+    }
+
+    afterEach(() => {
+      wrapper.unmount()
+    })
+
+    it('is a link into the mail program, with the subject and the sentence of the row', () => {
+      mountReal()
+
+      const url = new URL(entry().attributes('href'))
+      expect(url.protocol).toBe('mailto:')
+      expect(url.pathname).toBe('')
+      expect(url.searchParams.get('subject')).toMatch(/^A thank-you from /)
+      expect(url.searchParams.get('body')).toBe('The sentence\r\nand the link')
+      expect(entry().text()).toBe('By email')
+    })
+
+    it('lets the tap through: the browser opens the mail program from it', async () => {
+      mountReal()
+
+      const tap = new MouseEvent('click', { bubbles: true, cancelable: true })
+      entry().element.dispatchEvent(tap)
+      await nextTick()
+
+      expect(tap.defaultPrevented).toBe(false)
+    })
+
+    it('is not there for a link that has run out', () => {
+      mountReal({ validUntil: '2022-01-01T00:00:00Z' })
+
+      expect(wrapper.find('.test-email-link').exists()).toBe(false)
+    })
+
+    // The picture goes into the clipboard with the tap. It is made when the menu opens, and not with
+    // the row: a list of links would draw a picture for every row.
+    describe('the picture of a greeting', () => {
+      const MOTIF_SRC = '/img/thank-you-greeting/bouquet.svg'
+      const PHOTO_SRC = 'data:image/jpeg;base64,U01BTEw='
+
+      beforeEach(() => {
+        browser.takes = true
+        browser.write.mockReset().mockResolvedValue(undefined)
+        loadImage.mockReset().mockResolvedValue({ picture: true })
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn() })
+        vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((made) =>
+          made(new Blob(['png'], { type: 'image/png' })),
+        )
+      })
+
+      afterEach(() => {
+        browser.takes = false
+        vi.restoreAllMocks()
+      })
+
+      const opening = () => wrapper.findComponent(BDropdown).vm.$emit('show')
+
+      it('is not made with the row', () => {
+        mountReal({ greeting: { motif: 'bouquet' } })
+
+        expect(loadImage).not.toHaveBeenCalled()
+      })
+
+      it('of a motif is made when the menu opens, and goes along with the tap', async () => {
+        mountReal({ greeting: { motif: 'bouquet' } })
+
+        opening()
+        expect(loadImage).toHaveBeenCalledWith(MOTIF_SRC)
+        await entry().trigger('click')
+
+        expect(browser.write).toHaveBeenCalledTimes(1)
+      })
+
+      it('of a photo is its small rendition, where the row has it', async () => {
+        rememberGreetingPicture(1, 'U01BTEw=')
+        mountReal({ greeting: { motif: null, hasPicture: true } })
+
+        opening()
+
+        expect(loadImage).toHaveBeenCalledWith(PHOTO_SRC)
+      })
+
+      it('of a photo the row does not have is no picture at all', async () => {
+        forgetAllGreetingPictures()
+        mountReal({ greeting: { motif: null, hasPicture: true } })
+
+        opening()
+        await entry().trigger('click')
+
+        expect(loadImage).not.toHaveBeenCalled()
+        expect(browser.write).not.toHaveBeenCalled()
+      })
+
+      // Its menu has no such entry: no picture for a tap that cannot come.
+      it('is not made for a link that has run out', () => {
+        mountReal({ validUntil: '2022-01-01T00:00:00Z', greeting: { motif: 'bouquet' } })
+
+        opening()
+
+        expect(loadImage).not.toHaveBeenCalled()
+      })
+
+      it('is none for a plain link', async () => {
+        mountReal()
+
+        opening()
+        await entry().trigger('click')
+
+        expect(loadImage).not.toHaveBeenCalled()
+        expect(browser.write).not.toHaveBeenCalled()
+      })
+    })
+  })
+
+  /**
    * A greeting can go onto paper: two entries more in its menu, over the cheque -- "Karte
    * drucken" and "Karte als Bild sichern". ⛔ Only where the row is a greeting AND its link is
    * open: a plain link keeps the menu it had, and an expired greeting offers neither.
@@ -704,6 +875,7 @@ describe('TransactionLink.vue', () => {
     const ORDER = [
       'test-copy-link',
       'test-share-link',
+      'test-email-link',
       'test-print-greeting',
       'test-save-greeting',
       'test-download-cheque',
@@ -724,7 +896,7 @@ describe('TransactionLink.vue', () => {
       mockUseThankYouGreetingSheet.mockClear()
     })
 
-    it('has printing and saving as a picture over the cheque, eight entries in all', () => {
+    it('has printing and saving as a picture over the cheque, nine entries in all', () => {
       mountLink({ greeting: GREETING, memo: MEMO, validUntil: OPEN })
 
       expect(entries()).toEqual(ORDER)
@@ -758,6 +930,7 @@ describe('TransactionLink.vue', () => {
       expect(entries()).toEqual([
         'test-copy-link',
         'test-share-link',
+        'test-email-link',
         'test-download-cheque',
         'test-qr-code',
         'test-duplicate-link',

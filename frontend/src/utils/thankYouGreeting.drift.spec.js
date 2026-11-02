@@ -1,7 +1,11 @@
 // AI-GENERATED — not an architecture reference
 
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
+  isOneLine,
   memoBeginsWithLine,
   THANK_YOU_LINE_MAX_CHARS as SERVER_LINE_MAX,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS as SERVER_NAME_MAX,
@@ -9,6 +13,7 @@ import {
 import {
   greetingMemo,
   greetingParts,
+  lineFromMemo,
   THANK_YOU_LINE_MAX_CHARS,
   THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
 } from './thankYouGreeting'
@@ -61,5 +66,64 @@ describe('the memo of a thank-you greeting on both sides', () => {
         memoBeginsWithLine(memo, LINE),
       )
     }
+  })
+})
+
+/**
+ * The line taken out of a message as it stands (the send form, ZE-037). A line the server does not
+ * take fails the whole link: no link and no mail. So every line given here has to pass the server's
+ * rule as the server applies it: trimmed first, and the UNTRIMMED memo held against the result.
+ */
+describe('the line taken out of a message, on both sides', () => {
+  const serverTakes = (memo, line) => {
+    const stored = line.trim()
+    return (
+      stored === line &&
+      stored.length <= SERVER_LINE_MAX &&
+      isOneLine(stored) &&
+      memoBeginsWithLine(memo, stored)
+    )
+  }
+
+  const MEMOS = [
+    'Danke!',
+    'Danke!\nBis bald',
+    'Danke! \nBis bald',
+    ' Danke!\nBis bald',
+    'Danke! ',
+    'Danke!\n\nBis bald',
+    'Danke!\r\nBis bald',
+    'Dan\tke!\nBis bald',
+    'Dan\u2028ke!\nBis bald',
+    `${'x'.repeat(80)}`,
+    `${'x'.repeat(81)}`,
+    `${'x'.repeat(80)}\nBis bald`,
+    `${'x'.repeat(81)}\nBis bald`,
+    '\n',
+    '\nBis bald',
+    'Danke!\n',
+    'Danke!\n \nBis bald',
+  ]
+
+  it.each(MEMOS)('gives no line the server would refuse: %j', (memo) => {
+    const line = lineFromMemo(memo)
+    if (line !== null) expect(serverTakes(memo, line)).toBe(true)
+  })
+
+  // The other half: a first line the server would take is taken, nothing is given up needlessly.
+  it.each(MEMOS)('gives the line wherever the server takes the first line: %j', (memo) => {
+    const first = memo.split('\n')[0]
+    expect(lineFromMemo(memo) !== null).toBe(first !== '' && serverTakes(memo, first))
+  })
+
+  it('and the server still trims first: otherwise this rule would be too strict', () => {
+    const schema = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../../backend/src/data/ThankYouGreeting.schema.ts',
+      ),
+      'utf8',
+    )
+    expect(schema).toMatch(/v\.string\(notOneLine\), v\.trim\(\), v\.maxLength\(max, tooLong\)/)
   })
 })

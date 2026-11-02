@@ -60,7 +60,14 @@
       </BRow>
       <BRow class="mt-5">
         <BCol cols="12" md="6" lg="6">
-          <BButton block class="mb-3 mb-md-0 mb-lg-0" @click="$emit('on-back')">
+          <!-- Shut once the transfer is on its way: its answer takes this step down whatever stands
+               there by then, and a transfer is not called back by walking away from it. -->
+          <BButton
+            block
+            class="mb-3 mb-md-0 mb-lg-0"
+            :disabled="disabled"
+            @click="$emit('on-back')"
+          >
             {{ $t('back') }}
           </BButton>
         </BCol>

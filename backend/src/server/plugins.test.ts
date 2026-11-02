@@ -97,6 +97,17 @@ describe('the request log', () => {
     expect(text).toContain('"userId": 101')
   })
 
+  // "Jetzt prüfen" asks about somebody who may have no account here and was never asked.
+  it('writes no recipient that is only asked about, and still in which community', () => {
+    const text = logged({
+      identifier: 'sarah@kongress-beispiel.de',
+      communityIdentifier: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    })
+    expect(text).not.toContain('sarah@kongress-beispiel.de')
+    expect(text).toContain('"identifier": "***"')
+    expect(text).toContain('"communityIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"')
+  })
+
   // P7: one member's picture for another -- and some 80,000 characters in every line that carried
   // it. What is left of it is its size.
   it('writes no picture of a chat message, only its size', () => {

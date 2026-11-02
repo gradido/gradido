@@ -9,6 +9,20 @@
         <IBiShare class="me-2" />
         {{ $t('gdd_per_link.share') }}
       </BButton>
+      <BButton
+        variant="outline-secondary"
+        class="w-100 mt-2"
+        :href="emailHref"
+        role="link"
+        aria-describedby="clipboard-copy-email-hint"
+        data-test="emailButton"
+      >
+        <IBiEnvelope class="me-2" />
+        {{ $t('gdd_per_link.by-email') }}
+      </BButton>
+      <div id="clipboard-copy-email-hint" class="share-hint small mt-2" data-test="emailHint">
+        <span>{{ emailHint }}</span>
+      </div>
       <div class="share-hint small mt-2" data-test="linkHint">
         <IBiLock class="share-hint-icon" />
         <span>{{ $t('gdd_per_link.link-hint') }}</span>
@@ -59,6 +73,7 @@
 </template>
 <script setup>
 import { useCopyLinks } from '@/composables/useCopyLinks'
+import { useSendByEmail } from '@/composables/useSendByEmail'
 
 const props = defineProps({
   link: { type: String, required: true },
@@ -67,7 +82,14 @@ const props = defineProps({
   validUntil: { type: String, required: true },
 })
 
-const { copyLink, copyLinkWithText, linkText, canCopyLink, share } = useCopyLinks({ ...props })
+const { copyLink, copyLinkWithText, linkText, shortLinkText, canCopyLink, share } = useCopyLinks({
+  ...props,
+})
+// A plain link has no picture: this only opens the mail program.
+const { href: emailHref, hint: emailHint } = useSendByEmail({
+  text: linkText,
+  shortText: shortLinkText,
+})
 </script>
 
 <style lang="scss">

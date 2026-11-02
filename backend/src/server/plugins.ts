@@ -111,6 +111,13 @@ const filterVariables = (variables: any) => {
   if (vars?.remark) {
     vars.remark = '***'
   }
+  // Whom "Jetzt prüfen" asks about (user, `$identifier` in the wallet's queries.js): an address or a
+  // name a member typed, of somebody who may have no account here and was never asked -- written in
+  // the line before the member's id. In which community stays readable (`$communityIdentifier`). No
+  // other document of wallet or admin names a variable so; the wallet's has to.
+  if (vars?.identifier) {
+    vars.identifier = '***'
+  }
   return vars
 }
 

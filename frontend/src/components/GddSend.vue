@@ -13,6 +13,8 @@ export const TRANSACTION_STEPS = {
   transactionResultLink: 'transactionResultLink',
   sendEmailResultSuccess: 'sendEmailResultSuccess',
   sendEmailResultError: 'sendEmailResultError',
+  recipientNotFound: 'recipientNotFound',
+  sendByEmailReady: 'sendByEmailReady',
 }
 </script>
 

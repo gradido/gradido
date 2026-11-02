@@ -2,6 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
+import * as sheet from '@/utils/thankYouGreetingSheet'
 import ThankYouGreetingDone from './ThankYouGreetingDone.vue'
 
 // On paper: the composable is the real one. What it hands on is caught where it leaves the
@@ -15,6 +16,12 @@ vi.mock('@/utils/thankYouGreetingSheet', async (importOriginal) => ({
 }))
 vi.mock('@/utils/chatImageSave', () => ({
   saveChatImageFile: (...args) => paper.save(...args),
+}))
+// The browser's own clipboard, past the polyfill: nativeClipboard.spec.js holds how it is reached.
+const browser = vi.hoisted(() => ({ takes: false, write: vi.fn() }))
+vi.mock('@/utils/nativeClipboard', () => ({
+  takesPictureInClipboard: () => browser.takes,
+  writePictureToClipboard: (...args) => browser.write(...args),
 }))
 
 const toast = vi.hoisted(() => ({ toastSuccess: vi.fn(), toastError: vi.fn() }))
@@ -229,20 +236,236 @@ describe('ThankYouGreetingDone', () => {
     )
   })
 
-  // The two ways the link travels, since slice 6 the two ways onto paper, and since slice 8 the
-  // way to one more greeting. A greeting is never "sent" from here (ZE-016).
-  it('offers sharing and copying, printing and saving as a picture, one more greeting, and nothing else', () => {
+  // The ways the link travels, since slice 6 the two ways onto paper, and since slice 8 the way to
+  // one more greeting. A greeting is never "sent" from here (ZE-016): the mail is the member's own.
+  it('offers sharing, a mail and copying, printing and saving as a picture, one more greeting, and nothing else', () => {
     expect(
       done()
-        .findAll('button')
+        .findAll('.btn')
         .map((button) => button.text()),
     ).toEqual([
       'Teilen',
+      'Per E-Mail',
       'Link kopieren',
       'Karte drucken',
       'Karte als Bild sichern',
       'Noch einen für jemand anderen',
     ])
+  })
+
+  /**
+   * "Per E-Mail" (ZE-037). The link is what opens the mail program: `useSendByEmail.spec.js` holds
+   * how it is built, here what the page hands it and where it stands.
+   */
+  describe('by e-mail', () => {
+    const ADDRESS = 'sarah@kongress-beispiel.de'
+    const buttons = (wrapper) => wrapper.findAll('.tyg-done-card .btn').map((b) => b.text())
+    const plain = () => ({ ...created(), memo: WORDS, greeting: null })
+    const withAddress = (answer = created()) =>
+      mount(ThankYouGreetingDone, {
+        props: { created: answer, emailAddress: ADDRESS },
+        global: { plugins: [i18n] },
+      })
+
+    it('stands behind "Teilen" where no address is known, and does not lead', () => {
+      const wrapper = done()
+
+      expect(buttons(wrapper).slice(0, 3)).toEqual(['Teilen', 'Per E-Mail', 'Link kopieren'])
+      expect(data(wrapper, 'share').classes()).toContain('btn-gradido')
+      expect(data(wrapper, 'email').classes()).not.toContain('btn-gradido')
+    })
+
+    it('leads where an address is known, with the address on it', () => {
+      const wrapper = withAddress()
+
+      expect(buttons(wrapper).slice(0, 3)).toEqual([
+        `Per E-Mail an ${ADDRESS}`,
+        'Teilen',
+        'Link kopieren',
+      ])
+      expect(data(wrapper, 'email').classes()).toContain('btn-gradido')
+      expect(data(wrapper, 'share').classes()).not.toContain('btn-gradido')
+    })
+
+    it('is a real link, to no address where none is known', () => {
+      const wrapper = done()
+      const button = data(wrapper, 'email')
+
+      expect(button.element.tagName).toBe('A')
+      expect(button.attributes('href').startsWith('mailto:?subject=')).toBe(true)
+    })
+
+    it('goes to the address where one is known', () => {
+      const href = data(withAddress(), 'email').attributes('href')
+
+      expect(href.startsWith(`mailto:${ADDRESS}?subject=`)).toBe(true)
+    })
+
+    it('has the subject and exactly the sentence this page shows', () => {
+      const wrapper = done()
+      const url = new URL(data(wrapper, 'email').attributes('href'))
+
+      expect(url.searchParams.get('subject')).toBe('Ein Dank-Gruß von Oma-Emma')
+      expect(url.searchParams.get('body')).toBe(
+        data(wrapper, 'share-text').element.textContent.trim().replace(/\n/g, '\r\n'),
+      )
+      expect(url.searchParams.get('body')).not.toContain(WORDS)
+    })
+
+    it('says what it does before the tap', () => {
+      const wrapper = done()
+      const hint = data(wrapper, 'email-hint')
+
+      expect(hint.text()).toBe('Öffnet Dein E-Mail-Programm.')
+      expect(data(wrapper, 'email').attributes('aria-describedby')).toBe(hint.attributes('id'))
+    })
+
+    it('says whom the thank-you is for in its title', () => {
+      expect(data(withAddress(), 'done-title').text()).toBe(`Dein Dank für ${ADDRESS} ist fertig.`)
+    })
+
+    // A step of the send form, with the button that led here gone.
+    it('takes the focus on its title where an address is known, and only there', () => {
+      const shown = (props) =>
+        mount(ThankYouGreetingDone, {
+          attachTo: document.body,
+          props: { created: created(), ...props },
+          global: { plugins: [i18n] },
+        })
+
+      const fromTheForm = shown({ emailAddress: ADDRESS })
+      expect(document.activeElement).toBe(data(fromTheForm, 'done-title').element)
+      fromTheForm.unmount()
+
+      const onItsOwnPage = shown({})
+      expect(document.activeElement).not.toBe(data(onItsOwnPage, 'done-title').element)
+      onItsOwnPage.unmount()
+    })
+
+    describe('of a plain link', () => {
+      it('shows no picture and no way onto paper', () => {
+        const wrapper = withAddress(plain())
+
+        expect(wrapper.find('img').exists()).toBe(false)
+        expect(wrapper.find('.tyg-done-paper').exists()).toBe(false)
+        expect(data(wrapper, 'print').exists()).toBe(false)
+        expect(data(wrapper, 'save').exists()).toBe(false)
+      })
+
+      it('says "Dank", and not "Dank-Gruß", without an address as well', () => {
+        const wrapper = done(plain())
+
+        expect(data(wrapper, 'done-title').text()).toBe('Dein Dank ist fertig.')
+      })
+
+      // ⚠️ Handed on as an empty object it would be true, and take the greeting's sentence.
+      it('goes out with the five lines of a plain link: the amount and the message', () => {
+        const wrapper = withAddress(plain())
+        const body = new URL(data(wrapper, 'email').attributes('href')).searchParams.get('body')
+
+        expect(body.split('\r\n')).toHaveLength(5)
+        expect(body).toContain('20 Gradido')
+        expect(body).toContain(WORDS)
+        expect(new URL(data(wrapper, 'email').attributes('href')).searchParams.get('subject')).toBe(
+          'Ein Dank von Oma-Emma',
+        )
+      })
+
+      it('does not promise that the words stand only on a card', () => {
+        const wrapper = withAddress(plain())
+
+        expect(wrapper.text()).toContain('Dieser Text geht mit auf die Reise:')
+        expect(wrapper.text()).toContain('Den Text kannst Du vor dem Senden ändern.')
+        expect(wrapper.text()).not.toContain('Deine Worte stehen erst auf der Karte')
+      })
+
+      it('keeps its sharing, copying, the hints and one more', () => {
+        const wrapper = withAddress(plain())
+
+        expect(data(wrapper, 'share').exists()).toBe(true)
+        expect(data(wrapper, 'copy').exists()).toBe(true)
+        expect(data(wrapper, 'link-hint').exists()).toBe(true)
+        expect(data(wrapper, 'find-again').exists()).toBe(true)
+        expect(data(wrapper, 'another').exists()).toBe(true)
+      })
+    })
+
+    // A link in the words of a screen reader too: a "button" would be pressed with the space bar,
+    // and a link does not answer to that.
+    it('says it is a link', () => {
+      expect(data(done(), 'email').attributes('role')).toBe('link')
+    })
+
+    // Windows cuts a mailto link above about 2,000 characters or opens nothing, and in the text of a
+    // plain link the link stands behind the message, which stands on the page the link opens anyway.
+    it('goes without the message of a plain link where that would make it too long', () => {
+      const memo = 'д'.repeat(400)
+      const body = () =>
+        new URL(
+          data(done({ ...created(), memo, greeting: null }), 'email').attributes('href'),
+        ).searchParams.get('body')
+
+      expect(body()).toContain(LINK)
+      expect(body()).not.toContain(memo)
+    })
+
+    describe('where the browser takes a picture', () => {
+      const { write } = browser
+      const PNG = new Blob(['png'], { type: 'image/png' })
+
+      beforeEach(() => {
+        browser.takes = true
+        write.mockReset().mockResolvedValue(undefined)
+        vi.spyOn(sheet, 'loadImage').mockResolvedValue({ picture: true })
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({ drawImage: vi.fn() })
+        vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((made) => made(PNG))
+      })
+
+      afterEach(() => {
+        browser.takes = false
+        vi.restoreAllMocks()
+      })
+
+      it('says the picture will be in the clipboard, and writes it on the tap', async () => {
+        const wrapper = done()
+
+        expect(data(wrapper, 'email-hint').text()).toContain(
+          'Das Bild liegt dann in der Zwischenablage',
+        )
+        await data(wrapper, 'email').trigger('click')
+
+        expect(write).toHaveBeenCalledTimes(1)
+      })
+
+      // Made as the view stands, so that the tap has it at hand: the mail program takes the
+      // foreground in that same tap.
+      it('has the motif made by the time of the tap', async () => {
+        const wrapper = done()
+        expect(sheet.loadImage).toHaveBeenCalledWith('/img/thank-you-greeting/morning-light.svg')
+        await flushPromises()
+
+        await data(wrapper, 'email').trigger('click')
+
+        expect(write.mock.calls[0][0]).toBe(PNG)
+      })
+
+      it('has the photo made, where the greeting carries one', async () => {
+        const PHOTO = 'data:image/jpeg;base64,AAAA'
+        done({ ...created(), picture: PHOTO, greeting: { line: null, hasPicture: true } })
+
+        expect(sheet.loadImage).toHaveBeenCalledWith(PHOTO)
+      })
+
+      it('says nothing of a picture for a plain link, and writes none', async () => {
+        const wrapper = done({ ...created(), greeting: null })
+
+        expect(data(wrapper, 'email-hint').text()).toBe('Öffnet Dein E-Mail-Programm.')
+        await data(wrapper, 'email').trigger('click')
+
+        expect(sheet.loadImage).not.toHaveBeenCalled()
+        expect(write).not.toHaveBeenCalled()
+      })
+    })
   })
 
   /**
@@ -337,7 +560,16 @@ describe('ThankYouGreetingDone', () => {
         card
           .findAll('[data-test]')
           .map((element) => element.attributes('data-test').replace('thank-you-greeting-', '')),
-      ).toEqual(['share', 'copy', 'paper-title', 'print', 'save', 'paper-hint'])
+      ).toEqual([
+        'share',
+        'email',
+        'email-hint',
+        'copy',
+        'paper-title',
+        'print',
+        'save',
+        'paper-hint',
+      ])
       expect(data(wrapper, 'paper-title').text()).toBe('Oder auf Papier')
       expect(data(wrapper, 'print').text()).toBe('Karte drucken')
       expect(data(wrapper, 'save').text()).toBe('Karte als Bild sichern')
