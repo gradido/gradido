@@ -139,7 +139,7 @@ export class AppDatabase {
       })
     }
 
-    if (!this.drizzleDataSource && drizzleOrm) {
+    if (!this.drizzlePool && drizzleOrm) {
       this.drizzlePool = createPool({
         host: CONFIG.DB_HOST,
         user: CONFIG.DB_USER,
