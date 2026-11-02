@@ -864,6 +864,8 @@
   },
   "gddKonto": "GDD-account",
   "gdd_per_link": {
+    "by-email": "Per e-mail",
+    "by-email-to": "Per e-mail naar {address}",
     "choose-amount": "Kies een bedrag dat je versturen wil en vul een bericht in. Het bericht is verplicht.",
     "copy-link": "Link kopiëren",
     "copy-link-with-text": "Link en tekst kopiëren",
@@ -872,6 +874,7 @@
     "deleted": "De link werd verwijderd!",
     "disbured": "De overdracht van het linktegoed is succesvol gestart! Het bedrag van {n} GDD wordt binnenkort op je rekening bijgeschreven.",
     "duplicate": "Dupliceren",
+    "email-subject": "Een bedankje van {name}",
     "expiredOn": "Afgelopen op",
     "has-account": "Heb je al een Gradido rekening?",
     "header": "Link, cheque en QR-code aanmaken",
@@ -883,9 +886,12 @@
     "link-overview": "Overzicht links",
     "links_open": "{n} open",
     "links_sum": "Links, cheques, QR-codes, groetjes",
+    "memo-stays-on-page": "Je bericht is te lang voor de mail: het staat op de pagina die de link opent.",
     "no-account": "Je hebt nog geen Gradido rekening?",
     "no-redeem": "Je mag je eigen link niet inwisselen!",
     "not-copied": "Jouw apparaat laat het kopiëren helaas niet toe! Kopieer de link alsjeblieft met de hand!",
+    "opens-mail-program": "Opent je e-mailprogramma.",
+    "picture-in-clipboard": "De afbeelding staat dan op het klembord — plak die erin als je wilt.",
     "recipientCommunityRedirection": "Naar crediteren doorsturen naar:",
     "recipientCommunitySelection": "Gradido-gemeenschap selecteren:",
     "redeem": "Inwisselen",
@@ -1654,12 +1660,16 @@
     "done": {
       "another": "Nog een voor iemand anders",
       "edit-hint": "Je kunt de zin vóór het versturen aanpassen. Jouw woorden staan pas op de kaart.",
+      "edit-hint-plain": "Je kunt de tekst vóór het versturen aanpassen.",
       "find-again": "Je vindt het terug onder {transactions}, bij “{links}”.",
       "link-hint": "Wie de link heeft, kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
       "link-hint-photo": "Wie de link heeft, ziet je foto en kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",
       "sentence-lead": "Deze zin reist mee:",
+      "sentence-lead-plain": "Deze tekst reist mee:",
       "title": "Je dankgroetje is klaar.",
       "title-for": "Je dankgroetje voor {name} is klaar.",
+      "title-for-address": "Je bedankje voor {address} is klaar.",
+      "title-plain": "Je bedankje is klaar.",
       "waits-until": "Het wacht tot {date}."
     },
     "entry": {
@@ -1723,6 +1733,7 @@
     "received-title": "Een dankgroetje voor jou",
     "share": {
       "copied": "De zin en de link zijn naar het klembord gekopieerd. Je kunt ze nu in een e-mail of bericht plakken.",
+      "email-subject": "Een dankgroetje van {name}",
       "line1": "Ik heb een dankgroetje voor je:",
       "line1-for": "{name}, ik heb een dankgroetje voor je:"
     },

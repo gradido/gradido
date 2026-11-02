@@ -864,6 +864,8 @@
   },
   "gddKonto": "Compte GDD",
   "gdd_per_link": {
+    "by-email": "Par e-mail",
+    "by-email-to": "Par e-mail à {address}",
     "choose-amount": "Sélectionne le montant que tu souhaites envoyer et saisis un message. Le message est obligatoire.",
     "copy-link": "Copier le lien",
     "copy-link-with-text": "Copier le lien et le texte",
@@ -872,6 +874,7 @@
     "deleted": "Le lien a été supprimé !",
     "disbured": "Le versement du solde du lien a été initié avec succès ! Le crédit de {n} GDD sera prochainement comptabilisé sur ton compte.",
     "duplicate": "Dupliquer",
+    "email-subject": "{name} t'envoie un remerciement",
     "expiredOn": "A expiré le",
     "has-account": "Tu as déjà un compte Gradido ?",
     "header": "Créer un lien, un chèque et un QR code",
@@ -883,9 +886,12 @@
     "link-overview": "Aperçu du lien",
     "links_open": "{n} ouverts",
     "links_sum": "Liens, chèques, QR codes, petits mots",
+    "memo-stays-on-page": "Ton message est trop long pour l'e-mail : il figure sur la page que le lien ouvre.",
     "no-account": "Tu n'as pas encore de compte Gradido ?",
     "no-redeem": "Tu n'es pas autorisé à percevoir ton propre lien !",
     "not-copied": "Malheureusement, ton appareil ne permet pas de copier ! Copie le lien manuellement, s'il te plaît !",
+    "opens-mail-program": "Ton logiciel de messagerie s'ouvrira.",
+    "picture-in-clipboard": "L'image sera alors dans le presse-papier — colle-la si tu veux.",
     "recipientCommunityRedirection": "Pour créditer, rediriger vers :",
     "recipientCommunitySelection": "Choisir la communauté Gradido :",
     "redeem": "Encaisser",
@@ -1654,12 +1660,16 @@
     "done": {
       "another": "Encore un pour quelqu'un d'autre",
       "edit-hint": "Tu peux modifier la phrase avant l'envoi. Tes mots ne figurent que sur la carte.",
+      "edit-hint-plain": "Tu peux modifier le texte avant l'envoi.",
       "find-again": "Tu le retrouveras dans {transactions}, sous « {links} ».",
       "link-hint": "Toute personne qui a le lien peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
       "link-hint-photo": "Toute personne qui a le lien voit ta photo et peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",
       "sentence-lead": "Cette phrase l'accompagne :",
+      "sentence-lead-plain": "Ce texte l'accompagne :",
       "title": "Ton mot de remerciement est prêt.",
       "title-for": "Ton mot de remerciement pour {name} est prêt.",
+      "title-for-address": "Ton remerciement pour {address} est prêt.",
+      "title-plain": "Ton remerciement est prêt.",
       "waits-until": "Il attend jusqu'au {date}."
     },
     "entry": {
@@ -1723,6 +1733,7 @@
     "received-title": "Un mot de remerciement pour toi",
     "share": {
       "copied": "La phrase et le lien ont été copiés dans le presse-papier. Tu peux maintenant les coller dans un e-mail ou un message.",
+      "email-subject": "{name} t'envoie un mot de remerciement",
       "line1": "J'ai un mot de remerciement pour toi :",
       "line1-for": "{name}, j'ai un mot de remerciement pour toi :"
     },

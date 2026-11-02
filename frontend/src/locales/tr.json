@@ -864,6 +864,8 @@
   },
   "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
+    "by-email": "E-postayla",
+    "by-email-to": "{address} adresine e-postayla",
     "choose-amount": "Göndermek istediğin tutarı seç ve bir mesaj gir. Mesaj zorunlu bir alandır.",
     "copy-link": "Linki kopyala",
     "copy-link-with-text": "Linki ve metni kopyala",
@@ -872,6 +874,7 @@
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
     "duplicate": "Linki çoğalt",
+    "email-subject": "{name} sana bir teşekkür gönderdi",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -883,9 +886,12 @@
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
     "links_sum": "Linkler, çekler, QR kodları, teşekkür mesajları",
+    "memo-stays-on-page": "Mesajın e-posta için fazla uzun: Linkin açtığı sayfada yer alıyor.",
     "no-account": "Henüz bir Gradido hesabın yok mu?",
     "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
+    "opens-mail-program": "E-posta programını açar.",
+    "picture-in-clipboard": "Görsel o zaman panoda olur — istersen yapıştır.",
     "recipientCommunityRedirection": "Hesaba işlemek için şuraya yönlendir:",
     "recipientCommunitySelection": "Gradido topluluğunu seç:",
     "redeem": "Kullan",
@@ -1654,12 +1660,16 @@
     "done": {
       "another": "Başka biri için bir tane daha",
       "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
+      "edit-hint-plain": "Metni göndermeden önce değiştirebilirsin.",
       "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
       "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
       "link-hint-photo": "Linke sahip olan herkes fotoğrafını görür ve teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
       "sentence-lead": "Bu cümle onunla birlikte yola çıkar:",
+      "sentence-lead-plain": "Bu metin onunla birlikte yola çıkar:",
       "title": "Teşekkür mesajın hazır.",
       "title-for": "{name} için teşekkür mesajın hazır.",
+      "title-for-address": "{address} için teşekkürün hazır.",
+      "title-plain": "Teşekkürün hazır.",
       "waits-until": "{date} tarihine kadar bekliyor."
     },
     "entry": {
@@ -1723,6 +1733,7 @@
     "received-title": "Sana bir teşekkür mesajı",
     "share": {
       "copied": "Cümle ve link panoya kopyalandı. Artık bunları bir e-postaya veya mesaja yapıştırabilirsin.",
+      "email-subject": "{name} sana bir teşekkür mesajı gönderdi",
       "line1": "Sana bir teşekkür mesajım var:",
       "line1-for": "{name}, sana bir teşekkür mesajım var:"
     },

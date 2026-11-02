@@ -22,6 +22,9 @@ import router from './routes/router'
 
 import { apolloClient } from './plugins/apolloProvider'
 
+// ⛔ Above the polyfill: it takes hold of what the polyfill replaces.
+import './utils/nativeClipboard'
+
 import 'clipboard-polyfill/overwrite-globals'
 
 import { installStaleChunkReload } from './utils/reloadOnStaleChunk'

@@ -864,6 +864,8 @@
   },
   "gddKonto": "GDD Konto",
   "gdd_per_link": {
+    "by-email": "Per E-Mail",
+    "by-email-to": "Per E-Mail an {address}",
     "choose-amount": "Wähle einen Betrag aus, welchen Du versenden möchtest, und trage eine Nachricht ein. Die Nachricht ist ein Pflichtfeld.",
     "copy-link": "Link kopieren",
     "copy-link-with-text": "Link und Text kopieren",
@@ -872,6 +874,7 @@
     "deleted": "Der Link wurde gelöscht!",
     "disbured": "Auszahlung des Link-Guthabens erfolgreich initiiert! Die Gutschrift von {n} GDD wird zeitnah auf Dein Konto gebucht",
     "duplicate": "Duplizieren",
+    "email-subject": "Ein Dank von {name}",
     "expiredOn": "Abgelaufen am",
     "has-account": "Du besitzt bereits ein Gradido Konto?",
     "header": "Link, Scheck und QR-Code erzeugen",
@@ -883,9 +886,12 @@
     "link-overview": "Linkübersicht",
     "links_open": "{n} offen",
     "links_sum": "Links, Schecks, QR-Codes, Grüße",
+    "memo-stays-on-page": "Deine Nachricht ist zu lang für die Mail: Sie steht auf der Seite, die der Link öffnet.",
     "no-account": "Du besitzt noch kein Gradido Konto?",
     "no-redeem": "Du darfst Deinen eigenen Link nicht einlösen!",
     "not-copied": "Dein Gerät lässt das Kopieren leider nicht zu! Bitte kopiere den Link von Hand!",
+    "opens-mail-program": "Öffnet Dein E-Mail-Programm.",
+    "picture-in-clipboard": "Das Bild liegt dann in der Zwischenablage — füge es ein, wenn Du magst.",
     "recipientCommunityRedirection": "Zum Gutschreiben weiterleiten zu:",
     "recipientCommunitySelection": "Gradido-Gemeinschaft wählen:",
     "redeem": "Einlösen",
@@ -1654,12 +1660,16 @@
     "done": {
       "another": "Noch einen für jemand anderen",
       "edit-hint": "Den Satz kannst Du vor dem Senden ändern. Deine Worte stehen erst auf der Karte.",
+      "edit-hint-plain": "Den Text kannst Du vor dem Senden ändern.",
       "find-again": "Du findest ihn wieder unter {transactions}, bei „{links}“.",
       "link-hint": "Wer den Link hat, kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",
       "link-hint-photo": "Wer den Link hat, sieht Dein Foto und kann den Dank annehmen. Schick ihn nur dem Menschen, für den er gedacht ist.",
       "sentence-lead": "Dieser Satz geht mit auf die Reise:",
+      "sentence-lead-plain": "Dieser Text geht mit auf die Reise:",
       "title": "Dein Dank-Gruß ist fertig.",
       "title-for": "Dein Dank-Gruß für {name} ist fertig.",
+      "title-for-address": "Dein Dank für {address} ist fertig.",
+      "title-plain": "Dein Dank ist fertig.",
       "waits-until": "Er wartet bis zum {date}."
     },
     "entry": {
@@ -1723,6 +1733,7 @@
     "received-title": "Ein Dank-Gruß für Dich",
     "share": {
       "copied": "Der Satz und der Link wurden in die Zwischenablage kopiert. Du kannst sie jetzt in eine E-Mail oder Nachricht einfügen.",
+      "email-subject": "Ein Dank-Gruß von {name}",
       "line1": "Ich habe einen Dank-Gruß für Dich:",
       "line1-for": "{name}, ich habe einen Dank-Gruß für Dich:"
     },

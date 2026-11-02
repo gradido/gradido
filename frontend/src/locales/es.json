@@ -864,6 +864,8 @@
   },
   "gddKonto": "Cuenta GDD",
   "gdd_per_link": {
+    "by-email": "Por correo electrónico",
+    "by-email-to": "Por correo a {address}",
     "choose-amount": "Selecciona una cantidad que quieras enviar y escribe un mensaje. El mensaje es obligatorio.",
     "copy-link": "Copiar enlace",
     "copy-link-with-text": "Copiar texto y enlace",
@@ -872,6 +874,7 @@
     "deleted": "¡El enlace ha sido eliminado!",
     "disbured": "¡El desembolso del saldo del enlace se ha iniciado con éxito! El abono de {n} GDD se registrará pronto en tu cuenta.",
     "duplicate": "Duplicar enlace",
+    "email-subject": "Un agradecimiento de {name}",
     "expiredOn": "Vencido el:",
     "has-account": "¿Ya tienes una cuenta Gradido?",
     "header": "Crear enlace, cheque y código QR",
@@ -883,9 +886,12 @@
     "link-overview": "Resumen de enlaces",
     "links_open": "{n} abiertos",
     "links_sum": "Enlaces, cheques, códigos QR, saludos",
+    "memo-stays-on-page": "Tu mensaje es demasiado largo para el correo: aparece en la página que abre el enlace.",
     "no-account": "¿Aún no tienes una cuenta de Gradido?",
     "no-redeem": "¡No puedes canjear tu propio enlace!",
     "not-copied": "¡Desafortunadamente, tu dispositivo no permite copiar! ¡Copia el enlace manualmente!",
+    "opens-mail-program": "Se abrirá tu programa de correo.",
+    "picture-in-clipboard": "La imagen estará entonces en el portapapeles — pégala si quieres.",
     "recipientCommunityRedirection": "Redirigir para abonar a:",
     "recipientCommunitySelection": "Seleccionar comunidad Gradido:",
     "redeem": "Canjear",
@@ -1654,12 +1660,16 @@
     "done": {
       "another": "Uno más para otra persona",
       "edit-hint": "Puedes cambiar la frase antes de enviarla. Tus palabras solo aparecen en la tarjeta.",
+      "edit-hint-plain": "Puedes cambiar el texto antes de enviarlo.",
       "find-again": "Lo encontrarás de nuevo en {transactions}, en «{links}».",
       "link-hint": "Quien tenga el enlace puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
       "link-hint-photo": "Quien tenga el enlace ve tu foto y puede aceptar el agradecimiento. Envíalo solo a la persona a la que va dirigido.",
       "sentence-lead": "Esta frase lo acompaña:",
+      "sentence-lead-plain": "Este texto lo acompaña:",
       "title": "Tu saludo de agradecimiento está listo.",
       "title-for": "Tu saludo de agradecimiento para {name} está listo.",
+      "title-for-address": "Tu agradecimiento para {address} está listo.",
+      "title-plain": "Tu agradecimiento está listo.",
       "waits-until": "Espera hasta el {date}."
     },
     "entry": {
@@ -1723,6 +1733,7 @@
     "received-title": "Un saludo de agradecimiento para ti",
     "share": {
       "copied": "La frase y el enlace se han copiado en el portapapeles. Ahora puedes pegarlos en un correo electrónico o mensaje.",
+      "email-subject": "Un saludo de agradecimiento de {name}",
       "line1": "Tengo un saludo de agradecimiento para ti:",
       "line1-for": "{name}, tengo un saludo de agradecimiento para ti:"
     },
