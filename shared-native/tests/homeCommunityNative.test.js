@@ -96,6 +96,8 @@ describe('HomeCommunityNative', () => {
     it('answers a malformed ciphertext as failure', () => {
       const result = home.decrypt(Buffer.alloc(3), peerPublicOnly)
       assert.equal(result.success, false)
+      assert.ok(result.error instanceof Error)
+      assert.ok(result.error.message.includes('3 bytes'))
       assert.equal(result.error.name, 'MalformedCiphertext')
     })
   })

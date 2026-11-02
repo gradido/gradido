@@ -124,6 +124,16 @@ export function hashGeneric(data: Uint8Array): Uint8Array
  * @throws if data is neither a string nor a Uint8Array
  */
 export function hashGenericBase64(data: string | Uint8Array): string
+/**
+ * Verifies a detached Ed25519 signature (crypto_sign_verify_detached).
+ * @param signature - 64 bytes; another size throws, check it where it comes in
+ * @param publicKey - 32 bytes; another size throws
+ */
+export function signatureVerify(
+  message: Uint8Array,
+  signature: Uint8Array,
+  publicKey: Uint8Array,
+): boolean
 
 /** A key pair's bytes as copies; `privateKey` is null when the pair has only a public key. */
 export type KeyPairBuffers = { publicKey: Buffer; privateKey: Buffer | null }
@@ -389,7 +399,7 @@ export function grdtTransactionToString(addressType: number): string
  * The error carried by a VoidResult is a plain object, not an `Error` instance: it crosses
  * from C as a name and a message rather than being thrown.
  */
-export type NativeError = { name: string; message: string }
+export type NativeError = Error
 
 /**
  * What a failing `validate()` reports. `actual` and `expected` are filled in only where the

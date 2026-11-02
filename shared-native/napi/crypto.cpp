@@ -6,6 +6,8 @@
 #include "gradido_blockchain_core/crypto/sign.h"
 #include "gradido_blockchain_core/result.h"
 
+#include <sodium.h>
+
 namespace gradido::crypto {
     constexpr uint32_t MAX_DERIVATION_INDEX = 0x80000000 - 1;
 
@@ -220,6 +222,23 @@ namespace gradido::crypto {
         }
         Napi::Buffer<uint8_t> data = info[0].As<Napi::Buffer<uint8_t>>();
         return HashGenericBase64(env, data.Data(), data.Length());
+    }
+
+    Napi::Value SignatureVerify(const Napi::CallbackInfo& info)
+    {
+        Napi::Env env = info.Env();
+        if (!info[0].IsBuffer()) {
+            Napi::TypeError::New(env, "[signatureVerify] Expected message to be a Uint8Array").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+        Napi::Buffer<uint8_t> message = info[0].As<Napi::Buffer<uint8_t>>();
+        Napi::Buffer<uint8_t> signature;
+        Napi::Buffer<uint8_t> publicKey;
+        if (!readBytes(env, info[1], "signatureVerify", "signature", crypto_sign_BYTES, signature)
+            || !readBytes(env, info[2], "signatureVerify", "publicKey", crypto_sign_PUBLICKEYBYTES, publicKey)) {
+            return env.Null();
+        }
+        return Napi::Boolean::New(env, crypto_sign_verify_detached(signature.Data(), message.Data(), message.Length(), publicKey.Data()) == 0);
     }
 
 } // namespace gradido::crypto

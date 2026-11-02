@@ -11,4 +11,7 @@ namespace gradido::crypto {
     // bindings, not exported to JavaScript; throws and returns null if it fails
     Napi::Value HashGenericBase64(Napi::Env env, const uint8_t* data, size_t size);
     Napi::Value HashGenericBase64(const Napi::CallbackInfo& info);
+
+    // (message: Uint8Array, signature: 64 bytes, publicKey: 32 bytes) -> boolean
+    Napi::Value SignatureVerify(const Napi::CallbackInfo& info);
 } // namespace gradidoSign

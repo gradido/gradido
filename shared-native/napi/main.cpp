@@ -40,6 +40,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("signKeyPairDeriveAccountFromCommunity", Napi::Function::New(env, gradido::crypto::DeriveAccountFromCommunity));
     exports.Set("hashGeneric", Napi::Function::New(env, gradido::crypto::HashGeneric));
     exports.Set("hashGenericBase64", Napi::Function::New(env, static_cast<Napi::Value (*)(const Napi::CallbackInfo&)>(gradido::crypto::HashGenericBase64)));
+    exports.Set("signatureVerify", Napi::Function::New(env, gradido::crypto::SignatureVerify));
     exports.Set("grdtAddressToString", Napi::Function::New(env, gradido::types::GrdtAddressToString));
     exports.Set("grdtCrossGroupToString", Napi::Function::New(env, gradido::types::GrdtCrossGroupToString));
     exports.Set("grdtLedgerAnchorToString", Napi::Function::New(env, gradido::types::GrdtLedgerAnchorToString));

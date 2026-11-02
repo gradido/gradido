@@ -92,8 +92,7 @@ Napi::Object failureResult(Napi::Env env, Napi::Object error)
 
 Napi::Object failureResult(Napi::Env env, const char* name, const std::string& message)
 {
-    Napi::Object error = Napi::Object::New(env);
+    Napi::Object error = Napi::Error::New(env, message).Value();
     error.Set("name", Napi::String::New(env, name));
-    error.Set("message", Napi::String::New(env, message));
     return failureResult(env, error);
 }
