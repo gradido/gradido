@@ -13,6 +13,7 @@ import {
   insertSeedCreationRows,
   insertSeedUserRows,
   newSeedBookingState,
+  SEED_BATCH_SIZE,
   SeedUserRef,
   sortCreationsByBalanceDate,
   UserInterface,
@@ -31,9 +32,6 @@ import { hashSeedUserPasswords } from './factory/user'
 import { transactionLinks } from './transactionLink/index'
 import { users } from './users/index'
 
-// Rows per round, each built, written and let go before the next: the batch size AGENTS.md sets
-// for data migrations.
-const BATCH_SIZE = 500
 const RANDOM_USER_COUNT = 100
 const MODERATOR_EMAIL = 'peter@lustig.de'
 const logger = getLogger('seed')
@@ -94,9 +92,9 @@ async function seedUsers(
   const taken = new Set(users.map((user) => user.alias.toLowerCase()))
   const refsByEmail = new Map<string, SeedUserRef>()
   const total = users.length + RANDOM_USER_COUNT
-  for (let offset = 0; offset < total; offset += BATCH_SIZE) {
+  for (let offset = 0; offset < total; offset += SEED_BATCH_SIZE) {
     const batch: UserInterface[] = []
-    for (let index = offset; index < Math.min(offset + BATCH_SIZE, total); index++) {
+    for (let index = offset; index < Math.min(offset + SEED_BATCH_SIZE, total); index++) {
       batch.push(seedUser(index, taken))
     }
     const rows = buildSeedUserRows(batch, offset + 1, communityUuid, referencedEmails)
@@ -120,8 +118,8 @@ async function seedCreations(
   // the sort needs every creation, the rows are built and written batch by batch
   const datedCreations = sortCreationsByBalanceDate(creations)
   const state = newSeedBookingState()
-  for (let offset = 0; offset < datedCreations.length; offset += BATCH_SIZE) {
-    const batch = datedCreations.slice(offset, offset + BATCH_SIZE)
+  for (let offset = 0; offset < datedCreations.length; offset += SEED_BATCH_SIZE) {
+    const batch = datedCreations.slice(offset, offset + SEED_BATCH_SIZE)
     await insertSeedCreationRows(buildSeedCreationRows(batch, refsByEmail, moderator, state), tx)
   }
 }
@@ -130,18 +128,20 @@ async function seedTransactionLinks(
   tx: DrizzleTransaction,
   refsByEmail: Map<string, SeedUserRef>,
 ): Promise<void> {
-  for (let offset = 0; offset < transactionLinks.length; offset += BATCH_SIZE) {
-    const batch = transactionLinks.slice(offset, offset + BATCH_SIZE).map((transactionLink) => ({
-      ...transactionLink,
-      createdAt: transactionLink.createdAt ?? new Date(new Date().getTime() + 1000),
-    }))
+  for (let offset = 0; offset < transactionLinks.length; offset += SEED_BATCH_SIZE) {
+    const batch = transactionLinks
+      .slice(offset, offset + SEED_BATCH_SIZE)
+      .map((transactionLink) => ({
+        ...transactionLink,
+        createdAt: transactionLink.createdAt ?? new Date(new Date().getTime() + 1000),
+      }))
     await dbInsertTransactionLinks(buildSeedTransactionLinkRows(batch, refsByEmail), tx)
   }
 }
 
 async function seedContributionLinks(tx: DrizzleTransaction): Promise<void> {
-  for (let offset = 0; offset < contributionLinks.length; offset += BATCH_SIZE) {
-    const batch = contributionLinks.slice(offset, offset + BATCH_SIZE)
+  for (let offset = 0; offset < contributionLinks.length; offset += SEED_BATCH_SIZE) {
+    const batch = contributionLinks.slice(offset, offset + SEED_BATCH_SIZE)
     await dbInsertContributionLinks(batch.map(buildContributionLinkRow), tx)
   }
 }

@@ -4,7 +4,6 @@ import { clearDatabase } from '../../migration/clear'
 import {
   Contribution as DbContribution,
   Transaction as DbTransaction,
-  TransactionLink as DbTransactionLink,
   User as DbUser,
   DltTransactionType,
   TransactionTypeId,
@@ -14,7 +13,7 @@ import { resolveDltTransactionByLedgerAnchor } from '../logic'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { transferGradidos } from '../seeds/factory/transaction'
-import { createTransactionLink } from '../seeds/factory/transactionLink'
+import { transactionLinkFactory } from '../seeds/factory/transactionLink'
 import { userFactory } from '../seeds/factory/user'
 import { transactionLinks } from '../seeds/transactionLink'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
@@ -27,7 +26,7 @@ let bibi: DbUser
 let peter: DbUser
 let contribution: DbContribution
 let transferTransactions: DbTransaction[] = []
-let transactionLink: DbTransactionLink
+let transactionLink: { id: number }
 
 beforeAll(async () => {
   // biome-ignore lint/suspicious/noConsole: measure time
@@ -61,7 +60,7 @@ beforeAll(async () => {
     new Date(),
   )
 
-  transactionLink = await createTransactionLink(transactionLinks[0], bibi.id)
+  transactionLink = await transactionLinkFactory(transactionLinks[0], bibi.id)
   // biome-ignore lint/suspicious/noConsole: measure time
   console.timeEnd('beforeAll')
 })

@@ -16,6 +16,7 @@ import {
   dbInsertEvent,
   EventType,
   Transaction,
+  transactionLinkFactory,
   User,
   UserContact,
 } from 'database'
@@ -25,7 +26,6 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
 import { creationFactory } from '@/seeds/factory/creation'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
   confirmContribution,
@@ -1017,7 +1017,7 @@ describe('TransactionLinkResolver', () => {
             (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',
           )
           for (const bibisTransaktionLink of bibisTransaktionLinks) {
-            await transactionLinkFactory(testEnv, bibisTransaktionLink)
+            await transactionLinkFactory(bibisTransaktionLink)
           }
 
           // admin: only now log in

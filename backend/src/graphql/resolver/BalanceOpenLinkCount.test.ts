@@ -1,10 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase } from 'database'
+import { AppDatabase, transactionLinkFactory } from 'database'
 import { CONFIG } from '@/config'
 import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
 import { userFactory } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
@@ -47,13 +46,13 @@ beforeAll(async () => {
   const longAgo = new Date()
   longAgo.setFullYear(longAgo.getFullYear() - 1)
 
-  await transactionLinkFactory(testEnv, {
+  await transactionLinkFactory({
     email: 'bibi@bloxberg.de',
     amount: 19.99,
     memo: 'expired long ago',
     createdAt: longAgo,
   })
-  await transactionLinkFactory(testEnv, {
+  await transactionLinkFactory({
     email: 'bibi@bloxberg.de',
     amount: 19.99,
     memo: 'still open',

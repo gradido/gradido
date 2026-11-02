@@ -11,12 +11,14 @@ import {
   dbFindTransactionLinkWithOwner,
   dbInsertThankYouGreeting,
   dbInsertThankYouGreetingPicture,
+  dbInsertTransactionLinks,
   drizzleDb,
   peterLustig,
   TransactionLinkInterface,
   transactionLinkFactory,
   transactionLinkFactoryBulk,
   transactionLinksPendingFromUserOrderByIdASC,
+  transactionLinksTable,
   userFactory,
 } from '..'
 
@@ -162,8 +164,40 @@ describe('transactionLinks', () => {
   })
 })
 
+describe('dbInsertTransactionLinks', () => {
+  const row = (code: string) => ({
+    userId: 1,
+    memo: 'a memo',
+    code,
+    createdAt: new Date(),
+    validUntil: new Date(),
+  })
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+  })
+
+  it('returns the id each row got, in the order of the rows', async () => {
+    const ids = await dbInsertTransactionLinks([row('first'), row('second'), row('third')])
+
+    const stored = await drizzleDb()
+      .select({ id: transactionLinksTable.id, code: transactionLinksTable.code })
+      .from(transactionLinksTable)
+    const codeOf = new Map(stored.map(({ id, code }) => [id, code]))
+    expect(ids.map((id) => codeOf.get(id))).toEqual(['first', 'second', 'third'])
+  })
+
+  it('returns no id and writes nothing for an empty list', async () => {
+    const before = await drizzleDb().select().from(transactionLinksTable)
+
+    expect(await dbInsertTransactionLinks([])).toEqual([])
+
+    expect(await drizzleDb().select().from(transactionLinksTable)).toHaveLength(before.length)
+  })
+})
+
 describe('dbFindTransactionLinkByCode', () => {
-  let link: DbTransactionLink
+  let link: Awaited<ReturnType<typeof transactionLinkFactory>>
 
   beforeAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
@@ -186,7 +220,7 @@ describe('dbFindTransactionLinkByCode', () => {
   })
 
   it('finds no deleted link', async () => {
-    await DbTransactionLink.softRemove(link)
+    await DbTransactionLink.update(link.id, { deletedAt: new Date() })
     expect(await dbFindTransactionLinkByCode(link.code)).toBeNull()
   })
 })
@@ -195,7 +229,7 @@ describe('dbFindTransactionLinkByCode', () => {
 // own columns, and where the account of the member who made it stands.
 describe('dbFindTransactionLinkWithOwner', () => {
   let bibi: DbUser
-  let link: DbTransactionLink
+  let link: Awaited<ReturnType<typeof transactionLinkFactory>>
 
   beforeAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
@@ -246,7 +280,7 @@ describe('dbFindTransactionLinkWithOwner', () => {
   // Unlike dbFindTransactionLinkByCode, a deleted link is found here: the caller holds its id
   // from before the lock, and has to see that it was deleted since.
   it('shows a deleted link as deleted', async () => {
-    await DbTransactionLink.softRemove(link)
+    await DbTransactionLink.update(link.id, { deletedAt: new Date() })
 
     const found = await dbFindTransactionLinkWithOwner(link.id)
     expect(found?.deletedAt).toBeInstanceOf(Date)
@@ -284,7 +318,7 @@ describe('dbFindTransactionLinkForPreview', () => {
   let bibi: DbUser
   let peter: DbUser
 
-  const linkWithCode = async (code: string, maker: DbUser = bibi): Promise<DbTransactionLink> => {
+  const linkWithCode = async (code: string, maker: DbUser = bibi) => {
     const link = await transactionLinkFactory(
       {
         email: maker.emailContact.email,

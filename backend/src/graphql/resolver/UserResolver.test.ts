@@ -4,7 +4,6 @@ import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { RoleNames } from '@enum/RoleNames'
-import { ContributionLink } from '@model/ContributionLink'
 import { Location } from '@model/Location'
 import { User as UserModel } from '@model/User'
 import {
@@ -32,6 +31,7 @@ import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
+  contributionLinkFactory,
   Community as DbCommunity,
   Event as DbEvent,
   FederatedCommunity as DbFederatedCommunity,
@@ -84,7 +84,6 @@ import {
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
-import { contributionLinkFactory } from '@/seeds/factory/contributionLink'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adoptAlias,
@@ -304,7 +303,7 @@ describe('UserResolver', () => {
       // tells whether it belongs to anybody. Anything that is no user name is refused like any
       // other invalid field; that tells only its shape, which is public anyway.
       let bob: User
-      let link: ContributionLink
+      let link: { code: string }
       const results: Record<string, any> = {}
 
       const register = async (email: string, extra: Record<string, string>) => {
@@ -349,7 +348,7 @@ describe('UserResolver', () => {
         await User.update({ alias: 'FarAway' }, { foreign: true })
         const tomorrow = new Date()
         tomorrow.setDate(tomorrow.getDate() + 1)
-        link = await contributionLinkFactory(testEnv, {
+        link = await contributionLinkFactory({
           name: 'Market day',
           memo: 'Thank you for coming to the market day',
           amount: 200,
