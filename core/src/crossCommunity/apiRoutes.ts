@@ -31,8 +31,8 @@ import {
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.crossCommunity.apiRoutes`)
 
 export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
-  // public routes: the answer is signed with the home community's Ed25519 key (RFC 9421), with the
-  // exchangeId of the request as nonce, and carries that exchangeId in its body too
+  // public routes: the answer is signed with the home community's Ed25519 key (RFC 9421) and carries
+  // the exchangeId of the request in its body, bound by the signed digest; the caller compares it
   .get(
     'communityInfos', // TODO: create AppContext and use
     async ({ query: { exchangeId } }) =>
