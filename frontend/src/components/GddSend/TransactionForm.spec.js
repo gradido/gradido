@@ -484,6 +484,89 @@ describe('TransactionForm', () => {
       })
     })
 
+    // The page asks the server about the recipient ("Jetzt prüfen") with what stands in the fields,
+    // and its answer takes this form down: what is changed in that time would be dropped.
+    describe('while the page is asking after the recipient', () => {
+      const asking = async () => {
+        wrapper = createWrapper({ balance: 100.0, checking: true })
+        await nextTick()
+      }
+
+      it('takes no second press', async () => {
+        await asking()
+        wrapper.vm.form.identifier = 'test@example.com'
+        wrapper.vm.form.amount = '100,00'
+        wrapper.vm.form.memo = 'Test memo'
+        await nextTick()
+
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+      })
+
+      it('takes the button back when the answer has come', async () => {
+        wrapper = createWrapper({ balance: 100.0, checking: false })
+        wrapper.vm.form.identifier = 'test@example.com'
+        wrapper.vm.form.amount = '100,00'
+        wrapper.vm.form.memo = 'Test memo'
+        await nextTick()
+
+        expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeUndefined()
+      })
+
+      // `inert`: its fields, its tabs and its reset take nothing, and the browser sees to that.
+      it('holds still as a whole, and only while it is asked', async () => {
+        await asking()
+        expect(wrapper.find('form').attributes('inert')).toBe('true')
+
+        await wrapper.setProps({ checking: false })
+        expect(wrapper.find('form').attributes('inert')).not.toBe('true')
+      })
+
+      it('shows that a question is under way', async () => {
+        await asking()
+        expect(wrapper.find('[data-test="checking-recipient"]').exists()).toBe(true)
+
+        await wrapper.setProps({ checking: false })
+        expect(wrapper.find('[data-test="checking-recipient"]').exists()).toBe(false)
+      })
+
+      it('hands no such field on with the transfer', async () => {
+        await asking()
+        wrapper.vm.form.identifier = 'test@example.com'
+        wrapper.vm.form.amount = '100,00'
+        wrapper.vm.form.memo = 'Test memo'
+
+        await wrapper.findComponent(BForm).trigger('submit.prevent')
+
+        expect(wrapper.emitted('set-transaction')[0][0]).not.toHaveProperty('checking')
+      })
+    })
+
+    // The whole of `transactionData` is bound onto the form, the recipient's user name with it.
+    it('lets nothing it does not declare land on the page as an attribute', async () => {
+      wrapper = mount(
+        {
+          template: '<TransactionForm user-name="Sarah-K" :balance="100" />',
+          components: { TransactionForm },
+        },
+        {
+          global: {
+            plugins: [walletStore({ gradidoID: 'uuid-emma' })],
+            mocks: { $t: mockT, $n: mockN, $i18n: { locale: 'en' } },
+            components: { BCard, BForm, BRow, BCol, BButton, BFormInvalidFeedback },
+            stubs: {
+              'community-switch': true,
+              'validated-input': true,
+              TransactionPictureField: PictureFieldStub,
+            },
+          },
+        },
+      )
+      await nextTick()
+
+      expect(wrapper.find('#send-form').attributes('username')).toBeUndefined()
+      expect(wrapper.find('#send-form').attributes('user-name')).toBeUndefined()
+    })
+
     describe('form submission', () => {
       beforeEach(async () => {
         wrapper = createWrapper({ balance: 100.0 })

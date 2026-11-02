@@ -783,6 +783,19 @@
     "password_new_repeat": "Répète le nouveau mot de passe",
     "password_old": "Ancien mot de passe",
     "recipient": "Destinataire",
+    "recipient-not-found": {
+      "by-email": "Sinon, envoie ton remerciement par e-mail : Gradido crée pour cela un lien qui attend {days} jours. Il permet de créer un compte — ou de recevoir le remerciement sur un compte existant.",
+      "change-address": "Modifier l'adresse",
+      "change-entry": "Modifier la saisie",
+      "choose-community": "Choisir la communauté",
+      "no-answer": "Le serveur n'a pas répondu. Réessaie.",
+      "other-community": "Cette adresse appartient-elle à un membre d'une autre communauté ? Alors choisis cette communauté.",
+      "other-community-entry": "Est-ce un membre d'une autre communauté ? Alors choisis cette communauté.",
+      "send-by-email": "Envoyer le remerciement par e-mail",
+      "title-email": "Il n'y a aucun compte avec cette adresse dans {community}.",
+      "title-gradido-id": "Il n'y a aucun compte avec cet ID Gradido dans {community}.",
+      "title-username": "Il n'y a aucun compte avec ce nom d'utilisateur dans {community}."
+    },
     "recipientCommunity": "Communauté du destinataire",
     "reply": "Répondre",
     "reset": "Réinitialiser",
@@ -1789,7 +1802,6 @@
     "nullTransactions": "Tu n'as pas encore de transaction effectuée sur ton compte.",
     "onlyWith": "{n} opération avec {name} | {n} opérations avec {name}",
     "onlyWithSomeone": "Uniquement les opérations avec un membre",
-    "receiverDeleted": "Le compte du destinataire n'existe plus",
     "receiverNotFound": "Destinataire inconnu",
     "show_all": "Voir toutes les <strong>{count}</strong> transactions."
   },

@@ -783,6 +783,19 @@
     "password_new_repeat": "Repetir contraseña nueva",
     "password_old": "Contraseña antigua",
     "recipient": "Destinatario",
+    "recipient-not-found": {
+      "by-email": "Si no, envía tu agradecimiento por correo electrónico: Gradido crea para ello un enlace que espera {days} días. Con él se crea una cuenta — o el agradecimiento pasa a una cuenta existente.",
+      "change-address": "Cambiar dirección",
+      "change-entry": "Cambiar lo escrito",
+      "choose-community": "Seleccionar comunidad",
+      "no-answer": "El servidor no ha respondido. Inténtalo de nuevo.",
+      "other-community": "¿La dirección es de un miembro de otra comunidad? Entonces selecciona esa comunidad.",
+      "other-community-entry": "¿Es de un miembro de otra comunidad? Entonces selecciona esa comunidad.",
+      "send-by-email": "Enviar el agradecimiento por correo",
+      "title-email": "No hay ninguna cuenta con esta dirección en {community}.",
+      "title-gradido-id": "No hay ninguna cuenta con este ID de Gradido en {community}.",
+      "title-username": "No hay ninguna cuenta con este nombre de usuario en {community}."
+    },
     "recipientCommunity": "Comunidad del destinatario",
     "reply": "Respuesta",
     "reset": "Restablecer",
@@ -1789,7 +1802,6 @@
     "nullTransactions": "Todavía no tienes ninguna transacción en tu cuenta.",
     "onlyWith": "{n} movimiento con {name} | {n} movimientos con {name}",
     "onlyWithSomeone": "Solo movimientos con un miembro",
-    "receiverDeleted": "La cuenta del destinatario ha sido eliminada.",
     "receiverNotFound": "Destinatario no encontrado",
     "show_all": "Ver todas las transacciones de <strong>{count}</strong>"
   },

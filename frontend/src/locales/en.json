@@ -783,6 +783,19 @@
     "password_new_repeat": "Repeat new password",
     "password_old": "Old password",
     "recipient": "Recipient",
+    "recipient-not-found": {
+      "by-email": "Otherwise send your thank-you by email: Gradido creates a link for it that waits for {days} days. With it, an account is created — or the thank-you goes into an existing one.",
+      "change-address": "Change address",
+      "change-entry": "Change entry",
+      "choose-community": "Select community",
+      "no-answer": "No answer from the server just now. Please try again.",
+      "other-community": "Does the address belong to a member of another community? Then select that community.",
+      "other-community-entry": "Does this belong to a member of another community? Then select that community.",
+      "send-by-email": "Send the thank-you by email",
+      "title-email": "There is no account with this address in {community}.",
+      "title-gradido-id": "There is no account with this Gradido ID in {community}.",
+      "title-username": "There is no account with this username in {community}."
+    },
     "recipientCommunity": "Community of the recipient",
     "reply": "Reply",
     "reset": "Reset",
@@ -1789,7 +1802,6 @@
     "nullTransactions": "You don't have any transactions on your account yet.",
     "onlyWith": "{n} booking with {name} | {n} bookings with {name}",
     "onlyWithSomeone": "Only bookings with one member",
-    "receiverDeleted": "The recipient account was deleted",
     "receiverNotFound": "Recipient not found",
     "show_all": "View all <strong>{count}</strong> transactions."
   },

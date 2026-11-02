@@ -783,6 +783,19 @@
     "password_new_repeat": "Neues Passwort wiederholen",
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
+    "recipient-not-found": {
+      "by-email": "Sonst schick Deinen Dank per E-Mail: Gradido legt dafür einen Link an, der {days} Tage wartet. Damit wird ein Konto angelegt — oder der Dank in ein bestehendes genommen.",
+      "change-address": "Adresse ändern",
+      "change-entry": "Eingabe ändern",
+      "choose-community": "Gemeinschaft wählen",
+      "no-answer": "Gerade kam keine Antwort vom Server. Bitte versuche es noch einmal.",
+      "other-community": "Gehört die Adresse zu einem Mitglied einer anderen Gemeinschaft? Dann wähle die Gemeinschaft.",
+      "other-community-entry": "Gehört die Eingabe zu einem Mitglied einer anderen Gemeinschaft? Dann wähle die Gemeinschaft.",
+      "send-by-email": "Dank per E-Mail schicken",
+      "title-email": "Zu dieser Adresse gibt es in {community} kein Konto.",
+      "title-gradido-id": "Zu dieser Gradido-ID gibt es in {community} kein Konto.",
+      "title-username": "Zu diesem Nutzernamen gibt es in {community} kein Konto."
+    },
     "recipientCommunity": "Gemeinschaft des Empfängers",
     "reply": "Antworten",
     "reset": "Zurücksetzen",
@@ -1789,7 +1802,6 @@
     "nullTransactions": "Du hast noch keine Transaktionen auf Deinem Konto.",
     "onlyWith": "{n} Buchung mit {name} | {n} Buchungen mit {name}",
     "onlyWithSomeone": "Nur Buchungen mit einem Mitglied",
-    "receiverDeleted": "Das Empfängerkonto wurde gelöscht",
     "receiverNotFound": "Empfänger nicht gefunden",
     "show_all": "Alle <strong>{count}</strong> Transaktionen ansehen"
   },

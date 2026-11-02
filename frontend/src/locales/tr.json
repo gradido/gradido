@@ -783,6 +783,19 @@
     "password_new_repeat": "Yeni şifreyi tekrarla",
     "password_old": "Eski şifre",
     "recipient": "Alıcı",
+    "recipient-not-found": {
+      "by-email": "Ya da teşekkürünü e-postayla gönder: Gradido bunun için {days} gün bekleyen bir link oluşturur. Bu linkle bir hesap açılır — ya da teşekkür mevcut bir hesaba geçer.",
+      "change-address": "Adresi değiştir",
+      "change-entry": "Yazdığını değiştir",
+      "choose-community": "Topluluk seç",
+      "no-answer": "Sunucu yanıt vermedi. Lütfen tekrar dene.",
+      "other-community": "Bu adres başka bir topluluğun üyesine mi ait? O zaman o topluluğu seç.",
+      "other-community-entry": "Bu, başka bir topluluğun üyesine mi ait? O zaman o topluluğu seç.",
+      "send-by-email": "Teşekkürü e-postayla gönder",
+      "title-email": "{community} topluluğunda bu adrese ait bir hesap yok.",
+      "title-gradido-id": "{community} topluluğunda bu Gradido ID'ye ait bir hesap yok.",
+      "title-username": "{community} topluluğunda bu kullanıcı adına ait bir hesap yok."
+    },
     "recipientCommunity": "Alıcının topluluğu",
     "reply": "Yanıtla",
     "reset": "Sıfırla",
@@ -1789,7 +1802,6 @@
     "nullTransactions": "Henüz hesabında hiç işlem yok.",
     "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
-    "receiverDeleted": "Alıcı hesabı silindi",
     "receiverNotFound": "Alıcı bulunamadı",
     "show_all": "Bütün <strong>{count}</strong> işlemleri görüntüle."
   },

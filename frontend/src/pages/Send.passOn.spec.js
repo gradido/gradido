@@ -36,8 +36,18 @@ vi.mock('vue-i18n', async (importOriginal) => ({
   ...(await importOriginal()),
   useI18n: () => ({ t }),
 }))
-vi.mock('vue-router', () => ({ useRouter: vi.fn(() => ({ push: vi.fn() })) }))
-vi.mock('@vue/apollo-composable', () => ({ useMutation: vi.fn() }))
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({ params: {}, query: {} })),
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}))
+// "Jetzt prüfen" asks after the recipient (Send.recipient.spec.js holds that): found, here.
+const queryMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { user: { alias: 'Dave-Bank', gradidoID: 'uuid-dave' } } }),
+)
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: vi.fn(() => ({ client: { query: queryMock, readQuery: vi.fn() } })),
+  useMutation: vi.fn(),
+}))
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastError: vi.fn() }) }))
 
 const EMMA = 'uuid-emma'
@@ -119,7 +129,7 @@ describe('Send, a thank-you passed on', () => {
     // Taken when the page was made: nothing is left for anybody else.
     expect(stillHeld()).toBeNull()
 
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     await page.vm.sendTransaction()
 
     expect(sendCoinsMock).toHaveBeenCalledTimes(1)
@@ -135,7 +145,7 @@ describe('Send, a thank-you passed on', () => {
   it('names none where nothing was handed over: not even as a variable', async () => {
     const page = mountPage()
 
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     await page.vm.sendTransaction()
 
     expect(sentWith()).not.toHaveProperty('passOnOf')
@@ -146,7 +156,7 @@ describe('Send, a thank-you passed on', () => {
     handOver(RECEIVED)
     const page = mountPage()
 
-    page.vm.setTransaction(transfer({ targetCommunity: AWAY }))
+    await page.vm.setTransaction(transfer({ targetCommunity: AWAY }))
     await page.vm.sendTransaction()
 
     expect(sendCoinsMock).toHaveBeenCalledTimes(1)
@@ -157,7 +167,7 @@ describe('Send, a thank-you passed on', () => {
     handOver(RECEIVED)
     const page = mountPage()
 
-    page.vm.setTransaction(transfer({ selected: SEND_TYPES.link }))
+    await page.vm.setTransaction(transfer({ selected: SEND_TYPES.link }))
     await page.vm.sendTransaction()
 
     expect(sendCoinsMock).not.toHaveBeenCalled()
@@ -172,9 +182,9 @@ describe('Send, a thank-you passed on', () => {
     handOver(RECEIVED)
     const page = mountPage()
 
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     page.vm.onBack()
-    page.vm.setTransaction(transfer({ amount: 25 }))
+    await page.vm.setTransaction(transfer({ amount: 25 }))
     await page.vm.sendTransaction()
 
     expect(sentWith()).toMatchObject({ amount: '25', passOnOf: RECEIVED })
@@ -183,10 +193,10 @@ describe('Send, a thank-you passed on', () => {
   it('lets it go with a transfer that was sent: the next one of the visit names none', async () => {
     handOver(RECEIVED)
     const page = mountPage()
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     await page.vm.sendTransaction()
 
-    page.vm.setTransaction(transfer({ memo: 'Und noch eine Überweisung.' }))
+    await page.vm.setTransaction(transfer({ memo: 'Und noch eine Überweisung.' }))
     await page.vm.sendTransaction()
 
     expect(sentWith(0)).toHaveProperty('passOnOf', RECEIVED)
@@ -197,11 +207,11 @@ describe('Send, a thank-you passed on', () => {
     handOver(RECEIVED)
     sendCoinsMock.mockRejectedValueOnce(new Error('Send failed'))
     const page = mountPage()
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     await page.vm.sendTransaction()
     expect(page.vm.currentTransactionStep).toBe('transactionResultSendError')
 
-    page.vm.setTransaction(transfer())
+    await page.vm.setTransaction(transfer())
     await page.vm.sendTransaction()
 
     expect(sentWith(1)).toHaveProperty('passOnOf', RECEIVED)

@@ -38,13 +38,19 @@ vi.mock('vue-i18n', async (importOriginal) => ({
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
+  useRoute: vi.fn(() => ({ params: {}, query: {} })),
   useRouter: vi.fn(() => ({
     push: vi.fn(),
   })),
 }))
 
-// Mock apollo-composable
+// Mock apollo-composable. "Jetzt prüfen" asks after the recipient (Send.recipient.spec.js holds
+// that): here they are always found.
+const queryMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ data: { user: { alias: 'Sarah-K', gradidoID: 'uuid-sarah' } } }),
+)
 vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: vi.fn(() => ({ client: { query: queryMock, readQuery: vi.fn() } })),
   useMutation: vi.fn(),
 }))
 
@@ -119,9 +125,10 @@ describe('Send', () => {
       subject: '',
       memo: 'Test transaction',
       selected: 'send',
+      targetCommunity: { uuid: 'community-uuid' },
     }
     await wrapper.vm.setTransaction(testData)
-    expect(wrapper.vm.transactionData).toEqual(testData)
+    expect(wrapper.vm.transactionData).toEqual({ ...testData, userName: 'Sarah-K' })
     expect(wrapper.vm.currentTransactionStep).toBe('transactionConfirmationSend')
   })
 
@@ -134,6 +141,7 @@ describe('Send', () => {
       memo: 'Test send',
     })
 
+    expect(wrapper.vm.currentTransactionStep).toBe('transactionConfirmationSend')
     await wrapper.vm.sendTransaction()
 
     expect(sendCoinsMock).toHaveBeenCalledWith({
@@ -146,7 +154,7 @@ describe('Send', () => {
   })
 
   it('handles create transaction link', async () => {
-    wrapper.vm.setTransaction({
+    await wrapper.vm.setTransaction({
       selected: 'link',
       amount: 75,
       memo: 'Test link',

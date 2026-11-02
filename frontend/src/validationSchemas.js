@@ -6,6 +6,11 @@ import { splitRecipient } from '@/utils/gradidoAddress'
 const EMAIL_REGEX =
   /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 export const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
+
+// Whether a recipient, without its community, has the shape of an e-mail address: the one rule
+// for the field and for what the send page offers such a recipient.
+export const isEmailIdentifier = (value) => EMAIL_REGEX.test(value)
+
 // Nobody may hold these names. Keep in step with RESERVED_ALIAS in
 // shared/src/schema/user.schema.ts - the frontend cannot yet import from it.
 export const RESERVED_ALIAS = [
@@ -116,7 +121,7 @@ export const identifier = string()
     if (!parts) return true
     const userPart = parts.user
 
-    const isEmail = !!EMAIL_REGEX.test(userPart)
+    const isEmail = isEmailIdentifier(userPart)
     const isUsername = !!userPart.match(USERNAME_REGEX)
     // TODO: use valibot and rules from shared
     const isGradidoId = validateUuid(userPart) && versionUuid(userPart) === 4
