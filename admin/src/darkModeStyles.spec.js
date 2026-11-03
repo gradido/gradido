@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -472,6 +472,26 @@ describe('the dark mode of the admin', () => {
     expect(dark).toMatch(/^#[0-9a-f]{6}$/)
   })
 
+  // Bernd, 03.11.2026: in the dark mode the page shines through the dark ground of the Crea
+  // button's picture, blurred behind it; the light mode keeps the opaque picture.
+  it('lets the page shine through the Crea button in the dark mode only', () => {
+    const chat = rules(read(SWEEP.creaChat))
+    const light = declarationsOf(chat, '.bgCreaImg')
+    const dark = declarationsOf(chat, `${DARK} .bgCreaImg`)
+    expect(light['background-image']).toBe("url('../../public/img/Crea.webp')")
+    expect(light['backdrop-filter']).toBeUndefined()
+    expect(dark['background-image']).toBe("url('../../public/img/Crea-glass.webp')")
+    expect(dark['backdrop-filter']).toBe('blur(4px)')
+    for (const state of ['bg', 'hover-bg', 'active-bg', 'disabled-bg']) {
+      expect(dark[`--bs-btn-${state}`]).toBe('transparent')
+    }
+    // The build does not stop at a picture it cannot find: both have to be there.
+    for (const value of [light['background-image'], dark['background-image']]) {
+      const picture = value.match(/url\('(.+)'\)/)[1]
+      expect(existsSync(resolve(dirname(SWEEP.creaChat), picture))).toBe(true)
+    }
+  })
+
   // Bernd, 25.10.2026: Bootstrap draws a tooltip in the emphasis colour, white with dark words
   // in the dark mode. A dark layer with the page's words instead, wholly opaque: at Bootstrap's
   // 0.9 the words behind showed through it.
@@ -672,7 +692,8 @@ describe('the dark mode of the admin', () => {
       expect(luminance(ground), role).toBeLessThan(0.1)
       expect(contrast(word, ground), `${role}: ${word} on ${ground}`).toBeGreaterThanOrEqual(4.5)
     }
-    expect(dark).toHaveLength(8)
+    // Nine with the opener's see-through picture, which has a test of its own.
+    expect(dark).toHaveLength(9)
 
     // The light mode stays as it was.
     const light = rules(css)
