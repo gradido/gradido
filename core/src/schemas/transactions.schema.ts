@@ -3,13 +3,12 @@ import {
   decaySchema,
   GradidoUnit,
   integerSchema,
-  MEMO_MAX_CHARS,
+  memoSchema,
   nonNegativeIntegerSchema,
   uuidv4Schema,
 } from 'shared'
 import * as v from 'valibot'
 
-const memoSchema = v.pipe(v.string(), v.maxLength(MEMO_MAX_CHARS))
 // 512 because of old datas
 const combinedFirstNameLastNameSchema = v.pipe(v.string(), v.maxLength(512))
 

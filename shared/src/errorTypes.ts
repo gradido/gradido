@@ -1,3 +1,5 @@
+import { GradidoUnit } from './data'
+
 export abstract class DomainError extends Error {
   constructor(message?: string) {
     super(message)
@@ -19,6 +21,15 @@ export class CompareError extends DomainError {
       messageSum = messageSum.concat(`, expected: ${expected}`)
     }
     super(messageSum)
+  }
+}
+export class InsufficientBalance extends CompareError {
+  constructor(
+    public userId: number,
+    actual: GradidoUnit,
+    expected: GradidoUnit,
+  ) {
+    super(`InsufficientBalance for ${userId}`, actual.toString(), expected.toString())
   }
 }
 
@@ -75,3 +86,13 @@ export type Result<T, E = Error> = { success: true; value: T } | { success: fals
 export type ResultNoError<T> = { success: true; value: T } | { success: false }
 
 export type VoidResult<E = Error> = { success: true } | { success: false; error: E }
+
+export const wrong = <E>(error: E) => ({
+  success: false as const,
+  error,
+})
+
+export const ok = <T>(value: T) => ({
+  success: true as const,
+  value,
+})

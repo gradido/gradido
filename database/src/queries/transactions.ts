@@ -1,15 +1,19 @@
-import { and, count, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import { MySql2Database } from 'drizzle-orm/mysql2'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
-import { drizzleDb } from '../AppDatabase'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
-import { DBNotFoundError } from '../errorTypes'
-import { transactionsTable, usersTable } from '../schemas'
+import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
+import { TransactionInsert, TransactionSelect, transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
 import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
+
+const transactionInsertFailed = (row: TransactionInsert) =>
+  new DBInsertFailed<TransactionInsert>('transactions', row)
 
 export const getLastTransaction = async (
   userId: number,
@@ -20,6 +24,78 @@ export const getLastTransaction = async (
     order: { balanceDate: Order.DESC, id: Order.DESC },
     relations,
   })
+}
+
+export async function dbInsertTransaction(
+  transaction: TransactionInsert,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<Result<number, DBInsertFailed<TransactionInsert>>> {
+  const rows = await tx.insert(transactionsTable).values(transaction)
+  const firstRow = rows[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true, value: firstRow.insertId }
+  }
+  return { success: false, error: transactionInsertFailed(transaction) }
+}
+
+export async function dbGetLastTransaction(
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<TransactionSelect | null> {
+  const rows = await tx
+    .select()
+    .from(transactionsTable)
+    .orderBy(desc(transactionsTable.balanceDate))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function dbGetLastTransactionForUser(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<TransactionSelect | null> {
+  const rows = await tx
+    .select()
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.balanceDate))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function dbGetLastTransactionId(
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number | null> {
+  const rows = await tx
+    .select({ id: transactionsTable.id })
+    .from(transactionsTable)
+    .orderBy(desc(transactionsTable.balanceDate))
+    .limit(1)
+  return rows[0].id ?? null
+}
+
+export async function dbFindLastTransactionBalance(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+) {
+  const rows = await tx
+    .select({
+      id: transactionsTable.id,
+      balance: transactionsTable.balance,
+      balanceDate: transactionsTable.balanceDate,
+    })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.balanceDate), desc(transactionsTable.id))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function dbRemoveTransaction(
+  id: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+) {
+  const rows = await tx.delete(transactionsTable).where(eq(transactionsTable.id, id))
+  return rows[0].affectedRows
 }
 
 /**

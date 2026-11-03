@@ -60,6 +60,15 @@ export const homeCommunityUpdateSchema = v.partial(
 
 export type HomeCommunityUpdateInput = v.InferInput<typeof homeCommunityUpdateSchema>
 
+export const communityIdentifierSchema = v.union([
+  uuidv4Schema,
+  urlSchema,
+  ed25519PublicKeySchema,
+  communityNameSchema,
+])
+
+export type CommunityIdentifier = v.InferOutput<typeof communityIdentifierSchema>
+
 export const foreignCommunityInsertSchema = v.object({
   foreign: v.optional(v.literal(true), true),
   url: urlSchema,

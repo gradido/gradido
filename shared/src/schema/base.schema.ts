@@ -21,6 +21,7 @@ export const emailSchema = v.pipe(
   v.toLowerCase(),
   v.rfcEmail('Invalid email'),
 )
+export type Email = v.InferOutput<typeof emailSchema>
 export const urlSchema = v.pipe(v.string(), v.url('Invalid url'))
 
 const rawHexStringSchema = v.pipe(
@@ -142,6 +143,9 @@ export const dateStringSchema = v.pipe(
   }),
 )
 
+export type DateStringInput = v.InferInput<typeof dateStringSchema>
+export type DateString = v.InferOutput<typeof dateStringSchema>
+
 export const locationPointSchema = v.object({
   type: v.literal('Point'),
   coordinates: v.pipe(v.array(v.number()), v.length(2)),
@@ -149,3 +153,14 @@ export const locationPointSchema = v.object({
 
 export type LocationPointInput = v.InferInput<typeof locationPointSchema>
 export type LocationPoint = v.InferOutput<typeof locationPointSchema>
+
+export const gddAmountSchema = v.instance(GradidoUnit)
+export const gddAmountStringSchema = v.pipe(
+  v.union([v.pipe(v.string(), v.decimal()), v.instance(GradidoUnit)]),
+  v.transform((input) => {
+    if (typeof input === 'string') {
+      return input
+    }
+    return input.toString(4)
+  }),
+)

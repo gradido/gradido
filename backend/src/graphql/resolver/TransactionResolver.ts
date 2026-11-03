@@ -873,6 +873,8 @@ export class TransactionResolver {
         // picture cannot be filed, nothing is booked and the DLT has heard nothing; where the
         // booking is not made after it, the picture is taken back out.
         //
+        // TODO: revert, picture goes last, because it is expensive! And a invalid picture shouldn't stop a
+        //
         // The two cheap refusals come before the filing, so that such an attempt does not cost
         // a filing and a removal. executeTransaction asks both again, and decides.
         if (senderUser.id === recipientUser.id) {
@@ -911,8 +913,7 @@ export class TransactionResolver {
         throw new LogError('A picture can only be sent to a member of the own community')
       }
       await processXComCompleteTransaction(
-        senderUser.communityUuid,
-        senderUser.gradidoID,
+        senderUser,
         recipientCommunityIdentifier,
         recipientIdentifier,
         amount.toString(),

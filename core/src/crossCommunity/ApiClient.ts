@@ -1,28 +1,37 @@
 import { treaty } from '@elysia/eden'
 import { createSignatureNonce, FEDERATION_REQUEST_TIMEOUT_MS, verifySignedResponse } from 'shared'
-import { Ed25519KeyPair } from 'shared-native'
-import { peerApiRoutes } from '../server'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
+import * as v from 'valibot'
+import { apiRoutes } from './apiRoutes'
+import { CrossGroupTransactionWireInput, crossGroupTransactionWireSchema } from './schema'
 
-export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof peerApiRoutes>>
+export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 
-export class PeerApiClient {
-  private elysiaJsClientEncryptSign: ElysiaApiRoutesClientType
-  private elysiaJsClient: ElysiaApiRoutesClientType
+export class ApiClient {
+  protected elysiaJsClientEncryptSign: ElysiaApiRoutesClientType
+  protected elysiaJsClient: ElysiaApiRoutesClientType
   public publicJwtKey: string | undefined
+  public readonly keyPair: Ed25519KeyPair // for signing
+  public readonly encryptionKeyPair?: X25519KeyPair // for encryption
   // private sharedSecret:
 
   /** keyPair: the announced public key; every signed answer is verified against it */
   public constructor(
     public readonly url: string,
-    public readonly keyPair: Ed25519KeyPair,
+    publicKey: Buffer,
+    publicEncryptionKey?: Buffer,
     private readonly timeoutMs = FEDERATION_REQUEST_TIMEOUT_MS,
   ) {
     const self = this
-    this.elysiaJsClientEncryptSign = treaty<typeof peerApiRoutes>(url, {
+    this.keyPair = new Ed25519KeyPair(publicKey)
+    if (publicEncryptionKey) {
+      this.encryptionKeyPair = new X25519KeyPair(publicEncryptionKey)
+    }
+    this.elysiaJsClientEncryptSign = treaty<typeof apiRoutes>(url, {
       // @ts-expect-error Bun's typeof fetch requires preconnect, https://github.com/oven-sh/bun/issues/27070
       fetcher: (url, options) => self.fetchInTime(url, self.preprocessRequest(options)),
     })
-    this.elysiaJsClient = treaty<typeof peerApiRoutes>(url, {
+    this.elysiaJsClient = treaty<typeof apiRoutes>(url, {
       // @ts-expect-error Bun's typeof fetch requires preconnect, https://github.com/oven-sh/bun/issues/27070
       fetcher: (url, options) => self.fetchVerified(url, options),
     })
@@ -80,6 +89,30 @@ export class PeerApiClient {
     return this.elysiaJsClient['peer-api'].v1.communityInfos.get({
       query: { nonce: createSignatureNonce() },
     })
+  }
+
+  public prepareSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.prepareSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public revertSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.revertSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public revertSettledSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.revertSettledSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public settleSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.elysiaJsClientEncryptSign['peer-api'].v1.settleSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
   }
 
   public toString(): string {

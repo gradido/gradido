@@ -163,6 +163,17 @@ export async function dbFindMemberAvatarTimestamps(userIds: number[]): Promise<M
   return new Map(rows.map((row) => [row.userId, row.updatedAt]))
 }
 
+export async function dbFindMemberAvatarTimestamp(userId: number): Promise<Date | null> {
+  const rows = await drizzleDb()
+    .select({ updatedAt: userAvatarsTable.updatedAt })
+    .from(userAvatarsTable)
+    .innerJoin(usersTable, eq(usersTable.id, userAvatarsTable.userId))
+    .where(and(eq(userAvatarsTable.userId, userId), mayBeShownToMembers()))
+    .limit(1)
+
+  return rows[0].updatedAt ?? null
+}
+
 /**
  * The same dates, keyed by gradidoId: the form in which ANOTHER community asks about this
  * community's members (federation MemberAvatarsResolver, kind `dates`). The internal user id

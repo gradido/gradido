@@ -1,7 +1,8 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
+  CommunityIdentifier,
   Ed25519PublicKey,
   HomeCommunityInsertInput,
   HomeCommunityUpdateInput,
@@ -19,6 +20,7 @@ import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Community as DbCommunity } from '../entity'
 import { CommunityUniqueKey } from '../enum'
 import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
+import { eqCommunityIdentifier } from '../logic'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
@@ -268,6 +270,32 @@ export async function dbFindForeignCommunitiesByUuid(
   return map
 }
 
+export async function dbFindAuthenticatedForeignCommunityByIdentifier(
+  communityIdentifier: CommunityIdentifier,
+): Promise<CommunitiesSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(
+      and(
+        eq(communitiesTable.foreign, true),
+        eqCommunityIdentifier(communityIdentifier),
+        isNotNull(communitiesTable.authenticatedAt),
+      ),
+    )
+  return rows[0] ?? null
+}
+
+export async function dbFindCommunityByIdentifier(
+  communityIdentifier: CommunityIdentifier,
+): Promise<CommunitiesSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(eqCommunityIdentifier(communityIdentifier))
+  return rows[0] ?? null
+}
+
 /**
  * The other communities this one may ask about their members' pictures: foreign, through the
  * authentication handshake, with a JWT key to seal the question for, and a uuid to file the
@@ -275,7 +303,7 @@ export async function dbFindForeignCommunitiesByUuid(
  * (backend UserResolver relayMemberAvatars) -- the other side refuses a community that has
  * not completed the handshake with it, so asking any other would only cost the time limit.
  *
- * TypeORM, like its neighbours here: the caller hands each row to `xcomMemberAvatars`, which
+ * TypeORM, like its neighbors here: the caller hands each row to `xcomMemberAvatars`, which
  * takes the entity.
  */
 export async function dbSelectAuthenticatedForeignCommunities(): Promise<DbCommunity[]> {
