@@ -254,3 +254,20 @@
 :root[data-bs-theme='dark'] .chatToggleButton:not(:hover) {
   border-color: #6e727a;
 }
+
+/* The dark mode only (Bernd, 03.11.2026): the page behind the button shines through the dark
+   ground of Crea's picture, blurred, while the lettering, the face and the bright sparks stay as
+   they are. Crea-glass.webp is Crea.webp, lossless, with its near-black ground at 65% opacity; the
+   head, the lettering with a narrow dark rim and every brighter pixel are opaque. In the light
+   mode it did not work (Bernd): the light page turned the dark ground grey, so there the picture
+   stays as it is. Bootstrap's variables keep the button's grey out of every state: under the
+   pointer only the edge changes, as before. */
+:root[data-bs-theme='dark'] .bgCreaImg {
+  --bs-btn-bg: transparent;
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-active-bg: transparent;
+  --bs-btn-disabled-bg: transparent;
+
+  background-image: url('../../public/img/Crea-glass.webp');
+  backdrop-filter: blur(4px);
+}
