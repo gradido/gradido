@@ -511,7 +511,10 @@ export const ChatSettings = defineComponent({
               data-test='remove-dialog'
               onOk={withModifiers(confirmRemove, ['prevent'])}
             >
-              <p>
+              {/* The key renews the <p> when the host changes, as the template's text update did.
+                  BModal drops its invisible fallback Tab stop only when a child node is added or
+                  removed; changing the text in place, as JSX does, leaves it in the dialog. */}
+              <p key={removeTarget.value?.host}>
                 {t('chatAdmin.removeDialog.question', { host: removeTarget.value?.host ?? '' })}
               </p>
               <small class='text-muted'>{t('chatAdmin.removeDialog.hint')}</small>

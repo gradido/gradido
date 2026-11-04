@@ -97,6 +97,27 @@ const filterVariables = (variables: any) => {
   if (vars?.eventMatchingEntry) {
     vars.eventMatchingEntry = '***'
   }
+  // A member's own note on a person or a group (setUserNote, `$note`): what they keep for
+  // themselves alone -- somebody's full name, where they met. Which person or group it is about
+  // stays readable. No other document of wallet or admin names a variable so; the wallet's has to.
+  if (vars?.note) {
+    vars.note = '***'
+  }
+  // The moderation's remark on a member (setUserRemark, `$remark` in the admin's
+  // graphql/userRemark.ts): what the moderators know of a person -- whose daughter,
+  // which office --, written in the line before the moderator's id. Whom it is about stays
+  // readable (`$userId`). No other document of wallet or admin names a variable so; the admin's
+  // has to.
+  if (vars?.remark) {
+    vars.remark = '***'
+  }
+  // Whom "Jetzt prüfen" asks about (user, `$identifier` in the wallet's queries.js): an address or a
+  // name a member typed, of somebody who may have no account here and was never asked -- written in
+  // the line before the member's id. In which community stays readable (`$communityIdentifier`). No
+  // other document of wallet or admin names a variable so; the wallet's has to.
+  if (vars?.identifier) {
+    vars.identifier = '***'
+  }
   return vars
 }
 
@@ -175,6 +196,13 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
             // rooms, over every alias.
             if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
               logger.trace('Response-Data: left out, it holds a video room')
+            } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
+              // A member's own notes (userNote, userNotes) are theirs alone.
+              logger.trace('Response-Data: left out, it holds a note')
+            } else if (requestContext.contextValue.requestBudget?.userRemarksServed) {
+              // The moderation's remark on a member (userRemark, setUserRemark) is for the
+              // moderators alone -- and so is Crea's answer where she read one (CreaResolver).
+              logger.trace('Response-Data: left out, it holds a remark')
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||
               requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||

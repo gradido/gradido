@@ -21,6 +21,23 @@
       <!-- The cross in a line of its own at the very top, as in the contact window (Bernd,
            24.09.2026): beside the name it took the room a long name needs on a phone. -->
       <div class="chat-group-window-top">
+        <!-- The member's own note on this group (Bernd, 27.10.2026), as in the contact window:
+             with the answer to the question for it, at the row's left end. -->
+        <button
+          v-if="noteReady"
+          ref="noteToggle"
+          type="button"
+          class="chat-group-window-note-toggle"
+          :class="{ 'is-on': noteOpen }"
+          :aria-label="$t('chatNote.title')"
+          :title="$t('chatNote.title')"
+          :aria-pressed="noteOpen ? 'true' : 'false'"
+          data-test="chat-group-window-note"
+          @click="toggleNoteHere"
+        >
+          <i-mdi-note-text v-if="hasNote" aria-hidden="true" />
+          <i-mdi-note-text-outline v-else aria-hidden="true" />
+        </button>
         <!-- The search in the conversation (Bernd, 30.09.2026, E-057): the magnifier by the cross
              opens the bar below it and closes it again. -->
         <button
@@ -32,7 +49,7 @@
           :title="$t('chatSearch.open')"
           :aria-pressed="searchOpen ? 'true' : 'false'"
           data-test="chat-group-window-search"
-          @click="toggleSearch"
+          @click="toggleSearchHere"
         >
           <i-mdi-magnify aria-hidden="true" />
         </button>
@@ -151,14 +168,29 @@
         :key="group.groupUuid"
         ref="thread"
         class="chat-group-window-thread"
+        :class="{ 'is-covered': noteOpen }"
         :group="group"
+        :group-members="members"
         :search="searchOpen ? searchTyped : ''"
         @open-member="openWriter"
         @search="takeFound"
         @duplicate-video="videoCall?.duplicate($event)"
         @edit-video="videoCall?.edit($event)"
         @forward-message="forwardMessage"
-      />
+        @thank="toSendMember"
+      >
+        <template #cover>
+          <chat-note
+            v-if="noteOpen"
+            :model-value="noteText"
+            :placeholder="$t('chatNote.placeholderGroup')"
+            :status="noteStatus"
+            @update:model-value="typeNote"
+            @retry="retryNote"
+            @close="closeNote"
+          />
+        </template>
+      </chat-thread>
 
       <!-- The questions of a video call (ChatVideoCall), as the contact window asks them (E-053):
            the invitation goes through the group's thread; the box, for the owner and the
@@ -195,6 +227,7 @@
 <script setup>
 import { computed, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import { BModal } from 'bootstrap-vue-next'
@@ -203,6 +236,7 @@ import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
 import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
 import ChatThread from '@/components/Chat/ChatThread.vue'
 import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
+import ChatNote from '@/components/Chat/ChatNote.vue'
 import ChatWindowSizeToggle from '@/components/Chat/ChatWindowSizeToggle.vue'
 import ChatGroupMembers from '@/components/ChatGroups/ChatGroupMembers.vue'
 import {
@@ -212,6 +246,7 @@ import {
 } from '@/components/ChatGroups/chatGroupDisplay'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
+import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
@@ -220,6 +255,7 @@ import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { SEND_TYPES } from '@/utils/sendTypes'
 
 /**
  * One chat group (P5), opened from the list on "Kontakte & Chat". One window for the page, as for
@@ -329,6 +365,22 @@ const membersChanged = () => {
   emit('changed')
 }
 
+const router = useRouter()
+
+/**
+ * A member chosen under a video call of the member's own in this group (W2, Bernd 28.10.2026):
+ * the send form with them named, the window closed -- the road the contact window's "Gradido
+ * senden" takes (ContactWindow `toSend`), a member of another community included: the send form
+ * is what knows the federation branch.
+ */
+const toSendMember = (user) => {
+  const community = user?.communityUuid
+  const person = user?.gradidoID
+  if (!community || !person) return
+  emit('update:modelValue', false)
+  router.push({ path: `/send/${community}/${person}`, query: { art: SEND_TYPES.send } })
+}
+
 /** The member left the group: the window closes, and the page's list lets the group go. */
 const left = () => {
   emit('update:modelValue', false)
@@ -435,6 +487,32 @@ const { searchOpen, searchTyped, searchFound, searchToggle, toggleSearch, closeS
     () => props.group?.groupUuid,
   )
 
+/** The member's own note on this group (useChatWindowNote): asked for whenever the window opens, and anew for another group. */
+const {
+  noteOpen,
+  noteText,
+  noteStatus,
+  noteReady,
+  hasNote,
+  noteToggle,
+  typeNote,
+  retryNote,
+  toggleNote,
+  closeNote,
+} = useChatWindowNote(
+  () => props.modelValue,
+  () => (props.group?.groupUuid ? { groupUuid: props.group.groupUuid } : null),
+)
+/** Note and search take turns: the one that opens closes the other. */
+const toggleNoteHere = () => {
+  if (!noteOpen.value) closeSearch({ focus: false })
+  toggleNote()
+}
+const toggleSearchHere = () => {
+  if (!searchOpen.value) closeNote({ focus: false })
+  toggleSearch()
+}
+
 /**
  * Whether the window stands large (E-077, useChatWindowSize): the switch beside the magnifier
  * turns it, for every chat window of the page, and the member's device remembers it.
@@ -501,7 +579,8 @@ watch(
 
 /* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
    pressed, in the link's colour -- the same button closes the search again. */
-.chat-group-window-search-toggle {
+.chat-group-window-search-toggle,
+.chat-group-window-note-toggle {
   appearance: none;
   border: 0;
   background: transparent;
@@ -514,12 +593,20 @@ watch(
 }
 
 .chat-group-window-search-toggle:hover,
-.chat-group-window-search-toggle:focus-visible {
+.chat-group-window-search-toggle:focus-visible,
+.chat-group-window-note-toggle:hover,
+.chat-group-window-note-toggle:focus-visible {
   color: var(--bs-body-color);
 }
 
-.chat-group-window-search-toggle.is-on {
+.chat-group-window-search-toggle.is-on,
+.chat-group-window-note-toggle.is-on {
   color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* While the note lies over the conversation, the conversation's box is at least this high. */
+.chat-group-window-thread.is-covered {
+  min-height: 17rem;
 }
 
 /* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */

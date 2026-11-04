@@ -1,23 +1,66 @@
 module.exports = {
   root: true,
-  env: {
-    browser: true,
-    node: true,
-    'vue/setup-compiler-macros': true,
-  },
-  parserOptions: {
-    ecmaVersion: 2020,
-  },
-  extends: [
-    'standard',
-    'plugin:vue/vue3-recommended',
-    'plugin:prettier/recommended',
-    'plugin:@intlify/vue-i18n/recommended',
-    'prettier',
-  ],
-  // required to lint *.vue files
-  plugins: ['vue', 'prettier'],
+  // The translations are checked in every kind of file: their keys exist, and none is left
+  // unused. Style and Vue rules only for the old kinds (override below) -- Biome lints the
+  // TypeScript.
+  extends: ['plugin:@intlify/vue-i18n/recommended'],
   overrides: [
+    {
+      files: ['*.js', '*.vue', '*.json'],
+      env: {
+        browser: true,
+        node: true,
+        'vue/setup-compiler-macros': true,
+      },
+      parserOptions: {
+        ecmaVersion: 2020,
+      },
+      extends: [
+        'standard',
+        'plugin:vue/vue3-recommended',
+        'plugin:prettier/recommended',
+        'plugin:@intlify/vue-i18n/recommended',
+        'prettier',
+      ],
+      // required to lint *.vue files
+      plugins: ['vue', 'prettier'],
+      rules: {
+        'no-console': ['error'],
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+        'no-useless-escape': 0,
+        'no-unused-vars': 0, // TODO remove at the end of migration and fix
+        'node/no-callback-literal': 0, // Necessary to run tests
+        'vue/component-name-in-template-casing': ['error', 'kebab-case'],
+        // 'vue/no-static-inline-styles': [
+        //   'error',
+        //   {
+        //     allowBinding: false,
+        //   },
+        // ],
+        'vue/multi-word-component-names': 0,
+        'vue/no-v-html': 0,
+        'vue/no-export-in-script-setup': 0, // TODO remove at the end of migration and fix
+        'vue/prop-name-casing': 0, // TODO remove at the end of migration and fix
+        'vue/require-explicit-emits': 0, // TODO remove at the end of migration and fix
+        'vue/no-static-inline-styles': 0, // TODO remove at the end of migration and fix
+        'vue/v-on-event-hyphenation': 0, // TODO remove at the end of migration and fix
+        'vue/require-default-prop': 0, // TODO remove at the end of migration and fix
+        'vue/no-computed-properties-in-data': 0, // TODO remove at the end of migration and fix
+        'prettier/prettier': [
+          'error',
+          {
+            htmlWhitespaceSensitivity: 'ignore',
+          },
+        ],
+      },
+    },
+    {
+      files: ['*.ts', '*.tsx'],
+      parserOptions: {
+        // vue-eslint-parser (from the i18n preset) hands everything that is no .vue to this one
+        parser: '@typescript-eslint/parser',
+      },
+    },
     {
       files: ['*.json'],
       extends: ['plugin:@intlify/vue-i18n/recommended'],
@@ -38,33 +81,12 @@ module.exports = {
   ],
   // add your custom rules here
   rules: {
-    'no-console': ['error'],
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-useless-escape': 0,
-    'no-unused-vars': 0, // TODO remove at the end of migration and fix
-    'node/no-callback-literal': 0, // Necessary to run tests
-    'vue/component-name-in-template-casing': ['error', 'kebab-case'],
-    // 'vue/no-static-inline-styles': [
-    //   'error',
-    //   {
-    //     allowBinding: false,
-    //   },
-    // ],
-    'vue/multi-word-component-names': 0,
-    'vue/no-v-html': 0,
-    'vue/no-export-in-script-setup': 0, // TODO remove at the end of migration and fix
-    'vue/prop-name-casing': 0, // TODO remove at the end of migration and fix
-    'vue/require-explicit-emits': 0, // TODO remove at the end of migration and fix
-    'vue/no-static-inline-styles': 0, // TODO remove at the end of migration and fix
-    'vue/v-on-event-hyphenation': 0, // TODO remove at the end of migration and fix
-    'vue/require-default-prop': 0, // TODO remove at the end of migration and fix
-    'vue/no-computed-properties-in-data': 0, // TODO remove at the end of migration and fix
     '@intlify/vue-i18n/no-missing-keys': 'error',
     '@intlify/vue-i18n/no-unused-keys': [
       'error',
       {
         src: './src',
-        extensions: ['.js', '.vue'],
+        extensions: ['.js', '.vue', '.ts', '.tsx'],
         // TODO: remove ignores
         ignores: [
           '/form./',
@@ -114,12 +136,6 @@ module.exports = {
       },
     ],
     '@intlify/vue-i18n/no-missing-keys-in-other-locales': 'warn',
-    'prettier/prettier': [
-      'error',
-      {
-        htmlWhitespaceSensitivity: 'ignore',
-      },
-    ],
   },
   settings: {
     'vue-i18n': {

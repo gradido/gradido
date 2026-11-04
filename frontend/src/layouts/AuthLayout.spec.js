@@ -6,9 +6,10 @@ import { mount } from '@vue/test-utils'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { __bannerResult } from '@vue/apollo-composable'
-import AuthLayout from './AuthLayout'
+import { AuthLayout } from './AuthLayout'
 import routes from '@/routes/routes'
 import {
+  createBootstrap,
   BAvatar,
   BButton,
   BCard,
@@ -20,19 +21,30 @@ import {
   BRow,
 } from 'bootstrap-vue-next'
 
-// Mock child components
+// Mock child components: under the name they are imported by, with or without the extension.
 vi.mock('@/components/Auth/AuthNavbar', () => ({
-  default: { name: 'AuthNavbar', template: '<div>AuthNavbar</div>' },
+  AuthNavbar: { name: 'AuthNavbar', template: '<div>AuthNavbar</div>' },
 }))
 vi.mock('@/components/Auth/AuthCarousel', () => ({
-  default: { name: 'AuthCarousel', template: '<div>AuthCarousel</div>' },
+  AuthCarousel: { name: 'AuthCarousel', template: '<div>AuthCarousel</div>' },
 }))
 vi.mock('@/components/LanguageSwitch2', () => ({
-  default: { name: 'LanguageSwitch2', template: '<div>LanguageSwitch2</div>' },
+  LanguageSwitch2: { name: 'LanguageSwitch2', template: '<div>LanguageSwitch2</div>' },
 }))
 vi.mock('@/components/Auth/AuthFooter', () => ({
-  default: { name: 'AuthFooter', template: '<div>AuthFooter</div>' },
+  AuthFooter: { name: 'AuthFooter', template: '<div>AuthFooter</div>' },
 }))
+
+// The route the layout stands on: its meta says whether greeting and footer are shown.
+const { route } = vi.hoisted(() => ({ route: { meta: {} } }))
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useRoute: () => route,
+}))
+vi.mock('vue-i18n', async (importOriginal) => {
+  const { ref } = await import('vue')
+  return { ...(await importOriginal()), useI18n: () => ({ t: (key) => key, locale: ref('en') }) }
+})
 
 // The banner query, with a result each test can set.
 vi.mock('@vue/apollo-composable', async () => {
@@ -59,8 +71,10 @@ describe('AuthLayout', () => {
     return pinia
   }
 
-  const createWrapper = (meta = { hideFooter: false }) => {
+  const createWrapper = (meta = { hideFooter: false }, options = {}) => {
+    route.meta = meta
     return mount(AuthLayout, {
+      ...options,
       global: {
         components: {
           BLink,
@@ -73,16 +87,7 @@ describe('AuthLayout', () => {
           BImg,
           BPopover,
         },
-        plugins: [createWalletStore()],
-        mocks: {
-          $i18n: {
-            locale: 'en',
-          },
-          $t: (key) => key,
-          $route: {
-            meta,
-          },
-        },
+        plugins: [createWalletStore(), createBootstrap()],
         stubs: {
           RouterView: true,
         },
@@ -119,36 +124,29 @@ describe('AuthLayout', () => {
       expect(wrapper.find('.h1').text()).toBe('Test Community')
     })
 
-    it('test size in setTextSize', async () => {
-      const mockEl = { style: {} }
-      const querySelector = vi.spyOn(document, 'querySelector').mockReturnValue(mockEl)
-      // Left in place, it hands every later mount's popover this object for its target --
-      // so it goes back even when the assertion fails.
+    // The size is set on the card, found in the page: the layout has to be in it.
+    it.each([
+      ['85', '0.85rem'],
+      ['100', '1rem'],
+      ['125', '1.25rem'],
+    ])('sets the text of the card to %s percent', async (label, size) => {
+      wrapper = createWrapper(undefined, { attachTo: document.body })
       try {
-        await wrapper.vm.setTextSize(0.85)
-        expect(mockEl.style.fontSize).toBe('0.85rem')
+        const choice = wrapper.findAll('.text-light .pointer').find((span) => span.text() === label)
+        await choice.trigger('click')
+        expect(wrapper.find('.card').element.style.fontSize).toBe(size)
       } finally {
-        querySelector.mockRestore()
+        wrapper.unmount()
       }
     })
   })
 
   describe('when hideFooter is true', () => {
     beforeEach(() => {
+      route.meta = { hideFooter: true }
       wrapper = mount(AuthLayout, {
         global: {
           plugins: [createWalletStore()],
-          mocks: {
-            $i18n: {
-              locale: 'en',
-            },
-            $t: (key) => key,
-            $route: {
-              meta: {
-                hideFooter: true,
-              },
-            },
-          },
           stubs: {
             BLink: true,
             BButton: true,
@@ -199,13 +197,10 @@ describe('AuthLayout', () => {
   // at 13.6px, although it carries the page's message. jsdom lays nothing out, so the measures
   // are read from the stylesheet -- with the comments stripped, which name them as well.
   describe('the greeting', () => {
-    const sfc = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'AuthLayout.vue'),
+    const css = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'AuthLayout.module.scss'),
       'utf8',
-    )
-    const css = sfc
-      .slice(sfc.indexOf('<style'), sfc.indexOf('</style>'))
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
     // A media block holds rules one level deep; what stands outside all of them holds on
     // every width.
     const mediaBlock = /@media([^{]*)\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g
@@ -231,7 +226,7 @@ describe('AuthLayout', () => {
     })
 
     it('keeps its 16px letters where #app shrinks the text of a phone to 0.85rem', () => {
-      expect(rule(everyWidth, '.auth-greeting')).toMatch(/font-size:\s*1rem;/)
+      expect(rule(everyWidth, '.authGreeting')).toMatch(/font-size:\s*1rem;/)
     })
 
     it('stands 24px above the card, 40px on a phone', () => {
@@ -239,8 +234,8 @@ describe('AuthLayout', () => {
       expect(card.classes()).toContain('auth-card')
       // No margin utility on the card: its !important would beat the stylesheet.
       expect(card.classes().filter((name) => /^m[tbyse]?-/.test(name))).toEqual([])
-      expect(rule(everyWidth, '.auth-card')).toMatch(/margin-top:\s*1\.5rem;/)
-      expect(rule(phone, '.auth-card')).toMatch(/margin-top:\s*2\.5rem;/)
+      expect(rule(everyWidth, '.authCard')).toMatch(/margin-top:\s*1\.5rem;/)
+      expect(rule(phone, '.authCard')).toMatch(/margin-top:\s*2\.5rem;/)
     })
 
     // The greeting is the `v-else` of the project banner: where a banner stands -- or is
@@ -285,8 +280,8 @@ describe('AuthLayout', () => {
 
       it('leaves the card, the page in it and the footer where they are', () => {
         expect(wrapper.find('.card.auth-card').exists()).toBe(true)
-        // The switch of languages: the app resolves it by itself, here it stays a tag.
-        expect(wrapper.find('.card language-switch-2').exists()).toBe(true)
+        const languages = wrapper.findComponent({ name: 'LanguageSwitch2' })
+        expect(languages.element.closest('.card')).not.toBe(null)
         expect(wrapper.find('router-view-stub').exists()).toBe(true)
         expect(wrapper.findComponent({ name: 'AuthFooter' }).exists()).toBe(true)
       })
@@ -295,10 +290,8 @@ describe('AuthLayout', () => {
       // card stands 24px under the top row there, as it does from md up.
       it('lets the card stand 24px under the top row on a phone as well', () => {
         expect(wrapper.find('.card').classes()).toContain('auth-card-without-greeting')
-        expect(rule(phone, '.auth-card.auth-card-without-greeting')).toMatch(
-          /margin-top:\s*1\.5rem;/,
-        )
-        expect(rule(everyWidth, '.auth-card.auth-card-without-greeting')).toBeUndefined()
+        expect(rule(phone, '.authCard.authCardWithoutGreeting')).toMatch(/margin-top:\s*1\.5rem;/)
+        expect(rule(everyWidth, '.authCard.authCardWithoutGreeting')).toBeUndefined()
       })
 
       // The banner stands in the greeting's place from md up, and in the card on a phone.

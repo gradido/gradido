@@ -13,12 +13,18 @@ import {
 
 import * as v from 'valibot'
 
-export const crossGroupTransactionSchema = v.object({
-  senderUser: userPublicInfoSchema,
-  recipientUser: v.object({
+export const involvedParties = v.object({
+  sender: userPublicInfoSchema,
+  recipient: v.object({
     communityUuid: uuidv4Schema,
     identifier: userIdentifierSchema,
   }),
+})
+
+export type InvolvedParties = v.InferOutput<typeof involvedParties>
+
+export const crossGroupTransactionSchema = v.object({
+  ...involvedParties.entries,
   balanceDate: dateSchema,
   amount: gddAmountSchema,
   memo: memoSchema,
@@ -37,8 +43,8 @@ export const userPublicInfoWireSchema = v.object({
 export type UserPublicInfoWire = v.InferOutput<typeof userPublicInfoWireSchema>
 
 export const crossGroupTransactionWireSchema = v.object({
-  senderUser: userPublicInfoWireSchema,
-  recipientUser: v.object({
+  sender: userPublicInfoWireSchema,
+  recipient: v.object({
     communityUuid: uuidv4Schema,
     identifier: userIdentifierSchema,
   }),
@@ -50,22 +56,3 @@ export const crossGroupTransactionWireSchema = v.object({
 
 export type CrossGroupTransactionWireInput = v.InferInput<typeof crossGroupTransactionWireSchema>
 export type CrossGroupTransactionWire = v.InferOutput<typeof crossGroupTransactionWireSchema>
-
-export const crossGroupTransactionForeignUserInfo = v.object({
-  recipientUser: userPublicInfoSchema,
-  /**
-   * When the recipient last changed the picture members may see
-   *
-   * null: no date to send -- the recipient has nothing to show (no picture, switch off), or the
-   * date could not be read. Left out: the answer comes from a server that does not know the
-   * field. JSON drops an undefined value, so the key is then missing on the sender's side.
-   */
-  recipientAvatarUpdatedAt: v.nullish(dateStringSchema),
-})
-
-export type CrossGroupTransactionForeignUserInfoInput = v.InferInput<
-  typeof crossGroupTransactionForeignUserInfo
->
-export type CrossGroupTransactionForeignUserInfo = v.InferOutput<
-  typeof crossGroupTransactionForeignUserInfo
->

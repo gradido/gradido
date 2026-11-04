@@ -6,6 +6,7 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { TransactionLink as DbTransactionLink } from '../entity'
 import {
   ThankYouGreetingSelect,
+  TransactionLinksInsert,
   TransactionLinksSelect,
   thankYouGreetingPicturesTable,
   thankYouGreetingsTable,
@@ -245,3 +246,14 @@ export async function transactionLinksPendingFromUserOrderByIdASCDrizzle(
 export type transactionLinksBlockedAmounts = Awaited<
   ReturnType<typeof transactionLinksPendingFromUserOrderByIdASCDrizzle>
 >[number]
+
+// One statement for all the rows it is given
+export async function dbInsertTransactionLinks(
+  transactionLinks: TransactionLinksInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (transactionLinks.length === 0) {
+    return
+  }
+  await tx.insert(transactionLinksTable).values(transactionLinks)
+}

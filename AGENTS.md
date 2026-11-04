@@ -159,6 +159,7 @@ Always weigh performance and readability together — neither is traded away sil
 - **Moving large amounts of data into Node.js is expensive too.** Analysing or aggregating large datasets belongs in the database as far as it can go; only the result travels to Node.js.
 - **Loading a whole table into memory is the exception**, not the pattern — justified only where the logic cannot run in SQL (migration `0116` builds aliases with a transliteration that exists only in TypeScript).
 - **"It only runs once" is no argument.** There are ~150 migrations, each runs on every community server before its services come up, and a fresh setup with data runs all of them. CI runs them against an empty database, so their cost never shows up there — it has to be caught in review.
+- **A refactoring that ends with more database requests than before is not finished.** Count the requests on the path before and after. If the number went up, go back over it: there is almost always a more elegant way with less code and, above all, fewer requests — a constraint the database already enforces instead of a reservation, one insert with the value instead of an insert followed by an update, one query over all candidates instead of a second round. Only when that search comes up empty may the extra request stay, and then the comment says why.
 
 ## Migrations
 

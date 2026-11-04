@@ -1,6 +1,12 @@
 import { dbUpsertForeignMemberAvatarDates } from 'database'
+import { getLogger } from 'log4js'
 import { avatarDateSchema } from 'shared'
 import * as v from 'valibot'
+import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
+
+const logger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.crossCommunity.storeTransferSenderAvatarDate`,
+)
 
 export async function storeForeignMemberAvatarDate(
   communityUuid: string | null,

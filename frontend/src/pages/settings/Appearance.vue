@@ -29,7 +29,7 @@ import { computed, ref, watch } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useI18n } from 'vue-i18n'
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
-import UserLanguage from '@/components/LanguageSwitch2.vue'
+import { LanguageSwitch2 as UserLanguage } from '@/components/LanguageSwitch2'
 import { BRow, BCol, BFormRadioGroup } from 'bootstrap-vue-next'
 
 const { t } = useI18n()

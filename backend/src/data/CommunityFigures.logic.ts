@@ -1,16 +1,23 @@
 // AI-GENERATED — not an architecture reference
 import {
+  dbCountAcceptedThankYouGreetings,
   dbCountActiveMatchingEntries,
   dbCountAndSumTransactionsOfType,
   dbCountChatConversationsOfKind,
   dbCountDistinctActingUsersOfType,
   dbCountDistinctAffectedUsersOfType,
   dbCountEventsOfTypes,
+  dbCountExpiredThankYouGreetings,
   dbCountFirstCreationMembers,
+  dbCountFirstSenders,
   dbCountMatchingEntriesByType,
   dbCountMembersWithActiveEntry,
   dbCountRegisterEventsWithReferrer,
   dbCountReturningMembers,
+  dbCountThankYouGreetings,
+  dbCountTransactionPassOns,
+  dbCountTransactionReactions,
+  dbCountTransactionsWithPicture,
   dbCountUsers,
   dbCountUsersDeleted,
   dbCountUsersFindable,
@@ -33,9 +40,10 @@ export type CommunityFigureCount = {
 
 /**
  * What the columns count from: the chosen day, seven days back from now -- and thirty days back,
- * for the one figure whose "all of it" would mean something else (the active accounts).
+ * for the one figure whose "all of it" would mean something else (the active accounts). And now
+ * itself, for the figure that counts up to it (the greetings whose time ran out).
  */
-type Moments = { since: Date; week: Date; month: Date }
+type Moments = { since: Date; week: Date; month: Date; now: Date }
 
 /** One count, and the rows of the page it answers: one, or more where a count holds several. */
 type Figures = (moments: Moments) => Promise<CommunityFigureCount[]>
@@ -83,6 +91,32 @@ const bookings =
     const { counts, gdd } = await dbCountAndSumTransactionsOfType(typeId, everyColumn(moments))
     return [inColumns(countKey, counts), inColumns(gddKey, gdd)]
   }
+
+/** The thank-you greetings sent, in one count and on two rows: all, and those with a photo. */
+const greetingsSent: Figures = async (moments) => {
+  const { sent, withPicture } = await dbCountThankYouGreetings(everyColumn(moments))
+  return [inColumns('greetingsSent', sent), inColumns('greetingsWithPhoto', withPicture)]
+}
+
+/**
+ * The thank-you greetings accepted, in one count and on two rows: all, and those accepted by an
+ * account opened through the greeting itself -- part of the first in every column.
+ */
+const greetingsAccepted: Figures = async (moments) => {
+  const { accepted, withNewAccount } = await dbCountAcceptedThankYouGreetings(everyColumn(moments))
+  return [
+    inColumns('greetingsAccepted', accepted),
+    inColumns('greetingsWithAccount', withNewAccount),
+  ]
+}
+
+/** The thank-you greetings whose time ran out unaccepted, up to now. */
+const greetingsExpired: Figures = async (moments) => [
+  inColumns(
+    'greetingsExpired',
+    await dbCountExpiredThankYouGreetings(everyColumn(moments), moments.now),
+  ),
+]
 
 /** The entries written of each kind, in one count and on a row each. */
 const entriesByKind: Figures = async (moments) => {
@@ -138,7 +172,27 @@ const FIGURES: Figures[] = [
   // link, which books its SEND row when it is redeemed. A transfer within the community has a
   // RECEIVE row as well, not counted.
   bookings(TransactionTypeId.SEND, 'transfersSent', 'gddSent'),
+  // The accounts whose first SEND row lies in the column, each once.
+  inEveryColumn('firstSenders', dbCountFirstSenders),
+  // A motif or a photo chosen in the send form, on the SEND row: only a transfer between two
+  // members of this community carries one. A transfer across the border sends none, and a link's
+  // booking none either -- a greeting shows its own picture and counts with the greetings below.
+  inEveryColumn('transfersWithPicture', (froms) =>
+    dbCountTransactionsWithPicture(TransactionTypeId.SEND, froms),
+  ),
+  // The recipient's reaction to a transfer, by the moment it was first set; one taken back is
+  // gone, another emoji in its place stays the same.
+  inEveryColumn('thanksAnswered', dbCountTransactionReactions),
+  // Transfers that passed a received thank-you on through its buttons (the trail, migration 0166):
+  // counted from the release that brought it.
+  inEveryColumn('thanksPassedOn', dbCountTransactionPassOns),
   bookings(TransactionTypeId.CREATION, 'creationsBooked', 'gddCreated'),
+  // Thank-you greetings, the links with a greeting: sent by their filing, accepted by the redeem
+  // (across the border too; an account opened through one is only ever one of this community),
+  // run out by their validity. A link deleted takes its greeting along, from every column.
+  greetingsSent,
+  greetingsAccepted,
+  greetingsExpired,
   // The map: homes and who can be found, as they stand now.
   asStock('homesSet', dbCountUsersWithHome),
   asStock('findableOnMap', dbCountUsersFindable),
@@ -171,6 +225,7 @@ export async function countCommunityFigures(
     since,
     week: new Date(now.getTime() - 7 * DAY_MS),
     month: new Date(now.getTime() - 30 * DAY_MS),
+    now,
   }
   const rows = await countInTurns(FIGURES.map((figures) => () => figures(moments)))
   return rows.flat()

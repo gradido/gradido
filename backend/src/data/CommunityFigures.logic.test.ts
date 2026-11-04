@@ -22,17 +22,24 @@ const mockTransactionTypeId = { CREATION: 1, SEND: 2 }
 const mockDatabase = {
   EventType: mockEventType,
   TransactionTypeId: mockTransactionTypeId,
+  dbCountAcceptedThankYouGreetings: jest.fn(),
   dbCountActiveMatchingEntries: jest.fn(),
   dbCountAndSumTransactionsOfType: jest.fn(),
   dbCountChatConversationsOfKind: jest.fn(),
   dbCountDistinctActingUsersOfType: jest.fn(),
   dbCountDistinctAffectedUsersOfType: jest.fn(),
   dbCountEventsOfTypes: jest.fn(),
+  dbCountExpiredThankYouGreetings: jest.fn(),
   dbCountFirstCreationMembers: jest.fn(),
+  dbCountFirstSenders: jest.fn(),
   dbCountMatchingEntriesByType: jest.fn(),
   dbCountMembersWithActiveEntry: jest.fn(),
   dbCountRegisterEventsWithReferrer: jest.fn(),
   dbCountReturningMembers: jest.fn(),
+  dbCountThankYouGreetings: jest.fn(),
+  dbCountTransactionPassOns: jest.fn(),
+  dbCountTransactionReactions: jest.fn(),
+  dbCountTransactionsWithPicture: jest.fn(),
   dbCountUsers: jest.fn(),
   dbCountUsersDeleted: jest.fn(),
   dbCountUsersFindable: jest.fn(),
@@ -97,6 +104,18 @@ const answers: Record<string, (...args: never[]) => Promise<unknown>> = {
   dbCountUsersDeleted: async () => [91, 92, 93],
   dbCountUsers: async () => 101,
   dbCountAndSumTransactionsOfType: async (typeId: number) => bookingsByType[typeId],
+  dbCountFirstSenders: async () => [301, 302, 303],
+  // Asked for the SEND rows: anything else answers nothing.
+  dbCountTransactionsWithPicture: async (typeId: number) =>
+    typeId === 2 ? [311, 312, 313] : undefined,
+  dbCountTransactionReactions: async () => [321, 322, 323],
+  dbCountTransactionPassOns: async () => [331, 332, 333],
+  dbCountThankYouGreetings: async () => ({ sent: [341, 342, 343], withPicture: [351, 352, 353] }),
+  dbCountAcceptedThankYouGreetings: async () => ({
+    accepted: [361, 362, 363],
+    withNewAccount: [371, 372, 373],
+  }),
+  dbCountExpiredThankYouGreetings: async () => [381, 382, 383],
   dbCountUsersWithHome: async () => 211,
   dbCountUsersFindable: async () => 221,
   // Nobody wrote a need: the answer has no line for it.
@@ -138,8 +157,17 @@ describe('countCommunityFigures', () => {
       { key: 'firstCreationsReview', since: 131, week: 132, total: 133 },
       { key: 'transfersSent', since: 171, week: 172, total: 173 },
       { key: 'gddSent', since: 181, week: 182, total: 183 },
+      { key: 'firstSenders', since: 301, week: 302, total: 303 },
+      { key: 'transfersWithPicture', since: 311, week: 312, total: 313 },
+      { key: 'thanksAnswered', since: 321, week: 322, total: 323 },
+      { key: 'thanksPassedOn', since: 331, week: 332, total: 333 },
       { key: 'creationsBooked', since: 191, week: 192, total: 193 },
       { key: 'gddCreated', since: 201, week: 202, total: 203 },
+      { key: 'greetingsSent', since: 341, week: 342, total: 343 },
+      { key: 'greetingsWithPhoto', since: 351, week: 352, total: 353 },
+      { key: 'greetingsAccepted', since: 361, week: 362, total: 363 },
+      { key: 'greetingsWithAccount', since: 371, week: 372, total: 373 },
+      { key: 'greetingsExpired', since: 381, week: 382, total: 383 },
       { key: 'homesSet', since: null, week: null, total: 211 },
       { key: 'findableOnMap', since: null, week: null, total: 221 },
       { key: 'entriesInterest', since: 231, week: 232, total: 233 },
@@ -182,6 +210,28 @@ describe('countCommunityFigures', () => {
     }
     expect(mockDatabase.dbCountChatConversationsOfKind).toHaveBeenCalledWith('direct', everyColumn)
     expect(mockDatabase.dbCountChatConversationsOfKind).toHaveBeenCalledWith('group', everyColumn)
+    expect(mockDatabase.dbCountFirstSenders).toHaveBeenCalledWith(everyColumn)
+    expect(mockDatabase.dbCountTransactionsWithPicture).toHaveBeenCalledWith(2, everyColumn)
+    expect(mockDatabase.dbCountTransactionReactions).toHaveBeenCalledWith(everyColumn)
+    expect(mockDatabase.dbCountTransactionPassOns).toHaveBeenCalledWith(everyColumn)
+    for (const count of [
+      mockDatabase.dbCountFirstSenders,
+      mockDatabase.dbCountTransactionsWithPicture,
+      mockDatabase.dbCountTransactionReactions,
+      mockDatabase.dbCountTransactionPassOns,
+      mockDatabase.dbCountExpiredThankYouGreetings,
+    ]) {
+      expect(count).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('counts the greetings that ran out from the chosen day and seven days back, up to now', async () => {
+    await countCommunityFigures(SINCE, NOW)
+
+    expect(mockDatabase.dbCountExpiredThankYouGreetings).toHaveBeenCalledWith(
+      [SINCE, WEEK, null],
+      NOW,
+    )
   })
 
   it('asks a count that fills several rows once, not once per row', async () => {
@@ -195,6 +245,11 @@ describe('countCommunityFigures', () => {
     // The three kinds of entry in one count.
     expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbCountMatchingEntriesByType).toHaveBeenCalledWith(everyColumn)
+    // The greetings sent and those with a photo; accepted and those by a new account.
+    expect(mockDatabase.dbCountThankYouGreetings).toHaveBeenCalledTimes(1)
+    expect(mockDatabase.dbCountThankYouGreetings).toHaveBeenCalledWith(everyColumn)
+    expect(mockDatabase.dbCountAcceptedThankYouGreetings).toHaveBeenCalledTimes(1)
+    expect(mockDatabase.dbCountAcceptedThankYouGreetings).toHaveBeenCalledWith(everyColumn)
   })
 
   it('asks four counts at a time, not all at once, and answers in the order of the page', async () => {
@@ -234,8 +289,17 @@ describe('countCommunityFigures', () => {
       'firstCreationsReview',
       'transfersSent',
       'gddSent',
+      'firstSenders',
+      'transfersWithPicture',
+      'thanksAnswered',
+      'thanksPassedOn',
       'creationsBooked',
       'gddCreated',
+      'greetingsSent',
+      'greetingsWithPhoto',
+      'greetingsAccepted',
+      'greetingsWithAccount',
+      'greetingsExpired',
       'homesSet',
       'findableOnMap',
       'entriesInterest',

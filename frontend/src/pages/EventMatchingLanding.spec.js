@@ -30,7 +30,7 @@ const Page = { template: '<div />' }
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { name: 'EventMatchingLanding', path: '/event', component: EventMatchingLanding },
+    { name: 'EventMatchingLanding', path: '/project', component: EventMatchingLanding },
     { name: 'Register', path: '/register/:code?', component: Page },
     { name: 'Login', path: '/login/:code?', component: Page },
   ],
@@ -44,7 +44,7 @@ const LINK = {
 }
 
 const wrapperFor = async (query = LINK, locale = 'de') => {
-  await router.push({ path: '/event', query })
+  await router.push({ path: '/project', query })
   await router.isReady()
   return mount(EventMatchingLanding, {
     global: { plugins: [i18nIn(locale), router], stubs: { AuthTriads: true, IBiGlobe2: true } },
@@ -68,7 +68,7 @@ describe('EventMatchingLanding', () => {
     it('says what the page is for', async () => {
       const wrapper = await wrapperFor()
 
-      expect(part(wrapper, 'headline').text()).toBe('Die Karte zu den Menschen Deines Kongresses')
+      expect(part(wrapper, 'headline').text()).toBe('Die Karte zu den Menschen Deines Projektes')
       expect(wrapper.text()).toContain('Dein erster Eintrag:')
     })
 

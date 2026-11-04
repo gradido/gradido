@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "3.1.2",
+  "version": "3.1.5",
   "private": false,
   "description": "Gradido unified backend providing an API-Service for Gradido Transactions",
   "repository": "https://github.com/gradido/gradido/backend",
@@ -14,7 +14,7 @@
     "test:parallel": "cross-env TZ=UTC NODE_ENV=development TEST_KIND=parallel DB_PORT=1 DB_CONNECT_RETRY_COUNT=1 REDIS_URL=redis://127.0.0.1:1 jest --forceExit",
     "test:serial": "cross-env TZ=UTC NODE_ENV=development TEST_KIND=serial DB_DATABASE=gradido_test_backend jest --runInBand --forceExit --detectOpenHandles",
     "test:coverage": "cross-env TZ=UTC NODE_ENV=development DB_DATABASE=gradido_test_backend jest --coverage --runInBand --forceExit --detectOpenHandles",
-    "seed": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/seeds/index.ts",
+    "seed": "cross-env TZ=UTC NODE_ENV=development sh -c 'bun build src/seeds/index.ts --target=bun --outfile=build/seed.js --external shared-native && bun build/seed.js'",
     "klicktipp": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/util/executeKlicktipp.ts",
     "gmsusers": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/gms/ExportUsers.ts",
     "humhubUserExport": "cross-env TZ=UTC NODE_ENV=development ts-node -r tsconfig-paths/register src/apis/humhub/ExportUsers.ts",

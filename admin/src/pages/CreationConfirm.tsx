@@ -11,15 +11,18 @@ import {
   useModal,
   vBTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref, watch, withDirectives } from 'vue'
+import { computed, defineComponent, nextTick, onMounted, ref, watch, withDirectives } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { useDateFormatter } from '@/composables/useDateFormatter'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
 import { CONFIG } from '@/config'
+import { DESK_PAGER_LIMIT, PHONE_PAGER_LIMIT } from '@/constants'
 import { useAdminStore } from '@/store/useAdminStore'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import IBiBellFill from '~icons/bi/bell-fill'
 import IBiCheck from '~icons/bi/check'
 import IBiList from '~icons/bi/list'
@@ -27,11 +30,14 @@ import IBiTrash from '~icons/bi/trash'
 import IBiXCircle from '~icons/bi/x-circle'
 import { AiChat } from '../components/AiChat'
 import { CreaEvaluationModal } from '../components/CreaEvaluationModal'
-import { Overlay, type OverlayItem } from '../components/Overlay'
+import { type DecisionItem, DecisionModal } from '../components/DecisionModal'
 import { type Contribution, OpenCreationsTable } from '../components/Tables/OpenCreationsTable'
 import { UserQuery } from '../components/UserQuery'
 import { adminDeleteContribution } from '../graphql/adminDeleteContribution'
-import { adminListContributions } from '../graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '../graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '../graphql/adminUpdateContribution'
 import { confirmContribution } from '../graphql/confirmContribution'
 import { assignContributionCreationGroups, creationGroups } from '../graphql/creationGroups.graphql'
@@ -75,6 +81,12 @@ const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING', 'CONFIRMED', 'DENIED', 'DELETED'],
 ]
 
+// The tab that mixes every state; its rows say on their own which one they are in.
+const ALL_TAB = 4
+
+// The page the last search and tab are kept for (utils/lastSearch.ts), as the router names it.
+const LAST_SEARCH_PAGE = '/creation-confirm'
+
 export const CreationConfirm = defineComponent({
   name: 'CreationConfirm',
   setup() {
@@ -82,7 +94,24 @@ export const CreationConfirm = defineComponent({
     const { t } = useI18n()
     const { toastError, toastSuccess, toastWarning } = useAppToast()
 
-    const tabIndex = ref(0)
+    // The tab: the one this moderator left the page on (utils/lastSearch.ts), from the first list
+    // on. The library's tabs choose their first tab while they register one by one, and a tab
+    // set before is lost (bootstrap-vue-next 0.26.8, BTabs `findActive`): they are shown it once
+    // they stand, and what the moderator picks there is the tab from then on.
+    const tabIndex = ref(
+      lastTab(LAST_SEARCH_PAGE, store.moderator?.gradidoID, FILTER_TAB_MAP.length),
+    )
+    const shownTab = ref(0)
+    watch(shownTab, (tab) => {
+      if (tab >= 0) {
+        tabIndex.value = tab
+      }
+    })
+    watch(tabIndex, (tab) => keepLastTab(LAST_SEARCH_PAGE, store.moderator?.gradidoID, tab))
+    onMounted(async () => {
+      await nextTick()
+      shownTab.value = tabIndex.value
+    })
     const { client: apolloClient } = useApolloClient()
     const items = ref<Contribution[]>([])
     const overlay = ref(false)
@@ -91,12 +120,40 @@ export const CreationConfirm = defineComponent({
     const rows = ref(0)
     const currentPage = ref(1)
     const pageSize = ref(25)
-    const query = ref('')
+    // The search: the last one this moderator left the page with, whenever it was
+    // (utils/lastSearch.ts), and kept again as it changes -- typed into the field above the
+    // table, or a member picked with the magnifier of a row, which is their e-mail address here.
+    const query = ref(lastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID))
+    watch(query, (search) => keepLastSearch(LAST_SEARCH_PAGE, store.moderator?.gradidoID, search))
+    // Whether the first list still has to show that the kept search finds something (onResult).
+    let keptSearchOnTrial = query.value !== ''
+    // The count of the badges in the menu and on the tab, asked for on its own where the page
+    // opens with a search: its list counts only what the search leaves (coderabbit, #4206). With
+    // the start page's query; none where the page opens on the whole list, whose answer says it.
+    if (keptSearchOnTrial) {
+      apolloClient
+        .query({
+          query: adminListContributionsCount,
+          variables: {
+            filter: { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true },
+          },
+          fetchPolicy: 'network-only',
+        })
+        .then(({ data }) => store.setOpenCreations(data.adminListContributions.contributionCount))
+        .catch(() => {
+          // The badges keep the count they had; the list says on its own what went wrong.
+        })
+    }
     const hideResubmissionModel = ref(true)
     // Group functions: filter the contribution list by a single creation group.
     const creationGroup = ref('')
 
     const { formatDateOrDash } = useDateFormatter()
+
+    // Below the phone boundary every row is a card. `unknown` -- no matchMedia -- keeps the
+    // desk: nothing changes where the browser cannot be asked.
+    const viewport = useViewport()
+    const phone = computed(() => viewport.value === 'mobile')
 
     const baseFields: Record<string, Field> = {
       name: { key: 'name', label: t('name'), class: 'no-select' },
@@ -127,6 +184,7 @@ export const CreationConfirm = defineComponent({
     const role = computed(() => store.moderator?.role ?? null)
     const isAdmin = computed(() => role.value === 'ADMIN')
     const isAiUser = computed(() => isAdmin.value || role.value === 'MODERATOR_AI')
+    const showCreaChat = computed(() => CONFIG.ANTHROPIC_ACTIVE && isAiUser.value)
     // Who sees the Crea button: AI moderators on the open tab (0) and on the "all" tab (4) --
     // there only on still-open contributions (see creaOpenOnly), so they can jump straight
     // from a participant's history to an open item. Administrators additionally see it on the
@@ -138,9 +196,20 @@ export const CreationConfirm = defineComponent({
     )
     // The "all" tab (index 4) mixes open and closed contributions; there Crea shows only on
     // the open (blue) rows -- the ones still to be processed. Other tabs are single-status.
-    const creaOpenOnly = computed(() => tabIndex.value === 4)
+    const creaOpenOnly = computed(() => tabIndex.value === ALL_TAB)
 
     const fields = computed(() => {
+      // On a phone the table stacks its cells (`stacked='lg'`), and a stacked row is a card: the
+      // head with face, name, amount and date, the text in full width, the buttons below. The
+      // same three cells on every tab: the state of a contribution decides what can be pressed
+      // on its card, the tab only whether Crea is offered (`showCrea`).
+      if (phone.value) {
+        return [
+          { key: 'phoneHead', label: '' },
+          { key: 'phoneMemo', label: '', class: 'text-break' },
+          { key: 'phoneActions', label: '' },
+        ]
+      }
       const tabFields = [
         // open contributions
         [
@@ -249,6 +318,7 @@ export const CreationConfirm = defineComponent({
     watch(tabIndex, () => {
       currentPage.value = 1
       items.value = []
+      keptSearchOnTrial = false
     })
 
     // Narrowing the list has to start over at page one. Picking a group while standing on a
@@ -264,6 +334,7 @@ export const CreationConfirm = defineComponent({
     // would have left the typed search asking for page 3 of a two-line result.
     watch(query, () => {
       currentPage.value = 1
+      keptSearchOnTrial = false
     })
 
     // Group functions: canonical tag options for the filter dropdown.
@@ -346,7 +417,7 @@ export const CreationConfirm = defineComponent({
       { immediate: true },
     )
 
-    const { onResult, onError, result, refetch } = useQuery<any, ListVariables>(
+    const { onResult, onError, refetch } = useQuery<any, ListVariables>(
       adminListContributions,
       {
         filter: {
@@ -385,11 +456,32 @@ export const CreationConfirm = defineComponent({
       toastError(error.message)
     })
 
-    onResult(() => {
-      rows.value = result.value.adminListContributions.contributionCount
+    // When a refetch is done, the composable hands the query's present state out once more
+    // (vue-apollo-composable, `refetch`): no list at all while a later one is on its way, or the
+    // same list again. Neither is a list of its own: the one without a list threw, and drawn anew
+    // from the same list the rows lost their open details. The rows come from the answer handed
+    // out, not from `result`: the composable sets that first, and a later answer can come between.
+    let lastList: unknown = null
+    onResult((answer) => {
+      if (answer.loading || !answer.data || answer.data === lastList) {
+        return
+      }
+      lastList = answer.data
+      // A kept search that finds nothing any more -- the contribution was processed by somebody
+      // else meanwhile, say -- gives way to the whole list (Bernd, 26.10.2026: "Sollte die Suche
+      // keine Treffer haben, schaltet es um auf „Alle“"). On the first list only: a search the
+      // moderator gives here stays, also where it finds nothing.
+      if (keptSearchOnTrial) {
+        keptSearchOnTrial = false
+        if (answer.data.adminListContributions.contributionCount === 0 && query.value !== '') {
+          query.value = ''
+          return
+        }
+      }
+      rows.value = answer.data.adminListContributions.contributionCount
       // Copies, as SearchUserTable makes them: what Apollo Client 3 answers is frozen, and the
       // table opens a row by writing `_showDetails` into its item.
-      items.value = result.value.adminListContributions.contributionList.map(
+      items.value = answer.data.adminListContributions.contributionList.map(
         (contribution: Contribution) => ({ ...contribution }),
       )
       // The faces of the members whose contributions are on this page, in one round trip. Each
@@ -399,8 +491,10 @@ export const CreationConfirm = defineComponent({
         apolloClient,
         items.value.map((contribution) => contribution.user).filter(Boolean),
       )
-      if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString()) {
-        store.setOpenCreations(result.value.adminListContributions.contributionCount)
+      // The count of the badges in the menu and on the tab: all open contributions, never the
+      // few a search leaves -- the page opens with the last search now, not only after typing.
+      if (statusFilter.value.toString() === FILTER_TAB_MAP[0].toString() && query.value === '') {
+        store.setOpenCreations(answer.data.adminListContributions.contributionCount)
       }
     })
 
@@ -430,56 +524,45 @@ export const CreationConfirm = defineComponent({
       groupChangeFailures.value++
     })
 
-    const {
-      mutate: deleteMutation,
-      onDone: onDeleteDone,
-      onError: onDeleteError,
-    } = useMutation(adminDeleteContribution)
+    // `throws: 'always'`: a refused decision comes back to `decide` as an error, whether or not
+    // anybody else listens for one.
+    const { mutate: deleteMutation } = useMutation(adminDeleteContribution, { throws: 'always' })
+    const { mutate: denyMutation } = useMutation(denyContribution, { throws: 'always' })
+    const { mutate: confirmMutation } = useMutation(confirmContribution, { throws: 'always' })
 
-    onDeleteDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_delete'))
-    })
+    // The contributions whose decision is on its way to the server: a second press sends nothing.
+    const deciding = new Set<number>()
 
-    onDeleteError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
-
-    const {
-      mutate: denyMutation,
-      onDone: onDenayDone,
-      onError: onDenayError,
-    } = useMutation(denyContribution)
-
-    onDenayDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_denied'))
-    })
-
-    onDenayError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
-
-    const {
-      mutate: confirmMutation,
-      onDone: onConfirmationDone,
-      onError: onConfirmationError,
-    } = useMutation(confirmContribution)
-
-    onConfirmationDone(() => {
-      overlay.value = false
-      updatePendingCreations(item.value.id)
-      toastSuccess(t('creation_form.toasted_created'))
-    })
-
-    onConfirmationError((error) => {
-      overlay.value = false
-      toastError(error.message)
-    })
+    /**
+     * Sends a decision and takes its answer back to the contribution it was sent for.
+     *
+     * ⛔ Not to whatever `item` holds when the answer comes: the dialog can be closed while the
+     * answer is on its way and opened for another contribution. The answer then took THAT one
+     * out of the list and closed its dialog, while the decided one stayed.
+     */
+    const decide = async (
+      send: (variables: { id: number }) => Promise<unknown>,
+      done: () => string,
+    ) => {
+      const decided = item.value
+      if (deciding.has(decided.id)) {
+        return
+      }
+      deciding.add(decided.id)
+      try {
+        await send({ id: decided.id })
+        updatePendingCreations(decided.id)
+        toastSuccess(done())
+      } catch (error) {
+        toastError((error as Error).message)
+      } finally {
+        deciding.delete(decided.id)
+        // The dialog closes if it still shows this contribution.
+        if (item.value.id === decided.id) {
+          overlay.value = false
+        }
+      }
+    }
 
     // ⚠️ onResult answers `{ off }`, which has no onError: the chained call throws a TypeError
     // once the result handler is registered, and no error handler is ever attached. Kept as
@@ -496,23 +579,9 @@ export const CreationConfirm = defineComponent({
       })
     }
 
-    const deleteCreation = () => {
-      deleteMutation({
-        id: item.value.id,
-      })
-    }
-
-    const denyCreation = () => {
-      denyMutation({
-        id: item.value.id,
-      })
-    }
-
-    const confirmCreation = () => {
-      confirmMutation({
-        id: item.value.id,
-      })
-    }
+    const deleteCreation = () => decide(deleteMutation, () => t('creation_form.toasted_delete'))
+    const denyCreation = () => decide(denyMutation, () => t('creation_form.toasted_denied'))
+    const confirmCreation = () => decide(confirmMutation, () => t('creation_form.toasted_created'))
 
     const updatePendingCreations = (id: number) => {
       items.value = items.value.filter((obj) => obj.id !== id)
@@ -611,43 +680,60 @@ export const CreationConfirm = defineComponent({
       refetch()
     }
 
-    // `title-link-attributes` is no prop of BTab and `hide-ellipsis` none of BPagination in this
-    // bootstrap-vue-next: both fall through as attributes, as they did in the template.
-    // Hyphenated, so the types let them pass too.
+    // `title-link-attributes` is no prop of BTab in this bootstrap-vue-next: it falls through as
+    // an attribute, as it did in the template. Hyphenated, so the types let it pass too.
     // The listeners of the table are hyphenated as well: its events are declared kebab-case,
     // and that is the name the types give their handlers.
+    // The title of a tab keeps its word and its number in elements of their own: on a phone the
+    // symbol stands above the word and the number at the corner (App.css, CreationConfirm.css).
     return () => (
       <div class='creation-confirm'>
-        <UserQuery v-model={query.value} class='mb-2 mt-2' placeholder={t('user_memo_search')} />
-        <p class='mb-2 d-flex align-items-center'>
-          <span class='me-2'>{t('creationGroupFilter.label')}</span>
+        {/* The search and the group side by side, both on the page's ground with an edge, and
+            the group without a word before it: each of its choices names the group (Bernd,
+            25.10.2026). On a narrow window they stand one above the other (CreationConfirm.css). */}
+        <div class='creation-filters mt-2 mb-2'>
+          <UserQuery
+            v-model={query.value}
+            class='creation-search'
+            placeholder={t('user_memo_search')}
+          />
           <ThemedSelect
             v-model={creationGroup.value}
             options={creationGroupFilterOptions.value}
             class='creation-group-filter'
-            style='max-width: 24rem'
             data-test='creation-group-filter'
           />
-        </p>
+        </div>
         {showResubmissionCheckbox.value ? (
-          <p class='mb-4'>
-            <input v-model={hideResubmissionModel.value} type='checkbox' class='hideResubmission' />
-            {withDirectives(<span class='ms-2'>{t('hide_resubmission')}</span>, [
-              [vBTooltip, t('hide_resubmission_tooltip')],
-            ])}
+          // The word is the label of the box, so a tap on it ticks the box too.
+          <p class='mb-4 d-flex align-items-center hide-resubmission-row'>
+            <input
+              v-model={hideResubmissionModel.value}
+              id='hide-resubmission'
+              type='checkbox'
+              class='hideResubmission'
+            />
+            {withDirectives(
+              <label for='hide-resubmission' class='ms-2'>
+                {t('hide_resubmission')}
+              </label>,
+              [[vBTooltip, t('hide_resubmission_tooltip')]],
+            )}
           </p>
         ) : null}
         <div>
-          <BTabs v-model={tabIndex.value} contentClass='mt-3' fill>
+          <BTabs v-model={shownTab.value} class='creation-tabs page-tabs' contentClass='mt-3' fill>
             <BTab active title-link-attributes={{ 'data-test': 'open' }}>
               {{
                 title: () => [
-                  <IBiBellFill style='color: #0d6efd' />,
+                  <IBiBellFill class='text-primary' />,
                   ' ',
-                  t('contributions.open'),
+                  <span class='tab-word'>{t('contributions.open')}</span>,
                   ' ',
                   store.openCreations > 0 ? (
-                    <BBadge variant='danger'>{store.openCreations}</BBadge>
+                    <BBadge variant='danger' class='tab-badge'>
+                      {store.openCreations}
+                    </BBadge>
                   ) : null,
                 ],
               }}
@@ -655,39 +741,51 @@ export const CreationConfirm = defineComponent({
             <BTab title-link-attributes={{ 'data-test': 'confirmed' }}>
               {{
                 title: () => [
-                  <IBiCheck style='color: #198754' />,
+                  <IBiCheck class='text-success' />,
                   ' ',
-                  t('contributions.confirms'),
+                  <span class='tab-word'>{t('contributions.confirms')}</span>,
                 ],
               }}
             </BTab>
             <BTab title-link-attributes={{ 'data-test': 'denied' }}>
               {{
                 title: () => [
-                  <IBiXCircle style='color: #ffc107' />,
+                  <IBiXCircle class='text-warning-emphasis' />,
                   ' ',
-                  t('contributions.denied'),
+                  <span class='tab-word'>{t('contributions.denied')}</span>,
                 ],
               }}
             </BTab>
             <BTab title-link-attributes={{ 'data-test': 'deleted' }}>
               {{
-                title: () => [<IBiTrash style='color: #dc3545' />, ' ', t('contributions.deleted')],
+                title: () => [
+                  <IBiTrash class='text-danger' />,
+                  ' ',
+                  <span class='tab-word'>{t('contributions.deleted')}</span>,
+                ],
               }}
             </BTab>
             <BTab title-link-attributes={{ 'data-test': 'all' }}>
               {{
-                title: () => [<IBiList />, ' ', t('contributions.all')],
+                title: () => [
+                  <IBiList />,
+                  ' ',
+                  <span class='tab-word'>{t('contributions.all')}</span>,
+                ],
               }}
             </BTab>
           </BTabs>
         </div>
+        {/* At the desk the table keeps its last buttons clear of the Crea button in the corner, and
+            only where that button stands: a card has no room for it, it rolls away instead. */}
         <OpenCreationsTable
-          class='mt-4'
+          class={['mt-4', { 'beside-crea-chat': showCreaChat.value && !phone.value }]}
           items={items.value}
           fields={fields.value}
           hideResubmission={hideResubmission.value}
           creaOpenOnly={creaOpenOnly.value}
+          showCrea={showCreaColumn.value}
+          showStatus={tabIndex.value === ALL_TAB}
           creationGroups={creationGroupsResult.value?.creationGroups ?? []}
           groupChangeFailures={groupChangeFailures.value}
           onAssign-group={assignGroup}
@@ -702,51 +800,52 @@ export const CreationConfirm = defineComponent({
           onResubmission-saved={onResubmissionSaved}
         />
 
+        {/* On a phone `‹`, three numbers and `›` -- every page stays reachable, and the pager
+            fits a 320px window. At the desk as before: five places with the ellipses, and « ».
+            No `noEllipsis` for the phone: with three numbers bootstrap-vue-next 0.26.8 draws no
+            ellipsis anyway (`limit <= ELLIPSIS_THRESHOLD`, which is 3). The class keeps all three
+            numbers in sight below 576px (App.css). */}
         <BPagination
           v-model={currentPage.value}
+          class='phone-pager'
           pills
           size='lg'
           perPage={pageSize.value}
           totalRows={rows.value}
           align='center'
-          hide-ellipsis={true}
+          limit={phone.value ? PHONE_PAGER_LIMIT : DESK_PAGER_LIMIT}
+          noGotoEndButtons={phone.value}
         />
-        {CONFIG.ANTHROPIC_ACTIVE && isAiUser.value ? <AiChat /> : null}
-        {overlay.value ? (
-          <div
-            id='overlay'
-            onDblclick={() => {
-              overlay.value = false
-            }}
-          >
-            <Overlay
-              item={item.value as unknown as OverlayItem}
-              onOverlay-cancel={() => {
-                overlay.value = false
-              }}
-            >
-              {{
-                // The texts of the variant: overlay.confirm|delete|deny.*, keys the template
-                // built at runtime as well. ESLint's i18n check cannot follow them.
-                /* eslint-disable @intlify/vue-i18n/no-dynamic-keys */
-                title: () => t(overlayTitle.value),
-                text: () => <p>{t(overlayText.value)}</p>,
-                question: () => <p>{t(overlayQuestion.value)}</p>,
-                'submit-btn': () => (
-                  <BButton
-                    size='md'
-                    variant={overlayIcon.value}
-                    class='m-3 text-end'
-                    onClick={overlayEvent.value ?? undefined}
-                  >
-                    {t(overlayBtnText.value)}
-                  </BButton>
-                ),
-                /* eslint-enable @intlify/vue-i18n/no-dynamic-keys */
-              }}
-            </Overlay>
-          </div>
-        ) : null}
+        {showCreaChat.value ? <AiChat /> : null}
+        {/* Every decision asks once more, in a dialog that scrolls where the window is short.
+            Escape, its × and the backdrop close it as its cancel does; none of them sends
+            anything. */}
+        <DecisionModal
+          v-model={overlay.value}
+          item={item.value as unknown as DecisionItem}
+          onOverlay-cancel={() => {
+            overlay.value = false
+          }}
+        >
+          {{
+            // The texts of the variant: overlay.confirm|delete|deny.*, keys the template
+            // built at runtime as well. ESLint's i18n check cannot follow them.
+            /* eslint-disable @intlify/vue-i18n/no-dynamic-keys */
+            title: () => t(overlayTitle.value),
+            text: () => <p>{t(overlayText.value)}</p>,
+            question: () => <p>{t(overlayQuestion.value)}</p>,
+            'submit-btn': () => (
+              <BButton
+                size='md'
+                variant={overlayIcon.value}
+                onClick={overlayEvent.value ?? undefined}
+              >
+                {t(overlayBtnText.value)}
+              </BButton>
+            ),
+            /* eslint-enable @intlify/vue-i18n/no-dynamic-keys */
+          }}
+        </DecisionModal>
         <CreaEvaluationModal contribution={creaItem.value} />
         <BModal
           v-model={bulkResubmission.value.show}

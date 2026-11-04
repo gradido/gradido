@@ -22,7 +22,7 @@ const DARK = read('./assets/scss/gradido-template-dark.scss')
 const COMPOSE = read('./components/Chat/ChatComposeBar.vue')
 const MESSAGE = read('./components/Chat/ChatMessageMenu.vue')
 const LINK = read('./components/TransactionLinks/TransactionLink.vue')
-const LANGUAGE = read('./components/LanguageSwitch2.vue')
+const LANGUAGE = read('./components/LanguageSwitch2.module.css')
 
 const token = (sheet, name) =>
   sheet.match(new RegExp(`\\n\\s*--${name}:\\s*(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})\\s*;`))?.[1]
@@ -151,10 +151,12 @@ describe('the two menus', () => {
 describe('the menu at a link and the list of languages', () => {
   const withoutComments = (text) =>
     text.replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
-  /** Every style block of the file, scoped or not, without its comments. */
+  /** Every style block of the file, scoped or not, without its comments; a stylesheet whole. */
   const stylesOf = (source) =>
     withoutComments(
-      [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n'),
+      source.includes('<style')
+        ? [...source.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n')
+        : source,
     )
   const ruleOf = (source, selector) =>
     [...stylesOf(source).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -189,10 +191,10 @@ describe('the menu at a link and the list of languages', () => {
   })
 
   it('puts the list of languages on the tokens', () => {
-    expect(ruleOf(LANGUAGE, '.ls-menu')).toMatch(/background:\s*var\(--menu-surface,/)
-    expect(ruleOf(LANGUAGE, '.ls-menu')).toMatch(/border:\s*1px solid var\(--menu-border,/)
-    expect(ruleOf(LANGUAGE, '.ls-item:hover')).toMatch(/background:\s*var\(--menu-hover,/)
-    expect(ruleOf(LANGUAGE, '.ls-item-active')).toMatch(/background:\s*var\(--menu-hover,/)
+    expect(ruleOf(LANGUAGE, '.lsMenu')).toMatch(/background:\s*var\(--menu-surface,/)
+    expect(ruleOf(LANGUAGE, '.lsMenu')).toMatch(/border:\s*1px solid var\(--menu-border,/)
+    expect(ruleOf(LANGUAGE, '.lsItem:hover')).toMatch(/background:\s*var\(--menu-hover,/)
+    expect(ruleOf(LANGUAGE, '.lsItemActive')).toMatch(/background:\s*var\(--menu-hover,/)
   })
 
   /**

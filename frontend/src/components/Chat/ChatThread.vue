@@ -100,6 +100,8 @@
                   ? isTransactionReactionUnderway(message.transactionId)
                   : reactionsUnderway.has(message.messageUuid)
               "
+              :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
+              :thanks-members="inGroup ? thanksMembers : null"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -108,6 +110,8 @@
               @reply="startReply"
               @show-quoted="showQuoted"
               @react="reactTo"
+              @thank="thankAfterCall"
+              @dismiss="dismissThanks"
             />
           </ol>
         </section>
@@ -156,6 +160,10 @@
          the page, so the words are announced when they are put in -- a live region that appears
          together with its text is not. -->
     <p class="visually-hidden" role="status" data-test="chat-thread-sent">{{ sentNotice }}</p>
+
+    <!-- What the window lays over the conversation and the line to write in (the member's own
+         note, Bernd 27.10.2026): inside the thread's own box, which is positioned. -->
+    <slot name="cover" />
   </div>
 </template>
 
@@ -171,6 +179,7 @@ import { openChatImageView, rememberChatImage } from '@/composables/useChatImage
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
+import { useThanksNudges } from '@/composables/useThanksNudges'
 import { useAppToast } from '@/composables/useToast'
 import {
   onChatMessages,
@@ -178,7 +187,7 @@ import {
   onChatMessagesReacted,
   pollChatNow,
 } from '@/composables/useChatUpdates'
-import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import {
   isTransactionReactionUnderway,
   onTransactionReaction,
@@ -189,6 +198,7 @@ import {
   chatMessagesWithMemberQuery,
   editChatMessage,
   markChatConversationRead,
+  markChatTransfersSeen,
   sendChatMessage,
   setChatMessageReaction,
 } from '@/graphql/chat.graphql'
@@ -212,6 +222,7 @@ import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
+import { callNudgeState } from '@/utils/thanksNudge'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -249,6 +260,12 @@ const props = defineProps({
    * searches itself for it (useChatThreadSearch) and says what it found (`search`).
    */
   search: { type: String, default: '' },
+  /**
+   * The group's members as its window holds them (chatGroupMembersQuery): whom the member may
+   * thank after a video call of their own in the group (W2, Bernd 28.10.2026). Null in the thread
+   * with one person; empty while the window has not had them yet.
+   */
+  groupMembers: { type: Array, default: null },
 })
 
 /**
@@ -268,6 +285,11 @@ const props = defineProps({
  * `editVideo`: "Bearbeiten" at a video invitation of one's own (E-060) -- `{ message, invitation }`,
  * for the window's question, where its topic and its time are changed. The text of every other
  * message is changed here, in the bar.
+ *
+ * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
+ * the send form with this person named, the way its own button "Gradido senden" does. In a
+ * group's thread the user of the member chosen comes with it, and the send form names them. The
+ * answer is remembered here already.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -276,6 +298,7 @@ const emit = defineEmits([
   'duplicateVideo',
   'forwardMessage',
   'editVideo',
+  'thank',
 ])
 
 const { t, d, n, locale } = useI18n()
@@ -324,6 +347,7 @@ const { result, error, fetchMore } = useQuery(THREAD.query, threadVariables, {
   fetchPolicy: 'network-only',
 })
 const { mutate: markRead } = useMutation(inGroup ? markChatGroupRead : markChatConversationRead)
+const { mutate: markTransfersSeen } = useMutation(markChatTransfersSeen)
 const { mutate: sendToServer } = useMutation(inGroup ? sendChatGroupMessage : sendChatMessage)
 const { mutate: changeOnServer } = useMutation(editChatMessage)
 const { mutate: reactOnServer } = useMutation(setChatMessageReaction)
@@ -343,6 +367,7 @@ const store = useWalletStore()
 const {
   transfers,
   settled: transfersSettled,
+  failed: transfersFailed,
   hasMore: transfersHaveMore,
   loadOlderTransfers,
   takeReaction: takeTransferReaction,
@@ -531,6 +556,146 @@ const view = computed(() => {
   return transfersSettled.value ? 'empty' : 'loading'
 })
 
+/**
+ * The newest transfer the member received that the thread shows, by its booking's id -- 0 while
+ * none stands in it (Chat E-086). Only while the box shows the thread: the transfers can be there
+ * before the messages, and with them a timeline the box does not draw while the messages are on
+ * their way or could not be loaded. A transfer beyond the horizon is not shown and not counted.
+ * The thread asks its transfers once (useChatTransfers): one that arrives later is seen with the
+ * next opening.
+ */
+const newestReceivedShown = computed(() =>
+  view.value === 'thread'
+    ? timeline.value.reduce(
+        (newest, item) =>
+          item.transfer && !item.mine ? Math.max(newest, item.transactionId) : newest,
+        0,
+      )
+    : 0,
+)
+let transfersMarkedUpTo = 0
+watch(newestReceivedShown, (newest) => {
+  if (inGroup || newest <= transfersMarkedUpTo) return
+  transfersMarkedUpTo = newest
+  markTransfersShown(newest)
+})
+
+/**
+ * The suggestion to thank after a video call (W2 of the waves of gratitude, utils/thanksNudge):
+ * under the member's own invitation, half an hour after the call began, "Möchtest Du Dich bei …
+ * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt" -- where the window can take
+ * the member to the send form with this person: the pair complete, as its button asks.
+ *
+ * ⚠️ Where the member switched the transfers in the conversation off, the thread holds none, and a
+ * thank-you sent another way does not end the line; "Nicht jetzt" does.
+ *
+ * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
+ * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
+ * to the send form with them. Nothing of a transfer stands in a group (E-050 F6), so only the
+ * answer ends the line there.
+ */
+const thanksOffered = inGroup || Boolean(props.member?.gradidoID && props.member?.communityUuid)
+const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
+
+/** The member themselves among a group's members, as the members' dialog knows them. */
+const isMe = (user) =>
+  String(user?.gradidoID ?? '').toLowerCase() === String(store.gradidoID ?? '').toLowerCase()
+
+/**
+ * Whom the member may thank in a group's thread: the members but themselves, in the order the
+ * window holds them, each with name and face (ThanksNudge's `choices`) -- only who can be named in
+ * the send form, as the contact window's button asks.
+ */
+const thanksMembers = computed(() =>
+  (props.groupMembers ?? [])
+    .map((member) => member.user)
+    .filter((user) => user?.gradidoID && user.communityUuid && !isMe(user))
+    .map((user) => ({
+      key: chatMemberKey(user),
+      label: memberAlias(user.alias, user.gradidoID),
+      avatar: memberAvatarProps(user),
+      user,
+    })),
+)
+
+/**
+ * The time the line goes by: a quiet clock of the thread's own, once a minute while the thread is
+ * open, so that the line comes while the member sits in the conversation -- without asking the
+ * server anything; the chat's beat is left as it is. And at once when the page comes back into
+ * sight: the member comes back from the call, in another app or another tab.
+ */
+const THANKS_CLOCK_MS = 60 * 1000
+const now = ref(Date.now())
+if (thanksOffered) {
+  const clock = setInterval(() => {
+    now.value = Date.now()
+  }, THANKS_CLOCK_MS)
+  const backInSight = () => {
+    if (!document.hidden) now.value = Date.now()
+  }
+  document.addEventListener('visibilitychange', backInSight)
+  onBeforeUnmount(() => {
+    clearInterval(clock)
+    document.removeEventListener('visibilitychange', backInSight)
+  })
+}
+
+/**
+ * The member's own video invitations in the thread, by message id, each with what it says -- read
+ * as the window reads one to change it (`startEdit`): word for word, in the member's language and
+ * time zone now. An invitation the wallet does not read as its own words gets no line. Apart from
+ * the clock, so that its minute does not read every message again.
+ */
+const ownInvitations = computed(() => {
+  const found = new Map()
+  if (!thanksOffered) return found
+  const i18n = { t, d, locale: locale.value }
+  for (const message of messages.value) {
+    if (!message.mine) continue
+    const invitation = readChatVideoInvite(i18n, message.body)
+    if (invitation) found.set(message.id, { message, invitation })
+  }
+  return found
+})
+
+/**
+ * The ids of the messages the line stands under now. The transfers between the two count once
+ * their first page has answered: before that, a thank-you on its way into the thread is not known,
+ * and the line would stand for a moment over it. Nor where that page failed: its empty list is not
+ * "no thank-you since" (coderabbit, #4210).
+ */
+const thanksDue = computed(() => {
+  const due = new Set()
+  // In a group there is nobody to choose before the window has the members.
+  if (inGroup && !thanksMembers.value.length) return due
+  const transfersKnown = transfersSettled.value && !transfersFailed.value ? transfers.value : null
+  for (const { message, invitation } of ownInvitations.value.values()) {
+    const line = callNudgeState({
+      invitation,
+      message,
+      now: now.value,
+      transfers: inGroup ? null : transfersKnown,
+      group: inGroup,
+      seen: thanksSeen('call', message.messageUuid),
+    })
+    if (line === 'show') due.add(message.id)
+  }
+  return due
+})
+
+/**
+ * "Danke sagen", or a member chosen in a group's thread: answered on this device, and to the
+ * window, which opens the send form -- with the member chosen, in a group.
+ */
+const thankAfterCall = (message, user) => {
+  markThanksSeen('call', message.messageUuid)
+  if (user) emit('thank', user)
+  else emit('thank')
+}
+
+/** "Nicht jetzt": answered -- the line goes and does not come back for this call. */
+const dismissThanks = (message) => markThanksSeen('call', message.messageUuid)
+
 /** The local calendar day of a message: what the date line above a day names. */
 const dayKey = (date) =>
   [
@@ -632,9 +797,38 @@ const markShown = (upToMessageId, { quiet = false } = {}) => {
     .catch(() => {})
 }
 
+/**
+ * The newest received transfer that was on screen while the page was out of sight, as
+ * `unseenUpTo` is for the messages: it is marked seen once the page is back. 0 while none waits.
+ */
+let unseenTransfersUpTo = 0
+
+/**
+ * Marks the transfers the member received from this person as seen, up to the newest one the
+ * thread shows (Chat E-086, Bernd, 26.10.2026: a transfer counts as unread until it was seen) --
+ * and the older ones with it, as the read pointer takes the older messages: also one beyond the
+ * horizon, which the thread brings with "load older". Only while the page is in sight, as
+ * `markShown`; the server
+ * takes only the member's own RECEIVE bookings from this person. Then the beat asks at once, so
+ * the dot and the mark in the menu go within a second. A failure is let go: the transfers stay
+ * unread until the next opening.
+ */
+const markTransfersShown = (upToTransactionId, { quiet = false } = {}) => {
+  if (document.hidden) {
+    unseenTransfersUpTo = Math.max(unseenTransfersUpTo, upToTransactionId)
+    return
+  }
+  unseenTransfersUpTo = 0
+  const options = quiet ? { context: { renewSession: false } } : undefined
+  Promise.resolve(markTransfersSeen({ ref: memberRef, upToTransactionId }, options))
+    .then(() => pollChatNow())
+    .catch(() => {})
+}
+
 const onVisibility = () => {
-  if (document.hidden || unseenUpTo === 0) return
-  markShown(unseenUpTo, { quiet: true })
+  if (document.hidden) return
+  if (unseenUpTo !== 0) markShown(unseenUpTo, { quiet: true })
+  if (unseenTransfersUpTo !== 0) markTransfersShown(unseenTransfersUpTo, { quiet: true })
 }
 document.addEventListener('visibilitychange', onVisibility)
 onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibility))

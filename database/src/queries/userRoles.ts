@@ -1,6 +1,7 @@
 import { inArray } from 'drizzle-orm'
-import { drizzleDb } from '../AppDatabase'
-import { userRolesTable } from '../schemas/drizzle.schema'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { UserRoleInsert, userRolesTable } from '../schemas/drizzle.schema'
 
 /**
  * Give the member this role: the one row they have is changed, or their first is written.
@@ -37,4 +38,15 @@ export async function dbRemoveUserRoles(userIds: number[]): Promise<void> {
     return
   }
   await drizzleDb().delete(userRolesTable).where(inArray(userRolesTable.userId, userIds))
+}
+
+// One statement for all the rows it is given
+export async function dbInsertUserRoles(
+  userRoles: UserRoleInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (userRoles.length === 0) {
+    return
+  }
+  await tx.insert(userRolesTable).values(userRoles)
 }

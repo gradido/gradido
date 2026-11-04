@@ -9,14 +9,11 @@
   "GDD": "GDD",
   "GDD-long": "Gradido",
   "GDT": "GDT",
-  "GMS": {
-    "desc": "Tüm toplulukların üyelerini bir haritada bul.",
-    "title": "Coğrafi Eşleştirme Sistemi GMS (geliştirme aşamasında)"
-  },
   "Humhub": {
     "desc": "Birlikte birbirimizi destekliyoruz – çember kültüründe özenle.",
     "title": "Gradido-Çemberleri"
   },
+  "adminWayBack": "Admin'e geri dön",
   "advanced-calculation": "Önceden hesaplama",
   "answerNow": "→ Şimdi yanıtla!",
   "appOutdated": {
@@ -126,19 +123,6 @@
       "button": "Yapılandır..."
     },
     "text": "Yerel çemberler, çalışma çemberleri, projeler, etkinlikler ve kongreler"
-  },
-  "card-user-search": {
-    "allowed": {
-      "button": "Üye aramasını aç...",
-      "disabled-button": "GMS çevrimdışı...",
-      "text": "Tüm toplulukların üyelerini bir haritada bul."
-    },
-    "headline": "Coğrafi üye arama (beta)",
-    "info": "Nasıl çalışır",
-    "not-allowed": {
-      "button": "Konum gir...",
-      "text": "Çevrendeki diğer üyeleri bulmak için şimdi konumunu haritaya gir!"
-    }
   },
   "chatForward": {
     "byEmailMany": "{count} kişiye ayrıca e-posta ile",
@@ -250,6 +234,22 @@
     "sent": "Gönderildi.",
     "sentMailed": "Gönderildi. {name} bir e-posta alacak.",
     "toConversation": "Sohbete git"
+  },
+  "chatNote": {
+    "done": "Tamam",
+    "failed": "Kaydedilmedi.",
+    "failedClosed": "Notun kaydedilmedi. Tekrar denemek için notu aç.",
+    "loadFailed": "Not yüklenemedi.",
+    "placeholderGroup": "Bu grup hakkında neyi hatırlamak istiyorsun?",
+    "placeholderMember": "{name} hakkında neyi hatırlamak istiyorsun? Örneğin tam adını.",
+    "private": "Yalnızca sen görüyorsun.",
+    "retry": "Yeniden dene",
+    "saved": "Kaydedildi",
+    "saving": "Kaydediliyor …",
+    "title": "Notum"
+  },
+  "chatPreview": {
+    "by": "{name}:"
   },
   "chatSearch": {
     "capped": "Son {count} mesajda arama yapıldı.",
@@ -623,20 +623,20 @@
       "detailsHint": "Konunu açıklayan bir iki cümle.",
       "detailsMissing": "Şimdi yukarıya ayrıntıları da yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür.",
       "downloadCode": "QR kodunu indir",
-      "intro": "Bu linki açan kişi, kendi Gradido hesabında senin kongreni haritadaki ilk girişi olarak alır — ve kongrendeki diğer insanları bulur.",
+      "intro": "Bu linki açan kişi, kendi Gradido hesabında senin projeni haritadaki ilk girişi olarak alır — ve projendeki diğer insanları bulur.",
       "linkCopied": "Link kopyalandı.",
       "linkLabel": "Linkin",
       "mailCopied": "Paragraf kopyalandı.",
       "mailLabel": "E-postan için paragrafın",
-      "mailText": "Gradido dahil: bu linkle Gradido hesabını, başlangıç için 100 Gradido'yu ve kongremizdeki insanlara götüren haritayı alırsın. Harita konumunu yalnızca üyelere ve yalnızca yaklaşık olarak gösterir.",
+      "mailText": "Gradido dahil: bu linkle Gradido hesabını, başlangıç için 100 Gradido'yu ve projemizdeki insanlara götüren haritayı alırsın. Harita konumunu yalnızca üyelere ve yalnızca yaklaşık olarak gösterir.",
       "nothingStored": "Hiçbir şey kaydedilmez. Linki sen oluşturursun, sen paylaşırsın.",
-      "remoteHint": "O zaman katılımcıların bölge üstü aramada da görünür.",
-      "sentenceDefault": "Kongre",
-      "sentenceHint": "Kongrenin kısa adı; katılımcılarının söyleyeceği şekilde. Baştaki «Kongre» kelimesi kalabilir — «Eğitim», «Kurs» ya da «Retreat» de olur.",
+      "remoteHint": "O zaman projendeki insanlar bölge üstü aramada da görünür.",
+      "sentenceDefault": "Proje",
+      "sentenceHint": "Projenin kısa adı; konuşurken söylendiği gibi. Baştaki «Proje» kelimesi kalabilir — «Dernek», «Kongre» ya da «Kurs» da olur.",
       "sentencePreview": "«{sentence}»",
-      "subtitle": "Kongren, eğitimin, kursun için linkin",
-      "title": "Event Matching",
-      "waiting": "Yukarıya kongrenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
+      "subtitle": "Projen için linkin: dernek, hareket, kongre, kurs",
+      "title": "Project Matching",
+      "waiting": "Yukarıya projenin adını yaz — o zaman linkin, QR kodun ve e-postana ekleyeceğin bir paragraf burada görünür."
     },
     "home": {
       "text": "Benzer düşünen insanlarla buluşabilmen için evini haritada işaretle. O zaman «{sentence}» girişini ekleyen diğerlerini görürsün — onlar da seni görür. Haritayı yalnızca üyeler görür. Ne kadar hassas görüneceğine sen karar verirsin: «Yaklaşık» seni bir alan içinde gösterir, asla kapının önünde değil. Ve istediğin zaman haritadan çıkabilirsin.",
@@ -646,7 +646,7 @@
       "added": "Eşleşme girişin eklendi: {sentence}",
       "firstEntry": "İlk eşleşme girişin:",
       "haveAccount": "Zaten bir hesabım var",
-      "headline": "Seni kongrendeki insanlara götüren harita",
+      "headline": "Seni projendeki insanlara götüren harita",
       "otherCommunity": "Hesabın başka bir toplulukta mı? O zaman orada giriş yap ve cümleyi elle gir.",
       "register": "Hesap aç"
     },
@@ -740,10 +740,11 @@
       "link": "Gradido-Akademisi",
       "year": "© {year}"
     },
-    "eventMatching": "Event Matching",
+    "eventMatching": "Project Matching",
     "imprint": "Yasal uyarı",
     "inspector": "Denetleyici (deneysel)",
     "privacy_policy": "Gizlilik politikası",
+    "socialLink": "{platform} üzerinde Gradido",
     "whitepaper": "Whitepaper"
   },
   "form": {
@@ -755,6 +756,7 @@
     "change": "Değiştir",
     "check_now": "Şimdi kontrol et",
     "close": "Kapat",
+    "community-not-reachable": "Bu topluluğa şu anda ulaşılamıyor. Lütfen hangi topluluğun seçili olduğunu kontrol et.",
     "current_available": "Şu anda kullanılabilir",
     "current_balance": "Mevcut Bakiye",
     "date": "Tarih",
@@ -782,6 +784,19 @@
     "password_new_repeat": "Yeni şifreyi tekrarla",
     "password_old": "Eski şifre",
     "recipient": "Alıcı",
+    "recipient-not-found": {
+      "by-email": "Ya da teşekkürünü e-postayla gönder: Gradido bunun için {days} gün bekleyen bir link oluşturur. Bu linkle bir hesap açılır — ya da teşekkür mevcut bir hesaba geçer.",
+      "change-address": "Adresi değiştir",
+      "change-entry": "Yazdığını değiştir",
+      "choose-community": "Topluluk seç",
+      "no-answer": "Sunucu yanıt vermedi. Lütfen tekrar dene.",
+      "other-community": "Bu adres başka bir topluluğun üyesine mi ait? O zaman o topluluğu seç.",
+      "other-community-entry": "Bu, başka bir topluluğun üyesine mi ait? O zaman o topluluğu seç.",
+      "send-by-email": "Teşekkürü e-postayla gönder",
+      "title-email": "{community} topluluğunda bu adrese ait bir hesap yok.",
+      "title-gradido-id": "{community} topluluğunda bu Gradido ID'ye ait bir hesap yok.",
+      "title-username": "{community} topluluğunda bu kullanıcı adına ait bir hesap yok."
+    },
     "recipientCommunity": "Alıcının topluluğu",
     "reply": "Yanıtla",
     "reset": "Sıfırla",
@@ -863,6 +878,8 @@
   },
   "gddKonto": "GDD Hesabı",
   "gdd_per_link": {
+    "by-email": "E-postayla",
+    "by-email-to": "{address} adresine e-postayla",
     "choose-amount": "Göndermek istediğin tutarı seç ve bir mesaj gir. Mesaj zorunlu bir alandır.",
     "copy-link": "Linki kopyala",
     "copy-link-with-text": "Linki ve metni kopyala",
@@ -871,6 +888,7 @@
     "deleted": "Link silindi!",
     "disbured": "Bağlantı bakiyesinin aktarımı başarıyla başlatıldı! {n} GDD kısa süre içinde hesabına alacak olarak işlenecek",
     "duplicate": "Linki çoğalt",
+    "email-subject": "{name} sana bir teşekkür gönderdi",
     "expiredOn": "Geçerlilik süresi",
     "has-account": "Halihazırda bir Gradido hesabın var mı?",
     "header": "Link, çek ve QR kodu oluştur",
@@ -882,9 +900,12 @@
     "link-overview": "Linke toplu bakış",
     "links_open": "{n} açık",
     "links_sum": "Linkler, çekler, QR kodları, teşekkür mesajları",
+    "memo-stays-on-page": "Mesajın e-posta için fazla uzun: Linkin açtığı sayfada yer alıyor.",
     "no-account": "Henüz bir Gradido hesabın yok mu?",
     "no-redeem": "Kendi linkini kullanamazsın!",
     "not-copied": "Maalesef cihazın kopyalamaya izin vermiyor! Lütfen bağlantıyı elle kopyala!",
+    "opens-mail-program": "E-posta programını açar.",
+    "picture-in-clipboard": "Görsel o zaman panoda olur — istersen yapıştır.",
     "recipientCommunityRedirection": "Hesaba işlemek için şuraya yönlendir:",
     "recipientCommunitySelection": "Gradido topluluğunu seç:",
     "redeem": "Kullan",
@@ -1242,8 +1263,7 @@
     "settings": "Ayarlar",
     "show-friends": "Arkadaşlarına göster",
     "thank-you-greeting": "Teşekkür mesajı",
-    "transactions": "İşlemlerin",
-    "usersearch": "Coğrafi üye arama (beta)"
+    "transactions": "İşlemlerin"
   },
   "public-profile": {
     "address": "Gradido adresi",
@@ -1341,22 +1361,11 @@
   },
   "settings": {
     "GMS": {
-      "disabled": "Veriler GMS'e aktarılmıyor",
-      "enabled": "Veriler GMS'e aktarılıyor",
       "location": {
-        "button": "Haritayı aç",
-        "label": "Tam konum",
-        "saveLocation": "Konumu Kaydet",
         "updateSuccess": "Konum başarıyla kaydedildi"
       },
-      "location-format": "Konumu haritada göster:",
       "map": {
-        "communityCoords": "Topluluk konumu: Enlem {lat}, Boylam {lng}",
-        "communityLocationLabel": "Topluluk konumu",
-        "headline": "Kullanıcının Coğrafi Konum Tespiti",
-        "search": "Konum ara",
-        "userCoords": "Konumun: Enlem {lat}, Boylam {lng}",
-        "userLocationLabel": "Konumun"
+        "search": "Konum ara"
       },
       "publish-location": {
         "approximate": "Yaklaşık konum",
@@ -1370,7 +1379,7 @@
       "visibility": "Resmimi diğer üyelere göster",
       "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
-    "community": "Çemberler & Üye arama",
+    "community": "Çemberler",
     "creationAccount": {
       "confirm": {
         "declare": "Proje hesabına geç",
@@ -1665,12 +1674,16 @@
     "done": {
       "another": "Başka biri için bir tane daha",
       "edit-hint": "Cümleyi göndermeden önce değiştirebilirsin. Senin sözlerin yalnızca kartta yer alır.",
+      "edit-hint-plain": "Metni göndermeden önce değiştirebilirsin.",
       "find-again": "Onu {transactions} altında, «{links}» bölümünde yeniden bulursun.",
       "link-hint": "Linke sahip olan herkes teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
       "link-hint-photo": "Linke sahip olan herkes fotoğrafını görür ve teşekkürü kabul edebilir. Linki yalnızca teşekkür etmek istediğin kişiye gönder.",
       "sentence-lead": "Bu cümle onunla birlikte yola çıkar:",
+      "sentence-lead-plain": "Bu metin onunla birlikte yola çıkar:",
       "title": "Teşekkür mesajın hazır.",
       "title-for": "{name} için teşekkür mesajın hazır.",
+      "title-for-address": "{address} için teşekkürün hazır.",
+      "title-plain": "Teşekkürün hazır.",
       "waits-until": "{date} tarihine kadar bekliyor."
     },
     "entry": {
@@ -1734,6 +1747,7 @@
     "received-title": "Sana bir teşekkür mesajı",
     "share": {
       "copied": "Cümle ve link panoya kopyalandı. Artık bunları bir e-postaya veya mesaja yapıştırabilirsin.",
+      "email-subject": "{name} sana bir teşekkür mesajı gönderdi",
       "line1": "Sana bir teşekkür mesajım var:",
       "line1-for": "{name}, sana bir teşekkür mesajım var:"
     },
@@ -1758,6 +1772,21 @@
       "own-words": "Senin sözlerin"
     }
   },
+  "thanksArrival": {
+    "answer": "Yanıtla",
+    "from": "{name}, {amount} ile sana teşekkür ediyor.",
+    "later": "Daha sonra",
+    "title": "Teşekkür sana ulaştı."
+  },
+  "thanksNudge": {
+    "afterCall": "{name} kişisine görüşme için teşekkür etmek ister misin?",
+    "afterGroupCall": "Görüşme için teşekkür etmek ister misin?",
+    "notNow": "Şimdi değil",
+    "passOn": "Teşekkürü başkasına aktarmak ister misin?",
+    "say": "Teşekkür et",
+    "someone": "Birine teşekkür et",
+    "whom": "Kime teşekkür etmek istersin?"
+  },
   "time": {
     "days": "Günler",
     "hours": "Saatler",
@@ -1774,17 +1803,11 @@
     "nullTransactions": "Henüz hesabında hiç işlem yok.",
     "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
-    "receiverDeleted": "Alıcı hesabı silindi",
     "receiverNotFound": "Alıcı bulunamadı",
     "show_all": "Bütün <strong>{count}</strong> işlemleri görüntüle."
   },
   "transaction-link": {
     "send_you": "sana gönderiyor"
-  },
-  "usersearch": {
-    "button": "Kullanıcı aramasını başlat...",
-    "headline": "Coğrafi Kullanıcı Arama",
-    "text": "Hangi topluluğa ait olursan ol, Geo Matching System ile tüm toplulukların üyelerini bir haritada bulabilirsin. Tekliflere ve ihtiyaçlara göre filtreleyebilir ve sana uygun kullanıcıları görüntüleyebilirsin.\n\nDüğmeyle, çevrendeki kullanıcıların bir haritada gösterildiği yeni bir tarayıcı penceresi açılır."
   },
   "via_card": "kart ile",
   "via_greeting": "teşekkür mesajı yoluyla",

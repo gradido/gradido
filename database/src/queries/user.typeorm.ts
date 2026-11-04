@@ -2,15 +2,23 @@
 // legacy code, not a architecture reference
 
 import { getLogger } from 'log4js'
-import { aliasSchema, emailSchema, Order, Result, uuidv4Schema, VoidResult } from 'shared'
+import {
+  aliasSchema,
+  emailSchema,
+  Order,
+  Result,
+  searchWords,
+  uuidv4Schema,
+  VoidResult,
+} from 'shared'
 import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
 import * as v from 'valibot'
 import { User as DbUser, UserContact as DbUserContact } from '../entity'
 import { AccountState, ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
 import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
-import { dbFindAliasOwner, dbFindUserIdsByAliasLike } from './userAliases'
-import { dbFindUserIdsByEmailLike } from './userContacts'
+import { dbFindUserIdsWithEveryWord } from './user'
+import { dbFindAliasOwner } from './userAliases'
 
 /*
  * The TypeORM queries that select `from users`: the ones not yet translated to Drizzle, and
@@ -405,10 +413,6 @@ type SearchUsersFilters = {
   byDeleted?: boolean | null
 }
 
-function likeQuery(searchCriteria: string) {
-  return Like(`%${searchCriteria}%`)
-}
-
 function emailCheckedQuery(filters: SearchUsersFilters) {
   return filters.byActivated ?? undefined
 }
@@ -422,8 +426,8 @@ function deletedAtQuery(filters: SearchUsersFilters | null) {
 }
 
 /**
- * The admin's member search: first name, last name, any address a member ever had or any
- * username they ever owned.
+ * The admin's member search: every word of the text has to turn up in a member, see
+ * `dbFindUserIdsWithEveryWord`.
  * Moved from `backend/src/graphql/resolver/util/findUsers.ts`.
  */
 export const dbFindUsers = async (
@@ -434,52 +438,27 @@ export const dbFindUsers = async (
   pageSize: number,
   order = Order.ASC,
 ): Promise<[DbUser[], number]> => {
-  // Every address a member ever had, not only the current one: somebody arriving from the
-  // GDT server holds the address that was first - which may well be one the member has
-  // since changed. An empty search already matches everybody through the name branches.
-  // Usernames the same way: the one somebody was known by counts as much as the current one.
-  const idsByEmailOrAlias = searchCriteria
-    ? [
-        ...new Set([
-          ...(await dbFindUserIdsByEmailLike(searchCriteria)),
-          ...(await dbFindUserIdsByAliasLike(searchCriteria)),
-        ]),
-      ]
-    : []
-  const where = [
-    {
-      firstName: likeQuery(searchCriteria),
-      deletedAt: deletedAtQuery(filters),
-      emailContact: filters
-        ? {
-            emailChecked: emailCheckedQuery(filters),
-          }
-        : undefined,
-    },
-    {
-      lastName: likeQuery(searchCriteria),
-      deletedAt: deletedAtQuery(filters),
-      emailContact: filters
-        ? {
-            emailChecked: emailCheckedQuery(filters),
-          }
-        : undefined,
-    },
+  const words = searchWords(searchCriteria)
+  const idsWithEveryWord = words.length > 0 ? await dbFindUserIdsWithEveryWord(words) : null
+  if (idsWithEveryWord?.length === 0) {
+    return [[], 0]
+  }
+  const status = {
+    deletedAt: deletedAtQuery(filters),
     // The "activated" filter still reads the current address.
-    ...(idsByEmailOrAlias.length > 0
-      ? [
-          {
-            id: In(idsByEmailOrAlias),
-            deletedAt: deletedAtQuery(filters),
-            emailContact: filters
-              ? {
-                  emailChecked: emailCheckedQuery(filters),
-                }
-              : undefined,
-          },
-        ]
-      : []),
-  ]
+    emailContact: filters
+      ? {
+          emailChecked: emailCheckedQuery(filters),
+        }
+      : undefined,
+  }
+  const where = idsWithEveryWord
+    ? [{ id: In(idsWithEveryWord), ...status }]
+    : // No word asked for: everybody who has a name.
+      [
+        { firstName: Like('%'), ...status },
+        { lastName: Like('%'), ...status },
+      ]
   const selectFind = Object.fromEntries(select.map((item) => [item, true]))
   const relations = ['emailContact', 'userRole']
   const orderFind = {

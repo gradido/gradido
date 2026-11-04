@@ -125,13 +125,15 @@ describe('the page edge on a phone', () => {
   })
 
   it('gives the sign-in card no margin of its own below md', () => {
-    const layout = source('layouts', 'AuthLayout.vue')
-    const template = live(layout.match(/<template>([\s\S]*)<\/template>/)[1])
-    expect(template).toContain('<div class="mx-0 mx-md-4">')
+    const layout = live(source('layouts', 'AuthLayout.tsx'))
+    expect(layout).toContain("<div class='mx-0 mx-md-4'>")
     // ... and no second one inside it: the pages wrap their form in a BContainer.
-    const narrow = mediaBodies(styles(layout), '767.98px').join('\n')
-    expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-left: 0')
-    expect(rule(narrow, '.card-body :deep(.container)')).toContain('padding-right: 0')
+    const narrow = mediaBodies(live(source('layouts', 'AuthLayout.module.scss')), '767.98px').join(
+      '\n',
+    )
+    const container = '.authTemplate .cardBody :global(.container)'
+    expect(rule(narrow, container)).toContain('padding-left: 0')
+    expect(rule(narrow, container)).toContain('padding-right: 0')
   })
 })
 
@@ -182,11 +184,12 @@ describe('the overview tiles', () => {
   // gives it back as the padding of whatever stands in it. A horizontal padding of the
   // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
   // cards above it on every width.
-  const tiles = ['ShowFriendsTile.vue', 'CardUserSearch.vue', 'CardCircles.vue']
+  const tiles = ['ThanksArrivalTile.vue', 'ShowFriendsTile.vue', 'CardCircles.vue']
 
   it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
     const template = live(source('components', 'Overview', file))
-    const root = template.match(/<template>\s*<div class="([^"]*)"/)
+    // The root's class, wherever it stands among the root's attributes (a `v-if` may come first).
+    const root = template.match(/<template>\s*<div\b[^>]*?\sclass="([^"]*)"/)
     expect(root).not.toBeNull()
     const classes = root[1].split(/\s+/)
     expect(classes).toContain('py-3')

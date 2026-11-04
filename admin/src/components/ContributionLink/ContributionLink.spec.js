@@ -90,6 +90,14 @@ describe('ContributionLink', () => {
       await wrapper.find('[data-test="new-contribution-link-button"]').trigger('click')
       expect(isFormVisible()).toBe(false)
     })
+
+    // On a phone the card around the form keeps no side room of its own: two cards inside each
+    // other left the form 220px of a 320px window (measured 23.10.2026). From 992px on the
+    // card's 16px of before.
+    it('the card around the form gives its sides to the form on a phone', () => {
+      const body = wrapper.findComponent(BCollapse).find('.card-body')
+      expect(body.classes()).toEqual(expect.arrayContaining(['px-0', 'px-lg-3']))
+    })
   })
 
   describe('edit contribution link', () => {

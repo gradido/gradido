@@ -72,7 +72,9 @@ export enum RIGHTS {
   TRANSACTION_PICTURE = 'TRANSACTION_PICTURE',
   // Answering a transfer with an emoji (setTransactionReaction): the recipient's, by the id of
   // their own RECEIVE row -- and that row says so. Acts outward, as a chat message does: the
-  // sender sees it. Reading a reaction is not behind it: it comes with the booking list.
+  // sender sees it, and the first reaction to a transfer mails them (W1), unless they muted
+  // the conversation; another emoji and a reaction taken back stay silent. Reading a reaction
+  // is not behind it: it comes with the booking list.
   REACT_TO_TRANSACTION = 'REACT_TO_TRANSACTION',
   // Moderator
   SEARCH_USERS = 'SEARCH_USERS',
@@ -108,6 +110,10 @@ export enum RIGHTS {
   // Which address the GDT server knows a member by, and whether a change is pending - the
   // support needs it to merge addresses on the GDT server by hand.
   VIEW_USER_EMAIL_STATUS = 'VIEW_USER_EMAIL_STATUS',
+  // The moderation's remark on a member (Bernd, 28.10.2026, UserRemarkResolver): reading it and
+  // writing it, one right for both -- every moderator reads and writes the same remark. ⛔ Never in
+  // USER_RIGHTS: the member it is about must not read it, in the wallet or anywhere else.
+  MANAGE_USER_REMARKS = 'MANAGE_USER_REMARKS',
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',

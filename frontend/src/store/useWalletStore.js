@@ -6,12 +6,14 @@ import jwtDecode from 'jwt-decode'
 import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { clearLinkDraft } from '../composables/useLinkDraft'
+import { clearPassOnDraft } from '../composables/usePassOnDraft'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
 import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
 import { forgetAllTransactionPictures } from '../composables/useTransactionPictures'
 import { forgetFavorites } from '../composables/useFavorites'
+import { forgetUserNotes } from '../utils/userNoteSaves'
 import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
@@ -26,7 +28,13 @@ import { keepAuthToken, readAuthToken } from '../utils/authToken'
 // Dedicated localStorage key mirroring state.themeMode. The pre-paint script in
 // index.html reads it with a single getItem, so it never has to parse the whole
 // persisted-state blob on the blocking boot path. Kept in sync by applyTheme.
+// It is also this device's own word on the mode: the admin interface writes it too, from
+// the switch in its account menu, so the wallet takes what it holds (adoptThemeModeFromDevice)
+// before applyTheme mirrors state.themeMode back into it -- at boot, on a change of the
+// system's light or dark, and on a sign-out: the writes that are no choice of the member's.
 export const THEME_MODE_STORAGE_KEY = 'gradido-theme-mode'
+
+const THEME_MODES = ['system', 'light', 'dark']
 
 /** Where the wallet keeps its own state in localStorage (store.js). */
 export const STATE_KEY = 'gradido-frontend'
@@ -163,7 +171,7 @@ export const useWalletStore = defineStore('wallet', {
       if (isNaN(pubId)) pubId = null
       this.publisherId = pubId
     },
-    // What an event link offered somebody who was not signed in (`/event?interest=…`,
+    // What an event link offered somebody who was not signed in (`/project?interest=…`,
     // utils/eventMatchingLink): the entry "I love ‹summary›", as `{ summary, details, remote,
     // keptAt }`, or null. Written where the wallet is entered (routes/guards.js), for the sign-in
     // that follows: the sign-in page takes it out and opens the form for a new entry with it
@@ -203,7 +211,7 @@ export const useWalletStore = defineStore('wallet', {
       this.darkMode = !!darkMode
     },
     setThemeMode(themeMode) {
-      this.themeMode = ['system', 'light', 'dark'].includes(themeMode) ? themeMode : 'system'
+      this.themeMode = THEME_MODES.includes(themeMode) ? themeMode : 'system'
     },
     setUserLocation(userLocation) {
       this.userLocation = userLocation
@@ -320,6 +328,12 @@ export const useWalletStore = defineStore('wallet', {
       // its way to the sign-in page -- with this, the next member to sign in here finds that way
       // empty.
       clearLinkDraft()
+      // And which thank-you received a transfer about to be made passes on (usePassOnDraft): the
+      // next member to sign in here makes no transfer that passes it on.
+      clearPassOnDraft()
+      // What this device keeps, not what this store held since it started: an open wallet would
+      // write its older mode over a choice made in the admin interface meanwhile.
+      this.adoptThemeModeFromDevice()
       const themeMode = this.themeMode
       // Remove only this app's own persisted state. The token is not in this blob -- the
       // `setToken` above has removed it from where both apps keep it, and with it the
@@ -346,6 +360,9 @@ export const useWalletStore = defineStore('wallet', {
       forgetAllTransactionPictures()
       // Same reason, same moment: the hearts are one member's, not the device's.
       forgetFavorites()
+      // And the notes being saved (utils/userNoteSaves): a member's own note on a person or a group
+      // is theirs alone, and a save still on its way must not go out with the next session.
+      forgetUserNotes()
       // And the contacts the right-hand column holds, which name the people this member has
       // exchanged Gradido with -- the next member on this browser must not be handed them.
       forgetContactsPanel()
@@ -408,6 +425,26 @@ export const useWalletStore = defineStore('wallet', {
       // Kept at the end on purpose: everything above is local clean-up and stays
       // synchronous, so a caller that does not await still gets all of it.
       await clearApolloCache()
+    },
+    // Before every apply that is no choice of the member's -- at boot (main.js), on a change of
+    // the system's light or dark (App.vue), on a sign-out: the mode this device keeps under
+    // THEME_MODE_STORAGE_KEY wins over the one this store holds. The admin interface writes that
+    // key as well; without this, applyTheme would mirror an older mode over a choice made there.
+    // Not inside applyTheme itself: the settings page calls it right after setThemeMode, and it
+    // would put the old key back over the fresh choice. A key that is missing or unknown leaves
+    // the store's mode.
+    adoptThemeModeFromDevice() {
+      let stored = null
+      try {
+        if (typeof localStorage !== 'undefined') {
+          stored = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+        }
+      } catch (e) {
+        // storage can be unavailable (private mode); the blob's mode stays
+      }
+      if (THEME_MODES.includes(stored) && stored !== this.themeMode) {
+        this.setThemeMode(stored)
+      }
     },
     // Compute the effective dark mode from the device-local themeMode
     // (system | light | dark) plus the OS preference, then set the darkMode flag

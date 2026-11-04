@@ -120,7 +120,7 @@ const onSubmit = handleSubmit(async (values) => {
     // keeps it for the next one.
     const back = store.redirectPath
     store.setRedirectPath('/overview')
-    // What an event link offered in this browser before anybody was signed in (`/event?…`,
+    // What an event link offered in this browser before anybody was signed in (`/project?…`,
     // routes/guards.js) is taken ONCE as well, by the sign-in that follows the link: used
     // below, or let go. Nobody was signed in when it was kept, so nothing says whose it is --
     // left in the store, it would be made for whoever signs in here next. And only if

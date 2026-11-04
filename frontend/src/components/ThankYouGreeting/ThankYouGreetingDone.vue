@@ -24,12 +24,13 @@
         data-test="thank-you-greeting-done-motif"
       />
       <div class="tyg-done-head-text">
-        <h2 class="h4 mb-1" data-test="thank-you-greeting-done-title">
-          {{
-            recipientName
-              ? $t('thank-you-greeting.done.title-for', { name: recipientName })
-              : $t('thank-you-greeting.done.title')
-          }}
+        <h2
+          ref="titleElement"
+          class="h4 mb-1 tyg-done-title"
+          tabindex="-1"
+          data-test="thank-you-greeting-done-title"
+        >
+          {{ title }}
         </h2>
         <div class="tyg-done-muted small" data-test="thank-you-greeting-done-waits">
           {{ $t('thank-you-greeting.done.waits-until', { date: $d(validUntilDate, 'short') }) }}
@@ -38,8 +39,12 @@
     </div>
 
     <div class="tyg-done-card bg-white app-box-shadow gradido-border-radius">
+      <!-- Where an address is known the card holds the mail to it and nothing else (Bernd,
+           02.11.2026): the member came for that, and the other buttons stood in the way. Sharing,
+           copying and paper stay in the menu of the link in the list, as the page says below. -->
       <!-- The device's share sheet where it has one; elsewhere this copies the sentence. -->
       <BButton
+        v-if="!emailAddress"
         variant="gradido"
         class="tyg-done-button"
         data-test="thank-you-greeting-share"
@@ -47,7 +52,32 @@
       >
         {{ $t('gdd_per_link.share') }}
       </BButton>
+      <!-- A real link: the browser itself opens the mail program from the tap, and the tap puts
+           the picture into the clipboard (useSendByEmail). -->
       <BButton
+        :variant="emailAddress ? 'gradido' : 'outline-secondary'"
+        class="tyg-done-button"
+        :href="emailHref"
+        role="link"
+        aria-describedby="tyg-done-email-hint"
+        data-test="thank-you-greeting-email"
+        @click="copyPicture"
+      >
+        {{
+          emailAddress
+            ? $t('gdd_per_link.by-email-to', { address: emailAddress })
+            : $t('gdd_per_link.by-email')
+        }}
+      </BButton>
+      <p
+        id="tyg-done-email-hint"
+        class="tyg-done-email-hint tyg-done-muted mb-0"
+        data-test="thank-you-greeting-email-hint"
+      >
+        {{ emailHint }}
+      </p>
+      <BButton
+        v-if="!emailAddress"
         variant="outline-secondary"
         class="tyg-done-button"
         :disabled="!canCopyLink"
@@ -59,8 +89,14 @@
       <!-- On paper (ZE-017, F8): the same greeting as an A4 sheet that folds into a card. A group
            of its own under the two ways the link travels, with the sentence that says what
            becomes of the sheet. Neither button is taken away while a sheet is being made -- a
-           disabled button loses the keyboard's place; the composable makes one sheet of two taps. -->
-      <div class="tyg-done-paper" role="group" aria-labelledby="tyg-done-paper-title">
+           disabled button loses the keyboard's place; the composable makes one sheet of two taps.
+           ⛔ Only a greeting goes onto paper: a plain link has its cheque, elsewhere. -->
+      <div
+        v-if="isGreeting && !emailAddress"
+        class="tyg-done-paper"
+        role="group"
+        aria-labelledby="tyg-done-paper-title"
+      >
         <div
           id="tyg-done-paper-title"
           class="tyg-done-paper-title"
@@ -96,12 +132,24 @@
     </div>
 
     <div class="tyg-done-sentence page-text">
-      <div class="tyg-done-label">{{ $t('thank-you-greeting.done.sentence-lead') }}</div>
+      <div class="tyg-done-label">
+        {{
+          isGreeting
+            ? $t('thank-you-greeting.done.sentence-lead')
+            : $t('thank-you-greeting.done.sentence-lead-plain')
+        }}
+      </div>
       <!-- Exactly what goes out, so what the member reads here is what arrives. -->
       <blockquote class="tyg-done-quote" data-test="thank-you-greeting-share-text">
         {{ linkText }}
       </blockquote>
-      <p class="tyg-done-muted small mb-0">{{ $t('thank-you-greeting.done.edit-hint') }}</p>
+      <p class="tyg-done-muted small mb-0">
+        {{
+          isGreeting
+            ? $t('thank-you-greeting.done.edit-hint')
+            : $t('thank-you-greeting.done.edit-hint-plain')
+        }}
+      </p>
     </div>
 
     <div class="tyg-done-foot tyg-done-muted small page-text">
@@ -156,13 +204,20 @@
  *
  * "Noch einen für jemand anderen" makes nothing here: it asks the page for a new greeting
  * (`another`), and the page begins one with what this one carried.
+ *
+ * "Per E-Mail" opens the member's own mail program (useSendByEmail). The send form leads here too,
+ * for a thank-you to somebody without an account (pages/Send.vue): with the address in
+ * `emailAddress`, where the mail is all the card holds, and without a greeting where no picture was
+ * chosen -- a plain link, whose text then carries the amount and the message.
  */
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '@/store/useWalletStore'
 import { BButton } from 'bootstrap-vue-next'
 import { useCopyLinks } from '@/composables/useCopyLinks'
+import { useSendByEmail } from '@/composables/useSendByEmail'
 import { useThankYouGreetingSheet } from '@/composables/useThankYouGreetingSheet'
+import { focusStepHeading } from '@/utils/focusStepHeading'
 import { memberAlias } from '@/utils/gradidoAddress'
 import {
   THANK_YOU_MOTIF_HEIGHT,
@@ -174,6 +229,8 @@ const props = defineProps({
   // `createTransactionLink` as it answered: link, amount, memo, validUntil, greeting -- and
   // `picture`, the photo as the page made it, where the greeting carries one.
   created: { type: Object, required: true },
+  // Whom the mail is for, where the member named somebody: only in the memory of the page.
+  emailAddress: { type: String, default: '' },
 })
 
 const emit = defineEmits(['another'])
@@ -181,6 +238,7 @@ const emit = defineEmits(['another'])
 const { t } = useI18n()
 const store = useWalletStore()
 
+const isGreeting = computed(() => Boolean(props.created.greeting))
 const motif = computed(() => thankYouMotif(props.created.greeting?.motif, t))
 const hasPhoto = computed(() => props.created.greeting?.hasPicture === true)
 // Whose photo it is, by the name the card shows: the member's own user name (NU-021).
@@ -190,15 +248,49 @@ const photoAlt = computed(() =>
   }),
 )
 const recipientName = computed(() => props.created.greeting?.recipientName ?? '')
+const title = computed(() => {
+  if (props.emailAddress) {
+    return t('thank-you-greeting.done.title-for-address', { address: props.emailAddress })
+  }
+  if (!isGreeting.value) return t('thank-you-greeting.done.title-plain')
+  return recipientName.value
+    ? t('thank-you-greeting.done.title-for', { name: recipientName.value })
+    : t('thank-you-greeting.done.title')
+})
 const validUntilDate = computed(() => new Date(props.created.validUntil))
 
 // A greeting that is made does not change: the composable takes it as it is now.
-const { canCopyLink, copyLink, linkText, share } = useCopyLinks({
+// ⚠️ `null` for a plain link, not an empty object: that is true, and would give it the greeting's
+// sentence, without the amount and without the words.
+const { canCopyLink, copyLink, linkText, shortLinkText, share } = useCopyLinks({
   link: props.created.link,
   amount: props.created.amount,
   memo: props.created.memo,
   validUntil: props.created.validUntil,
-  greeting: props.created.greeting ?? {},
+  greeting: props.created.greeting ?? null,
+})
+
+// The picture for the clipboard: the one this page shows. Made as soon as the view stands, because
+// the tap has to write it at once.
+const {
+  href: emailHref,
+  hint: emailHint,
+  copyPicture,
+  preparePicture,
+} = useSendByEmail({
+  text: linkText,
+  shortText: shortLinkText,
+  greeting: props.created.greeting ?? null,
+  address: () => props.emailAddress,
+  picture: () => (hasPhoto.value ? props.created.picture : null) ?? motif.value?.src ?? null,
+})
+// From the send form this is a step of that page, without a change of address to bring it into view
+// and with the button that led here gone: the title takes the focus (the way of a greeting has its
+// own page for this).
+const titleElement = ref(null)
+onMounted(() => {
+  preparePicture()
+  if (props.emailAddress) focusStepHeading(titleElement.value)
 })
 
 // The same greeting on paper. This page can offer a second tap where the share sheet wants one.
@@ -242,6 +334,11 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
 .tyg-done-head-text {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* A heading is no control: it takes the focus for the screen reader, and shows no frame for it. */
+.tyg-done-title {
+  outline: none;
 }
 
 .tyg-done-muted {
@@ -291,6 +388,11 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
 .tyg-done-button {
   align-self: center;
   width: min(24rem, 100%);
+
+  /* An address on the button is one unbreakable run unless it has a hyphen: without this it leaves
+     the button and the card on a phone, white on white once past the gold. */
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 /* A line of text, not a third button: as wide as its words, in the middle. */
@@ -301,12 +403,18 @@ const { saveWaits, printGreetingSheet, saveGreetingSheet } = useThankYouGreeting
 }
 
 /* What becomes of the sheet, in lines an eye can follow. */
-.tyg-done-paper-hint {
+.tyg-done-paper-hint,
+.tyg-done-email-hint {
   align-self: center;
   max-width: 34rem;
   margin-top: 2px;
   font-size: 0.8125rem;
   text-align: center;
+}
+
+/* What the tap does, under its button: lines of about the same length, no word alone on the last. */
+.tyg-done-email-hint {
+  text-wrap: balance;
 }
 
 .tyg-done-label {

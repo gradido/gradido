@@ -101,9 +101,9 @@ afterEach(() => {
 
 describe('EventMatchingBuilder', () => {
   describe('before the host has written a name', () => {
-    it('suggests the word "Kongress" with a space behind it', () => {
+    it('suggests the word "Projekt" with a space behind it', () => {
       mountBuilder()
-      expect(field('sentence').element.value).toBe('Kongress ')
+      expect(field('sentence').element.value).toBe('Projekt ')
     })
 
     it('shows a quiet line where the result will stand, and draws nothing', async () => {
@@ -116,8 +116,8 @@ describe('EventMatchingBuilder', () => {
     })
 
     // "More than the suggestion" is the rule, and the suggestion is a word, not a prefix one
-    // has to keep: an empty field and the bare word both say nothing about any event.
-    it.each([[''], ['   '], ['Kongress'], ['Kongress   ']])(
+    // has to keep: an empty field and the bare word both say nothing about any project.
+    it.each([[''], ['   '], ['Projekt'], ['Projekt   ']])(
       'takes %j for no name at all',
       async (sentence) => {
         mountBuilder()
@@ -153,10 +153,10 @@ describe('EventMatchingBuilder', () => {
 
     it('asks for the name first, whether or not the details are there', async () => {
       mountBuilder()
-      await write('Kongress ', '')
+      await write('Projekt ', '')
       expect(field('waiting').text()).toBe(de.eventMatching.builder.waiting)
 
-      await write('Kongress ', 'Selbstheilung')
+      await write('Projekt ', 'Selbstheilung')
       expect(field('waiting').text()).toBe(de.eventMatching.builder.waiting)
     })
 
@@ -181,7 +181,7 @@ describe('EventMatchingBuilder', () => {
   describe('the sentence as a guest will read it', () => {
     it('stands under the field, in quotation marks, and follows the typing', async () => {
       mountBuilder()
-      expect(field('preview').text()).toBe('„Ich liebe Kongress“')
+      expect(field('preview').text()).toBe('„Ich liebe Projekt“')
 
       await write('Kongress Frequency Healing')
       expect(field('preview').text()).toBe('„Ich liebe Kongress Frequency Healing“')
@@ -214,7 +214,7 @@ describe('EventMatchingBuilder', () => {
 
       // The whole string: nothing in front, nothing behind.
       expect(link()).toBe(
-        `${HOME}/event?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
+        `${HOME}/project?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
       )
     })
 
@@ -279,7 +279,7 @@ describe('EventMatchingBuilder', () => {
       mountBuilder()
       await write('Kongress Frequency Healing')
 
-      expect(link().startsWith(`${HOME}/event?interest=`)).toBe(true)
+      expect(link().startsWith(`${HOME}/project?interest=`)).toBe(true)
     })
 
     it('stands on the address in the address bar where the configuration names none', async () => {
@@ -287,7 +287,7 @@ describe('EventMatchingBuilder', () => {
       mountBuilder()
       await write('Kongress Frequency Healing')
 
-      expect(link().startsWith(`${window.location.origin}/event?interest=`)).toBe(true)
+      expect(link().startsWith(`${window.location.origin}/project?interest=`)).toBe(true)
     })
   })
 
@@ -504,7 +504,7 @@ describe('EventMatchingBuilder', () => {
         mountBuilder()
         await type('Kongress A')
         await wait(PAUSE - 1)
-        await type('Kongress ')
+        await type('Projekt ')
         await wait(PAUSE * 3)
 
         expect(renderQrCodeCanvas).not.toHaveBeenCalled()
@@ -515,7 +515,7 @@ describe('EventMatchingBuilder', () => {
         await write('Kongress A')
         expect(field('code-picture').exists()).toBe(true)
 
-        await type('Kongress ')
+        await type('Projekt ')
         await type('Kongress B')
 
         // Until the new one is drawn the box is empty rather than showing the code of "A".
@@ -541,8 +541,8 @@ describe('EventMatchingBuilder', () => {
         await write('Kongress A')
         await write('Kongress AB')
         expect(held.map((drawing) => drawing.address)).toEqual([
-          `${HOME}/event?interest=Kongress+A&details=Selbstheilung&remote=1&v=1`,
-          `${HOME}/event?interest=Kongress+AB&details=Selbstheilung&remote=1&v=1`,
+          `${HOME}/project?interest=Kongress+A&details=Selbstheilung&remote=1&v=1`,
+          `${HOME}/project?interest=Kongress+AB&details=Selbstheilung&remote=1&v=1`,
         ])
 
         held[1].finish()
@@ -635,7 +635,7 @@ describe('EventMatchingBuilder', () => {
         expect(saved).toEqual([
           {
             href: field('code-picture').attributes('src'),
-            download: 'gradido-event-matching.png',
+            download: 'gradido-project-matching.png',
           },
         ])
         expect(saved[0].href).toContain(`code=${link()}`)
@@ -842,7 +842,7 @@ describe('EventMatchingBuilder', () => {
         await write('Kongress Frequency Healing')
 
         expect(link()).toBe(
-          `${HOME}/event?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
+          `${HOME}/project?interest=Kongress+Frequency+Healing&details=Selbstheilung&remote=1&v=1`,
         )
         expect(field('mail').element.value.endsWith(`\n${link()}`)).toBe(true)
       })
@@ -999,7 +999,7 @@ describe('EventMatchingBuilder', () => {
       i18n.global.locale.value = 'en'
       await flushPromises()
 
-      expect(field('sentence').element.value).toBe('Congress ')
+      expect(field('sentence').element.value).toBe('Project ')
       expect(field('result').exists()).toBe(false)
     })
 
@@ -1014,14 +1014,14 @@ describe('EventMatchingBuilder', () => {
     })
 
     // The host took the space away, so the field counts as written in and stays. But the bare
-    // word of the language before is nobody's event in the new language either.
+    // word of the language before is nobody's project in the new language either.
     it('does not take the suggested word of the language before for a name', async () => {
       mountBuilder()
-      await write('Kongress')
+      await write('Projekt')
       i18n.global.locale.value = 'en'
       await flushPromises()
 
-      expect(field('sentence').element.value).toBe('Kongress')
+      expect(field('sentence').element.value).toBe('Projekt')
       expect(field('result').exists()).toBe(false)
     })
 
@@ -1029,12 +1029,12 @@ describe('EventMatchingBuilder', () => {
     // suggested to them.
     it('takes what the host then writes, whatever word it is', async () => {
       mountBuilder()
-      await write('Kongress')
+      await write('Projekt')
       i18n.global.locale.value = 'en'
       await flushPromises()
-      await write('Congress')
+      await write('Project')
 
-      expect(query().interest).toBe('Congress')
+      expect(query().interest).toBe('Project')
     })
 
     it('follows the language again and again while the field stays untouched', async () => {
@@ -1044,7 +1044,7 @@ describe('EventMatchingBuilder', () => {
       i18n.global.locale.value = 'de'
       await flushPromises()
 
-      expect(field('sentence').element.value).toBe('Kongress ')
+      expect(field('sentence').element.value).toBe('Projekt ')
       expect(field('result').exists()).toBe(false)
     })
   })

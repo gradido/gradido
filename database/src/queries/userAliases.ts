@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { and, eq, inArray, isNull, like } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order, Result } from 'shared'
 import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
@@ -78,11 +78,8 @@ export async function dbFindOldestChosenAliasSince(
 /** Record that this name now belongs to the member. */
 export async function dbInsertUserAlias(
   userAlias: UserAliasInsert,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<Result<number, DBInsertFailed<UserAliasInsert> | DBDuplicateEntryError>> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   try {
     const rows = await tx.insert(userAliasesTable).values(userAlias)
     const firstRow = rows[0]
@@ -100,33 +97,6 @@ export async function dbInsertUserAlias(
     }
     throw error
   }
-}
-
-// Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
-export async function dbRemoveUserAlias(userAliasId: number): Promise<number> {
-  if (userAliasId) {
-    const rows = await drizzleDb()
-      .delete(userAliasesTable)
-      .where(eq(userAliasesTable.id, userAliasId))
-    return rows[0] ? rows[0].affectedRows : 0
-  }
-  return 0
-}
-
-/**
- * The members who own a name containing this text - their current alias or one they held
- * before - each id once. This is how the admin search finds somebody by username, the way
- * `dbFindUserIdsByEmailLike` finds them by address. Deleted members are included; the
- * user query decides who is shown.
- *
- * `%` and `_` in the text act as wildcards, as they do in the name and address branches.
- */
-export async function dbFindUserIdsByAliasLike(searchCriteria: string): Promise<number[]> {
-  const rows = await drizzleDb()
-    .select({ userId: userAliasesTable.userId })
-    .from(userAliasesTable)
-    .where(like(userAliasesTable.alias, `%${searchCriteria}%`))
-  return [...new Set(rows.map((row) => row.userId))]
 }
 
 /**
@@ -189,4 +159,15 @@ export async function dbFindUserAliasesExisting(
  */
 export async function dbMarkAliasAdopted(id: number): Promise<void> {
   await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_ADOPTED })
+}
+
+// One statement for all the rows it is given
+export async function dbInsertUserAliases(
+  userAliases: UserAliasInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (userAliases.length === 0) {
+    return
+  }
+  await tx.insert(userAliasesTable).values(userAliases)
 }

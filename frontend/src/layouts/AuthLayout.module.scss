@@ -1,0 +1,100 @@
+/* left  */
+.leftContentBox {
+  width: 40%;
+  top: 0;
+  bottom: 0;
+}
+
+.bgImgBox {
+  top: 0;
+  bottom: 0;
+}
+
+/* right */
+.rightContentBox {
+  max-width: 640px;
+}
+
+.pageFontSize {
+  font-size: 1rem;
+}
+
+/* The greeting is the page's message. App.vue sets `#app` to 0.85rem up to 500px -- on every
+   phone -- so there it stood at 13.6px, smaller than in any wider window. It keeps its 16px
+   (Bernd, 22.09.2026). The community's name has a size of its own (.h1). */
+.authGreeting {
+  font-size: 1rem;
+}
+
+/* The gap between the greeting and the card: 24px, and 40px on a phone, where the greeting
+   stood pressed between the top row and the card (Bernd, 22.09.2026). Here rather than as a
+   utility class on the card: there is no 40px one, and its !important would beat this. */
+.authCard {
+  margin-top: 1.5rem;
+}
+
+@media (width <= 767.98px) {
+  .authCard {
+    margin-top: 2.5rem;
+  }
+}
+
+/* Where a route leaves the greeting out, the card stands 24px under the top row on a phone
+   as well: the 40px were the greeting's air, and there is no greeting to give it to. */
+@media (width <= 767.98px) {
+  .authCard.authCardWithoutGreeting {
+    margin-top: 1.5rem;
+  }
+}
+
+/* The card body already keeps the fields 24px off the card's edge, as every box in the
+   wallet does. The pages inside it wrap their form in a BContainer, whose own 12px came
+   on top -- the second margin inside the card. Below md it goes; from md up the card
+   stands in a narrower column and the old measure is left alone. */
+@media (width <= 767.98px) {
+  .authTemplate .cardBody :global(.container) {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+.authTemplate {
+  overflow-x: hidden;
+}
+
+.bgTxtBox {
+  margin-top: 520px;
+  text-shadow: 2px 2px 8px #000;
+  max-width: 733px;
+}
+
+.bgImg {
+  border-radius: 0% 50% 70% 0% / 50% 70% 70% 50%;
+  overflow: hidden;
+}
+
+.svgType:hover {
+  filter: invert(38%) sepia(18%) saturate(5307%) hue-rotate(179deg) brightness(89%) contrast(89%);
+}
+
+@media screen and (width >= 2000px) {
+  .rightContentBox {
+    max-width: 60%;
+    font-size: xx-large;
+  }
+}
+
+/* What the component's elements hold, as the scoped `:deep` rules reached it: the popover is
+   rendered inside the layout, not moved to the body. */
+.authTemplate :global(.b-avatar.text-bg-secondary) {
+  background-color: transparent !important;
+}
+
+.authTemplate :global(.popover-body) {
+  background-color: #383838;
+}
+
+.authTemplate :global(.popover-arrow)::after,
+.authTemplate :global(.popover-arrow)::before {
+  border-top-color: #383838;
+}

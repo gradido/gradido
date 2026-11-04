@@ -19,7 +19,6 @@
     "signature-missing": "Your signature is not set yet — you can enter it in the Crea window of any contribution."
   },
   "alias": "Alias",
-  "all_emails": "All users",
   "appOutdated": {
     "reload": "Reload",
     "text": "A newer version is available."
@@ -118,10 +117,17 @@
     "changeGroupDone": "Creation group changed.",
     "changeGroupHint": "Depending on your visible groups, the contribution may no longer appear in your list.",
     "changeGroupQuestion": "Move this contribution from {from} to {to}?",
+    "confirm": "Confirm",
     "confirmedBy": "Confirmed by {name}.",
     "createdBy": "Created by {name}.",
     "deletedBy": "Deleted by {name}.",
     "deniedBy": "Rejected by {name}.",
+    "detailsState": {
+      "answer": "the member's answer",
+      "changed": "changed by the member",
+      "conversation": "conversation",
+      "question": "question asked"
+    },
     "noGroup": "(no group)"
   },
   "contributionLink": {
@@ -148,6 +154,7 @@
       }
     },
     "saveChange": "Save Changes",
+    "show": "Show link",
     "validFrom": "Start-date",
     "validTo": "End-Date"
   },
@@ -198,6 +205,8 @@
     "memoTooLong": "The contribution text is too long (max. {max} characters) – please shorten it a little.",
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
+    "readsRemark": "Crea reads along",
+    "readsRemarkHint": "Only switch on if the remarks contain no personal data!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Resubmission",
@@ -295,9 +304,8 @@
   "createdAt": "Created at",
   "creation": "Creation",
   "creationGroupFilter": {
-    "all": "(all)",
+    "all": "(with and without group)",
     "grouped": "(all groups)",
-    "label": "Creation group:",
     "untagged": "(no group)"
   },
   "creationGroupsAdmin": {
@@ -354,10 +362,18 @@
     "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
     "update_creation": "Creation update"
   },
+  "dashboard": {
+    "resubmission": "Also: {n} on resubmission",
+    "today": "Today: {n} open creations",
+    "todayNone": "Today: no open creations",
+    "todayOne": "Today: one open creation",
+    "waitingForMember": "{n} is waiting for the member | {n} are waiting for the member",
+    "waitingForModeration": "{n} is waiting for moderation | {n} are waiting for moderation",
+    "welcome": "Welcome to the admin area"
+  },
   "delete": "Delete",
   "delete_user": "Delete user",
   "deleted": "deleted",
-  "deleted_user": "All deleted user",
   "deny": "Reject",
   "description": "Description",
   "details": "Details",
@@ -400,6 +416,7 @@
       "accounts": "Accounts",
       "conversations": "Conversations",
       "firstCreation": "First thanks",
+      "greetings": "Thank-you greetings",
       "map": "Map",
       "thanks": "Thanking",
       "totals": "Totals"
@@ -409,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -426,8 +443,14 @@
       "firstCreationsDone": "First creations done",
       "firstCreationsReview": "First creations sent to review",
       "firstCreationsSkipped": "First creations skipped",
+      "firstSenders": "First-time senders (accounts with their first transfer)",
       "gddCreated": "GDD created",
       "gddSent": "GDD sent",
+      "greetingsAccepted": "Accepted",
+      "greetingsExpired": "Expired",
+      "greetingsSent": "Sent",
+      "greetingsWithAccount": "of which with a new account",
+      "greetingsWithPhoto": "of which with a photo of their own",
       "groupsNew": "New groups",
       "hellosFromMap": "Hello said from the map",
       "homesSet": "Home set",
@@ -435,18 +458,18 @@
       "membersOnMap": "People on the Gradido map (all communities)",
       "membersWithEntry": "People with an entry",
       "returners": "Returners (after 90 quiet days)",
+      "thanksAnswered": "Thanks answered (the recipient's reaction)",
+      "thanksPassedOn": "Thanks passed on",
       "totalGradidoAvailable": "Total GDD in circulation",
       "totalGradidoCreated": "Total GDD created, exact",
       "totalGradidoDecayed": "Total GDD decayed",
       "totalGradidoUnbookedDecayed": "decay not yet booked",
       "transfersSent": "Transfers sent",
+      "transfersWithPicture": "Transfers with a picture",
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Statistics",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -457,7 +480,7 @@
   "footer": {
     "app_version": "App version {version}",
     "copyright": {
-      "link": "Gradido Academy Admin Console",
+      "link": "Gradido Admin Area",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -508,7 +531,8 @@
     "request": "The entry has been saved."
   },
   "moderator": {
-    "history": "The data has been changed. This is the old data.",
+    "change": "Change",
+    "history": "This is the old data.",
     "memo": "Edit text",
     "memo-modified": "Text edited by {name}",
     "memo-tooltip": "Edit the text of the contribution",
@@ -517,11 +541,11 @@
     "moderator": "Moderator",
     "notice": "Note",
     "notice-tooltip": "The note is only visible to moderators",
-    "request": "This message is only visible to the moderators!",
     "show-submission-form": "wait for reminder?"
   },
   "name": "Name",
   "navbar": {
+    "appearance": "Appearance",
     "automaticContributions": "Starting balance",
     "chat": "Chat",
     "crea": "Crea",
@@ -531,9 +555,15 @@
     "logout": "Logout",
     "menu": "Menu",
     "my-account": "My Account",
-    "projectBranding": "Projects",
+    "projectBranding": "Project Branding",
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "settings": "Settings",
+    "statistic": "Statistics",
+    "theme": {
+      "dark": "Dark",
+      "light": "Light",
+      "system": "Follow system setting (default)"
+    },
     "user_search": "User search"
   },
   "notice": "Notice",
@@ -589,12 +619,31 @@
     "updated": "Project branding entry has been updated."
   },
   "redeemed": "redeemed",
+  "refresh": "Refresh",
   "registered": "Registered",
   "registered_at": "Registered at",
+  "remark": {
+    "done": "Done",
+    "failed": "Not saved.",
+    "failedClosed": "The remark on {name} was not saved.",
+    "label": "Remark",
+    "lastChanged": "Last changed by {name}, {date}",
+    "lastChangedNoName": "Last changed {date}",
+    "private": "All moderators see it, {name} does not.",
+    "privateWithCrea": "All moderators see it, {name} does not. Crea reads it only when asked to.",
+    "retry": "Try again",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "title": "Remark on {name}"
+  },
   "removeNotSelf": "As an admin/moderator, you cannot delete yourself.",
   "reset": "Reset",
   "save": "Save",
+  "search": {
+    "clear": "Clear the search"
+  },
   "send": "Send",
+  "show_details": "Show details",
   "status": "Status",
   "success": "Success",
   "text": "Text",
@@ -628,17 +677,20 @@
     "pending": "Change pending: confirmation requested for {email} on {date}",
     "replace": {
       "button": "Correct address",
+      "confirmed": "Address not corrected because it has been confirmed in the meantime. Only the member can change it now, in their settings.",
       "elopage_warning": "Caution: there are Elopage purchases under {email}. This account most likely came from the webhook – the address is then probably not a typo.",
+      "error": "Error correcting the address: {message}",
       "hint": "Only while the address was never confirmed (e.g. a typo at registration). The confirmation mail then goes to the corrected address.",
+      "invalid": "Address not corrected because {email} is not a valid e-mail address.",
       "placeholder": "Corrected e-mail address",
       "success": "Address corrected and confirmation mail sent to {email}.",
+      "taken": "Address not corrected because {email} already belongs to an account. A deleted account keeps its address too. Search for the address in the user search above.",
       "title": "Correct a never-confirmed address"
     },
     "success": "Successfully send the confirmation link to the user's email! ({email})",
     "text_false": "The last email was sent to the member ({email}) on {date}.",
     "text_true": "The email was confirmed."
   },
-  "unregistered_emails": "Only unregistered users",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -671,6 +723,18 @@
     },
     "successfullyChangedTo": "User is now \"{role}\".",
     "tabTitle": "User Role"
+  },
+  "userSearch": {
+    "hits": "{count} match | {count} matches",
+    "tabs": {
+      "all": "All",
+      "deleted": "Deleted",
+      "enabled": "Enabled",
+      "unconfirmed": "Unconfirmed"
+    }
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail not confirmed"
   },
   "user_deleted": "User is deleted.",
   "user_memo_search": "User and text search",

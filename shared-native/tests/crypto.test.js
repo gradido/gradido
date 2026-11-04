@@ -7,6 +7,9 @@ const {
   signKeyPairDeriveUuid,
   signKeyPairDerive,
   hashGeneric,
+  hashGenericBase64,
+  signatureVerify,
+  Ed25519KeyPair,
 } = require('../')
 
 const communitySeed = 'a84bfff0cb3195357b03c0aeb90306da50bc88e73b9437a70cc8e7d6d091af40'
@@ -129,6 +132,38 @@ describe('Crypto', () => {
       }
     })
   })
+  describe('signatureVerify', () => {
+    const keyPair = Ed25519KeyPair.generate()
+    const publicKey = keyPair.publicKeyToBuffer()
+    const message = Buffer.from('gradido')
+    const signature = keyPair.sign(message)
+
+    it('accepts the signature of the key over the message', () => {
+      assert.equal(signatureVerify(message, signature, publicKey), true)
+    })
+    it('refuses another message', () => {
+      assert.equal(signatureVerify(Buffer.from('gradidO'), signature, publicKey), false)
+    })
+    it('refuses another key', () => {
+      const other = Ed25519KeyPair.generate().publicKeyToBuffer()
+      assert.equal(signatureVerify(message, signature, other), false)
+    })
+    it('throws for arguments of the wrong type or size', () => {
+      assert.throws(
+        () => signatureVerify('gradido', signature, publicKey),
+        /message to be a Uint8Array/,
+      )
+      assert.throws(
+        () => signatureVerify(message, signature.subarray(0, 63), publicKey),
+        /signature to be 64 bytes, got 63/,
+      )
+      assert.throws(
+        () => signatureVerify(message, signature, publicKey.subarray(0, 31)),
+        /publicKey to be 32 bytes, got 31/,
+      )
+      assert.throws(() => signatureVerify(message, signature), /publicKey to be a Uint8Array/)
+    })
+  })
   describe('hash', () => {
     it('generic hash', () => {
       const result = hashGeneric(new Uint8Array(Buffer.from(communitySeed, 'hex')))
@@ -136,6 +171,20 @@ describe('Crypto', () => {
         Buffer.from(result).toString('hex'),
         '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e',
       )
+    })
+    it('generic hash as base64', () => {
+      const result = hashGenericBase64(new Uint8Array(Buffer.from(communitySeed, 'hex')))
+      assert.equal(
+        Buffer.from(result, 'base64').toString('hex'),
+        '2032a0d175ae01d934dd892c175bedd45232b7681aebd02b3595924cd9a8112e',
+      )
+    })
+    it('generic hash as base64 of a string is the one of its UTF-8 bytes', () => {
+      assert.equal(hashGenericBase64('Grüße'), hashGenericBase64(Buffer.from('Grüße', 'utf8')))
+    })
+    it('generic hash as base64 refuses anything else', () => {
+      assert.throws(() => hashGenericBase64(1), TypeError)
+      assert.throws(() => hashGenericBase64(), TypeError)
     })
   })
 })

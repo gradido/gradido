@@ -68,6 +68,8 @@ export const useAdminStore = defineStore('admin', {
       closeMemberAvatarZoom()
       // Whom this moderator is in contact with: theirs, and nobody's who signs in next.
       forgetModeratorContacts()
+      // Not the last searches of the user search and the creation page (utils/lastSearch.ts):
+      // kept for each moderator, they wait for them without end (Bernd, 26.10.2026).
       // Remove only the admin's own persisted state. The token is not in this blob -- setToken
       // above has removed it from where both apps keep it, and with it the wallet's session
       // (utils/authToken.ts). The wallet and admin share one origin, so localStorage.clear()

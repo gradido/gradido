@@ -16,10 +16,8 @@ export class ShowFriendsArrival {
    * them (ZE-010): the wallet hands this straight to the contact window.
    *
    * ⛔ No new disclosure, and that is why it is a field here rather than a question of
-   * its own. Where a member has not chosen a user name, `publicAlias` puts this very
-   * identifier in `alias` - so the tile has been showing it all along - and since the
-   * referral trace became the contact list's second source, the same caller is told the
-   * same arrival's identifier by `contactList` anyway.
+   * its own: since the referral trace became the contact list's second source, the same
+   * caller is told the same arrival's identifier by `contactList` anyway.
    *
    * ⚠️ The community is NOT here, and the wallet must not read one out of it: an arrival
    * is by construction a member of this community (`RegisterUserRole.prepareUser` writes the

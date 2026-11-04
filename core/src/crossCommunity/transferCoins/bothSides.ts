@@ -50,21 +50,21 @@ export function mapToPendingTx(
     return {
       ...pendingTx,
       amount: tx.amount.negated(),
-      linkedUserCommunityUuid: tx.recipientUser.communityUuid,
+      linkedUserCommunityUuid: tx.recipient.communityUuid,
       linkedUserGradidoId: recipientUserPublic.gradidoId,
       linkedUserName: recipientUserPublic.alias,
-      userCommunityUuid: tx.senderUser.communityUuid,
-      userGradidoId: tx.senderUser.gradidoId,
-      userName: tx.senderUser.alias,
+      userCommunityUuid: tx.sender.communityUuid,
+      userGradidoId: tx.sender.gradidoId,
+      userName: tx.sender.alias,
     }
   } else {
     return {
       ...pendingTx,
       amount: tx.amount,
-      linkedUserCommunityUuid: tx.senderUser.communityUuid,
-      linkedUserGradidoId: tx.senderUser.gradidoId,
-      linkedUserName: tx.senderUser.alias,
-      userCommunityUuid: tx.recipientUser.communityUuid,
+      linkedUserCommunityUuid: tx.sender.communityUuid,
+      linkedUserGradidoId: tx.sender.gradidoId,
+      linkedUserName: tx.sender.alias,
+      userCommunityUuid: tx.recipient.communityUuid,
       userGradidoId: recipientUserPublic.gradidoId,
       userName: recipientUserPublic.alias,
     }
@@ -94,8 +94,8 @@ function isPendingTransactionIdentical(
 
 export function mapTxToLog(tx: CrossGroupTransaction) {
   return {
-    user: tx.senderUser,
-    linkedUser: tx.recipientUser,
+    user: tx.sender,
+    linkedUser: tx.recipient,
     creationDate: tx.balanceDate.toISOString(),
     amount: tx.amount.toString(4),
     memo: tx.memo.substring(0, 5),
@@ -111,8 +111,8 @@ export async function findPendingTransaction(
   logger: Logger,
 ): Promise<Result<PendingTransactionSelect, CrossCommunityError>> {
   const pendingTx = await dbFindPendingTransaction(
-    transactionTypeId === TransactionTypeId.SEND ? tx.senderUser : recipientUser,
-    transactionTypeId === TransactionTypeId.SEND ? recipientUser : tx.senderUser,
+    transactionTypeId === TransactionTypeId.SEND ? tx.sender : recipientUser,
+    transactionTypeId === TransactionTypeId.SEND ? recipientUser : tx.sender,
     transactionTypeId,
     pendingTransactionState,
     tx.balanceDate,
@@ -123,8 +123,8 @@ export async function findPendingTransaction(
     if (logger.isDebugEnabled()) {
       logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx))
     }
-    const e = `missing pending transaction for commit on ${transactionTypeId === TransactionTypeId.SEND ? 'sender' : 'recipient'} side`
-    return xcomError(CrossCommunityErrorType.notFound, e)
+    const m = `missing pending transaction for commit on ${transactionTypeId === TransactionTypeId.SEND ? 'sender' : 'recipient'} side`
+    return xcomError(CrossCommunityErrorType.notFound, m)
   }
   return { success: true, value: pendingTx }
 }
@@ -151,17 +151,15 @@ export async function settlePendingTransaction(
       // make sure there wasn't slipped a transaction in between our draft and now
       const lastTransactionId = await dbGetLastTransactionId(tx)
       if (lastTransactionId !== null && lastTransactionId !== pendingTx.previous) {
-        return xcomError(
-          CrossCommunityErrorType.invalidTransactionOrder,
-          `lastTransationId=${lastTransactionId} != pendingTx.previous=${pendingTx.previous}`,
-        )
+        const m = `lastTransationId=${lastTransactionId} != pendingTx.previous=${pendingTx.previous}`
+        return xcomError(CrossCommunityErrorType.invalidTransactionOrder, m)
       }
       // remove id from pending tx, the rest can be simply copied over as transaction
       const { id, ...derivedTx } = pendingTx
       const insertResult = await dbInsertTransaction(derivedTx, tx)
       if (!insertResult.success) {
-        const e = `Couldn't insert pending tx: ${id} as transaction`
-        return xcomError(CrossCommunityErrorType.insertTxFailed, e)
+        const m = `Couldn't insert pending tx: ${id} as transaction`
+        return xcomError(CrossCommunityErrorType.insertTxFailed, m)
       }
       await dbUpdatePendingTransactionState(pendingTx.id, PendingTransactionState.SETTLED, tx)
       return { success: true as const }
@@ -183,10 +181,8 @@ export async function revertSettledTransaction(
   const result = await drizzleDb().transaction(async (tx) => {
     const lastTransaction = await dbGetLastTransactionForUser(pendingTx.userId, tx)
     if (!lastTransaction) {
-      return xcomError(
-        CrossCommunityErrorType.notFound,
-        `user ${pendingTx.userId} hasn't a transaction at all`,
-      )
+      const m = `user ${pendingTx.userId} hasn't a transaction at all`
+      return xcomError(CrossCommunityErrorType.notFound, m)
     }
 
     // the last Tx must be the equivalent to the pendingTX
@@ -199,8 +195,8 @@ export async function revertSettledTransaction(
       dbUpdatePendingTransactionState(pendingTx.id, PendingTransactionState.REVERTED, tx)
     } else {
       // TODO: if the last TX is not equivalent to pendingTX, the transactions must be corrected in EXPERT-MODE
-      const e = `revert settled tx with pending tx id: ${pendingTx.id} failed, lastTransaction with id: ${lastTransaction.id} wasn't identical`
-      return xcomError(CrossCommunityErrorType.unknown, e)
+      const m = `revert settled tx with pending tx id: ${pendingTx.id} failed, lastTransaction with id: ${lastTransaction.id} wasn't identical`
+      return xcomError(CrossCommunityErrorType.unknown, m)
     }
     return { success: true as const }
   })

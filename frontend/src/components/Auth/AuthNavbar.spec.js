@@ -5,8 +5,12 @@ import { walletStore } from '@test/walletStore'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
-import AuthNavbar from './AuthNavbar.vue'
+import { AuthNavbar } from './AuthNavbar'
+
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 const route = vi.hoisted(() => ({ current: { params: {}, query: {} } }))
 vi.mock('vue-router', () => ({
@@ -23,20 +27,18 @@ vi.mock('vue-router', () => ({
 const config = vi.hoisted(() => ({ COMMUNITY_URL: 'https://ki-playground.gradido.net' }))
 vi.mock('@/config', () => ({ default: config }))
 
-vi.mock('../Menu/NavItem.vue', () => ({
-  default: { name: 'NavItem', props: ['to'], template: '<li class="nav-item"><slot /></li>' },
+vi.mock('../Menu/NavItem', () => ({
+  NavItem: { name: 'NavItem', props: ['to'], template: '<li class="nav-item"><slot /></li>' },
 }))
 
 const mountWith = (darkMode, gradidoID = null) =>
   mount(AuthNavbar, {
     global: {
       plugins: [walletStore({ darkMode, gradidoID })],
-      components: { BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav },
       stubs: {
         BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' },
         RouterLink: RouterLinkStub,
       },
-      mocks: { $t: (key) => key },
     },
   })
 
@@ -198,47 +200,49 @@ describe('AuthNavbar', () => {
 
   describe('the stylesheet', () => {
     const source = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), 'AuthNavbar.vue'),
+      resolve(dirname(fileURLToPath(import.meta.url)), 'AuthNavbar.module.scss'),
       'utf8',
     )
     // Comments name the same properties; only declarations may count.
-    const css = source
-      .slice(source.indexOf('<style'), source.indexOf('</style>'))
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, '')
     const media = (width) => {
       const at = css.indexOf(`(width <= ${width})`)
       return at < 0 ? '' : css.slice(at, css.indexOf('\n}', at))
     }
 
     it('lets the row below lg be as tall as its logo and links', () => {
-      expect(media('1024.98px')).toMatch(/\.auth-header\s*\{[^}]*height:\s*auto;/)
-      expect(media('1024.98px')).toMatch(/\.auth-header > nav\s*\{[^}]*flex-wrap:\s*wrap;/)
+      expect(media('1024.98px')).toMatch(/\.authHeader\s*\{[^}]*height:\s*auto;/)
+      expect(media('1024.98px')).toMatch(/\.authHeader > nav\s*\{[^}]*flex-wrap:\s*wrap;/)
     })
 
     // Bernd, 22.09.2026: on a phone the logo had become too small. It takes the size halfway
     // to the desk's, and the links go to the row below it -- on every phone, not only where
     // they no longer fit beside it.
     it('makes the logo 45px high on a phone', () => {
-      expect(media('767.98px')).toMatch(/\.auth-logo-small\s*\{[^}]*height:\s*45px;/)
+      expect(media('767.98px')).toMatch(/\.authLogoSmall\s*\{[^}]*height:\s*45px;/)
     })
 
     it('puts the links in a row of their own below the logo on a phone', () => {
-      expect(media('767.98px')).toMatch(/:deep\(#nav-collapse\)\s*\{[^}]*flex-basis:\s*100%;/)
+      expect(media('767.98px')).toMatch(
+        /\.authHeader :global\(#nav-collapse\)\s*\{[^}]*flex-basis:\s*100%;/,
+      )
       // ... and from md up beside it, as before.
       expect(media('1024.98px')).not.toMatch(/flex-basis/)
     })
 
     // The logo is a link: a keyboard has to see it, in both modes.
     it('rings the logo when the keyboard is on it, in both modes', () => {
-      expect(css).toMatch(/\.auth-home:focus-visible\s*\{[^}]*outline:\s*2px solid #276e6f;/)
+      expect(css).toMatch(/\.authHome:focus-visible\s*\{[^}]*outline:\s*2px solid #276e6f;/)
       expect(css).toMatch(
-        /\.dark-mode \.auth-home:focus-visible\s*\{[^}]*outline-color:\s*#8ed0d1;/,
+        /:global\(\.dark-mode\) \.authHome:focus-visible\s*\{[^}]*outline-color:\s*#8ed0d1;/,
       )
     })
 
     it('keeps the links on the right, below the logo as beside it', () => {
       const everyWidth = css.slice(0, css.indexOf('@media'))
-      expect(everyWidth).toMatch(/:deep\(#nav-collapse\)\s*\{[^}]*justify-content:\s*flex-end;/)
+      expect(everyWidth).toMatch(
+        /\.authHeader :global\(#nav-collapse\)\s*\{[^}]*justify-content:\s*flex-end;/,
+      )
       expect(mountWith(true).find('.navbar-nav').classes()).toContain('ms-auto')
     })
   })

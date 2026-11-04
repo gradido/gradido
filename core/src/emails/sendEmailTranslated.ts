@@ -4,7 +4,7 @@ import { createTransport } from 'nodemailer'
 import path from 'path'
 import { CONFIG } from '../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { i18n, translateForMail } from '../locales/localization'
+import { translateForLocale } from '../locales/localization'
 import { humanTextParts } from '../logic/HumanText.logic'
 import chatboxIcon from './templates/includes/chatbox-icon.png'
 import facebookIcon from './templates/includes/facebook-icon.png'
@@ -27,7 +27,6 @@ export const sendEmailTranslated = async ({
   template: string
   locals: Record<string, unknown>
 }): Promise<Record<string, unknown> | boolean | null | Error> => {
-  // TODO: test the calling order of 'i18n.setLocale' for example: language of logging 'en', language of email receiver 'es', reset language of current user 'de'
   // What a mail is -- its template, the first letters of the address as the info line below has
   // them, the NAMES of its values -- and none of the values: they carry what members wrote (a
   // chat message, its subject, a group's name), names and addresses, and the links with a key in
@@ -40,13 +39,10 @@ export const sendEmailTranslated = async ({
     return null
   }
 
-  // because language of receiver can differ from language of current user who triggers the sending
-  // const rememberLocaleToRestore = i18n.getLocale()
-  i18n.setLocale('en') // for logging
   logger.info(
-    `send Email: language=${locals.locale as string} to=${receiver.to.substring(0, 3)}...` +
+    `send Email: language=${locals.language as string} to=${receiver.to.substring(0, 3)}...` +
       (receiver.cc ? `, cc=${receiver.cc.substring(0, 3)}...` : '') +
-      `, subject=${i18n.__('emails.' + template + '.subject')}`,
+      `, subject=${translateForLocale('en', `emails.${template}.subject`)}`,
   )
 
   if (CONFIG.EMAIL_TEST_MODUS) {
@@ -67,7 +63,6 @@ export const sendEmailTranslated = async ({
     },
   })
 
-  i18n.setLocale(locals.language as string) // for email
   // TESTING: see 'README.md'
   const email = new Email({
     message: {
@@ -145,15 +140,16 @@ export const sendEmailTranslated = async ({
           },
         ],
       },
-      // the 'locale' in here seems not to be used by 'email-template', because it doesn't work if the language isn't set before by 'i18n.setLocale'
+      // The receiver's language travels in the locals as `language`: `t` reads it, and layout.pug
+      // writes it as the `lang` of the html. The locale of the process stays untouched - it is
+      // whoever is logged in, not the receiver.
       // `humanTextParts` is what `+humanText(…)` (includes/humanText.pug) cuts a typed text with.
-      // `t` shadows the global one i18n registers: pug escapes every `= t(…)`, and the global
-      // one had escaped the values already - everything a person typed arrived escaped twice.
+      // `t` is not HTML-escaped: pug escapes every `= t(…)` itself (see translateForLocale).
       locals: {
         ...locals,
         humanTextParts,
         t: (key: string, values?: Record<string, unknown>) =>
-          translateForMail(locals.language as string, key, values),
+          translateForLocale(locals.language as string, key, values),
       },
     })
     .catch((error: unknown) => {

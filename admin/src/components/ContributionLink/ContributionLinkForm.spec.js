@@ -64,6 +64,7 @@ describe('ContributionLinkForm', () => {
   }
 
   const field = (name) => wrapper.find(`.test-${name}`)
+  const cycle = () => wrapper.findAll('select')[0]
   const fillIn = async (values) => {
     for (const [name, value] of Object.entries(values)) {
       await field(name).setValue(value)
@@ -103,6 +104,14 @@ describe('ContributionLinkForm', () => {
         expect(field(name).element.value, name).toBe('')
       }
     })
+
+    // The server needs a cycle for a new link. A reset took it away, the select stood empty, and
+    // creating a link failed (measured in the built admin, 23.10.2026).
+    it('sets the cycle to once again', async () => {
+      await cycle().setValue('DAILY')
+      await wrapper.find('form').trigger('reset')
+      expect(cycle().element.value).toBe('ONCE')
+    })
   })
 
   describe('submit', () => {
@@ -141,6 +150,24 @@ describe('ContributionLinkForm', () => {
       expect(field('name').element.value).toBe('')
       expect(wrapper.emitted('close-contribution-form')).toHaveLength(1)
       expect(wrapper.emitted('get-contribution-links')).toHaveLength(1)
+    })
+
+    it('creates the next link with the cycle once as well', async () => {
+      mockMutate.mockResolvedValue({
+        data: { createContributionLink: { link: 'https://localhost/redeem/CL-1a2345678' } },
+      })
+
+      await submit()
+      await fillIn(validFormData)
+      await submit()
+
+      expect(mockMutate).toHaveBeenCalledTimes(2)
+      expect(mockMutate).toHaveBeenLastCalledWith({
+        ...validFormData,
+        cycle: 'ONCE',
+        maxAmountPerMonth: '0',
+        id: null,
+      })
     })
 
     it('toasts an error message on API error', async () => {
@@ -209,6 +236,83 @@ describe('ContributionLinkForm', () => {
     it('offers to save the change', () => {
       expect(wrapper.find('button[type="submit"]').text()).toBe('contributionLink.saveChange')
     })
+
+    // The list hands over the row Apollo answered, and Apollo freezes it: writing the trimmed
+    // dates into it threw, and both date fields stayed empty (measured in the built admin,
+    // 23.10.2026). The form takes a copy.
+    it('a frozen row fills the form without being written to', async () => {
+      const row = Object.freeze({ ...linkToEdit, id: 8, name: 'Frozen' })
+      await wrapper.setProps({ contributionLinkData: row })
+
+      expect(field('name').element.value).toBe('Frozen')
+      expect(field('validFrom').element.value).toBe('2022-04-01')
+      expect(field('validTo').element.value).toBe('2022-08-01')
+    })
+
+    // The copy's second purpose, with a row that is not frozen: what is typed stays out of the
+    // list's row until it is saved, and the row keeps its own dates. Writing into the row put the
+    // typed name and the trimmed dates into the list before anything was saved.
+    it('keeps what is typed out of the row it edits, and saves it', async () => {
+      const row = { ...linkToEdit, id: 9 }
+      await wrapper.setProps({ contributionLinkData: row })
+      await field('name').setValue('Typed')
+
+      expect(row).toEqual({ ...linkToEdit, id: 9 })
+      mockMutate.mockResolvedValue({ data: { updateContributionLink: { link: 'ignored' } } })
+      await submit()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 9,
+          name: 'Typed',
+          validFrom: '2022-04-01',
+          validTo: '2022-08-01',
+        }),
+      )
+    })
+
+    // Closing the edit hands over an empty object: the form is a new link's again. It took the
+    // empty object instead -- no cycle, the select empty, and no dates the form would miss
+    // (measured in the built admin, 23.10.2026).
+    it('closing it leaves a new link, with the cycle once', async () => {
+      await cycle().setValue('DAILY')
+      await wrapper.setProps({ contributionLinkData: {}, editContributionLink: false })
+
+      expect(field('name').element.value).toBe('')
+      expect(cycle().element.value).toBe('ONCE')
+      await submit()
+      expect(mockToastError).toHaveBeenCalledWith('contributionLink.noStartDate')
+      expect(mockMutate).not.toHaveBeenCalled()
+    })
+  })
+
+  // On a phone the two dates and the two cycle fields stand under each other, each in the whole
+  // width; from 992px on side by side, as before. The real grid makes the classes.
+  it('the date and cycle pairs stack below the boundary', () => {
+    const columnOf = (element) => element.closest('.row > div')
+    const cycles = wrapper.findAll('select').map((select) => columnOf(select.element))
+    const dates = [field('validFrom').element, field('validTo').element].map(columnOf)
+    expect(cycles).toHaveLength(2)
+    for (const column of [...dates, ...cycles]) {
+      expect([...column.classList].sort()).toEqual(['col-12', 'col-lg-6'])
+    }
+    // The form's margin: 8px on a phone, the 48px of before from 992px on.
+    expect(wrapper.find('form').classes()).toEqual(expect.arrayContaining(['m-2', 'm-lg-5']))
+    expect(wrapper.find('form').classes()).not.toContain('m-5')
+  })
+
+  // On a phone the buttons wrap with room between them; from 992px on the row of before.
+  it('lets its buttons wrap on a phone', () => {
+    const row = wrapper.find('button[type="submit"]').element.parentElement
+    expect([...row.classList]).toEqual(
+      expect.arrayContaining(['d-flex', 'flex-wrap', 'gap-2', 'd-lg-block']),
+    )
+    const buttons = [...row.querySelectorAll('button')]
+    expect(buttons.map((button) => button.classList.contains('me-lg-2'))).toEqual([
+      true,
+      true,
+      false,
+    ])
+    expect(buttons.some((button) => button.classList.contains('me-2'))).toBe(false)
   })
 
   it('offers to create a link', () => {

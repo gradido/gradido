@@ -186,6 +186,13 @@
       "subject": "{senderAlias} hat Deinen Dank angenommen",
       "title": "{senderAlias} hat Deinen Dank angenommen"
     },
+    "transactionReactionReceived": {
+      "hasEnjoyedYourThanks": "{recipientAlias} ({recipientCommunity}) hat sich über Deinen Dank gefreut:",
+      "memo": "Nachricht: {transactionMemo}",
+      "subject": "Dein Dank ist angekommen",
+      "title": "Dein Dank ist angekommen",
+      "yourThanksTo": "Dein Dank an {recipientAlias}"
+    },
     "transactionReceived": {
       "haveReceivedAmountGDDFrom": "Du hast soeben {transactionAmount} GDD erhalten von {senderAlias}.",
       "subject": "{senderAlias} hat Dir {transactionAmount} Gradido gesendet",
@@ -244,8 +251,6 @@
   "redeemPreview": {
     "description": "Helfen. Schenken. Danken.",
     "greetingTitle": "{name} hat Dir einen Dank-Gruß geschickt",
-    "greetingTitleWithoutName": "Ein Dank-Gruß für Dich",
-    "linkTitle": "{name} hat Dir einen Dank geschickt",
-    "linkTitleWithoutName": "Ein Dank für Dich"
+    "linkTitle": "{name} hat Dir einen Dank geschickt"
   }
 }

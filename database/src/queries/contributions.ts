@@ -1,9 +1,9 @@
-// AI-GENERATED — not an architecture reference
 import { and, count, eq, inArray, isNull } from 'drizzle-orm'
-import { drizzleDb } from '../AppDatabase'
+import { MySql2Database } from 'drizzle-orm/mysql2'
+import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { ContributionStatus } from '../enum/ContributionStatus'
 import { ContributionType } from '../enum/ContributionType'
-import { contributionsTable } from '../schemas/drizzle.schema'
+import { ContributionsInsert, contributionsTable } from '../schemas/drizzle.schema'
 
 /**
  * How many contributions this member has filed THEMSELVES (type USER).
@@ -106,4 +106,15 @@ export async function dbSelectContributionUserId(contributionId: number): Promis
     .from(contributionsTable)
     .where(eq(contributionsTable.id, contributionId))
   return rows[0]?.userId ?? null
+}
+
+// One statement for all the rows it is given
+export async function dbInsertContributions(
+  contributions: ContributionsInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (contributions.length === 0) {
+    return
+  }
+  await tx.insert(contributionsTable).values(contributions)
 }

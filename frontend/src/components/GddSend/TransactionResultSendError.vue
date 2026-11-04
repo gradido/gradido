@@ -7,14 +7,8 @@
       <div class="test-send_transaction_error">{{ $t('form.send_transaction_error') }}</div>
 
       <hr />
-      <div v-if="errorResult === 'recipient not known'" class="test-receiver-not-found">
+      <div v-if="isRecipientNotFoundError(errorResult)" class="test-receiver-not-found">
         {{ $t('transaction.receiverNotFound') }}
-      </div>
-      <div
-        v-if="errorResult === 'GraphQL error: The recipient account was deleted'"
-        class="test-receiver-not-found"
-      >
-        {{ $t('transaction.receiverDeleted') }}
       </div>
       <div v-else>{{ errorResult }}</div>
     </div>
@@ -26,6 +20,8 @@
   </div>
 </template>
 <script setup>
+import { isRecipientNotFoundError } from '@/utils/recipientNotFound'
+
 defineProps({
   error: { type: Boolean, default: false },
   errorResult: { type: String, default: '' },

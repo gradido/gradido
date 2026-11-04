@@ -77,7 +77,6 @@ const environment = v.object({
 
   DLT_ACTIVE: v.optional(DLT_ACTIVE, false),
   GMS_ACTIVE: v.optional(GMS_ACTIVE, false),
-  GMS_LEGACY_ACTIVE: flagSchema('if legacy gradido mapping service should be used'),
   MATCHING_ACTIVE: v.optional(MATCHING_ACTIVE, false),
   HUMHUB_ACTIVE: v.optional(HUMHUB_ACTIVE, false),
   AUTO_POLL_INTERVAL: v.optional(

@@ -33,7 +33,6 @@ import {
 import { CommandJwtPayloadType, encryptAndSign, uuidv4Schema } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
-import { PublishNameLogic } from '@/data/PublishName.logic'
 import { LogError } from '@/server/LogError'
 
 /*
@@ -168,7 +167,7 @@ export async function deliverChatMessageLocally({
       lastName: recipientUser.lastName,
       email: recipientUser.emailContact.email,
       language: recipientUser.language,
-      senderAlias: new PublishNameLogic(senderUser).getPublicAlias(),
+      senderAlias: senderUser.alias,
       subject: subject ?? '',
       memo: body,
       senderUuid: senderUser.gradidoID,

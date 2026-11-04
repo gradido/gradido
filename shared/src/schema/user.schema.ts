@@ -83,4 +83,5 @@ export const userPublicInfoSchema = v.object({
   avatarUpdatedAt: v.nullish(avatarDateSchema),
 })
 
+export type UserPublicInfoInput = v.InferInput<typeof userPublicInfoSchema>
 export type UserPublicInfo = v.InferOutput<typeof userPublicInfoSchema>

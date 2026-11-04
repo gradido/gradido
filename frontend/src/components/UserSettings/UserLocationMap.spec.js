@@ -49,10 +49,6 @@ vi.mock('@/utils/mapEngine', async (importOriginal) => {
 const searchInCorner = () => document.querySelectorAll('.maplibregl-ctrl-top-left .gk-search')
 const maps = () => document.querySelectorAll('.maplibregl-map')
 
-vi.mock('@/components/UserSettings/CoordinatesDisplay.vue', () => ({
-  default: { template: '<div />' },
-}))
-
 const coords = { lat: 48.2, lng: 11.6 }
 const PRAGUE = { lat: 50.0874654, lng: 14.4212535, label: 'Prag' }
 
@@ -65,7 +61,7 @@ let wrapper = null
 // not there on the tick after mount.
 const mountAndSettle = async (props) => {
   wrapper = mount(UserLocationMap, {
-    props: { userMarkerCoords: coords, communityMarkerCoords: coords, ...props },
+    props: { userMarkerCoords: coords, ...props },
     attachTo: document.body,
   })
   await new Promise((resolve) => setTimeout(resolve, 400))
@@ -99,72 +95,37 @@ describe('UserLocationMap', () => {
     context.mockRestore()
   })
 
-  // Both markers bind a popup, and a popup that takes the rest of initMap down with it leaves
-  // the map click that sets your location, the marker drag and the address search unwired. The
-  // map still paints, so it looks whole and answers nothing.
-  describe('the settings page (default props)', () => {
-    it('shows both labels and finishes wiring the map', async () => {
+  // The house stands alone - the community's point is no marker here (Bernd, 11.09.2026: its
+  // centre only confused) - and it carries no label. Finding the search field in the map's corner
+  // proves initMap ran to its end: a marker that took the rest of it down with it would leave the
+  // map click, the drag and the address search unwired, while the map still painted.
+  describe('the house', () => {
+    it('stands alone, without a label, and the map is wired to its end', async () => {
       await mountAndSettle({})
-
-      expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
-      expect(document.body.textContent).toContain('settings.GMS.map.communityLocationLabel')
-      expect(searchInCorner()).toHaveLength(1)
-    })
-  })
-
-  // The matching page asks for the home house and gives no community point (Bernd,
-  // 11.09.2026: its centre only confused there) - so the house stands alone.
-  describe('the matching page (userIcon=home)', () => {
-    it('shows the house alone and finishes wiring the map', async () => {
-      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
 
       expect(maps()).toHaveLength(1)
       expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
       expect(document.querySelector('.maplibregl-marker.own-home svg')).not.toBeNull()
-      expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
-      // The home house explains itself; only the pin carries a label.
-      expect(document.body.textContent).not.toContain('settings.GMS.map.userLocationLabel')
+      expect(document.querySelector('.maplibregl-popup')).toBeNull()
       expect(searchInCorner()).toHaveLength(1)
     })
-  })
 
-  // Left out, there is no community pin at all - not one at the 0/0 the map starts from.
-  describe('without a community point', () => {
-    it('draws only the pin that was asked for', async () => {
-      await mountAndSettle({ communityMarkerCoords: undefined })
-
-      expect(document.querySelectorAll('.maplibregl-marker')).toHaveLength(1)
-      expect(document.body.textContent).toContain('settings.GMS.map.userLocationLabel')
-      expect(document.body.textContent).not.toContain('settings.GMS.map.communityLocationLabel')
-      expect(searchInCorner()).toHaveLength(1)
-    })
-  })
-
-  // `draggable: true` is a promise the pin has to be able to keep: a marker that takes no tap
-  // lets it through to the map, so it cannot be picked up either, and the dragend handler would
-  // never run. Clicking the map would still move the pin, which is why such a pin once read as a
-  // working map for so long. Exactly one marker is the member's own, and only it can be dragged.
-  describe('the pin', () => {
-    const markers = () => document.querySelectorAll('.maplibregl-marker-draggable')
-
-    it('can actually be dragged on the settings page', async () => {
+    // `draggable: true` is a promise the house has to be able to keep: a marker that takes no
+    // tap lets it through to the map, so it cannot be picked up either, and the dragend handler
+    // would never run. Clicking the map would still move it, which is why such a marker once
+    // read as a working map for so long.
+    it('can actually be dragged', async () => {
       await mountAndSettle({})
 
-      expect(markers()).toHaveLength(1)
-      expect(markers()[0].style.pointerEvents).not.toBe('none')
-    })
-
-    it('can actually be dragged on the matching page', async () => {
-      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
-
-      expect(markers()).toHaveLength(1)
-      expect(markers()[0].style.pointerEvents).not.toBe('none')
+      const markers = document.querySelectorAll('.maplibregl-marker-draggable')
+      expect(markers).toHaveLength(1)
+      expect(markers[0].style.pointerEvents).not.toBe('none')
     })
   })
 
   describe('the address search', () => {
     it('hands the field a provider made with the GMS address', async () => {
-      await mountAndSettle({ userIcon: 'home', communityMarkerCoords: undefined })
+      await mountAndSettle({})
 
       expect(makeGeoProvider).toHaveBeenCalledTimes(1)
       const made = makeGeoProvider.mock.calls[0][0]

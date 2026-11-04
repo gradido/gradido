@@ -21,6 +21,7 @@ import { useCreaClipboard } from '@/composables/useCreaClipboard'
 import { useCreaSupplement } from '@/composables/useCreaSupplement'
 import { useDateLocale } from '@/composables/useDateLocale'
 import { useAppToast } from '@/composables/useToast'
+import { useViewport } from '@/composables/useViewport'
 import { adminCreateContributionMessage } from '@/graphql/adminCreateContributionMessage'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { useAdminStore } from '@/store/useAdminStore'
@@ -69,6 +70,9 @@ export const ContributionMessagesFormular = defineComponent({
     const { t } = useI18n()
     const store = useAdminStore()
     const dateLocale = useDateLocale()
+    // Half the rows on a phone: twelve would push the save button out of a short window.
+    const viewport = useViewport()
+    const textRows = computed(() => (viewport.value === 'mobile' ? 6 : 12))
     const { toastError, toastSuccess } = useAppToast()
     const form = ref({
       text: '',
@@ -347,7 +351,7 @@ export const ContributionMessagesFormular = defineComponent({
             </BFormGroup>
             {showResubmissionDate.value ? (
               <BFormGroup>
-                <div class='d-flex my-2'>
+                <div class='d-flex flex-wrap gap-2 my-2'>
                   <Datepicker
                     v-model={resubmissionDate.value}
                     locale={dateLocale}
@@ -355,7 +359,7 @@ export const ContributionMessagesFormular = defineComponent({
                     lowerLimit={now.value}
                     class='form-control'
                   />
-                  <TimePicker v-model={resubmissionTime.value} class='ms-2' />
+                  <TimePicker v-model={resubmissionTime.value} />
                 </div>
               </BFormGroup>
             ) : null}
@@ -404,7 +408,7 @@ export const ContributionMessagesFormular = defineComponent({
                       id='textarea'
                       v-model={form.value.text}
                       placeholder={t('contributionLink.memo')}
-                      rows='12'
+                      rows={textRows.value}
                       onKeydown={onTextKeydown}
                       onFocus={captureCreaField}
                     />
@@ -423,7 +427,7 @@ export const ContributionMessagesFormular = defineComponent({
                       id='textarea'
                       v-model={form.value.text}
                       placeholder={t('moderator.notice')}
-                      rows='12'
+                      rows={textRows.value}
                       onKeydown={onTextKeydown}
                       onFocus={captureCreaField}
                     />
@@ -449,7 +453,7 @@ export const ContributionMessagesFormular = defineComponent({
                       id='textarea'
                       v-model={form.value.memo}
                       placeholder={t('contributionLink.memo')}
-                      rows='12'
+                      rows={textRows.value}
                       onKeydown={onMemoKeydown}
                     />,
                     memoTooLong.value ? (

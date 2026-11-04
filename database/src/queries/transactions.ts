@@ -9,7 +9,15 @@ import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { TransactionInsert, TransactionSelect, transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
-import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
+import {
+  countFields,
+  countsOfRow,
+  derivedAtOrAfter,
+  derivedRowsFrom,
+  rowsFrom,
+  WeeklyCount,
+  weekStartOf,
+} from './figureCounts'
 import { dbSelectReferralContactsByUserId, ReferralContact } from './user'
 
 const transactionInsertFailed = (row: TransactionInsert) =>
@@ -284,11 +292,22 @@ const mergeSamePerson = (rows: ContactRow[]): ContactRow[] => {
     }
     seen.bookings += row.bookings
     seen.unreadChatMessages += row.unreadChatMessages
+    // The latest message and the latest booking go with their own time: the message of the
+    // later conversation, the booking of the later grouping (one person's bookings can be split
+    // between the two groupings).
     if (
       row.lastChatMessageAt !== null &&
       (seen.lastChatMessageAt === null || row.lastChatMessageAt > seen.lastChatMessageAt)
     ) {
       seen.lastChatMessageAt = row.lastChatMessageAt
+      seen.lastChatMessageId = row.lastChatMessageId
+    }
+    if (
+      row.lastBookingAt !== null &&
+      (seen.lastBookingAt === null || row.lastBookingAt > seen.lastBookingAt)
+    ) {
+      seen.lastBookingAt = row.lastBookingAt
+      seen.lastBookingId = row.lastBookingId
     }
   }
   return contacts
@@ -330,6 +349,19 @@ export interface ReceivedTransfer {
    * for, and for a sender the booking names by their pair alone.
    */
   senderIsMemberHere: boolean
+  /**
+   * The `users` id of whoever sent the transfer (`linked_user_id`), or null where the booking
+   * names them by their pair alone. With `senderIsMemberHere` it is this server's own member:
+   * the one the mail about a first reaction goes to (W1).
+   */
+  senderUserId: number | null
+  /**
+   * The amount and the memo of the transfer, as the mail about a reaction tells the sender
+   * which thank-you is meant. The amount is null only on a row this server never booked
+   * itself: every transfer is written with its amount (executeTransaction).
+   */
+  amount: GradidoUnit | null
+  memo: string
 }
 
 /**
@@ -351,7 +383,13 @@ export async function dbSelectReceivedTransferOfUser(
   userId: number,
 ): Promise<Result<ReceivedTransfer, DBNotFoundError>> {
   const rows = await drizzleDb()
-    .select({ id: transactionsTable.id, senderForeign: usersTable.foreign })
+    .select({
+      id: transactionsTable.id,
+      senderForeign: usersTable.foreign,
+      senderUserId: transactionsTable.linkedUserId,
+      amount: transactionsTable.amount,
+      memo: transactionsTable.memo,
+    })
     .from(transactionsTable)
     .leftJoin(usersTable, eq(usersTable.id, transactionsTable.linkedUserId))
     .where(
@@ -362,15 +400,82 @@ export async function dbSelectReceivedTransferOfUser(
       ),
     )
     .limit(1)
-  return rows[0]
+  const row = rows[0]
+  return row
     ? {
         success: true,
-        value: { id: rows[0].id, senderIsMemberHere: rows[0].senderForeign === false },
+        value: {
+          id: row.id,
+          senderIsMemberHere: row.senderForeign === false,
+          senderUserId: row.senderUserId,
+          amount: row.amount,
+          memo: row.memo,
+        },
       }
     : {
         success: false,
         error: TransactionNotFound(`id = ${transactionId} as a transfer received by the member`),
       }
+}
+
+/** A booking as the line under a contact's name shows it (E-083). */
+export interface BookingLine {
+  id: number
+  /** SEND where the member gave, RECEIVE where they were given. */
+  typeId: TransactionTypeId
+  /**
+   * The Gradido it moved, as the member's own row carries them: negative on a SEND. Null only where
+   * the row has no amount in the column of ten thousandths, which a booking of this kind always has
+   * since the column came -- the line then names no amount rather than a wrong one.
+   */
+  amount: GradidoUnit | null
+  memo: string
+  balanceDate: Date
+}
+
+/**
+ * The member's own SEND and RECEIVE rows with these ids, in one query for a whole list: the
+ * latest booking with each contact (dbSelectContactsByUserId, `lastBookingId`). Another member's
+ * row, or a row of another type, has no entry; nor has an id without a row. In no particular
+ * order -- the caller matches them by id.
+ *
+ * `balanceDate` comes from the column, which Drizzle reads as UTC, as it reads chat_messages: so
+ * the booking's time and the time of the latest message can be compared, whatever the process's
+ * time zone (see the note on the two kinds of date in dbSelectContactsByUserId).
+ */
+export async function dbSelectBookingLinesOfUser(
+  userId: number,
+  ids: number[],
+): Promise<BookingLine[]> {
+  const unique = [...new Set(ids)]
+  if (unique.length === 0) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({
+      id: transactionsTable.id,
+      typeId: transactionsTable.typeId,
+      amount: transactionsTable.amount,
+      memo: transactionsTable.memo,
+      balanceDate: transactionsTable.balanceDate,
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        inArray(transactionsTable.id, unique),
+        eq(transactionsTable.userId, userId),
+        inArray(transactionsTable.typeId, COUNTERPARTY_TYPES),
+      ),
+    )
+  // The where clause leaves only SEND and RECEIVE rows: the column's type is what makes it
+  // nullable.
+  return rows.map((row) => ({
+    id: row.id,
+    typeId: row.typeId as TransactionTypeId,
+    amount: row.amount,
+    memo: row.memo,
+    balanceDate: row.balanceDate,
+  }))
 }
 
 export async function dbUpdateBalanceAndDate(txPart: {
@@ -441,6 +546,18 @@ export interface ContactRow {
   unreadChatMessages: number
   /** When the latest message of that conversation arrived here; null where there is none. */
   lastChatMessageAt: Date | null
+  /**
+   * That latest message itself (chat_messages.id), whose beginning the contact list shows under
+   * the name (E-083); null where there is no conversation.
+   */
+  lastChatMessageId: number | null
+  /**
+   * The member's own row of the latest booking with them (transactions.id, SEND or RECEIVE) and
+   * its booking time -- what the line under the name shows where a booking came after the last
+   * message (E-083). Null for a contact without bookings.
+   */
+  lastBookingId: number | null
+  lastBookingAt: Date | null
 }
 
 export interface ContactsPage {
@@ -532,6 +649,15 @@ export async function dbSelectContactsByUserId(
     eq(transactionsTable.userId, userId),
     inArray(transactionsTable.typeId, COUNTERPARTY_TYPES),
   )
+  // The id of the NEWEST booking of the group, by the order the booking list shows them in
+  // (booking time, then id), first element -- the way the remote grouping takes the name off the
+  // newest booking. Not max(id): a row's booking time can be written after the row
+  // (dbUpdateBalanceAndDate), and the line under the name is to be the booking the list shows on
+  // top. Ids hold no comma, so the first element is whole.
+  const newestBookingId =
+    sql`substring_index(group_concat(${transactionsTable.id} order by ${transactionsTable.balanceDate} desc, ${transactionsTable.id} desc separator ','), ',', 1)`.mapWith(
+      Number,
+    )
 
   const localQuery = db
     .select({
@@ -543,6 +669,7 @@ export async function dbSelectContactsByUserId(
       firstAt: sql`min(${transactionsTable.balanceDate})`.mapWith(asDate),
       lastAt: sql`max(${transactionsTable.balanceDate})`.mapWith(asDate),
       bookings: sql`count(*)`.mapWith(Number),
+      lastBookingId: newestBookingId,
     })
     .from(transactionsTable)
     .innerJoin(usersTable, eq(usersTable.id, transactionsTable.linkedUserId))
@@ -566,6 +693,7 @@ export async function dbSelectContactsByUserId(
       firstAt: sql`min(${transactionsTable.balanceDate})`.mapWith(asDate),
       lastAt: sql`max(${transactionsTable.balanceDate})`.mapWith(asDate),
       bookings: sql`count(*)`.mapWith(Number),
+      lastBookingId: newestBookingId,
     })
     .from(transactionsTable)
     .where(
@@ -615,7 +743,9 @@ export async function dbSelectContactsByUserId(
 
   // What a row out of the bookings or the trace knows about a conversation: nothing, which
   // is no unread message and no last one. The chat bundle says otherwise where there is one.
-  const noChat = { unreadChatMessages: 0, lastChatMessageAt: null }
+  const noChat = { unreadChatMessages: 0, lastChatMessageAt: null, lastChatMessageId: null }
+  // And what a row out of the trace or the chat knows about bookings: none, so no latest one.
+  const noBooking = { lastBookingId: null, lastBookingAt: null }
 
   const rows: ContactRow[] = [
     ...local.map((row) => ({
@@ -629,6 +759,8 @@ export async function dbSelectContactsByUserId(
       bookings: row.bookings,
       origin: null,
       ...noChat,
+      lastBookingId: row.lastBookingId,
+      lastBookingAt: row.lastAt,
     })),
     ...remote.map((row) => ({
       linkedUserId: null,
@@ -642,6 +774,8 @@ export async function dbSelectContactsByUserId(
       bookings: row.bookings,
       origin: null,
       ...noChat,
+      lastBookingId: row.lastBookingId,
+      lastBookingAt: row.lastAt,
     })),
     // ⛔ BEHIND the two booking bundles, and that buys LESS than it looks like. Against a
     // `local` row it does decide identity: the local row is seen first and keeps it. Against
@@ -660,7 +794,7 @@ export async function dbSelectContactsByUserId(
     // `TZ=UTC` makes them equal -- and `TZ=UTC` is pinned in the start script and in every
     // package test script, which is the only reason the two can be compared here at all. A
     // process that loses that pin sorts these bundles wrongly against the booking bundles.
-    ...referrals.map((row) => ({ ...row, ...noChat })),
+    ...referrals.map((row) => ({ ...row, ...noChat, ...noBooking })),
     // The people this member has a conversation with: no bookings of their own (a booking
     // with them is its own row, joined by `mergeSamePerson`), the dates of the first and the
     // latest message, and what is unread. `lastAt` of this row IS the last message, which is
@@ -682,6 +816,8 @@ export async function dbSelectContactsByUserId(
       origin: null,
       unreadChatMessages: row.unreadChatMessages,
       lastChatMessageAt: row.lastAt,
+      lastChatMessageId: row.lastMessageId,
+      ...noBooking,
     })),
   ]
 
@@ -774,6 +910,97 @@ export async function dbCountAndSumTransactionsOfTypeByWeek(
     })
     .from(transactionsTable)
     .where(and(eq(transactionsTable.typeId, typeId), gte(transactionsTable.balanceDate, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+// One statement for all the rows it is given
+export async function dbInsertTransactions(
+  transactions: TransactionInsert[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  if (transactions.length === 0) {
+    return
+  }
+  await tx.insert(transactionsTable).values(transactions)
+}
+
+/** The bookings of one type that carry a picture: a motif of the greeting, or a photo. */
+const withPictureOfType = (typeId: TransactionTypeId) =>
+  and(eq(transactionsTable.typeId, typeId), isNotNull(transactionsTable.transactionPictureId))
+
+/**
+ * How many bookings of one type carry a picture (`transaction_picture_id`, migration 0154: one of
+ * the motifs of the thank-you greeting, or a photo of the sender's own), from each moment on by
+ * their booking time -- one statement, one number per moment. A transfer within this community
+ * carries its picture on both rows; ask for one side to count it once.
+ */
+export async function dbCountTransactionsWithPicture(
+  typeId: TransactionTypeId,
+  froms: (Date | null)[],
+): Promise<number[]> {
+  const [row] = await drizzleDb()
+    .select(countFields(froms, rowsFrom(transactionsTable.balanceDate)))
+    .from(transactionsTable)
+    .where(withPictureOfType(typeId))
+  return countsOfRow(row, froms)
+}
+
+/** dbCountTransactionsWithPicture by calendar week: in each week from `from` on. */
+export async function dbCountTransactionsWithPictureByWeek(
+  typeId: TransactionTypeId,
+  from: Date,
+): Promise<WeeklyCount[]> {
+  const week = weekStartOf(transactionsTable.balanceDate)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(transactionsTable)
+    .where(and(withPictureOfType(typeId), gte(transactionsTable.balanceDate, from)))
+    .groupBy(week)
+    .orderBy(week)
+}
+
+/**
+ * Every account with a SEND row, with the moment of its first one: a derived table, a row an
+ * account. Built for each statement that reads it.
+ */
+const firstSendOfEachAccount = () =>
+  drizzleDb()
+    .select({ firstSentAt: sql<Date>`min(${transactionsTable.balanceDate})`.as('first_sent_at') })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.typeId, TransactionTypeId.SEND))
+    .groupBy(transactionsTable.userId)
+    .as('first_sends')
+
+/**
+ * How many accounts sent for the first time, from each moment on: the accounts whose FIRST SEND
+ * row (`min(balance_date)`) lies at or after it -- one statement over the SEND rows, grouped by
+ * account; `null` counts every account that ever sent. Every SEND row counts, as for the transfers
+ * sent (dbCountAndSumTransactionsOfType): across the border, and through a link, which books its
+ * SEND row when it is redeemed -- so a link's maker sends for the first time then. A deleted
+ * account still counts: its first transfer happened.
+ */
+export async function dbCountFirstSenders(froms: (Date | null)[]): Promise<number[]> {
+  const firstSends = firstSendOfEachAccount()
+  const [row] = await drizzleDb()
+    .select(
+      countFields(froms, derivedRowsFrom(firstSends.firstSentAt, transactionsTable.balanceDate)),
+    )
+    .from(firstSends)
+  return countsOfRow(row, froms)
+}
+
+/**
+ * dbCountFirstSenders by calendar week: each account once, in the week of its first SEND row, in
+ * each week from `from` on.
+ */
+export async function dbCountFirstSendersByWeek(from: Date): Promise<WeeklyCount[]> {
+  const firstSends = firstSendOfEachAccount()
+  const week = weekStartOf(firstSends.firstSentAt)
+  return drizzleDb()
+    .select({ weekStart: week, n: count() })
+    .from(firstSends)
+    .where(derivedAtOrAfter(firstSends.firstSentAt, transactionsTable.balanceDate, from))
     .groupBy(week)
     .orderBy(week)
 }

@@ -1,6 +1,12 @@
-import { ApiClient } from './ApiClient'
+// TODO: create app context and put this into it
+
+import { dbFindForeignCommunityByPublicKey } from 'database'
+import { PublicKeyHex } from 'shared'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
+import { ApiClient, ApiClientCompleted } from './ApiClient'
 
 // TODO: create app context and put this into it
+// TODO: Think about ApiClient Timeout/Reload
 export class ApiClientCache {
   // Singleton stuff
   static #instance: ApiClientCache | undefined = undefined
@@ -12,21 +18,43 @@ export class ApiClientCache {
     return ApiClientCache.#instance
   }
 
-  private peerApiClients: Map<string, ApiClient>
+  private apiClients: Map<string, ApiClient>
   private constructor() {
-    this.peerApiClients = new Map<string, ApiClient>()
+    this.apiClients = new Map<string, ApiClient>()
   }
+
   // url: the federation endpoint as announced, e.g. `https://host/api/`; the peer api lives beside it
-  public get(url: string, publicKey: Buffer, publicEncryptionKey?: Buffer): ApiClient {
-    // TEMP: while refactoring the federation api, the endpoint is still the graphql one
+  public get(url: string, keyPair: Ed25519KeyPair, encryptionKeyPair?: X25519KeyPair): ApiClient {
+    const publicKeyHex = keyPair.publicKeyToHex()
+    let client = this.apiClients.get(publicKeyHex)
     const apiIndex = url.lastIndexOf('api/')
     const baseUrl = apiIndex > 0 ? url.slice(0, apiIndex) : url
-    let client = this.peerApiClients.get(baseUrl)
     // another community now answers at that url
-    if (!client || !client.keyPair.equals(publicKey)) {
-      client = new ApiClient(baseUrl, publicKey, publicEncryptionKey)
-      this.peerApiClients.set(baseUrl, client)
+    if (!client || baseUrl !== client.url) {
+      client = new ApiClient(baseUrl, keyPair, encryptionKeyPair)
+      this.apiClients.set(publicKeyHex, client)
     }
     return client
+  }
+
+  public async getByPublicKeyHex(
+    publicKeyHex: PublicKeyHex,
+  ): Promise<ApiClientCompleted | undefined> {
+    let client = this.apiClients.get(publicKeyHex)
+    if (!client || !client.publicEncryptionKey || !client.communityUuid) {
+      const com = await dbFindForeignCommunityByPublicKey(Buffer.from(publicKeyHex, 'hex'))
+      if (com && com.authenticatedAt) {
+        client = this.get(com.url, new Ed25519KeyPair(com.publicKey))
+        if (com.publicEncryptionKey && com.publicEncryptionKey.byteLength > 0) {
+          client.publicEncryptionKey = new X25519KeyPair(com.publicEncryptionKey)
+        }
+        client.communityUuid = com.communityUuid
+      } else {
+        return
+      }
+    }
+    if (client) {
+      return client as ApiClientCompleted
+    }
   }
 }

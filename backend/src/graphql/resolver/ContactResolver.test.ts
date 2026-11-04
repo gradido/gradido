@@ -17,7 +17,14 @@ import { ContactOrigin, GradidoUnit } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
-import { addFavorite, login, removeFavorite, sendEmail } from '@/seeds/graphql/mutations'
+import {
+  addFavorite,
+  login,
+  markChatTransfersSeen,
+  markTransferSeen,
+  removeFavorite,
+  sendEmail,
+} from '@/seeds/graphql/mutations'
 import { contactList, contactRefs, favoriteList, transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -919,6 +926,78 @@ describe('ContactResolver', () => {
       expect(row.lastChatMessageAt).not.toBeNull()
     })
 
+    // The line under each name on "Kontakte & Chat" (E-083): the beginning of the latest message,
+    // or of the latest booking where there is no message -- here every contact has one or the other.
+    it('carries the line of the latest word under each name', async () => {
+      const lineOf = Object.fromEntries(
+        (await contacts()).contacts.map((c: any) => [c.user.gradidoID, c.chatPreview]),
+      )
+      // Dora wrote from the e-mail form: its subject first, then her words.
+      expect(lineOf[dora.gradidoID]).toEqual({
+        mine: false,
+        excerpt: 'A ladder\n\nDo you still have the ladder?',
+        hasImage: false,
+        amount: null,
+        // Her message waits for bibi (Chat E-086: the line says so).
+        unread: true,
+        senderUser: null,
+      })
+      // bibi's own message to Frida, across the border.
+      expect(lineOf[FRIDA]).toMatchObject({
+        mine: true,
+        excerpt: 'Greetings from over here',
+        amount: null,
+      })
+      // Bookings only: the newest of each -- bob gave bibi two Gradido with "two", bibi gave
+      // peter three with "three". The amount without its sign; `mine` says who gave.
+      expect(lineOf[bob.gradidoID]).toMatchObject({ mine: false, excerpt: 'two', hasImage: false })
+      expect(Number(lineOf[bob.gradidoID].amount)).toBe(2)
+      expect(lineOf[peter.gradidoID]).toMatchObject({ mine: true, excerpt: 'three' })
+      expect(Number(lineOf[peter.gradidoID].amount)).toBe(3)
+    })
+
+    // ⛔ The wallet asks for the line through a fragment (contactFields), and the server reads the
+    // messages only where the field is asked for (extractGraphQLFieldPaths): a spread has to count.
+    it('reads the line where it is asked for through a fragment, as the wallet asks', async () => {
+      const res: any = await query({
+        query: `fragment withLine on Contact { user { gradidoID } chatPreview { excerpt } }
+          query { contactList(currentPage: 1, pageSize: 25) { contacts { ...withLine } } }`,
+      })
+      expect(res.errors).toBeUndefined()
+      const row = res.data.contactList.contacts.find((c: any) => c.user.gradidoID === FRIDA)
+      expect(row.chatPreview).toEqual({ excerpt: 'Greetings from over here' })
+    })
+
+    // The member's own switch "Überweisungen im Chat und per E-Mail": off, no transfer stands in
+    // their conversations -- and none under a name. Their messages still do.
+    describe('for a member who keeps transfers out of their conversations', () => {
+      beforeAll(async () => {
+        await User.update({ id: bibi.id }, { transfersInChat: false })
+      })
+
+      afterAll(async () => {
+        await User.update({ id: bibi.id }, { transfersInChat: true })
+      })
+
+      // Chat E-086: switched out of her conversations, a transfer stands nowhere she reads it.
+      it('counts no transfer as unread', async () => {
+        const row = (await contacts()).contacts.find((c: any) => c.user.gradidoID === bob.gradidoID)
+        expect(row).toMatchObject({ unreadChatMessages: 0 })
+      })
+
+      it('shows no booking under a name, and the messages as before', async () => {
+        const lineOf = Object.fromEntries(
+          (await contacts()).contacts.map((c: any) => [c.user.gradidoID, c.chatPreview]),
+        )
+        expect(lineOf[bob.gradidoID]).toBeNull()
+        expect(lineOf[peter.gradidoID]).toBeNull()
+        expect(lineOf[dora.gradidoID]).toMatchObject({
+          excerpt: 'A ladder\n\nDo you still have the ladder?',
+        })
+        expect(lineOf[FRIDA]).toMatchObject({ mine: true, excerpt: 'Greetings from over here' })
+      })
+    })
+
     it('names by the pairs exactly the people the list holds, those who only wrote among them', async () => {
       const refs = await pairsOfTheContactRefs()
       expect(refs).toEqual(await pairsOfTheContactList())
@@ -936,9 +1015,117 @@ describe('ContactResolver', () => {
       expect(order.slice(2)).toEqual([peter.gradidoID, bob.gradidoID, ANNA])
     })
 
-    it('leaves nothing unread and no last message on a contact without a conversation', async () => {
+    // Chat E-086 (Bernd, 26.10.2026): the transfer bob sent her and she has not seen waits as a
+    // message does -- until 26.10. a contact without a conversation had nothing unread. Still no
+    // last message.
+    it('counts the transfer of a contact without a conversation that she has not seen', async () => {
       const row = (await contacts()).contacts.find((c: any) => c.user.gradidoID === bob.gradidoID)
-      expect(row).toMatchObject({ unreadChatMessages: 0, lastChatMessageAt: null })
+      expect(row).toMatchObject({ unreadChatMessages: 1, lastChatMessageAt: null })
+    })
+
+    /**
+     * Chat E-086: a transfer she received and has not seen counts as unread -- the dot at the
+     * person, the line under the name, the mark in the menu -- until she saw it: its conversation
+     * showed it, or she opened it in the booking list.
+     */
+    describe('the transfers she has not seen', () => {
+      const BEAT = `query { newChatMessagesSince { unreadConversations unreadTransfers latestUnreadTransferId } }`
+      let fromBob: number
+      let fromAnna: number
+
+      const beat = async () => {
+        const res: any = await query({ query: BEAT })
+        expect(res.errors).toBeUndefined()
+        return res.data.newChatMessagesSince
+      }
+      const rowOf = async (gradidoID: string) =>
+        (await contacts()).contacts.find((c: any) => c.user.gradidoID === gradidoID)
+      const receivedBy = async (where: string, value: unknown): Promise<number> => {
+        const [row] = await db
+          .getDataSource()
+          .query(`SELECT id FROM transactions WHERE user_id = ? AND type_id = 3 AND ${where} = ?`, [
+            bibi.id,
+            value,
+          ])
+        return row.id
+      }
+
+      beforeAll(async () => {
+        fromBob = await receivedBy('linked_user_id', bob.id)
+        fromAnna = await receivedBy('linked_user_gradido_id', ANNA)
+      })
+
+      afterEach(async () => {
+        await db.getDataSource().query('DELETE FROM transaction_reads')
+      })
+
+      it("says the line under bob's name waits, and the one under peter's does not", async () => {
+        expect((await rowOf(bob.gradidoID)).chatPreview).toMatchObject({
+          excerpt: 'two',
+          unread: true,
+        })
+        // She gave peter his: nothing of his waits.
+        expect(await rowOf(peter.gradidoID)).toMatchObject({
+          unreadChatMessages: 0,
+          chatPreview: { excerpt: 'three', unread: false },
+        })
+      })
+
+      // Dora's message, bob's transfer and Anna's from another community: three people.
+      it('counts the people with something unread in the beat, the senders of transfers among them', async () => {
+        expect(await beat()).toEqual({
+          unreadConversations: 3,
+          unreadTransfers: 2,
+          latestUnreadTransferId: fromBob,
+        })
+      })
+
+      it('takes a transfer out once she opened it in the booking list', async () => {
+        const res: any = await mutate({
+          mutation: markTransferSeen,
+          variables: { transactionId: fromBob },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.markTransferSeen).toBe(true)
+
+        expect(await rowOf(bob.gradidoID)).toMatchObject({
+          unreadChatMessages: 0,
+          chatPreview: { unread: false },
+        })
+        expect(await beat()).toEqual({
+          unreadConversations: 2,
+          unreadTransfers: 1,
+          latestUnreadTransferId: fromAnna,
+        })
+      })
+
+      it("takes bob's transfers out once their conversation showed them", async () => {
+        const res: any = await mutate({
+          mutation: markChatTransfersSeen,
+          variables: {
+            ref: { communityUuid: bob.communityUuid, gradidoID: bob.gradidoID },
+            upToTransactionId: fromBob,
+          },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.markChatTransfersSeen).toBe(1)
+        expect((await rowOf(bob.gradidoID)).unreadChatMessages).toBe(0)
+        // Anna's stays: the conversation showed bob's.
+        expect((await beat()).unreadTransfers).toBe(1)
+      })
+
+      it('marks no booking she did not receive', async () => {
+        const [sent] = await db
+          .getDataSource()
+          .query('SELECT id FROM transactions WHERE user_id = ? AND type_id = 2 LIMIT 1', [bibi.id])
+        const res: any = await mutate({
+          mutation: markTransferSeen,
+          variables: { transactionId: sent.id },
+        })
+        expect(res.errors).toBeUndefined()
+        expect(res.data.markTransferSeen).toBe(false)
+        expect((await beat()).unreadTransfers).toBe(2)
+      })
     })
 
     it('finds the partner with a users row by the alias', async () => {

@@ -1,16 +1,44 @@
-#overlay {
-  position: fixed;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  padding-left: 5%;
-  background-color: rgb(12 11 11 / 78.1%);
-  z-index: 1000000;
-  cursor: pointer;
-}
-
 .no-select {
   user-select: none;
+}
+
+/* The search and the group's choice in one row, the search taking what the group leaves; on a
+   narrow window, where the two would not stand side by side readably, one above the other. */
+.creation-confirm .creation-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.creation-confirm .creation-filters .creation-search {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.creation-confirm .creation-filters .creation-group-filter {
+  flex: 1 1 14rem;
+  max-width: 24rem;
+  min-width: 0;
+}
+
+/* A phone: below this width the rows are cards (OpenCreationsTable.css). */
+@media (width < 992px) {
+  /* The number at the corner of its tab (the tab itself: App.css, `.page-tabs`). */
+  .creation-confirm .tab-badge {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.375rem;
+  }
+
+  /* The box and its word, as tall as a finger needs. */
+  .creation-confirm .hide-resubmission-row {
+    min-height: 2.75rem;
+  }
+
+  .creation-confirm .hide-resubmission-row label {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+  }
 }

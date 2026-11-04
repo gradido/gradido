@@ -17,7 +17,7 @@ import CONFIG from '../config'
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
  * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
  * ends by this device's clock, in seconds (`setToken` in useWalletStore.js). The language
- * switch asks the same before it saves a language to the account (LanguageSwitch2.vue).
+ * switch asks the same before it saves a language to the account (LanguageSwitch2.tsx).
  */
 export const sessionRuns = (state) =>
   Boolean(state.token) && Boolean(state.tokenTime) && state.tokenTime * 1000 - Date.now() > 5000
@@ -153,9 +153,10 @@ const addNavigationGuards = (router, store, apollo) => {
     return to.name === 'Login' ? next({ path: '/overview' }) : next()
   })
 
-  // ⭐ The event link, `/event?interest=…` (Event-Matching, utils/eventMatchingLink): a host
-  // hands it to the people of a congress, and it offers whoever opens it one entry for the
-  // matching -- "I love ‹interest›". What becomes of it depends on who opens it:
+  // ⭐ The link of project matching, `/project?interest=…` or `/event?…`, the address of the
+  // first ones (utils/eventMatchingLink): a host hands it to the people of a project, and it
+  // offers whoever opens it one entry for the matching -- "I love ‹interest›". What becomes of
+  // it depends on who opens it:
   //
   // - No sentence in it: no event link. On to the sign-in page, without a word.
   // - A session runs: on to the member's entries at once, where the entry is made without a

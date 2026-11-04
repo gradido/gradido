@@ -190,12 +190,14 @@ import { provideChatForwardTargets } from '@/composables/useChatForwardTargets'
 import { onContactListRefresh } from '@/composables/useContactsPanel'
 import { contactListQuery } from '@/graphql/contacts.graphql'
 import { chatGroupsQuery } from '@/graphql/chatGroups.graphql'
+import { userNotesQuery } from '@/graphql/userNotes.graphql'
 import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { CONTACTS_FETCH_MAX, PAGE_SIZE } from '@/constants'
 import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberKey } from '@/utils/gradidoAddress'
+import { noteKeyOfEntry, noteKeyOfGroup, noteKeyOfMember } from '@/utils/userNoteKeys'
 
 const { toastError } = useAppToast()
 // Three numbers at the desk too: this page is 450px wide on every screen (see its style).
@@ -365,7 +367,7 @@ const reloadGroups = async () => {
     const { data } = await apolloClient.query({
       query: chatGroupsQuery,
       fetchPolicy: 'network-only',
-      context: { renewSession: false },
+      context: { renewSession: false, queryDeduplication: false },
     })
     if (mine !== groupReloads || !data?.chatGroups) return
     groups.value = data.chatGroups
@@ -385,7 +387,10 @@ const reloadGroups = async () => {
  * keep an unattended wallet signed in (plugins/apolloProvider.js). Said nothing on a failure:
  * the list on screen stays as it was, and the next news asks again.
  *
- * Only the newest answer counts: two of these can be on their way at once.
+ * Only the newest answer counts: two of these can be on their way at once. ⛔ And each is a
+ * question of its own (`queryDeduplication: false`): Apollo would otherwise hand a second question
+ * the answer of the first one still on its way -- one that left before the news this question is
+ * about, and that would then count as the newest (E-083: a changed message under a name).
  */
 let reloads = 0
 const reloadList = async () => {
@@ -395,7 +400,7 @@ const reloadList = async () => {
       query: contactListQuery,
       variables: LIST_VARIABLES,
       fetchPolicy: 'network-only',
-      context: { renewSession: false },
+      context: { renewSession: false, queryDeduplication: false },
     })
     if (mine !== reloads || !data?.contactList) return
     contacts.value = data.contactList.contacts
@@ -501,16 +506,61 @@ const openAskedGroup = () => {
 }
 
 const needle = computed(() => search.value.trim().toLowerCase())
+
+/**
+ * The member's own notes (useChatWindowNote), in lower case, by person and group: the search finds
+ * them by the words of their note as well -- the full name one wrote down finds the alias (Bernd,
+ * 27.10.2026). Asked for whenever a search begins, and again when a window on this page closes
+ * while a search stands, so that a note written there a moment ago is found too. Until the answer
+ * is here, and where it fails, the search goes by the names alone.
+ */
+const noteWords = ref(new Map())
+let noteWordsAsked = 0
+const askNoteWords = async () => {
+  const asked = ++noteWordsAsked
+  try {
+    const { data } = await apolloClient.query({ query: userNotesQuery, fetchPolicy: 'no-cache' })
+    if (asked !== noteWordsAsked) return
+    noteWords.value = new Map(
+      (data?.userNotes ?? []).map((entry) => [
+        noteKeyOfEntry(entry, store.communityUuid),
+        entry.note.toLowerCase(),
+      ]),
+    )
+  } catch {
+    // The names alone, this time.
+  }
+}
+watch(
+  () => needle.value !== '',
+  (searching) => {
+    if (searching) askNoteWords()
+  },
+)
+watch(
+  () => windowOpen.value || groupWindowOpen.value,
+  (aWindowOpen, before) => {
+    if (before && !aWindowOpen && needle.value) askNoteWords()
+  },
+)
+const noteHas = (key) => Boolean(noteWords.value.get(key)?.includes(needle.value))
+
 const matches = (contact) =>
   !needle.value ||
-  `${contact.user.alias ?? ''} ${contact.user.gradidoID}`.toLowerCase().includes(needle.value)
+  `${contact.user.alias ?? ''} ${contact.user.gradidoID}`.toLowerCase().includes(needle.value) ||
+  noteHas(noteKeyOfMember(contact.user, store.communityUuid))
 
 // The groups the search leaves: a word narrows them by their name, as it narrows the contacts
-// by theirs. The section stands while there is a group to show -- and, with no search, once the
-// server has answered: with "Neue Gruppe", and a line that says there is none yet or that they
-// could not be loaded.
+// by theirs -- and by the member's own note on them. The section stands while there is a group to
+// show -- and, with no search, once the server has answered: with "Neue Gruppe", and a line that
+// says there is none yet or that they could not be loaded.
 const groupRows = computed(() =>
-  groups.value.filter((group) => !needle.value || group.title.toLowerCase().includes(needle.value)),
+  groups.value.filter(
+    (group) =>
+      !needle.value ||
+      group.title.toLowerCase().includes(needle.value) ||
+      noteHas(noteKeyOfGroup(group.groupUuid)),
+  ),
 )
 const groupsShown = computed(
   () => groupRows.value.length > 0 || (groupsLoaded.value && !needle.value),

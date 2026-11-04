@@ -17,6 +17,7 @@ vi.mock('vue-i18n', () => ({
           ? `${key} ${JSON.stringify(values)}`
           : key,
     d: (date) => `d(${date.toISOString()})`,
+    n: (value) => `n(${value})`,
   }),
 }))
 
@@ -247,6 +248,143 @@ describe('ContactRow', () => {
       expect(rule('\\.contact-row-open')).toMatch(/display:\s*flex/)
       expect(rule('\\.contact-row-text')).toMatch(/flex:\s*1/)
       expect(rule('\\.contact-row-text')).toMatch(/min-width:\s*0/)
+    })
+
+    // Beside the last line, the latest word (E-085, Bernd, 26.10.2026): at the foot of the text,
+    // raised to the middle of a line of small text -- not in the middle of the row. Where it
+    // stands is the bundle's to measure; here the dot carries the rule, and the rule says it.
+    it('stands beside the last line, at the foot of the text', () => {
+      mountWith({ ...CONTACT, unreadChatMessages: 2 })
+      expect(dot().classes()).toContain('contact-row-dot')
+      const styles = readFileSync(resolve(here, './ContactRow.vue'), 'utf8')
+        .split('<style scoped>')[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = styles.match(/\.contact-row-dot\s*\{([^}]*)\}/)[1]
+      expect(rule).toMatch(/align-self:\s*flex-end/)
+      expect(rule).toMatch(/margin-bottom:\s*calc\(\(1\.2em - 9px\) \/ 2\)/)
+    })
+  })
+
+  /**
+   * The line of the latest word (E-083, Bernd, 23.10.2026): the beginning of the latest message,
+   * or of the latest booking where that came later -- instead of the community's line where the
+   * person belongs to the member's own community, and always the last line of the row, under how
+   * often and how recently (E-085, Bernd, 26.10.2026).
+   */
+  describe('the line of the latest word', () => {
+    const MESSAGE = {
+      mine: false,
+      excerpt: 'Morgen um zehn im Garten?',
+      hasImage: false,
+      amount: null,
+    }
+    const BOOKING = {
+      mine: true,
+      excerpt: 'Danke für Deine Hilfe',
+      hasImage: false,
+      amount: '20.00',
+    }
+    const lineOf = () => wrapper.find('[data-test="chat-preview-line"]')
+    // The lines of the row's text, in the order it shows them.
+    const lines = () => [...wrapper.find('.contact-row-text').element.children]
+
+    it("stands instead of the community's line for somebody of the member's own community", () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      expect(wrapper.find('[data-test="contact-community"]').exists()).toBe(false)
+      expect(lineOf().text()).toBe('Morgen um zehn im Garten?')
+    })
+
+    it('stands last for somebody of another community, whose community keeps its line', () => {
+      mountWith({
+        ...CONTACT,
+        user: { ...CONTACT.user, communityName: 'Gradido Bremen' },
+        homeCommunity: false,
+        chatPreview: MESSAGE,
+      })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido Bremen')
+      expect(text.indexOf('Gradido Bremen')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+      expect(text.indexOf('contacts.bookings:12')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
+    })
+
+    it('leaves the row as it was where there is nothing to show', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: null })
+      expect(lineOf().exists()).toBe(false)
+      expect(wrapper.find('[data-test="contact-community"]').text()).toBe('Gradido-Akademie')
+    })
+
+    it('stands last, under the line of how often and how recently', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(text.indexOf('Carla-Sonne')).toBeLessThan(text.indexOf('contacts.bookings:12'))
+      expect(text.indexOf('contacts.bookings:12')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
+    })
+
+    // Where nothing has been booked yet, the line above says how the two became contacts.
+    it('stands last under the line of how the two became contacts, too', () => {
+      mountWith({
+        ...CONTACT,
+        bookings: 0,
+        origin: 'ARRIVAL',
+        homeCommunity: true,
+        chatPreview: MESSAGE,
+      })
+      const text = wrapper.find('[data-test="contact-row-open"]').text()
+      expect(text.indexOf('contacts.origin.arrival')).toBeLessThan(text.indexOf('Morgen um zehn'))
+      expect(lines().at(-1)).toBe(lineOf().element)
+    })
+
+    it('is part of what the button says, inside it', () => {
+      mountWith({ ...CONTACT, homeCommunity: true, chatPreview: MESSAGE })
+      expect(
+        wrapper.find('[data-test="contact-row-open"] [data-test="chat-preview-line"]').exists(),
+      ).toBe(true)
+    })
+
+    /**
+     * Dark while what the line shows waits unread -- a message of theirs, or since Chat E-086 a
+     * transfer of theirs not seen. The server says it (ChatPreview.unread): it knows the pointer and
+     * what was seen, the row does not.
+     */
+    describe('dark while what it shows waits unread', () => {
+      const darkness = (contact) => {
+        mountWith({ ...CONTACT, homeCommunity: true, ...contact })
+        return lineOf().classes().includes('fw-semibold')
+      }
+
+      it('is dark for their message while it waits', () => {
+        expect(darkness({ chatPreview: { ...MESSAGE, unread: true }, unreadChatMessages: 2 })).toBe(
+          true,
+        )
+      })
+
+      it('is dark for their transfer not seen', () => {
+        const transfer = { ...BOOKING, mine: false, unread: true }
+        expect(darkness({ chatPreview: transfer, unreadChatMessages: 1 })).toBe(true)
+      })
+
+      it('is quiet once it was read or seen', () => {
+        expect(
+          darkness({ chatPreview: { ...MESSAGE, unread: false }, unreadChatMessages: 0 }),
+        ).toBe(false)
+        expect(darkness({ chatPreview: { ...BOOKING, mine: false, unread: false } })).toBe(false)
+      })
+
+      // Something else of theirs waits -- an older message --, but not what the line shows.
+      it('takes the word of the server, not the count of the dot', () => {
+        expect(
+          darkness({
+            chatPreview: { ...BOOKING, mine: false, unread: false },
+            unreadChatMessages: 3,
+          }),
+        ).toBe(false)
+      })
+
+      it('is quiet for a preview from a server that does not say it', () => {
+        expect(darkness({ chatPreview: MESSAGE, unreadChatMessages: 2 })).toBe(false)
+      })
     })
   })
 })

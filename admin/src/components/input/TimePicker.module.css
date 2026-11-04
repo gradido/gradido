@@ -1,5 +1,7 @@
+/* Bootstrap's border colour: #dee2e6 in the light mode, as written here before, and the bridge's in
+   the dark (App.css). */
 .timerInput {
-  border: 1px solid rgb(222 226 230);
+  border: 1px solid var(--bs-border-color);
   border-radius: 6px;
   padding: 6px 12px;
 }

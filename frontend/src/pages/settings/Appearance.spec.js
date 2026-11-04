@@ -10,8 +10,8 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 // The store sets the language on the app's own i18n, which needs the real vue-i18n.
 vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 // The menu itself saves through the server; its own spec holds that.
-vi.mock('@/components/LanguageSwitch2.vue', () => ({
-  default: { name: 'LanguageSwitch2', template: '<div data-test="language-switch" />' },
+vi.mock('@/components/LanguageSwitch2', () => ({
+  LanguageSwitch2: { name: 'LanguageSwitch2', template: '<div data-test="language-switch" />' },
 }))
 
 const mountAppearance = () =>

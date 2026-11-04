@@ -22,6 +22,8 @@ export class ChatUpdate {
     editedCursor: string,
     reacted: ChatMessage[],
     reactedCursor: string,
+    unreadTransfers: number,
+    latestUnreadTransferId: number | null,
   ) {
     this.latestId = latestId
     this.unreadConversations = unreadConversations
@@ -31,6 +33,8 @@ export class ChatUpdate {
     this.editedCursor = editedCursor
     this.reacted = reacted
     this.reactedCursor = reactedCursor
+    this.unreadTransfers = unreadTransfers
+    this.latestUnreadTransferId = latestUnreadTransferId
   }
 
   /**
@@ -46,7 +50,9 @@ export class ChatUpdate {
   /**
    * In how many of the caller's conversations something waits unread: people, not messages --
    * three unread messages from Lena are one thing to see to. A muted conversation counts
-   * (E-024: mute is about mail, not about seeing).
+   * (E-024: mute is about mail, not about seeing). A person who sent the caller a transfer they
+   * have not seen counts too, and once, whether a message of theirs waits as well or not (Chat
+   * E-086).
    */
   @Field(() => Int)
   unreadConversations: number
@@ -93,4 +99,16 @@ export class ChatUpdate {
    */
   @Field(() => String)
   reactedCursor: string
+
+  /**
+   * How many transfers the caller received and has not seen (Chat E-086): none where they switched
+   * transfers out of their conversations. With `latestUnreadTransferId` what the wallet asks its
+   * lists again on: a transfer that arrives raises both, one that is seen lowers this.
+   */
+  @Field(() => Int)
+  unreadTransfers: number
+
+  /** The newest transfer the caller received and has not seen, by its id; null where none waits. */
+  @Field(() => Int, { nullable: true })
+  latestUnreadTransferId: number | null
 }

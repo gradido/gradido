@@ -1,11 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { createRouter, createWebHistory, type RouterScrollBehavior } from 'vue-router'
+import { ROUTER_BASE } from '@/constants'
 import { routes } from './routes'
 
 export const router = createRouter({
   routes,
   linkActiveClass: 'active',
-  history: createWebHistory('/admin/'),
+  history: createWebHistory(ROUTER_BASE),
   scrollBehavior: (to, from, savedPosition) => {
     if (savedPosition) {
       return savedPosition

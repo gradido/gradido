@@ -72,6 +72,18 @@ const idle = () => ({
    * by the server's other clock. Null until the first answer.
    */
   reactedCursor: null,
+  /**
+   * The changed messages the lists were asked again for, by id, with the time of the change
+   * (`editedAt`): the server hands a change on again for some seconds, and the lists are asked
+   * once per change, not once per answer that repeats it.
+   */
+  listedEdits: new Map(),
+  /**
+   * The transfers the member has not seen, as the last answer counted them: how many, and the
+   * newest (Chat E-086) -- in one string, so that a change of either is one. Null until the first
+   * answer.
+   */
+  transfers: null,
   /** The pause before the next question. */
   delay: CHAT_POLL_INTERVAL_MS,
   timer: null,
@@ -133,6 +145,7 @@ const handOn = (to, chatMessages) => {
 const cycle = async (mine) => {
   let arrived = false
   let moved = false
+  let changed = false
   try {
     let rounds = 0
     let more = false
@@ -143,6 +156,12 @@ const cycle = async (mine) => {
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
       // first answer only says where one stands; the list was loaded a moment ago.
       if (beat.marker !== null && update.unreadConversations !== unread.value) moved = true
+      // A transfer arrived or was seen (Chat E-086): its dot and the line under the name are the
+      // list's, asked again as for a message -- also where the number of people stays the same,
+      // because somebody with a message waiting sent a transfer as well.
+      const transfers = `${update.unreadTransfers ?? 0}:${update.latestUnreadTransferId ?? ''}`
+      if (beat.transfers !== null && transfers !== beat.transfers) moved = true
+      beat.transfers = transfers
       beat.marker = update.latestId
       unread.value = update.unreadConversations
       if (update.messages.length > 0) {
@@ -150,10 +169,18 @@ const cycle = async (mine) => {
         handOn(listeners, update.messages)
       }
       // The changed messages (E-060), and where to go on from for them. The cursor only moves
-      // with an answer that names one; no list is asked again for a change -- it moves no order
-      // and no dot.
+      // with an answer that names one. A change moves no order and no dot, but the changed
+      // message may be the latest of its conversation, whose words stand under a name on
+      // "Kontakte & Chat" (E-083): the list is asked again for it.
       if (update.editedCursor) beat.editedCursor = update.editedCursor
-      if (update.edited?.length > 0) handOn(editedListeners, update.edited)
+      if (update.edited?.length > 0) {
+        handOn(editedListeners, update.edited)
+        for (const message of update.edited) {
+          if (beat.listedEdits.get(message.id) === message.editedAt) continue
+          beat.listedEdits.set(message.id, message.editedAt)
+          changed = true
+        }
+      }
       // The messages whose reactions changed, the same way, with their own cursor. Nothing is
       // asked again for them either: a reaction moves no order, no dot and no number.
       if (update.reactedCursor) beat.reactedCursor = update.reactedCursor
@@ -166,9 +193,10 @@ const cycle = async (mine) => {
     if (mine !== generation) return
     beat.delay = Math.min(beat.delay * 2, CHAT_POLL_BACKOFF_MAX_MS)
   }
-  // Something arrived, or was read: the contact list, its order and its dots, are the server's
-  // (E-023) -- asked again rather than kept in step here.
-  if ((arrived || moved) && mine === generation) {
+  // Something arrived, was read or was changed: the contact list, its order, its dots and the
+  // words under its names, are the server's (E-023, E-083) -- asked again rather than kept in
+  // step here.
+  if ((arrived || moved || changed) && mine === generation) {
     refreshContactsPanel(beat.client)
   }
 }

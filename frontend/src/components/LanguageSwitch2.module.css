@@ -1,0 +1,78 @@
+.languageSwitch {
+  position: relative;
+  display: inline-block;
+}
+
+.lsTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.lsTrigger:hover .lsCurrent {
+  text-decoration: underline;
+}
+
+.lsGlobe {
+  font-size: 1.15em;
+  opacity: 0.7;
+}
+
+.lsCaret {
+  font-size: 0.9em;
+  opacity: 0.6;
+}
+
+.lsMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1060;
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+
+  /* On the grey of the menus over a conversation, as the menu of a link (Bernd, 05.10.2026).
+     The tokens change with the colour mode, so the dark stylesheet says nothing about this
+     menu but the colour of the chosen language. */
+  background: var(--menu-surface, #dde1e6);
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.lsItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lsItem:hover {
+  background: var(--menu-hover, #eef0f3);
+}
+
+/* The chosen language stands on the tone of the entry under the pointer, and carries the
+   tick: its blue comes to 5.7 : 1 there. */
+.lsItemActive {
+  background: var(--menu-hover, #eef0f3);
+  color: #185fa5;
+}
+
+.lsCheck {
+  font-size: 1em;
+}

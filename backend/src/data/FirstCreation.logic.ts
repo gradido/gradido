@@ -77,6 +77,7 @@ export const FIRST_CREATION_EXCLUSIVE_CHECKS: readonly FirstCreationCheckKey[] =
 export type FirstCreationCatalogKey = (typeof FIRST_CREATION_CATALOG_KEYS)[number]
 
 /**
+ * TODO: Remove inline check to tests
  * Whether the member's language has the sentence stems — asked of core, because core is
  * the copy both packages can be measured against. A language without them gets no window
  * rather than a box that opens in English under a German heading. All ten languages of the

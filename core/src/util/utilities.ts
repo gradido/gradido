@@ -1,6 +1,5 @@
 import { GradidoUnit } from 'shared'
-import { promisify } from 'util'
-import { i18n } from '../locales/localization'
+import { translateForLocale } from '../locales/localization'
 
 export { fullName } from 'shared'
 
@@ -8,11 +7,7 @@ export const objectValuesToArray = (obj: Record<string, string>): string[] =>
   Object.keys(obj).map((key) => obj[key])
 
 export const decimalSeparatorByLanguage = (a: GradidoUnit, language: string): string => {
-  const rememberLocaleToRestore = i18n.getLocale()
-  i18n.setLocale(language)
-  const result = a.toString(2, true).replace('.', i18n.__('general.decimalSeparator'))
-  i18n.setLocale(rememberLocaleToRestore)
-  return result
+  return a.toString(2, true).replace('.', translateForLocale(language, 'general.decimalSeparator'))
 }
 
 // Function to reset an interface by chatGPT
@@ -27,8 +22,6 @@ export function resetInterface<T extends Record<string, any>>(obj: T): T {
   }
   return obj
 }
-
-export const delay = promisify(setTimeout)
 
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url.replace(/\/*$/, '/') : url.concat('/')

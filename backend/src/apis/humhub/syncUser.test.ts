@@ -6,6 +6,8 @@ import { ExecutedHumhubAction, syncUser } from './syncUser'
 jest.mock('@/apis/humhub/HumHubClient')
 
 const defaultUser = new User()
+// Every row carries an alias (migration 0164); the profile is built from it.
+defaultUser.alias = 'john'
 defaultUser.emailContact = new UserContact()
 defaultUser.emailContact.email = 'email@gmail.com'
 

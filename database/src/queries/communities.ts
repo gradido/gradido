@@ -66,8 +66,10 @@ export async function getHomeCommunityDrizzle(): Promise<CommunitiesSelect> {
  * The home community as it is in the database right now, bypassing the cache.
  * For whoever writes the row and must not decide on a stale copy of it.
  */
-export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null> {
-  const resultRows = await drizzleDb()
+export async function dbSelectHomeCommunity(
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<CommunitiesSelect | null> {
+  const resultRows = await tx
     .select()
     .from(communitiesTable)
     .where(eq(communitiesTable.foreign, false))
@@ -80,13 +82,12 @@ export async function dbSelectHomeCommunity(): Promise<CommunitiesSelect | null>
  */
 export async function dbInsertHomeCommunity(
   homeCommunity: HomeCommunityInsertInput,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<void> {
-  if (await dbSelectHomeCommunity()) {
+  if (await dbSelectHomeCommunity(tx)) {
     throw new Error('home community already exist, only one is allowed')
   }
-  await drizzleDb()
-    .insert(communitiesTable)
-    .values(v.parse(homeCommunityInsertSchema, homeCommunity))
+  await tx.insert(communitiesTable).values(v.parse(homeCommunityInsertSchema, homeCommunity))
   homeCommunityCache.invalidateEverywhere()
 }
 
@@ -286,14 +287,15 @@ export async function dbFindAuthenticatedForeignCommunityByIdentifier(
   return rows[0] ?? null
 }
 
-export async function dbFindCommunityByIdentifier(
-  communityIdentifier: CommunityIdentifier,
+// the foreign community a signed request names with its public key, null for an unknown key
+export async function dbFindForeignCommunityByPublicKey(
+  publicKey: Buffer,
 ): Promise<CommunitiesSelect | null> {
-  const rows = await drizzleDb()
+  const resultRows = await drizzleDb()
     .select()
     .from(communitiesTable)
-    .where(eqCommunityIdentifier(communityIdentifier))
-  return rows[0] ?? null
+    .where(and(eq(communitiesTable.publicKey, publicKey), eq(communitiesTable.foreign, true)))
+  return resultRows[0] ?? null
 }
 
 /**

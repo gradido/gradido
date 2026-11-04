@@ -62,19 +62,23 @@ export const useCopyLinks = ({ link, amount, memo, validUntil, greeting = null }
       t('gdd_per_link.share-line4', { date: d(new Date(validUntil), 'short') }),
     ].join('\n')
 
-  const plainText = () =>
+  const plainText = ({ withMemo = true } = {}) =>
     [
       t('gdd_per_link.share-line1', {
         name: memberAlias(store.username, store.gradidoID),
         amount: amountInText(amount),
       }),
-      t('gdd_per_link.share-line2', { memo }),
+      ...(withMemo ? [t('gdd_per_link.share-line2', { memo })] : []),
       t('gdd_per_link.share-line3'),
       link,
       t('gdd_per_link.share-line4', { date: d(new Date(validUntil), 'short') }),
     ].join('\n')
 
   const linkText = computed(() => (greeting ? greetingText() : plainText()))
+
+  // For a way that can carry only so much (useSendByEmail): the member's words stay behind, they
+  // stand on the page the link opens. A greeting's sentence goes without them anyway.
+  const shortLinkText = computed(() => (greeting ? greetingText() : plainText({ withMemo: false })))
 
   // The device's own share sheet, and a copy where that does not work. `utils/shareText` says
   // why the link travels inside the text and not as `url`, and why closing the sheet is silent.
@@ -85,6 +89,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil, greeting = null }
     copyLink,
     copyLinkWithText,
     linkText,
+    shortLinkText,
     share,
   }
 }

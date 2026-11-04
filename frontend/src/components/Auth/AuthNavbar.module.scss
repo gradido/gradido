@@ -1,0 +1,96 @@
+.authNavbar {
+  display: flex;
+  align-content: center;
+}
+
+.authHeader {
+  height: 150px;
+  z-index: 1;
+}
+
+.authHeader > nav {
+  padding: 0 !important;
+}
+
+.authHeader > nav > :global(.navbar-brand) {
+  padding: 0 !important;
+}
+
+.authHeader :global(#nav-collapse) {
+  justify-content: flex-end;
+}
+
+/*
+  Below lg: the logo on the line the greeting and the card's text start on, the links
+  ending on the line the card's text ends on. The links are 44px high each, the height of
+  a finger. From md up they stand beside the logo; on a phone they take the row below it
+  (see the last block).
+*/
+@media screen and (width <= 1024.98px) {
+  .authHeader {
+    height: auto;
+    padding: 10px var(--page-text-inset, 24px);
+  }
+
+  .authHeader > nav {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  /* The desk's 200px wherever the width has room for it; smaller on a phone (below). */
+  .authLogoSmall {
+    width: 200px;
+    height: auto;
+  }
+
+  /* Under .authHeader: the scoped rules these were had one level more (the scope attribute),
+     and that level is what wins over Bootstrap's `.navbar-expand .navbar-nav .nav-link`, whose
+     1rem (the wallet's --bs-navbar-nav-link-padding-x) would push the links apart. */
+  .authHeader .authLinks :global(.nav-link) {
+    padding: 12px;
+  }
+
+  .authHeader .authLinks > :first-child :global(.nav-link) {
+    padding-left: 0;
+  }
+
+  .authHeader .authLinks > :last-child :global(.nav-link) {
+    padding-right: 0;
+  }
+}
+
+/* The logo is a link now: a keyboard has to see where it stands, on the page and on the blob,
+   in both modes -- the ring of the avatar (AppAvatar.vue), drawn outside the picture. */
+.authHome:focus-visible {
+  outline: 2px solid #276e6f;
+  outline-offset: 2px;
+}
+
+:global(.dark-mode) .authHome:focus-visible {
+  outline-color: #8ed0d1;
+}
+
+/* The link takes the picture's size, not a line of text around it. */
+.authHomeSmall {
+  display: inline-block;
+  line-height: 0;
+}
+
+/*
+  On a phone the logo is 45px high, 153px wide: halfway between the 109px it had here and
+  the desk's 200px (Bernd, 22.09.2026 -- it had become too small). The two words take the
+  row below it, still on the right, on every phone and in every language alike. Beside the
+  larger logo they would fit only on the wider phones (German from 391px), and the top of
+  the page would change from one phone to the next -- as it did before, when they went down
+  only where they did not fit: at 320px in seven languages, in Russian below 390px.
+*/
+@media screen and (width <= 767.98px) {
+  .authLogoSmall {
+    width: auto;
+    height: 45px;
+  }
+
+  .authHeader :global(#nav-collapse) {
+    flex-basis: 100%;
+  }
+}

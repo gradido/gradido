@@ -54,12 +54,13 @@ export class User extends BaseEntity {
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
   community: CommunityType | null
 
+  // Mandatory since migration 0164, for the cached copies of members of other communities
+  // (`foreign = 1`) as well: they are filed with the alias that community sent, or not at all.
   @Column({
     name: 'alias',
     type: 'varchar',
     length: 20,
-    nullable: true,
-    default: null,
+    nullable: false,
     collation: 'utf8mb4_unicode_ci',
   })
   alias: string

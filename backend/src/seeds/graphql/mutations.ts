@@ -182,6 +182,7 @@ export const sendCoins = gql`
     $memo: String!
     $motif: String
     $picture: ChatImageInput
+    $passOnOf: Int
   ) {
     sendCoins(
       recipientCommunityIdentifier: $recipientCommunityIdentifier
@@ -190,6 +191,7 @@ export const sendCoins = gql`
       memo: $memo
       motif: $motif
       picture: $picture
+      passOnOf: $passOnOf
     )
   }
 `
@@ -673,6 +675,18 @@ export const markChatConversationRead = gql`
   }
 `
 
+export const markChatTransfersSeen = gql`
+  mutation ($ref: MemberAvatarRefInput!, $upToTransactionId: Int!) {
+    markChatTransfersSeen(ref: $ref, upToTransactionId: $upToTransactionId)
+  }
+`
+
+export const markTransferSeen = gql`
+  mutation ($transactionId: Int!) {
+    markTransferSeen(transactionId: $transactionId)
+  }
+`
+
 export const sendChatMessage = gql`
   mutation (
     $ref: MemberAvatarRefInput!
@@ -863,6 +877,22 @@ export const setChatGroupMuted = gql`
 export const addFavorite = gql`
   mutation ($ref: MemberAvatarRefInput!) {
     addFavorite(ref: $ref)
+  }
+`
+
+export const setUserNote = gql`
+  mutation ($about: UserNoteSubjectInput!, $note: String!) {
+    setUserNote(about: $about, note: $note)
+  }
+`
+
+export const setUserRemark = gql`
+  mutation ($userId: Int!, $remark: String!) {
+    setUserRemark(userId: $userId, remark: $remark) {
+      remark
+      updatedAt
+      updatedByName
+    }
   }
 `
 

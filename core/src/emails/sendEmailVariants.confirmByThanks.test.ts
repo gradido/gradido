@@ -1,9 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { afterEach, describe, expect, it, jest, mock } from 'bun:test'
+import { describe, expect, it, jest, mock } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CONFIG } from '../config'
-import { i18n } from '../locales/localization'
 import { sendAssistedRegistrationConfirmEmail } from './sendEmailVariants'
 
 // The setup of sendEmailVariants.test.ts: a transport that takes every mail, so that the mail is
@@ -30,13 +29,6 @@ mock.module('nodemailer', () => {
       }
     }),
   }
-})
-
-// sendEmailTranslated leaves the process in the language of its mail; this file sends in ten.
-// Every test hands the locale back as the file found it (see sendEmailVariants.linkRedeemed.test.ts).
-const localeBefore = i18n.getLocale()
-afterEach(() => {
-  i18n.setLocale(localeBefore)
 })
 
 const LOCALES = join(import.meta.dir, '..', 'locales')
@@ -130,9 +122,5 @@ describe('the confirm mail of an account opened while accepting a thank-you', ()
       const { accountCreated, accountCreatedByThanks } = sentencesIn(language)
       expect(accountCreatedByThanks).not.toBe(accountCreated)
     }
-  })
-
-  it('hands the locale of the process back', () => {
-    expect(i18n.getLocale()).toBe(localeBefore)
   })
 })

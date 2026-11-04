@@ -48,8 +48,13 @@ export const useCreationMonths = () => {
     })
   }
 
+  // The three months a member can still be credited for, by their short names, in the order of
+  // the amounts the member search delivers (`creation`): the head of its column at the desk, a
+  // line of the member's card on a phone.
+  const creationMonthShorts = () => creationDates.value.map((date) => d(date, 'monthShort'))
+
   const creationLabel = () => {
-    return creationDates.value.map((date) => d(date, 'monthShort')).join(' | ')
+    return creationMonthShorts().join(' | ')
   }
 
   const { result, error } = useQuery(adminOpenCreations, { userId }, { fetchPolicy: 'no-cache' })
@@ -74,6 +79,7 @@ export const useCreationMonths = () => {
     creationDates,
     creationDateObjects,
     radioOptions,
+    creationMonthShorts,
     creationLabel,
   }
 }

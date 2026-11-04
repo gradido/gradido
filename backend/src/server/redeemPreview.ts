@@ -62,16 +62,12 @@ const escapeHtml = (text: string): string =>
 const html = (pieces: TemplateStringsArray, ...values: (string | number)[]): string =>
   pieces.reduce((written, piece, index) => written + escapeHtml(String(values[index - 1])) + piece)
 
-const titleOf = ({ kind, name, language }: RedeemPreview): string => {
-  if (kind === 'greeting') {
-    return name === null
-      ? translateForLocale(language, 'redeemPreview.greetingTitleWithoutName')
-      : translateForLocale(language, 'redeemPreview.greetingTitle', { name })
-  }
-  return name === null
-    ? translateForLocale(language, 'redeemPreview.linkTitleWithoutName')
-    : translateForLocale(language, 'redeemPreview.linkTitle', { name })
-}
+const titleOf = ({ kind, name, language }: RedeemPreview): string =>
+  translateForLocale(
+    language,
+    kind === 'greeting' ? 'redeemPreview.greetingTitle' : 'redeemPreview.linkTitle',
+    { name },
+  )
 
 function pictureOf({ code, picture }: RedeemPreview): WalletPicture {
   switch (picture.kind) {

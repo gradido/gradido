@@ -25,7 +25,6 @@ export const searchUsers = gql`
         email
         creation
         emailChecked
-        hasElopage
         emailConfirmationSend
         deletedAt
         createdAt

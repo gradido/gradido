@@ -35,6 +35,7 @@ import {
 } from '@/composables/useChatImages'
 import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
+import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
 
 vi.mock('../i18n', () => ({
@@ -551,6 +552,20 @@ describe('Pinia store', () => {
         expect(calls).not.toContainEqual(['setDarkMode', false])
       })
 
+      // The admin interface writes the device's key as well: a sign-out keeps what was chosen
+      // there, and does not write the mode this store held since the wallet opened.
+      it('keeps the mode this device keeps, written elsewhere meanwhile', () => {
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'light')
+        try {
+          wallet.logout()
+          expect(calls).toContainEqual(['setThemeMode', 'light'])
+          expect(calls).not.toContainEqual(['setThemeMode', 'dark'])
+          expect(wallet.themeMode).toBe('light')
+        } finally {
+          localStorage.removeItem(THEME_MODE_STORAGE_KEY)
+        }
+      })
+
       /**
        * ⛔ An amount parked mid-sale must not stay on a device somebody has walked away
        * from. The ID is read BEFORE `setGradidoID(null)`, two lines into this action
@@ -888,6 +903,37 @@ describe('Pinia store', () => {
         expect(handover().takeLink()).toBeNull()
       })
 
+      /**
+       * ⛔ A seventh, same rule: which thank-you received a transfer about to be made passes on
+       * (usePassOnDraft) waits in memory too. Without this the next member to sign in on this
+       * browser would make a transfer that passes somebody else's thank-you on.
+       */
+      it('lets go of the thank-you handed over to be passed on', () => {
+        // Read as the same member would read it: what empties it here is the sign-out alone.
+        const member = walletStore({ gradidoID: 'user-one' })
+        const handover = () => {
+          let draft
+          mount(
+            {
+              setup() {
+                draft = usePassOnDraft()
+                return () => null
+              },
+            },
+            { global: { plugins: [member] } },
+          )
+          return draft
+        }
+        // The fixture proves itself: handed over, it is found.
+        handover().put(1002)
+        expect(handover().take()).toBe(1002)
+        handover().put(1002)
+
+        wallet.logout()
+
+        expect(handover().take()).toBeNull()
+      })
+
       it('removes only its own storage blob', () => {
         const removeItemMock = vi.fn()
         const clearMock = vi.fn()
@@ -931,6 +977,50 @@ describe('Pinia store', () => {
         wallet.applyTheme()
         expect(setItem).toHaveBeenCalledWith(THEME_MODE_STORAGE_KEY, 'dark')
         vi.unstubAllGlobals()
+      })
+    })
+
+    // The admin interface writes the device's key too (its account menu). At boot the wallet takes
+    // it before the first applyTheme mirrors the store's mode into it (main.js).
+    describe('adoptThemeModeFromDevice', () => {
+      afterEach(() => {
+        localStorage.removeItem(THEME_MODE_STORAGE_KEY)
+        vi.restoreAllMocks()
+      })
+
+      it('takes the mode stored on this device at boot', () => {
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+        const wallet = walletOf({ themeMode: 'light' })
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+        // ... so the apply after it keeps the device's choice, instead of the blob's older one.
+        wallet.applyTheme()
+        expect(localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe('dark')
+        expect(wallet.darkMode).toBe(true)
+
+        // 'system' is a choice as well.
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'system')
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('system')
+      })
+
+      it('keeps its own mode when the device holds none or an unknown value', () => {
+        const wallet = walletOf({ themeMode: 'dark' })
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+
+        localStorage.setItem(THEME_MODE_STORAGE_KEY, 'blue')
+        wallet.adoptThemeModeFromDevice()
+        expect(wallet.themeMode).toBe('dark')
+      })
+
+      it('survives a refused storage', () => {
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+          throw new DOMException('The operation is insecure.', 'SecurityError')
+        })
+        const wallet = walletOf({ themeMode: 'light' })
+        expect(() => wallet.adoptThemeModeFromDevice()).not.toThrow()
+        expect(wallet.themeMode).toBe('light')
       })
     })
   })

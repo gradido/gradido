@@ -817,6 +817,7 @@ describe('FirstCreationResolver', () => {
     beforeAll(async () => {
       tessa = await userFactory(testEnv, {
         ...garrickOllivander,
+        alias: 'TessaT',
         email: 'tessa@testerin.de',
         firstName: 'Tessa',
         lastName: 'Testerin',

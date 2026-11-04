@@ -160,11 +160,8 @@ namespace gradido::data::runtime {
         grdi_validate_result_type validateResult = grdi_validate_complete_transaction(&m_tx, &opt, &errorDetails);
         Napi::Object result;
         if (validateResult != GRDI_VALIDATE_SUCCESS) {
-            Napi::Object error = Napi::Object::New(env);
+            Napi::Object error = Napi::Error::New(env, errorDetails.message ? errorDetails.message : "").Value();
             error.Set("name", Napi::String::New(env, grdi_validate_result_to_string(validateResult)));
-            if (errorDetails.message) {
-                error.Set("message", Napi::String::New(env, errorDetails.message));
-            }
             if (errorDetails.actual) {
                 error.Set("actual", Napi::String::New(env, errorDetails.actual));
             }

@@ -119,6 +119,21 @@ export function signKeyPairDeriveAccountFromCommunity(
  */
 
 export function hashGeneric(data: Uint8Array): Uint8Array
+/**
+ * The generic hash (BLAKE2b, 32 bytes) as base64. A string is hashed as its UTF-8 bytes.
+ * @throws if data is neither a string nor a Uint8Array
+ */
+export function hashGenericBase64(data: string | Uint8Array): string
+/**
+ * Verifies a detached Ed25519 signature (crypto_sign_verify_detached).
+ * @param signature - 64 bytes; another size throws, check it where it comes in
+ * @param publicKey - 32 bytes; another size throws
+ */
+export function signatureVerify(
+  message: Uint8Array,
+  signature: Uint8Array,
+  publicKey: Uint8Array,
+): boolean
 
 /** A key pair's bytes as copies; `privateKey` is null when the pair has only a public key. */
 export type KeyPairBuffers = { publicKey: Buffer; privateKey: Buffer | null }
@@ -195,6 +210,8 @@ export class Ed25519KeyPair {
  *
  * A ciphertext is one format byte (1 for encrypt, 2 for encryptSecret), a random 24 bytes
  * nonce, then the encrypted payload with its 16 bytes MAC -- payload size + 41 bytes.
+ * encrypt takes the payload as a string (UTF-8) and decrypt hands it back as one;
+ * encryptSecret and decryptSecret stay with bytes on both sides.
  *
  * Programmer errors throw, as with Ed25519KeyPair; a ciphertext that does not decrypt is an
  * expected failure and comes back as a Result.
@@ -212,9 +229,9 @@ export class X25519KeyPair {
   public hasPrivateKey(): boolean
 
   /** @param recipient - with public key only */
-  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
+  public encrypt(payload: string, recipient: X25519KeyPair): Buffer
   /** @param sender - with public key only */
-  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<string, DecryptError>
 
   public encryptSecret(payload: Uint8Array): Buffer
   public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
@@ -260,11 +277,28 @@ export class HomeCommunityNative {
   public verify(message: Uint8Array, signature: Uint8Array): boolean
 
   /** @param recipient - with its public key only */
-  public encrypt(payload: Uint8Array, recipient: X25519KeyPair): Buffer
+  public encrypt(payload: string, recipient: X25519KeyPair): Buffer
   /** @param sender - with its public key only */
-  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<Buffer, DecryptError>
+  public decrypt(box: Uint8Array, sender: X25519KeyPair): Result<string, DecryptError>
   public encryptSecret(payload: Uint8Array): Buffer
   public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
+
+  /**
+   * encrypt, and the generic hash (BLAKE2b, 32 bytes, as hashGeneric) over the resulting bytes.
+   * @param recipient - with its public key only
+   * @returns box: the ciphertext, hash: its generic hash as base64
+   */
+  public encryptAndHash(payload: string, recipient: X25519KeyPair): { box: Buffer; hash: string }
+
+  /**
+   * decrypt, and the generic hash (BLAKE2b, 32 bytes, as hashGeneric) over the bytes of box.
+   * @param sender - with its public key only
+   * @returns payload: the plaintext, hash: the generic hash of box as base64
+   */
+  public decryptAndHash(
+    box: Uint8Array,
+    sender: X25519KeyPair,
+  ): Result<{ payload: string; hash: string }, DecryptError>
 }
 
 /**
@@ -373,7 +407,7 @@ export function grdtTransactionToString(addressType: number): string
  * The error carried by a VoidResult is a plain object, not an `Error` instance: it crosses
  * from C as a name and a message rather than being thrown.
  */
-export type NativeError = { name: string; message: string }
+export type NativeError = Error
 
 /**
  * What a failing `validate()` reports. `actual` and `expected` are filled in only where the

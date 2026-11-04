@@ -22,7 +22,6 @@ const CONFIG = parseConfig(schema, {
   BUILD_COMMIT: env(process.env.BUILD_COMMIT),
   DLT_ACTIVE: env(process.env.DLT_ACTIVE),
   GMS_ACTIVE: env(process.env.GMS_ACTIVE),
-  GMS_LEGACY_ACTIVE: env(process.env.GMS_LEGACY_ACTIVE),
   MATCHING_ACTIVE: env(process.env.MATCHING_ACTIVE),
   HUMHUB_ACTIVE: env(process.env.HUMHUB_ACTIVE),
   AUTO_POLL_INTERVAL: env(process.env.AUTO_POLL_INTERVAL),

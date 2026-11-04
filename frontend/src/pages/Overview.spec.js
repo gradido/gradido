@@ -5,19 +5,21 @@ import { walletStore } from '@test/walletStore'
 import Overview from './Overview.vue'
 import MatchingTile from '@/components/Overview/MatchingTile'
 import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
+import ThanksArrivalTile from '@/components/Overview/ThanksArrivalTile'
 import {
   FIRST_ANSWER_PATIENCE_MS,
   MAP_MEMBER_COUNT_STORAGE_KEY,
 } from '@/composables/useMapMemberCount'
+import { THANKS_ARRIVAL_PATIENCE_MS } from '@/composables/useThanksArrivals'
 import { listMatchingEntries, mapMemberCount } from '@/graphql/queries'
+import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 
-// Mutable, so each case can say which of the two old services is switched on. Overview reads
-// the flags in computed properties, i.e. at render time.
+// Mutable, so each case can say whether HumHub is switched on. Overview reads the flags in
+// computed properties, i.e. at render time.
 const config = vi.hoisted(() => ({
   HUMHUB_ACTIVE: false,
-  GMS_LEGACY_ACTIVE: false,
   MATCHING_ACTIVE: false,
 }))
 vi.mock('@/config', () => ({ default: config }))
@@ -37,6 +39,10 @@ const queryResult = vi.hoisted(() => ({ value: undefined }))
 // back for one of these (the number of people on the map, or the member's own entries), so a
 // case has to be able to let that answer arrive.
 const asked = vi.hoisted(() => new Map())
+// What the server has answered already, by document: given at once to whoever listens. The
+// thank-yous received are asked about on every opening, and the tiles wait for them -- so each case
+// begins with that question answered (no thank-you), unless it is about it.
+const answered = vi.hoisted(() => new Map())
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn((document) => {
     const question = { result: null, error: null }
@@ -45,6 +51,7 @@ vi.mock('@vue/apollo-composable', () => ({
       result: queryResult,
       onResult: (callback) => {
         question.result = callback
+        if (answered.has(document)) callback(answered.get(document))
       },
       onError: (callback) => {
         question.error = callback
@@ -60,17 +67,15 @@ vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query: vi.fn() } }),
 }))
 
+// The thank-you tile says a refused reaction with a toast; nothing here presses an emoji.
+vi.mock('@/composables/useToast', () => ({
+  useAppToast: () => ({ toastSuccess: vi.fn(), toastError: vi.fn() }),
+}))
+
 vi.mock('@/components/Overview/CardCircles', () => ({
   default: {
     name: 'CardCircles',
     template: '<div class="card-circles"></div>',
-  },
-}))
-
-vi.mock('@/components/Overview/CardUserSearch', () => ({
-  default: {
-    name: 'CardUserSearch',
-    template: '<div class="card-user-search"></div>',
   },
 }))
 
@@ -88,6 +93,9 @@ describe('Overview', () => {
           RouterLink: true,
           IMdiChevronRight: true,
           ITablerHeartHandshake: true,
+          IIonLayersSharp: true,
+          IMdiEmoticonHappyOutline: true,
+          IMdiPlus: true,
           // The window the tile opens is its own component with its own spec; this file
           // is about which tiles the page shows and in what order.
           ContactWindow: true,
@@ -97,9 +105,10 @@ describe('Overview', () => {
 
   beforeEach(() => {
     asked.clear()
+    answered.clear()
+    answered.set(transactionsQuery, { data: { transactionList: { transactions: [] } } })
     window.localStorage.clear()
     config.HUMHUB_ACTIVE = false
-    config.GMS_LEGACY_ACTIVE = false
     config.MATCHING_ACTIVE = false
     router = createRouter({
       history: createWebHistory(),
@@ -113,6 +122,17 @@ describe('Overview', () => {
       locale: 'en',
       messages: {
         en: {},
+      },
+      // The amount in the thank-you tile is written with the wallet's own number format.
+      numberFormats: {
+        en: {
+          ungroupedDecimal: {
+            style: 'decimal',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            useGrouping: false,
+          },
+        },
       },
     })
 
@@ -128,27 +148,23 @@ describe('Overview', () => {
   })
 
   /**
-   * ⛔ The tile hangs on nothing. The two tiles that were here hang on HumHub and the old GMS
-   * search, and with both switched off -- the default of every fresh installation -- the
-   * overview used to be empty. This line in the template is wiring: nothing else notices if
-   * it goes.
+   * ⛔ The tile hangs on nothing. The tile of the circles hangs on HumHub, and with it switched
+   * off -- the default of every fresh installation -- the overview used to be empty. This line
+   * in the template is wiring: nothing else notices if it goes.
    */
   describe('the tile for showing Gradido to somebody', () => {
-    it('is there with neither of the two old services switched on', () => {
+    it('is there with HumHub switched off', () => {
       expect(wrapper.findComponent(ShowFriendsTile).exists()).toBe(true)
       expect(wrapper.find('.card-circles').exists()).toBe(false)
-      expect(wrapper.find('.card-user-search').exists()).toBe(false)
     })
 
-    it('stands before the two old tiles where they are switched on', () => {
+    it('stands before the tile of the circles where HumHub is switched on', () => {
       config.HUMHUB_ACTIVE = true
-      config.GMS_LEGACY_ACTIVE = true
       const html = mountOverview().html()
 
       const tile = html.indexOf('data-test="show-friends-tile"')
       expect(tile).toBeGreaterThanOrEqual(0)
       expect(tile).toBeLessThan(html.indexOf('class="card-circles"'))
-      expect(tile).toBeLessThan(html.indexOf('class="card-user-search"'))
     })
   })
 
@@ -244,9 +260,9 @@ describe('Overview', () => {
         expect(page.findComponent(MatchingTile).props('count')).toBe(773)
       })
 
-      // Everybody else: no question, no wait. `wrapper` is the page of a wallet without
-      // matching, mounted before each case.
-      it('asks nothing and holds nothing back where there is no invitation', () => {
+      // Everybody else: no question about the number, and no wait for it. `wrapper` is the page
+      // of a wallet without matching, mounted before each case.
+      it('asks nothing about the number, and holds nothing back for it, where there is no invitation', () => {
         expect(tiles(wrapper).exists()).toBe(true)
         expect(asked.has(mapMemberCount)).toBe(false)
       })
@@ -364,6 +380,149 @@ describe('Overview', () => {
 
       expect(asked.has(listMatchingEntries)).toBe(true)
       expect(asked.has(mapMemberCount)).toBe(false)
+    })
+  })
+
+  /**
+   * The thank-yous received in the last seven days that have no reaction yet (W3) stand above
+   * everything else, and the overview asks about them on every opening -- so on every opening it
+   * holds ALL its tiles back for that one answer, and then paints them together. Which thank-yous,
+   * and how long it waits, is the composable's own spec (useThanksArrivals); that the page obeys
+   * it, and hands them on, is only held here.
+   */
+  describe('the thank-yous received', () => {
+    const tiles = (page) => page.find('[data-test="overview-tiles"]')
+    const question = () => asked.get(transactionsQuery)
+    const received = (id, extra = {}) => ({
+      id,
+      typeId: 'RECEIVE',
+      amount: '10',
+      balanceDate: new Date(Date.now() - id * 60 * 1000).toISOString(),
+      memo: '',
+      linkedUser: {
+        alias: `giver${id}`,
+        gradidoID: `giver-${id}`,
+        communityUuid: 'home-uuid',
+        avatarUpdatedAt: null,
+      },
+      greeting: null,
+      picture: null,
+      reaction: null,
+      canReact: true,
+      ...extra,
+    })
+    const answer = (transactions) =>
+      question().result({ data: { transactionList: { transactions } } })
+
+    beforeEach(() => {
+      answered.delete(transactionsQuery)
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('holds every tile back until they are in, then paints them together, theirs on top', async () => {
+      const page = mountOverview()
+      expect(tiles(page).exists()).toBe(false)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(false)
+
+      answer([received(1), received(2)])
+      await nextTick()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(
+        page
+          .findComponent(ThanksArrivalTile)
+          .props('thanks')
+          .map((one) => one.id),
+      ).toEqual([1, 2])
+      const html = page.html()
+      const thanks = html.indexOf('data-test="thanks-arrival-tile"')
+      expect(thanks).toBeGreaterThanOrEqual(0)
+      expect(thanks).toBeLessThan(html.indexOf('data-test="show-friends-tile"'))
+    })
+
+    it('stands above the invitation onto the map as well', async () => {
+      config.MATCHING_ACTIVE = true
+      window.localStorage.setItem(MAP_MEMBER_COUNT_STORAGE_KEY, 'null')
+      const page = mountOverview()
+
+      answer([received(1)])
+      await nextTick()
+
+      const html = page.html()
+      const thanks = html.indexOf('data-test="thanks-arrival-tile"')
+      expect(thanks).toBeGreaterThanOrEqual(0)
+      expect(thanks).toBeLessThan(html.indexOf('data-test="map-invitation-tile"'))
+    })
+
+    // The questions go out together; the tiles wait for the last answer of them.
+    it('waits for them and for the number on the map alike', async () => {
+      config.MATCHING_ACTIVE = true
+      const page = mountOverview()
+
+      answer([received(1)])
+      await nextTick()
+      expect(tiles(page).exists()).toBe(false)
+
+      asked.get(mapMemberCount).result({ data: { mapMemberCount: 773 } })
+      await nextTick()
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ThanksArrivalTile).exists()).toBe(true)
+    })
+
+    it('hands on only what the rule chose', async () => {
+      const page = mountOverview()
+
+      answer([received(1, { reaction: '❤️' }), received(2), received(3, { canReact: false })])
+      await nextTick()
+
+      expect(
+        page
+          .findComponent(ThanksArrivalTile)
+          .props('thanks')
+          .map((one) => one.id),
+      ).toEqual([2])
+    })
+
+    it('puts nothing in their place where there is no thank-you to show', async () => {
+      const page = mountOverview()
+
+      answer([received(1, { reaction: '❤️' })])
+      await nextTick()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ThanksArrivalTile).exists()).toBe(false)
+      expect(tiles(page).html()).not.toContain('thanks-arrival')
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+    })
+
+    it('paints the others when the question fails', async () => {
+      const page = mountOverview()
+
+      question().error(new Error('Network error'))
+      await nextTick()
+
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+      expect(page.findComponent(ThanksArrivalTile).exists()).toBe(false)
+    })
+
+    // ⛔ And an answer that comes after the tiles are painted changes nothing: a tile that came
+    // now would push every other one down.
+    it('paints the others without them when the answer takes too long, and keeps it so', async () => {
+      vi.useFakeTimers()
+      const page = mountOverview()
+
+      vi.advanceTimersByTime(THANKS_ARRIVAL_PATIENCE_MS)
+      await nextTick()
+      expect(tiles(page).exists()).toBe(true)
+      expect(page.findComponent(ShowFriendsTile).exists()).toBe(true)
+
+      answer([received(1)])
+      await nextTick()
+      expect(page.findComponent(ThanksArrivalTile).exists()).toBe(false)
     })
   })
 })

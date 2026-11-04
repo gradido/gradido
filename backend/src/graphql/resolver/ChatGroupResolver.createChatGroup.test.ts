@@ -82,6 +82,9 @@ const contact = (gradidoId: string, communityUuid: string | null = HOME): Contac
   origin: null,
   unreadChatMessages: 0,
   lastChatMessageAt: null,
+  lastChatMessageId: null,
+  lastBookingId: null,
+  lastBookingAt: null,
 })
 
 const home = getHomeCommunity as jest.Mock
@@ -158,6 +161,7 @@ beforeEach(() => {
       memberCount: 3,
       unreadMessages: 0,
       lastMessageAt: null,
+      lastMessageId: null,
     },
   ])
   usersByIds.mockResolvedValue([lena])

@@ -1,6 +1,6 @@
 import { Community as DbCommunity } from 'database'
-import { createEncryptionKeyPair } from 'shared'
-import { Ed25519KeyPair } from 'shared-native'
+import { createKeyPair, HomeCommunityInsertInput } from 'shared'
+import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
@@ -35,13 +35,37 @@ export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
       homeCom.name = CONFIG.COMMUNITY_NAME
       homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
       homeCom.creationDate = new Date()
-      const encryptionKeyPair = createEncryptionKeyPair()
-      homeCom.publicEncryptionKey = encryptionKeyPair.publicKey
-      homeCom.privateEncryptionKey = encryptionKeyPair.privateKey
+      const encryptionKeyPair = X25519KeyPair.generate()
+      homeCom.publicEncryptionKey = encryptionKeyPair.publicKeyToBuffer()
+      homeCom.privateEncryptionKey = encryptionKeyPair.privateKeyToBuffer()
       await DbCommunity.insert(homeCom)
     }
     return homeCom
   } catch (_err) {
     throw new Error(`Seeding: Error writing HomeCommunity-Entry`) // : ${err}`)
+  }
+}
+
+/**
+ * A complete home community for an empty database, with every key a running one has - the JWT
+ * pair included, which the dht-node writes on insert. For the seed, which writes it with
+ * dbInsertHomeCommunity inside its transaction.
+ */
+export async function buildHomeCommunity(): Promise<HomeCommunityInsertInput> {
+  const { publicKey, privateKey } = signingKeys()
+  const encryptionKeyPair = X25519KeyPair.generate()
+  const jwtKeyPair = await createKeyPair()
+  return {
+    publicKey,
+    privateKey,
+    communityUuid: uuidv4(),
+    url: 'http://localhost/api/',
+    name: CONFIG.COMMUNITY_NAME,
+    description: CONFIG.COMMUNITY_DESCRIPTION,
+    creationDate: new Date(),
+    publicJwtKey: jwtKeyPair.publicKey,
+    privateJwtKey: jwtKeyPair.privateKey,
+    publicEncryptionKey: encryptionKeyPair.publicKeyToBuffer(),
+    privateEncryptionKey: encryptionKeyPair.privateKeyToBuffer(),
   }
 }

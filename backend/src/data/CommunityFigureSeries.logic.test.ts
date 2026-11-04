@@ -24,13 +24,20 @@ const mockTransactionTypeId = { CREATION: 1, SEND: 2 }
 const mockDatabase = {
   EventType: mockEventType,
   TransactionTypeId: mockTransactionTypeId,
+  dbCountAcceptedThankYouGreetingsByWeek: jest.fn(),
   dbCountAndSumTransactionsOfTypeByWeek: jest.fn(),
   dbCountChatConversationsOfKindByWeek: jest.fn(),
   dbCountDistinctUsersOfTypeByWeek: jest.fn(),
   dbCountEventsOfTypesByWeek: jest.fn(),
+  dbCountExpiredThankYouGreetingsByWeek: jest.fn(),
   dbCountFirstCreationMembersByWeek: jest.fn(),
+  dbCountFirstSendersByWeek: jest.fn(),
   dbCountMatchingEntriesByTypeByWeek: jest.fn(),
   dbCountRegisterEventsWithReferrerByWeek: jest.fn(),
+  dbCountThankYouGreetingsByWeek: jest.fn(),
+  dbCountTransactionPassOnsByWeek: jest.fn(),
+  dbCountTransactionReactionsByWeek: jest.fn(),
+  dbCountTransactionsWithPictureByWeek: jest.fn(),
   dbCountUsersDeletedByWeek: jest.fn(),
 }
 
@@ -106,6 +113,21 @@ const answers: Record<string, (...args: never[]) => Promise<unknown>> = {
     { matchingType: 'interest', weekStart: WEEKS[2], n: 233 },
   ],
   dbCountChatConversationsOfKindByWeek: async (kind: string) => conversationsByKind[kind],
+  dbCountFirstSendersByWeek: async () => found(301, null, 303),
+  // Asked for the SEND rows: anything else answers nothing.
+  dbCountTransactionsWithPictureByWeek: async (typeId: number) =>
+    typeId === 2 ? found(null, 312, null) : undefined,
+  dbCountTransactionReactionsByWeek: async () => found(321, 322, 323),
+  dbCountTransactionPassOnsByWeek: async () => found(331, null, 333),
+  // Sent in the first and the last week, with a photo only in the last one.
+  dbCountThankYouGreetingsByWeek: async () => [
+    { weekStart: WEEKS[0], n: 341, withPicture: 0 },
+    { weekStart: WEEKS[2], n: 343, withPicture: 353 },
+  ],
+  dbCountAcceptedThankYouGreetingsByWeek: async () => [
+    { weekStart: WEEKS[1], n: 362, withNewAccount: 372 },
+  ],
+  dbCountExpiredThankYouGreetingsByWeek: async () => found(381, null, 383),
 }
 const countsOf = mockDatabase as unknown as Record<string, jest.Mock>
 
@@ -203,8 +225,17 @@ describe('countCommunityFigureSeries', () => {
       { key: 'firstCreationsReview', counts: [0, 0, 0] },
       { key: 'transfersSent', counts: [171, 0, 173] },
       { key: 'gddSent', counts: [181, 0, 183] },
+      { key: 'firstSenders', counts: [301, 0, 303] },
+      { key: 'transfersWithPicture', counts: [0, 312, 0] },
+      { key: 'thanksAnswered', counts: [321, 322, 323] },
+      { key: 'thanksPassedOn', counts: [331, 0, 333] },
       { key: 'creationsBooked', counts: [0, 192, 0] },
       { key: 'gddCreated', counts: [0, 202, 0] },
+      { key: 'greetingsSent', counts: [341, 0, 343] },
+      { key: 'greetingsWithPhoto', counts: [0, 0, 353] },
+      { key: 'greetingsAccepted', counts: [0, 362, 0] },
+      { key: 'greetingsWithAccount', counts: [0, 372, 0] },
+      { key: 'greetingsExpired', counts: [381, 0, 383] },
       { key: 'entriesInterest', counts: [231, 0, 233] },
       { key: 'entriesOffer', counts: [0, 242, 0] },
       // A kind nobody wrote.
@@ -248,6 +279,25 @@ describe('countCommunityFigureSeries', () => {
     }
     expect(mockDatabase.dbCountChatConversationsOfKindByWeek).toHaveBeenCalledWith('direct', FROM)
     expect(mockDatabase.dbCountChatConversationsOfKindByWeek).toHaveBeenCalledWith('group', FROM)
+    expect(mockDatabase.dbCountFirstSendersByWeek).toHaveBeenCalledWith(FROM)
+    expect(mockDatabase.dbCountTransactionsWithPictureByWeek).toHaveBeenCalledWith(2, FROM)
+    expect(mockDatabase.dbCountTransactionReactionsByWeek).toHaveBeenCalledWith(FROM)
+    expect(mockDatabase.dbCountTransactionPassOnsByWeek).toHaveBeenCalledWith(FROM)
+    for (const count of [
+      mockDatabase.dbCountFirstSendersByWeek,
+      mockDatabase.dbCountTransactionsWithPictureByWeek,
+      mockDatabase.dbCountTransactionReactionsByWeek,
+      mockDatabase.dbCountTransactionPassOnsByWeek,
+      mockDatabase.dbCountExpiredThankYouGreetingsByWeek,
+    ]) {
+      expect(count).toHaveBeenCalledTimes(1)
+    }
+  })
+
+  it('counts the greetings that ran out up to now, the running week too', async () => {
+    await countCommunityFigureSeries(SINCE, NOW)
+
+    expect(mockDatabase.dbCountExpiredThankYouGreetingsByWeek).toHaveBeenCalledWith(FROM, NOW)
   })
 
   it('asks a count that fills several rows once, not once per row', async () => {
@@ -258,6 +308,10 @@ describe('countCommunityFigureSeries', () => {
     expect(mockDatabase.dbCountAndSumTransactionsOfTypeByWeek).toHaveBeenCalledWith(1, FROM)
     expect(mockDatabase.dbCountMatchingEntriesByTypeByWeek).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbCountMatchingEntriesByTypeByWeek).toHaveBeenCalledWith(FROM)
+    expect(mockDatabase.dbCountThankYouGreetingsByWeek).toHaveBeenCalledTimes(1)
+    expect(mockDatabase.dbCountThankYouGreetingsByWeek).toHaveBeenCalledWith(FROM)
+    expect(mockDatabase.dbCountAcceptedThankYouGreetingsByWeek).toHaveBeenCalledTimes(1)
+    expect(mockDatabase.dbCountAcceptedThankYouGreetingsByWeek).toHaveBeenCalledWith(FROM)
   })
 
   it('asks from the first week of the series where the chosen day lies further back', async () => {
@@ -329,8 +383,17 @@ describe('countCommunityFigureSeries', () => {
       'firstCreationsReview',
       'transfersSent',
       'gddSent',
+      'firstSenders',
+      'transfersWithPicture',
+      'thanksAnswered',
+      'thanksPassedOn',
       'creationsBooked',
       'gddCreated',
+      'greetingsSent',
+      'greetingsWithPhoto',
+      'greetingsAccepted',
+      'greetingsWithAccount',
+      'greetingsExpired',
       'entriesInterest',
       'entriesOffer',
       'entriesNeed',

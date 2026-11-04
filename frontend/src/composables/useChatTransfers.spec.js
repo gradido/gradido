@@ -97,6 +97,18 @@ describe('useChatTransfers', () => {
     expect(hasMore.value).toBe(false)
   })
 
+  // The empty list of a failed first page is not "none": the thank-you line under a video call
+  // reads it as "no thank-you since" only where the page came (coderabbit, #4210).
+  it('says the first page failed, and only where it did', async () => {
+    const failing = useChatTransfers(clientAnswering(new Error('Network error')), LENA)
+    const answering = useChatTransfers(clientAnswering(answer([])), LENA)
+    expect(failing.failed.value).toBe(false)
+    await flushPromises()
+    expect(failing.failed.value).toBe(true)
+    expect(answering.settled.value).toBe(true)
+    expect(answering.failed.value).toBe(false)
+  })
+
   // The member's own switch (Einstellungen › Nachrichten): off, nothing is asked.
   it('asks nothing where the member switched transfers off, and is settled at once', () => {
     const client = clientAnswering(answer([booking(20)]))
@@ -109,10 +121,12 @@ describe('useChatTransfers', () => {
 
   it('lets an older page that failed say so, keeping what it holds', async () => {
     const client = clientAnswering(answer([booking(20)], 30), new Error('Network error'))
-    const { transfers, loadOlderTransfers } = useChatTransfers(client, LENA)
+    const { transfers, failed, loadOlderTransfers } = useChatTransfers(client, LENA)
     await flushPromises()
     await expect(loadOlderTransfers()).rejects.toThrow('Network error')
     expect(transfers.value.map((b) => b.id)).toEqual([20])
+    // The first page came: what is newest between the two is known.
+    expect(failed.value).toBe(false)
   })
 
   /**

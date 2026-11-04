@@ -18,7 +18,7 @@ bool getInt32FromObject(const Napi::CallbackInfo& info, Napi::Object obj, const 
 bool readBytes(Napi::Env env, Napi::Value value, const char* where, const char* name, size_t size, Napi::Buffer<uint8_t>& out);
 
 // The Result / VoidResult shapes of index.d.ts: { success: true, value } or { success: true },
-// { success: false, error } -- error either given, or built as { name, message }
+// { success: false, error } -- error either given, or built as an Error with that name and message
 Napi::Object successResult(Napi::Env env, Napi::Value value);
 Napi::Object successResult(Napi::Env env);
 Napi::Object failureResult(Napi::Env env, Napi::Object error);

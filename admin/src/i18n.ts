@@ -44,6 +44,14 @@ const datetimeFormatEn: DefineDateTimeFormat = {
     month: 'numeric',
     day: 'numeric',
   },
+  // The date with the time of day, as short: when the remark on a member was written last.
+  shortTime: {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  },
   long: {
     year: 'numeric',
     month: 'long',
@@ -68,6 +76,14 @@ const datetimeFormatDayFirst: DefineDateTimeFormat = {
     day: 'numeric',
     month: 'numeric',
     year: 'numeric',
+  },
+  // The date with the time of day, as short: when the remark on a member was written last.
+  shortTime: {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
   },
   long: {
     day: 'numeric',

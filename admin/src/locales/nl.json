@@ -19,7 +19,6 @@
     "signature-missing": "Je ondertekening is nog niet ingesteld — je vult die in het Crea-venster van een bijdrage in."
   },
   "alias": "Alias",
-  "all_emails": "Alle gebruikers",
   "appOutdated": {
     "reload": "Opnieuw laden",
     "text": "Nieuwe versie beschikbaar."
@@ -118,10 +117,17 @@
     "changeGroupDone": "Creatiegroep gewijzigd.",
     "changeGroupHint": "Afhankelijk van je zichtbare groepen verschijnt de bijdrage daarna mogelijk niet meer in je lijst.",
     "changeGroupQuestion": "Deze bijdrage verplaatsen van {from} naar {to}?",
+    "confirm": "Bevestigen",
     "confirmedBy": "Bevestigd door {name}.",
     "createdBy": "Aangemaakt door {name}.",
     "deletedBy": "Verwijderd door {name}.",
     "deniedBy": "Afgewezen door {name}.",
+    "detailsState": {
+      "answer": "antwoord van het lid",
+      "changed": "gewijzigd door het lid",
+      "conversation": "gesprek",
+      "question": "vraag gesteld"
+    },
     "noGroup": "(zonder groep)"
   },
   "contributionLink": {
@@ -148,6 +154,7 @@
       }
     },
     "saveChange": "Wijzigingen opslaan",
+    "show": "Link tonen",
     "validFrom": "Startdatum",
     "validTo": "Einddatum"
   },
@@ -198,6 +205,8 @@
     "memoTooLong": "The contribution text is too long (max. {max} characters) – please shorten it a little.",
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
+    "readsRemark": "Crea leest mee",
+    "readsRemarkHint": "Alleen inschakelen als de opmerkingen geen persoonsgegevens bevatten!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Herinnering",
@@ -295,9 +304,8 @@
   "createdAt": "Aangemaakt op",
   "creation": "Creatie",
   "creationGroupFilter": {
-    "all": "(alle)",
+    "all": "(met en zonder groep)",
     "grouped": "(alle groepen)",
-    "label": "Creation group:",
     "untagged": "(zonder groep)"
   },
   "creationGroupsAdmin": {
@@ -354,10 +362,18 @@
     "toasted_update": "De openstaande creatie ({value} GDD) voor {email} is gewijzigd en staat klaar voor bevestiging.",
     "update_creation": "Creatie bijwerken"
   },
+  "dashboard": {
+    "resubmission": "Daarnaast: {n} met herinnering",
+    "today": "Vandaag: {n} open creaties",
+    "todayNone": "Vandaag: geen open creaties",
+    "todayOne": "Vandaag: één open creatie",
+    "waitingForMember": "{n} wacht op het lid | {n} wachten op het lid",
+    "waitingForModeration": "{n} wacht op de moderatie | {n} wachten op de moderatie",
+    "welcome": "Welkom in het beheergedeelte"
+  },
   "delete": "Verwijderen",
   "delete_user": "Gebruiker verwijderen",
   "deleted": "verwijderd",
-  "deleted_user": "Alle verwijderde gebruikers",
   "deny": "Afwijzen",
   "description": "Beschrijving",
   "details": "Details",
@@ -400,6 +416,7 @@
       "accounts": "Accounts",
       "conversations": "Conversations",
       "firstCreation": "First thanks",
+      "greetings": "Thank-you greetings",
       "map": "Map",
       "thanks": "Thanking",
       "totals": "Totals"
@@ -409,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -426,8 +443,14 @@
       "firstCreationsDone": "First creations done",
       "firstCreationsReview": "First creations sent to review",
       "firstCreationsSkipped": "First creations skipped",
+      "firstSenders": "First-time senders (accounts with their first transfer)",
       "gddCreated": "GDD created",
       "gddSent": "GDD sent",
+      "greetingsAccepted": "Accepted",
+      "greetingsExpired": "Expired",
+      "greetingsSent": "Sent",
+      "greetingsWithAccount": "of which with a new account",
+      "greetingsWithPhoto": "of which with a photo of their own",
       "groupsNew": "New groups",
       "hellosFromMap": "Hello said from the map",
       "homesSet": "Home set",
@@ -435,18 +458,18 @@
       "membersOnMap": "People on the Gradido map (all communities)",
       "membersWithEntry": "People with an entry",
       "returners": "Returners (after 90 quiet days)",
+      "thanksAnswered": "Thanks answered (the recipient's reaction)",
+      "thanksPassedOn": "Thanks passed on",
       "totalGradidoAvailable": "Total GDD in circulation",
       "totalGradidoCreated": "Total GDD created, exact",
       "totalGradidoDecayed": "Total GDD decayed",
       "totalGradidoUnbookedDecayed": "decay not yet booked",
       "transfersSent": "Transfers sent",
+      "transfersWithPicture": "Transfers with a picture",
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Statistiek",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -457,7 +480,7 @@
   "footer": {
     "app_version": "App-versie {version}",
     "copyright": {
-      "link": "Gradido-Akademie beheerconsole",
+      "link": "Gradido-beheergedeelte",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -508,7 +531,8 @@
     "request": "De invoer is opgeslagen."
   },
   "moderator": {
-    "history": "De gegevens zijn gewijzigd. Dit zijn de oude gegevens.",
+    "change": "Wijziging",
+    "history": "Dit zijn de oude gegevens.",
     "memo": "Tekst bewerken",
     "memo-modified": "Tekst bewerkt door {name}",
     "memo-tooltip": "De tekst van de bijdrage bewerken",
@@ -517,11 +541,11 @@
     "moderator": "Moderator",
     "notice": "Notitie",
     "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
-    "request": "Dit bericht is alleen zichtbaar voor de moderatoren!",
     "show-submission-form": "wachten op herinnering?"
   },
   "name": "Naam",
   "navbar": {
+    "appearance": "Weergave",
     "automaticContributions": "Startsaldo",
     "chat": "Chat",
     "crea": "Crea",
@@ -531,9 +555,15 @@
     "logout": "Afmelden",
     "menu": "Menu",
     "my-account": "Mijn account",
-    "projectBranding": "Projecten",
+    "projectBranding": "Projectbranding",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
+    "statistic": "Statistiek",
+    "theme": {
+      "dark": "Donker",
+      "light": "Licht",
+      "system": "Systeeminstelling volgen (standaard)"
+    },
     "user_search": "Gebruikers zoeken"
   },
   "notice": "Melding",
@@ -589,12 +619,31 @@
     "updated": "De projectbranding-vermelding is bijgewerkt."
   },
   "redeemed": "ingewisseld",
+  "refresh": "Vernieuwen",
   "registered": "Geregistreerd",
   "registered_at": "Geregistreerd op",
+  "remark": {
+    "done": "Klaar",
+    "failed": "Niet opgeslagen.",
+    "failedClosed": "De opmerking over {name} is niet opgeslagen.",
+    "label": "Opmerking",
+    "lastChanged": "Laatst gewijzigd: {name}, {date}",
+    "lastChangedNoName": "Laatst gewijzigd: {date}",
+    "private": "Alle moderatoren zien dit, {name} niet.",
+    "privateWithCrea": "Alle moderatoren zien dit, {name} niet. Crea leest het alleen op verzoek.",
+    "retry": "Opnieuw proberen",
+    "saved": "Opgeslagen",
+    "saving": "Bezig met opslaan…",
+    "title": "Opmerking over {name}"
+  },
   "removeNotSelf": "Als admin/moderator kun je jezelf niet verwijderen.",
   "reset": "Resetten",
   "save": "Opslaan",
+  "search": {
+    "clear": "Zoekopdracht wissen"
+  },
   "send": "Verzenden",
+  "show_details": "Details tonen",
   "status": "Status",
   "success": "Succes",
   "text": "Tekst",
@@ -628,17 +677,20 @@
     "pending": "Wijziging in afwachting: bevestiging aangevraagd voor {email} op {date}",
     "replace": {
       "button": "Adres corrigeren",
+      "confirmed": "Adres niet gecorrigeerd, omdat het inmiddels is bevestigd. Alleen het lid zelf kan het nu nog wijzigen, in de eigen instellingen.",
       "elopage_warning": "Let op: onder {email} zijn er Elopage-aankopen. Dit account komt waarschijnlijk uit de webhook – het adres is dan geen typefout.",
+      "error": "Fout bij het corrigeren van het adres: {message}",
       "hint": "Alleen zolang het adres nooit is bevestigd (bijv. typefout bij registratie). De bevestigingsmail gaat daarna naar het gecorrigeerde adres.",
+      "invalid": "Adres niet gecorrigeerd, omdat {email} geen geldig e-mailadres is.",
       "placeholder": "Gecorrigeerd e-mailadres",
       "success": "Adres gecorrigeerd en bevestigingsmail verzonden naar {email}.",
+      "taken": "Adres niet gecorrigeerd, omdat {email} al bij een account hoort. Ook een verwijderd account houdt zijn adres. Zoek het adres hierboven, bij Gebruikers zoeken.",
       "title": "Nooit bevestigd adres corrigeren"
     },
     "success": "De bevestigingslink is succesvol naar de e-mail van de gebruiker verzonden! ({email})",
     "text_false": "De laatste e-mail is op {date} naar het lid ({email}) verzonden.",
     "text_true": "De e-mail is bevestigd."
   },
-  "unregistered_emails": "Alleen niet-geregistreerde gebruikers",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -671,6 +723,18 @@
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
     "tabTitle": "Gebruikersrol"
+  },
+  "userSearch": {
+    "hits": "{count} resultaat | {count} resultaten",
+    "tabs": {
+      "all": "Alle",
+      "deleted": "Verwijderd",
+      "enabled": "Geactiveerd",
+      "unconfirmed": "Onbevestigd"
+    }
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail niet bevestigd"
   },
   "user_deleted": "Gebruiker is verwijderd.",
   "user_memo_search": "Gebruikers- en tekstzoekopdracht",

@@ -210,19 +210,21 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
     senderCommunity.mockImplementation(
       async () => ({ communityUuid: SENDER_COMMUNITY, foreign: true }) as database.Community,
     )
-    fileSender.mockImplementation(async (member: { communityUuid: string; gradidoId: string }) => {
-      happened.push('file sender')
-      onFile = {
-        ...SENDER,
-        id: FILED_ID,
-        communityUuid: member.communityUuid,
-        gradidoID: member.gradidoId,
-        alias: null,
-        firstName: null,
-        lastName: null,
-      } as unknown as database.User
-      return { success: true, value: FILED_ID }
-    })
+    fileSender.mockImplementation(
+      async (member: { communityUuid: string; gradidoId: string; alias: string }) => {
+        happened.push('file sender')
+        onFile = {
+          ...SENDER,
+          id: FILED_ID,
+          communityUuid: member.communityUuid,
+          gradidoID: member.gradidoId,
+          alias: member.alias,
+          firstName: null,
+          lastName: null,
+        } as unknown as database.User
+        return { success: true, value: FILED_ID }
+      },
+    )
     updateAlias.mockImplementation(async (_id: number, alias: string) => {
       happened.push('alias')
       if (onFile) {
@@ -237,26 +239,29 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
       SEND_MAIL_COMMAND_ANSWER.MAILED,
     )
 
-    // The pair and nothing else -- no names travel, and none are filed.
+    // The pair and the alias, nothing else -- no names travel, and none are filed.
     expect(fileSender.mock.calls).toEqual([
-      [{ communityUuid: SENDER_COMMUNITY, gradidoId: SENDER.gradidoID }],
+      [{ communityUuid: SENDER_COMMUNITY, gradidoId: SENDER.gradidoID, alias: 'anna' }],
     ])
-    expect(updateAlias.mock.calls).toEqual([[FILED_ID, 'anna']])
+    expect(updateAlias).not.toHaveBeenCalled()
     expect(senderCommunity.mock.calls).toEqual([[SENDER_COMMUNITY]])
     const [[message]] = store.mock.calls as [chatMessage.ChatMessageToStore][]
     expect(message.sender).toEqual({ communityUuid: SENDER_COMMUNITY, gradidoId: SENDER.gradidoID })
     expect(customMail).toHaveBeenCalledWith(expect.objectContaining({ senderAlias: 'anna' }))
-    expect(happened).toEqual(['file sender', 'alias', 'store', 'mail'])
+    expect(happened).toEqual(['file sender', 'store', 'mail'])
   })
 
-  it('files a sender who has no alias without one, and names them by their id', async () => {
-    await run(params({ messageUuid: MESSAGE_UUID }))
-
-    expect(fileSender).toHaveBeenCalledTimes(1)
-    expect(updateAlias).not.toHaveBeenCalled()
-    expect(customMail).toHaveBeenCalledWith(
-      expect.objectContaining({ senderAlias: SENDER.gradidoID }),
+  // A row without an alias cannot be filed (`users.alias` is NOT NULL), and the sender's
+  // community sends one -- a command without it is not from a member there.
+  it('files no sender who comes without an alias, and refuses the message', async () => {
+    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
+      'Sender user not found',
     )
+
+    expect(fileSender).not.toHaveBeenCalled()
+    expect(senderCommunity).not.toHaveBeenCalled()
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
   })
 
   it('brings the alias of a sender on file up to date', async () => {
@@ -283,23 +288,26 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   })
 
   it('takes no alias the column could not hold', async () => {
-    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'a'.repeat(21) }))
-    await run({ ...params({ messageUuid: MESSAGE_UUID }), senderAlias: 42 })
+    for (const senderAlias of ['a'.repeat(21), 42]) {
+      await expect(run({ ...params({ messageUuid: MESSAGE_UUID }), senderAlias })).rejects.toThrow(
+        'Sender user not found',
+      )
+    }
 
-    expect(fileSender).toHaveBeenCalledTimes(1)
+    expect(fileSender).not.toHaveBeenCalled()
     expect(updateAlias).not.toHaveBeenCalled()
   })
 
-  // Another row of that community still holds the name: filed without it, and mailed.
-  it('files the sender without the alias where the alias cannot be set, and mails', async () => {
-    updateAlias.mockResolvedValue({ success: false, error: new Error('DB_DUPLICATE_ENTRY') })
+  // Another row of that community still holds the name: not filed, and not mailed.
+  it('files no sender under an alias another row of that community holds', async () => {
+    fileSender.mockResolvedValue({ success: false, error: new Error('DB_INSERT_FAILED') })
 
-    await run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'taken' }))
-
-    expect(store).toHaveBeenCalledTimes(1)
-    expect(customMail).toHaveBeenCalledWith(
-      expect.objectContaining({ senderAlias: SENDER.gradidoID }),
+    await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'taken' }))).rejects.toThrow(
+      'Sender user not found',
     )
+
+    expect(store).not.toHaveBeenCalled()
+    expect(customMail).not.toHaveBeenCalled()
   })
 
   it('still refuses the mail about received Gradido from a sender it does not know', async () => {

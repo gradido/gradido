@@ -2,19 +2,27 @@ import {
   countOpenPendingTransactions,
   dbFindPendingTransaction,
   dbFindUserByIdentifier,
+  dbFindUserContact,
   dbInsertPendingTransaction,
   dbRemovePendingTransaction,
   getHomeCommunityDrizzle,
   TransactionTypeId,
   UserSelect,
 } from 'database'
+import { status } from 'elysia'
 import { getLogger } from 'log4js'
-import { PendingTransactionState, Result, Uuidv4, VoidResult } from 'shared'
+import { PendingTransactionState } from 'shared'
+import * as v from 'valibot'
 import { memberAvatarDateForTransfer } from '../../apis'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
+import { sendTransactionReceivedEmail } from '../../emails'
 import { calculateRecipientBalance } from '../../logic'
-import { CrossCommunityError, CrossCommunityErrorType, xcomError } from '../errorTypes'
-import { CrossGroupTransaction, CrossGroupTransactionForeignUserInfoInput } from '../schema'
+import { ApiClientCompleted } from '../ApiClient'
+import {
+  CrossGroupTransaction,
+  CrossGroupTransactionWire,
+  crossGroupTransactionSchema,
+} from '../schema'
 import { storeForeignUser } from '../storeForeignUser'
 import {
   mapToPendingTx,
@@ -27,99 +35,91 @@ const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.crossCommunity.transferCoins.${method}`)
 
 // check if tx came from correct community and if recipient user exist and if, return it
-async function auth(
-  tx: CrossGroupTransaction,
-  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature)
-): Promise<Result<UserSelect, CrossCommunityError>> {
+export async function auth(context: {
+  body: CrossGroupTransactionWire
+  senderClient: ApiClientCompleted // actual community uuid from sender, verified by signature)
+}) {
+  const tx = context.body
   // first, check if we are in fact the correct recipient community
   const homeCom = await getHomeCommunityDrizzle()
-  if (homeCom.communityUuid !== tx.recipientUser.communityUuid) {
-    const e = `We got a cross transaction for another community: ${tx.recipientUser.communityUuid}`
-    return xcomError(CrossCommunityErrorType.authFailed, e)
+  if (homeCom.communityUuid !== tx.recipient.communityUuid) {
+    const m = `We got a cross transaction for another community: ${tx.recipient.communityUuid}`
+    createLogger('auth').debug(m)
+    return status('Unauthorized')
   }
   // and the sender is the correct sender community
-  if (senderCommunityUuid !== tx.senderUser.communityUuid) {
-    const e = `We got a cross transaction from a wrong community: expected: ${tx.senderUser.communityUuid}, actual: ${senderCommunityUuid}`
-    return xcomError(CrossCommunityErrorType.authFailed, e)
+  if (context.senderClient.communityUuid !== tx.sender.communityUuid) {
+    const m = `We got a cross transaction from a wrong community: expected: ${tx.sender.communityUuid}, actual: ${context.senderClient.communityUuid}`
+    createLogger('auth').debug(m)
+    return status('Unauthorized')
   }
 
   // second check if receiver user exists in this community
   const recipientUser = await dbFindUserByIdentifier(
-    tx.recipientUser.identifier,
-    tx.recipientUser.communityUuid,
+    tx.recipient.identifier,
+    tx.recipient.communityUuid,
   )
   if (!recipientUser) {
-    const e = `User with identifier ${tx.recipientUser.identifier} not found`
-    return xcomError(CrossCommunityErrorType.notFound, e)
+    createLogger('auth').debug(`User with identifier ${tx.recipient.identifier} not found`)
+    return status('Not Found')
   }
-  return { success: true, value: recipientUser }
+  return { recipientUser, tx: v.parse(crossGroupTransactionSchema, tx) }
 }
 
-export async function prepareSendCoins(
-  tx: CrossGroupTransaction,
-  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature
-): Promise<Result<CrossGroupTransactionForeignUserInfoInput, CrossCommunityError>> {
+export async function prepareSendCoins({
+  tx,
+  recipientSender,
+}: {
+  tx: CrossGroupTransaction
+  recipientSender: UserSelect
+}) {
+  const logger = createLogger('prepareSendCoins')
   try {
-    const authResult = await auth(tx, senderCommunityUuid)
-    if (!authResult.success) {
-      return authResult
-    }
-    const recipientUser = authResult.value
-
     if (
       (await countOpenPendingTransactions(
-        [tx.senderUser.gradidoId, recipientUser.gradidoId],
+        [tx.sender.gradidoId, recipientSender.gradidoId],
         PendingTransactionState.NEW,
       )) > 0
     ) {
       const m = `There exist still ongoing 'Pending-Transactions' for the involved users on receiver-side!`
-      return xcomError(CrossCommunityErrorType.previousUserTxNotFinished, m)
+      logger.warn(m)
+      return status('Service Unavailable')
     }
 
-    const [receiveBalance, recipientAvatarUpdatedAt] = await Promise.all([
-      calculateRecipientBalance(recipientUser.id, tx.amount, tx.balanceDate),
+    const [receiveBalance, avatarUpdatedAt] = await Promise.all([
+      calculateRecipientBalance(recipientSender.id, tx.amount, tx.balanceDate),
       // The recipient's picture date for the sender's lists, read before the pending
       // transaction is written. Null when the recipient has nothing members may see;
       // memberAvatarDateForTransfer answers null for a failed read as well.
-      memberAvatarDateForTransfer(recipientUser.id),
+      memberAvatarDateForTransfer(recipientSender.id),
     ])
 
     const pendingTx = mapToPendingTx(
       tx,
       receiveBalance,
-      recipientUser,
-      recipientUser.id,
+      recipientSender,
+      recipientSender.id,
       TransactionTypeId.RECEIVE,
     )
     await dbInsertPendingTransaction(pendingTx)
-    return {
-      success: true,
-      value: {
-        recipientUser,
-        recipientAvatarUpdatedAt,
-      },
-    }
+    return { ...recipientSender, avatarUpdatedAt }
   } catch (err) {
-    createLogger(`voteForSendCoins`).error(`Error in voteForSendCoins: `, err)
-    return xcomError(CrossCommunityErrorType.unknown, 'Something went wrong')
+    logger.error(`Error in voteForSendCoins: `, err)
+    return status('Internal Server Error')
   }
 }
 
-export async function revertSendCoins(
-  tx: CrossGroupTransaction,
-  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature
-): Promise<VoidResult<CrossCommunityError>> {
+export async function revertSendCoins({
+  tx,
+  recipientUser,
+}: {
+  tx: CrossGroupTransaction
+  recipientUser: UserSelect
+}) {
   const logger = createLogger(`revertSendCoins`)
-
-  const authResult = await auth(tx, senderCommunityUuid)
-  if (!authResult.success) {
-    return authResult
-  }
-  const recipientUser = authResult.value
-
   const affectedRows = await dbRemovePendingTransaction(
     recipientUser,
-    tx.senderUser,
+    tx.sender,
     TransactionTypeId.RECEIVE,
     PendingTransactionState.NEW,
     tx.balanceDate,
@@ -130,26 +130,25 @@ export async function revertSendCoins(
     if (logger.isDebugEnabled()) {
       logger.debug(`didn't find a pending Tx for removal with:`, mapTxToLog(tx))
     }
-    const e = `missing pending transaction for revert on recipient side`
-    return xcomError(CrossCommunityErrorType.notFound, e)
+    // TODO: add tx id
+    const m = `missing pending transaction for revert on recipient side`
+    logger.warn(m)
+    return status('Not Found')
   }
-  return { success: true }
+  return status('OK')
 }
 
-export async function settleSendCoins(
-  tx: CrossGroupTransaction,
-  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature
-): Promise<VoidResult<CrossCommunityError>> {
+export async function settleSendCoins({
+  tx,
+  recipientUser,
+}: {
+  tx: CrossGroupTransaction
+  recipientUser: UserSelect
+}) {
   const logger = createLogger(`recipientSettle`)
-
-  const authResult = await auth(tx, senderCommunityUuid)
-  if (!authResult.success) {
-    return authResult
-  }
-  const recipientUser = authResult.value
   const pendingTx = await dbFindPendingTransaction(
     recipientUser,
-    tx.senderUser,
+    tx.sender,
     TransactionTypeId.RECEIVE,
     PendingTransactionState.NEW,
     tx.balanceDate,
@@ -160,35 +159,34 @@ export async function settleSendCoins(
     if (logger.isDebugEnabled()) {
       logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx))
     }
-    const e = `missing pending transaction for commit on recipient side`
-    return xcomError(CrossCommunityErrorType.notFound, e)
+    // TODO: add tx id
+    const m = `missing pending transaction for commit on recipient side`
+    logger.warn(m)
+    return status('Not Found')
   }
 
   const result = await settlePendingTransaction(pendingTx)
   if (!result.success) {
-    return result
+    logger.warn(result.error.message)
+    return status('Internal Server Error')
   }
   // after successful x-com-tx store the recipient as foreign user
-  await storeForeignUser(tx.senderUser)
+  await storeForeignUser(tx.sender)
 
-  return { success: true }
+  return status('OK')
 }
 
-export async function revertSettledSendCoins(
-  tx: CrossGroupTransaction,
-  senderCommunityUuid: Uuidv4, // actual community uuid from sender, verified by signature
-): Promise<VoidResult<CrossCommunityError>> {
+export async function revertSettledSendCoins({
+  tx,
+  recipientUser,
+}: {
+  tx: CrossGroupTransaction
+  recipientUser: UserSelect
+}) {
   const logger = createLogger(`revertRecipientSettledSendCoins`)
-
-  const authResult = await auth(tx, senderCommunityUuid)
-  if (!authResult.success) {
-    return authResult
-  }
-  const recipientUser = authResult.value
-
   const pendingTx = await dbFindPendingTransaction(
     recipientUser,
-    tx.senderUser,
+    tx.sender,
     TransactionTypeId.RECEIVE,
     PendingTransactionState.SETTLED,
     tx.balanceDate,
@@ -199,9 +197,50 @@ export async function revertSettledSendCoins(
     if (logger.isDebugEnabled()) {
       logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx))
     }
-    const e = `missing pending transaction for revert on recipient side`
-    return xcomError(CrossCommunityErrorType.notFound, e)
+    logger.warn(`missing pending transaction for revert on recipient side`)
+    return status('Not Found')
   }
 
-  return await revertSettledTransaction(pendingTx)
+  const revertResult = await revertSettledTransaction(pendingTx)
+  if (!revertResult.success) {
+    logger.error(`revert failed`, revertResult.error)
+    return status('Internal Server Error')
+  }
+  return status('OK')
+}
+
+export async function emailTransactionReceived(context: {
+  tx: CrossGroupTransaction
+  recipientUser: UserSelect
+}) {
+  const logger = createLogger('emailTransactionReceived')
+  const { tx, recipientUser } = context
+  if (recipientUser.transfersInChat !== false && recipientUser.emailId) {
+    const userContact = await dbFindUserContact(recipientUser.emailId)
+    if (!userContact) {
+      logger.error(`missing user contact for user ${recipientUser.emailId}`)
+      return status('Not Found')
+    }
+    // TODO: add check for pending tx with state settled with this transaction data
+    const emailSendResult = await sendTransactionReceivedEmail({
+      ...recipientUser,
+      senderAlias: tx.sender.alias, // change parmater structure in sendTransactionReceivedEmail
+      firstName: recipientUser.firstName ?? '', // TODO: change to Not NULL
+      lastName: recipientUser.lastName ?? '', // TODO: change to Not NULL
+      email: userContact?.email,
+      memo: tx.memo,
+      transactionAmount: tx.amount, // change parmater structure in sendTransactionReceivedEmail
+    })
+    const e = `Transaction Received Email couldn't be sended to user: ${recipientUser.id}`
+    if (typeof emailSendResult !== 'object') {
+      if (logger.isDebugEnabled()) {
+        logger.debug(e, JSON.stringify(emailSendResult, null, 2))
+      } else {
+        logger.warn(e)
+      }
+      return status('Service Unavailable')
+    }
+  }
+  // TODO: extend pending transaction state by email_sended, or finished.. or..  to prevent double send email
+  return status('OK')
 }

@@ -19,7 +19,6 @@
     "signature-missing": "A tua assinatura ainda não está definida — podes indicá-la na janela Crea de uma contribuição."
   },
   "alias": "Alias",
-  "all_emails": "Todos os utilizadores",
   "appOutdated": {
     "reload": "Recarregar",
     "text": "Existe uma versão mais recente."
@@ -118,10 +117,17 @@
     "changeGroupDone": "Grupo de criação alterado.",
     "changeGroupHint": "Dependendo dos teus grupos visíveis, a contribuição pode deixar de aparecer na tua lista.",
     "changeGroupQuestion": "Mover esta contribuição de {from} para {to}?",
+    "confirm": "Confirmar",
     "confirmedBy": "Confirmado por {name}.",
     "createdBy": "Criado por {name}.",
     "deletedBy": "Eliminado por {name}.",
     "deniedBy": "Rejeitado por {name}.",
+    "detailsState": {
+      "answer": "resposta do membro",
+      "changed": "alterado pelo membro",
+      "conversation": "conversa",
+      "question": "pergunta feita"
+    },
     "noGroup": "(sem grupo)"
   },
   "contributionLink": {
@@ -148,6 +154,7 @@
       }
     },
     "saveChange": "Guardar alterações",
+    "show": "Mostrar o link",
     "validFrom": "Data de início",
     "validTo": "Data de fim"
   },
@@ -198,6 +205,8 @@
     "memoTooLong": "The contribution text is too long (max. {max} characters) – please shorten it a little.",
     "openPoints": "Open points",
     "previewBanner": "Preview without AI connection – a sample result. Layout, database and salutation/signature are real.",
+    "readsRemark": "A Crea também lê",
+    "readsRemarkHint": "Ativar apenas se as observações não contiverem dados pessoais!",
     "reasoning": "Reasoning",
     "response": "Suggested reply",
     "resubmission": "Lembrete",
@@ -295,9 +304,8 @@
   "createdAt": "Criado em",
   "creation": "Criação",
   "creationGroupFilter": {
-    "all": "(todas)",
+    "all": "(com e sem grupo)",
     "grouped": "(todos os grupos)",
-    "label": "Creation group:",
     "untagged": "(sem grupo)"
   },
   "creationGroupsAdmin": {
@@ -354,10 +362,18 @@
     "toasted_update": "A criação aberta ({value} GDD) para {email} foi alterada e está pronta para confirmação.",
     "update_creation": "Atualizar a criação"
   },
+  "dashboard": {
+    "resubmission": "Além disso: {n} com lembrete",
+    "today": "Hoje: {n} criações abertas",
+    "todayNone": "Hoje: nenhuma criação aberta",
+    "todayOne": "Hoje: uma criação aberta",
+    "waitingForMember": "{n} aguarda o membro | {n} aguardam o membro",
+    "waitingForModeration": "{n} aguarda a moderação | {n} aguardam a moderação",
+    "welcome": "Damos-te as boas-vindas à área de administração"
+  },
   "delete": "Eliminar",
   "delete_user": "Eliminar utilizador",
   "deleted": "eliminado",
-  "deleted_user": "Todos os utilizadores eliminados",
   "deny": "Rejeitar",
   "description": "Descrição",
   "details": "Detalhes",
@@ -400,6 +416,7 @@
       "accounts": "Accounts",
       "conversations": "Conversations",
       "firstCreation": "First thanks",
+      "greetings": "Thank-you greetings",
       "map": "Map",
       "thanks": "Thanking",
       "totals": "Totals"
@@ -409,7 +426,7 @@
       "accountsNew": "New accounts",
       "accountsTotal": "Accounts in total",
       "accountsViaAddress": "of which via address or business card",
-      "accountsViaEvent": "of which via event link",
+      "accountsViaEvent": "of which via project matching",
       "accountsViaLink": "of which via redeem link",
       "accountsViaTableCode": "of which via table code",
       "activeAccounts": "Active accounts (total: 30 days)",
@@ -426,8 +443,14 @@
       "firstCreationsDone": "First creations done",
       "firstCreationsReview": "First creations sent to review",
       "firstCreationsSkipped": "First creations skipped",
+      "firstSenders": "First-time senders (accounts with their first transfer)",
       "gddCreated": "GDD created",
       "gddSent": "GDD sent",
+      "greetingsAccepted": "Accepted",
+      "greetingsExpired": "Expired",
+      "greetingsSent": "Sent",
+      "greetingsWithAccount": "of which with a new account",
+      "greetingsWithPhoto": "of which with a photo of their own",
       "groupsNew": "New groups",
       "hellosFromMap": "Hello said from the map",
       "homesSet": "Home set",
@@ -435,18 +458,18 @@
       "membersOnMap": "People on the Gradido map (all communities)",
       "membersWithEntry": "People with an entry",
       "returners": "Returners (after 90 quiet days)",
+      "thanksAnswered": "Thanks answered (the recipient's reaction)",
+      "thanksPassedOn": "Thanks passed on",
       "totalGradidoAvailable": "Total GDD in circulation",
       "totalGradidoCreated": "Total GDD created, exact",
       "totalGradidoDecayed": "Total GDD decayed",
       "totalGradidoUnbookedDecayed": "decay not yet booked",
       "transfersSent": "Transfers sent",
+      "transfersWithPicture": "Transfers with a picture",
       "videoRoomsCreated": "Video rooms handed out"
     },
     "since": "Reference date",
-    "title": "Figures",
-    "today": "Today: {n} open creations",
-    "todayNone": "Today: no open creations",
-    "todayOne": "Today: one open creation",
+    "title": "Estatística",
     "weekCurrent": "in progress",
     "weeks": "By week"
   },
@@ -457,7 +480,7 @@
   "footer": {
     "app_version": "Versão da app {version}",
     "copyright": {
-      "link": "Consola de administração da Gradido-Akademie",
+      "link": "Área de administração Gradido",
       "year": "© {year}"
     },
     "short_hash": "({shortHash})"
@@ -508,7 +531,8 @@
     "request": "A entrada foi guardada."
   },
   "moderator": {
-    "history": "Os dados foram alterados. Estes são os dados anteriores.",
+    "change": "Alteração",
+    "history": "Estes são os dados anteriores.",
     "memo": "Editar texto",
     "memo-modified": "Texto editado por {name}",
     "memo-tooltip": "Editar o texto da contribuição",
@@ -517,11 +541,11 @@
     "moderator": "Moderador",
     "notice": "Nota",
     "notice-tooltip": "A nota só é visível para os moderadores",
-    "request": "Esta mensagem só é visível para os moderadores!",
     "show-submission-form": "esperar pelo lembrete?"
   },
   "name": "Nome",
   "navbar": {
+    "appearance": "Aparência",
     "automaticContributions": "Saldo inicial",
     "chat": "Chat",
     "crea": "Crea",
@@ -531,9 +555,15 @@
     "logout": "Terminar sessão",
     "menu": "Menu",
     "my-account": "A minha conta",
-    "projectBranding": "Projetos",
+    "projectBranding": "Marca do projeto",
     "projectBrandingTooltip": "Usa o teu próprio logótipo no início de sessão do Gradido e adiciona novos utilizadores a um espaço Humhub",
     "settings": "Definições",
+    "statistic": "Estatística",
+    "theme": {
+      "dark": "Escuro",
+      "light": "Claro",
+      "system": "Seguir a configuração do sistema (padrão)"
+    },
     "user_search": "Pesquisa de utilizadores"
   },
   "notice": "Aviso",
@@ -589,12 +619,31 @@
     "updated": "A entrada de marca do projeto foi atualizada."
   },
   "redeemed": "resgatado",
+  "refresh": "Atualizar",
   "registered": "Registado",
   "registered_at": "Registado em",
+  "remark": {
+    "done": "Concluído",
+    "failed": "Não guardado.",
+    "failedClosed": "A observação sobre {name} não foi guardada.",
+    "label": "Observação",
+    "lastChanged": "Última alteração: {name}, {date}",
+    "lastChangedNoName": "Última alteração: {date}",
+    "private": "Todos os moderadores veem isto, {name} não.",
+    "privateWithCrea": "Todos os moderadores veem isto, {name} não. A Crea só lê isto a pedido.",
+    "retry": "Tentar de novo",
+    "saved": "Guardado",
+    "saving": "A guardar…",
+    "title": "Observação sobre {name}"
+  },
   "removeNotSelf": "Como administrador/moderador, não te podes eliminar a ti mesmo.",
   "reset": "Repor",
   "save": "Guardar",
+  "search": {
+    "clear": "Limpar a pesquisa"
+  },
   "send": "Enviar",
+  "show_details": "Mostrar detalhes",
   "status": "Estado",
   "success": "Sucesso",
   "text": "Texto",
@@ -628,17 +677,20 @@
     "pending": "Alteração pendente: confirmação pedida para {email} em {date}",
     "replace": {
       "button": "Corrigir endereço",
+      "confirmed": "Endereço não corrigido, porque entretanto foi confirmado. Agora só o próprio membro o pode alterar, nas suas definições.",
       "elopage_warning": "Atenção: existem compras Elopage sob {email}. Esta conta provavelmente veio do webhook – o endereço não é então uma gralha.",
+      "error": "Erro ao corrigir o endereço: {message}",
       "hint": "Apenas enquanto o endereço nunca tiver sido confirmado (p. ex. gralha no registo). O e-mail de confirmação segue depois para o endereço corrigido.",
+      "invalid": "Endereço não corrigido, porque {email} não é um endereço de e-mail válido.",
       "placeholder": "Endereço de e-mail corrigido",
       "success": "Endereço corrigido e e-mail de confirmação enviado para {email}.",
+      "taken": "Endereço não corrigido, porque {email} já pertence a uma conta. Uma conta eliminada também mantém o seu endereço. Procura o endereço acima, na pesquisa de utilizadores.",
       "title": "Corrigir um endereço nunca confirmado"
     },
     "success": "Link de confirmação enviado com sucesso para o e-mail do utilizador! ({email})",
     "text_false": "O último e-mail foi enviado ao membro ({email}) em {date}.",
     "text_true": "O e-mail foi confirmado."
   },
-  "unregistered_emails": "Apenas utilizadores não registados",
   "userRole": {
     "creationAllowed": {
       "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
@@ -671,6 +723,18 @@
     },
     "successfullyChangedTo": "O utilizador é agora «{role}».",
     "tabTitle": "Função do utilizador"
+  },
+  "userSearch": {
+    "hits": "{count} resultado | {count} resultados",
+    "tabs": {
+      "all": "Todos",
+      "deleted": "Eliminados",
+      "enabled": "Ativados",
+      "unconfirmed": "Não confirmados"
+    }
+  },
+  "userStatus": {
+    "emailUnconfirmed": "E-mail não confirmado"
   },
   "user_deleted": "O utilizador está eliminado.",
   "user_memo_search": "Pesquisa de utilizador e texto",

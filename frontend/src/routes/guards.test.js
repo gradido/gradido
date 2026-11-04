@@ -1005,16 +1005,19 @@ describe('a start on the hand-over, with a page to go on to', () => {
 })
 
 /**
- * The event link, `/event?interest=…` (Event-Matching): what a host hands to the people of a
- * congress. Each case builds a router of its own, for the reason given above -- whether the
- * wallet STARTS on the link decides what a running session does with it.
+ * The link of project matching: what a host hands to the people of a project. Each case builds a
+ * router of its own, for the reason given above -- whether the wallet STARTS on the link decides
+ * what a running session does with it.
+ *
+ * ⛔ Every case at both addresses: the links of the first weeks went out with `/event`, stand in
+ * mails and on slides, and have to do exactly what a new one does.
  */
-describe('the event link', () => {
+describe.each([['/project'], ['/event']])('the link at %s', (ADDRESS) => {
   const now = () => Math.floor(Date.now() / 1000)
   const RUNNING = { token: 'running-token', tokenTime: now() + 600 }
   const RUN_OUT = { token: 'old-token', tokenTime: now() - 3600 }
   const Page = { render: () => null }
-  const LINK = '/event?interest=Kongress%20Frequency%20Healing&details=Selbstheilung&remote=1&v=1'
+  const LINK = `${ADDRESS}?interest=Kongress%20Frequency%20Healing&details=Selbstheilung&remote=1&v=1`
   const ENTRY = { summary: 'Kongress Frequency Healing', details: 'Selbstheilung', remote: true }
   // As the store keeps it: with the moment it was kept.
   const KEPT = { ...ENTRY, keptAt: expect.any(Number) }
@@ -1029,7 +1032,7 @@ describe('the event link', () => {
         { path: '/login/:code?', name: 'Login', component: Page },
         { path: '/register/:code?', name: 'Register', component: Page },
         { path: '/overview', name: 'Overview', component: Page, meta: { requiresAuth: true } },
-        { path: '/event', name: 'EventMatchingLanding', component: Page },
+        { path: '/project', alias: '/event', name: 'EventMatchingLanding', component: Page },
         { path: '/matching/:tab', name: 'Matching', component: Page, meta: { requiresAuth: true } },
       ],
     })
@@ -1138,7 +1141,7 @@ describe('the event link', () => {
 
     it('keeps the newer entry where a second link is opened', async () => {
       const { router, own } = await startAt(LINK)
-      await router.push('/event?interest=Training%20X&remote=0')
+      await router.push(`${ADDRESS}?interest=Training%20X&remote=0`)
 
       expect(own.commit).toHaveBeenLastCalledWith('redirectPath', '/overview')
       expect(own.commit).toHaveBeenCalledWith('eventMatchingEntry', {
@@ -1164,27 +1167,29 @@ describe('the event link', () => {
   })
 
   describe('without a sentence', () => {
-    it.each([['/event'], ['/event?interest='], ['/event?interest=%20%20'], ['/event?details=x']])(
-      'is no event link, and %s leads to the sign-in page',
-      async (address) => {
-        const { at, own } = await startAt(address)
+    it.each([
+      [ADDRESS],
+      [`${ADDRESS}?interest=`],
+      [`${ADDRESS}?interest=%20%20`],
+      [`${ADDRESS}?details=x`],
+    ])('is no event link, and %s leads to the sign-in page', async (address) => {
+      const { at, own } = await startAt(address)
 
-        expect(at()).toBe('/login')
-        expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
-      },
-    )
+      expect(at()).toBe('/login')
+      expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
+    })
 
     // The sign-in page of a wallet that starts with its session running goes on to the
     // overview (the guard above); the form opens with nothing in it.
     it('leads a running session to the overview, with nothing for the form', async () => {
-      const { at } = await startAt('/event', RUNNING)
+      const { at } = await startAt(ADDRESS, RUNNING)
 
       expect(at()).toBe('/overview')
       expect(entryDraft.take()).toBeNull()
     })
 
     it('leaves an entry kept from an earlier link where it is', async () => {
-      const { own } = await startAt('/event', { eventMatchingEntry: ENTRY })
+      const { own } = await startAt(ADDRESS, { eventMatchingEntry: ENTRY })
 
       expect(own.commit).not.toHaveBeenCalledWith('eventMatchingEntry', expect.anything())
     })
@@ -1210,7 +1215,7 @@ describe('the event link', () => {
     })
 
     it('hands over empty details as the form holds them, and "only here" as the link says it', async () => {
-      await startAt('/event?interest=Training%20X&remote=0', RUNNING)
+      await startAt(`${ADDRESS}?interest=Training%20X&remote=0`, RUNNING)
 
       expect(entryDraft.take()).toEqual({
         summary: 'Training X',
@@ -1239,9 +1244,9 @@ describe('the event link', () => {
     // the address as it was typed. Read off the route's name, every spelling is the link. And
     // a blank may be written as a plus, as a form writes it: the router reads it as a blank.
     it.each([
-      ['/EVENT?interest=Kongress%20X'],
-      ['/event/?interest=Kongress%20X'],
-      ['/event?interest=Kongress+X'],
+      [`${ADDRESS.toUpperCase()}?interest=Kongress%20X`],
+      [`${ADDRESS}/?interest=Kongress%20X`],
+      [`${ADDRESS}?interest=Kongress+X`],
     ])('reads %s as the link too', async (address) => {
       const { at } = await startAt(address, RUNNING)
 
