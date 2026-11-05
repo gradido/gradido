@@ -58,8 +58,8 @@
           :can-choose-community="canChooseCommunity"
           :busy="loading"
           @send-by-email="sendByEmail"
-          @choose-community="onBack"
-          @change-recipient="onBack"
+          @choose-community="changeRecipient"
+          @change-recipient="changeRecipient"
         ></recipient-not-found>
       </template>
       <template #sendByEmailReady>
@@ -564,7 +564,8 @@ async function sendTransaction() {
     }
   } finally {
     // ⛔ The address stays as it is (E-043): a `push('/send')` here threw the recipient out of it,
-    // and "Zurück" after the success needs the way back and the browser's history untouched.
+    // and "Zurück" after the success needs the way back and the browser's history untouched. A step
+    // that needs the recipient out of it takes it out itself (`changeRecipient`).
     loading.value = false
   }
 }
@@ -660,6 +661,20 @@ function showFormForAddress() {
   emailAddress.value = ''
   madeForEmail.value = null
   currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+}
+
+/**
+ * "Gemeinschaft wählen" and "Eingabe ändern", where nobody had that account: into the form, to
+ * change what reached nobody. On /send/<community>/<user> the address names the recipient, and the
+ * form keeps a recipient named there fixed -- so the recipient leaves the address first, as the
+ * page did after every transfer before E-043. What was entered stays in the fields. The way back
+ * goes with the address: from the free form "Zurück" follows the browser's history.
+ */
+async function changeRecipient() {
+  if (route.params.userIdentifier) {
+    await router.replace({ path: '/send', query: route.query, hash: route.hash })
+  }
+  await onBack()
 }
 
 async function onBack() {

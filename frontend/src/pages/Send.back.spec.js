@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { BButton } from 'bootstrap-vue-next'
 import Send from './Send.vue'
+import RecipientNotFound from '@/components/GddSend/RecipientNotFound.vue'
 import { useMutation } from '@vue/apollo-composable'
 import { createTransactionLink, sendCoins, sendEmail } from '@/graphql/mutations.js'
 import { clearSendReturn, useSendReturn } from '@/composables/useSendReturn'
@@ -552,6 +553,76 @@ describe('Send, "Zurück"', () => {
 
       expect(step()).toBe('transactionResultSendSuccess')
       expect(takeFor(TO_CARLA)).toEqual(BACK_TO_GROUP)
+    })
+  })
+
+  /**
+   * Nobody has that account any more -- gone between the opening of the form and "Jetzt senden".
+   * On /send/<community>/<user> the form keeps a recipient named in the address fixed: so
+   * "Gemeinschaft wählen" and "Eingabe ändern" take the recipient out of the address, as the page
+   * did after every transfer before, and the fields keep what was sent.
+   */
+  describe('where nobody has that account', () => {
+    const notFound = () => wrapper.findComponent(RecipientNotFound)
+    const toTheDoors = async () => {
+      sendCoinsMock.mockRejectedValue(new Error('The recipient user was not found: sarah-id'))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+      expect(step()).toBe('recipientNotFound')
+    }
+
+    it.each(['choose-community', 'change-recipient'])(
+      '"%s" takes the recipient out of the address, into the form',
+      async (door) => {
+        await toTheDoors()
+
+        await notFound().vm.$emit(door)
+        await flushPromises()
+
+        expect(router.currentRoute.value.fullPath).toBe('/send?art=send')
+        expect(step()).toBe('transactionForm')
+        expect(form().vm.$attrs.identifier).toBe('sarah-id')
+        expect(form().vm.$attrs.memo).toBe('Danke für die Marmelade!')
+      },
+    )
+
+    // The way back goes with the address: from the free form the browser's history decides.
+    it('and from there "Zurück" goes by the browser’s history', async () => {
+      await toTheDoors()
+      await notFound().vm.$emit('change-recipient')
+      await flushPromises()
+      vi.mocked(router.push).mockClear()
+
+      await pressBack()
+
+      expect(backOrOverviewUnless).toHaveBeenCalledWith(router, 'Send')
+      expect(router.push).not.toHaveBeenCalled()
+    })
+
+    // "Jetzt prüfen" on /send found nobody: there is no recipient in the address to take out.
+    it('leaves an address without a recipient as it is', async () => {
+      apollo.query.mockRejectedValue({ graphQLErrors: [{ message: 'User not found' }] })
+      await router.push({ path: '/send', query: { art: SEND_TYPES.send } })
+      mountPage()
+      vi.spyOn(router, 'replace')
+      await wrapper.vm.setTransaction({
+        selected: SEND_TYPES.send,
+        targetCommunity: HOME,
+        identifier: 'sarah',
+        amount: 10,
+        memo: 'Danke!',
+      })
+      await flushPromises()
+      expect(step()).toBe('recipientNotFound')
+
+      await notFound().vm.$emit('change-recipient')
+      await flushPromises()
+
+      expect(router.replace).not.toHaveBeenCalled()
+      expect(router.currentRoute.value.fullPath).toBe('/send?art=send')
+      expect(step()).toBe('transactionForm')
+      expect(form().vm.$attrs.identifier).toBe('sarah')
     })
   })
 })
