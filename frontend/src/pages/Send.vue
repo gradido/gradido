@@ -211,6 +211,13 @@ const passOnOf = ref(usePassOnDraft().take())
  * place of the one held. A new path without one lets it go -- another recipient, with no window
  * that named a place. A change of the query alone (`onBack` takes `?art` out of the address) is
  * the same form for the same recipient, and the way back stays.
+ *
+ * ⛔ And a new path brings the form back (`showFormForAddress`): the address names another
+ * recipient now, or the empty form, and the step the page stood on was the one before's -- the
+ * success of a transfer to Sarah under Carla's address, whose "Zurück" led into Carla's
+ * conversation without her form ever shown.
+ *
+ * Only on the page's own addresses: on the way out the route names the next page already.
  */
 const sendReturn = useSendReturn()
 const returnTo = shallowRef(sendReturn.take(route.path))
@@ -218,13 +225,16 @@ let returnToPath = route.path
 watch(
   () => route.fullPath,
   () => {
+    if (route.name !== 'Send') return
+    const anotherPath = route.path !== returnToPath
     const handed = sendReturn.take(route.path)
     if (handed) {
       returnTo.value = handed
-    } else if (route.path !== returnToPath) {
+    } else if (anotherPath) {
       returnTo.value = null
     }
     returnToPath = route.path
+    if (anotherPath) showFormForAddress()
   },
 )
 
@@ -632,6 +642,24 @@ async function sendByEmail() {
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * The form, for what the address names now (E-043). What the page held of a letter goes, as at
+ * `onBack`. Where the address names a recipient, the one held goes as well: the form takes theirs
+ * from the address (TransactionForm), and until that answer has come its field would still hold
+ * the other one. Without a recipient in the address what was entered stays, as the form keeps it
+ * where the menu's "Senden" leaves a recipient named.
+ *
+ * ⛔ Not while a transfer, a link or a letter is on its way (`loading`): its answer says what became
+ * of it, and that step is the member's to see.
+ */
+function showFormForAddress() {
+  if (loading.value) return
+  if (route.params.userIdentifier) transactionData.identifier = ''
+  emailAddress.value = ''
+  madeForEmail.value = null
+  currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
 }
 
 async function onBack() {

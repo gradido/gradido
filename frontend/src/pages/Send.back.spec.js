@@ -112,6 +112,20 @@ describe('Send, "Zurück"', () => {
       { global: { plugins: [pinia, router] } },
     )
   }
+  /** What is held for that path, as the page would take it (and so let go). */
+  const takeFor = (path) => {
+    let taken
+    mount(
+      {
+        setup() {
+          taken = useSendReturn().take(path)
+          return () => null
+        },
+      },
+      { global: { plugins: [pinia, router] } },
+    )
+    return taken
+  }
   /** A window: hand over, then open the form for its person. */
   const openFrom = async (to, back) => {
     handOver(to, back)
@@ -130,17 +144,21 @@ describe('Send, "Zurück"', () => {
     await flushPromises()
   }
   const successButton = () => wrapper.find('[data-test="success-message-button"]')
-  const sendToSarah = async () => {
-    await wrapper.vm.setTransaction({
+  /** "Jetzt prüfen" for Sarah, from the form her conversation opened: the check view. */
+  const checkSarah = () =>
+    wrapper.vm.setTransaction({
       selected: SEND_TYPES.send,
       targetCommunity: HOME,
       identifier: 'sarah-id',
       amount: 10,
       memo: 'Danke für die Marmelade!',
     })
+  const sendToSarah = async () => {
+    await checkSarah()
     await wrapper.vm.sendTransaction()
     await flushPromises()
   }
+  const step = () => wrapper.vm.currentTransactionStep
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -389,6 +407,151 @@ describe('Send, "Zurück"', () => {
       await pressBack()
 
       expect(router.push).toHaveBeenCalledWith(BACK_TO_GROUP)
+    })
+  })
+
+  /**
+   * ⛔ A new path brings the form back, whatever step the page stood on: the address names another
+   * recipient now, or the empty form. Before, the success of a transfer to Sarah stood under Carla's
+   * address, and its "Zurück" led into Carla's conversation without her form ever shown.
+   */
+  describe('the form, as the address names another recipient', () => {
+    it('after a transfer: Carla’s form, and its "Zurück" into her group', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+      expect(step()).toBe('transactionResultSendSuccess')
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_GROUP)
+    })
+
+    // The form takes Carla from the address. Until that answer has come, its field must not hold
+    // Sarah, whom "Jetzt prüfen" would carry on to the check view under Carla's name.
+    it('from the check view: without the one before, with what was typed', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await checkSarah()
+      expect(step()).toBe('transactionConfirmationSend')
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+      expect(form().vm.$attrs.identifier).toBe('')
+      expect(form().vm.$attrs.amount).toBe(10)
+      expect(form().vm.$attrs.memo).toBe('Danke für die Marmelade!')
+    })
+
+    it('after a transfer, at the menu’s "Senden": the empty form', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+
+      await router.push('/send')
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+      expect(form().vm.$attrs.identifier).toBe('')
+      expect(form().vm.$attrs.amount).toBe(0)
+    })
+
+    // Out of the address, the field is the member's: what stood in it stays.
+    it('from the check view, at the menu’s "Senden": with the recipient as it was', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await checkSarah()
+
+      await router.push('/send')
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+      expect(form().vm.$attrs.identifier).toBe('sarah-id')
+    })
+
+    it('after an error', async () => {
+      sendCoinsMock.mockRejectedValue(new Error('Send failed'))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+      expect(step()).toBe('transactionResultSendError')
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+    })
+
+    // ⛔ The address a mail was made for lives in this view only (ZE-037): it goes with the view.
+    it('after "Dank per E-Mail schicken": without the address the mail was for', async () => {
+      sendCoinsMock.mockRejectedValue(new Error('The recipient user was not found: sarah-id'))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+      await wrapper.vm.sendByEmail()
+      await flushPromises()
+      expect(step()).toBe('sendByEmailReady')
+      expect(wrapper.vm.emailAddress).toBe('sarah-id')
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+
+      expect(step()).toBe('transactionForm')
+      expect(wrapper.vm.emailAddress).toBe('')
+      expect(wrapper.vm.madeForEmail).toBeNull()
+    })
+
+    // `onBack` takes `?art` out where another tab was chosen: the same recipient, the same step.
+    it('not where only the query changes', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await checkSarah()
+
+      await router.replace({ path: TO_SARAH })
+      await flushPromises()
+
+      expect(step()).toBe('transactionConfirmationSend')
+      expect(wrapper.vm.transactionData.identifier).toBe('sarah-id')
+    })
+
+    // A transfer on its way: its answer says what became of it, and that step is the member's.
+    it('not while a transfer is on its way', async () => {
+      let answer
+      sendCoinsMock.mockReturnValue(new Promise((resolve) => (answer = resolve)))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await checkSarah()
+      const sending = wrapper.vm.sendTransaction()
+      await flushPromises()
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+      expect(step()).toBe('transactionConfirmationSend')
+
+      answer({ data: { sendCoins: true } })
+      await sending
+      await flushPromises()
+      expect(step()).toBe('transactionResultSendSuccess')
+    })
+
+    // On the way out the route names the next page already. What is held for another form is
+    // none of this page’s business.
+    it('not on the way out of the page', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+      handOver(TO_CARLA, BACK_TO_GROUP)
+
+      await router.push('/overview')
+      await flushPromises()
+
+      expect(step()).toBe('transactionResultSendSuccess')
+      expect(takeFor(TO_CARLA)).toEqual(BACK_TO_GROUP)
     })
   })
 })
