@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import {
@@ -153,33 +153,20 @@ describe('TransactionForm, a duplicated link', () => {
     })
   })
 
-  /**
-   * ⛔ "Zurücksetzen" goes back to what the page handed in as the fields' first values. The old
-   * link's amount and memo are not among those: after a reset nothing of it stands here.
-   */
-  it('"Zurücksetzen" leaves nothing of the old link in the fields', async () => {
-    const afterReset = async () => {
-      await wrapper.find('button[type="reset"]').trigger('click')
-      await flushPromises()
-      return [amountField().element.value, memoField().element.value]
-    }
-    // What a reset leaves of an amount and a memo that were typed ...
-    openForm()
-    await amountField().setValue('5')
-    await memoField().setValue('Getippt, nicht übernommen')
-    const typed = await afterReset()
-    wrapper.unmount()
+  // A test stood here for "Zurücksetzen" leaving nothing of the old link in the fields. The button
+  // is "Zurück" now and leaves the page (E-043): there is nothing left in the form to set back.
 
-    // ... it leaves of the ones that were handed over.
+  // ⭐ With the wallet's own words: the button at the bottom left says "Zurück".
+  it('leaves by "Zurück", in the wallet’s words', async () => {
     handOver(OLD_LINK)
     openForm()
-    const handedOver = await afterReset()
 
-    expect(handedOver).toEqual(typed)
-    expect(handedOver[0]).not.toContain('12')
-    expect(handedOver[1]).toBe('')
-    expect(wrapper.vm.form.amount).toBe(0)
-    expect(wrapper.vm.form.memo).toBe('')
+    const back = wrapper.find('[data-test="send-form-back"]')
+    expect(back.text()).toBe('Zurück')
+    await back.trigger('click')
+    expect(wrapper.emitted('back')).toHaveLength(1)
+    // Pressed, it empties nothing: the fields hold the old link until the page is left.
+    expect(amountField().element.value).toBe('12,5')
   })
 
   // The form is taken down between the steps, and a reload builds it anew: neither finds the

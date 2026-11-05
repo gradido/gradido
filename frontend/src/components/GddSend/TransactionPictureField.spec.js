@@ -389,7 +389,7 @@ describe('TransactionPictureField', () => {
       form.remove()
     })
 
-    it('closes the open choice where the picture is emptied from outside ("Zurücksetzen")', async () => {
+    it('closes the open choice where the picture is emptied from outside', async () => {
       mountField({ picture: { motif: 'bouquet' } })
       await at('send-picture-other').trigger('click')
       expect(isOpen()).toBe(true)

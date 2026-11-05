@@ -8,7 +8,7 @@
     <BRow>
       <BCol cols="12">
         <BCard class="app-box-shadow gradido-border-radius" body-class="p-4">
-          <BForm role="form" :inert="checking" @submit.prevent="onSubmit" @reset="onReset">
+          <BForm role="form" :inert="checking" @submit.prevent="onSubmit">
             <div
               class="nav-send-btn-wrapper bg-209 rounded-26 d-flex bd-highlight mx-xl-6 mx-lg-5 shadow justify-content-between"
               style="margin-bottom: 20px"
@@ -206,22 +206,28 @@
               :foreign="recipientIsForeign"
               @update:picture="emit('update:picture', $event)"
             />
-            <div v-if="!!isFormDisabled" class="text-danger mt-5">
+            <div v-if="isFormDisabled" class="text-danger mt-5">
               {{ $t('form.no_gdd_available') }}
             </div>
-            <BRow v-else class="test-buttons mt-3">
+            <!-- "Zurück" leaves the page, to where the member came from (E-043): the page knows the
+                 way (pages/Send.vue `leave`). It stands on all three tabs, and with nothing to send
+                 as well -- whoever came from a conversation with an empty account is not to be
+                 left without a way out. -->
+            <BRow class="test-buttons mt-3">
               <BCol cols="12" md="6" lg="6">
                 <BButton
                   block
-                  type="reset"
+                  type="button"
                   variant="secondary"
                   class="mb-3 mb-md-0 mb-lg-0"
-                  @click="onReset"
+                  data-test="send-form-back"
+                  @click="emit('back')"
                 >
-                  {{ $t('form.reset') }}
+                  {{ $t('back') }}
                 </BButton>
               </BCol>
               <BCol
+                v-if="!isFormDisabled"
                 cols="12"
                 md="6"
                 lg="6"
@@ -261,7 +267,7 @@
 
 <script setup>
 import { ref, computed, defineOptions, watch, reactive, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import { BLink, BSpinner } from 'bootstrap-vue-next'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -342,8 +348,8 @@ const form = reactive({ ...entityDataToForm.value })
  * Handed over once (useLinkDraft). The form is taken down between the steps; when it stands
  * again, the fields hold what the page holds.
  *
- * ⛔ Into the fields, not into what the page hands in as their first values (`props`): those
- * are what "Zurücksetzen" goes back to, and after a reset nothing of the old link may stand here.
+ * Into the fields, not into what the page hands in as their first values (`props`): the page
+ * learns of them as of anything typed, when "Jetzt prüfen" is pressed.
  */
 const duplicated = useLinkDraft().takeLink()
 if (duplicated) {
@@ -354,10 +360,16 @@ const disableSmartValidState = ref(false)
 const communities = ref([])
 const autoCommunityIdentifier = ref('')
 
-const emit = defineEmits(['send-email', 'set-transaction', 'set-send-type', 'update:picture'])
+const emit = defineEmits([
+  'send-email',
+  'set-transaction',
+  'set-send-type',
+  'update:picture',
+  // "Zurück": the member leaves the form; where to is the page's to say.
+  'back',
+])
 
 const route = useRoute()
-const router = useRouter()
 
 /**
  * ⭐ The form brings itself into view where the address asks for it (`#send-form`).
@@ -609,7 +621,7 @@ function onSubmit() {
     transformedForm.targetCommunity = findCommunity(parts.community)
   }
   // The name belongs to the address that named the recipient. The form stays when that address is
-  // left (the menu, "Zurücksetzen"), and the name would go on to the check view, above somebody else
+  // left (the menu's "Senden"), and the name would go on to the check view, above somebody else
   // typed into the field: for a member of another community nothing asks about that one.
   const recipientName = userIdentifier.value ? userName.value : ''
   if (radioSelected.value === SEND_TYPES.email) {
@@ -645,23 +657,6 @@ function onSubmit() {
       userName: recipientName,
     })
   }
-}
-
-function onReset(event) {
-  event.preventDefault()
-  // The browser's own reset empties the file fields of the picture choice; the picture itself
-  // is the page's, and goes here.
-  emit('update:picture', null)
-  form.amount = props.amount
-  form.memo = props.memo
-  form.identifier = props.identifier
-  // Where the page handed in nothing but the placeholder, back to the community that replaced it:
-  // with its empty uuid "Jetzt prüfen" could not ask, and the switch replaces it only once.
-  form.targetCommunity = props.targetCommunity.uuid
-    ? props.targetCommunity
-    : (communities.value.find((community) => !community.foreign) ?? props.targetCommunity)
-  radioSelected.value = SEND_TYPES.send
-  router.replace('/send')
 }
 </script>
 
