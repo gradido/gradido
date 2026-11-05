@@ -36,7 +36,9 @@ import {
 import { greetingPicture, rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { useLinkDraft } from '@/composables/useLinkDraft'
 import { usePassOnDraft } from '@/composables/usePassOnDraft'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { requestTransactionPicture, transactionPicture } from '@/composables/useTransactionPictures'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 vi.mock('../i18n', () => ({
   default: {
@@ -932,6 +934,48 @@ describe('Pinia store', () => {
         wallet.logout()
 
         expect(handover().take()).toBeNull()
+      })
+
+      /**
+       * ⛔ An eighth, same rule: where the send form's "Zurück" leads (useSendReturn) waits in
+       * memory too -- a conversation, a group, a person on the map. Without this the next member
+       * to sign in on this browser would be led back into somebody else's conversation.
+       */
+      it('lets go of the way back the send form was handed', () => {
+        const to = '/send/home-uuid/sarah-id'
+        const back = { path: '/contacts', query: { with: 'sarah-id', community: 'home-uuid' } }
+        // Read as the same member would read it: what empties it here is the sign-out alone.
+        const member = walletStore({ gradidoID: 'user-one' })
+        const router = createRouter({
+          history: createMemoryHistory(),
+          routes: [
+            {
+              path: '/send/:communityIdentifier?/:userIdentifier?',
+              component: { render: () => null },
+            },
+          ],
+        })
+        const handover = () => {
+          let way
+          mount(
+            {
+              setup() {
+                way = useSendReturn()
+                return () => null
+              },
+            },
+            { global: { plugins: [member, router] } },
+          )
+          return way
+        }
+        // The fixture proves itself: handed over, it is found.
+        handover().put({ to, back })
+        expect(handover().take(to)).toEqual(back)
+        handover().put({ to, back })
+
+        wallet.logout()
+
+        expect(handover().take(to)).toBeNull()
       })
 
       it('removes only its own storage blob', () => {
