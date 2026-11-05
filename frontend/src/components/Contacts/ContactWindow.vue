@@ -408,6 +408,7 @@ import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
@@ -615,16 +616,32 @@ const closeWhenNavigating = (event) => {
  * ⚠️ A member of another community goes down the same road: the send form is what knows
  * the federation branch, and a second way of reaching it here would be a second place for
  * that knowledge to drift.
+ *
+ * The form's "Zurück" leads back into this conversation (E-043): the window hands its place over
+ * (useSendReturn) -- the address the reply button of a chat mail has (P4c), which opens the
+ * conversation on the contacts page. Where the form is not reached, it is taken back.
  */
-const toSend = () => {
+const sendReturn = useSendReturn()
+const toSend = async () => {
   const community = props.contact?.user?.communityUuid
   const user = props.contact?.user?.gradidoID
   if (!community || !user) return
   emit('update:modelValue', false)
-  // ⛔ The mode is named although there is only this one way left. This window stands beside
-  // /send, so a tap here changes only the params and the query -- the form is patched, not
-  // rebuilt -- and without `art` a form that was already in e-mail mode would stay there.
-  router.push({ path: `/send/${community}/${user}`, query: { art: SEND_TYPES.send } })
+  const to = `/send/${community}/${user}`
+  const handed = sendReturn.put({
+    to,
+    back: { path: '/contacts', query: { with: user, community } },
+  })
+  let reached = false
+  try {
+    // ⛔ The mode is named although there is only this one way left. This window stands beside
+    // /send, so a tap here changes only the params and the query -- the form is patched, not
+    // rebuilt -- and without `art` a form that was already in e-mail mode would stay there.
+    const failure = await router.push({ path: to, query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) sendReturn.drop(handed)
+  }
 }
 
 /**

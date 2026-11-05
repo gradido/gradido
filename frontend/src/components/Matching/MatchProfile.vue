@@ -208,6 +208,7 @@ import {
   CHAT_HELLO_STRANGER,
   useChatHello,
 } from '@/composables/useChatHello'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { chatDraftFor } from '@/utils/chatDraft'
 import { chatHelloDistance, chatHelloSignature, chatHelloText } from '@/utils/chatHelloText'
 import { chatMemberKey } from '@/utils/chatMemberKey'
@@ -338,11 +339,28 @@ function moreCount(area) {
   return Math.min(area.count, MAX_ENTRIES) - openCount(area)
 }
 
-function toSend() {
+/**
+ * "Gradido senden": the send form with this person named. Its "Zurück" leads back to the map as the
+ * member left it (E-043): the window hands that place over (useSendReturn) -- the map's own
+ * address, which opens this window again by itself (`pref.gms.map.profile`), the member's search
+ * around it. ⛔ Not the address of the contact window's pin (`?with=…&community=…`): that one moves
+ * the search onto the person and heads the list "Dein Kontakt", for somebody who is none as well.
+ * Where the form is not reached, it is taken back.
+ */
+const sendReturn = useSendReturn()
+async function toSend() {
   const community = props.match?.community?.uuid
   const user = props.match?.uuid
   if (!community || !user) return
-  router.push({ path: `/send/${community}/${user}` })
+  const to = `/send/${community}/${user}`
+  const handed = sendReturn.put({ to, back: { path: '/matching/karte' } })
+  let reached = false
+  try {
+    const failure = await router.push({ path: to })
+    reached = !failure
+  } finally {
+    if (!reached) sendReturn.drop(handed)
+  }
 }
 
 /**

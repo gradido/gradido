@@ -7,6 +7,7 @@ import i18n from '../i18n'
 import { clearEntryDraft } from '../composables/useEntryDraft'
 import { clearLinkDraft } from '../composables/useLinkDraft'
 import { clearPassOnDraft } from '../composables/usePassOnDraft'
+import { clearSendReturn } from '../composables/useSendReturn'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
@@ -331,6 +332,9 @@ export const useWalletStore = defineStore('wallet', {
       // And which thank-you received a transfer about to be made passes on (usePassOnDraft): the
       // next member to sign in here makes no transfer that passes it on.
       clearPassOnDraft()
+      // And where the send form's "Zurück" leads (useSendReturn): the next member to sign in here
+      // is not led back into somebody else's conversation.
+      clearSendReturn()
       // What this device keeps, not what this store held since it started: an open wallet would
       // write its older mode over a choice made in the admin interface meanwhile.
       this.adoptThemeModeFromDevice()

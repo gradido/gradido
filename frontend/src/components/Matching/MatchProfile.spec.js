@@ -17,6 +17,15 @@ const push = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({ push })),
 }))
+// The way back the window hands to the send form (E-043; useSendReturn has a spec of its own).
+const sendReturn = vi.hoisted(() => ({
+  put: vi.fn((handover) => ({ ...handover })),
+  drop: vi.fn(),
+}))
+vi.mock('@/composables/useSendReturn', () => ({
+  useSendReturn: () => sendReturn,
+  clearSendReturn: vi.fn(),
+}))
 
 // The member who looks at the map. A test that needs another one says so, and the next test
 // starts from this one again.
@@ -135,7 +144,9 @@ const SOFIA = { gradidoID: 'user-uuid-1', communityUuid: 'community-uuid-1' }
 
 describe('MatchProfile', () => {
   beforeEach(() => {
-    push.mockClear()
+    push.mockReset()
+    sendReturn.put.mockClear()
+    sendReturn.drop.mockClear()
     Object.assign(storeState, ME)
     apollo.query.mockReset()
     apollo.query.mockResolvedValue(noContact)
@@ -474,6 +485,38 @@ describe('MatchProfile', () => {
     await wrapper.find('.send-gradido').trigger('click')
     expect(push).toHaveBeenCalledTimes(1)
     expect(push).toHaveBeenCalledWith({ path: '/send/community-uuid-1/user-uuid-1' })
+  })
+
+  /**
+   * E-043: the form's "Zurück" leads back to the map as the member left it -- its own address, with
+   * nothing of the contact window's pin (`?with=`), and the map opens this window again by itself.
+   * The window hands that place over before it opens the form, and takes it back where the form is
+   * not reached.
+   */
+  it('hands the send form its way back to the map, before it opens it', async () => {
+    mountProfile(baseMatch())
+    await wrapper.find('.send-gradido').trigger('click')
+    await flushPromises()
+
+    expect(sendReturn.put).toHaveBeenCalledTimes(1)
+    expect(sendReturn.put).toHaveBeenCalledWith({
+      to: '/send/community-uuid-1/user-uuid-1',
+      back: { path: '/matching/karte' },
+    })
+    expect(sendReturn.put.mock.invocationCallOrder[0]).toBeLessThan(
+      push.mock.invocationCallOrder[0],
+    )
+    expect(sendReturn.drop).not.toHaveBeenCalled()
+  })
+
+  it('takes the way back again where the form is not reached', async () => {
+    push.mockResolvedValueOnce({ type: 16 })
+    mountProfile(baseMatch())
+    await wrapper.find('.send-gradido').trigger('click')
+    await flushPromises()
+
+    expect(sendReturn.drop).toHaveBeenCalledTimes(1)
+    expect(sendReturn.drop).toHaveBeenCalledWith(sendReturn.put.mock.results[0].value)
   })
 
   /**
