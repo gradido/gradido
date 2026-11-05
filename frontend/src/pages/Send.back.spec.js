@@ -1,0 +1,394 @@
+// AI-GENERATED — not an architecture reference
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import { BButton } from 'bootstrap-vue-next'
+import Send from './Send.vue'
+import { useMutation } from '@vue/apollo-composable'
+import { createTransactionLink, sendCoins, sendEmail } from '@/graphql/mutations.js'
+import { clearSendReturn, useSendReturn } from '@/composables/useSendReturn'
+import { backOrOverviewUnless } from '@/utils/backOrOverview'
+import { SEND_TYPES } from '@/utils/sendTypes'
+import { walletStore } from '@test/walletStore'
+
+/**
+ * "Zurück" in the send form (E-043): from the form itself and after a transfer or a letter that went
+ * out, back to where the member came from -- the place a window named (useSendReturn), or else the
+ * browser's history (backOrOverviewUnless, held in its own spec and stood in for here).
+ *
+ * With a real router: the page takes the way back at every change of its address, and what counts
+ * there is the path as the router has it. The page is mounted on its own, as the form beside /send
+ * stands while a tap in the column patches it to another recipient. The steps are the real ones;
+ * the form and the views around it are stand-ins that say what they would say.
+ */
+vi.mock('@/components/GddSend/TransactionForm', () => ({
+  default: { name: 'TransactionForm', emits: ['back'], template: '<div data-test="the-form" />' },
+}))
+vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
+  default: { name: 'TransactionConfirmationSend', template: '<div data-test="the-check" />' },
+}))
+vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
+  default: { name: 'TransactionConfirmationLink', template: '<div data-test="the-link-check" />' },
+}))
+vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
+  default: {
+    name: 'TransactionResultSendError',
+    emits: ['on-back'],
+    template: '<div data-test="the-error-page" />',
+  },
+}))
+vi.mock('@/components/GddSend/SendEmailResultError', () => ({
+  default: { name: 'SendEmailResultError', emits: ['on-back'], template: '<div />' },
+}))
+vi.mock('@/components/GddSend/TransactionResultLink', () => ({
+  default: {
+    name: 'TransactionResultLink',
+    emits: ['on-back'],
+    template: '<div data-test="the-link-result" />',
+  },
+}))
+vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone.vue', () => ({
+  default: { name: 'ThankYouGreetingDone', template: '<div />' },
+}))
+
+const t = (key) => key
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t }),
+}))
+
+vi.mock('@/utils/backOrOverview', async (importOriginal) => ({
+  ...(await importOriginal()),
+  backOrOverviewUnless: vi.fn(),
+}))
+
+const apollo = vi.hoisted(() => ({ query: vi.fn(), readQuery: vi.fn() }))
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({ client: apollo }),
+  useMutation: vi.fn(),
+}))
+vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastError: vi.fn() }) }))
+
+const HOME = { uuid: 'home-uuid', name: 'Gradido-Akademie', foreign: false }
+
+// Sarah's conversation and the form with her named; Carla, a member of a group.
+const TO_SARAH = '/send/home-uuid/sarah-id'
+const BACK_TO_SARAH = { path: '/contacts', query: { with: 'sarah-id', community: 'home-uuid' } }
+const TO_CARLA = '/send/home-uuid/carla-id'
+const BACK_TO_GROUP = { path: '/contacts', query: { group: 'group-uuid' } }
+
+const page = { render: () => null }
+const makeRouter = () =>
+  createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/send/:communityIdentifier?/:userIdentifier?',
+        name: 'Send',
+        component: page,
+        meta: { requiresAuth: true },
+      },
+      { path: '/contacts', component: page, meta: { requiresAuth: true } },
+      { path: '/overview', component: page, meta: { requiresAuth: true } },
+    ],
+  })
+
+describe('Send, "Zurück"', () => {
+  let router
+  let pinia
+  let wrapper
+  let sendCoinsMock
+  let sendEmailMock
+
+  /** What a window does before it opens the form: names its place (ContactWindow `toSend`). */
+  const handOver = (to, back) => {
+    mount(
+      {
+        setup() {
+          useSendReturn().put({ to, back })
+          return () => null
+        },
+      },
+      { global: { plugins: [pinia, router] } },
+    )
+  }
+  /** A window: hand over, then open the form for its person. */
+  const openFrom = async (to, back) => {
+    handOver(to, back)
+    await router.push({ path: to, query: { art: SEND_TYPES.send } })
+  }
+  const mountPage = () => {
+    wrapper = mount(Send, {
+      props: { balance: 1000, GdtBalance: 0 },
+      global: { plugins: [pinia, router], mocks: { $t: t }, components: { BButton } },
+    })
+    vi.spyOn(router, 'push')
+  }
+  const form = () => wrapper.findComponent({ name: 'TransactionForm' })
+  const pressBack = async () => {
+    await form().vm.$emit('back')
+    await flushPromises()
+  }
+  const successButton = () => wrapper.find('[data-test="success-message-button"]')
+  const sendToSarah = async () => {
+    await wrapper.vm.setTransaction({
+      selected: SEND_TYPES.send,
+      targetCommunity: HOME,
+      identifier: 'sarah-id',
+      amount: 10,
+      memo: 'Danke für die Marmelade!',
+    })
+    await wrapper.vm.sendTransaction()
+    await flushPromises()
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks()
+    // What is held lives at module level, so one test must not hand anything to the next.
+    clearSendReturn()
+    pinia = walletStore({ gradidoID: 'uuid-emma' })
+    router = makeRouter()
+    await router.push('/overview')
+    await router.isReady()
+    sendCoinsMock = vi.fn().mockResolvedValue({ data: { sendCoins: true } })
+    sendEmailMock = vi.fn().mockResolvedValue({ data: { sendEmail: true } })
+    vi.mocked(useMutation).mockImplementation((mutation) => {
+      if (mutation === sendCoins) return { mutate: sendCoinsMock }
+      if (mutation === sendEmail) return { mutate: sendEmailMock }
+      if (mutation === createTransactionLink)
+        return {
+          mutate: vi.fn().mockResolvedValue({
+            data: {
+              createTransactionLink: {
+                link: 'https://x.example/redeem/abc',
+                amount: '5',
+                memo: 'Für Dich',
+                validUntil: '2026-11-19T08:00:00.000Z',
+              },
+            },
+          }),
+        }
+      return { mutate: vi.fn() }
+    })
+  })
+
+  describe('from the form', () => {
+    it('leads back to the conversation the contact window opened it from', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+
+      await pressBack()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_SARAH)
+      expect(router.currentRoute.value.fullPath).toBe('/contacts?with=sarah-id&community=home-uuid')
+      expect(backOrOverviewUnless).not.toHaveBeenCalled()
+    })
+
+    // ⛔ Never through the form for the recipient before: that is the rule's to know.
+    it('goes by the browser’s history where no window named a place', async () => {
+      await router.push({ path: TO_SARAH, query: { art: SEND_TYPES.send } })
+      mountPage()
+
+      await pressBack()
+
+      expect(backOrOverviewUnless).toHaveBeenCalledWith(router, 'Send')
+      expect(router.push).not.toHaveBeenCalled()
+    })
+
+    it('takes no way back handed over for another recipient', async () => {
+      handOver(TO_CARLA, BACK_TO_GROUP)
+      await router.push({ path: TO_SARAH, query: { art: SEND_TYPES.send } })
+      mountPage()
+
+      await pressBack()
+
+      expect(backOrOverviewUnless).toHaveBeenCalledWith(router, 'Send')
+      expect(router.push).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('after a transfer that went out', () => {
+    it('says "Zurück", and leads back to where the member came from', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+
+      expect(wrapper.vm.currentTransactionStep).toBe('transactionResultSendSuccess')
+      expect(successButton().text()).toBe('back')
+      await successButton().trigger('click')
+      await flushPromises()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_SARAH)
+    })
+
+    // ⛔ The `push('/send')` that stood after the transfer threw the recipient out of the address,
+    // and laid an entry of the form into the history behind the page of the success.
+    it('leaves the address as it was', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+
+      expect(router.push).not.toHaveBeenCalled()
+      expect(router.currentRoute.value.fullPath).toBe('/send/home-uuid/sarah-id?art=send')
+    })
+
+    it('leaves the address as it was where the transfer failed', async () => {
+      sendCoinsMock.mockRejectedValue(new Error('Send failed'))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+
+      expect(wrapper.vm.currentTransactionStep).toBe('transactionResultSendError')
+      expect(router.push).not.toHaveBeenCalled()
+      expect(router.currentRoute.value.fullPath).toBe('/send/home-uuid/sarah-id?art=send')
+    })
+  })
+
+  describe('after a letter that went out', () => {
+    it('says "Zurück", and leads back to where the member came from', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+
+      await wrapper.vm.sendEmail({
+        selected: SEND_TYPES.email,
+        targetCommunity: HOME,
+        identifier: 'sarah-id',
+        subject: 'Marmelade',
+        memo: 'Hast Du noch ein Glas?',
+      })
+      await flushPromises()
+
+      expect(wrapper.vm.currentTransactionStep).toBe('sendEmailResultSuccess')
+      expect(successButton().text()).toBe('back')
+      await successButton().trigger('click')
+      await flushPromises()
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_SARAH)
+    })
+  })
+
+  // The link and the errors behave otherwise (E-043, W3): their "Schließen" leads into the form.
+  describe('where the way back stays the way into the form', () => {
+    it('after a link was made', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await wrapper.vm.setTransaction({ selected: SEND_TYPES.link, amount: 5, memo: 'Für Dich' })
+      await wrapper.vm.sendTransaction()
+      await flushPromises()
+      expect(wrapper.vm.currentTransactionStep).toBe('transactionResultLink')
+
+      await wrapper.findComponent({ name: 'TransactionResultLink' }).vm.$emit('on-back')
+      await flushPromises()
+
+      expect(wrapper.vm.currentTransactionStep).toBe('transactionForm')
+      expect(router.push).not.toHaveBeenCalledWith(BACK_TO_SARAH)
+      expect(backOrOverviewUnless).not.toHaveBeenCalled()
+    })
+
+    it('after a transfer that failed', async () => {
+      sendCoinsMock.mockRejectedValue(new Error('Send failed'))
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      await sendToSarah()
+
+      await wrapper.findComponent({ name: 'TransactionResultSendError' }).vm.$emit('on-back')
+      await flushPromises()
+
+      expect(wrapper.vm.currentTransactionStep).toBe('transactionForm')
+      expect(router.push).not.toHaveBeenCalled()
+      expect(backOrOverviewUnless).not.toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * ⛔ The form beside /send is patched, not rebuilt, when a contact is tapped in the column: setup
+   * does not run again, so the page takes the way back at every change of its address.
+   */
+  describe('as the address changes', () => {
+    it('takes the way back a window hands over to the form standing beside it', async () => {
+      await router.push('/send')
+      mountPage()
+
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+      await pressBack()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_GROUP)
+    })
+
+    // What it took for the new recipient is that recipient's, through a change of the query too.
+    it('keeps what it took at a new path where then only the query changes', async () => {
+      await router.push('/send')
+      mountPage()
+      await openFrom(TO_CARLA, BACK_TO_GROUP)
+      await flushPromises()
+      wrapper.vm.transactionData.selected = SEND_TYPES.email
+
+      await wrapper.vm.onBack()
+      await flushPromises()
+      expect(router.currentRoute.value.fullPath).toBe(TO_CARLA)
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_GROUP)
+    })
+
+    // Another recipient, and no window named a place for them.
+    it('lets it go where the path changes without one', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+
+      await router.push({ path: TO_CARLA, query: { art: SEND_TYPES.send } })
+      await flushPromises()
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+
+      expect(backOrOverviewUnless).toHaveBeenCalledWith(router, 'Send')
+      expect(router.push).not.toHaveBeenCalled()
+    })
+
+    it('lets it go at the menu’s "Senden"', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+
+      await router.push('/send')
+      await flushPromises()
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+
+      expect(backOrOverviewUnless).toHaveBeenCalledWith(router, 'Send')
+      expect(router.push).not.toHaveBeenCalled()
+    })
+
+    // `onBack` takes `?art` out of the address where another tab was chosen: the same form.
+    it('keeps it where only the query changes', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      wrapper.vm.transactionData.selected = SEND_TYPES.email
+
+      await wrapper.vm.onBack()
+      await flushPromises()
+      expect(router.currentRoute.value.fullPath).toBe(TO_SARAH)
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_SARAH)
+      expect(backOrOverviewUnless).not.toHaveBeenCalled()
+    })
+
+    // The same person tapped again from another window, with the mode back in the address.
+    it('takes a new way back for the path it stands on in place of the one held', async () => {
+      await openFrom(TO_SARAH, BACK_TO_SARAH)
+      mountPage()
+      wrapper.vm.transactionData.selected = SEND_TYPES.email
+      await wrapper.vm.onBack()
+      await flushPromises()
+
+      await openFrom(TO_SARAH, BACK_TO_GROUP)
+      await flushPromises()
+      vi.mocked(router.push).mockClear()
+      await pressBack()
+
+      expect(router.push).toHaveBeenCalledWith(BACK_TO_GROUP)
+    })
+  })
+})
