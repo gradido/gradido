@@ -785,7 +785,7 @@
     "password_old": "Contraseña antigua",
     "recipient": "Destinatario",
     "recipient-not-found": {
-      "by-email": "Si no, envía tu agradecimiento por correo electrónico: Gradido crea para ello un enlace que espera {days} días. Con él se crea una cuenta — o el agradecimiento pasa a una cuenta existente.",
+      "by-email": "Aun así, puedes enviar tu agradecimiento por correo electrónico: Gradido crea para ello un enlace que espera {days} días. Quien lo abra recibe el agradecimiento en su cuenta — o crea una allí mismo.",
       "change-address": "Cambiar dirección",
       "change-entry": "Cambiar lo escrito",
       "choose-community": "Seleccionar comunidad",
@@ -916,7 +916,7 @@
     "share-line1": "{name} te agradece con {amount} Gradido:",
     "share-line2": "«{memo}»",
     "share-line3": "¿Quieres aceptar el agradecimiento?",
-    "share-line4": "Te espera hasta el {date}. Si no lo aceptas, no pasa nada.",
+    "share-line4": "Tómate tu tiempo: te espera hasta el {date}.",
     "to-login": "Iniciar sesión",
     "to-register": "Registra una nueva cuenta.",
     "to-switch": "Redirigir ahora",

@@ -785,7 +785,7 @@
     "password_old": "Oud wachtwoord",
     "recipient": "Ontvanger",
     "recipient-not-found": {
-      "by-email": "Stuur anders je bedankje per e-mail: Gradido maakt daarvoor een link aan die {days} dagen wacht. Daarmee wordt een account aangemaakt — of komt het bedankje op een bestaand account.",
+      "by-email": "Je kunt je bedankje alsnog sturen, per e-mail: Gradido maakt daarvoor een link aan die {days} dagen wacht. Wie de link opent, krijgt het bedankje op het eigen account — of maakt er ter plekke een aan.",
       "change-address": "Adres wijzigen",
       "change-entry": "Invoer wijzigen",
       "choose-community": "Gemeenschap selecteren",
@@ -916,7 +916,7 @@
     "share-line1": "{name} bedankt jou met {amount} Gradido:",
     "share-line2": "‘{memo}’",
     "share-line3": "Wil je dit bedankje aannemen?",
-    "share-line4": "Het wacht tot {date} op je. Neem je het niet aan, dan gebeurt er niets.",
+    "share-line4": "Neem rustig de tijd: het wacht tot {date} op je.",
     "to-login": "Inloggen",
     "to-register": "Registreer een nieuwe rekening.",
     "to-switch": "Nu doorsturen",

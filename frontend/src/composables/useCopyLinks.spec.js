@@ -70,7 +70,7 @@ describe('useCopyLinks', () => {
           '„Für Deine Hilfe am Samstag“',
           'Magst Du den Dank annehmen?',
           LINK,
-          'Er wartet bis zum 1.10.2026 auf Dich. Nimmst Du ihn nicht an, passiert nichts.',
+          'Lass Dir Zeit: Er wartet bis zum 1.10.2026 auf Dich.',
         ].join('\n'),
       )
     })
@@ -187,7 +187,7 @@ describe('useCopyLinks', () => {
         [
           'Sarah, ich habe einen Dank-Gruß für Dich:',
           LINK,
-          'Er wartet bis zum 1.10.2026 auf Dich. Nimmst Du ihn nicht an, passiert nichts.',
+          'Lass Dir Zeit: Er wartet bis zum 1.10.2026 auf Dich.',
         ].join('\n'),
       )
     })
