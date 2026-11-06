@@ -206,11 +206,13 @@ variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
             } else if (
               requestContext.contextValue.requestBudget?.chatImagesServed ||
               requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||
-              requestContext.contextValue.requestBudget?.transactionPicturesServed
+              requestContext.contextValue.requestBudget?.transactionPicturesServed ||
+              requestContext.contextValue.requestBudget?.senderAvatarsServed
             ) {
               // A picture of a chat message (chatMessageImage) is one member's for another, and
               // so are the picture of a thank-you greeting (thankYouGreetingPicture) and the
-              // photo sent with a transfer (transactionPicture).
+              // photo sent with a transfer (transactionPicture) -- and the face of the member
+              // who made a link, on the page of an open link (queryTransactionLink).
               logger.trace('Response-Data: left out, it holds a picture')
             } else if (logger.isTraceEnabled()) {
               // Formatted only where it is written: the whole answer as indented text costs the

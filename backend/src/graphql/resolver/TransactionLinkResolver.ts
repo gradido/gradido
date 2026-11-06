@@ -36,6 +36,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   dbDeleteThankYouGreetingByLinkCode,
+  dbFindMemberAvatarsSmall,
   dbInsertEvent,
   dbInsertThankYouGreeting,
   dbInsertThankYouGreetingPicture,
@@ -69,6 +70,7 @@ import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
+import { SENDER_AVATARS_MAX_PER_REQUEST, showsSenderAvatar } from '@/data/SenderAvatar.logic'
 import { transactionLinkGreetingSchema } from '@/data/ThankYouGreeting.schema'
 import {
   mayAddLargePicture,
@@ -361,7 +363,10 @@ export class TransactionLinkResolver {
 
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
-  async queryTransactionLink(@Arg('code') code: string): Promise<typeof QueryLinkResult> {
+  async queryTransactionLink(
+    @Arg('code') code: string,
+    @Ctx() context: Context,
+  ): Promise<typeof QueryLinkResult> {
     const methodLogger = createLogger('queryTransactionLink')
     methodLogger.addContext('handshakeID', randomInt(2 ** 32).toString())
     methodLogger.debug('queryTransactionLink...')
@@ -399,12 +404,30 @@ export class TransactionLinkResolver {
         const [greeting] = dbTransactionLink.deletedAt
           ? []
           : await dbSelectThankYouGreetingsByLinkCodes([dbTransactionLink.code])
+        // The face of the member who made the link (ZE-038), for whoever holds the code: of an
+        // OPEN link only (showsSenderAvatar), and only where the member shows their face to
+        // other members -- that guard stands in the query (dbFindMemberAvatarsSmall). One read
+        // more for an open link: the picture lies in a table of its own, and its guard in that
+        // query. ⛔ Counted in the HTTP request's budget before it is read, as a document may
+        // name this query under any number of aliases, each with a code of its own; past the
+        // cap the link comes without its face.
+        let senderAvatar: Buffer | null = null
+        if (showsSenderAvatar(dbTransactionLink, user.deletedAt, new Date())) {
+          context.requestBudget.senderAvatarsServed += 1
+          if (context.requestBudget.senderAvatarsServed <= SENDER_AVATARS_MAX_PER_REQUEST) {
+            // The row of this member: the id is unique only per community.
+            const rows = await dbFindMemberAvatarsSmall([user.gradidoID])
+            senderAvatar =
+              rows.find((row) => row.communityUuid === user.communityUuid)?.avatarSmall ?? null
+          }
+        }
         return new TransactionLink(
           dbTransactionLink,
           new User(user),
           redeemedBy,
           communities,
           greeting ? new ThankYouGreeting(greeting) : null,
+          senderAvatar,
         )
       } else {
         // redeem jwt-token

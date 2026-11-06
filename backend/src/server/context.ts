@@ -49,6 +49,10 @@ export interface RequestBudget {
   // Photos sent with a transfer (transactionPicture), capped at
   // TRANSACTION_PICTURES_MAX_PER_REQUEST.
   transactionPicturesServed: number
+  // Faces of the members who made a link, on the page of an open link (queryTransactionLink),
+  // capped at SENDER_AVATARS_MAX_PER_REQUEST. Counted where a face is looked up, with or
+  // without one to show; the answer of such a request stays out of the log.
+  senderAvatarsServed: number
   // Reactions to chat messages set or taken back (setChatMessageReaction), capped at
   // CHAT_REACTIONS_MAX_PER_REQUEST: each is a transaction.
   chatReactionsSet: number
@@ -78,6 +82,7 @@ export const newRequestBudget = (): RequestBudget => ({
   thankYouGreetingPicturesAccepted: 0,
   thankYouGreetingLargePicturesServed: 0,
   transactionPicturesServed: 0,
+  senderAvatarsServed: 0,
   chatReactionsSet: 0,
   transactionReactionsSet: 0,
   userNotesServed: 0,

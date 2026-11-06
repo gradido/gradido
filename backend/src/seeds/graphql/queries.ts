@@ -452,6 +452,7 @@ export const queryThankYouGreeting = gql`
           line
           recipientName
         }
+        senderAvatar
       }
     }
   }
