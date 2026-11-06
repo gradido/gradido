@@ -7,7 +7,7 @@ import { dbDeleteAllRowsExceptMigrations } from '../../queries/informationSchema
 import { userAliasesTable, userContactsTable, userRolesTable, usersTable } from '../../schemas'
 import { createCommunity } from '../community'
 import { UserInterface } from '../users/UserInterface'
-import { buildSeedUserRows, userFactory } from './user'
+import { buildSeedUserRows, userFactory, userFactoryDrizzle } from './user'
 
 const COMMUNITY_UUID = '0bd3a4a9-31a4-4b0a-8f3c-0c1d7a4b6f00'
 const build = (users: UserInterface[]) => buildSeedUserRows(users, 1, COMMUNITY_UUID, new Set())
@@ -193,6 +193,18 @@ describe('userFactory', () => {
 
     expect(user.accountState).toBe(AccountState.DELETED)
     expect(user.deletedAt).toEqual(deletedAt)
+  })
+
+  it('userFactoryDrizzle hands back the row with its address, a deleted member too', async () => {
+    const deletedAt = new Date(2026, 0, 1)
+
+    const user = await userFactoryDrizzle({ ...anna, deletedAt })
+
+    expect(user.gradidoId).toHaveLength(36)
+    expect(user.alias).toBe('SeedAnna')
+    expect(user.deletedAt).toEqual(deletedAt)
+    expect(user.emailId).toBe(user.emailContact.id)
+    expect(user.emailContact.email).toBe('anna@seed.de')
   })
 
   it('leaves nothing behind when the address is taken', async () => {

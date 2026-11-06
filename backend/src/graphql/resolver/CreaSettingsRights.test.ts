@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   login,
   setCreaMatchingKeying,
@@ -87,11 +87,11 @@ const SETTINGS = { input: { model: 'claude-probe-value', effort: 'high', fastMod
 const PROBE = { input: { model: null, effort: 'disabled', fastMode: false } }
 
 describe('the Crea settings — only administrators', () => {
-  let moderator: User
+  let moderator: DbUser
 
   beforeAll(async () => {
-    await userFactory(testEnv, peterLustig) // administrator
-    moderator = await userFactory(testEnv, bibiBloxberg)
+    await userFactoryDrizzle(peterLustig) // administrator
+    moderator = await userFactoryDrizzle(bibiBloxberg)
     await setRole(moderator.id, RoleNames.MODERATOR)
   })
 

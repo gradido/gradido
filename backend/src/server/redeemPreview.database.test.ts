@@ -12,6 +12,7 @@ import {
   AppDatabase,
   creationFactory,
   TransactionLink as DbTransactionLink,
+  DbUser,
   thankYouGreetingPicturesTable,
   User,
 } from 'database'
@@ -19,7 +20,7 @@ import { and, eq } from 'drizzle-orm'
 import { gql } from 'graphql-tag'
 import { CONFIG } from '@/config'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   createTransactionLink,
   deleteTransactionLink,
@@ -54,7 +55,7 @@ let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase
 let server: Server
 let port: number
-let bibi: User
+let bibi: DbUser
 
 const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
@@ -181,8 +182,8 @@ beforeAll(async () => {
   port = (server.address() as AddressInfo).port
   await cleanDB()
   // The admin has to exist for creationFactory.
-  await userFactory(testEnv, peterLustig)
-  bibi = await userFactory(testEnv, bibiBloxberg)
+  await userFactoryDrizzle(peterLustig)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
   await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 
@@ -256,7 +257,7 @@ describe('GET /api/redeem-preview/<code>, against a database', () => {
         'Bibi',
         'Bloxberg',
         'bibi@bloxberg.de',
-        bibi.gradidoID,
+        bibi.gradidoId,
       ]) {
         expect({ kept, written: document.includes(kept) }).toEqual({ kept, written: false })
       }

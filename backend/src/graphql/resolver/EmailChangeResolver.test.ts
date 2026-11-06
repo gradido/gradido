@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { CONFIG as CORE_CONFIG, sendEmailChangeNoticeEmail } from 'core'
-import { AppDatabase, User as DbUser, UserContact as DbUserContact } from 'database'
+import { AppDatabase, DbUser, UserContact as DbUserContact, User } from 'database'
 import { GraphQLError } from 'graphql'
 import { OptInType } from 'shared'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   adminReplaceUnconfirmedEmail,
   cancelEmailChange,
@@ -111,8 +111,8 @@ describe('EmailChangeResolver', () => {
   let bibi: DbUser
 
   beforeAll(async () => {
-    bibi = await userFactory(testEnv, bibiBloxberg)
-    await userFactory(testEnv, peterLustig)
+    bibi = await userFactoryDrizzle(bibiBloxberg)
+    await userFactoryDrizzle(peterLustig)
   })
 
   describe('unauthenticated', () => {
@@ -310,7 +310,7 @@ describe('EmailChangeResolver', () => {
           data: { confirmEmailChange: 'bibi-new@bloxberg.de' },
           errors: undefined,
         })
-        const user = await DbUser.findOneOrFail({
+        const user = await User.findOneOrFail({
           where: { id: bibi.id },
           relations: ['emailContact'],
         })
@@ -541,7 +541,7 @@ describe('EmailChangeResolver', () => {
   })
 
   describe('the admin side: status, and correcting a never-confirmed address', () => {
-    let unconfirmed: DbUser
+    let unconfirmed: User
 
     beforeAll(async () => {
       resetToken()
@@ -554,7 +554,7 @@ describe('EmailChangeResolver', () => {
           language: 'de',
         },
       })
-      unconfirmed = await DbUser.findOneOrFail({
+      unconfirmed = await User.findOneOrFail({
         where: { emailContact: { email: 'raeuber@hotzenplotz.de' } },
         relations: ['emailContact'],
       })
@@ -655,7 +655,7 @@ describe('EmailChangeResolver', () => {
 
     beforeAll(async () => {
       resetToken()
-      bob = await userFactory(testEnv, bobBaumeister)
+      bob = await userFactoryDrizzle(bobBaumeister)
       await loginAs('bob@baumeister.de')
       // Away from the registration address, and confirmed - this is what leaves an earlier
       // address behind.
@@ -742,7 +742,7 @@ describe('EmailChangeResolver', () => {
 
       const rows = await rowsOf(bob.id)
       expect(rows).toHaveLength(2)
-      const stored = await DbUser.findOneOrFail({
+      const stored = await User.findOneOrFail({
         where: { id: bob.id },
         relations: ['emailContact'],
       })
@@ -884,7 +884,7 @@ describe('EmailChangeResolver', () => {
       // unusable on purpose - Stephen Hawking carries a `deletedAt` and Garrick Ollivander
       // an unconfirmed address, and the first attempt at this test failed on exactly that.
       resetToken()
-      holder = await userFactory(testEnv, {
+      holder = await userFactoryDrizzle({
         alias: 'HolderO',
         email: 'holder@example.org',
         firstName: 'Holder',
@@ -923,7 +923,7 @@ describe('EmailChangeResolver', () => {
 
       // The address now belongs to an account, and bibi's claim on it is gone - not merely
       // hidden: a soft-deleted row would still block everybody, so it has to be really gone.
-      const owner = await DbUser.findOneOrFail({
+      const owner = await User.findOneOrFail({
         where: { id: (await DbUserContact.findOneOrFail({ where: { email: wanted } })).userId },
       })
       expect(owner.id).not.toBe(holder.id)
@@ -945,7 +945,7 @@ describe('EmailChangeResolver', () => {
    */
   describe('a request racing a confirm in another tab', () => {
     let racer: DbUser
-    let stale: DbUser
+    let stale: User
 
     const resolver = new EmailChangeResolver()
     const staleContext = (): Context => ({
@@ -957,7 +957,7 @@ describe('EmailChangeResolver', () => {
 
     beforeAll(async () => {
       resetToken()
-      racer = await userFactory(testEnv, {
+      racer = await userFactoryDrizzle({
         alias: 'RacerO',
         email: 'racer@example.org',
         firstName: 'Racer',
@@ -971,7 +971,7 @@ describe('EmailChangeResolver', () => {
         variables: { email: 'racer-second@example.org', password: PASSWORD },
       })
       // Tab 1's snapshot, taken while racer@example.org was still in force ...
-      stale = await DbUser.findOneOrFail({
+      stale = await User.findOneOrFail({
         where: { id: racer.id },
         relations: ['emailContact'],
       })

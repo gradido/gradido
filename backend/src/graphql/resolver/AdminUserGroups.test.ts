@@ -1,8 +1,8 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { searchAdminUsers } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -79,14 +79,14 @@ const setRole = async (
 }
 
 describe('searchAdminUsers — groups shown on the community info page', () => {
-  let scopedModerator: User
-  let aiModerator: User
+  let scopedModerator: DbUser
+  let aiModerator: DbUser
 
   beforeAll(async () => {
-    await userFactory(testEnv, { ...peterLustig, alias: 'peterl' }) // administrator
-    scopedModerator = await userFactory(testEnv, bibiBloxberg) // seed alias 'BBB'
-    aiModerator = await userFactory(testEnv, { ...garrickOllivander, alias: 'garrick' })
-    await userFactory(testEnv, { ...bobBaumeister, alias: 'bob' }) // a usual member, no role
+    await userFactoryDrizzle({ ...peterLustig, alias: 'peterl' }) // administrator
+    scopedModerator = await userFactoryDrizzle(bibiBloxberg) // seed alias 'BBB'
+    aiModerator = await userFactoryDrizzle({ ...garrickOllivander, alias: 'garrick' })
+    await userFactoryDrizzle({ ...bobBaumeister, alias: 'bob' }) // a usual member, no role
 
     await setRole(scopedModerator.id, RoleNames.MODERATOR, JSON.stringify(['firefighter']))
     await setRole(aiModerator.id, RoleNames.MODERATOR_AI, null)

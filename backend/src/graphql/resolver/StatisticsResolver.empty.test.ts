@@ -6,7 +6,7 @@
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { AppDatabase } from 'database'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { totalGradidoQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -22,7 +22,7 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   // One member, to ask: the totals are a right of every member. No booking at all.
-  await userFactory(testEnv, bibiBloxberg)
+  await userFactoryDrizzle(bibiBloxberg)
   await testEnv.mutate({
     mutation: login,
     variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },

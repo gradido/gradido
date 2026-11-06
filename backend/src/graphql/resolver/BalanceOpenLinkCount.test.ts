@@ -3,7 +3,7 @@
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { AppDatabase, creationFactory, nMonthsBefore, transactionLinkFactory } from 'database'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -31,9 +31,9 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  await userFactory(testEnv, bibiBloxberg)
+  await userFactoryDrizzle(bibiBloxberg)
   // the creation is only confirmed by a moderator, and the factory looks for this one
-  await userFactory(testEnv, peterLustig)
+  await userFactoryDrizzle(peterLustig)
   await creationFactory({
     email: 'bibi@bloxberg.de',
     amount: 1000,

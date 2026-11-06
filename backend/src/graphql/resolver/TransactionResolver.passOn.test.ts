@@ -6,17 +6,17 @@ import {
   AppDatabase,
   creationFactory,
   Transaction as DbTransaction,
+  DbUser,
   dbInsertTransactionPassOn,
   dbSelectReceivedTransferOfUser,
   TransactionTypeId,
   transactionPassOnsTable,
-  User,
 } from 'database'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login, sendCoins } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -75,9 +75,9 @@ const NOT_TRACED_MEMO = 'Weitergegeben, und die Spur bleibt aus'
 
 let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase
-let bibi: User
-let peter: User
-let raeuber: User
+let bibi: DbUser
+let peter: DbUser
+let raeuber: DbUser
 /** Räuber's thank-you to Bibi: her RECEIVE booking of it, and his SEND booking. */
 let thanks: { receive: number; send: number }
 
@@ -114,9 +114,9 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   // The admin has to exist for creationFactory.
-  peter = await userFactory(testEnv, peterLustig)
-  bibi = await userFactory(testEnv, bibiBloxberg)
-  raeuber = await userFactory(testEnv, raeuberHotzenplotz)
+  peter = await userFactoryDrizzle(peterLustig)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
+  raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
   await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
   await creationFactory(creations.find((c) => c.email === 'raeuber@hotzenplotz.de')!)
 

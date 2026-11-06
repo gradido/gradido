@@ -7,18 +7,18 @@ import {
   DBInsertFailed,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
+  DbUser,
   dbDeleteThankYouGreetingByLinkCode,
   dbInsertThankYouGreeting,
   dbSelectThankYouGreetingsByLinkCodes,
   EventType,
   thankYouGreetingsTable,
-  User,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { createTransactionLink, deleteTransactionLink, login } from '@/seeds/graphql/mutations'
 import {
   listTransactionLinks,
@@ -68,7 +68,7 @@ const removeLogger = getLogger(
 let mutate: ApolloServerTestClient['mutate']
 let query: ApolloServerTestClient['query']
 let db: AppDatabase
-let bibi: User
+let bibi: DbUser
 
 const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
@@ -108,8 +108,8 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   // The admin has to exist for creationFactory.
-  await userFactory(testEnv, peterLustig)
-  bibi = await userFactory(testEnv, bibiBloxberg)
+  await userFactoryDrizzle(peterLustig)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
   await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 

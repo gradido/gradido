@@ -6,7 +6,7 @@ import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
 import { JitsiProbeError } from '@/apis/jitsi/jitsiProbe.logic'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   checkChatVideoServersNow,
   createChatVideoServer,
@@ -62,7 +62,7 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await userFactory(testEnv, peterLustig) // administrator
+  await userFactoryDrizzle(peterLustig) // administrator
   resetToken()
   const { errors } = await mutate({
     mutation: login,

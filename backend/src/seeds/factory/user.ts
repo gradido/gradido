@@ -1,4 +1,11 @@
-import { dbUserUpdatePassword, SeedUserRows, User, userFactory as userFactoryDb } from 'database'
+import {
+  DbUser,
+  dbUserUpdatePassword,
+  SeedUserRows,
+  User,
+  userFactory as userFactoryDb,
+  userFactoryDrizzle as userFactoryDrizzleDb,
+} from 'database'
 import { PasswordEncryptionType } from 'shared'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
@@ -13,6 +20,17 @@ export const userFactory = async (_client: any, user: UserInterface): Promise<Us
     const passwordHash = await encryptPassword(dbUser, SEED_USER_PASSWORD)
     await dbUserUpdatePassword(dbUser.id, PasswordEncryptionType.GRADIDO_ID, passwordHash)
     dbUser.password = passwordHash
+  }
+  return dbUser
+}
+
+/** userFactory as the row with its address, without the entity. */
+export const userFactoryDrizzle = async (user: UserInterface): Promise<DbUser> => {
+  const dbUser = await userFactoryDrizzleDb(user, await writeHomeCommunityEntry())
+  if (user.emailChecked) {
+    const password = await encryptPassword(dbUser, SEED_USER_PASSWORD)
+    await dbUserUpdatePassword(dbUser.id, PasswordEncryptionType.GRADIDO_ID, password)
+    return { ...dbUser, password }
   }
   return dbUser
 }

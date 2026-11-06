@@ -12,7 +12,7 @@ import { GraphQLError } from 'graphql'
 import { Mutex } from 'redis-semaphore'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
@@ -104,9 +104,9 @@ describe('semaphore fullstack', () => {
     homeCom.url = 'homeCom url'
     homeCom = await DbCommunity.save(homeCom)
 
-    await userFactory(testEnv, bibiBloxberg)
-    await userFactory(testEnv, peterLustig)
-    await userFactory(testEnv, bobBaumeister)
+    await userFactoryDrizzle(bibiBloxberg)
+    await userFactoryDrizzle(peterLustig)
+    await userFactoryDrizzle(bobBaumeister)
     await creationFactory({
       email: 'bibi@bloxberg.de',
       amount: 1000,

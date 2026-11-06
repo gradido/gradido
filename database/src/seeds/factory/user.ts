@@ -14,7 +14,13 @@ import { ALIAS_ORIGIN_ADOPTED, Community, User } from '../../entity'
 import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { dbSelectHomeCommunity } from '../../queries/communities'
-import { dbInsertUser, dbInsertUsers, dbUpdateUserEmailId } from '../../queries/user'
+import {
+  DbUser,
+  dbInsertUser,
+  dbInsertUsers,
+  dbSelectUserWithContactById,
+  dbUpdateUserEmailId,
+} from '../../queries/user'
 import { dbInsertUserAlias, dbInsertUserAliases } from '../../queries/userAliases'
 import { dbInsertUserContact, dbInsertUserContacts } from '../../queries/userContacts'
 import { dbInsertUserRoles } from '../../queries/userRoles'
@@ -26,24 +32,25 @@ import {
 } from '../../schemas/drizzle.schema'
 import { UserInterface } from '../users/UserInterface'
 
+/** A member as userFactoryDrizzle hands them back: the row, with their address. */
+// TODO: remove unnecessary abstraction
+
 /**
  * One member with their address, their name and, if they have one, their role - written in one
  * transaction. The `users` and `user_contacts` rows point at each other, so the first is written
  * without its address and gets it afterwards.
  *
- * Returns the entity for the tests that still work on it, with the relations they read.
- *
  * @param homeCommunity if left out, the one in the database
  */
-export async function userFactory(
+export async function userFactoryDrizzle(
   user: UserInterface,
   homeCommunity?: Pick<Community, 'communityUuid'> | null,
-): Promise<User> {
+): Promise<DbUser> {
   const communityUuid = (homeCommunity ?? (await dbSelectHomeCommunity()))?.communityUuid
   if (!communityUuid) {
     throw new MissingHomeCommunityError()
   }
-  const id = await drizzleDb().transaction(async (tx) => {
+  return drizzleDb().transaction(async (tx) => {
     const userId = valueOrThrow(await dbInsertUser(userRowOf(user, communityUuid), tx))
     const contactId = valueOrThrow(await dbInsertUserContact(userContactRowOf(user, userId), tx))
     await dbUpdateUserEmailId(userId, contactId, tx)
@@ -52,8 +59,20 @@ export async function userFactory(
     if (role) {
       await dbInsertUserRoles([{ userId, role }], tx)
     }
-    return userId
+    const written = await dbSelectUserWithContactById(userId, tx)
+    if (!written) {
+      throw new Error(`user ${userId} was just written and cannot be read`)
+    }
+    return written
   })
+}
+
+/** userFactoryDrizzle for the tests that still work on the entity, with the relations they read. */
+export async function userFactory(
+  user: UserInterface,
+  homeCommunity?: Pick<Community, 'communityUuid'> | null,
+): Promise<User> {
+  const { id } = await userFactoryDrizzle(user, homeCommunity)
   return User.findOneOrFail({
     where: { id },
     // without a role the entity has no `userRole` at all: what findUserByIdentifier hands back

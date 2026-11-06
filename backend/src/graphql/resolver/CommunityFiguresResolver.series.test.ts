@@ -16,7 +16,7 @@ import {
   transactionReactionsTable,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { communityFigureSeriesQuery as communityFigureSeries } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -58,10 +58,10 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  const bibi = await userFactory(testEnv, bibiBloxberg)
-  const peter = await userFactory(testEnv, peterLustig)
-  const bob = await userFactory(testEnv, bobBaumeister)
-  const raeuber = await userFactory(testEnv, raeuberHotzenplotz)
+  const bibi = await userFactoryDrizzle(bibiBloxberg)
+  const peter = await userFactoryDrizzle(peterLustig)
+  const bob = await userFactoryDrizzle(bobBaumeister)
+  const raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
 
   // Bob registered on his own and Räuber at Peter's table in the week of the chosen day -- Bob
   // before the chosen day, in its week all the same --, Bibi on her own a week ago. Nobody the

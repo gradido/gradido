@@ -2,7 +2,7 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { AppDatabase, creationFactory } from 'database'
 import { addFieldsToSubscriber } from '@/apis/KlicktippController'
 import { creations } from '@/seeds/creation'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -33,8 +33,8 @@ afterAll(async () => {
 
 describe('klicktipp', () => {
   beforeAll(async () => {
-    await userFactory(testEnv, bibiBloxberg)
-    await userFactory(testEnv, peterLustig)
+    await userFactoryDrizzle(bibiBloxberg)
+    await userFactoryDrizzle(peterLustig)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
     await creationFactory(bibisCreation!)
     await mutate({
