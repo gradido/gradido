@@ -101,7 +101,7 @@
                   : reactionsUnderway.has(message.messageUuid)
               "
               :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
-              :thanks-members="inGroup ? thanksMembers : null"
+              :thanks-members="inGroup ? (thanksDue.get(message.id) ?? null) : null"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -177,6 +177,7 @@ import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
+import { useOwnTransfers } from '@/composables/useOwnTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useThanksNudges } from '@/composables/useThanksNudges'
@@ -222,7 +223,7 @@ import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
 import { memberAlias } from '@/utils/gradidoAddress'
-import { callNudgeState } from '@/utils/thanksNudge'
+import { callNudgeStart, callNudgeState, membersToThank } from '@/utils/thanksNudge'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -288,8 +289,9 @@ const props = defineProps({
  *
  * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
  * the send form with this person named, the way its own button "Gradido senden" does. In a
- * group's thread the user of the member chosen comes with it, and the send form names them. The
- * answer is remembered here already.
+ * group's thread the user of the member chosen comes with it, and the send form names them. With
+ * one person the answer is remembered here already; in a group nothing is (E-043 B): the member's
+ * own bookings tell whom they thanked.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -591,8 +593,11 @@ watch(newestReceivedShown, (newest) => {
  *
  * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
  * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
- * to the send form with them. Nothing of a transfer stands in a group (E-050 F6), so only the
- * answer ends the line there.
+ * to the send form with them. Whom the member thanked since the call began is read off their own
+ * bookings (E-043 B, Bernd 05.11.2026): that member is no longer among them, and once all are,
+ * the line goes. The tap itself remembers nothing -- a thank-you begun and not sent leaves the
+ * member standing, and what was booked counts on every device. "Nicht jetzt" ends the line, as
+ * with one person.
  */
 const thanksOffered = inGroup || Boolean(props.member?.gradidoID && props.member?.communityUuid)
 const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
@@ -617,6 +622,15 @@ const thanksMembers = computed(() =>
       user,
     })),
 )
+
+/**
+ * The member's own transfers, in a group's thread only (useOwnTransfers): what tells whom they
+ * thanked since a call began. ⛔ Whatever the switch for transfers in the conversation says
+ * (`store.transfersInChat`): nothing of a transfer is shown here, a name is only left out -- and
+ * with the switch off a thank-you would otherwise never end the line, now that the tap remembers
+ * nothing. The thread of two keeps its own (useChatTransfers).
+ */
+const ownTransfers = inGroup ? useOwnTransfers(apolloClient) : null
 
 /**
  * The time the line goes by: a quiet clock of the thread's own, once a minute while the thread is
@@ -659,36 +673,90 @@ const ownInvitations = computed(() => {
 })
 
 /**
- * The ids of the messages the line stands under now. The transfers between the two count once
- * their first page has answered: before that, a thank-you on its way into the thread is not known,
- * and the line would stand for a moment over it. Nor where that page failed: its empty list is not
- * "no thank-you since" (coderabbit, #4210).
+ * In a group's thread, the beginning of the earliest call of the member's own whose line is due
+ * by its time now (callNudgeStart) -- null where none is, and before the window has the members.
+ * The member's own transfers are asked back to it once the first line is due (W7), and once for
+ * the opening of the window: not on opening for nothing, not on the chat's beat. The minute clock
+ * above brings it where a call turns half an hour old while the member reads; "Zurück" from the
+ * send form opens the window anew, and it asks anew.
  */
-const thanksDue = computed(() => {
-  const due = new Set()
-  // In a group there is nobody to choose before the window has the members.
-  if (inGroup && !thanksMembers.value.length) return due
-  const transfersKnown = transfersSettled.value && !transfersFailed.value ? transfers.value : null
+const groupCallsDueSince = computed(() => {
+  if (!inGroup || !thanksMembers.value.length) return null
+  let earliest = null
   for (const { message, invitation } of ownInvitations.value.values()) {
-    const line = callNudgeState({
+    const start = callNudgeStart({
       invitation,
       message,
       now: now.value,
-      transfers: inGroup ? null : transfersKnown,
-      group: inGroup,
       seen: thanksSeen('call', message.messageUuid),
     })
-    if (line === 'show') due.add(message.id)
+    if (start !== null && (earliest === null || start < earliest)) earliest = start
+  }
+  return earliest
+})
+if (ownTransfers) {
+  watch(
+    groupCallsDueSince,
+    (since) => {
+      if (since !== null) ownTransfers.ask(since)
+    },
+    { immediate: true },
+  )
+}
+
+/**
+ * The messages the line stands under now, by id -- each with whom the member may still thank in
+ * a group's thread (membersToThank: the bubble's choice), null in the thread of two. The
+ * transfers count once they are known: with one person once their first page has answered, in a
+ * group once every page of the member's own that was asked for is in. Before that, a thank-you
+ * on its way is not known, and the line would stand for a moment over it. Nor where they failed:
+ * an empty list is not "no thank-you since" (coderabbit, #4210).
+ */
+const thanksDue = computed(() => {
+  const due = new Map()
+  // In a group there is nobody to choose before the window has the members.
+  if (inGroup && !thanksMembers.value.length) return due
+  let transfersKnown = null
+  if (inGroup) transfersKnown = ownTransfers.transfers.value
+  else if (transfersSettled.value && !transfersFailed.value) transfersKnown = transfers.value
+  for (const { message, invitation } of ownInvitations.value.values()) {
+    const occasion = {
+      invitation,
+      message,
+      now: now.value,
+      seen: thanksSeen('call', message.messageUuid),
+    }
+    const line = callNudgeState({
+      ...occasion,
+      transfers: transfersKnown,
+      group: inGroup,
+      members: thanksMembers.value,
+      ownCommunityUuid: store.communityUuid,
+    })
+    if (line !== 'show') continue
+    const choices = inGroup
+      ? membersToThank({
+          members: thanksMembers.value,
+          transfers: transfersKnown,
+          start: callNudgeStart(occasion),
+          ownCommunityUuid: store.communityUuid,
+        })
+      : null
+    due.set(message.id, choices)
   }
   return due
 })
 
 /**
- * "Danke sagen", or a member chosen in a group's thread: answered on this device, and to the
- * window, which opens the send form -- with the member chosen, in a group.
+ * "Danke sagen", or a member chosen in a group's thread: to the window, which opens the send form
+ * -- with the member chosen, in a group. With one person the answer is remembered on this device:
+ * where the member switched the transfers in the conversation off, that thread holds none, and
+ * the line would not end after a thank-you. In a group nothing is remembered (E-043 B): what the
+ * member then books ends it for that member, and a send form left without sending leaves them
+ * standing.
  */
 const thankAfterCall = (message, user) => {
-  markThanksSeen('call', message.messageUuid)
+  if (!inGroup) markThanksSeen('call', message.messageUuid)
   if (user) emit('thank', user)
   else emit('thank')
 }
