@@ -4,8 +4,9 @@ import { useWalletStore } from '@/store/useWalletStore'
 
 /**
  * Which thank-you suggestions (W2, utils/thanksNudge) the member has answered on THIS device --
- * "Danke sagen" or "Nicht jetzt" under a video call of their own (`call`, by the message's uuid),
- * "Jemandem danken" or "Nicht jetzt" in a thank-you received (`pass-on`, by the booking's id).
+ * "Nicht jetzt" under a video call of their own (`call`, by the message's uuid; "Danke sagen" only
+ * where the thread holds no transfers, E-043 B), "Jemandem danken" or "Nicht jetzt" in a
+ * thank-you received (`pass-on`, by the booking's id).
  * Once answered, the line does not come back for that occasion. And which thank-yous received the
  * member put aside in the tile on the overview with "Später" (W3, `arrival`, by the booking's id):
  * the tile shows them no more, while the row in the booking list stays as it is.

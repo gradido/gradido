@@ -31,6 +31,15 @@ vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 /** Where the window leads: the send form with a member chosen under a call (W2). */
 const routerPush = vi.hoisted(() => vi.fn())
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: routerPush }) }))
+// The way back the window hands to the send form (E-043; useSendReturn has a spec of its own).
+const sendReturn = vi.hoisted(() => ({
+  put: vi.fn((handover) => ({ ...handover })),
+  drop: vi.fn(),
+}))
+vi.mock('@/composables/useSendReturn', () => ({
+  useSendReturn: () => sendReturn,
+  clearSendReturn: vi.fn(),
+}))
 
 const { toastSuccess, toastError } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
@@ -699,7 +708,9 @@ describe('ChatGroupWindow', () => {
     const thread = () => wrapper.findComponent({ name: 'ChatThread' })
 
     beforeEach(() => {
-      routerPush.mockClear()
+      routerPush.mockReset()
+      sendReturn.put.mockClear()
+      sendReturn.drop.mockClear()
     })
 
     it('hands the thread the members it holds', async () => {
@@ -732,7 +743,43 @@ describe('ChatGroupWindow', () => {
       await thread().vm.$emit('thank', { ...MEMBERS[2].user, communityUuid: null })
 
       expect(routerPush).not.toHaveBeenCalled()
+      expect(sendReturn.put).not.toHaveBeenCalled()
       expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    /**
+     * E-043: the form's "Zurück" leads back into this group, and from there the next member can be
+     * thanked. The window hands its place over before it opens the form -- the address the group's
+     * mails have -- and takes it back where the form is not reached.
+     */
+    it('hands the send form its way back into this group, before it opens it', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledTimes(1)
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/home-uuid/carla-id',
+        back: { path: '/contacts', query: { group: 'cafe-uuid' } },
+      })
+      expect(sendReturn.put.mock.invocationCallOrder[0]).toBeLessThan(
+        routerPush.mock.invocationCallOrder[0],
+      )
+      expect(sendReturn.drop).not.toHaveBeenCalled()
+    })
+
+    it('takes the way back again where the form is not reached', async () => {
+      routerPush.mockResolvedValueOnce({ type: 16 })
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+      await flushPromises()
+
+      expect(sendReturn.drop).toHaveBeenCalledTimes(1)
+      expect(sendReturn.drop).toHaveBeenCalledWith(sendReturn.put.mock.results[0].value)
     })
   })
 

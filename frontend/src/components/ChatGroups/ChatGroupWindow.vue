@@ -248,6 +248,7 @@ import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAv
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
@@ -372,13 +373,30 @@ const router = useRouter()
  * the send form with them named, the window closed -- the road the contact window's "Gradido
  * senden" takes (ContactWindow `toSend`), a member of another community included: the send form
  * is what knows the federation branch.
+ *
+ * The form's "Zurück" leads back into this group (E-043): the window hands its place over
+ * (useSendReturn) -- the address the group's mails have (E-049), which opens the group on the
+ * contacts page, and from there the next member can be thanked. Where the form is not reached, it
+ * is taken back.
  */
-const toSendMember = (user) => {
+const sendReturn = useSendReturn()
+const toSendMember = async (user) => {
   const community = user?.communityUuid
   const person = user?.gradidoID
   if (!community || !person) return
   emit('update:modelValue', false)
-  router.push({ path: `/send/${community}/${person}`, query: { art: SEND_TYPES.send } })
+  const to = `/send/${community}/${person}`
+  const handed = sendReturn.put({
+    to,
+    back: { path: '/contacts', query: { group: props.group.groupUuid } },
+  })
+  let reached = false
+  try {
+    const failure = await router.push({ path: to, query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) sendReturn.drop(handed)
+  }
 }
 
 /** The member left the group: the window closes, and the page's list lets the group go. */

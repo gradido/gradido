@@ -10,6 +10,7 @@
           @send-email="sendEmail"
           @set-transaction="setTransaction"
           @set-send-type="handleSendTypeChange"
+          @back="leave"
         ></transaction-form>
       </template>
       <template #transactionConfirmationSend>
@@ -32,10 +33,14 @@
           @on-back="onBack"
         ></transaction-confirmation-link>
       </template>
+      <!-- After a transfer and after a letter that went out: "Zurück", to where the member came
+           from (E-043), as the form's own button. The link, the errors and the check view keep
+           their way back into the form. -->
       <template #transactionResultSendSuccess>
         <success-message
           :message="$t('form.send_transaction_success')"
-          @on-back="onBack"
+          :button-text="$t('back')"
+          @on-back="leave"
         ></success-message>
       </template>
       <template #transactionResultSendError>
@@ -53,8 +58,8 @@
           :can-choose-community="canChooseCommunity"
           :busy="loading"
           @send-by-email="sendByEmail"
-          @choose-community="onBack"
-          @change-recipient="onBack"
+          @choose-community="changeRecipient"
+          @change-recipient="changeRecipient"
         ></recipient-not-found>
       </template>
       <template #sendByEmailReady>
@@ -76,7 +81,8 @@
       <template #sendEmailResultSuccess>
         <success-message
           :message="$t('form.send_email_success')"
-          @on-back="onBack"
+          :button-text="$t('back')"
+          @on-back="leave"
         ></success-message>
       </template>
       <template #sendEmailResultError>
@@ -92,7 +98,7 @@
 
 <script setup>
 import { useI18n } from 'vue-i18n'
-import { computed, ref, reactive, shallowRef } from 'vue'
+import { computed, ref, reactive, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
 import GddSend, { TRANSACTION_STEPS } from '@/components/GddSend'
@@ -116,7 +122,9 @@ import { reachableCommunities } from '@/graphql/communities.graphql'
 import { user as userQuery } from '@/graphql/queries'
 import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { usePassOnDraft } from '@/composables/usePassOnDraft'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { useAppToast } from '@/composables/useToast'
+import { backOrOverviewUnless } from '@/utils/backOrOverview'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { isRecipientNotFoundError, isUserNotFoundAnswer } from '@/utils/recipientNotFound'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -161,8 +169,9 @@ const transactionData = reactive({ ...EMPTY_TRANSACTION_DATA })
  * ⛔ In this page's memory only: never the store (mirrored into localStorage), never the
  * device's storage, never Apollo's cache.
  *
- * The form is taken down between the steps: "Zurück" finds the picture here. "Zurücksetzen"
- * empties it, and so does a transfer that was sent; one that failed leaves it.
+ * The form is taken down between the steps: the check view's "Zurück" finds the picture here. A
+ * transfer that was sent lets it go, one that failed leaves it; the form's own "Zurück" leaves the
+ * page, and the picture with it.
  */
 const picture = shallowRef(null)
 
@@ -183,13 +192,64 @@ const pictureToSend = computed(() =>
  * it is shown.
  *
  * Taken once, when the page is made, and kept HERE, beside `transactionData` as the picture is:
- * the form is taken down between the steps, and "Zurück" finds it here. "Zurücksetzen" leaves it,
- * a transfer that was sent lets it go, one that failed keeps it. Named with a transfer to a member
+ * the form is taken down between the steps, and the check view's "Zurück" finds it here. A
+ * transfer that was sent lets it go, one that failed keeps it. Named with a transfer to a member
  * of this community only -- a link, a letter and a member of another community go without it.
  *
  * ⛔ Never in the store, the device's storage or Apollo's cache (usePassOnDraft says why).
  */
 const passOnOf = ref(usePassOnDraft().take())
+
+/**
+ * Where "Zurück" leads (E-043): the place one of the three windows named when it opened this form
+ * (useSendReturn) -- the conversation, the group, the map -- or null, and then the browser's
+ * history decides (`leave`).
+ *
+ * Taken when the page is made, and again at every change of its address: ⛔ the form beside /send
+ * is patched, not rebuilt, when a contact is tapped in the column (TransactionForm says so), and
+ * setup does not run again. A way back handed over for the path the page stands on now takes the
+ * place of the one held. A new path without one lets it go -- another recipient, with no window
+ * that named a place. A change of the query alone (`onBack` takes `?art` out of the address) is
+ * the same form for the same recipient, and the way back stays.
+ *
+ * ⛔ And a new path brings the form back (`showFormForAddress`): the address names another
+ * recipient now, or the empty form, and the step the page stood on was the one before's -- the
+ * success of a transfer to Sarah under Carla's address, whose "Zurück" led into Carla's
+ * conversation without her form ever shown.
+ *
+ * Only on the page's own addresses: on the way out the route names the next page already.
+ */
+const sendReturn = useSendReturn()
+const returnTo = shallowRef(sendReturn.take(route.path))
+let returnToPath = route.path
+watch(
+  () => route.fullPath,
+  () => {
+    if (route.name !== 'Send') return
+    const anotherPath = route.path !== returnToPath
+    const handed = sendReturn.take(route.path)
+    if (handed) {
+      returnTo.value = handed
+    } else if (anotherPath) {
+      returnTo.value = null
+    }
+    returnToPath = route.path
+    if (anotherPath) showFormForAddress()
+  },
+)
+
+/**
+ * "Zurück" from the form, and after a transfer or a letter that went out: out of the page, to the
+ * place the window that opened it named, or else back by the browser's history -- never through
+ * the form for the recipient before (backOrOverviewUnless).
+ */
+function leave() {
+  if (returnTo.value) {
+    router.push(returnTo.value)
+  } else {
+    backOrOverviewUnless(router, 'Send')
+  }
+}
 
 /**
  * The picture as the mutation takes it: `{ motif }`, or `{ picture }` -- the photo in the
@@ -289,8 +349,8 @@ function showRecipientNotFound() {
  * Asked anew at every press and kept nowhere (`no-cache`): an address without an account a minute
  * ago may have one now, and what was typed has no place in Apollo's cache.
  *
- * ⛔ What was pressed goes over to the page only with the answer. Where an error leaves the form
- * standing, `transactionData` is still what its "Zurücksetzen" goes back to.
+ * ⛔ What was pressed goes over to the page only with the answer: where an error leaves the form
+ * standing, `transactionData` holds nothing of a press that did not go through.
  *
  * ⛔ The answer counts on the address it was asked on: a contact tapped in the meantime names
  * another recipient, and this answer must not take that one's form away. A line that gives no answer
@@ -407,7 +467,6 @@ async function sendEmail(data) {
     }
   } finally {
     loading.value = false
-    // await router.push({ path: '/send' })
   }
 }
 
@@ -504,8 +563,10 @@ async function sendTransaction() {
       toastError(err.message)
     }
   } finally {
+    // ⛔ The address stays as it is (E-043): a `push('/send')` here threw the recipient out of it,
+    // and "Zurück" after the success needs the way back and the browser's history untouched. A step
+    // that needs the recipient out of it takes it out itself (`changeRecipient`).
     loading.value = false
-    await router.push({ path: '/send' })
   }
 }
 
@@ -582,6 +643,38 @@ async function sendByEmail() {
   } finally {
     loading.value = false
   }
+}
+
+/**
+ * The form, for what the address names now (E-043). What the page held of a letter goes, as at
+ * `onBack`. Where the address names a recipient, the one held goes as well: the form takes theirs
+ * from the address (TransactionForm), and until that answer has come its field would still hold
+ * the other one. Without a recipient in the address what was entered stays, as the form keeps it
+ * where the menu's "Senden" leaves a recipient named.
+ *
+ * ⛔ Not while a transfer, a link or a letter is on its way (`loading`): its answer says what became
+ * of it, and that step is the member's to see.
+ */
+function showFormForAddress() {
+  if (loading.value) return
+  if (route.params.userIdentifier) transactionData.identifier = ''
+  emailAddress.value = ''
+  madeForEmail.value = null
+  currentTransactionStep.value = TRANSACTION_STEPS.transactionForm
+}
+
+/**
+ * "Gemeinschaft wählen" and "Eingabe ändern", where nobody had that account: into the form, to
+ * change what reached nobody. On /send/<community>/<user> the address names the recipient, and the
+ * form keeps a recipient named there fixed -- so the recipient leaves the address first, as the
+ * page did after every transfer before E-043. What was entered stays in the fields. The way back
+ * goes with the address: from the free form "Zurück" follows the browser's history.
+ */
+async function changeRecipient() {
+  if (route.params.userIdentifier) {
+    await router.replace({ path: '/send', query: route.query, hash: route.hash })
+  }
+  await onBack()
 }
 
 async function onBack() {

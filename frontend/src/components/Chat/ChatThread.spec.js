@@ -6592,7 +6592,27 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
       expect(lines()).toEqual([false, false])
     })
 
-    it('"Danke sagen": answered on this device, and the window is told', async () => {
+    // E-043 B, with one person too (Bernd, 06.11.2026: "Ja, mitnehmen"): the thread holds the
+    // transfers, so what is booked ends the line -- a send form left without sending leaves it.
+    it('"Danke sagen": the window is told, and nothing is remembered -- the line stays', async () => {
+      await mountAt(45 * MINUTE)
+
+      await press('yes')
+
+      expect(wrapper.emitted('thank')).toHaveLength(1)
+      expect(answered()).toBeNull()
+      expect(lines()).toEqual([false, true])
+
+      // "Zurück" from the send form without sending: the conversation opened again, the line too.
+      wrapper.unmount()
+      await mountAt(50 * MINUTE)
+      expect(lines()).toEqual([false, true])
+    })
+
+    // Where the member switched the transfers in the conversation off, the thread holds none: the
+    // tap is all there is to go by, and without it the line would not end after a thank-you.
+    it('"Danke sagen" with the transfers switched off: answered on this device, the line goes', async () => {
+      storeState.transfersInChat = false
       await mountAt(45 * MINUTE)
 
       await press('yes')
@@ -6600,6 +6620,7 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
       expect(wrapper.emitted('thank')).toHaveLength(1)
       expect(answered()).toBe('1')
       expect(lines()).toEqual([false, false])
+      expect(bookingsAsked).not.toHaveBeenCalled()
     })
   })
 

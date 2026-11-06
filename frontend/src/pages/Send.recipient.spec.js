@@ -389,7 +389,7 @@ describe('Send, the recipient nobody has', () => {
       expect(form().props('checking')).toBe(false)
     })
 
-    // The form stays, and what the page hands it is what its "Zurücksetzen" goes back to.
+    // The form stays, and the page holds nothing of a press that did not go through.
     it('hands the form nothing of what was pressed, where the form stays', async () => {
       apollo.query.mockRejectedValue(NETWORK_DOWN)
       await press()

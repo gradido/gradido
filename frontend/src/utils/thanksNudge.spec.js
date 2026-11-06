@@ -5,7 +5,9 @@ import {
   THANKS_NUDGE_AFTER_CALL_MS,
   THANKS_NUDGE_HOLDS_MS,
   arrivalItems,
+  callNudgeStart,
   callNudgeState,
+  membersToThank,
   passOnNudgeState,
 } from './thanksNudge'
 
@@ -41,6 +43,34 @@ const call = (extra = {}) =>
   })
 
 const transfer = (typeId, balanceDate) => ({ typeId, balanceDate })
+
+/** The member's own community, for a booking that names none (KF-004). */
+const HOME = 'home-uuid'
+const pairOf = (gradidoID) => ({ communityUuid: HOME, gradidoID })
+const ANNA = pairOf('anna-id')
+const CARLA = pairOf('carla-id')
+const EMMA = pairOf('emma-id')
+
+/** The members of a group as the thread makes them for the choice: `{ key, label, avatar, user }`. */
+const memberEntry = (pair, label) => ({
+  key: `${pair.communityUuid}/${pair.gradidoID}`,
+  label,
+  avatar: { initials: label.slice(0, 2) },
+  user: { ...pair, alias: label },
+})
+const GROUP_MEMBERS = [
+  memberEntry(ANNA, 'Anna-Sonne'),
+  memberEntry(CARLA, 'Carla-Sonne'),
+  memberEntry(EMMA, 'Oma-Emma'),
+]
+
+/** One of the member's own bookings, as the booking list names its other side. */
+const sentTo = (person, balanceDate) => ({ typeId: 'SEND', balanceDate, linkedUser: { ...person } })
+const receivedFrom = (person, balanceDate) => ({
+  typeId: 'RECEIVE',
+  balanceDate,
+  linkedUser: { ...person },
+})
 
 describe('the windows', () => {
   it('are half an hour and seven days', () => {
@@ -172,15 +202,25 @@ describe('the line after a video call', () => {
     })
   })
 
-  // A group's thread holds no transfers (E-050 F6), and whom to thank is the member's choice
-  // among the members (Bernd, 28.10.2026): only the answer ends the line there.
+  // Whom to thank is the member's choice among the members (Bernd, 28.10.2026), and what was
+  // thanked is what was booked, as with one person (E-043 B, 05.11.2026): a member thanked since
+  // the call began is not offered again, and once all are thanked, the line goes.
   describe('in a group', () => {
-    it('stands without the transfers, which a group’s thread does not hold', () => {
-      expect(call({ group: true, transfers: null })).toBe('show')
+    const inGroup = { group: true, members: GROUP_MEMBERS, ownCommunityUuid: HOME, transfers: [] }
+    const later = new Date(began + 10 * MINUTE).toISOString()
+
+    it('stands where nobody in it was thanked since the call began', () => {
+      expect(call(inGroup)).toBe('show')
+    })
+
+    // As with one person: before the member's own transfers are in, a thank-you on its way would
+    // stand under a line for a moment -- and where they could not be asked, none is known.
+    it('not while the member’s own transfers are not known', () => {
+      expect(call({ ...inGroup, transfers: null })).toBe('hidden')
     })
 
     it('keeps the half hour and the seven days, to the millisecond', () => {
-      const at = (now) => call({ group: true, transfers: null, now })
+      const at = (now) => call({ ...inGroup, now })
       expect(at(began + THANKS_NUDGE_AFTER_CALL_MS - 1)).toBe('hidden')
       expect(at(began + THANKS_NUDGE_AFTER_CALL_MS)).toBe('show')
       expect(at(began + THANKS_NUDGE_HOLDS_MS)).toBe('show')
@@ -190,23 +230,163 @@ describe('the line after a video call', () => {
     // A call planned in the group, the invitation duplicated from last week's.
     it('counts from the planned beginning there too', () => {
       const start = began + 7 * DAY
-      const occasion = { group: true, transfers: null, invitation: planned(start) }
+      const occasion = { ...inGroup, invitation: planned(start) }
       expect(call({ ...occasion, now: start + 29 * MINUTE })).toBe('hidden')
       expect(call({ ...occasion, now: start + 30 * MINUTE })).toBe('show')
+      // A thank-you to everybody between writing the invitation and the call is none for the call.
+      const between = new Date(began + 60 * MINUTE).toISOString()
+      const all = [ANNA, CARLA, EMMA].map((person) => sentTo(person, between))
+      expect(call({ ...occasion, transfers: all, now: start + 30 * MINUTE })).toBe('show')
     })
 
-    it('is not ended by a transfer: only the answer ends it', () => {
-      const later = new Date(began + 10 * MINUTE).toISOString()
-      expect(call({ group: true, transfers: [transfer('SEND', later)] })).toBe('show')
-      expect(call({ group: true, transfers: null, seen: true })).toBe('hidden')
+    it('ends for a member thanked since the call began, stays for the others, and ends when all are thanked', () => {
+      expect(call({ ...inGroup, transfers: [sentTo(CARLA, later)] })).toBe('show')
+      expect(call({ ...inGroup, transfers: [sentTo(CARLA, later), sentTo(ANNA, later)] })).toBe(
+        'show',
+      )
+      const all = [ANNA, CARLA, EMMA].map((person) => sentTo(person, later))
+      expect(call({ ...inGroup, transfers: all })).toBe('hidden')
+      // To the millisecond of the beginning, as with one person.
+      const atBeginning = [ANNA, CARLA, EMMA].map((person) => sentTo(person, BEGAN))
+      expect(call({ ...inGroup, transfers: atBeginning })).toBe('hidden')
+    })
+
+    it('stands on where what was booked is no thank-you of the member’s for the call', () => {
+      const before = new Date(began - 1).toISOString()
+      const sentBefore = [ANNA, CARLA, EMMA].map((person) => sentTo(person, before))
+      expect(call({ ...inGroup, transfers: sentBefore })).toBe('show')
+      const cameIn = [ANNA, CARLA, EMMA].map((person) => receivedFrom(person, later))
+      expect(call({ ...inGroup, transfers: cameIn })).toBe('show')
+    })
+
+    // Nobody to choose: before the window has the members, or where the member is alone in it.
+    it('not where there is nobody to choose', () => {
+      expect(call({ ...inGroup, members: [] })).toBe('hidden')
+      expect(call({ ...inGroup, members: undefined })).toBe('hidden')
+    })
+
+    it('not where it was answered on this device', () => {
+      expect(call({ ...inGroup, seen: true })).toBe('hidden')
     })
 
     it('not under somebody else’s invitation, a forwarded copy, or one that did not arrive', () => {
-      const inGroup = { group: true, transfers: null }
       expect(call({ ...inGroup, message: ownMessage({ mine: false }) })).toBe('hidden')
       expect(call({ ...inGroup, message: ownMessage({ forwarded: true }) })).toBe('hidden')
       expect(call({ ...inGroup, message: ownMessage({ deliveryState: 'FAILED' }) })).toBe('hidden')
     })
+  })
+})
+
+describe('the beginning a line after a call counts from', () => {
+  const start = (extra = {}) =>
+    callNudgeStart({
+      invitation: callNow,
+      message: ownMessage(),
+      now: began + THANKS_NUDGE_AFTER_CALL_MS,
+      seen: false,
+      ...extra,
+    })
+
+  it('is when the invitation was written, for a call now', () => {
+    expect(start()).toBe(began)
+  })
+
+  it('is the planned time, for a call planned', () => {
+    const planned3 = began + 3 * DAY
+    expect(start({ invitation: planned(planned3), now: planned3 + 45 * MINUTE })).toBe(planned3)
+  })
+
+  // The thread asks the transfers only where a line is due by its time: nothing before.
+  it('is none where the line is not due by its time, or not the member’s to have', () => {
+    expect(start({ now: began + THANKS_NUDGE_AFTER_CALL_MS - 1 })).toBeNull()
+    expect(start({ now: began + THANKS_NUDGE_HOLDS_MS + 1 })).toBeNull()
+    expect(start({ message: ownMessage({ mine: false }) })).toBeNull()
+    expect(start({ message: ownMessage({ forwarded: true }) })).toBeNull()
+    expect(start({ message: ownMessage({ deliveryState: 'FAILED' }) })).toBeNull()
+    expect(start({ message: ownMessage({ createdAt: 'not a time' }) })).toBeNull()
+    expect(start({ invitation: null })).toBeNull()
+    expect(start({ seen: true })).toBeNull()
+  })
+})
+
+describe('whom a line after a call in a group leaves to thank', () => {
+  const later = new Date(began + 10 * MINUTE).toISOString()
+  const left = (transfers, extra = {}) =>
+    membersToThank({
+      members: GROUP_MEMBERS,
+      transfers,
+      start: began,
+      ownCommunityUuid: HOME,
+      ...extra,
+    }).map((member) => member.label)
+
+  it('everybody, where nothing was booked since the call began', () => {
+    expect(left([])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  // W8: the thanked are not marked, they are simply not there -- and the others keep their places.
+  it('all but those the member sent a transfer to since the call began, in their order', () => {
+    expect(left([sentTo(CARLA, later)])).toEqual(['Anna-Sonne', 'Oma-Emma'])
+    expect(left([sentTo(ANNA, later), sentTo(EMMA, later)])).toEqual(['Carla-Sonne'])
+    expect(left([sentTo(ANNA, later), sentTo(CARLA, later), sentTo(EMMA, later)])).toEqual([])
+  })
+
+  it('counts a transfer from the very millisecond the call began', () => {
+    expect(left([sentTo(CARLA, BEGAN)])).toEqual(['Anna-Sonne', 'Oma-Emma'])
+    expect(left([sentTo(CARLA, new Date(began - 1).toISOString())])).toEqual([
+      'Anna-Sonne',
+      'Carla-Sonne',
+      'Oma-Emma',
+    ])
+  })
+
+  // What came in is the other one's thank-you, not the member's.
+  it('not what came in from a member', () => {
+    expect(left([receivedFrom(CARLA, later)])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  it('not a transfer to somebody outside the group', () => {
+    const lena = { communityUuid: HOME, gradidoID: 'lena-id' }
+    expect(left([sentTo(lena, later)])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  // The same person in another community is another person (KF-004).
+  it('not a transfer to the same Gradido ID in another community', () => {
+    const elsewhere = { ...CARLA, communityUuid: 'other-uuid' }
+    expect(left([sentTo(elsewhere, later)])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  // A booking that names nobody on the other side thanked nobody here.
+  it('not a booking that names nobody', () => {
+    const nobody = { typeId: 'SEND', balanceDate: later, linkedUser: null }
+    const noId = { typeId: 'SEND', balanceDate: later, linkedUser: { communityUuid: HOME } }
+    expect(left([nobody, noId])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  it('not a booking whose time cannot be read', () => {
+    expect(left([sentTo(CARLA, 'not a time')])).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
+  })
+
+  // The server compares uuids without regard to case, and so does the chat (chatMemberKey).
+  it('without regard to case in the pair', () => {
+    const shouted = { communityUuid: 'HOME-UUID', gradidoID: 'CARLA-ID' }
+    expect(left([sentTo(shouted, later)])).toEqual(['Anna-Sonne', 'Oma-Emma'])
+  })
+
+  // KF-004: a booking with a member of this community may name no community -- it is this one.
+  it('reads a booking that names no community as one in the member’s own', () => {
+    const plain = { communityUuid: null, gradidoID: 'carla-id' }
+    expect(left([sentTo(plain, later)])).toEqual(['Anna-Sonne', 'Oma-Emma'])
+    // A member of another community is not met by a booking without one.
+    const emma = GROUP_MEMBERS[2]
+    const visitor = { ...emma, user: { ...emma.user, communityUuid: 'other-uuid' } }
+    const members = [GROUP_MEMBERS[0], visitor]
+    const plainEmma = { communityUuid: null, gradidoID: 'emma-id' }
+    expect(left([sentTo(plainEmma, later)], { members })).toEqual(['Anna-Sonne', 'Oma-Emma'])
+  })
+
+  it('everybody, where the transfers are not known', () => {
+    expect(left(null)).toEqual(['Anna-Sonne', 'Carla-Sonne', 'Oma-Emma'])
   })
 })
 

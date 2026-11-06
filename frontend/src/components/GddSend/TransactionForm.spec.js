@@ -378,8 +378,28 @@ describe('TransactionForm', () => {
       expect(wrapper.find('.text-danger').text()).toBe('form.no_gdd_available')
     })
 
-    it('has no reset button and no submit button', () => {
-      expect(wrapper.find('.test-buttons').exists()).toBe(false)
+    it('has no submit button', () => {
+      expect(wrapper.find('button[type="submit"]').exists()).toBe(false)
+    })
+
+    // ⛔ Whoever came from a conversation with an empty account must not stand there without a way
+    // out: the sentence, and under it "Zurück" alone (E-043).
+    it('has "Zurück" alone under the sentence', () => {
+      const buttons = wrapper.find('.test-buttons').findAll('button')
+
+      expect(buttons).toHaveLength(1)
+      expect(buttons[0].text()).toBe('back')
+      expect(buttons[0].attributes('type')).toBe('button')
+      const sentence = wrapper.find('.text-danger').element
+      expect(
+        sentence.compareDocumentPosition(buttons[0].element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('leaves the form from there as well', async () => {
+      await wrapper.find('[data-test="send-form-back"]').trigger('click')
+
+      expect(wrapper.emitted('back')).toHaveLength(1)
     })
   })
 
@@ -440,31 +460,45 @@ describe('TransactionForm', () => {
         })
       })
 
-      describe('cancel button', () => {
-        it('has a cancel button', () => {
-          expect(wrapper.find('button[type="reset"]').exists()).toBe(true)
+      /**
+       * "Zurück" at the bottom left (E-043): it leaves the page, to where the member came from --
+       * the page says where. "Zurücksetzen" stood here and emptied the fields, the recipient in
+       * the address with them, and left the member on an empty form.
+       */
+      describe('"Zurück"', () => {
+        const back = () => wrapper.find('[data-test="send-form-back"]')
+
+        it('is a plain button, and nothing resets the form any more', () => {
+          expect(back().attributes('type')).toBe('button')
+          expect(back().text()).toBe('back')
+          expect(back().classes()).toContain('btn-secondary')
+          expect(wrapper.find('button[type="reset"]').exists()).toBe(false)
         })
 
-        it('has the text "form.reset"', () => {
-          expect(wrapper.find('button[type="reset"]').text()).toBe('form.reset')
-        })
-
-        it.skip('resets the form when clicked', async () => {
-          // Set some values in the form
-          wrapper.vm.radioSelected = SEND_TYPES.email
+        it('tells the page that the member leaves, and neither sends nor empties anything', async () => {
           wrapper.vm.form.identifier = 'test@example.com'
           wrapper.vm.form.amount = '100,00'
           wrapper.vm.form.memo = 'Test memo'
 
-          // Trigger the reset
-          await wrapper.find('button[type="reset"]').trigger('click')
+          await back().trigger('click')
 
-          // Check if the form has been reset
-          expect(wrapper.vm.radioSelected).toBe(SEND_TYPES.send)
-          expect(wrapper.vm.form.identifier).toBe('')
-          expect(wrapper.vm.form.amount).toBe('')
-          expect(wrapper.vm.form.memo).toBe('')
+          expect(wrapper.emitted('back')).toHaveLength(1)
+          expect(wrapper.emitted('set-transaction')).toBeUndefined()
+          expect(wrapper.emitted('update:picture')).toBeUndefined()
+          expect(wrapper.vm.form.memo).toBe('Test memo')
         })
+
+        it.each([SEND_TYPES.link, SEND_TYPES.email])(
+          'stands on the %s tab as well',
+          async (tab) => {
+            wrapper.vm.radioSelected = tab
+            await nextTick()
+
+            expect(back().text()).toBe('back')
+            await back().trigger('click')
+            expect(wrapper.emitted('back')).toHaveLength(1)
+          },
+        )
       })
 
       describe('submit', () => {
@@ -512,7 +546,7 @@ describe('TransactionForm', () => {
         expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeUndefined()
       })
 
-      // `inert`: its fields, its tabs and its reset take nothing, and the browser sees to that.
+      // `inert`: its fields, its tabs and its "Zurück" take nothing, and the browser sees to that.
       it('holds still as a whole, and only while it is asked', async () => {
         await asking()
         expect(wrapper.find('form').attributes('inert')).toBe('true')
@@ -772,36 +806,9 @@ describe('TransactionForm', () => {
       expect((await pressed()).identifier).toBe('Sarah-K')
     })
 
-    // The placeholder the form starts with has no uuid, and the switch replaces it only once. Reset
-    // to it, "Jetzt prüfen" would find nothing to ask with.
-    describe('"Zurücksetzen"', () => {
-      const HOME = { uuid: 'home-uuid', name: 'Akademie', foreign: false }
-      const AWAY = { uuid: 'away-uuid', name: 'Wien', foreign: true }
-
-      beforeEach(() => {
-        useRoute.mockReturnValue({ params: {}, query: {} })
-      })
-
-      it('goes back to the member’s own community where only the placeholder was handed in', async () => {
-        wrapper = createWrapper({ balance: 100.0 })
-        wrapper.vm.setCommunities([AWAY, HOME])
-        wrapper.vm.form.targetCommunity = AWAY
-
-        await wrapper.find('button[type="reset"]').trigger('click')
-
-        expect(wrapper.vm.form.targetCommunity).toEqual(HOME)
-      })
-
-      it('goes back to the community the page handed in', async () => {
-        wrapper = createWrapper({ balance: 100.0, targetCommunity: AWAY })
-        wrapper.vm.setCommunities([AWAY, HOME])
-        wrapper.vm.form.targetCommunity = HOME
-
-        await wrapper.find('button[type="reset"]').trigger('click')
-
-        expect(wrapper.vm.form.targetCommunity).toEqual(AWAY)
-      })
-    })
+    // Two tests stood here for "Zurücksetzen", which took the community switch back to where it
+    // began. The button is "Zurück" now and leaves the page (E-043): there is nothing left in the
+    // form to set back.
 
     // The last screen before the money: a name left from /send/<community>/<user> would stand there
     // above somebody else, where the form stays and nothing asks about that one.
@@ -970,13 +977,8 @@ describe('TransactionForm', () => {
       expect(wrapper.emitted('update:picture')).toEqual([[PICTURE], [null]])
     })
 
-    it('"Zurücksetzen" empties the picture', async () => {
-      wrapper = createWrapper({ balance: 100, picture: PICTURE })
-
-      await wrapper.findComponent(BForm).trigger('reset')
-
-      expect(wrapper.emitted('update:picture')).toEqual([[null]])
-    })
+    // A test stood here for "Zurücksetzen" emptying the picture. The button is "Zurück" now and
+    // leaves the page, and the picture is the page's, so it goes with the page (E-043).
 
     // ⚠️ The picture goes past the form's own fields: what the form sends on is cast by the
     // validation schema, and a decoded photo has no business there.
