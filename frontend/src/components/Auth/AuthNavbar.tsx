@@ -7,6 +7,7 @@ import AppAvatarVue from '@/components/AppAvatar.vue'
 import { NavItem } from '@/components/Menu/NavItem'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
+import { sessionRuns } from '@/routes/guards'
 import { useWalletStore } from '@/store/useWalletStore'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -52,24 +53,32 @@ export const AuthNavbar = defineComponent({
 
     /**
      * Whether a member is signed in on this browser: one rule for the whole bar, the logo and
-     * the links. The pages under this bar (`/redeem/…`, `/u/…`, `/dk/…`, `/project`) are the same
-     * for everybody (PS-011); the bar is not -- with a session it shows the member instead of
+     * the links. The pages under this bar -- every page without `requiresAuth` (App.vue); with a
+     * session above all a thank-you link (`/redeem/…`) and an address (`/u/…`) -- are the same
+     * for everybody (PS-011); the bar is not: with a session it shows the member instead of
      * "Register | Sign in" (ZE-038, L1a; Bernd, 06.11.2026: back at a link after signing in,
-     * nothing on the page said that he was signed in).
+     * nothing on the page said so).
      *
-     * The member the store holds, not `sessionRuns`: nothing redraws this bar when a session runs
-     * out, and the logo has asked this since 14.10.2026. Where the session has run out, "To my
-     * account" leads where the logo leads, to the overview, whose guard signs out and shows the
-     * sign-in.
+     * A member in the store AND a session that runs (`sessionRuns`, as the language switch asks
+     * on the same pages, LanguageSwitch2.tsx). The member alone is not enough: the store keeps
+     * the profile after a session has run out without a sign-out, and the next start -- `/`,
+     * which leads to the sign-in -- would show the face and "To my account" above the sign-in
+     * form, to whoever uses this browser next (Bernd, 06.11.2026, after coderabbit's note).
+     *
+     * Asked when the bar is drawn, and again when the member or the session changes (a sign-in
+     * on the page, a sign-out in another window). Nothing redraws it when a session runs out
+     * while the page stays open: then the bar shows the member until the next page, and "To my
+     * account" leads to the overview, whose guard signs out and shows the sign-in.
      */
-    const signedIn = computed(() => Boolean(store.gradidoID))
+    const signedIn = computed(() => Boolean(store.gradidoID) && sessionRuns(store))
 
     /**
      * Where the logo leads. Signed out: the start page of this community, its own address
      * (`COMMUNITY_URL`), loaded afresh like the address typed -- on every server today the wallet,
      * which begins at the sign-in, and a community whose address is a homepage of its own gets
-     * that. With a session: the overview, as the logo of the signed-in wallet (Navbar.vue).
-     * Nothing of the page's address goes along.
+     * that. With a session: the overview, as the logo of the signed-in wallet (Navbar.vue). A
+     * session that has run out counts as signed out, as for the links. Nothing of the page's
+     * address goes along.
      */
     const home = computed(() =>
       signedIn.value

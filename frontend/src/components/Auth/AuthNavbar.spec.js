@@ -33,12 +33,21 @@ vi.mock('../Menu/NavItem', () => ({
   NavItem: { name: 'NavItem', props: ['to'], template: '<li class="nav-item"><slot /></li>' },
 }))
 
-// `member` is what the sign-in leaves in the store besides the ID: the user name, the real names
-// and the small picture (avatar, base64 without a prefix). `pinia` lets a spec keep the store.
+// A session that runs: a token, and its end an hour away by this device's clock -- what
+// `sessionRuns` (routes/guards.js) asks, with five seconds to spare.
+const inSeconds = (seconds) => Math.floor(Date.now() / 1000) + seconds
+const running = () => ({ token: 'a-token', tokenTime: inSeconds(3600) })
+
+// With a gradidoID the member is signed in, with a session that runs. `member` is what the
+// sign-in leaves in the store besides: the user name, the real names, the small picture
+// (avatar, base64 without a prefix) -- and it may end the session (`tokenTime`). `pinia` lets a
+// spec keep the store.
 const mountWith = (darkMode, gradidoID = null, member = {}, pinia = null) =>
   mount(AuthNavbar, {
     global: {
-      plugins: [pinia ?? walletStore({ darkMode, gradidoID, ...member })],
+      plugins: [
+        pinia ?? walletStore({ darkMode, gradidoID, ...(gradidoID ? running() : {}), ...member }),
+      ],
       stubs: {
         BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' },
         RouterLink: RouterLinkStub,
@@ -131,6 +140,16 @@ describe('AuthNavbar', () => {
       }
     })
 
+    // The store keeps the member after a session has run out without a sign-out; that is no
+    // session, for the logo as for the links (Bernd, 06.11.2026).
+    it('with a session that has run out, to the start page, as signed out', () => {
+      const wrapper = mountWith(false, 'a-member', { tokenTime: inSeconds(-60) })
+      expect(wrapper.findAllComponents(RouterLinkStub)).toHaveLength(0)
+      for (const home of homes(wrapper)) {
+        expect(home.attributes('href')).toBe('https://ki-playground.gradido.net/')
+      }
+    })
+
     // Named by what it shows; the blob behind it says nothing.
     it('is named "Gradido" by its picture, and the blob is not read out', () => {
       const wrapper = mountWith(true)
@@ -149,9 +168,9 @@ describe('AuthNavbar', () => {
 
   /**
    * ZE-038, L1a (Bernd, 06.11.2026): back at a thank-you link after signing in, the bar still
-   * said "Register | Sign in", and nothing on the page told him he was signed in. With a session
-   * the bar shows the member instead: their own circle and "To my account", one link to the
-   * overview. The page under the bar stays the same for everybody (PS-011).
+   * said "Register | Sign in", and nothing on the page said that a member was signed in. With a
+   * session the bar shows the member instead: their own circle and "To my account", one link to
+   * the overview. The page under the bar stays the same for everybody (PS-011).
    */
   describe('with a session', () => {
     const BERND = { username: 'Bernd', firstName: 'Bernd', lastName: 'Hückstädt' }
@@ -217,7 +236,7 @@ describe('AuthNavbar', () => {
     })
 
     it('goes back to both links when the member signs out', async () => {
-      const pinia = walletStore({ darkMode: true, gradidoID: 'a-member', ...BERND })
+      const pinia = walletStore({ darkMode: true, gradidoID: 'a-member', ...running(), ...BERND })
       const wrapper = mountWith(true, 'a-member', BERND, pinia)
       expect(toAccount(wrapper).exists()).toBe(true)
       useWalletStore(pinia).setGradidoID(null)
@@ -227,6 +246,45 @@ describe('AuthNavbar', () => {
         'signup',
         'signin',
       ])
+    })
+
+    /**
+     * Bernd, 06.11.2026, after coderabbit's note: the store keeps the member after a session has
+     * run out without a sign-out, and the next start -- `/`, which leads to the sign-in -- showed
+     * the face and "Zum Konto" above the sign-in form, to whoever used the browser next. A session
+     * that has run out is no session: the bar says "Register | Sign in" again.
+     */
+    it('a session that has run out shows both links, as signed out', () => {
+      const wrapper = mountWith(true, 'a-member', { ...BERND, tokenTime: inSeconds(-60) })
+      expect(toAccount(wrapper).exists()).toBe(false)
+      expect(wrapper.findAll('.navbar-nav .nav-item').map((item) => item.text())).toEqual([
+        'signup',
+        'signin',
+      ])
+    })
+
+    // The margin the router's guard allows too (`sessionRuns`): five seconds before its end a
+    // session counts as over, so the bar does not offer a way the guard would end at once.
+    it('a session that ends within five seconds counts as run out', () => {
+      const endingIn = (seconds) =>
+        toAccount(mountWith(true, 'a-member', { ...BERND, tokenTime: inSeconds(seconds) }))
+      expect(endingIn(4).exists()).toBe(false)
+      expect(endingIn(60).exists()).toBe(true)
+    })
+
+    it('a member without a token is no session', () => {
+      expect(toAccount(mountWith(true, 'a-member', { ...BERND, token: null })).exists()).toBe(false)
+    })
+
+    // A sign-in on the page (the thank-you link's "I already have an account") gives the store a
+    // session: the bar shows the member without being drawn anew.
+    it('shows the member as soon as a session runs on the page', async () => {
+      const pinia = walletStore({ darkMode: true, gradidoID: 'a-member', ...BERND })
+      const wrapper = mountWith(true, 'a-member', BERND, pinia)
+      expect(toAccount(wrapper).exists()).toBe(false)
+      useWalletStore(pinia).$patch(running())
+      await nextTick()
+      expect(toAccount(wrapper).exists()).toBe(true)
     })
   })
 
