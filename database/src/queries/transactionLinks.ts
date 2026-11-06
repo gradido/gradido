@@ -247,15 +247,16 @@ export type transactionLinksBlockedAmounts = Awaited<
   ReturnType<typeof transactionLinksPendingFromUserOrderByIdASCDrizzle>
 >[number]
 
-// One statement for all the rows it is given
+// One statement for all the rows it is given. Returns their ids, in the order of the rows.
 export async function dbInsertTransactionLinks(
   transactionLinks: TransactionLinksInsert[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<void> {
+): Promise<number[]> {
   if (transactionLinks.length === 0) {
-    return
+    return []
   }
-  await tx.insert(transactionLinksTable).values(transactionLinks)
+  const inserted = await tx.insert(transactionLinksTable).values(transactionLinks).$returningId()
+  return inserted.map(({ id }) => id)
 }
 
 export async function dbTransactionLinkRedeemed(

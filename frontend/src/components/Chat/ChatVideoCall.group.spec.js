@@ -4,6 +4,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import ChatVideoCall from './ChatVideoCall.vue'
 import { chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
+import { CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
 /**
  * The questions of a video call in a group's window (E-053). How they ask, wait and open a room is
@@ -47,10 +48,11 @@ describe('ChatVideoCall in a group', () => {
   let wrapper
   const delivered = vi.fn()
 
-  const mountCall = (props = {}) => {
+  const mountCall = (props = {}, provide = {}) => {
     wrapper = mount(ChatVideoCall, {
       props: { name: CAFE, group: true, canMail: false, deliver: delivered, ...props },
       global: {
+        provide,
         mocks: {
           $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : (words[key] ?? key)),
         },
@@ -148,5 +150,53 @@ describe('ChatVideoCall in a group', () => {
     wrapper.vm.askJoin(withChatVideoTopic(ROOM.url, 'Videoanruf'))
     await flushPromises()
     expect(inDialog('join-title').text()).toBe(`chatGroup.videoJoinTitle {"name":"${CAFE}"}`)
+  })
+
+  // E-043 C: "Anruf beitreten" tells the window that the member went into the room, with the
+  // link -- not the question's opening, which may be cancelled.
+  it('tells the window at "Anruf beitreten", not when the question opens', async () => {
+    const told = vi.fn()
+    const opened = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const link = withChatVideoTopic(ROOM.url, 'Videoanruf')
+    mountCall({}, { [CHAT_VIDEO_JOINED]: told })
+    wrapper.vm.askJoin(link, 'uuid-9')
+    await flushPromises()
+    expect(told).not.toHaveBeenCalled()
+
+    await inDialog('join').trigger('click')
+
+    expect(told).toHaveBeenCalledTimes(1)
+    expect(told).toHaveBeenCalledWith(link, 'uuid-9')
+    expect(opened).toHaveBeenCalledWith(link, '_blank', 'noopener,noreferrer')
+    opened.mockRestore()
+  })
+
+  // The message goes with the question: a link asked about later without one is no other's.
+  it('lets the message go with the question', async () => {
+    const told = vi.fn()
+    vi.spyOn(window, 'open').mockImplementation(() => null)
+    const link = withChatVideoTopic(ROOM.url, 'Videoanruf')
+    mountCall({}, { [CHAT_VIDEO_JOINED]: told })
+    wrapper.vm.askJoin(link, 'uuid-9')
+    await flushPromises()
+    await inDialog('join-cancel').trigger('click')
+
+    wrapper.vm.askJoin(link)
+    await flushPromises()
+    await inDialog('join').trigger('click')
+
+    expect(told).toHaveBeenCalledWith(link, null)
+    window.open.mockRestore()
+  })
+
+  it('tells nothing for a question cancelled', async () => {
+    const told = vi.fn()
+    mountCall({}, { [CHAT_VIDEO_JOINED]: told })
+    wrapper.vm.askJoin(withChatVideoTopic(ROOM.url, 'Videoanruf'))
+    await flushPromises()
+
+    await inDialog('join-cancel').trigger('click')
+
+    expect(told).not.toHaveBeenCalled()
   })
 })

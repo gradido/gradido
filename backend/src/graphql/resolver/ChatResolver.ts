@@ -74,7 +74,7 @@ import { chatMessagesOf } from './util/chatMessagesOf'
 import { checkedReplyTo } from './util/chatReply'
 import { acceptedPicture, callerOf } from './util/chatRequest'
 import { isHomeCommunity, resolveCommunityUuid } from './util/communities'
-import { transactionReadsStart, unreadTransfersOfUser } from './util/unreadTransfers'
+import { unreadTransfersOfUser } from './util/unreadTransfers'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.ChatResolver`)
 
@@ -359,12 +359,7 @@ export class ChatResolver {
       communityUuid: await resolveCommunityUuid(ref.communityUuid),
       gradidoId: ref.gradidoID,
     }
-    return dbMarkReceivedTransfersSeen(
-      user.id,
-      partner,
-      upToTransactionId,
-      await transactionReadsStart(),
-    )
+    return dbMarkReceivedTransfersSeen(user.id, partner, upToTransactionId)
   }
 
   /**

@@ -408,11 +408,13 @@ import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { bookingsWithMemberRoute } from '@/utils/bookingsRoute'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 
 /**
  * One contact, opened from wherever a contact stands: the list, the column, the strip.
@@ -615,16 +617,32 @@ const closeWhenNavigating = (event) => {
  * ⚠️ A member of another community goes down the same road: the send form is what knows
  * the federation branch, and a second way of reaching it here would be a second place for
  * that knowledge to drift.
+ *
+ * The form's "Zurück" leads back into this conversation (E-043): the window hands its place over
+ * (useSendReturn) -- the address the reply button of a chat mail has (P4c), which opens the
+ * conversation on the contacts page. Where the form is not reached, it is taken back.
  */
-const toSend = () => {
+const sendReturn = useSendReturn()
+const toSend = async () => {
   const community = props.contact?.user?.communityUuid
   const user = props.contact?.user?.gradidoID
   if (!community || !user) return
   emit('update:modelValue', false)
-  // ⛔ The mode is named although there is only this one way left. This window stands beside
-  // /send, so a tap here changes only the params and the query -- the form is patched, not
-  // rebuilt -- and without `art` a form that was already in e-mail mode would stay there.
-  router.push({ path: `/send/${community}/${user}`, query: { art: SEND_TYPES.send } })
+  const to = `/send/${community}/${user}`
+  const handed = sendReturn.put({
+    to,
+    back: { path: '/contacts', query: { with: user, community } },
+  })
+  let reached = false
+  try {
+    // ⛔ The mode is named although there is only this one way left. This window stands beside
+    // /send, so a tap here changes only the params and the query -- the form is patched, not
+    // rebuilt -- and without `art` a form that was already in e-mail mode would stay there.
+    const failure = await router.push({ path: to, query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) sendReturn.drop(handed)
+  }
 }
 
 /**
@@ -812,7 +830,19 @@ const editThroughThread = (changed) =>
  * The question before joining a call, asked by a click on the link of a video invitation in the
  * thread (ChatMessageText) -- provided here, around the thread it is asked from.
  */
-provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+provide(CHAT_VIDEO_JOIN, (roomUrl, messageUuid) => videoCall.value?.askJoin(roomUrl, messageUuid))
+
+/**
+ * The member went into the room of an invitation from this wallet (E-043 C): told by the link in
+ * the thread where the browser opens the room (ChatMessageText), and by "Anruf beitreten" in the
+ * question (ChatVideoCall) -- with the message the link stands in (ChatBubble). Noted on this
+ * device by that invitation, where the thread reads it as one into the link's room
+ * (`invitationInRoom`), for the line after the call (utils/chatVideoJoined) -- the room's address
+ * itself is kept nowhere.
+ */
+provide(CHAT_VIDEO_JOINED, (roomUrl, messageUuid) =>
+  noteChatVideoJoined(store.gradidoID, thread.value?.invitationInRoom?.(roomUrl, messageUuid)),
+)
 
 /**
  * Forwarding a message of the thread (E-059): the window asks where to, in a dialog over itself.

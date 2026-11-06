@@ -4,11 +4,11 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   CreationGroup as DbCreationGroup,
-  User,
+  DbUser,
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   adminCreateContribution,
   assignContributionCreationGroups,
@@ -108,11 +108,11 @@ const groupsShownFor = async (memo: string): Promise<string[]> => {
 }
 
 describe('only the group field puts a contribution into a group', () => {
-  let author: User
+  let author: DbUser
 
   beforeAll(async () => {
-    await userFactory(testEnv, peterLustig) // administrator
-    author = await userFactory(testEnv, bibiBloxberg)
+    await userFactoryDrizzle(peterLustig) // administrator
+    author = await userFactoryDrizzle(bibiBloxberg)
 
     for (const tag of ['music', 'sports']) {
       const entry = DbCreationGroup.create()

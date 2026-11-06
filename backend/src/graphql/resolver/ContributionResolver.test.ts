@@ -20,6 +20,8 @@ import {
 import {
   AppDatabase,
   Contribution,
+  CreationInterface,
+  creationFactory,
   Event as DbEvent,
   Transaction as DbTransaction,
   EventType,
@@ -33,7 +35,6 @@ import { Equal, IsNull, Not } from 'typeorm'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   adminCreateContribution,
@@ -98,13 +99,16 @@ let testEnv: {
   db: AppDatabase
 }
 let creation: Contribution | null
+// `creation` is read like the entity the rest of this file loads it as.
+const filedCreation = async (data: CreationInterface): Promise<Contribution> =>
+  Contribution.findOneByOrFail({ id: (await creationFactory(data)).id })
 let admin: User
 let pendingContribution: any
 let inProgressContribution: any
 let contributionToConfirm: any
 let contributionToDeny: any
 let contributionToDelete: any
-let bibiCreatedContribution: Contribution
+let bibiCreatedContribution: { id: number }
 
 beforeAll(async () => {
   testEnv = await testEnvironment(originalGetLogger('apollo'))
@@ -128,7 +132,7 @@ describe('ContributionResolver', () => {
     await userFactory(testEnv, raeuberHotzenplotz)
     const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
 
-    bibiCreatedContribution = await creationFactory(testEnv, bibisCreation!)
+    bibiCreatedContribution = await creationFactory(bibisCreation!)
     await mutate({
       mutation: login,
       variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -2085,7 +2089,7 @@ describe('ContributionResolver', () => {
           describe('confirm own creation', () => {
             beforeAll(async () => {
               const now = new Date()
-              creation = await creationFactory(testEnv, {
+              creation = await filedCreation({
                 email: 'peter@lustig.de',
                 amount: 400,
                 memo: 'Herzlich Willkommen bei Gradido!',
@@ -2121,7 +2125,7 @@ describe('ContributionResolver', () => {
           describe('confirm creation for other user', () => {
             beforeAll(async () => {
               const now = new Date()
-              creation = await creationFactory(testEnv, {
+              creation = await filedCreation({
                 email: 'bibi@bloxberg.de',
                 amount: 450,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
@@ -2209,12 +2213,12 @@ describe('ContributionResolver', () => {
           })
 
           describe('confirm two creations one after the other quickly', () => {
-            let c1: Contribution | null
-            let c2: Contribution | null
+            let c1: { id: number } | null
+            let c2: { id: number } | null
 
             beforeAll(async () => {
               const now = new Date()
-              c1 = await creationFactory(testEnv, {
+              c1 = await creationFactory({
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
@@ -2222,7 +2226,7 @@ describe('ContributionResolver', () => {
                   new Date(now.getFullYear(), now.getMonth() - 2, 1),
                 ),
               })
-              c2 = await creationFactory(testEnv, {
+              c2 = await creationFactory({
                 email: 'bibi@bloxberg.de',
                 amount: 50,
                 memo: 'Herzlich Willkommen bei Gradido liebe Bibi!',

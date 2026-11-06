@@ -162,6 +162,23 @@ export async function dbFindUserById(
   return rows[0] ? rows[0] : null
 }
 
+/** dbFindUserWithContactById for a deleted member too, for whoever just wrote the row. */
+export async function dbSelectUserWithContactById(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<DbUser | null> {
+  const rows = await tx
+    .select({
+      ...getColumns(usersTable),
+      emailContact: userContactsTable,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(eq(usersTable.id, userId))
+
+  return rows[0] ?? null
+}
+
 export async function dbFindUserWithContactById(
   userId: number,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
@@ -176,6 +193,15 @@ export async function dbFindUserWithContactById(
     .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
 
   return rows[0] ?? null
+}
+
+/** Names the address a member is reached at: `users.email_id`. */
+export async function dbUpdateUserEmailId(
+  userId: number,
+  emailId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx.update(usersTable).set({ emailId }).where(eq(usersTable.id, userId))
 }
 
 export async function dbInsertUser(

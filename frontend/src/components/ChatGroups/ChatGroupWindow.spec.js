@@ -8,7 +8,7 @@ import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -31,6 +31,15 @@ vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 /** Where the window leads: the send form with a member chosen under a call (W2). */
 const routerPush = vi.hoisted(() => vi.fn())
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: routerPush }) }))
+// The way back the window hands to the send form (E-043; useSendReturn has a spec of its own).
+const sendReturn = vi.hoisted(() => ({
+  put: vi.fn((handover) => ({ ...handover })),
+  drop: vi.fn(),
+}))
+vi.mock('@/composables/useSendReturn', () => ({
+  useSendReturn: () => sendReturn,
+  clearSendReturn: vi.fn(),
+}))
 
 const { toastSuccess, toastError } = vi.hoisted(() => ({
   toastSuccess: vi.fn(),
@@ -58,6 +67,8 @@ const video = vi.hoisted(() => ({
   // thread answers to the change (`edits`).
   edit: vi.fn(),
   edits: vi.fn(),
+  // E-043 C: which invitation the thread finds for a clicked video link (`invitationInRoom`).
+  rooms: vi.fn(),
 }))
 /**
  * The question for the member's own note on the group (useChatWindowNote), apart from the members'
@@ -187,13 +198,19 @@ describe('ChatGroupWindow', () => {
               'forwardMessage',
               'thank',
             ],
-            inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
+            inject: {
+              join: { from: CHAT_VIDEO_JOIN, default: null },
+              joined: { from: CHAT_VIDEO_JOINED, default: null },
+            },
             methods: {
               deliver(message) {
                 return video.delivers(message, this.group.groupUuid)
               },
               edit(changed) {
                 return video.edits(changed, this.group.groupUuid)
+              },
+              invitationInRoom(roomUrl, messageUuid) {
+                return video.rooms(roomUrl, messageUuid, this.group.groupUuid)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -235,8 +252,8 @@ describe('ChatGroupWindow', () => {
               edit(invitation) {
                 video.edit(invitation)
               },
-              askJoin(roomUrl) {
-                video.askJoin(roomUrl)
+              askJoin(roomUrl, messageUuid) {
+                video.askJoin(roomUrl, messageUuid)
               },
               letGo() {
                 video.letGo()
@@ -670,10 +687,46 @@ describe('ChatGroupWindow', () => {
     })
 
     // A click on the link of an invitation in the group's thread (ChatMessageText).
+    // With the message the link stands in, as the bubble hands it on (E-043 C): the question
+    // keeps it for the note at "Anruf beitreten".
     it('asks before joining a call from a link in the thread', () => {
       mountWindow()
-      wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room')
-      expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room')
+      wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room', 'uuid-7')
+      expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room', 'uuid-7')
+    })
+
+    // E-043 C: a link that took the member into the room -- on a phone the link itself, on a
+    // computer "Anruf beitreten" (ChatVideoCall, which takes the same hand) -- is noted by the
+    // invitation the group's thread finds for it, the room's address kept nowhere.
+    describe('a link that took the member into the room', () => {
+      const LINK = 'https://meet.ffmuc.net/room#config.subject=%22Videoanruf%22'
+      const joined = () => JSON.parse(localStorage.getItem('chat-video-joined:me-id') ?? 'null')
+
+      afterEach(() => {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('chat-video-joined:')) localStorage.removeItem(key)
+        }
+      })
+
+      it('is noted by the invitation the thread finds for it', () => {
+        video.rooms.mockReturnValue('uuid-7')
+        mountWindow()
+
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK, 'uuid-7')
+
+        expect(video.rooms).toHaveBeenCalledWith(LINK, 'uuid-7', 'cafe-uuid')
+        expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
+        expect(localStorage.getItem('chat-video-joined:me-id')).not.toContain('meet.ffmuc')
+      })
+
+      it('notes nothing where the thread finds no invitation for it', () => {
+        video.rooms.mockReturnValue(null)
+        mountWindow()
+
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK, 'uuid-7')
+
+        expect(joined()).toBeNull()
+      })
     })
 
     it('lets a question go when the window comes to another group', async () => {
@@ -699,7 +752,9 @@ describe('ChatGroupWindow', () => {
     const thread = () => wrapper.findComponent({ name: 'ChatThread' })
 
     beforeEach(() => {
-      routerPush.mockClear()
+      routerPush.mockReset()
+      sendReturn.put.mockClear()
+      sendReturn.drop.mockClear()
     })
 
     it('hands the thread the members it holds', async () => {
@@ -732,7 +787,43 @@ describe('ChatGroupWindow', () => {
       await thread().vm.$emit('thank', { ...MEMBERS[2].user, communityUuid: null })
 
       expect(routerPush).not.toHaveBeenCalled()
+      expect(sendReturn.put).not.toHaveBeenCalled()
       expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    })
+
+    /**
+     * E-043: the form's "Zurück" leads back into this group, and from there the next member can be
+     * thanked. The window hands its place over before it opens the form -- the address the group's
+     * mails have -- and takes it back where the form is not reached.
+     */
+    it('hands the send form its way back into this group, before it opens it', async () => {
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledTimes(1)
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/home-uuid/carla-id',
+        back: { path: '/contacts', query: { group: 'cafe-uuid' } },
+      })
+      expect(sendReturn.put.mock.invocationCallOrder[0]).toBeLessThan(
+        routerPush.mock.invocationCallOrder[0],
+      )
+      expect(sendReturn.drop).not.toHaveBeenCalled()
+    })
+
+    it('takes the way back again where the form is not reached', async () => {
+      routerPush.mockResolvedValueOnce({ type: 16 })
+      mountWindow()
+      await flushPromises()
+
+      await thread().vm.$emit('thank', MEMBERS[2].user)
+      await flushPromises()
+
+      expect(sendReturn.drop).toHaveBeenCalledTimes(1)
+      expect(sendReturn.drop).toHaveBeenCalledWith(sendReturn.put.mock.results[0].value)
     })
   })
 

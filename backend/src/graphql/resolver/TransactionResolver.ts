@@ -271,6 +271,7 @@ export const executeTransaction = async (
       transactionReceive.transactionLinkId = transactionLink ? transactionLink.id : null
       transactionReceive.thankYouCardId = thankYouCardId ?? null
       transactionReceive.transactionPictureId = transactionPictureId ?? null
+      transactionReceive.seen = recipient.transfersInChat === false
       await queryRunner.manager.insert(dbTransaction, transactionReceive)
       logger.debug(`receive Transaction inserted: ${dbTransaction}`)
 

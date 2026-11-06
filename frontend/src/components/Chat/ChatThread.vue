@@ -101,7 +101,7 @@
                   : reactionsUnderway.has(message.messageUuid)
               "
               :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
-              :thanks-members="inGroup ? thanksMembers : null"
+              :thanks-members="inGroup ? (thanksDue.get(message.id) ?? null) : null"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -177,6 +177,7 @@ import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
 import { useChatTransfers } from '@/composables/useChatTransfers'
+import { useOwnTransfers } from '@/composables/useOwnTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useThanksNudges } from '@/composables/useThanksNudges'
@@ -220,9 +221,11 @@ import {
 import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
 import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
+import { chatVideoInvitation } from '@/utils/chatVideoCalendar'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
+import { chatVideoRoomOf, videoJoinedAt } from '@/utils/chatVideoJoined'
 import { memberAlias } from '@/utils/gradidoAddress'
-import { callNudgeState } from '@/utils/thanksNudge'
+import { callNudgeStart, callNudgeState, membersToThank } from '@/utils/thanksNudge'
 
 /** How many messages a page holds -- the server's own default, written out. */
 const PAGE_SIZE = 50
@@ -288,8 +291,9 @@ const props = defineProps({
  *
  * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
  * the send form with this person named, the way its own button "Gradido senden" does. In a
- * group's thread the user of the member chosen comes with it, and the send form names them. The
- * answer is remembered here already.
+ * group's thread the user of the member chosen comes with it, and the send form names them.
+ * Nothing is remembered here (E-043 B): the member's own bookings tell whom they thanked -- but
+ * in the thread of two with the transfers switched off, which holds none.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -364,6 +368,12 @@ const hasMore = computed(() => Boolean(page.value?.hasMore))
  * time, as bubbles of their own.
  */
 const store = useWalletStore()
+/**
+ * Whether this thread holds the transfers between the two: the member's own switch (Einstellungen
+ * › Nachrichten), on unless switched off -- null is a store from before the field. Never in a
+ * group: a transfer is between two (E-050 F6). Taken once, as the thread takes its person.
+ */
+const transfersInThread = !inGroup && store.transfersInChat !== false
 const {
   transfers,
   settled: transfersSettled,
@@ -371,11 +381,7 @@ const {
   hasMore: transfersHaveMore,
   loadOlderTransfers,
   takeReaction: takeTransferReaction,
-} = useChatTransfers(apolloClient, memberRef, {
-  // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
-  // store from before the field. Never in a group: a transfer is between two (E-050 F6).
-  enabled: !inGroup && store.transfersInChat !== false,
-})
+} = useChatTransfers(apolloClient, memberRef, { enabled: transfersInThread })
 
 /** The group's name, where this is a group's thread (P5). */
 const groupTitle = computed(() => props.group?.title ?? '')
@@ -584,15 +590,23 @@ watch(newestReceivedShown, (newest) => {
  * The suggestion to thank after a video call (W2 of the waves of gratitude, utils/thanksNudge):
  * under the member's own invitation, half an hour after the call began, "Möchtest Du Dich bei …
  * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt" -- where the window can take
- * the member to the send form with this person: the pair complete, as its button asks.
- *
- * ⚠️ Where the member switched the transfers in the conversation off, the thread holds none, and a
- * thank-you sent another way does not end the line; "Nicht jetzt" does.
+ * the member to the send form with this person: the pair complete, as its button asks. And under
+ * somebody else's invitation the member went into from this wallet (E-043 C, Bernd 05.11.2026),
+ * half an hour after their own click (utils/chatVideoJoined): in a conversation of two the person
+ * to thank is then the one who invited, the other person; in a group, the members as always.
  *
  * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
  * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
- * to the send form with them. Nothing of a transfer stands in a group (E-050 F6), so only the
- * answer ends the line there.
+ * to the send form with them. Whom the member thanked since the call began is read off their own
+ * bookings (E-043 B, Bernd 05.11.2026): that member is no longer among them, and once all are,
+ * the line goes.
+ *
+ * In both kinds of conversation what was thanked is what was booked: the tap remembers nothing --
+ * a thank-you begun and not sent leaves the line, and what was booked counts on every device
+ * (with one person too since 06.11.2026, Bernd: "Ja, mitnehmen"). "Nicht jetzt" ends the line.
+ * ⚠️ Only where the member switched the transfers in the conversation off does the thread of two
+ * hold none: there "Danke sagen" is remembered on this device -- the line would never end after a
+ * thank-you otherwise --, and a thank-you sent another way does not end it; "Nicht jetzt" does.
  */
 const thanksOffered = inGroup || Boolean(props.member?.gradidoID && props.member?.communityUuid)
 const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
@@ -619,6 +633,15 @@ const thanksMembers = computed(() =>
 )
 
 /**
+ * The member's own transfers, in a group's thread only (useOwnTransfers): what tells whom they
+ * thanked since a call began. ⛔ Whatever the switch for transfers in the conversation says
+ * (`store.transfersInChat`): nothing of a transfer is shown here, a name is only left out -- and
+ * with the switch off a thank-you would otherwise never end the line, now that the tap remembers
+ * nothing. The thread of two keeps its own (useChatTransfers).
+ */
+const ownTransfers = inGroup ? useOwnTransfers(apolloClient) : null
+
+/**
  * The time the line goes by: a quiet clock of the thread's own, once a minute while the thread is
  * open, so that the line comes while the member sits in the conversation -- without asking the
  * server anything; the chat's beat is left as it is. And at once when the page comes back into
@@ -640,55 +663,158 @@ if (thanksOffered) {
   })
 }
 
+/** Somebody else's video invitation read by its link: its room and, planned, its time. */
+const invitationByLink = (body) => {
+  const call = chatVideoInvitation(body)
+  if (!call) return null
+  return {
+    room: call.room,
+    topic: call.topic,
+    when: call.start ? { start: call.start, end: call.end } : null,
+  }
+}
+
 /**
- * The member's own video invitations in the thread, by message id, each with what it says -- read
- * as the window reads one to change it (`startEdit`): word for word, in the member's language and
- * time zone now. An invitation the wallet does not read as its own words gets no line. Apart from
- * the clock, so that its minute does not read every message again.
+ * The video invitations in the thread a line after the call may stand under, by message id, each
+ * with what it says. The member's own read as the window reads one to change it (`startEdit`):
+ * word for word, in the member's language and time zone now -- an own invitation the wallet does
+ * not read as its own words gets no line. Somebody else's by its link (Bernd, 06.11.2026): the
+ * first address of Gradido's own form in the message (chatVideoInvitation, as "Duplizieren" under
+ * it reads it, E-058), in whatever language and time zone it was written; the line under it waits
+ * for the member's click (E-043 C). Apart from the clock, so that its minute does not read every
+ * message again.
  */
-const ownInvitations = computed(() => {
+const invitations = computed(() => {
   const found = new Map()
   if (!thanksOffered) return found
   const i18n = { t, d, locale: locale.value }
   for (const message of messages.value) {
-    if (!message.mine) continue
-    const invitation = readChatVideoInvite(i18n, message.body)
+    const invitation = message.mine
+      ? readChatVideoInvite(i18n, message.body)
+      : invitationByLink(message.body)
     if (invitation) found.set(message.id, { message, invitation })
   }
   return found
 })
 
 /**
- * The ids of the messages the line stands under now. The transfers between the two count once
- * their first page has answered: before that, a thank-you on its way into the thread is not known,
- * and the line would stand for a moment over it. Nor where that page failed: its empty list is not
- * "no thank-you since" (coderabbit, #4210).
+ * When the member went into the room of an invitation from this wallet (utils/chatVideoJoined):
+ * the time of their first click, on this device and within the seven days -- or null. Read for
+ * every invitation; the rule takes it only for somebody else's (callNudgeStart).
  */
-const thanksDue = computed(() => {
-  const due = new Set()
-  // In a group there is nobody to choose before the window has the members.
-  if (inGroup && !thanksMembers.value.length) return due
-  const transfersKnown = transfersSettled.value && !transfersFailed.value ? transfers.value : null
-  for (const { message, invitation } of ownInvitations.value.values()) {
-    const line = callNudgeState({
+const joinedAt = (message) => videoJoinedAt(store.gradidoID, message.messageUuid, now.value)
+
+/**
+ * The invitation a clicked video link stands in (E-043 C, Bernd 06.11.2026: the device notes the
+ * invitation that was clicked): the message's uuid, where the thread reads that message as an
+ * invitation into the room the link leads into -- for the window to note the member's click by
+ * (utils/chatVideoJoined). null for a message that is no invitation, one into another room, and
+ * one the thread does not hold. The very message, not another that carries the same room: a call
+ * duplicated ahead for the next week keeps its room (E-058), and a link handed on again does too.
+ * The room's address itself is kept nowhere.
+ *
+ * @param {string} roomUrl the link as it was clicked, with or without its addition
+ * @param {string} messageUuid the message it stands in (ChatBubble)
+ * @returns {string | null}
+ */
+const invitationInRoom = (roomUrl, messageUuid) => {
+  const room = chatVideoRoomOf(roomUrl)
+  const id = String(messageUuid ?? '').toLowerCase()
+  if (!room || !id) return null
+  for (const { message, invitation } of invitations.value.values()) {
+    if (String(message.messageUuid ?? '').toLowerCase() !== id) continue
+    return chatVideoRoomOf(invitation.room) === room ? message.messageUuid : null
+  }
+  return null
+}
+
+/**
+ * In a group's thread, the beginning of the earliest call whose line is due by its time now
+ * (callNudgeStart) -- one's own, or somebody else's the member went into from here -- null where
+ * none is, and before the window has the members. The member's own transfers are asked back to it
+ * once the first line is due (W7), and once for the opening of the window: not on opening for
+ * nothing, not on the chat's beat. The minute clock above brings it where a call turns half an
+ * hour old while the member reads -- for the one invited, half an hour after their click; "Zurück"
+ * from the send form opens the window anew, and it asks anew.
+ */
+const groupCallsDueSince = computed(() => {
+  if (!inGroup || !thanksMembers.value.length) return null
+  let earliest = null
+  for (const { message, invitation } of invitations.value.values()) {
+    const start = callNudgeStart({
       invitation,
       message,
       now: now.value,
-      transfers: inGroup ? null : transfersKnown,
-      group: inGroup,
       seen: thanksSeen('call', message.messageUuid),
+      videoJoinedAt: joinedAt(message),
     })
-    if (line === 'show') due.add(message.id)
+    if (start !== null && (earliest === null || start < earliest)) earliest = start
+  }
+  return earliest
+})
+if (ownTransfers) {
+  watch(
+    groupCallsDueSince,
+    (since) => {
+      if (since !== null) ownTransfers.ask(since)
+    },
+    { immediate: true },
+  )
+}
+
+/**
+ * The messages the line stands under now, by id -- each with whom the member may still thank in
+ * a group's thread (membersToThank: the bubble's choice), null in the thread of two. The
+ * transfers count once they are known: with one person once their first page has answered, in a
+ * group once every page of the member's own that was asked for is in. Before that, a thank-you
+ * on its way is not known, and the line would stand for a moment over it. Nor where they failed:
+ * an empty list is not "no thank-you since" (coderabbit, #4210).
+ */
+const thanksDue = computed(() => {
+  const due = new Map()
+  // In a group there is nobody to choose before the window has the members.
+  if (inGroup && !thanksMembers.value.length) return due
+  let transfersKnown = null
+  if (inGroup) transfersKnown = ownTransfers.transfers.value
+  else if (transfersSettled.value && !transfersFailed.value) transfersKnown = transfers.value
+  for (const { message, invitation } of invitations.value.values()) {
+    const occasion = {
+      invitation,
+      message,
+      now: now.value,
+      seen: thanksSeen('call', message.messageUuid),
+      videoJoinedAt: joinedAt(message),
+    }
+    const line = callNudgeState({
+      ...occasion,
+      transfers: transfersKnown,
+      group: inGroup,
+      members: thanksMembers.value,
+      ownCommunityUuid: store.communityUuid,
+    })
+    if (line !== 'show') continue
+    const choices = inGroup
+      ? membersToThank({
+          members: thanksMembers.value,
+          transfers: transfersKnown,
+          start: callNudgeStart(occasion),
+          ownCommunityUuid: store.communityUuid,
+        })
+      : null
+    due.set(message.id, choices)
   }
   return due
 })
 
 /**
- * "Danke sagen", or a member chosen in a group's thread: answered on this device, and to the
- * window, which opens the send form -- with the member chosen, in a group.
+ * "Danke sagen", or a member chosen in a group's thread: to the window, which opens the send form
+ * -- with the member chosen, in a group. Nothing is remembered where the thread knows the
+ * bookings (E-043 B): what the member then books ends the line, and a send form left without
+ * sending leaves it standing. Only the thread of two with the transfers switched off holds none:
+ * there the answer is remembered on this device, or the line would not end after a thank-you.
  */
 const thankAfterCall = (message, user) => {
-  markThanksSeen('call', message.messageUuid)
+  if (!inGroup && !transfersInThread) markThanksSeen('call', message.messageUuid)
   if (user) emit('thank', user)
   else emit('thank')
 }
@@ -2127,8 +2253,10 @@ const showQuoted = async (quoted) => {
  * `deliver`: a message from outside the bar (the video call's invitation, see above).
  * `edit`: a change from outside the bar (a video invitation's topic and time, E-060).
  * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
+ * `invitationInRoom`: whether a clicked video link stands in an invitation into its room (E-043 C,
+ * see above), for the window to note the click by.
  */
-defineExpose({ deliver, edit, searchStep })
+defineExpose({ deliver, edit, searchStep, invitationInRoom })
 </script>
 
 <style lang="scss" scoped>

@@ -6,6 +6,7 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { sendAddedContributionMessageEmail, sendContributionConfirmedEmail } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
   Event as DbEvent,
@@ -31,7 +32,6 @@ import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { CONFIG } from '@/config'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
 import { createUserContribution } from '@/graphql/resolver/util/createUserContribution'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   login,
@@ -791,7 +791,7 @@ describe('FirstCreationResolver', () => {
       const used = thisMonth.reduce((sum, c) => sum.add(c.amount), new GradidoUnit(0n))
       const topUp = Number((GradidoUnit.fromNumber(950).subtract(used).gddCent / 10000n).toString())
       expect(topUp).toBeGreaterThan(0)
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'bibi@bloxberg.de',
         amount: topUp,
         memo: 'Aufgefuellt bis kurz unter die Grenze',
@@ -828,7 +828,7 @@ describe('FirstCreationResolver', () => {
       // Half her month spent, and spent on a contribution she filed HERSELF: that is what
       // makes her an account the window would never open for again (ES-011), which is the
       // whole reason the function test exists.
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'tessa@testerin.de',
         amount: 500,
         memo: 'Im Garten der Nachbarin geholfen',
@@ -952,7 +952,7 @@ describe('FirstCreationResolver', () => {
       const before = await query({ query: firstCreationStatus })
       const runsLeft = before.data.firstCreationStatus.testRunsLeft
       expect(runsLeft).toBeGreaterThan(0)
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'tessa@testerin.de',
         amount: runsLeft * 100,
         memo: 'Den Rest des Monats aufgebraucht',

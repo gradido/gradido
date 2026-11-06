@@ -108,13 +108,14 @@ export async function dbSelectContributionUserId(contributionId: number): Promis
   return rows[0]?.userId ?? null
 }
 
-// One statement for all the rows it is given
+// One statement for all the rows it is given. Returns their ids, in the order of the rows.
 export async function dbInsertContributions(
   contributions: ContributionsInsert[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<void> {
+): Promise<number[]> {
   if (contributions.length === 0) {
-    return
+    return []
   }
-  await tx.insert(contributionsTable).values(contributions)
+  const inserted = await tx.insert(contributionsTable).values(contributions).$returningId()
+  return inserted.map(({ id }) => id)
 }

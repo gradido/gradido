@@ -4,7 +4,7 @@ import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { AppDatabase, dbSelectThankYouCardSettings } from 'database'
 import { CONFIG } from '@/config'
 import { PinDerivation } from '@/data/PinDerivation.enum'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   confirmThankYouCardPayment,
   createThankYouCard,
@@ -70,9 +70,9 @@ describe('thank you card: how the pin is derived', () => {
     db = testEnv.db
     await cleanDB()
 
-    const payer = await userFactory(testEnv, bibiBloxberg)
+    const payer = await userFactoryDrizzle(bibiBloxberg)
     payerId = payer.id
-    await userFactory(testEnv, bobBaumeister)
+    await userFactoryDrizzle(bobBaumeister)
 
     await asPayer()
     await mutate({

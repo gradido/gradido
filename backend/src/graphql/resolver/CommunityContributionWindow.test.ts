@@ -3,11 +3,11 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   CreationGroup as DbCreationGroup,
-  User,
+  DbUser,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import {
@@ -40,7 +40,7 @@ jest.mock('core', () => {
 
 let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase
-let member: User
+let member: DbUser
 
 const RECENT = 'community window: filed last month'
 const OLD = 'community window: filed long ago and never decided'
@@ -79,7 +79,7 @@ beforeAll(async () => {
     DbCreationGroup.create({ tag: 'windowquiet', name: 'Quiet group' }),
   ])
 
-  member = await userFactory(testEnv, bibiBloxberg)
+  member = await userFactoryDrizzle(bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
   for (const [memo, creationGroups] of [

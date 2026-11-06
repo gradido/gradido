@@ -13,6 +13,7 @@ import {
 } from '@/graphql/chatGroups.graphql'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { holdChatText } from '@/utils/chatReturn'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 
 /**
  * A group's thread (P5): ChatThread in its group's kind. What it shares with the thread of two --
@@ -355,7 +356,6 @@ describe('ChatThread in a group', () => {
     expect(server.options).toEqual({ fetchPolicy: 'network-only' })
   })
 
-  // A transfer is between two (E-050 F6): no booking list is asked in a group.
   // E-053: the name over a message leads to its writer; the thread hands them to the window.
   it('hands the writer whose name was tapped on to the window', async () => {
     mountThread()
@@ -364,7 +364,10 @@ describe('ChatThread in a group', () => {
     expect(wrapper.emitted('openMember')).toEqual([[WRITERS.anna]])
   })
 
-  it('asks for no transfers', async () => {
+  // A transfer is between two (E-050 F6): no transfers stand in a group's thread. And the
+  // member's own bookings are not asked on opening either: only a line after a call of their
+  // own that is due asks them, once (E-043 B; see the suggestion to thank below).
+  it('asks for no transfers on opening', async () => {
     mountThread()
     await arrive(page([message(1)]))
     expect(transfersAsked).toHaveBeenCalledWith(null, { enabled: false })
@@ -733,7 +736,9 @@ describe('ChatThread in a group', () => {
    * W2 of the waves of gratitude in a group (Bernd, 28.10.2026): under the member's own video
    * invitation, half an hour after the call began, "Möchtest Du Dich für das Gespräch bedanken?"
    * -- "Jemandem danken" shows the other members, and one tap on one takes the member to the send
-   * form with them. Nothing of a transfer stands in a group (E-050 F6): only the answer ends it.
+   * form with them. Whom the member thanked since the call began is read off their own bookings
+   * (E-043 B, Bernd 05.11.2026): what was thanked is what was booked. The tap remembers nothing;
+   * "Nicht jetzt" ends the line.
    */
   describe('the suggestion to thank after a video call of one’s own', () => {
     const BEGAN = new Date('2026-10-26T15:00:00.000Z').getTime()
@@ -744,11 +749,45 @@ describe('ChatThread in a group', () => {
       role: writer === 'anna' ? 'OWNER' : 'MEMBER',
       joinedAt: '2026-09-27T10:00:00.000Z',
     }))
-    const invitation = (writer = 'me') => ({
+    const invitation = (writer = 'me', body = 'the invitation') => ({
       ...message(2, { writer }),
-      body: 'the invitation',
+      body,
       createdAt: new Date(BEGAN).toISOString(),
     })
+    /**
+     * Anna's invitation as her wallet wrote it, read by its link (E-043 C, Bernd 06.11.2026): the
+     * room's address in Gradido's own form at its end.
+     */
+    const ANNAS = `📹 Videoanruf: Videoanruf\nDer Raum liegt auf einem Jitsi-Server von Freifunk — ein Vorschlag, kein Dienst von Gradido: ${CALL.room}#config.subject=%22Videoanruf%22`
+    /** The member clicked the link of the invitation (`uuid-2`) here, `minutes` after it began. */
+    const clickedAt = (minutes) => noteChatVideoJoined('me-id', 'uuid-2', BEGAN + minutes * MINUTE)
+
+    /**
+     * The member's own booking list (useOwnTransfers), as the server answers it unnarrowed: the
+     * rows newest first, `count` the bookings of the whole list. Without a test's own: none.
+     */
+    const bookingsPage = (rows, count = rows.length) => ({
+      data: { transactionList: { balance: { count }, transactions: rows } },
+    })
+    const ownBookings = vi.fn()
+
+    /** A booking of the member's own with a member, `minutes` after the call began: `n` its id. */
+    const booking = (n, { minutes = 10, writer = 'carla', sent = true } = {}) => ({
+      id: n,
+      typeId: sent ? 'SEND' : 'RECEIVE',
+      amount: sent ? '-10' : '10',
+      balance: '100',
+      previousBalance: '90',
+      balanceDate: new Date(BEGAN + minutes * MINUTE).toISOString(),
+      memo: `memo ${n}`,
+      linkedUser: { ...WRITERS[writer], communityName: 'Home', avatarUpdatedAt: null },
+      decay: null,
+      linkId: null,
+    })
+
+    /** What the thread asked of the member's own booking list. */
+    const bookingsAsked = () =>
+      asked.mock.calls.filter(([options]) => options.query === transactionsQuery)
 
     const line = () => wrapper.find('[data-test="thanks-nudge"]')
     const question = () => wrapper.find('[data-test="thanks-nudge-question"]').text()
@@ -758,15 +797,22 @@ describe('ChatThread in a group', () => {
       await wrapper.find(selector).trigger('click')
       await flushPromises()
     }
-    const mountAt = async (minutes, { members = MEMBERS, writer = 'me' } = {}) => {
+    const choose = async () => press('[data-test="thanks-nudge-yes"]')
+    const mountAt = async (minutes, { members = MEMBERS, writer = 'me', body } = {}) => {
       vi.setSystemTime(BEGAN + minutes * MINUTE)
       mountThread({}, { groupMembers: members })
-      await arrive(page([message(1), invitation(writer)]))
+      await arrive(page([message(1), invitation(writer, body)]))
+      await flushPromises()
     }
 
     beforeEach(() => {
       vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'Date'] })
       videoInviteRead.mockImplementation((i18n, text) => (text === 'the invitation' ? CALL : null))
+      ownBookings.mockImplementation(async () => bookingsPage([]))
+      asked.mockImplementation(async (options) => {
+        if (options.query === transactionsQuery) return ownBookings(options.variables)
+        throw new Error('no server for this question')
+      })
     })
 
     afterEach(() => {
@@ -775,8 +821,15 @@ describe('ChatThread in a group', () => {
       vi.useRealTimers()
       videoInviteRead.mockReset()
       videoInviteRead.mockImplementation(() => null)
+      ownBookings.mockReset()
+      asked.mockImplementation(async () => {
+        throw new Error('no server for this question')
+      })
+      delete storeState.transfersInChat
       for (const key of Object.keys(window.localStorage)) {
-        if (key.startsWith('thanks-nudge:')) window.localStorage.removeItem(key)
+        if (key.startsWith('thanks-nudge:') || key.startsWith('chat-video-joined:')) {
+          window.localStorage.removeItem(key)
+        }
       }
     })
 
@@ -795,7 +848,7 @@ describe('ChatThread in a group', () => {
     it('shows the other members by name on "Jemandem danken", the member not among them', async () => {
       await mountAt(45)
 
-      await press('[data-test="thanks-nudge-yes"]')
+      await choose()
 
       expect(question()).toBe('thanksNudge.whom')
       expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
@@ -803,16 +856,19 @@ describe('ChatThread in a group', () => {
       expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBeNull()
     })
 
-    it('takes a member chosen to the window, and answers the line on this device', async () => {
+    // W7: a thank-you begun and not sent leaves the member standing -- "Zurück" from the send form
+    // finds the line as it was. Only what is booked ends it for that member.
+    it('takes a member chosen to the window, and remembers nothing: the line and the member stay', async () => {
       await mountAt(45)
-      await press('[data-test="thanks-nudge-yes"]')
+      await choose()
 
       await wrapper.findAll('[data-test="thanks-nudge-choice"]')[1].trigger('click')
       await flushPromises()
 
       expect(wrapper.emitted('thank')).toEqual([[MEMBERS[2].user]])
-      expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBe('1')
-      expect(line().exists()).toBe(false)
+      expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBeNull()
+      expect(line().exists()).toBe(true)
+      expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
     })
 
     it('"Nicht jetzt": the line goes, and the window is told nothing', async () => {
@@ -823,6 +879,298 @@ describe('ChatThread in a group', () => {
       expect(line().exists()).toBe(false)
       expect(wrapper.emitted('thank')).toBeUndefined()
       expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBe('1')
+    })
+
+    // W7: not on opening for nothing, not on the beat -- once, when the first line is due. And
+    // quietly: the clock turned the line due, not the member -- the idle logout stays where it was.
+    describe('the member’s own bookings', () => {
+      it('are not asked before a line is due, and once when it is, leaving the session clock alone', async () => {
+        await mountAt(29)
+        expect(bookingsAsked()).toHaveLength(0)
+
+        vi.advanceTimersByTime(MINUTE)
+        await flushPromises()
+
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(bookingsAsked()[0][0]).toEqual({
+          query: transactionsQuery,
+          variables: { currentPage: 1, pageSize: 25, order: 'DESC', counterparty: null },
+          fetchPolicy: 'no-cache',
+          context: { renewSession: false },
+        })
+      })
+
+      // The chat's beat and the minute clock ask nothing more.
+      it('are asked once for the opening, however long the thread stays open', async () => {
+        await mountAt(45)
+        expect(bookingsAsked()).toHaveLength(1)
+
+        vi.advanceTimersByTime(10 * MINUTE)
+        await flushPromises()
+        await beatBrings(message(3, { writer: 'carla' }))
+
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(line().exists()).toBe(true)
+      })
+
+      // Falle 12: "Zurück" from the send form builds the group's window anew, and it asks anew.
+      it('are asked anew with the next opening of the window', async () => {
+        await mountAt(45)
+        wrapper.unmount()
+        ownBookings.mockImplementation(async () => bookingsPage([booking(7)]))
+
+        await mountAt(46)
+        await choose()
+
+        expect(bookingsAsked()).toHaveLength(2)
+        expect(names()).toEqual(['Anna-Sonne'])
+      })
+
+      // E-043 C: under Anna's invitation only once the member went into her room from here (see
+      // below) -- without the click, nothing is asked.
+      it('are not asked under somebody else’s invitation the member did not go into, nor where there is nobody to choose', async () => {
+        await mountAt(45, { writer: 'anna', body: ANNAS })
+        wrapper.unmount()
+        await mountAt(45, { members: [MEMBERS[0]] })
+
+        expect(bookingsAsked()).toHaveLength(0)
+      })
+
+      // E-043 B, Festlegung 2: the switch says whether transfers are SHOWN in a conversation;
+      // here nothing is shown, a name is only left out.
+      it('are asked also where the member switched the transfers in the chat off', async () => {
+        storeState.transfersInChat = false
+        ownBookings.mockImplementation(async () => bookingsPage([booking(7)]))
+        await mountAt(45)
+
+        await choose()
+
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(names()).toEqual(['Anna-Sonne'])
+      })
+    })
+
+    /**
+     * E-043 C (Bernd, 05.11.2026): Anna invited the group, the member clicked her link in this
+     * wallet -- half an hour after that click "Jemandem danken" offers the others, Anna among them,
+     * and a member thanked since the CLICK is no longer among them.
+     */
+    describe('under somebody else’s invitation the member went into', () => {
+      const annas = { writer: 'anna', body: ANNAS }
+
+      it('stands half an hour after the click, offering the others with the one who invited', async () => {
+        clickedAt(15)
+        await mountAt(45, annas)
+
+        expect(bubbles()[1].find('[data-test="thanks-nudge"]').exists()).toBe(true)
+        expect(question()).toBe('thanksNudge.afterGroupCall')
+        await choose()
+        expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(vi.getTimerCount()).toBe(1)
+      })
+
+      it('not before half an hour after the click, however old the invitation', async () => {
+        clickedAt(25)
+        await mountAt(45, annas)
+        expect(line().exists()).toBe(false)
+        expect(bookingsAsked()).toHaveLength(0)
+
+        vi.advanceTimersByTime(10 * MINUTE)
+        await flushPromises()
+
+        expect(line().exists()).toBe(true)
+        expect(bookingsAsked()).toHaveLength(1)
+      })
+
+      it('leaves out who was thanked since the click, not who was thanked before it', async () => {
+        clickedAt(15)
+        ownBookings.mockImplementation(async () =>
+          bookingsPage([booking(7, { writer: 'anna', minutes: 20 })]),
+        )
+        await mountAt(45, annas)
+        await choose()
+        expect(names()).toEqual(['Carla-Sonne'])
+
+        wrapper.unmount()
+        ownBookings.mockImplementation(async () =>
+          bookingsPage([booking(7, { writer: 'anna', minutes: 10 })]),
+        )
+        await mountAt(45, annas)
+        await choose()
+        expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      })
+
+      // The bookings are asked back to the click: a full page whose oldest booking lies between
+      // the invitation and the click is the last one asked.
+      it('asks the member’s own bookings back to the click', async () => {
+        clickedAt(15)
+        const rows = Array.from({ length: 25 }, (_, i) =>
+          booking(100 + i, { minutes: 34 - i, sent: false }),
+        )
+        ownBookings.mockImplementation(async () => bookingsPage(rows, 50))
+
+        await mountAt(45, annas)
+
+        expect(rows.at(-1).balanceDate).toBe(new Date(BEGAN + 10 * MINUTE).toISOString())
+        expect(bookingsAsked()).toHaveLength(1)
+      })
+
+      it('not under a copy forwarded from another conversation', async () => {
+        clickedAt(15)
+        vi.setSystemTime(BEGAN + 45 * MINUTE)
+        mountThread({}, { groupMembers: MEMBERS })
+        await arrive(page([message(1), { ...invitation('anna', ANNAS), forwarded: true }]))
+        await flushPromises()
+
+        expect(line().exists()).toBe(false)
+        expect(bookingsAsked()).toHaveLength(0)
+      })
+    })
+
+    // As with one person: before they are known, a thank-you on its way would stand under a line.
+    it('not while the member’s own bookings are out, and as they are once they are in', async () => {
+      let answer
+      ownBookings.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            answer = () => resolve(bookingsPage([booking(7)]))
+          }),
+      )
+      await mountAt(45)
+      expect(line().exists()).toBe(false)
+
+      answer()
+      await flushPromises()
+      await choose()
+
+      expect(names()).toEqual(['Anna-Sonne'])
+    })
+
+    // Where they could not be asked, nothing is known -- and nothing is said about it.
+    it('not where the member’s own bookings could not be asked', async () => {
+      ownBookings.mockImplementation(async () => {
+        throw new Error('Failed to fetch')
+      })
+      await mountAt(45)
+
+      expect(line().exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('Failed to fetch')
+    })
+
+    describe('a thank-you booked', () => {
+      const offeredAfter = async (rows) => {
+        ownBookings.mockImplementation(async () => bookingsPage(rows))
+        await mountAt(45)
+        if (!line().exists()) return null
+        await choose()
+        return names()
+      }
+
+      it('since the call began leaves that member out, the others stay', async () => {
+        expect(await offeredAfter([booking(7, { writer: 'carla', minutes: 10 })])).toEqual([
+          'Anna-Sonne',
+        ])
+      })
+
+      it('before the call began is no thank-you for it', async () => {
+        expect(await offeredAfter([booking(7, { writer: 'carla', minutes: -1 })])).toEqual([
+          'Anna-Sonne',
+          'Carla-Sonne',
+        ])
+      })
+
+      // What came in is the other one's thank-you.
+      it('by a member to the member is none of the member’s', async () => {
+        expect(await offeredAfter([booking(7, { writer: 'carla', sent: false })])).toEqual([
+          'Anna-Sonne',
+          'Carla-Sonne',
+        ])
+      })
+
+      it('to everybody ends the line', async () => {
+        expect(
+          await offeredAfter([booking(8, { writer: 'anna' }), booking(7, { writer: 'carla' })]),
+        ).toBeNull()
+      })
+
+      // KF-004: a booking with a member of this community may name no community.
+      it('that names no community is one of this community', async () => {
+        const plain = {
+          ...booking(7),
+          linkedUser: { ...booking(7).linkedUser, communityUuid: null },
+        }
+        expect(await offeredAfter([plain])).toEqual(['Anna-Sonne'])
+      })
+    })
+
+    // Back to the call's beginning: the next page only while the oldest of the last one is not
+    // older than it.
+    describe('pages', () => {
+      const pageOf = (from, minutes) =>
+        Array.from({ length: 25 }, (_, i) =>
+          booking(from - i, { writer: 'anna', minutes, sent: false }),
+        )
+
+      it('asks the next page while the oldest booking is younger than the beginning', async () => {
+        ownBookings.mockImplementation(async ({ currentPage }) =>
+          currentPage === 1
+            ? bookingsPage(pageOf(100, 20), 30)
+            : bookingsPage([booking(7, { writer: 'carla', minutes: 5 })], 30),
+        )
+        await mountAt(45)
+        await choose()
+
+        expect(bookingsAsked().map(([options]) => options.variables.currentPage)).toEqual([1, 2])
+        expect(names()).toEqual(['Anna-Sonne'])
+      })
+
+      it('not where the oldest booking is older than the beginning', async () => {
+        const rows = [...pageOf(100, 20).slice(0, 24), booking(76, { writer: 'anna', minutes: -2 })]
+        ownBookings.mockImplementation(async ({ currentPage }) =>
+          currentPage === 1
+            ? bookingsPage(rows, 30)
+            : bookingsPage([booking(7, { writer: 'carla', minutes: 5 })], 30),
+        )
+        await mountAt(45)
+        await choose()
+
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      })
+
+      // Two calls of the member's own, both due: the bookings are asked back to the EARLIER one,
+      // and each line counts from its own beginning. Carla was thanked between the two calls --
+      // for the first one, not for the second.
+      it('back to the earliest call whose line is due, each line counting from its own beginning', async () => {
+        const second = {
+          ...message(3, { writer: 'me' }),
+          body: 'the second invitation',
+          createdAt: new Date(BEGAN + 20 * MINUTE).toISOString(),
+        }
+        videoInviteRead.mockImplementation((i18n, text) =>
+          text === 'the invitation' || text === 'the second invitation' ? CALL : null,
+        )
+        ownBookings.mockImplementation(async ({ currentPage }) =>
+          currentPage === 1
+            ? bookingsPage(pageOf(100, 15), 30)
+            : bookingsPage([booking(7, { writer: 'carla', minutes: 10 })], 30),
+        )
+        vi.setSystemTime(BEGAN + 60 * MINUTE)
+        mountThread({}, { groupMembers: MEMBERS })
+        await arrive(page([message(1), invitation(), second]))
+        await flushPromises()
+
+        const offeredUnder = async (index) => {
+          const under = bubbles()[index]
+          await under.find('[data-test="thanks-nudge-yes"]').trigger('click')
+          await flushPromises()
+          return under.findAll('[data-test="thanks-nudge-choice-name"]').map((name) => name.text())
+        }
+        expect(bookingsAsked().map(([options]) => options.variables.currentPage)).toEqual([1, 2])
+        expect(await offeredUnder(1)).toEqual(['Anna-Sonne'])
+        expect(await offeredUnder(2)).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      })
     })
 
     // Nobody to choose: before the window has the members, or where the member is alone in it.
@@ -840,7 +1188,7 @@ describe('ChatThread in a group', () => {
       const lost = { ...MEMBERS[1], user: { ...MEMBERS[1].user, communityUuid: null } }
       await mountAt(45, { members: [MEMBERS[0], lost, MEMBERS[2]] })
 
-      await press('[data-test="thanks-nudge-yes"]')
+      await choose()
 
       expect(names()).toEqual(['Carla-Sonne'])
     })
@@ -852,9 +1200,11 @@ describe('ChatThread in a group', () => {
       expect(line().exists()).toBe(false)
     })
 
-    // The line comes while the member sits in the group's conversation.
+    // The line comes while the member sits in the group's conversation -- and asking the member's
+    // own bookings adds no clock of its own.
     it('keeps its quiet clock while the group’s thread is open, and stops it when it closes', async () => {
       await mountAt(45)
+      expect(bookingsAsked()).toHaveLength(1)
       expect(vi.getTimerCount()).toBe(1)
 
       wrapper.unmount()

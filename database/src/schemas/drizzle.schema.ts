@@ -689,6 +689,9 @@ export const transactionsTable = mysqlTable(
     linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
     linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
     linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+    // Whether the recipient saw the transfer (migration 0169, Chat E-086). Only meaningful on a
+    // RECEIVE row; a received transfer with `seen` false counts as unread.
+    seen: boolean().default(false).notNull(),
   },
   (table) => [
     index('user_id').on(table.userId),
@@ -725,27 +728,6 @@ export const transactionReactionsTable = mysqlTable(
 
 export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
 export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
-
-// Received transfers the member has seen (migration 0165, Chat E-086): one row a transfer, hung
-// on the recipient's RECEIVE booking as a reaction is. A transfer received after the start
-// (`transactionReadsStartTable`) without a row here counts as unread -- the gold dot, the bold
-// line under the name, the mark in the menu.
-export const transactionReadsTable = mysqlTable('transaction_reads', {
-  transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
-  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-    .default(sql`current_timestamp(3)`)
-    .notNull(),
-})
-
-// One row (`id` 1): the highest booking id when migration 0165 ran. Transfers received up to it
-// count as seen.
-export const transactionReadsStartTable = mysqlTable('transaction_reads_start', {
-  id: tinyint({ unsigned: true }).primaryKey().notNull(),
-  transactionId: int('transaction_id', { unsigned: true }).notNull(),
-  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-    .default(sql`current_timestamp(3)`)
-    .notNull(),
-})
 
 // Transfers that pass a received thank-you on (migration 0166, the trail of the waves of
 // gratitude): one row for the sender's SEND booking of such a transfer, naming the RECEIVE

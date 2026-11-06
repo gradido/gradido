@@ -4,11 +4,11 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   CreationGroup as DbCreationGroup,
-  User,
+  DbUser,
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { createContribution, denyContribution, login } from '@/seeds/graphql/mutations'
 import { adminListContributionMessages, adminListContributions } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -103,7 +103,7 @@ const contributionIdByMemo = async (memo: string): Promise<number> => {
 
 // Shared by both suites below: cleanDB() runs once per file, so the users and the
 // contributions the first suite seeds are still there for the second one.
-let moderator: User
+let moderator: DbUser
 
 describe('adminListContributions — moderator visibility scope', () => {
   beforeAll(async () => {
@@ -113,8 +113,8 @@ describe('adminListContributions — moderator visibility scope', () => {
       entry.name = null
       await entry.save()
     }
-    await userFactory(testEnv, peterLustig) // administrator
-    moderator = await userFactory(testEnv, bibiBloxberg) // becomes the scoped moderator
+    await userFactoryDrizzle(peterLustig) // administrator
+    moderator = await userFactoryDrizzle(bibiBloxberg) // becomes the scoped moderator
 
     // The (soon-to-be moderator) submits one contribution per group plus one untagged.
     await loginAs('bibi@bloxberg.de')

@@ -4,7 +4,7 @@ import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { matchingEntriesTable, usersTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -788,10 +788,10 @@ describe('the counts of the figures page', () => {
   beforeAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
     const homeCom = await createCommunity(false)
-    const bibi = await userFactory(bibiBloxberg, homeCom)
-    const peter = await userFactory(peterLustig, homeCom)
-    const raeuber = await userFactory(raeuberHotzenplotz, homeCom)
-    const bob = await userFactory(bobBaumeister, homeCom)
+    const bibi = await userFactoryDrizzle(bibiBloxberg, homeCom)
+    const peter = await userFactoryDrizzle(peterLustig, homeCom)
+    const raeuber = await userFactoryDrizzle(raeuberHotzenplotz, homeCom)
+    const bob = await userFactoryDrizzle(bobBaumeister, homeCom)
     await dbUserUpdateField(bob.id, 'deletedAt', daysAgo(1))
     // Bibi: a love yesterday and an offer ten days ago, both live, and a need she paused.
     await write('figures-1', bibi.id, 'interest', 1)
@@ -857,8 +857,8 @@ describe('the counts of the figures page by week', () => {
   beforeAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
     const homeCom = await createCommunity(false)
-    const bibi = await userFactory(bibiBloxberg, homeCom)
-    const peter = await userFactory(peterLustig, homeCom)
+    const bibi = await userFactoryDrizzle(bibiBloxberg, homeCom)
+    const peter = await userFactoryDrizzle(peterLustig, homeCom)
     await write('weeks-1', bibi.id, 'interest', '2026-09-08T12:00:00.000Z')
     await write('weeks-2', peter.id, 'interest', '2026-09-13T23:59:59.999Z')
     await write('weeks-3', peter.id, 'need', '2026-09-09T12:00:00.000Z')

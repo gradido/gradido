@@ -8,12 +8,22 @@ import ContactWindow from './ContactWindow.vue'
 import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
 const pushSpy = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushSpy }),
+}))
+// The way back the window hands to the send form (E-043; useSendReturn has a spec of its own):
+// what is put, and what is taken back.
+const sendReturn = vi.hoisted(() => ({
+  put: vi.fn((handover) => ({ ...handover })),
+  drop: vi.fn(),
+}))
+vi.mock('@/composables/useSendReturn', () => ({
+  useSendReturn: () => sendReturn,
+  clearSendReturn: vi.fn(),
 }))
 /**
  * The one word the window fills in by itself, the video call's default topic (V4a), as a word:
@@ -108,6 +118,11 @@ const threadDelivers = vi.fn()
  * '' where the change went through, else what the problem was. Here a test decides.
  */
 const threadEdits = vi.fn()
+/**
+ * Which invitation the thread finds for a clicked video link (ChatThread, exposed
+ * `invitationInRoom`, E-043 C): its uuid, or null. Here a test decides.
+ */
+const threadRooms = vi.fn(() => null)
 
 const toastSuccess = vi.fn()
 const toastError = vi.fn()
@@ -224,7 +239,10 @@ describe('ContactWindow', () => {
               'forwardMessage',
               'thank',
             ],
-            inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
+            inject: {
+              join: { from: CHAT_VIDEO_JOIN, default: null },
+              joined: { from: CHAT_VIDEO_JOINED, default: null },
+            },
             mounted() {
               threadsMade.push(this.member.gradidoID)
             },
@@ -234,6 +252,9 @@ describe('ContactWindow', () => {
               },
               edit(changed) {
                 return threadEdits(changed, this.member.gradidoID)
+              },
+              invitationInRoom(roomUrl, messageUuid) {
+                return threadRooms(roomUrl, messageUuid, this.member.gradidoID)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -268,7 +289,9 @@ describe('ContactWindow', () => {
 
   afterEach(() => {
     wrapper?.unmount()
-    pushSpy.mockClear()
+    pushSpy.mockReset()
+    sendReturn.put.mockClear()
+    sendReturn.drop.mockClear()
     serverMutes.mockReset()
     serverRooms.mockReset()
     serverChoices.mockReset()
@@ -995,6 +1018,51 @@ describe('ContactWindow', () => {
       query: { art: 'send' },
     })
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
+  /**
+   * E-043: the form's "Zurück" leads back into this conversation. The window hands its place over
+   * before it opens the form -- the address a chat mail's reply button has -- and takes it back
+   * where the form is not reached.
+   */
+  describe('the way back from the send form', () => {
+    it('is handed over before the form is opened', async () => {
+      mountWindow()
+      await sendButton().trigger('click')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledTimes(1)
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/home-uuid/carla-id',
+        back: { path: '/contacts', query: { with: 'carla-id', community: 'home-uuid' } },
+      })
+      expect(sendReturn.put.mock.invocationCallOrder[0]).toBeLessThan(
+        pushSpy.mock.invocationCallOrder[0],
+      )
+      expect(sendReturn.drop).not.toHaveBeenCalled()
+    })
+
+    it('names the conversation of a member of another community by their community', async () => {
+      mountWindow(STRANGER)
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('thank')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/provence-uuid/sarah-id',
+        back: { path: '/contacts', query: { with: 'sarah-id', community: 'provence-uuid' } },
+      })
+    })
+
+    // The same person tapped twice beside /send: the router refuses the second navigation.
+    it('is taken back where the form is not reached', async () => {
+      pushSpy.mockResolvedValueOnce({ type: 16 })
+      mountWindow()
+      await sendButton().trigger('click')
+      await flushPromises()
+
+      expect(sendReturn.drop).toHaveBeenCalledTimes(1)
+      expect(sendReturn.drop).toHaveBeenCalledWith(sendReturn.put.mock.results[0].value)
+    })
   })
 
   /**
@@ -3935,13 +4003,15 @@ describe('ContactWindow', () => {
         vi.unstubAllGlobals()
         vi.useRealTimers()
         localStorage.clear()
+        threadRooms.mockReset()
+        threadRooms.mockImplementation(() => null)
       })
 
       /** The window open, and the thread handing it the link of an invitation. */
       const clicked = async (roomUrl = ROOM_WITH_DEFAULT) => {
         mountWindow()
         await threadSays({ exists: true, mutedByMe: false })
-        wrapper.findComponent({ name: 'ChatThread' }).vm.join(roomUrl)
+        wrapper.findComponent({ name: 'ChatThread' }).vm.join(roomUrl, 'uuid-7')
         await flushPromises()
       }
 
@@ -4079,19 +4149,89 @@ describe('ContactWindow', () => {
         expect(joinButtons()).toEqual(['chat-video-join-cancel', 'chat-video-join'])
       })
 
-      // The call's secret: in no log and no storage.
+      /**
+       * E-043 C: "Anruf beitreten" is the member going into the room from this wallet -- noted on
+       * the device by the invitation the thread finds for the link, for the line after the call.
+       * Not when the question opens: it may be cancelled.
+       */
+      describe('what joining notes for the line after the call', () => {
+        const JOINED = 'chat-video-joined:me-id'
+        const joined = () => JSON.parse(localStorage.getItem(JOINED) ?? 'null')
+
+        beforeEach(() => {
+          threadRooms.mockImplementation(() => 'uuid-7')
+        })
+
+        it('notes the invitation at "Anruf beitreten", not when the question opens', async () => {
+          vi.spyOn(window, 'open').mockImplementation(() => null)
+          await clicked()
+          expect(joined()).toBeNull()
+
+          await inJoin('').trigger('click')
+
+          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'uuid-7', 'carla-id')
+          expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
+        })
+
+        it('notes it on the app’s way too', async () => {
+          localStorage.setItem(KEY, '1')
+          await clicked()
+
+          await inJoin('').trigger('click')
+
+          expect(followed).toEqual([APP_ROOM])
+          expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
+        })
+
+        it('notes nothing for a question cancelled', async () => {
+          await clicked()
+
+          await inJoin('-cancel').trigger('click')
+
+          expect(joined()).toBeNull()
+        })
+
+        // On a phone, and with a key held, the link opens the room itself and tells the window
+        // (ChatMessageText): the thread stand-in hands it on as the text of a message does.
+        it('notes the invitation where the link opened the room itself', async () => {
+          mountWindow()
+          await threadSays({ exists: true, mutedByMe: false })
+
+          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT, 'uuid-7')
+
+          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'uuid-7', 'carla-id')
+          expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
+          expect(joinDialog().exists()).toBe(false)
+        })
+
+        it('notes nothing where the thread finds no invitation for the link', async () => {
+          threadRooms.mockImplementation(() => null)
+          mountWindow()
+          await threadSays({ exists: true, mutedByMe: false })
+
+          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT, 'uuid-7')
+
+          expect(joined()).toBeNull()
+        })
+      })
+
+      // The call's secret: in no log and no storage -- what joining notes is the invitation's
+      // uuid and the time, nothing of the room (E-043 C, Bernd 06.11.2026).
       it('writes the room into no log and no storage', async () => {
         const logs = ['log', 'info', 'warn', 'error', 'debug'].map((level) =>
           vi.spyOn(console, level),
         )
         const stores = vi.spyOn(Storage.prototype, 'setItem')
         vi.spyOn(window, 'open').mockImplementation(() => null)
+        threadRooms.mockImplementation(() => 'uuid-7')
         await clicked()
 
         await inJoin('').trigger('click')
 
+        // Something was written -- the note -- and none of it is the room.
+        expect(stores.mock.calls.map(([key]) => key)).toContain('chat-video-joined:me-id')
         const written = [...logs, stores].flatMap((spy) => spy.mock.calls.flat().map(String))
-        expect(written.filter((line) => /k7m2x9q4t8wz/.test(line))).toEqual([])
+        expect(written.filter((line) => /k7m2x9q4t8wz|meet\.ffmuc/.test(line))).toEqual([])
       })
     })
   })

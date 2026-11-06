@@ -4,10 +4,12 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { CONFIG as CORE_CONFIG } from 'core'
 import {
   AppDatabase,
+  createTransaction,
   dbEnsureDirectChatConversation,
   dbInsertChatMessage,
   dbUpsertForeignMemberAvatarDates,
   foreignReceive,
+  TransactionTypeId,
   transferGradidos,
   User,
   UserContact,
@@ -145,6 +147,17 @@ beforeAll(async () => {
   // ⚠️ In date order, and it has to be: a seeded booking takes its balance from the
   // member's last one and computes the decay between the two dates, which does not run
   // backwards. The oldest goes first.
+  //
+  // A creation first, booked with nobody and so no contact: bibi sends more than she receives.
+  await createTransaction(
+    GradidoUnit.fromNumber(1000),
+    'to send from',
+    bibi,
+    peter,
+    TransactionTypeId.CREATION,
+    day(-1),
+    day(-1),
+  )
   await foreignReceive(bibi, anna, day(0))
   await transferGradidos(bibi, bob, new GradidoUnit(100000n), 'one', day(1))
   await transferGradidos(bob, bibi, new GradidoUnit(20000n), 'two', day(2))
@@ -1056,7 +1069,7 @@ describe('ContactResolver', () => {
       })
 
       afterEach(async () => {
-        await db.getDataSource().query('DELETE FROM transaction_reads')
+        await db.getDataSource().query('UPDATE transactions SET seen = 0')
       })
 
       it("says the line under bob's name waits, and the one under peter's does not", async () => {

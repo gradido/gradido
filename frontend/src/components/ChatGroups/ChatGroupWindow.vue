@@ -248,12 +248,14 @@ import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAv
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
+import { useSendReturn } from '@/composables/useSendReturn'
 import { useAppToast } from '@/composables/useToast'
 import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 
@@ -372,13 +374,30 @@ const router = useRouter()
  * the send form with them named, the window closed -- the road the contact window's "Gradido
  * senden" takes (ContactWindow `toSend`), a member of another community included: the send form
  * is what knows the federation branch.
+ *
+ * The form's "Zurück" leads back into this group (E-043): the window hands its place over
+ * (useSendReturn) -- the address the group's mails have (E-049), which opens the group on the
+ * contacts page, and from there the next member can be thanked. Where the form is not reached, it
+ * is taken back.
  */
-const toSendMember = (user) => {
+const sendReturn = useSendReturn()
+const toSendMember = async (user) => {
   const community = user?.communityUuid
   const person = user?.gradidoID
   if (!community || !person) return
   emit('update:modelValue', false)
-  router.push({ path: `/send/${community}/${person}`, query: { art: SEND_TYPES.send } })
+  const to = `/send/${community}/${person}`
+  const handed = sendReturn.put({
+    to,
+    back: { path: '/contacts', query: { group: props.group.groupUuid } },
+  })
+  let reached = false
+  try {
+    const failure = await router.push({ path: to, query: { art: SEND_TYPES.send } })
+    reached = !failure
+  } finally {
+    if (!reached) sendReturn.drop(handed)
+  }
 }
 
 /** The member left the group: the window closes, and the page's list lets the group go. */
@@ -542,7 +561,16 @@ const editThroughThread = (changed) =>
   thread.value ? thread.value.edit(changed) : Promise.resolve('OTHER')
 
 /** The question before joining a call, asked by the link of an invitation in the group's thread. */
-provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+provide(CHAT_VIDEO_JOIN, (roomUrl, messageUuid) => videoCall.value?.askJoin(roomUrl, messageUuid))
+
+/**
+ * The member went into the room of an invitation in the group's thread from this wallet
+ * (E-043 C), as in the contact window: noted by the invitation the link stands in, where the
+ * thread reads it as one into that room -- the room's address kept nowhere (utils/chatVideoJoined).
+ */
+provide(CHAT_VIDEO_JOINED, (roomUrl, messageUuid) =>
+  noteChatVideoJoined(store.gradidoID, thread.value?.invitationInRoom?.(roomUrl, messageUuid)),
+)
 
 /**
  * Forwarding a message of the thread (E-059): the window asks where to, in a dialog over itself.

@@ -1,9 +1,21 @@
 // AI-GENERATED — not an architecture reference
 import { GradidoUnit } from 'shared'
-import { ContributionStatus } from '../../enum'
+import { AppDatabase, drizzleDb } from '../../AppDatabase'
+import { User } from '../../entity'
+import { ContributionStatus, TransactionTypeId } from '../../enum'
+import { dbDeleteAllRowsExceptMigrations } from '../../queries/informationSchemaTables'
+import { contributionsTable, transactionsTable } from '../../schemas'
+import { createCommunity } from '../community'
 import { CreationInterface } from '../creation/CreationInterface'
-import { buildSeedCreationRows, newSeedBookingState, sortCreationsByBalanceDate } from './creation'
-import { SeedUserRef } from './user'
+import { bibiBloxberg } from '../users/bibi-bloxberg'
+import { peterLustig } from '../users/peter-lustig'
+import {
+  buildSeedCreationRows,
+  creationFactory,
+  newSeedBookingState,
+  sortCreationsByBalanceDate,
+} from './creation'
+import { SeedUserRef, userFactory } from './user'
 
 const COMMUNITY_UUID = '0bd3a4a9-31a4-4b0a-8f3c-0c1d7a4b6f00'
 const ref = (id: number, name: string): SeedUserRef => ({
@@ -120,5 +132,82 @@ describe('buildSeedCreationRows', () => {
 
   it('throws for an address no seed user has', () => {
     expect(() => build([creation('nobody@seed.de')])).toThrow('nobody@seed.de')
+  })
+})
+
+describe('creationFactory', () => {
+  const db = AppDatabase.getInstance()
+  let bibi: User
+  let peter: User
+  const contributionsOf = () => drizzleDb().select().from(contributionsTable)
+  const bookingsOf = () => drizzleDb().select().from(transactionsTable)
+
+  beforeAll(async () => {
+    await db.init()
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    bibi = await userFactory(bibiBloxberg)
+    peter = await userFactory(peterLustig)
+  })
+
+  afterAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await db.destroy()
+  })
+
+  beforeEach(async () => {
+    await drizzleDb().delete(contributionsTable)
+    await drizzleDb().delete(transactionsTable)
+  })
+
+  it('writes a confirmed creation with its booking, the two linked', async () => {
+    const created = await creationFactory(creation(bibi.emailContact.email), bibi, peter)
+
+    const [contribution] = await contributionsOf()
+    const [booking] = await bookingsOf()
+    expect(contribution.id).toBe(created.id)
+    expect(contribution.status).toBe(ContributionStatus.CONFIRMED)
+    expect(contribution.confirmedBy).toBe(peter.id)
+    expect(contribution.transactionId).toBe(booking.id)
+    expect(booking.typeId).toBe(TransactionTypeId.CREATION)
+    expect(booking.userId).toBe(bibi.id)
+    expect(booking.linkedUserId).toBe(peter.id)
+    expect(booking.creationDate).toEqual(contribution.contributionDate)
+  })
+
+  it('builds on the last booking the member has in the database', async () => {
+    const earlier = await creationFactory(
+      creation(bibi.emailContact.email, { moveCreationDate: 12 }),
+      bibi,
+      peter,
+    )
+    await creationFactory(creation(bibi.emailContact.email), bibi, peter)
+
+    const bookings = await bookingsOf()
+    expect(bookings).toHaveLength(2)
+    expect(bookings[1].previous).toBe(bookings[0].id)
+    expect(earlier.transactionId).toBe(bookings[0].id)
+    expect(bookings[1].balance?.gddCent).toBeGreaterThan(GradidoUnit.fromNumber(100).gddCent)
+  })
+
+  it('writes no booking for a creation that is not confirmed', async () => {
+    await creationFactory(creation(bibi.emailContact.email, { confirmed: false }), bibi, peter)
+
+    expect((await contributionsOf())[0].status).toBe(ContributionStatus.PENDING)
+    expect(await bookingsOf()).toHaveLength(0)
+  })
+
+  it('finds member and moderator by address when none is given', async () => {
+    await creationFactory(creation(bibi.emailContact.email))
+
+    const [booking] = await bookingsOf()
+    expect(booking.userId).toBe(bibi.id)
+    expect(booking.linkedUserId).toBe(peter.id)
+  })
+
+  it('throws for an address nobody has, and writes nothing', async () => {
+    await expect(creationFactory(creation('nobody@seed.de'))).rejects.toThrow('nobody@seed.de')
+
+    expect(await contributionsOf()).toHaveLength(0)
   })
 })

@@ -129,8 +129,13 @@ export async function findPendingTransaction(
   return { success: true, value: pendingTx }
 }
 
+/**
+ * @param seen the booking starts as seen: a recipient who switched transfers out of their
+ * conversations (Chat E-086). Only a RECEIVE row reads it; the sender side leaves it off.
+ */
 export async function settlePendingTransaction(
   pendingTx: PendingTransactionSelect,
+  seen = false,
 ): Promise<Result<number, CrossCommunityError>> {
   // acquire lock
   const mutex = new Mutex(AppDatabase.getInstance().getRedisClient(), 'TRANSACTIONS_LOCK')
@@ -156,7 +161,7 @@ export async function settlePendingTransaction(
       }
       // remove id from pending tx, the rest can be simply copied over as transaction
       const { id, ...derivedTx } = pendingTx
-      const insertResult = await dbInsertTransaction(derivedTx, tx)
+      const insertResult = await dbInsertTransaction({ ...derivedTx, seen }, tx)
       if (!insertResult.success) {
         const m = `Couldn't insert pending tx: ${id} as transaction`
         return xcomError(CrossCommunityErrorType.insertTxFailed, m)

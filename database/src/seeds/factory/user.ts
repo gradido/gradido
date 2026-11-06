@@ -5,24 +5,24 @@ import {
   MissingHomeCommunityError,
   OptInType,
   PasswordEncryptionType,
+  Result,
   UserContactType,
 } from 'shared'
 import { v4 } from 'uuid'
-import { DrizzleTransaction } from '../../AppDatabase'
-import {
-  ALIAS_ORIGIN_ADOPTED,
-  Community,
-  User,
-  UserAlias,
-  UserContact,
-  UserRole,
-} from '../../entity'
+import { DrizzleTransaction, drizzleDb } from '../../AppDatabase'
+import { DbUser } from '../../data/relations'
+import { ALIAS_ORIGIN_ADOPTED, Community, User } from '../../entity'
 import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
-import { getHomeCommunity } from '../../queries/communities'
-import { dbInsertUsers } from '../../queries/user'
-import { dbInsertUserAliases } from '../../queries/userAliases'
-import { dbInsertUserContacts } from '../../queries/userContacts'
+import { dbSelectHomeCommunity } from '../../queries/communities'
+import {
+  dbInsertUser,
+  dbInsertUsers,
+  dbSelectUserWithContactById,
+  dbUpdateUserEmailId,
+} from '../../queries/user'
+import { dbInsertUserAlias, dbInsertUserAliases } from '../../queries/userAliases'
+import { dbInsertUserContact, dbInsertUserContacts } from '../../queries/userContacts'
 import { dbInsertUserRoles } from '../../queries/userRoles'
 import {
   UserAliasInsert,
@@ -32,114 +32,114 @@ import {
 } from '../../schemas/drizzle.schema'
 import { UserInterface } from '../users/UserInterface'
 
-export async function userFactory(
+/** A member as userFactoryDrizzle hands them back: the row, with their address. */
+// TODO: remove unnecessary abstraction
+
+/**
+ * One member with their address, their name and, if they have one, their role - written in one
+ * transaction. The `users` and `user_contacts` rows point at each other, so the first is written
+ * without its address and gets it afterwards.
+ *
+ * @param homeCommunity if left out, the one in the database
+ */
+export async function userFactoryDrizzle(
   user: UserInterface,
-  homeCommunity?: Community | null,
-): Promise<User> {
-  // TODO: improve with cascade
-  let dbUser = await createUser(user, homeCommunity)
-  const dbUserContact = await createUserContact(user, dbUser.id)
-  dbUser.emailId = dbUserContact.id
-  dbUser.emailContact = dbUserContact
-  dbUser = await dbUser.save()
-  await createUserAlias(dbUser.id, dbUser.alias)
-
-  const userRole = user.role as RoleNames
-  if (userRole && (userRole === RoleNames.ADMIN || userRole === RoleNames.MODERATOR)) {
-    dbUser.userRole = await createUserRole(dbUser.id, userRole)
-  }
-
-  return dbUser
-}
-
-export async function createUser(
-  user: UserInterface,
-  homeCommunity?: Community | null,
-  store: boolean = true,
-): Promise<User> {
-  const dbUser = new User()
-  dbUser.firstName = user.firstName ?? ''
-  dbUser.lastName = user.lastName ?? ''
-  dbUser.alias = user.alias
-  dbUser.language = user.language ?? 'en'
-  dbUser.createdAt = user.createdAt ?? new Date()
-  dbUser.deletedAt = user.deletedAt ?? null
-  dbUser.accountState = dbUser.deletedAt
-    ? AccountState.DELETED
-    : user.emailChecked
-      ? AccountState.ACTIVATED
-      : AccountState.REGISTERED
-  dbUser.publisherId = user.publisherId ?? 0
-  dbUser.humhubAllowed = true
-  dbUser.gradidoID = user.gradidoId ?? v4()
-
-  if (user.emailChecked) {
-    // dbUser.password =
-    dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-  }
-  if (!homeCommunity) {
-    homeCommunity = await getHomeCommunity()
-  }
-  if (!homeCommunity || !homeCommunity.communityUuid) {
+  homeCommunity?: Pick<Community, 'communityUuid'> | null,
+): Promise<DbUser> {
+  const communityUuid = (homeCommunity ?? (await dbSelectHomeCommunity()))?.communityUuid
+  if (!communityUuid) {
     throw new MissingHomeCommunityError()
   }
-
-  dbUser.community = homeCommunity
-  dbUser.communityUuid = homeCommunity.communityUuid!
-
-  return store ? dbUser.save() : dbUser
+  return drizzleDb().transaction(async (tx) => {
+    const userId = valueOrThrow(await dbInsertUser(userRowOf(user, communityUuid), tx))
+    const contactId = valueOrThrow(await dbInsertUserContact(userContactRowOf(user, userId), tx))
+    await dbUpdateUserEmailId(userId, contactId, tx)
+    valueOrThrow(await dbInsertUserAlias(userAliasRowOf(user, userId), tx))
+    const role = userRoleOf(user)
+    if (role) {
+      await dbInsertUserRoles([{ userId, role }], tx)
+    }
+    const written = await dbSelectUserWithContactById(userId, tx)
+    if (!written) {
+      throw new Error(`user ${userId} was just written and cannot be read`)
+    }
+    return written
+  })
 }
 
-export async function createUserContact(
+/** userFactoryDrizzle for the tests that still work on the entity, with the relations they read. */
+export async function userFactory(
   user: UserInterface,
-  userId?: number,
-  store: boolean = true,
-): Promise<UserContact> {
-  const dbUserContact = new UserContact()
+  homeCommunity?: Pick<Community, 'communityUuid'> | null,
+): Promise<User> {
+  const { id } = await userFactoryDrizzle(user, homeCommunity)
+  return User.findOneOrFail({
+    where: { id },
+    // without a role the entity has no `userRole` at all: what findUserByIdentifier hands back
+    relations: { emailContact: true, community: true, userRole: userRoleOf(user) !== null },
+    withDeleted: true,
+  })
+}
 
-  dbUserContact.email = user.email ?? ''
-  dbUserContact.type = UserContactType.USER_CONTACT_EMAIL
+// a row a seed cannot write is a bug in the seed
+function valueOrThrow<T>(result: Result<T, Error>): T {
+  if (!result.success) {
+    throw result.error
+  }
+  return result.value
+}
 
-  if (user.createdAt) {
-    dbUserContact.createdAt = user.createdAt
-    dbUserContact.updatedAt = user.createdAt
+function userRowOf(user: UserInterface, communityUuid: string): UserInsert & { gradidoId: string } {
+  const row: UserInsert & { gradidoId: string } = {
+    gradidoId: user.gradidoId ?? v4(),
+    communityUuid,
+    firstName: user.firstName ?? '',
+    lastName: user.lastName ?? '',
+    language: user.language ?? 'en',
+    createdAt: user.createdAt ?? new Date(),
+    deletedAt: user.deletedAt ?? null,
+    accountState: user.deletedAt
+      ? AccountState.DELETED
+      : user.emailChecked
+        ? AccountState.ACTIVATED
+        : AccountState.REGISTERED,
+    publisherId: user.publisherId ?? 0,
+    humhubAllowed: true,
+    alias: user.alias,
   }
   if (user.emailChecked) {
-    dbUserContact.emailVerificationCode = random(64).toString()
-    dbUserContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-    dbUserContact.emailChecked = true
+    row.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
-
-  if (userId) {
-    dbUserContact.userId = userId
-  }
-
-  return store ? dbUserContact.save() : dbUserContact
+  return row
 }
 
-export async function createUserRole(
-  userId: number,
-  role: RoleNames,
-  store: boolean = true,
-): Promise<UserRole> {
-  const dbUserRole = new UserRole()
-  dbUserRole.userId = userId
-  dbUserRole.role = role
-  return store ? dbUserRole.save() : dbUserRole
+function userContactRowOf(user: UserInterface, userId: number): UserContactInsert {
+  const row: UserContactInsert = {
+    userId,
+    email: user.email ?? '',
+    type: UserContactType.USER_CONTACT_EMAIL,
+  }
+  if (user.createdAt) {
+    row.createdAt = user.createdAt
+    row.updatedAt = user.createdAt
+  }
+  if (user.emailChecked) {
+    row.emailVerificationCode = random(64)
+    row.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
+    row.emailChecked = true
+  }
+  return row
 }
 
 // Every alias a member holds has its row in `user_aliases`, as registration and migration
 // 0116 write it. `adopted`: a name that is already settled, and costs none of the four picks.
-export async function createUserAlias(
-  userId: number,
-  alias: string,
-  store: boolean = true,
-): Promise<UserAlias> {
-  const dbUserAlias = new UserAlias()
-  dbUserAlias.userId = userId
-  dbUserAlias.alias = alias
-  dbUserAlias.origin = ALIAS_ORIGIN_ADOPTED
-  return store ? dbUserAlias.save() : dbUserAlias
+function userAliasRowOf(user: UserInterface, userId: number): UserAliasInsert {
+  return { userId, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED }
+}
+
+function userRoleOf(user: UserInterface): RoleNames | null {
+  const role = user.role as RoleNames
+  return role === RoleNames.ADMIN || role === RoleNames.MODERATOR ? role : null
 }
 
 /** A `users` row as the seed builds it: id, email id and gradido id are known before the write. */
@@ -154,6 +154,15 @@ export interface SeedUserRef {
   gradidoId: string
   communityUuid: string
   name: string
+}
+
+export function seedUserRefOf(user: User): SeedUserRef {
+  return {
+    id: user.id,
+    gradidoId: user.gradidoID,
+    communityUuid: user.communityUuid,
+    name: fullName(user.firstName, user.lastName),
+  }
 }
 
 /** The rows of one batch of seed users. */
@@ -191,50 +200,13 @@ export function buildSeedUserRows(
   }
   users.forEach((user, index) => {
     const id = firstId + index
-    const userRow: SeedUserRow = {
-      id,
-      emailId: id,
-      gradidoId: user.gradidoId ?? v4(),
-      communityUuid,
-      firstName: user.firstName ?? '',
-      lastName: user.lastName ?? '',
-      language: user.language ?? 'en',
-      createdAt: user.createdAt ?? new Date(),
-      deletedAt: user.deletedAt ?? null,
-      accountState: user.deletedAt
-        ? AccountState.DELETED
-        : user.emailChecked
-          ? AccountState.ACTIVATED
-          : AccountState.REGISTERED,
-      publisherId: user.publisherId ?? 0,
-      humhubAllowed: true,
-      alias: user.alias,
-    }
-    rows.userAliases.push({ userId: id, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED })
-    if (user.emailChecked) {
-      userRow.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    }
+    const userRow: SeedUserRow = { ...userRowOf(user, communityUuid), id, emailId: id }
     rows.users.push(userRow)
+    rows.userAliases.push(userAliasRowOf(user, id))
+    rows.userContacts.push({ ...userContactRowOf(user, id), id })
 
-    const contactRow: UserContactInsert = {
-      id,
-      userId: id,
-      email: user.email ?? '',
-      type: UserContactType.USER_CONTACT_EMAIL,
-    }
-    if (user.createdAt) {
-      contactRow.createdAt = user.createdAt
-      contactRow.updatedAt = user.createdAt
-    }
-    if (user.emailChecked) {
-      contactRow.emailVerificationCode = random(64)
-      contactRow.emailOptInTypeId = OptInType.EMAIL_OPT_IN_REGISTER
-      contactRow.emailChecked = true
-    }
-    rows.userContacts.push(contactRow)
-
-    const role = user.role as RoleNames
-    if (role === RoleNames.ADMIN || role === RoleNames.MODERATOR) {
+    const role = userRoleOf(user)
+    if (role) {
       rows.userRoles.push({ userId: id, role })
     }
     if (user.email && referencedEmails.has(user.email)) {

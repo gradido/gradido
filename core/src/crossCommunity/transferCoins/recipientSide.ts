@@ -166,7 +166,7 @@ export async function settleSendCoins({
     return status('Not Found')
   }
 
-  const result = await settlePendingTransaction(pendingTx)
+  const result = await settlePendingTransaction(pendingTx, recipientUser.transfersInChat === false)
   if (!result.success) {
     logger.warn(result.error.message)
     return status('Internal Server Error')
