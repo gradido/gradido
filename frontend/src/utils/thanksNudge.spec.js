@@ -32,6 +32,14 @@ const ownMessage = (extra = {}) => ({
   ...extra,
 })
 
+/** Somebody else's invitation, written when `BEGAN` says: a message from the other side. */
+const theirMessage = (extra = {}) => ({
+  mine: false,
+  createdAt: BEGAN,
+  deliveryState: null,
+  ...extra,
+})
+
 const call = (extra = {}) =>
   callNudgeState({
     invitation: callNow,
@@ -135,21 +143,41 @@ describe('the line after a video call', () => {
   })
 
   describe('whom it is for', () => {
-    // The one who invited is asked, never the one invited: nobody is pressed to thank for being
-    // asked into a call (Bernd: "taktvoll").
-    it('not under somebody else’s invitation', () => {
-      expect(call({ message: ownMessage({ mine: false }) })).toBe('hidden')
+    // E-043 C: whoever went into the call from this wallet. Without the click the device knows,
+    // somebody else's invitation gets no line -- the link may have reached the member another way,
+    // or another device (Bernd, 26.10.2026: "ein Test-Klick zu anderer Zeit" is the price of the
+    // click; no click is no line).
+    it('not under somebody else’s invitation the member did not go into from this wallet', () => {
+      expect(call({ message: theirMessage() })).toBe('hidden')
+      expect(call({ message: theirMessage(), videoJoinedAt: null })).toBe('hidden')
+      expect(call({ message: theirMessage(), videoJoinedAt: undefined })).toBe('hidden')
+    })
+
+    it('under somebody else’s invitation the member went into from this wallet', () => {
+      expect(call({ message: theirMessage(), videoJoinedAt: began })).toBe('show')
     })
 
     it('not under a message that is no invitation the wallet reads as its own', () => {
       expect(call({ invitation: null })).toBe('hidden')
+      expect(call({ invitation: null, message: theirMessage(), videoJoinedAt: began })).toBe(
+        'hidden',
+      )
     })
 
-    // E-059: the copy stands on the forwarder's side, but its words -- and the call -- are
-    // somebody else's.
+    // E-059, W10: the copy stands on the forwarder's side, but its words -- and the call -- are
+    // somebody else's. With a click as without.
     it('not under an invitation forwarded from another conversation', () => {
       expect(call({ message: ownMessage({ forwarded: true }) })).toBe('hidden')
       expect(call({ message: ownMessage({ forwarded: false }) })).toBe('show')
+      expect(call({ message: ownMessage({ forwarded: true }), videoJoinedAt: began })).toBe(
+        'hidden',
+      )
+      expect(call({ message: theirMessage({ forwarded: true }), videoJoinedAt: began })).toBe(
+        'hidden',
+      )
+      expect(call({ message: theirMessage({ forwarded: false }), videoJoinedAt: began })).toBe(
+        'show',
+      )
     })
 
     // The window opens no room nobody else knows: an invitation that did not reach the other side
@@ -162,6 +190,51 @@ describe('the line after a video call', () => {
 
     it('not where it was answered on this device', () => {
       expect(call({ seen: true })).toBe('hidden')
+      expect(call({ message: theirMessage(), videoJoinedAt: began, seen: true })).toBe('hidden')
+    })
+  })
+
+  // For the one invited the call begins with their click (E-043 C, W9): whoever comes in later
+  // than the one who invited would otherwise have the line at once.
+  describe('for the one invited, from their click', () => {
+    const theirs = (extra = {}) => call({ message: theirMessage(), ...extra })
+
+    it('half an hour after the click, not after the invitation was written', () => {
+      const now = began + 45 * MINUTE
+      expect(theirs({ now, videoJoinedAt: now - 20 * MINUTE })).toBe('hidden')
+      expect(theirs({ now, videoJoinedAt: now - 30 * MINUTE + 1 })).toBe('hidden')
+      expect(theirs({ now, videoJoinedAt: now - 30 * MINUTE })).toBe('show')
+    })
+
+    it('until seven days after the click, to the millisecond', () => {
+      const clicked = began + 2 * DAY
+      expect(theirs({ videoJoinedAt: clicked, now: clicked + 7 * DAY })).toBe('show')
+      expect(theirs({ videoJoinedAt: clicked, now: clicked + 7 * DAY + 1 })).toBe('hidden')
+    })
+
+    // Festlegung 3: a click days before the meeting is no conversation.
+    it('for a call planned, from the later of the click and the planned time', () => {
+      const start = began + DAY
+      const invitation = planned(start)
+      // Clicked a day ahead, to try the link: the call begins at its time.
+      expect(theirs({ invitation, videoJoinedAt: began, now: start + 29 * MINUTE })).toBe('hidden')
+      expect(theirs({ invitation, videoJoinedAt: began, now: start + 30 * MINUTE })).toBe('show')
+      // Clicked ten minutes into it: from the click.
+      const late = start + 10 * MINUTE
+      expect(theirs({ invitation, videoJoinedAt: late, now: late + 29 * MINUTE })).toBe('hidden')
+      expect(theirs({ invitation, videoJoinedAt: late, now: late + 30 * MINUTE })).toBe('show')
+    })
+
+    it('not where the click cannot be read', () => {
+      expect(theirs({ videoJoinedAt: Number.NaN })).toBe('hidden')
+    })
+
+    // Falle 11: for the one who invited nothing changes -- a click of theirs moves nothing.
+    it('leaves one’s own invitation as it was, with a click as without', () => {
+      const clicked = began + 20 * MINUTE
+      expect(call({ videoJoinedAt: clicked, now: began + 30 * MINUTE })).toBe('show')
+      expect(call({ videoJoinedAt: began - DAY, now: began + 29 * MINUTE })).toBe('hidden')
+      expect(call({ videoJoinedAt: clicked, now: began + 7 * DAY + 1 })).toBe('hidden')
     })
   })
 
@@ -199,6 +272,22 @@ describe('the line after a video call', () => {
           transfers: [transfer('SEND', between)],
         }),
       ).toBe('show')
+    })
+
+    // Under somebody else's invitation, from the member's click: what they sent the one who
+    // invited before going into the room is no thanks for this call.
+    it('counts from the click, under somebody else’s invitation', () => {
+      const clicked = began + 15 * MINUTE
+      const theirs = (sentAt) =>
+        call({
+          message: theirMessage(),
+          videoJoinedAt: clicked,
+          now: clicked + 30 * MINUTE,
+          transfers: [transfer('SEND', new Date(sentAt).toISOString())],
+        })
+      expect(theirs(clicked - 1)).toBe('show')
+      expect(theirs(clicked)).toBe('hidden')
+      expect(theirs(clicked + 10 * MINUTE)).toBe('hidden')
     })
   })
 
@@ -269,10 +358,40 @@ describe('the line after a video call', () => {
       expect(call({ ...inGroup, seen: true })).toBe('hidden')
     })
 
-    it('not under somebody else’s invitation, a forwarded copy, or one that did not arrive', () => {
-      expect(call({ ...inGroup, message: ownMessage({ mine: false }) })).toBe('hidden')
+    it('not under somebody else’s invitation without a click, a forwarded copy, or one that did not arrive', () => {
+      expect(call({ ...inGroup, message: theirMessage() })).toBe('hidden')
       expect(call({ ...inGroup, message: ownMessage({ forwarded: true }) })).toBe('hidden')
+      expect(
+        call({ ...inGroup, message: theirMessage({ forwarded: true }), videoJoinedAt: began }),
+      ).toBe('hidden')
       expect(call({ ...inGroup, message: ownMessage({ deliveryState: 'FAILED' }) })).toBe('hidden')
+    })
+
+    // E-043 C: Anna invited the group, the member clicked her link -- half an hour after that click
+    // the line stands, and a member thanked since the CLICK is no longer among those to thank.
+    describe('under somebody else’s invitation the member went into', () => {
+      const clicked = began + 20 * MINUTE
+      const theirs = (extra = {}) =>
+        call({
+          ...inGroup,
+          message: theirMessage(),
+          videoJoinedAt: clicked,
+          now: clicked + 30 * MINUTE,
+          ...extra,
+        })
+
+      it('stands half an hour after the click, and not a moment before', () => {
+        expect(theirs()).toBe('show')
+        expect(theirs({ now: clicked + 30 * MINUTE - 1 })).toBe('hidden')
+      })
+
+      it('ends when all are thanked since the click, not since the invitation', () => {
+        const sinceClick = new Date(clicked + MINUTE).toISOString()
+        const beforeClick = new Date(clicked - MINUTE).toISOString()
+        const all = (at) => [ANNA, CARLA, EMMA].map((person) => sentTo(person, at))
+        expect(theirs({ transfers: all(sinceClick) })).toBe('hidden')
+        expect(theirs({ transfers: all(beforeClick) })).toBe('show')
+      })
     })
   })
 })
@@ -296,16 +415,45 @@ describe('the beginning a line after a call counts from', () => {
     expect(start({ invitation: planned(planned3), now: planned3 + 45 * MINUTE })).toBe(planned3)
   })
 
+  // What the group's thread asks the member's own transfers back to, and what a thank-you counts
+  // from (membersToThank): under somebody else's invitation, the click.
+  it('is the member’s click, under somebody else’s invitation', () => {
+    const clicked = began + 25 * MINUTE
+    expect(
+      start({ message: theirMessage(), videoJoinedAt: clicked, now: clicked + 45 * MINUTE }),
+    ).toBe(clicked)
+  })
+
+  it('is the later of the click and the planned time, under somebody else’s call planned', () => {
+    const planned3 = began + 3 * DAY
+    const invitation = planned(planned3)
+    const message = theirMessage()
+    const now = planned3 + 45 * MINUTE
+    expect(start({ invitation, message, videoJoinedAt: began, now })).toBe(planned3)
+    expect(start({ invitation, message, videoJoinedAt: planned3 + 5 * MINUTE, now })).toBe(
+      planned3 + 5 * MINUTE,
+    )
+  })
+
+  it('is one’s own invitation’s, whatever was clicked', () => {
+    expect(start({ videoJoinedAt: began + 10 * MINUTE, now: began + 45 * MINUTE })).toBe(began)
+  })
+
   // The thread asks the transfers only where a line is due by its time: nothing before.
   it('is none where the line is not due by its time, or not the member’s to have', () => {
     expect(start({ now: began + THANKS_NUDGE_AFTER_CALL_MS - 1 })).toBeNull()
     expect(start({ now: began + THANKS_NUDGE_HOLDS_MS + 1 })).toBeNull()
-    expect(start({ message: ownMessage({ mine: false }) })).toBeNull()
+    expect(start({ message: theirMessage() })).toBeNull()
     expect(start({ message: ownMessage({ forwarded: true }) })).toBeNull()
     expect(start({ message: ownMessage({ deliveryState: 'FAILED' }) })).toBeNull()
     expect(start({ message: ownMessage({ createdAt: 'not a time' }) })).toBeNull()
     expect(start({ invitation: null })).toBeNull()
     expect(start({ seen: true })).toBeNull()
+    const clicked = { message: theirMessage(), videoJoinedAt: began }
+    expect(start({ ...clicked, now: began + THANKS_NUDGE_AFTER_CALL_MS - 1 })).toBeNull()
+    expect(start({ ...clicked, now: began + THANKS_NUDGE_HOLDS_MS + 1 })).toBeNull()
+    expect(start({ ...clicked, message: theirMessage({ forwarded: true }) })).toBeNull()
+    expect(start({ ...clicked, seen: true })).toBeNull()
   })
 })
 

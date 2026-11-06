@@ -19,9 +19,10 @@ import { isComputer } from '@/utils/isComputer'
  * the server, its path, the room; no `?`), and after its one `#` exactly the addition V4a makes --
  * `config.subject=` and a value without `&` and without `#`, the rule the thread shortens the
  * address by (`withoutChatVideoTopic`) --, with or without the time of a planned call after it
- * (V5b: `&gradido.start=…&gradido.end=…`, whole seconds). A `#` before it, another setting, `http`,
- * a query: somebody else's address, and it gets no second way. The app gets the topic only: the
- * time is the calendar's, not the meeting's.
+ * (V5b: `&gradido.start=…&gradido.end=…`, whole seconds), and after the time what a call changed
+ * in its time carries (E-060: `&gradido.first=…&gradido.seq=…`). A `#` before it, another setting,
+ * `http`, a query: somebody else's address, and it gets no second way. The app gets the topic
+ * only: the time and its changes are the calendar's, not the meeting's.
  *
  * The path has to end on a room: the app takes what follows its LAST `/` as the room. With only the
  * addition after it the app shows the server's front page instead of a room, and with no `/` at all
@@ -29,7 +30,7 @@ import { isComputer } from '@/utils/isComputer'
  * settings) -- not on the server the link names.
  */
 const OWN_INVITATION =
-  /^https:\/\/([^/?#]+)(\/[^?#]*[^/?#])#config\.subject=([^&#]*)(?:&gradido\.start=\d{1,12}&gradido\.end=\d{1,12})?$/
+  /^https:\/\/([^/?#]+)(\/[^?#]*[^/?#])#config\.subject=([^&#]*)(?:&gradido\.start=\d{1,12}&gradido\.end=\d{1,12}(?:&gradido\.first=\d{1,12}&gradido\.seq=\d{1,6})?)?$/
 
 /**
  * The two curly double quotes, made straight for the app.
@@ -203,6 +204,17 @@ export const JITSI_APP_DOWNLOADS = 'https://jitsi.org/downloads/'
 /**
  * Where the thread hands a click on a video invitation's link (V4b): the contact window provides
  * the question "Join call", with the same box, and the link calls it instead of opening the room
- * straight away. Without a provider the link stays a plain link.
+ * straight away. Without a provider the link stays a plain link. The bubble hands the message the
+ * link stands in on with it (E-043 C), for the note at "Join call".
  */
 export const CHAT_VIDEO_JOIN = Symbol('chatVideoJoin')
+
+/**
+ * Where a link of a video invitation reports that it took the member into the room (E-043 C): a
+ * click the browser opens the room for -- on a phone the plain one, anywhere one with a key held
+ * --, and on a computer "Anruf beitreten" in the question (ChatVideoCall). The window provides it
+ * and notes the invitation for the line after the call (utils/chatVideoJoined); it is handed the
+ * link and the message the link stands in, which the bubble adds (ChatBubble) -- as it adds it to
+ * `CHAT_VIDEO_JOIN`. Without a provider nothing is noted.
+ */
+export const CHAT_VIDEO_JOINED = Symbol('chatVideoJoined')

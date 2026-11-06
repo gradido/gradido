@@ -7,7 +7,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
 import ChatBubble from './ChatBubble.vue'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { LIST_AVATAR_SIZE } from '@/constants'
@@ -713,6 +713,57 @@ describe('ChatBubble', () => {
 
       expect(click()).toBe(true)
       expect(asked).toEqual([])
+    })
+
+    /**
+     * E-043 C (Bernd, 06.11.2026: the device notes the invitation that was clicked): the bubble
+     * hands the window's hands the message the link stands in, with the link -- the question at
+     * "Anruf beitreten", and the note where the browser opens the room itself.
+     */
+    describe('with the message the link stands in', () => {
+      let handed
+      const mountHanding = (message) => {
+        handed = { join: [], joined: [] }
+        wrapper = mount(ChatBubble, {
+          props: { message, alias: 'Lena' },
+          global: {
+            provide: {
+              [CHAT_VIDEO_JOIN]: (...args) => handed.join.push(args),
+              [CHAT_VIDEO_JOINED]: (...args) => handed.joined.push(args),
+            },
+            stubs: { IMdiEmailOutline: true, IBiCopy: true },
+          },
+        })
+      }
+
+      it('asks with it on a computer', () => {
+        onA({ computer: true })
+        mountHanding({ ...THEIRS, body: INVITATION })
+
+        expect(click()).toBe(false)
+        expect(handed.join).toEqual([[ADDRESS, 'uuid-6']])
+        expect(handed.joined).toEqual([])
+      })
+
+      it('tells it on a phone', () => {
+        onA({ computer: false })
+        mountHanding({ ...THEIRS, body: INVITATION })
+
+        expect(click()).toBe(true)
+        expect(handed.joined).toEqual([[ADDRESS, 'uuid-6']])
+        expect(handed.join).toEqual([])
+      })
+
+      // The message the bubble shows at the click: a bubble given another message hands that one.
+      it('hands the message the bubble shows at the click', async () => {
+        onA({ computer: false })
+        mountHanding({ ...THEIRS, body: INVITATION })
+        await wrapper.setProps({ message: { ...THEIRS, messageUuid: 'uuid-8', body: INVITATION } })
+
+        click()
+
+        expect(handed.joined).toEqual([[ADDRESS, 'uuid-8']])
+      })
     })
   })
 

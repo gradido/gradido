@@ -221,7 +221,9 @@ import {
 import { CHAT_NOTIFY_EMAIL } from '@/utils/chatNotify'
 import { chatDraftFor, chatGroupDraftKey } from '@/utils/chatDraft'
 import { dropChatReturnNote, noteChatReturn, takeHeldChatText } from '@/utils/chatReturn'
+import { chatVideoInvitation } from '@/utils/chatVideoCalendar'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
+import { chatVideoRoomOf, videoJoinedAt } from '@/utils/chatVideoJoined'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { callNudgeStart, callNudgeState, membersToThank } from '@/utils/thanksNudge'
 
@@ -588,7 +590,10 @@ watch(newestReceivedShown, (newest) => {
  * The suggestion to thank after a video call (W2 of the waves of gratitude, utils/thanksNudge):
  * under the member's own invitation, half an hour after the call began, "Möchtest Du Dich bei …
  * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt" -- where the window can take
- * the member to the send form with this person: the pair complete, as its button asks.
+ * the member to the send form with this person: the pair complete, as its button asks. And under
+ * somebody else's invitation the member went into from this wallet (E-043 C, Bernd 05.11.2026),
+ * half an hour after their own click (utils/chatVideoJoined): in a conversation of two the person
+ * to thank is then the one who invited, the other person; in a group, the members as always.
  *
  * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
  * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
@@ -658,41 +663,90 @@ if (thanksOffered) {
   })
 }
 
+/** Somebody else's video invitation read by its link: its room and, planned, its time. */
+const invitationByLink = (body) => {
+  const call = chatVideoInvitation(body)
+  if (!call) return null
+  return {
+    room: call.room,
+    topic: call.topic,
+    when: call.start ? { start: call.start, end: call.end } : null,
+  }
+}
+
 /**
- * The member's own video invitations in the thread, by message id, each with what it says -- read
- * as the window reads one to change it (`startEdit`): word for word, in the member's language and
- * time zone now. An invitation the wallet does not read as its own words gets no line. Apart from
- * the clock, so that its minute does not read every message again.
+ * The video invitations in the thread a line after the call may stand under, by message id, each
+ * with what it says. The member's own read as the window reads one to change it (`startEdit`):
+ * word for word, in the member's language and time zone now -- an own invitation the wallet does
+ * not read as its own words gets no line. Somebody else's by its link (Bernd, 06.11.2026): the
+ * first address of Gradido's own form in the message (chatVideoInvitation, as "Duplizieren" under
+ * it reads it, E-058), in whatever language and time zone it was written; the line under it waits
+ * for the member's click (E-043 C). Apart from the clock, so that its minute does not read every
+ * message again.
  */
-const ownInvitations = computed(() => {
+const invitations = computed(() => {
   const found = new Map()
   if (!thanksOffered) return found
   const i18n = { t, d, locale: locale.value }
   for (const message of messages.value) {
-    if (!message.mine) continue
-    const invitation = readChatVideoInvite(i18n, message.body)
+    const invitation = message.mine
+      ? readChatVideoInvite(i18n, message.body)
+      : invitationByLink(message.body)
     if (invitation) found.set(message.id, { message, invitation })
   }
   return found
 })
 
 /**
- * In a group's thread, the beginning of the earliest call of the member's own whose line is due
- * by its time now (callNudgeStart) -- null where none is, and before the window has the members.
- * The member's own transfers are asked back to it once the first line is due (W7), and once for
- * the opening of the window: not on opening for nothing, not on the chat's beat. The minute clock
- * above brings it where a call turns half an hour old while the member reads; "Zurück" from the
- * send form opens the window anew, and it asks anew.
+ * When the member went into the room of an invitation from this wallet (utils/chatVideoJoined):
+ * the time of their first click, on this device and within the seven days -- or null. Read for
+ * every invitation; the rule takes it only for somebody else's (callNudgeStart).
+ */
+const joinedAt = (message) => videoJoinedAt(store.gradidoID, message.messageUuid, now.value)
+
+/**
+ * The invitation a clicked video link stands in (E-043 C, Bernd 06.11.2026: the device notes the
+ * invitation that was clicked): the message's uuid, where the thread reads that message as an
+ * invitation into the room the link leads into -- for the window to note the member's click by
+ * (utils/chatVideoJoined). null for a message that is no invitation, one into another room, and
+ * one the thread does not hold. The very message, not another that carries the same room: a call
+ * duplicated ahead for the next week keeps its room (E-058), and a link handed on again does too.
+ * The room's address itself is kept nowhere.
+ *
+ * @param {string} roomUrl the link as it was clicked, with or without its addition
+ * @param {string} messageUuid the message it stands in (ChatBubble)
+ * @returns {string | null}
+ */
+const invitationInRoom = (roomUrl, messageUuid) => {
+  const room = chatVideoRoomOf(roomUrl)
+  const id = String(messageUuid ?? '').toLowerCase()
+  if (!room || !id) return null
+  for (const { message, invitation } of invitations.value.values()) {
+    if (String(message.messageUuid ?? '').toLowerCase() !== id) continue
+    return chatVideoRoomOf(invitation.room) === room ? message.messageUuid : null
+  }
+  return null
+}
+
+/**
+ * In a group's thread, the beginning of the earliest call whose line is due by its time now
+ * (callNudgeStart) -- one's own, or somebody else's the member went into from here -- null where
+ * none is, and before the window has the members. The member's own transfers are asked back to it
+ * once the first line is due (W7), and once for the opening of the window: not on opening for
+ * nothing, not on the chat's beat. The minute clock above brings it where a call turns half an
+ * hour old while the member reads -- for the one invited, half an hour after their click; "Zurück"
+ * from the send form opens the window anew, and it asks anew.
  */
 const groupCallsDueSince = computed(() => {
   if (!inGroup || !thanksMembers.value.length) return null
   let earliest = null
-  for (const { message, invitation } of ownInvitations.value.values()) {
+  for (const { message, invitation } of invitations.value.values()) {
     const start = callNudgeStart({
       invitation,
       message,
       now: now.value,
       seen: thanksSeen('call', message.messageUuid),
+      videoJoinedAt: joinedAt(message),
     })
     if (start !== null && (earliest === null || start < earliest)) earliest = start
   }
@@ -723,12 +777,13 @@ const thanksDue = computed(() => {
   let transfersKnown = null
   if (inGroup) transfersKnown = ownTransfers.transfers.value
   else if (transfersSettled.value && !transfersFailed.value) transfersKnown = transfers.value
-  for (const { message, invitation } of ownInvitations.value.values()) {
+  for (const { message, invitation } of invitations.value.values()) {
     const occasion = {
       invitation,
       message,
       now: now.value,
       seen: thanksSeen('call', message.messageUuid),
+      videoJoinedAt: joinedAt(message),
     }
     const line = callNudgeState({
       ...occasion,
@@ -2198,8 +2253,10 @@ const showQuoted = async (quoted) => {
  * `deliver`: a message from outside the bar (the video call's invitation, see above).
  * `edit`: a change from outside the bar (a video invitation's topic and time, E-060).
  * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
+ * `invitationInRoom`: whether a clicked video link stands in an invitation into its room (E-043 C,
+ * see above), for the window to note the click by.
  */
-defineExpose({ deliver, edit, searchStep })
+defineExpose({ deliver, edit, searchStep, invitationInRoom })
 </script>
 
 <style lang="scss" scoped>

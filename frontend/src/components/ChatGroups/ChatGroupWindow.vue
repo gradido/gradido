@@ -254,7 +254,8 @@ import { SMALL_FACE_SIZE } from '@/constants'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { managesChatGroup } from '@/utils/chatGroupRoles'
 import { chatMemberKey } from '@/utils/chatMemberKey'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 
@@ -560,7 +561,16 @@ const editThroughThread = (changed) =>
   thread.value ? thread.value.edit(changed) : Promise.resolve('OTHER')
 
 /** The question before joining a call, asked by the link of an invitation in the group's thread. */
-provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+provide(CHAT_VIDEO_JOIN, (roomUrl, messageUuid) => videoCall.value?.askJoin(roomUrl, messageUuid))
+
+/**
+ * The member went into the room of an invitation in the group's thread from this wallet
+ * (E-043 C), as in the contact window: noted by the invitation the link stands in, where the
+ * thread reads it as one into that room -- the room's address kept nowhere (utils/chatVideoJoined).
+ */
+provide(CHAT_VIDEO_JOINED, (roomUrl, messageUuid) =>
+  noteChatVideoJoined(store.gradidoID, thread.value?.invitationInRoom?.(roomUrl, messageUuid)),
+)
 
 /**
  * Forwarding a message of the thread (E-059): the window asks where to, in a dialog over itself.
