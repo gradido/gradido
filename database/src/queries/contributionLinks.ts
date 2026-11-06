@@ -17,6 +17,15 @@ export async function dbFindContributionLinkIdByCode(redeemCode: string): Promis
   return rows[0] ? rows[0].id : null
 }
 
+/** Writes one contribution link and returns its id. */
+export async function dbInsertContributionLink(
+  contributionLink: ContributionLinksInsert,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const [{ id }] = await tx.insert(contributionLinksTable).values(contributionLink).$returningId()
+  return id
+}
+
 // One statement for all the rows it is given
 export async function dbInsertContributionLinks(
   contributionLinks: ContributionLinksInsert[],

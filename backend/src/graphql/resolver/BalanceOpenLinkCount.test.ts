@@ -1,11 +1,9 @@
 // AI-GENERATED — not an architecture reference
 
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase } from 'database'
+import { AppDatabase, creationFactory, nMonthsBefore, transactionLinkFactory } from 'database'
 import { CONFIG } from '@/config'
-import { creationFactory, nMonthsBefore } from '@/seeds/factory/creation'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { transactionsQuery } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -33,10 +31,10 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  await userFactory(testEnv, bibiBloxberg)
+  await userFactoryDrizzle(bibiBloxberg)
   // the creation is only confirmed by a moderator, and the factory looks for this one
-  await userFactory(testEnv, peterLustig)
-  await creationFactory(testEnv, {
+  await userFactoryDrizzle(peterLustig)
+  await creationFactory({
     email: 'bibi@bloxberg.de',
     amount: 1000,
     memo: 'Herzlich Willkommen bei Gradido!',
@@ -47,13 +45,13 @@ beforeAll(async () => {
   const longAgo = new Date()
   longAgo.setFullYear(longAgo.getFullYear() - 1)
 
-  await transactionLinkFactory(testEnv, {
+  await transactionLinkFactory({
     email: 'bibi@bloxberg.de',
     amount: 19.99,
     memo: 'expired long ago',
     createdAt: longAgo,
   })
-  await transactionLinkFactory(testEnv, {
+  await transactionLinkFactory({
     email: 'bibi@bloxberg.de',
     amount: 19.99,
     memo: 'still open',

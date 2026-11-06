@@ -1,3 +1,4 @@
+export * from './batchSize'
 export * from './contributionLink'
 export * from './creation'
 export * from './pendingTransaction'

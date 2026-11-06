@@ -9,7 +9,7 @@ import {
 import { GraphQLError } from 'graphql'
 import { GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   createContributionLink,
   deleteContributionLink,
@@ -37,8 +37,8 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await userFactory(testEnv, bibiBloxberg)
-  await userFactory(testEnv, peterLustig)
+  await userFactoryDrizzle(bibiBloxberg)
+  await userFactoryDrizzle(peterLustig)
 })
 
 afterAll(async () => {
@@ -122,7 +122,7 @@ describe('Contribution Links', () => {
   describe('authenticated', () => {
     describe('without admin rights', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg)
+        await userFactoryDrizzle(bibiBloxberg)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -196,7 +196,7 @@ describe('Contribution Links', () => {
 
     describe('with admin rights', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, peterLustig)
+        await userFactoryDrizzle(peterLustig)
         await mutate({
           mutation: login,
           variables: { email: 'peter@lustig.de', password: 'Aa12345_' },

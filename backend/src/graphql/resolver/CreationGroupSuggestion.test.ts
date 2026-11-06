@@ -3,10 +3,10 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   CreationGroup as DbCreationGroup,
-  User,
+  DbUser,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -82,10 +82,10 @@ afterAll(async () => {
 })
 
 describe('the member has said something themselves', () => {
-  let member: User
+  let member: DbUser
 
   beforeAll(async () => {
-    member = await userFactory(testEnv, bibiBloxberg)
+    member = await userFactoryDrizzle(bibiBloxberg)
     await loginAs('bibi@bloxberg.de')
   })
 
@@ -121,10 +121,10 @@ describe('the member has said something themselves', () => {
 })
 
 describe('the member said something once, long ago', () => {
-  let member: User
+  let member: DbUser
 
   beforeAll(async () => {
-    member = await userFactory(testEnv, raeuberHotzenplotz)
+    member = await userFactoryDrizzle(raeuberHotzenplotz)
     await loginAs('raeuber@hotzenplotz.de')
     // A group of theirs from back then -- either chosen in the field, or adopted out of
     // an old "#hexen" memo in the admin. Both leave the same thing behind: a link.
@@ -154,10 +154,10 @@ describe('the member said something once, long ago', () => {
 })
 
 describe('the member has never said anything', () => {
-  let member: User
+  let member: DbUser
 
   beforeAll(async () => {
-    member = await userFactory(testEnv, peterLustig)
+    member = await userFactoryDrizzle(peterLustig)
   })
 
   it('suggests nothing at all when there is nothing to go on', async () => {
@@ -177,10 +177,10 @@ describe('a long-standing member whose whole history is silent', () => {
   // whose contributions never named a group either. Every one of them says nothing, so the
   // search must find no statement at all rather than mistaking silence for one — and then
   // behave exactly as it did before the field existed: an empty group field.
-  let member: User
+  let member: DbUser
 
   beforeAll(async () => {
-    member = await userFactory(testEnv, bobBaumeister)
+    member = await userFactoryDrizzle(bobBaumeister)
     await loginAs('bob@baumeister.de')
     for (const memo of [
       'suggestion: silent history, first',
