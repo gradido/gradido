@@ -64,7 +64,7 @@ describe('RecipientNotFound', () => {
       )
       expect(data('choose-community').text()).toBe('Gemeinschaft wählen')
       expect(data('by-email').text()).toBe(
-        `Sonst schick Deinen Dank per E-Mail: Gradido legt dafür einen Link an, der ${LINK_VALID_DAYS} Tage wartet. Damit wird ein Konto angelegt — oder der Dank in ein bestehendes genommen.`,
+        `Du kannst Deinen Dank trotzdem schicken, per E-Mail: Gradido legt dafür einen Link an, der ${LINK_VALID_DAYS} Tage wartet. Wer ihn öffnet, nimmt den Dank in sein Konto — oder legt sich gleich dort eines an.`,
       )
       expect(data('send-by-email').text()).toBe('Dank per E-Mail schicken')
       expect(data('change').text()).toBe('Adresse ändern')
@@ -75,6 +75,16 @@ describe('RecipientNotFound', () => {
       expect(data('other-community').exists()).toBe(false)
       expect(data('choose-community').exists()).toBe(false)
       expect(data('send-by-email').exists()).toBe(true)
+    })
+
+    // ZE-038: one text for one door and for two. It once began with "Sonst", which pointed at a
+    // first door that a server with a single community never shows.
+    it('says the same over the mail door, with or without the other one', () => {
+      show({ canChooseCommunity: true })
+      const withBoth = data('by-email').text()
+      wrapper.unmount()
+      show({ canChooseCommunity: false })
+      expect(data('by-email').text()).toBe(withBoth)
     })
 
     it('has no door to a mail without an address', () => {

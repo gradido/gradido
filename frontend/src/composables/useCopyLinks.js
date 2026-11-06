@@ -52,7 +52,7 @@ export const useCopyLinks = ({ link, amount, memo, validUntil, greeting = null }
   // A thank-you greeting goes out with a sentence of its own (ZE-017, F3): in the first person,
   // without the sender's words and without the amount -- both stand on the card, behind the
   // link. The name where the greeting has one, the link on a line of its own, and the last
-  // line the plain link has too: until when it waits, and that nothing happens otherwise.
+  // line the plain link has too: until when it waits, and that there is no hurry (ZE-038).
   const greetingText = () =>
     [
       greeting.recipientName

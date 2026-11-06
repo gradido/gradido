@@ -162,7 +162,7 @@ describe('ThankYouGreetingDone', () => {
     const SENTENCE = [
       'Sarah, ich habe einen Dank-Gruß für Dich:',
       LINK,
-      'Er wartet bis zum 16.10.2026 auf Dich. Nimmst Du ihn nicht an, passiert nichts.',
+      'Lass Dir Zeit: Er wartet bis zum 16.10.2026 auf Dich.',
     ].join('\n')
 
     it('stands there word for word, with the link on a line of its own', () => {

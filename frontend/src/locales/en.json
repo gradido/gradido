@@ -785,7 +785,7 @@
     "password_old": "Old password",
     "recipient": "Recipient",
     "recipient-not-found": {
-      "by-email": "Otherwise send your thank-you by email: Gradido creates a link for it that waits for {days} days. With it, an account is created — or the thank-you goes into an existing one.",
+      "by-email": "You can still send your thank-you, by email: Gradido creates a link for it that waits for {days} days. Whoever opens it takes the thank-you into their account — or opens one right there.",
       "change-address": "Change address",
       "change-entry": "Change entry",
       "choose-community": "Select community",
@@ -916,7 +916,7 @@
     "share-line1": "{name} thanks you with {amount} Gradido:",
     "share-line2": "“{memo}”",
     "share-line3": "Would you like to accept this thank-you?",
-    "share-line4": "It will wait for you until {date}. If you don't accept it, nothing happens.",
+    "share-line4": "Take your time: it will wait for you until {date}.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "to-switch": "Redirect now",
