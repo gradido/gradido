@@ -1081,15 +1081,6 @@ describe('RedeemThanks', () => {
     })
   })
 
-  // jsdom lays nothing out and reads no stylesheet, so what a test can hold is the source; the
-  // measure in the built wallet, in both themes, is part of the delivery.
-  //
-  // A colour the view takes from Bootstrap follows the theme only where the wallet's bridge
-  // switches that variable. The colour of a heading is not among them -- the dark sheet
-  // repaints the heading elements instead -- and a line that is no heading and takes that
-  // colour stood on the dark card at 1.2 : 1.
-  // A link that carries a thank-you greeting: the open sheet shows it, and the heading above
-  // it says what has come. The later states stay without a sheet and without a picture.
   // ZE-038: the face the server hands out with an open link stands on the sheet -- for whoever
   // may accept it, and for the sender, who sees the sheet as the other person will.
   describe('the face of the sender', () => {
@@ -1127,6 +1118,15 @@ describe('RedeemThanks', () => {
     })
   })
 
+  // jsdom lays nothing out and reads no stylesheet, so what a test can hold is the source; the
+  // measure in the built wallet, in both themes, is part of the delivery.
+  //
+  // A colour the view takes from Bootstrap follows the theme only where the wallet's bridge
+  // switches that variable. The colour of a heading is not among them -- the dark sheet
+  // repaints the heading elements instead -- and a line that is no heading and takes that
+  // colour stood on the dark card at 1.2 : 1.
+  // A link that carries a thank-you greeting: the open sheet shows it, and the heading above
+  // it says what has come. The later states stay without a sheet and without a picture.
   describe('a link with a thank-you greeting', () => {
     const LINE = 'Einfach so — weil es Dich gibt.'
     const greeted = (overrides = {}) =>

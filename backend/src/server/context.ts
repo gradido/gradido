@@ -50,8 +50,9 @@ export interface RequestBudget {
   // TRANSACTION_PICTURES_MAX_PER_REQUEST.
   transactionPicturesServed: number
   // Faces of the members who made a link, on the page of an open link (queryTransactionLink),
-  // capped at SENDER_AVATARS_MAX_PER_REQUEST. Counted where a face is looked up, with or
-  // without one to show; the answer of such a request stays out of the log.
+  // capped at SENDER_AVATARS_MAX_PER_REQUEST. Counted for every open link of a member whose
+  // account stands, before the face is looked up -- with or without one to show, and past the
+  // cap as well; the answer of such a request stays out of the log.
   senderAvatarsServed: number
   // Reactions to chat messages set or taken back (setChatMessageReaction), capped at
   // CHAT_REACTIONS_MAX_PER_REQUEST: each is a transaction.

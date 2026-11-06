@@ -630,8 +630,6 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     })
   })
 
-  // "I already have an account" is a link, and it leads where the old page's button led. The
-  // other way, for somebody without one, stays on the page (below).
   // ZE-038: the face the query answers with reaches the sheet, and the strip above the form.
   describe('the face of the sender', () => {
     const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
@@ -664,6 +662,8 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     })
   })
 
+  // "I already have an account" is a link, and it leads where the old page's button led. The
+  // other way, for somebody without one, stays on the page (below).
   describe('a guest goes on', () => {
     it('stays on the page with "accept": the form opens, and nothing is asked yet', async () => {
       const { wrapper, router } = await open(memberLink())
