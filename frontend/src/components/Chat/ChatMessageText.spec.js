@@ -649,14 +649,22 @@ describe('ChatMessageText', () => {
     })
 
     // E-060: a call whose time was changed carries what it had first in its address. The thread
-    // reads it as an invitation; its link does not ask on a computer (it never did) -- the browser
-    // opens the room, and the click is told on every device (the second reader, F3).
-    it.each([
-      ['a computer', true],
-      ['a phone', false],
-    ])('tells it on %s for a call whose time was changed', (_, computer) => {
-      const CHANGED = `${ROOM}&gradido.start=1793955600&gradido.end=1793959200&gradido.first=1793869200&gradido.seq=1`
-      onA({ computer })
+    // reads it as an invitation, and its link is one of our own like any other: it asks on a
+    // computer (Bernd, 06.11.2026, F3a -- before, it opened the room straight away) and tells
+    // the window on a phone (the second reader, F3).
+    const CHANGED = `${ROOM}&gradido.start=1793955600&gradido.end=1793959200&gradido.first=1793869200&gradido.seq=1`
+
+    it('asks on a computer for a call whose time was changed', () => {
+      onA({ computer: true })
+      mountWith(`📹 Lesekreis: ${CHANGED}`)
+
+      expect(click()).toBe(false)
+      expect(asking).toHaveBeenCalledWith(CHANGED)
+      expect(joined).not.toHaveBeenCalled()
+    })
+
+    it('tells it on a phone for a call whose time was changed', () => {
+      onA({ computer: false })
       mountWith(`📹 Lesekreis: ${CHANGED}`)
 
       expect(click()).toBe(true)
