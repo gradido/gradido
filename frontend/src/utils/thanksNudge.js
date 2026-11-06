@@ -7,12 +7,14 @@ import { chatMemberKey } from './chatMemberKey'
  * storage, and no clock of its own: the time always comes in as `now`, so the same moment gives
  * the same answer wherever it is asked.
  *
- * - After a video call: under one's own invitation in a conversation of two, half an hour after
- *   the call began. Bernd (26.10.2026): the end of a call cannot be measured -- it runs on a Jitsi
- *   server of its own --, its beginning can, and whoever invited is most likely in it. And in a
- *   group's thread (Bernd, 28.10.2026): there the member chooses whom to thank among the members
- *   -- and a member thanked since the call began is no longer among them (E-043 B, 05.11.2026).
- *   In both kinds of conversation, what was thanked is what was booked.
+ * - After a video call: half an hour after the call began, for whoever went into it from this
+ *   wallet. Bernd (26.10.2026): the end of a call cannot be measured -- it runs on a Jitsi server
+ *   of its own --, its beginning can. Whoever invited is most likely in it; and since 05.11.2026
+ *   (E-043 C) so is whoever was invited and clicked the invitation's link here -- for them the
+ *   call begins with that click. And in a group's thread (Bernd, 28.10.2026): there the member
+ *   chooses whom to thank among the members -- and a member thanked since the call began is no
+ *   longer among them (E-043 B, 05.11.2026). In both kinds of conversation, what was thanked is
+ *   what was booked.
  * - After a thank-you received: in the opened row of the booking, "pass it on" -- outwards, never
  *   back to the giver (the waves run outwards; a thank-you that expects one back is the market).
  *
@@ -38,28 +40,43 @@ const at = (value) => new Date(value).getTime()
  * the message is no such occasion now, whatever was sent since. What the thread asks the member's
  * own transfers from in a group, and the beginning the rule below counts a thank-you from.
  *
- * - `invitation`: the video invitation the message is, as `readChatVideoInvite` reads it -- or
- *   null for every other message, and for an invitation the wallet does not read as its own
- *   words (another language, another clock): that one gets no line.
- * - `message`: the message as the thread holds it now. Only one's own (`mine`): the one who
- *   invited is the one asked, never the one invited. Not a copy forwarded from another
- *   conversation (E-059): its words are somebody else's, and so was the call. Not one that did
- *   not reach the other side (`FAILED`): the window does not open a room nobody else knows, so
- *   there was no call.
+ * - `invitation`: the video invitation the message is, as the thread reads it -- one's own word
+ *   for word (`readChatVideoInvite`), somebody else's by its link -- or null for every other
+ *   message: that one gets no line.
+ * - `message`: the message as the thread holds it now. Whoever went into the call from this
+ *   wallet is asked (E-043 C): the one who invited, whose invitation is their own (`mine`), and the
+ *   one invited, where the device knows their click (`videoJoinedAt`). Somebody else's invitation
+ *   without that click gets no line: the link may have reached them another way, or another
+ *   device. Not a copy forwarded from another conversation (E-059, W10): its words are somebody
+ *   else's, and so was the call -- with a click as without. Not one's own that did not reach the
+ *   other side (`FAILED`): the window does not open a room nobody else knows, so there was no
+ *   call.
+ * - `videoJoinedAt`: when the member clicked the link of this invitation of somebody else's here
+ *   (utils/chatVideoJoined), in milliseconds -- null where they did not. Not read for one's own.
  * - `seen`: the member answered the line on this device already: "Nicht jetzt" -- and "Danke
  *   sagen" in a conversation of two whose thread holds no transfers (the member's switch off).
  *
- * The call began at the time the invitation names where it is planned, else when the message was
- * written. An invitation that was changed (E-060) is read as it stands now: its time is the one
- * it shows. The line is due from half an hour after that until seven days after it.
+ * The call began, for the one who invited, at the time the invitation names where it is planned,
+ * else when the message was written; for the one invited, with their click -- for a planned call
+ * at the later of the click and the planned time (Festlegung 3: a click days before the meeting is
+ * no conversation). An invitation that was changed (E-060) is read as it stands now: its time is
+ * the one it shows. The line is due from half an hour after that until seven days after it.
  *
- * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, seen: boolean }} occasion
+ * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, seen: boolean, videoJoinedAt?: number | null }} occasion
  * @returns {number | null} the beginning, in milliseconds
  */
-export const callNudgeStart = ({ invitation, message, now, seen }) => {
-  if (!invitation || !message?.mine || message.forwarded || seen) return null
-  if (message.deliveryState === 'FAILED') return null
-  const start = at(invitation.when?.start ?? message.createdAt)
+export const callNudgeStart = ({ invitation, message, now, seen, videoJoinedAt = null }) => {
+  if (!invitation || !message || message.forwarded || seen) return null
+  let start
+  if (message.mine) {
+    if (message.deliveryState === 'FAILED') return null
+    start = at(invitation.when?.start ?? message.createdAt)
+  } else {
+    if (videoJoinedAt === null || videoJoinedAt === undefined) return null
+    start = invitation.when?.start
+      ? Math.max(at(videoJoinedAt), at(invitation.when.start))
+      : at(videoJoinedAt)
+  }
   const since = now - start
   // Written so that a time nobody can read (NaN) is no occasion either.
   if (!(since >= THANKS_NUDGE_AFTER_CALL_MS && since <= THANKS_NUDGE_HOLDS_MS)) return null
@@ -98,8 +115,10 @@ export const membersToThank = ({ members, transfers, start, ownCommunityUuid = n
 
 /**
  * Whether the line "Möchtest Du Dich bei … für das Gespräch bedanken?" stands under a message:
- * where it is due by its time (`callNudgeStart`, with what that reads), and nothing was thanked
- * for the call yet. What was thanked is what was booked, in both kinds of conversation:
+ * where it is due by its time (`callNudgeStart`, with what that reads -- `videoJoinedAt` too),
+ * and nothing was thanked for the call yet. Under somebody else's invitation the one to thank in
+ * a conversation of two is the one who invited, the other person. What was thanked is what was
+ * booked, in both kinds of conversation:
  *
  * - `transfers`: in a conversation of two, the transfers between the two as the thread holds
  *   them; in a group, the member's own bookings (useOwnTransfers). Null while they are not known
@@ -110,7 +129,7 @@ export const membersToThank = ({ members, transfers, start, ownCommunityUuid = n
  *   `members` is left to thank (`membersToThank`); once all are thanked, it goes.
  *   `ownCommunityUuid` is the member's own community, for a booking that names none.
  *
- * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, group?: boolean, members?: Array, ownCommunityUuid?: string | null, seen: boolean }} occasion
+ * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, group?: boolean, members?: Array, ownCommunityUuid?: string | null, seen: boolean, videoJoinedAt?: number | null }} occasion
  * @returns {'hidden' | 'show'}
  */
 export const callNudgeState = ({
@@ -122,8 +141,9 @@ export const callNudgeState = ({
   members = [],
   ownCommunityUuid = null,
   seen,
+  videoJoinedAt = null,
 }) => {
-  const start = callNudgeStart({ invitation, message, now, seen })
+  const start = callNudgeStart({ invitation, message, now, seen, videoJoinedAt })
   if (start === null || !transfers) return 'hidden'
   if (group) {
     return membersToThank({ members, transfers, start, ownCommunityUuid }).length > 0
