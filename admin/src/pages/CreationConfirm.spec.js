@@ -537,6 +537,85 @@ describe('CreationConfirm', () => {
     expect(mockToastWarning).toHaveBeenCalled()
   })
 
+  // Bernd, 06.11.2026: a note written in an open row changes the row in place -- a refetch would
+  // close it. A colleague's note on the question shows, and a resubmission the note went out
+  // without is gone.
+  describe('a note written in an open row', () => {
+    const HELD = '2026-11-12T10:00:00.000Z'
+    const row = (id) =>
+      table()
+        .props('items')
+        .find((item) => item.id === id)
+
+    beforeEach(async () => {
+      await simulateQueryResult({
+        adminListContributions: {
+          contributionCount: 2,
+          contributionList: [
+            {
+              id: 1,
+              contributionStatus: 'IN_PROGRESS',
+              messagesCount: 1,
+              resubmissionAt: HELD,
+              colleagueNoteOnQuestion: false,
+            },
+            {
+              id: 2,
+              contributionStatus: 'PENDING',
+              messagesCount: 2,
+              resubmissionAt: null,
+              colleagueNoteOnQuestion: false,
+            },
+          ],
+        },
+      })
+    })
+
+    it("shows a colleague's note and drops the resubmission it took back", async () => {
+      await table().vm.$emit('note-added', {
+        id: 1,
+        colleagueNote: true,
+        resubmissionWithdrawn: true,
+      })
+      expect(row(1)).toEqual(
+        expect.objectContaining({
+          contributionStatus: 'IN_PROGRESS',
+          colleagueNoteOnQuestion: true,
+          resubmissionAt: null,
+          messagesCount: 2,
+        }),
+      )
+      expect(row(2)).toEqual(expect.objectContaining({ messagesCount: 2 }))
+    })
+
+    it('keeps the status and the resubmission where the note left them', async () => {
+      await table().vm.$emit('note-added', {
+        id: 2,
+        colleagueNote: false,
+        resubmissionWithdrawn: false,
+      })
+      expect(row(2)).toEqual(
+        expect.objectContaining({ contributionStatus: 'PENDING', messagesCount: 3 }),
+      )
+      await table().vm.$emit('note-added', {
+        id: 1,
+        colleagueNote: false,
+        resubmissionWithdrawn: false,
+      })
+      expect(row(1).resubmissionAt).toBe(HELD)
+    })
+
+    it('ends with a message to the member', async () => {
+      await table().vm.$emit('note-added', {
+        id: 1,
+        colleagueNote: true,
+        resubmissionWithdrawn: true,
+      })
+      await table().vm.$emit('update-status', 1)
+      expect(row(1).colleagueNoteOnQuestion).toBe(false)
+    })
+  })
+
   it('shows a neutral notice for a no-reminder no-op even within a group', async () => {
     await simulateQueryResult({
       adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },

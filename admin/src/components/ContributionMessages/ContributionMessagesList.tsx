@@ -14,10 +14,12 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { MemberRemarkEditor, MemberRemarkLine, MemberRemarkToggle } from '@/components/MemberRemark'
 import { MemberWalletLink } from '@/components/MemberWalletLink'
-import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { fetchMemberAvatars, memberKey } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import { useUserRemark } from '@/composables/useUserRemark'
 import { CONFIG } from '@/config'
+import { useAdminStore } from '@/store/useAdminStore'
+import { moderatorKey } from '@/utils/theModerator'
 import IArcticonsCircles from '~icons/arcticons/circles'
 import { adminListContributionMessages } from '../../graphql/adminListContributionMessages'
 import { ContributionMessagesFormular } from './ContributionMessagesFormular'
@@ -64,7 +66,13 @@ export const ContributionMessagesList = defineComponent({
       required: false,
     },
   },
-  emits: ['update-status', 'reload-contribution', 'update-contributions', 'resubmission-saved'],
+  emits: [
+    'update-status',
+    'reload-contribution',
+    'update-contributions',
+    'resubmission-saved',
+    'note-added',
+  ],
   setup(props, { emit }) {
     const { t } = useI18n()
     const email = computed(() => {
@@ -91,6 +99,8 @@ export const ContributionMessagesList = defineComponent({
     const { client: apolloClient } = useApolloClient()
 
     const messages = ref<ContributionMessage[]>([])
+    // How many messages the thread has; the page of it that came may hold fewer.
+    const messageCount = ref(0)
 
     // How the card speaks of the member: as the pin and the arrow name them.
     const memberName = computed(
@@ -131,6 +141,7 @@ export const ContributionMessagesList = defineComponent({
 
     onResult(() => {
       messages.value = result.value.adminListContributionMessages.messages
+      messageCount.value = result.value.adminListContributionMessages.count
       remark.take(askedAbout, result.value.userRemark ?? null)
       // The faces of everybody who wrote in this thread, in one round trip. Each message carries
       // a DATE, not a picture: everything already held under that date needs nothing, so opening
@@ -143,6 +154,48 @@ export const ContributionMessagesList = defineComponent({
           avatarUpdatedAt: message.userAvatarUpdatedAt,
         })),
       )
+    })
+
+    // The open question, where a colleague asked it (Bernd, 06.11.2026): the newest message of the
+    // conversation -- the notes left out, as on the server (ContributionConversation.logic.ts) -- is
+    // a moderator's question by somebody other than the moderator signed in here. A note written
+    // here then takes the resubmission back (ContributionMessagesFormular). Nothing where the whole
+    // thread is not here (a page of it may miss the newest message) or where it is unknown who is
+    // signed in: there a note leaves the resubmission as it is, as it always did.
+    const store = useAdminStore()
+    const colleagueQuestion = computed(() => {
+      const me = moderatorKey(store.moderator)
+      if (
+        props.contribution.contributionStatus !== 'IN_PROGRESS' ||
+        !me ||
+        messageCount.value > messages.value.length
+      ) {
+        return null
+      }
+      const question = messages.value
+        .filter((message) => message.type !== 'MODERATOR')
+        .reduce<ContributionMessage | undefined>((latest, message) => {
+          if (!latest) {
+            return message
+          }
+          const later = new Date(message.createdAt).getTime() - new Date(latest.createdAt).getTime()
+          return later > 0 || (later === 0 && Number(message.id) > Number(latest.id))
+            ? message
+            : latest
+        }, undefined)
+      if (
+        !question ||
+        question.type !== 'DIALOG' ||
+        question.isModerator !== true ||
+        !question.userGradidoID
+      ) {
+        return null
+      }
+      const asker = memberKey({
+        gradidoID: question.userGradidoID,
+        communityUuid: question.userCommunityUuid,
+      }).toLowerCase()
+      return asker === me ? null : { name: question.userAlias ?? '' }
     })
 
     const updateStatus = (id: number) => {
@@ -241,6 +294,8 @@ export const ContributionMessagesList = defineComponent({
               onReload-contribution={reloadContribution}
               onUpdate-contributions={updateContributions}
               onResubmission-saved={(event: unknown) => emit('resubmission-saved', event)}
+              colleagueQuestion={colleagueQuestion.value}
+              onNote-added={(event: unknown) => emit('note-added', event)}
             />
           </div>
         ) : null}

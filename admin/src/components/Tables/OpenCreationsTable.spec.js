@@ -13,6 +13,7 @@ import IBiChatDots from '~icons/bi/chat-dots'
 import IBiCheck from '~icons/bi/check'
 import IBiPencilFill from '~icons/bi/pencil-fill'
 import IBiQuestionLg from '~icons/bi/question-lg'
+import IBiStickyFill from '~icons/bi/sticky-fill'
 import IIcRoundPriorityHigh from '~icons/ic/round-priority-high'
 import { adminStore } from '../../../test/adminStore'
 import { OpenCreationsTable } from './OpenCreationsTable'
@@ -229,6 +230,12 @@ describe('OpenCreationsTable', () => {
     it('emits resubmission-saved', async () => {
       await panel().vm.$emit('resubmission-saved', 'unchanged')
       expect(wrapper.emitted('resubmission-saved')).toEqual([['unchanged']])
+    })
+
+    it('emits note-added', async () => {
+      const note = { id: 1, colleagueNote: true, resubmissionWithdrawn: true }
+      await panel().vm.$emit('note-added', note)
+      expect(wrapper.emitted('note-added')).toEqual([[note]])
     })
   })
 
@@ -757,6 +764,24 @@ describe('OpenCreationsTable', () => {
           { ...open, contributionStatus: 'IN_PROGRESS', ...conversation('DIALOG', true) },
           IBiQuestionLg,
         ],
+        // Bernd, 06.11.2026: a colleague's note on the question takes the question mark's place,
+        // so that the moderator who asked sees that somebody reacted to it.
+        [
+          "a colleague's note on the question",
+          {
+            ...open,
+            contributionStatus: 'IN_PROGRESS',
+            ...conversation('DIALOG', true),
+            colleagueNoteOnQuestion: true,
+          },
+          IBiStickyFill,
+        ],
+        // Only while a question is open: the row's status decides, whatever the flag says.
+        [
+          "a colleague's note, but no question open",
+          { ...open, ...conversation('DIALOG', false), colleagueNoteOnQuestion: true },
+          IIcRoundPriorityHigh,
+        ],
         [
           'a moderator had the last word',
           { ...open, ...conversation('HISTORY', true) },
@@ -794,6 +819,7 @@ describe('OpenCreationsTable', () => {
         [IIcRoundPriorityHigh, 'details – contribution.detailsState.answer'],
         [IBiPencilFill, 'details – contribution.detailsState.changed'],
         [IBiQuestionLg, 'details – contribution.detailsState.question'],
+        [IBiStickyFill, 'details – contribution.detailsState.note'],
         [IBiChatDots, 'details – contribution.detailsState.conversation'],
         [IBiArrowDown, 'details'],
       ])
@@ -806,8 +832,8 @@ describe('OpenCreationsTable', () => {
         expect(details(0).attributes('title')).toBe(NAMES.get(icon))
         // Only what waits for the moderation stands out, in yellow: the member's answer and the
         // member's change. A question waits for the member and stays white, as the rest (Bernd,
-        // 25.10.2026).
-        const waiting = [IIcRoundPriorityHigh, IBiPencilFill].includes(icon)
+        // 25.10.2026). A colleague's note waits for the moderator who asked (06.11.2026).
+        const waiting = [IIcRoundPriorityHigh, IBiPencilFill, IBiStickyFill].includes(icon)
         expect(details(0).findComponent(icon).classes().includes('details-signal')).toBe(waiting)
       })
 

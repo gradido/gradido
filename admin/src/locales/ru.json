@@ -126,6 +126,7 @@
       "answer": "ответ участника",
       "changed": "изменено участником",
       "conversation": "переписка",
+      "note": "заметка к вопросу",
       "question": "вопрос задан"
     },
     "noGroup": "(без группы)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "зарегистрировался {createdAt}.",
+    "noteWakesResubmission": "Ваша заметка снимает напоминание модератора {name}.",
+    "noteWakesResubmissionPlain": "Ваша заметка снимает напоминание.",
     "resubmissionDateInPast": "Дата напоминания в прошлом!"
   },
   "contributions": {

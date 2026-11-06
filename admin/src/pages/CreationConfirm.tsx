@@ -73,6 +73,13 @@ type ResubmissionSaved = {
   unchanged?: boolean
 }
 
+// What ContributionMessagesFormular tells of a note it has written.
+type NoteAdded = {
+  id: number
+  colleagueNote: boolean
+  resubmissionWithdrawn: boolean
+}
+
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
   ['CONFIRMED'],
@@ -606,6 +613,23 @@ export const CreationConfirm = defineComponent({
       if (target) {
         target.messagesCount++
         target.contributionStatus = 'IN_PROGRESS'
+        // The message to the member is the newest word now, not a colleague's note.
+        target.colleagueNoteOnQuestion = false
+      }
+    }
+
+    // A note written in an open row: the row says what the server says now, in place -- a refetch
+    // would close it. Whether a colleague's note stands on the question (Bernd, 06.11.2026), and
+    // the resubmission the note went out without.
+    const noteAdded = ({ id, colleagueNote, resubmissionWithdrawn }: NoteAdded) => {
+      const target = items.value.find((obj) => obj.id === id)
+      if (!target) {
+        return
+      }
+      target.messagesCount++
+      target.colleagueNoteOnQuestion = colleagueNote
+      if (resubmissionWithdrawn) {
+        target.resubmissionAt = null
       }
     }
 
@@ -798,6 +822,7 @@ export const CreationConfirm = defineComponent({
           }}
           onCrea-evaluate={openCreaModal}
           onResubmission-saved={onResubmissionSaved}
+          onNote-added={noteAdded}
         />
 
         {/* On a phone `‹`, three numbers and `›` -- every page stays reachable, and the pager
