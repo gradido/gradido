@@ -18,7 +18,6 @@ import {
   transactionLinksDecayed,
   transferTransaction,
   V1_0_CommandClient,
-  crossGroupTransactionSchema,
 } from 'core'
 import {
   AppDatabase,
@@ -96,7 +95,6 @@ import {
   remoteUserFromBooking,
 } from './util/counterparty'
 import { acceptedPassOnOrigin } from './util/transactionPassOn'
-import * as v from 'valibot'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
