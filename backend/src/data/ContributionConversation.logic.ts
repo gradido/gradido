@@ -45,10 +45,12 @@ export const colleagueNoteOnQuestion = (
 ): boolean => {
   const newest = newestMessage(messages)
   const question = lastConversationMessage(messages)
+  // No test of the newest message's type: where it is no note, it is the question itself, with the
+  // asker's own id, and the last line says no.
   return (
-    newest?.type === ContributionMessageType.MODERATOR &&
     question?.type === ContributionMessageType.DIALOG &&
     question.isModerator &&
+    newest !== undefined &&
     newest.userId !== question.userId
   )
 }
