@@ -75,7 +75,8 @@ export const callNudgeStart = ({ invitation, message, now, seen }) => {
  *
  * - `transfers`: the member's own bookings (useOwnTransfers). Only a `SEND` counts, from `start`
  *   on, and only to the person the booking names: what came in (`RECEIVE`) is the other one's
- *   thank-you, and a booking that names nobody thanked nobody here.
+ *   thank-you. A booking that names nobody meets nobody -- every member offered carries both
+ *   halves of the pair (the thread's `thanksMembers`).
  * - A person is named by the pair (KF-004), without regard to case (chatMemberKey); a booking
  *   with a member of this community may name no community, and then it is this one
  *   (`ownCommunityUuid`), as the server reads it.
@@ -86,12 +87,7 @@ export const callNudgeStart = ({ invitation, message, now, seen }) => {
 export const membersToThank = ({ members, transfers, start, ownCommunityUuid = null }) => {
   const thanked = new Set(
     (transfers ?? [])
-      .filter(
-        (booking) =>
-          booking.typeId === 'SEND' &&
-          Boolean(booking.linkedUser?.gradidoID) &&
-          at(booking.balanceDate) >= start,
-      )
+      .filter((booking) => booking.typeId === 'SEND' && at(booking.balanceDate) >= start)
       .map((booking) => chatMemberKey(booking.linkedUser, ownCommunityUuid)),
   )
   return (members ?? []).filter(

@@ -1048,6 +1048,39 @@ describe('ChatThread in a group', () => {
         expect(bookingsAsked()).toHaveLength(1)
         expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
       })
+
+      // Two calls of the member's own, both due: the bookings are asked back to the EARLIER one,
+      // and each line counts from its own beginning. Carla was thanked between the two calls --
+      // for the first one, not for the second.
+      it('back to the earliest call whose line is due, each line counting from its own beginning', async () => {
+        const second = {
+          ...message(3, { writer: 'me' }),
+          body: 'the second invitation',
+          createdAt: new Date(BEGAN + 20 * MINUTE).toISOString(),
+        }
+        videoInviteRead.mockImplementation((i18n, text) =>
+          text === 'the invitation' || text === 'the second invitation' ? CALL : null,
+        )
+        ownBookings.mockImplementation(async ({ currentPage }) =>
+          currentPage === 1
+            ? bookingsPage(pageOf(100, 15), 30)
+            : bookingsPage([booking(7, { writer: 'carla', minutes: 10 })], 30),
+        )
+        vi.setSystemTime(BEGAN + 60 * MINUTE)
+        mountThread({}, { groupMembers: MEMBERS })
+        await arrive(page([message(1), invitation(), second]))
+        await flushPromises()
+
+        const offeredUnder = async (index) => {
+          const under = bubbles()[index]
+          await under.find('[data-test="thanks-nudge-yes"]').trigger('click')
+          await flushPromises()
+          return under.findAll('[data-test="thanks-nudge-choice-name"]').map((name) => name.text())
+        }
+        expect(bookingsAsked().map(([options]) => options.variables.currentPage)).toEqual([1, 2])
+        expect(await offeredUnder(1)).toEqual(['Anna-Sonne'])
+        expect(await offeredUnder(2)).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      })
     })
 
     // Nobody to choose: before the window has the members, or where the member is alone in it.
