@@ -37,6 +37,7 @@ import { Arg, Args, Authorized, Ctx, Info, Int, Mutation, Query, Resolver } from
 import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { colleagueNoteOnQuestion } from '@/data/ContributionConversation.logic'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -448,6 +449,7 @@ export class ContributionResolver {
       'messages',
       'lastMessageType',
       'lastMessageByModerator',
+      'colleagueNoteOnQuestion',
     ].some((field) => fieldPaths.has(`contributionList.${field}`))
     // Group functions: a group moderator only sees the contributions of their tags. This
     // covers BOTH moderator kinds — a MODERATOR_AI is a moderator who may additionally use
@@ -475,6 +477,19 @@ export class ContributionResolver {
     )
     const result = new ContributionListResult(count, dbContributions)
     await attachContributionCreationGroups(result.contributionList)
+
+    // Whether a colleague's note is the newest word on the open question (Bernd, 06.11.2026), from
+    // the threads the list loaded with their notes and authors. Here and nowhere else: it tells that
+    // a note exists, and the member's own list never may (listContributions drops the notes before
+    // it builds a row, and leaves this field null).
+    if (messagesRequested) {
+      const threads = new Map(dbContributions.map((c) => [c.id, c.messages ?? []]))
+      for (const contribution of result.contributionList) {
+        contribution.colleagueNoteOnQuestion = colleagueNoteOnQuestion(
+          threads.get(contribution.id) ?? [],
+        )
+      }
+    }
 
     const uniqueUserIds = new Set<number>()
     const addIfExist = (userId?: number | null) => (userId ? uniqueUserIds.add(userId) : null)
