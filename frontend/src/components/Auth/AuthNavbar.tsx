@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { BCollapse, BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
-import { computed, type DefineComponent, defineComponent } from 'vue'
+import { computed, type DefineComponent, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import AppAvatarVue from '@/components/AppAvatar.vue'
@@ -65,12 +65,18 @@ export const AuthNavbar = defineComponent({
      * which leads to the sign-in -- would show the face and "To my account" above the sign-in
      * form, to whoever uses this browser next (Bernd, 06.11.2026, after coderabbit's note).
      *
-     * Asked when the bar is drawn, and again when the member or the session changes (a sign-in
-     * on the page, a sign-out in another window). Nothing redraws it when a session runs out
-     * while the page stays open: then the bar shows the member until the next page, and "To my
-     * account" leads to the overview, whose guard signs out and shows the sign-in.
+     * The session is asked when the bar is drawn, when it changes (a sign-in on the page, a
+     * renewal or a sign-out in another window), and on every navigation: within this frame the
+     * bar stays mounted from one page to the next (`/u/…` → "Create account" → `/register`), and
+     * `sessionRuns` reads the clock, which Vue does not watch. Nothing asks while a page just
+     * stays open: a session that runs out there shows the member until the next navigation, and
+     * "To my account" leads to the overview, whose guard signs out and shows the sign-in.
      */
-    const signedIn = computed(() => Boolean(store.gradidoID) && sessionRuns(store))
+    const sessionRunning = ref(sessionRuns(store))
+    watch([() => route.fullPath, () => store.token, () => store.tokenTime], () => {
+      sessionRunning.value = sessionRuns(store)
+    })
+    const signedIn = computed(() => Boolean(store.gradidoID) && sessionRunning.value)
 
     /**
      * Where the logo leads. Signed out: the start page of this community, its own address

@@ -5,7 +5,7 @@ import { walletStore } from '@test/walletStore'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { nextTick } from 'vue'
+import { nextTick, reactive } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
 import { AuthNavbar } from './AuthNavbar'
 
@@ -274,6 +274,36 @@ describe('AuthNavbar', () => {
 
     it('a member without a token is no session', () => {
       expect(toAccount(mountWith(true, 'a-member', { ...BERND, token: null })).exists()).toBe(false)
+    })
+
+    // Within the signed-out frame the bar stays mounted from one page to the next. A session that
+    // runs out on its own while a page stays open -- nothing changes but the clock -- is asked
+    // again on the next navigation (`/u/…` → "Create account" → `/register`). coderabbit, #4247.
+    it('asks again on every navigation, for a session that ran out while the page stayed open', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-11-06T19:00:00Z'))
+      const page = reactive({ params: { alias: 'anna' }, query: {}, fullPath: '/u/anna' })
+      route.current = page
+      try {
+        const wrapper = mountWith(true, 'a-member', { ...BERND, tokenTime: inSeconds(60) })
+        expect(toAccount(wrapper).exists()).toBe(true)
+
+        vi.setSystemTime(new Date('2026-11-06T19:05:00Z'))
+        await nextTick()
+        // nothing redraws the bar on a timer
+        expect(toAccount(wrapper).exists()).toBe(true)
+
+        page.fullPath = '/register'
+        await nextTick()
+        expect(toAccount(wrapper).exists()).toBe(false)
+        expect(wrapper.findAll('.navbar-nav .nav-item').map((item) => item.text())).toEqual([
+          'signup',
+          'signin',
+        ])
+      } finally {
+        route.current = { params: {}, query: {} }
+        vi.useRealTimers()
+      }
     })
 
     // A sign-in on the page (the thank-you link's "I already have an account") gives the store a
