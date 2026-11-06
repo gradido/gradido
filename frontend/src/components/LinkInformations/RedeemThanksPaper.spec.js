@@ -572,13 +572,35 @@ describe('RedeemThanksPaper', () => {
 
   // jsdom lays nothing out and reads no stylesheet, so what a test can hold is the source.
   // The measure in the real bundle, in both themes, is part of the delivery.
-  describe('paper stays light in dark mode', () => {
-    it('writes every colour out', () => {
-      expect(css).toMatch(/background:\s*#fffdf8;/)
-      expect(css).not.toMatch(/var\(/)
-      expect(css).not.toMatch(/dark-mode/)
+  //
+  // ZE-038: light the sheet is white, dark a step lighter than the card, with the gold of the
+  // greeting bubble. It was cream in both themes (ZE-020); these tests held that until then.
+  describe('the sheet follows the theme', () => {
+    // The rules under `.dark-mode`, flat as this file writes them -- and everything else, which
+    // is the light theme.
+    const DARK_RULE = /([^{}]*\.dark-mode[^{}]*)\{([^{}]*)\}/g
+    const darkRules = [...css.matchAll(DARK_RULE)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((selector) => selector.trim()),
+      body,
+    }))
+    const lightCss = css.replace(DARK_RULE, '')
+    const lightRule = (selector) =>
+      lightCss.match(new RegExp(`(?:^|\\n)\\s*\\${selector}\\s*\\{([^}]*)\\}`))?.[1]
+    const darkRulesOf = (selector) =>
+      darkRules.filter((rule) => rule.selectors.includes(`.dark-mode ${selector}`))
+    // What the one dark rule of a selector sets for a property.
+    const darkValue = (selector, property) => {
+      const rules = darkRulesOf(selector)
+      expect(rules, selector).toHaveLength(1)
+      return rules[0].body.match(new RegExp(`(?:^|[\\s;])${property}:\\s*([^;]+);`))?.[1]
+    }
+
+    it('is white in the light theme, every colour written out', () => {
+      expect(lightRule('.redeem-thanks-paper')).toMatch(/background:\s*#fff;/)
+      expect(lightCss).not.toMatch(/var\(/)
+      expect(lightCss).not.toMatch(/dark-mode/)
+      // Each text sets its own colour, in both themes: nothing is left to inherit.
       expect(css).not.toMatch(/currentcolor|inherit/i)
-      // Each text sets its own colour: what the page hands down is near white in dark mode.
       for (const selector of [
         '.redeem-thanks-paper-message',
         '.redeem-thanks-paper-from',
@@ -586,9 +608,34 @@ describe('RedeemThanksPaper', () => {
         '.redeem-thanks-paper-for',
         '.redeem-thanks-paper-line',
       ]) {
-        const [, body] = css.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))
-        expect(body).toMatch(/(^|[\s;])color:\s*#[0-9a-f]{6};/)
+        expect(lightRule(selector), selector).toMatch(/(^|[\s;])color:\s*#(?:[0-9a-f]{3}){1,2};/)
       }
+    })
+
+    it('takes the tokens of the house and the gold of the greeting bubble in the dark theme', () => {
+      expect(darkRules.length).toBeGreaterThan(0)
+      for (const { selectors } of darkRules) {
+        for (const selector of selectors) {
+          expect(selector).toMatch(/^\.dark-mode \.redeem-thanks-paper(-[a-z]+)?$/)
+        }
+      }
+      expect(darkValue('.redeem-thanks-paper', 'background')).toBe('var(--surface-muted)')
+      expect(darkValue('.redeem-thanks-paper-message', 'color')).toBe('var(--text)')
+      expect(darkValue('.redeem-thanks-paper-from', 'color')).toBe('var(--text)')
+      expect(darkValue('.redeem-thanks-paper-rule', 'background')).toBe('rgb(255 255 255 / 14%)')
+      expect(darkValue('.redeem-thanks-paper-for', 'color')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-line', 'color')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-initial', 'background')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-initial', 'color')).toBe('#1b1b1b')
+    })
+
+    // ZE-024: a photo fitted in whole carries its margin in this colour inside the picture, so
+    // the room keeps it in both themes.
+    it('keeps the room of the picture cream in both themes', () => {
+      expect(css.match(/#fbf3de/gi)).toHaveLength(1)
+      expect(lightRule('.redeem-thanks-paper-picture')).toMatch(/background:\s*#fbf3de;/)
+      expect(darkRules.filter(({ body }) => /#fbf3de/i.test(body))).toHaveLength(0)
+      expect(darkRulesOf('.redeem-thanks-paper-picture')).toHaveLength(0)
     })
 
     // The dark sheet repaints cards, headings, links and rules, each with more weight than a
