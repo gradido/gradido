@@ -1069,7 +1069,7 @@ describe('ContactResolver', () => {
       })
 
       afterEach(async () => {
-        await db.getDataSource().query('DELETE FROM transaction_reads')
+        await db.getDataSource().query('UPDATE transactions SET seen = 0')
       })
 
       it("says the line under bob's name waits, and the one under peter's does not", async () => {

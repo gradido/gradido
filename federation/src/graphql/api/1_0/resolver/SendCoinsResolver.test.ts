@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from 'bun:test'
 import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { EncryptedTransferArgs } from 'core'
@@ -764,8 +764,15 @@ describe('SendCoinsResolver', () => {
     })
 
     describe('valid X-Com-TX settled', () => {
+      afterEach(async () => {
+        await DbUser.update({ id: recipUser.id }, { transfersInChat: true })
+      })
+
+      // The recipient switched transfers out of their conversations: the received transfer is
+      // booked as seen (Chat E-086).
       it('throws an error', async () => {
         jest.clearAllMocks()
+        await DbUser.update({ id: recipUser.id }, { transfersInChat: false })
         const payload = new SendCoinsJwtPayloadType(
           'handshakeID',
           recipientCom.communityUuid!,
@@ -800,6 +807,9 @@ describe('SendCoinsResolver', () => {
             },
           }),
         )
+        await expect(
+          DbTransaction.findOneBy({ userId: recipUser.id, memo: 'X-Com-TX memo' }),
+        ).resolves.toMatchObject({ seen: true })
       })
     })
   })

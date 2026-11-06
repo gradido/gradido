@@ -6,7 +6,7 @@ import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { TransactionTypeId } from '../enum'
-import { transactionReadsStartTable, transactionReadsTable } from '../schemas'
+import { transactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { createTransaction, foreignReceive, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
@@ -15,9 +15,8 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import {
   dbMarkReceivedTransferSeen,
   dbMarkReceivedTransfersSeen,
-  dbSelectTransactionReadsStart,
   dbSelectUnreadReceivedTransfers,
-} from './transactionReads'
+} from './transactions'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -40,10 +39,13 @@ const peterPair = () => ({ communityUuid: peter.communityUuid, gradidoId: peter.
 const seen = async (transactionId: number) =>
   (
     await db
-      .select()
-      .from(transactionReadsTable)
-      .where(eq(transactionReadsTable.transactionId, transactionId))
-  ).length === 1
+      .select({ seen: transactionsTable.seen })
+      .from(transactionsTable)
+      .where(eq(transactionsTable.id, transactionId))
+  )[0].seen
+const markSeen = (transactionId: number) =>
+  db.update(transactionsTable).set({ seen: true }).where(eq(transactionsTable.id, transactionId))
+const unseeAll = () => db.update(transactionsTable).set({ seen: false })
 
 beforeAll(async () => {
   await appDB.init()
@@ -84,96 +86,94 @@ afterAll(async () => {
   await appDB.destroy()
 })
 
-describe('dbSelectTransactionReadsStart', () => {
-  afterEach(async () => {
-    await db.delete(transactionReadsStartTable)
-  })
-
-  it('answers 0 where the row is missing', async () => {
-    await db.delete(transactionReadsStartTable)
-    expect(await dbSelectTransactionReadsStart()).toBe(0)
-  })
-
-  it('answers the booking id the migration kept', async () => {
-    await db.delete(transactionReadsStartTable)
-    await db.insert(transactionReadsStartTable).values({ id: 1, transactionId: 4242 })
-    expect(await dbSelectTransactionReadsStart()).toBe(4242)
+// First in the file, before any test resets the column: the seeds write these bookings through
+// TypeORM without setting `seen`, so only the default can have set it.
+describe('the column seen', () => {
+  it('starts every new booking unseen', async () => {
+    expect(await seen(first.receive)).toBe(false)
+    expect(await seen(fromSarah)).toBe(false)
   })
 })
 
 describe('dbSelectUnreadReceivedTransfers', () => {
   afterEach(async () => {
-    await db.delete(transactionReadsTable)
+    await unseeAll()
   })
 
   it('counts what she received and has not seen, per person who sent it', async () => {
-    const unread = await dbSelectUnreadReceivedTransfers(bibi.id, 0)
+    const unread = await dbSelectUnreadReceivedTransfers(bibi.id)
     expect(unread).toHaveLength(2)
     expect(unread).toEqual(
       expect.arrayContaining([
-        { ...peterPair(), count: 2, latestId: second.receive },
-        { ...SARAH, count: 1, latestId: fromSarah },
+        { sender: peterPair(), count: 2, latestId: second.receive },
+        { sender: SARAH, count: 1, latestId: fromSarah },
       ]),
     )
   })
 
   // Her own SEND is nothing she received; his RECEIVE is his.
   it('takes her RECEIVE bookings only', async () => {
-    const unread = await dbSelectUnreadReceivedTransfers(peter.id, 0)
+    const unread = await dbSelectUnreadReceivedTransfers(peter.id)
     expect(unread).toEqual([
       {
-        communityUuid: bibi.communityUuid,
-        gradidoId: bibi.gradidoID,
+        sender: { communityUuid: bibi.communityUuid, gradidoId: bibi.gradidoID },
         count: 1,
         latestId: back.receive,
       },
     ])
   })
 
-  it('counts only above the start', async () => {
-    const unread = await dbSelectUnreadReceivedTransfers(bibi.id, first.receive)
-    expect(unread).toEqual([{ ...peterPair(), count: 1, latestId: second.receive }])
+  // The collation of the pair columns does this, not the code: the caller relies on it.
+  it('counts one sender once, however the bookings spell their pair', async () => {
+    const shout = (spelling: string) =>
+      db
+        .update(transactionsTable)
+        .set({ linkedUserCommunityUuid: spelling })
+        .where(eq(transactionsTable.id, first.receive))
+    await shout(peter.communityUuid.toUpperCase())
+    try {
+      const unread = await dbSelectUnreadReceivedTransfers(bibi.id)
+      expect(unread).toHaveLength(2)
+      expect(unread.find((entry) => entry.sender.gradidoId === peter.gradidoID)).toMatchObject({
+        count: 2,
+        latestId: second.receive,
+      })
+    } finally {
+      await shout(peter.communityUuid)
+    }
   })
 
   it('leaves out what was seen', async () => {
-    await db.insert(transactionReadsTable).values({ transactionId: second.receive })
-    expect(await dbSelectUnreadReceivedTransfers(bibi.id, 0)).toEqual(
-      expect.arrayContaining([{ ...peterPair(), count: 1, latestId: first.receive }]),
+    await markSeen(second.receive)
+    expect(await dbSelectUnreadReceivedTransfers(bibi.id)).toEqual(
+      expect.arrayContaining([{ sender: peterPair(), count: 1, latestId: first.receive }]),
     )
   })
 
   it('answers nothing for somebody who received nothing', async () => {
-    expect(await dbSelectUnreadReceivedTransfers(4_000_000, 0)).toEqual([])
+    expect(await dbSelectUnreadReceivedTransfers(4_000_000)).toEqual([])
   })
 })
 
 describe('dbMarkReceivedTransfersSeen', () => {
   afterEach(async () => {
-    await db.delete(transactionReadsTable)
+    await unseeAll()
   })
 
   it('marks what she received from him up to the id, and says how many', async () => {
-    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), first.receive, 0)).toBe(1)
+    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), first.receive)).toBe(1)
     expect(await seen(first.receive)).toBe(true)
     expect(await seen(second.receive)).toBe(false)
     // Seen before is no failure, and nothing new.
-    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), first.receive, 0)).toBe(0)
+    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), first.receive)).toBe(0)
   })
 
   // A booking of another kind or of another person is not touched, whatever id is handed.
   it('marks her RECEIVE bookings from him only', async () => {
-    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), back.receive, 0)).toBe(2)
+    expect(await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), back.receive)).toBe(2)
     expect(await seen(back.send)).toBe(false)
     expect(await seen(back.receive)).toBe(false)
     expect(await seen(fromSarah)).toBe(false)
-  })
-
-  it('marks nothing at or below the start', async () => {
-    expect(
-      await dbMarkReceivedTransfersSeen(bibi.id, peterPair(), second.receive, first.receive),
-    ).toBe(1)
-    expect(await seen(first.receive)).toBe(false)
-    expect(await seen(second.receive)).toBe(true)
   })
 
   it('takes the person named in capitals, as the column compares', async () => {
@@ -181,18 +181,18 @@ describe('dbMarkReceivedTransfersSeen', () => {
       communityUuid: peter.communityUuid.toUpperCase(),
       gradidoId: peter.gradidoID.toUpperCase(),
     }
-    expect(await dbMarkReceivedTransfersSeen(bibi.id, shouting, second.receive, 0)).toBe(2)
+    expect(await dbMarkReceivedTransfersSeen(bibi.id, shouting, second.receive)).toBe(2)
   })
 
   it('takes a person of another community', async () => {
-    expect(await dbMarkReceivedTransfersSeen(bibi.id, SARAH, fromSarah, 0)).toBe(1)
+    expect(await dbMarkReceivedTransfersSeen(bibi.id, SARAH, fromSarah)).toBe(1)
     expect(await seen(fromSarah)).toBe(true)
   })
 })
 
 describe('dbMarkReceivedTransferSeen', () => {
   afterEach(async () => {
-    await db.delete(transactionReadsTable)
+    await unseeAll()
   })
 
   it('marks the one transfer she received, and no older one of the same person', async () => {
