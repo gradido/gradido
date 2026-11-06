@@ -705,22 +705,27 @@ const invitations = computed(() => {
 const joinedAt = (message) => videoJoinedAt(store.gradidoID, message.messageUuid, now.value)
 
 /**
- * The invitation of the thread whose link leads into a room (E-043 C) -- the newest, where several
- * carry it (a call duplicated for the next week keeps its room, E-058): its message uuid, for the
- * window to note the member's click by (utils/chatVideoJoined). null where none does. The click
- * knows only its link; the room's address itself is kept nowhere.
+ * The invitation a clicked video link stands in (E-043 C, Bernd 06.11.2026: the device notes the
+ * invitation that was clicked): the message's uuid, where the thread reads that message as an
+ * invitation into the room the link leads into -- for the window to note the member's click by
+ * (utils/chatVideoJoined). null for a message that is no invitation, one into another room, and
+ * one the thread does not hold. The very message, not another that carries the same room: a call
+ * duplicated ahead for the next week keeps its room (E-058), and a link handed on again does too.
+ * The room's address itself is kept nowhere.
  *
  * @param {string} roomUrl the link as it was clicked, with or without its addition
+ * @param {string} messageUuid the message it stands in (ChatBubble)
  * @returns {string | null}
  */
-const invitationInRoom = (roomUrl) => {
+const invitationInRoom = (roomUrl, messageUuid) => {
   const room = chatVideoRoomOf(roomUrl)
-  if (!room) return null
-  let newest = null
+  const id = String(messageUuid ?? '').toLowerCase()
+  if (!room || !id) return null
   for (const { message, invitation } of invitations.value.values()) {
-    if (chatVideoRoomOf(invitation.room) === room) newest = message.messageUuid ?? null
+    if (String(message.messageUuid ?? '').toLowerCase() !== id) continue
+    return chatVideoRoomOf(invitation.room) === room ? message.messageUuid : null
   }
-  return newest
+  return null
 }
 
 /**
@@ -2248,8 +2253,8 @@ const showQuoted = async (quoted) => {
  * `deliver`: a message from outside the bar (the video call's invitation, see above).
  * `edit`: a change from outside the bar (a video invitation's topic and time, E-060).
  * `searchStep`: the window's ↑ and ↓ (E-057) -- -1 to the older hit, +1 to the newer.
- * `invitationInRoom`: which invitation a clicked video link belongs to (E-043 C, see above), for
- * the window to note the click by.
+ * `invitationInRoom`: whether a clicked video link stands in an invitation into its room (E-043 C,
+ * see above), for the window to note the click by.
  */
 defineExpose({ deliver, edit, searchStep, invitationInRoom })
 </script>

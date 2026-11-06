@@ -159,16 +159,34 @@ describe('ChatVideoCall in a group', () => {
     const opened = vi.spyOn(window, 'open').mockImplementation(() => null)
     const link = withChatVideoTopic(ROOM.url, 'Videoanruf')
     mountCall({}, { [CHAT_VIDEO_JOINED]: told })
-    wrapper.vm.askJoin(link)
+    wrapper.vm.askJoin(link, 'uuid-9')
     await flushPromises()
     expect(told).not.toHaveBeenCalled()
 
     await inDialog('join').trigger('click')
 
     expect(told).toHaveBeenCalledTimes(1)
-    expect(told).toHaveBeenCalledWith(link)
+    expect(told).toHaveBeenCalledWith(link, 'uuid-9')
     expect(opened).toHaveBeenCalledWith(link, '_blank', 'noopener,noreferrer')
     opened.mockRestore()
+  })
+
+  // The message goes with the question: a link asked about later without one is no other's.
+  it('lets the message go with the question', async () => {
+    const told = vi.fn()
+    vi.spyOn(window, 'open').mockImplementation(() => null)
+    const link = withChatVideoTopic(ROOM.url, 'Videoanruf')
+    mountCall({}, { [CHAT_VIDEO_JOINED]: told })
+    wrapper.vm.askJoin(link, 'uuid-9')
+    await flushPromises()
+    await inDialog('join-cancel').trigger('click')
+
+    wrapper.vm.askJoin(link)
+    await flushPromises()
+    await inDialog('join').trigger('click')
+
+    expect(told).toHaveBeenCalledWith(link, null)
+    window.open.mockRestore()
   })
 
   it('tells nothing for a question cancelled', async () => {

@@ -12,9 +12,10 @@ import { THANKS_NUDGE_HOLDS_MS } from '@/utils/thanksNudge'
  *
  * ⛔ The invitation, never the room (Bernd, 06.11.2026): the room's address is the call's secret
  * -- whoever has it can join -- and goes into no storage (ChatVideoCall). The device keeps the
- * invitation's message uuid and the time of the click, nothing that leads into a room. A click
- * knows only its link: the window asks its thread which invitation carries that room
- * (`chatVideoRoomOf`), and notes that one.
+ * invitation's message uuid and the time of the click, nothing that leads into a room. The link
+ * is handed on with the message it stands in (ChatBubble); the window asks its thread whether that
+ * message is an invitation into the link's room (`chatVideoRoomOf`), and notes it -- the very
+ * invitation that was clicked, not another that carries the same room.
  *
  * - The first click counts (Festlegung 1): a second click into the same invitation's room does
  *   not move the time -- else every look into the room after the call would push the line further

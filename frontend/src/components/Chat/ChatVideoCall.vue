@@ -1368,9 +1368,18 @@ const videoJoinWaiting = ref(false)
 const videoJoinMissed = ref(false)
 let stopJoinAppWatch = null
 
+/**
+ * The message the clicked link stands in (ChatBubble), handed on to the window at "Anruf
+ * beitreten" with the link (E-043 C): the invitation the member went in by. Set anew with every
+ * question -- a closed one hands on nothing, its room is gone (`joinVideoCall`). An id, not the
+ * call's secret.
+ */
+let videoJoinMessage = null
+
 /** Asked by a click on the link of a video invitation in the thread (ChatMessageText). */
-const askJoinVideoCall = (roomUrl) => {
+const askJoinVideoCall = (roomUrl, messageUuid = null) => {
   videoJoinRoom.value = roomUrl
+  videoJoinMessage = messageUuid
   videoInApp.value = readChatVideoInApp(store.gradidoID)
   videoJoining.value = true
 }
@@ -1386,8 +1395,9 @@ watch(videoJoining, (open) => {
 
 /**
  * Where the window notes that the member went into the room of an invitation from this wallet
- * (E-043 C): handed the link, it notes the invitation the link belongs to (utils/chatVideoJoined),
- * for the line after the call. Without a window that provides it, nothing is noted.
+ * (E-043 C): handed the link and the message it stands in, it notes that invitation
+ * (utils/chatVideoJoined), for the line after the call. Without a window that provides it,
+ * nothing is noted.
  */
 const noteJoined = inject(CHAT_VIDEO_JOINED, null)
 
@@ -1403,7 +1413,7 @@ const joinVideoCall = () => {
   if (videoJoinWaiting.value) return
   const roomUrl = videoJoinRoom.value
   if (!roomUrl) return
-  noteJoined?.(roomUrl)
+  noteJoined?.(roomUrl, videoJoinMessage)
   const appUrl = offersJitsiApp() && videoInApp.value ? chatVideoAppUrl(roomUrl) : null
   if (!appUrl) {
     videoJoining.value = false
@@ -1440,7 +1450,7 @@ const letGo = () => {
 /**
  * `ask`: the question before a call, from the window's camera. `askJoin`: the question before
  * joining one, from the link of an invitation in the thread (the window provides it as
- * `CHAT_VIDEO_JOIN`, ChatMessageText). `duplicate`: the question for an invitation's room again,
+ * `CHAT_VIDEO_JOIN`, ChatMessageText), with the message the link stands in (E-043 C). `duplicate`: the question for an invitation's room again,
  * from "Duplizieren" under it (E-058). `edit`: an invitation of one's own, to be changed -- from
  * "Bearbeiten" in its menu (E-060). `letGo`: see above.
  */

@@ -203,7 +203,8 @@ export const JITSI_APP_DOWNLOADS = 'https://jitsi.org/downloads/'
 /**
  * Where the thread hands a click on a video invitation's link (V4b): the contact window provides
  * the question "Join call", with the same box, and the link calls it instead of opening the room
- * straight away. Without a provider the link stays a plain link.
+ * straight away. Without a provider the link stays a plain link. The bubble hands the message the
+ * link stands in on with it (E-043 C), for the note at "Join call".
  */
 export const CHAT_VIDEO_JOIN = Symbol('chatVideoJoin')
 
@@ -212,6 +213,7 @@ export const CHAT_VIDEO_JOIN = Symbol('chatVideoJoin')
  * click the browser opens the room for -- on a phone the plain one, anywhere one with a key held
  * --, and on a computer "Anruf beitreten" in the question (ChatVideoCall). The window provides it
  * and notes the invitation for the line after the call (utils/chatVideoJoined); it is handed the
- * link. Without a provider nothing is noted.
+ * link and the message the link stands in, which the bubble adds (ChatBubble) -- as it adds it to
+ * `CHAT_VIDEO_JOIN`. Without a provider nothing is noted.
  */
 export const CHAT_VIDEO_JOINED = Symbol('chatVideoJoined')

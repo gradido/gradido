@@ -253,8 +253,8 @@ describe('ContactWindow', () => {
               edit(changed) {
                 return threadEdits(changed, this.member.gradidoID)
               },
-              invitationInRoom(roomUrl) {
-                return threadRooms(roomUrl, this.member.gradidoID)
+              invitationInRoom(roomUrl, messageUuid) {
+                return threadRooms(roomUrl, messageUuid, this.member.gradidoID)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -4011,7 +4011,7 @@ describe('ContactWindow', () => {
       const clicked = async (roomUrl = ROOM_WITH_DEFAULT) => {
         mountWindow()
         await threadSays({ exists: true, mutedByMe: false })
-        wrapper.findComponent({ name: 'ChatThread' }).vm.join(roomUrl)
+        wrapper.findComponent({ name: 'ChatThread' }).vm.join(roomUrl, 'uuid-7')
         await flushPromises()
       }
 
@@ -4169,7 +4169,7 @@ describe('ContactWindow', () => {
 
           await inJoin('').trigger('click')
 
-          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'carla-id')
+          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'uuid-7', 'carla-id')
           expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
         })
 
@@ -4197,9 +4197,9 @@ describe('ContactWindow', () => {
           mountWindow()
           await threadSays({ exists: true, mutedByMe: false })
 
-          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT)
+          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT, 'uuid-7')
 
-          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'carla-id')
+          expect(threadRooms).toHaveBeenCalledWith(ROOM_WITH_DEFAULT, 'uuid-7', 'carla-id')
           expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
           expect(joinDialog().exists()).toBe(false)
         })
@@ -4209,7 +4209,7 @@ describe('ContactWindow', () => {
           mountWindow()
           await threadSays({ exists: true, mutedByMe: false })
 
-          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT)
+          wrapper.findComponent({ name: 'ChatThread' }).vm.joined(ROOM_WITH_DEFAULT, 'uuid-7')
 
           expect(joined()).toBeNull()
         })

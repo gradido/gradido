@@ -6782,7 +6782,7 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
       await mountAt(45 * MINUTE, { messages: theirs })
       expect(lines()).toEqual([false, false])
 
-      noteChatVideoJoined('me-id', wrapper.vm.invitationInRoom(LINK), Date.now())
+      noteChatVideoJoined('me-id', wrapper.vm.invitationInRoom(LINK, 'uuid-3'), Date.now())
       await flushPromises()
       expect(lines()).toEqual([false, false])
 
@@ -6806,32 +6806,40 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
   })
 
   /**
-   * Which invitation a clicked link belongs to (E-043 C): the window asks the thread, and notes the
-   * click by the invitation's uuid -- the room's address itself is kept nowhere.
+   * The invitation a clicked link stands in (E-043 C, Bernd 06.11.2026: the device notes the
+   * invitation that was clicked): the window asks the thread, with the link and the message the
+   * bubble names, and notes the click by that uuid -- the room's address itself is kept nowhere.
    */
-  describe('the invitation a clicked link belongs to', () => {
-    it('is the one whose room the link leads into, with or without its addition, in any case', async () => {
+  describe('the invitation a clicked link stands in', () => {
+    it('is the message clicked, where it is an invitation into the link’s room, in any case', async () => {
       await mountAt(45 * MINUTE, { messages: [before, invitation(), theirInvitation()] })
 
-      expect(wrapper.vm.invitationInRoom(LINK)).toBe('uuid-3')
-      expect(wrapper.vm.invitationInRoom(CALL_NOW.room.toUpperCase())).toBe('uuid-3')
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-3')).toBe('uuid-3')
+      expect(wrapper.vm.invitationInRoom(CALL_NOW.room.toUpperCase(), 'UUID-3')).toBe('uuid-3')
+      // One's own invitation into the same room is one's own: the rule does not read its click.
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-2')).toBe('uuid-2')
     })
 
-    // A call duplicated for the next week keeps its room (E-058): the click is the newest one's.
-    it('is the newest, where several carry the room', async () => {
+    // A call duplicated ahead for the next week keeps its room (E-058), and a link handed on
+    // again does too: the click is the clicked one's, not the newest's (the second reader, F1/F2).
+    it('is the message clicked, not a later one that carries the same room', async () => {
       await mountAt(45 * MINUTE, {
         messages: [before, theirInvitation({ n: 3 }), theirInvitation({ n: 5 })],
       })
 
-      expect(wrapper.vm.invitationInRoom(LINK)).toBe('uuid-5')
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-3')).toBe('uuid-3')
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-5')).toBe('uuid-5')
     })
 
-    it('is none for another room, and for no link', async () => {
+    it('is none for another room, a message that is no invitation, and nothing named', async () => {
       await mountAt(45 * MINUTE, { messages: [before, theirInvitation()] })
 
-      expect(wrapper.vm.invitationInRoom('https://meet.example/another-room')).toBeNull()
-      expect(wrapper.vm.invitationInRoom('')).toBeNull()
-      expect(wrapper.vm.invitationInRoom(undefined)).toBeNull()
+      expect(wrapper.vm.invitationInRoom('https://meet.example/another-room', 'uuid-3')).toBeNull()
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-1')).toBeNull()
+      expect(wrapper.vm.invitationInRoom(LINK, 'uuid-99')).toBeNull()
+      expect(wrapper.vm.invitationInRoom(LINK, undefined)).toBeNull()
+      expect(wrapper.vm.invitationInRoom('', 'uuid-3')).toBeNull()
+      expect(wrapper.vm.invitationInRoom(undefined, 'uuid-3')).toBeNull()
     })
   })
 

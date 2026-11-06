@@ -830,17 +830,18 @@ const editThroughThread = (changed) =>
  * The question before joining a call, asked by a click on the link of a video invitation in the
  * thread (ChatMessageText) -- provided here, around the thread it is asked from.
  */
-provide(CHAT_VIDEO_JOIN, (roomUrl) => videoCall.value?.askJoin(roomUrl))
+provide(CHAT_VIDEO_JOIN, (roomUrl, messageUuid) => videoCall.value?.askJoin(roomUrl, messageUuid))
 
 /**
  * The member went into the room of an invitation from this wallet (E-043 C): told by the link in
  * the thread where the browser opens the room (ChatMessageText), and by "Anruf beitreten" in the
- * question (ChatVideoCall). Noted on this device by the invitation the thread finds for the link
+ * question (ChatVideoCall) -- with the message the link stands in (ChatBubble). Noted on this
+ * device by that invitation, where the thread reads it as one into the link's room
  * (`invitationInRoom`), for the line after the call (utils/chatVideoJoined) -- the room's address
  * itself is kept nowhere.
  */
-provide(CHAT_VIDEO_JOINED, (roomUrl) =>
-  noteChatVideoJoined(store.gradidoID, thread.value?.invitationInRoom?.(roomUrl)),
+provide(CHAT_VIDEO_JOINED, (roomUrl, messageUuid) =>
+  noteChatVideoJoined(store.gradidoID, thread.value?.invitationInRoom?.(roomUrl, messageUuid)),
 )
 
 /**

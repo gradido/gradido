@@ -161,6 +161,14 @@ describe('the room a link leads into', () => {
       when: { start: new Date(AT + DAY), end: new Date(AT + DAY + 60 * MINUTE) },
       operator: 'Freifunk München',
     },
+    // E-060: its address carries the start it had first and the count of its changes.
+    'changed in its time': {
+      room: ROOM,
+      topic: 'Gartenrunde',
+      when: { start: new Date(AT + 2 * DAY), end: new Date(AT + 2 * DAY + 60 * MINUTE) },
+      operator: 'Freifunk München',
+      revision: { first: new Date(AT + DAY), sequence: 1 },
+    },
   }
 
   it.each(Object.keys(calls))('is the invitation’s room, for a call %s', (kind) => {

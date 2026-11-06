@@ -209,8 +209,8 @@ describe('ChatGroupWindow', () => {
               edit(changed) {
                 return video.edits(changed, this.group.groupUuid)
               },
-              invitationInRoom(roomUrl) {
-                return video.rooms(roomUrl, this.group.groupUuid)
+              invitationInRoom(roomUrl, messageUuid) {
+                return video.rooms(roomUrl, messageUuid, this.group.groupUuid)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -252,8 +252,8 @@ describe('ChatGroupWindow', () => {
               edit(invitation) {
                 video.edit(invitation)
               },
-              askJoin(roomUrl) {
-                video.askJoin(roomUrl)
+              askJoin(roomUrl, messageUuid) {
+                video.askJoin(roomUrl, messageUuid)
               },
               letGo() {
                 video.letGo()
@@ -687,10 +687,12 @@ describe('ChatGroupWindow', () => {
     })
 
     // A click on the link of an invitation in the group's thread (ChatMessageText).
+    // With the message the link stands in, as the bubble hands it on (E-043 C): the question
+    // keeps it for the note at "Anruf beitreten".
     it('asks before joining a call from a link in the thread', () => {
       mountWindow()
-      wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room')
-      expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room')
+      wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room', 'uuid-7')
+      expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room', 'uuid-7')
     })
 
     // E-043 C: a link that took the member into the room -- on a phone the link itself, on a
@@ -710,9 +712,9 @@ describe('ChatGroupWindow', () => {
         video.rooms.mockReturnValue('uuid-7')
         mountWindow()
 
-        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK)
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK, 'uuid-7')
 
-        expect(video.rooms).toHaveBeenCalledWith(LINK, 'cafe-uuid')
+        expect(video.rooms).toHaveBeenCalledWith(LINK, 'uuid-7', 'cafe-uuid')
         expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
         expect(localStorage.getItem('chat-video-joined:me-id')).not.toContain('meet.ffmuc')
       })
@@ -721,7 +723,7 @@ describe('ChatGroupWindow', () => {
         video.rooms.mockReturnValue(null)
         mountWindow()
 
-        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK)
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK, 'uuid-7')
 
         expect(joined()).toBeNull()
       })

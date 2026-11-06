@@ -12,7 +12,7 @@ import {
   chatVideoAppUrl,
   offersJitsiApp,
 } from '@/utils/chatVideoApp'
-import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
+import { readChatVideoAddition, withoutChatVideoTopic } from '@/utils/chatVideoTopic'
 
 /** A click that opens a link where it stands: no key held, the main button. The others -- a new
  * tab, a new window, a download -- are the browser's, and they go as they always did. */
@@ -149,12 +149,15 @@ export default {
       const address = (part) => {
         const shown = withoutChatVideoTopic(part.value)
         const video = shown !== part.value
-        // An invitation of our own (E-038 Punkt 5), where a window gives the hands: on a computer
-        // a plain click asks first (V4b) -- and "Anruf beitreten" there tells the window that the
-        // member went in. Every other click opens the room in the browser and tells it here: on
-        // a phone the plain one, anywhere one with a key held or with the middle button
-        // (E-043 C, Festlegung 2). Nothing is held back from the browser then.
-        const ours = (join || noteJoined) && chatVideoAppUrl(part.value) !== null
+        // An invitation of our own (E-038 Punkt 5) asks first on a computer, where a window gives
+        // the question (V4b): a plain click -- and "Anruf beitreten" there tells the window that
+        // the member went in. Every other click on a room of Gradido's own form -- the address
+        // the thread reads an invitation by (readChatVideoAddition), one whose time was changed
+        // too (E-060) -- opens the room in the browser and tells it here: on a phone the plain
+        // one, anywhere one with a key held or with the middle button (E-043 C, Festlegung 2).
+        // Nothing is held back from the browser then.
+        const asks = join && chatVideoAppUrl(part.value) !== null
+        const tells = noteJoined && readChatVideoAddition(part.value) !== null
         const link = h(
           'a',
           {
@@ -162,18 +165,22 @@ export default {
             href: part.value,
             target: '_blank',
             rel: 'noopener noreferrer',
-            ...(ours
+            ...(asks || tells
               ? {
                   onClick: (event) => {
-                    if (join && plainClick(event) && offersJitsiApp()) {
+                    if (asks && plainClick(event) && offersJitsiApp()) {
                       event.preventDefault()
                       join(part.value)
                       return
                     }
-                    noteJoined?.(part.value)
+                    if (tells) noteJoined(part.value)
                   },
+                }
+              : {}),
+            ...(tells
+              ? {
                   onAuxclick: (event) => {
-                    if (event.button === 1) noteJoined?.(part.value)
+                    if (event.button === 1) noteJoined(part.value)
                   },
                 }
               : {}),
