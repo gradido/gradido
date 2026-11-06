@@ -223,10 +223,12 @@
           {{ t('chatThread.videoDuplicate') }}
         </button>
       </div>
-      <!-- Half an hour after a video call of one's own began, a quiet suggestion to thank the other
-           person for it (W2 of the waves of gratitude; the thread decides when, utils/thanksNudge):
-           under the invitation, where the occasion stands. Only the one who invited sees it. In a
-           group's thread "Jemandem danken" opens the members to choose from (Bernd, 28.10.2026). -->
+      <!-- Half an hour after a video call began, a quiet suggestion to thank the other person for it
+           (W2 of the waves of gratitude; the thread decides when, utils/thanksNudge): under the
+           invitation, where the occasion stands. Whoever went into the call from this wallet sees
+           it -- the one who invited, and the one invited half an hour after their own click on the
+           link (E-043 C, utils/chatVideoJoined). In a group's thread "Jemandem danken" opens the
+           members to choose from (Bernd, 28.10.2026). -->
       <thanks-nudge
         v-if="thanksAfterCall"
         ref="thanksLine"
@@ -454,8 +456,9 @@ const props = defineProps({
   reactionUnderway: { type: Boolean, default: false },
   /**
    * Whether the suggestion to thank stands under this message (W2): a video invitation of one's
-   * own, half an hour after the call began -- the thread decides it (utils/thanksNudge), it holds
-   * the transfers and knows what was answered on this device.
+   * own half an hour after the call began, or somebody else's half an hour after the member's
+   * click on its link (E-043 C) -- the thread decides it (utils/thanksNudge), it holds the
+   * transfers and knows what was answered and clicked on this device.
    */
   thanksAfterCall: { type: Boolean, default: false },
   /**

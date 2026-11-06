@@ -13,6 +13,7 @@ import {
 } from '@/graphql/chatGroups.graphql'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { holdChatText } from '@/utils/chatReturn'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 
 /**
  * A group's thread (P5): ChatThread in its group's kind. What it shares with the thread of two --
@@ -748,11 +749,18 @@ describe('ChatThread in a group', () => {
       role: writer === 'anna' ? 'OWNER' : 'MEMBER',
       joinedAt: '2026-09-27T10:00:00.000Z',
     }))
-    const invitation = (writer = 'me') => ({
+    const invitation = (writer = 'me', body = 'the invitation') => ({
       ...message(2, { writer }),
-      body: 'the invitation',
+      body,
       createdAt: new Date(BEGAN).toISOString(),
     })
+    /**
+     * Anna's invitation as her wallet wrote it, read by its link (E-043 C, Bernd 06.11.2026): the
+     * room's address in Gradido's own form at its end.
+     */
+    const ANNAS = `📹 Videoanruf: Videoanruf\nDer Raum liegt auf einem Jitsi-Server von Freifunk — ein Vorschlag, kein Dienst von Gradido: ${CALL.room}#config.subject=%22Videoanruf%22`
+    /** The member clicked the link of the invitation (`uuid-2`) here, `minutes` after it began. */
+    const clickedAt = (minutes) => noteChatVideoJoined('me-id', 'uuid-2', BEGAN + minutes * MINUTE)
 
     /**
      * The member's own booking list (useOwnTransfers), as the server answers it unnarrowed: the
@@ -790,10 +798,10 @@ describe('ChatThread in a group', () => {
       await flushPromises()
     }
     const choose = async () => press('[data-test="thanks-nudge-yes"]')
-    const mountAt = async (minutes, { members = MEMBERS, writer = 'me' } = {}) => {
+    const mountAt = async (minutes, { members = MEMBERS, writer = 'me', body } = {}) => {
       vi.setSystemTime(BEGAN + minutes * MINUTE)
       mountThread({}, { groupMembers: members })
-      await arrive(page([message(1), invitation(writer)]))
+      await arrive(page([message(1), invitation(writer, body)]))
       await flushPromises()
     }
 
@@ -819,7 +827,9 @@ describe('ChatThread in a group', () => {
       })
       delete storeState.transfersInChat
       for (const key of Object.keys(window.localStorage)) {
-        if (key.startsWith('thanks-nudge:')) window.localStorage.removeItem(key)
+        if (key.startsWith('thanks-nudge:') || key.startsWith('chat-video-joined:')) {
+          window.localStorage.removeItem(key)
+        }
       }
     })
 
@@ -916,8 +926,10 @@ describe('ChatThread in a group', () => {
         expect(names()).toEqual(['Anna-Sonne'])
       })
 
-      it('are not asked under somebody else’s invitation, nor where there is nobody to choose', async () => {
-        await mountAt(45, { writer: 'anna' })
+      // E-043 C: under Anna's invitation only once the member went into her room from here (see
+      // below) -- without the click, nothing is asked.
+      it('are not asked under somebody else’s invitation the member did not go into, nor where there is nobody to choose', async () => {
+        await mountAt(45, { writer: 'anna', body: ANNAS })
         wrapper.unmount()
         await mountAt(45, { members: [MEMBERS[0]] })
 
@@ -935,6 +947,84 @@ describe('ChatThread in a group', () => {
 
         expect(bookingsAsked()).toHaveLength(1)
         expect(names()).toEqual(['Anna-Sonne'])
+      })
+    })
+
+    /**
+     * E-043 C (Bernd, 05.11.2026): Anna invited the group, the member clicked her link in this
+     * wallet -- half an hour after that click "Jemandem danken" offers the others, Anna among them,
+     * and a member thanked since the CLICK is no longer among them.
+     */
+    describe('under somebody else’s invitation the member went into', () => {
+      const annas = { writer: 'anna', body: ANNAS }
+
+      it('stands half an hour after the click, offering the others with the one who invited', async () => {
+        clickedAt(15)
+        await mountAt(45, annas)
+
+        expect(bubbles()[1].find('[data-test="thanks-nudge"]').exists()).toBe(true)
+        expect(question()).toBe('thanksNudge.afterGroupCall')
+        await choose()
+        expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+        expect(bookingsAsked()).toHaveLength(1)
+        expect(vi.getTimerCount()).toBe(1)
+      })
+
+      it('not before half an hour after the click, however old the invitation', async () => {
+        clickedAt(25)
+        await mountAt(45, annas)
+        expect(line().exists()).toBe(false)
+        expect(bookingsAsked()).toHaveLength(0)
+
+        vi.advanceTimersByTime(10 * MINUTE)
+        await flushPromises()
+
+        expect(line().exists()).toBe(true)
+        expect(bookingsAsked()).toHaveLength(1)
+      })
+
+      it('leaves out who was thanked since the click, not who was thanked before it', async () => {
+        clickedAt(15)
+        ownBookings.mockImplementation(async () =>
+          bookingsPage([booking(7, { writer: 'anna', minutes: 20 })]),
+        )
+        await mountAt(45, annas)
+        await choose()
+        expect(names()).toEqual(['Carla-Sonne'])
+
+        wrapper.unmount()
+        ownBookings.mockImplementation(async () =>
+          bookingsPage([booking(7, { writer: 'anna', minutes: 10 })]),
+        )
+        await mountAt(45, annas)
+        await choose()
+        expect(names()).toEqual(['Anna-Sonne', 'Carla-Sonne'])
+      })
+
+      // The bookings are asked back to the click: a full page whose oldest booking lies between
+      // the invitation and the click is the last one asked.
+      it('asks the member’s own bookings back to the click', async () => {
+        clickedAt(15)
+        const rows = Array.from({ length: 25 }, (_, i) =>
+          booking(100 + i, { minutes: 34 - i, sent: false }),
+        )
+        ownBookings.mockImplementation(async () => bookingsPage(rows, 50))
+
+        await mountAt(45, annas)
+
+        expect(rows.at(-1).balanceDate).toBe(new Date(BEGAN + 10 * MINUTE).toISOString())
+        expect(bookingsAsked()).toHaveLength(1)
+      })
+
+      it('not under a copy forwarded from another conversation', async () => {
+        clickedAt(15)
+        vi.setSystemTime(BEGAN + 45 * MINUTE)
+        mountThread({}, { groupMembers: MEMBERS })
+        await arrive(page([message(1), { ...invitation('anna', ANNAS), forwarded: true }]))
+        await flushPromises()
+
+        expect(line().exists()).toBe(false)
+        expect(bookingsAsked()).toHaveLength(0)
       })
     })
 

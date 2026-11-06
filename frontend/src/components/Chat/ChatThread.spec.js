@@ -10,6 +10,7 @@ import ChatComposeBar from './ChatComposeBar.vue'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
+import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 import {
   chatImage,
   chatImageViewState,
@@ -6370,6 +6371,21 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
   })
   const before = { ...message(1, { mine: false }), createdAt: '2026-10-26T14:00:00.000Z' }
 
+  /**
+   * Lena's invitation as her wallet wrote it, read by its link (E-043 C, Bernd 06.11.2026): the
+   * room's address in Gradido's own form at its end. `n` its id (`uuid-<n>`).
+   */
+  const LINK = `${CALL_NOW.room}#config.subject=%22Videoanruf%22`
+  const THEIR_BODY = `📹 Videoanruf: Videoanruf\nDer Raum liegt auf einem Jitsi-Server von Freifunk — ein Vorschlag, kein Dienst von Gradido: ${LINK}`
+  const theirInvitation = ({ n = 3, body = THEIR_BODY, ...extra } = {}) => ({
+    ...message(n, { mine: false }),
+    body,
+    createdAt: BEGAN,
+    ...extra,
+  })
+  /** The member clicked the link of the invitation `uuid` here, `ms` after the call began. */
+  const clickedAt = (ms, uuid = 'uuid-3') => noteChatVideoJoined('me-id', uuid, began + ms)
+
   /** The wallet reads the invitation as the member's own words; every other message as none. */
   const reads = (call) =>
     videoInviteRead.mockImplementation((i18n, text) => (text === BODY ? call : null))
@@ -6415,18 +6431,21 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
     delete storeState.transfersInChat
     delete document.hidden
     for (const key of Object.keys(window.localStorage)) {
-      if (key.startsWith('thanks-nudge:')) window.localStorage.removeItem(key)
+      if (key.startsWith('thanks-nudge:') || key.startsWith('chat-video-joined:')) {
+        window.localStorage.removeItem(key)
+      }
     }
   })
 
   describe('when it stands', () => {
-    it('half an hour after the call began, under the member’s invitation only', async () => {
-      await mountAt(29 * MINUTE)
-      expect(lines()).toEqual([false, false])
+    // E-043 C narrows it: not under the other person's invitation the member did not go into.
+    it('half an hour after the call began, under the member’s invitation -- not under Lena’s unclicked', async () => {
+      await mountAt(29 * MINUTE, { messages: [before, invitation(), theirInvitation()] })
+      expect(lines()).toEqual([false, false, false])
 
       await minutePasses()
 
-      expect(lines()).toEqual([false, true])
+      expect(lines()).toEqual([false, true, false])
       expect(wrapper.find('[data-test="thanks-nudge-question"]').text()).toBe(
         'thanksNudge.afterCall {"name":"Lena"}',
       )
@@ -6488,9 +6507,14 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
   })
 
   describe('where it does not stand', () => {
-    // The one invited is not pressed to thank.
-    it('under the other person’s invitation', async () => {
-      await mountAt(45 * MINUTE, { messages: [before, invitation({ mine: false })] })
+    // E-043 C: the one invited is asked only where this wallet took them into the room -- the
+    // link may have reached them another way, or another device. Nor for somebody else's click
+    // on this device, nor for a click into another invitation's room.
+    it('under the other person’s invitation the member did not go into from this wallet', async () => {
+      noteChatVideoJoined('other-id', 'uuid-3', began)
+      clickedAt(0, 'uuid-9')
+
+      await mountAt(45 * MINUTE, { messages: [before, theirInvitation()] })
 
       expect(lines()).toEqual([false, false])
     })
@@ -6621,6 +6645,193 @@ describe('ChatThread, the suggestion to thank after a video call', () => {
       expect(answered()).toBe('1')
       expect(lines()).toEqual([false, false])
       expect(bookingsAsked).not.toHaveBeenCalled()
+    })
+  })
+
+  /**
+   * E-043 C (Bernd, 05.11.2026): "dass auch jeder Gesprächsteilnehmer, der also aus dem Chat auf
+   * einen Video-Link klickt, hinterher die Einladung bekommt, Dank zu senden." Lena invited, the
+   * member clicked her link in this wallet: half an hour after that click the line stands under
+   * her invitation, and "Danke sagen" thanks her.
+   */
+  describe('under the other person’s invitation the member went into', () => {
+    const theirs = [before, theirInvitation()]
+    const press = async (which) => {
+      await wrapper.find(`[data-test="thanks-nudge-${which}"]`).trigger('click')
+      await flushPromises()
+    }
+    const answeredTheirs = () => window.localStorage.getItem('thanks-nudge:me-id:call:uuid-3')
+
+    it('half an hour after the click, asking to thank the one who invited', async () => {
+      clickedAt(15 * MINUTE)
+
+      await mountAt(45 * MINUTE, { messages: theirs })
+
+      expect(lines()).toEqual([false, true])
+      expect(wrapper.find('[data-test="thanks-nudge-question"]').text()).toBe(
+        'thanksNudge.afterCall {"name":"Lena"}',
+      )
+    })
+
+    // Not after the invitation was written: whoever came in later would have it at once.
+    it('not half an hour after the invitation, where the click came later', async () => {
+      clickedAt(25 * MINUTE)
+      await mountAt(45 * MINUTE, { messages: theirs })
+      expect(lines()).toEqual([false, false])
+
+      vi.advanceTimersByTime(9 * MINUTE)
+      await flushPromises()
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+      expect(lines()).toEqual([false, true])
+    })
+
+    // The key is the member's own (one browser, several members).
+    it('reads the click from the member’s own key on this device', async () => {
+      window.localStorage.setItem(
+        'chat-video-joined:me-id',
+        JSON.stringify({ 'uuid-3': began + 5 * MINUTE }),
+      )
+
+      await mountAt(45 * MINUTE, { messages: theirs })
+
+      expect(lines()).toEqual([false, true])
+    })
+
+    it('ends with a transfer to Lena since the click, not with one before it', async () => {
+      const sent = (minutes) =>
+        bookingsPage([
+          booking(9, { at: new Date(began + minutes * MINUTE).toISOString(), sent: true }),
+        ])
+      clickedAt(15 * MINUTE)
+      bookingsAsked.mockImplementation(async () => sent(10))
+      await mountAt(45 * MINUTE, { messages: theirs })
+      // The message before, the invitation with its line, and the transfer from before the click.
+      expect(lines()).toEqual([false, true, false])
+
+      wrapper.unmount()
+      bookingsAsked.mockImplementation(async () => sent(20))
+      await mountAt(45 * MINUTE, { messages: theirs })
+      expect(lines()).toEqual([false, false, false])
+    })
+
+    it('"Danke sagen" opens the send form as under one’s own, and remembers nothing', async () => {
+      clickedAt(15 * MINUTE)
+      await mountAt(45 * MINUTE, { messages: theirs })
+
+      await press('yes')
+
+      expect(wrapper.emitted('thank')).toHaveLength(1)
+      expect(wrapper.emitted('thank')[0]).toEqual([])
+      expect(answeredTheirs()).toBeNull()
+      expect(lines()).toEqual([false, true])
+    })
+
+    it('"Nicht jetzt" is remembered for this invitation', async () => {
+      clickedAt(15 * MINUTE)
+      await mountAt(45 * MINUTE, { messages: theirs })
+
+      await press('no')
+
+      expect(lines()).toEqual([false, false])
+      expect(answeredTheirs()).toBe('1')
+    })
+
+    // W10: a forwarded copy's words -- and its call -- are somebody else's.
+    it('not under a copy forwarded from another conversation, clicked or not', async () => {
+      clickedAt(15 * MINUTE)
+
+      await mountAt(45 * MINUTE, { messages: [before, theirInvitation({ forwarded: true })] })
+
+      expect(lines()).toEqual([false, false])
+    })
+
+    // Bernd, 06.11.2026 ("Ja, am Link"): somebody else's invitation is read by its link, in
+    // whatever language it was written -- the wallet's own reading is not asked for it.
+    it('under an invitation written in another language', async () => {
+      clickedAt(15 * MINUTE)
+      const english = `📹 Video call: Video call\nThe room is on a Jitsi server run by Freifunk — a suggestion, not a Gradido service: ${LINK}`
+
+      await mountAt(45 * MINUTE, { messages: [before, theirInvitation({ body: english })] })
+
+      expect(lines()).toEqual([false, true])
+      expect(videoInviteRead).not.toHaveBeenCalledWith(expect.anything(), english)
+    })
+
+    // Festlegung 3: a click a day ahead, to try the link, is no conversation -- the line counts
+    // from the planned time, which the address carries.
+    it('for a planned call clicked ahead, from half an hour after its time', async () => {
+      const start = began + DAY
+      const seconds = (ms) => Math.floor(ms / 1000)
+      const planned = `${LINK}&gradido.start=${seconds(start)}&gradido.end=${seconds(start + 60 * MINUTE)}`
+      clickedAt(10 * MINUTE)
+      await mountAt(DAY + 29 * MINUTE, {
+        messages: [before, theirInvitation({ body: `📹 Gartenrunde: ${planned}` })],
+      })
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+
+      expect(lines()).toEqual([false, true])
+    })
+
+    // The member clicks while the window is open: the line comes with the thread's clock, half an
+    // hour on -- no clock of its own, no timer.
+    it('half an hour after a click made while the window is open', async () => {
+      await mountAt(45 * MINUTE, { messages: theirs })
+      expect(lines()).toEqual([false, false])
+
+      noteChatVideoJoined('me-id', wrapper.vm.invitationInRoom(LINK), Date.now())
+      await flushPromises()
+      expect(lines()).toEqual([false, false])
+
+      vi.advanceTimersByTime(29 * MINUTE)
+      await flushPromises()
+      expect(lines()).toEqual([false, false])
+
+      await minutePasses()
+      expect(lines()).toEqual([false, true])
+      expect(vi.getTimerCount()).toBe(1)
+    })
+
+    // Falle 11: nothing changes for the one who invited -- a click of theirs moves nothing.
+    it('leaves the line under one’s own invitation as it was', async () => {
+      clickedAt(20 * MINUTE, 'uuid-2')
+
+      await mountAt(30 * MINUTE)
+
+      expect(lines()).toEqual([false, true])
+    })
+  })
+
+  /**
+   * Which invitation a clicked link belongs to (E-043 C): the window asks the thread, and notes the
+   * click by the invitation's uuid -- the room's address itself is kept nowhere.
+   */
+  describe('the invitation a clicked link belongs to', () => {
+    it('is the one whose room the link leads into, with or without its addition, in any case', async () => {
+      await mountAt(45 * MINUTE, { messages: [before, invitation(), theirInvitation()] })
+
+      expect(wrapper.vm.invitationInRoom(LINK)).toBe('uuid-3')
+      expect(wrapper.vm.invitationInRoom(CALL_NOW.room.toUpperCase())).toBe('uuid-3')
+    })
+
+    // A call duplicated for the next week keeps its room (E-058): the click is the newest one's.
+    it('is the newest, where several carry the room', async () => {
+      await mountAt(45 * MINUTE, {
+        messages: [before, theirInvitation({ n: 3 }), theirInvitation({ n: 5 })],
+      })
+
+      expect(wrapper.vm.invitationInRoom(LINK)).toBe('uuid-5')
+    })
+
+    it('is none for another room, and for no link', async () => {
+      await mountAt(45 * MINUTE, { messages: [before, theirInvitation()] })
+
+      expect(wrapper.vm.invitationInRoom('https://meet.example/another-room')).toBeNull()
+      expect(wrapper.vm.invitationInRoom('')).toBeNull()
+      expect(wrapper.vm.invitationInRoom(undefined)).toBeNull()
     })
   })
 
