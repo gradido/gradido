@@ -461,8 +461,9 @@ const props = defineProps({
   /**
    * In a group's thread, whom the member may thank after a call of their own (Bernd,
    * 28.10.2026): the members but the member themselves, each `{ key, label, avatar, user }` --
-   * the thread makes them from the group's members. Null in the thread with one person, where
-   * "Danke sagen" thanks that person.
+   * the thread makes them from the group's members, for each call, without those thanked since
+   * it began (E-043 B). Null in the thread with one person, where "Danke sagen" thanks that
+   * person.
    */
   thanksMembers: { type: Array, default: null },
 })

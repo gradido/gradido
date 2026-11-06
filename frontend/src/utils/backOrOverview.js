@@ -20,12 +20,35 @@
  * record says whether that page belongs to the signed-in wallet. A path that no longer
  * resolves is treated like no history.
  */
-export const backOrOverview = (router) => {
+export const backOrOverview = (router) => backOrOverviewUnless(router, null)
+
+/**
+ * `backOrOverview`, with one more exception: an entry behind this one that is the page
+ * `routeName` itself leads to the overview as well.
+ *
+ * For the send form's "Zurück" (E-043, with `'Send'`), which leaves the form and never walks
+ * through it. The form stands beside the column of contacts and under the strip of favourites,
+ * and a tap there patches it to another recipient: the entry behind it is then the form for the
+ * one before, and stepping back would hand the member the previous recipient instead of the way
+ * out. Where the form was opened from one of the windows, it knows that window's place
+ * (useSendReturn) and does not ask here.
+ */
+export const backOrOverviewUnless = (router, routeName) => {
   const back = router.options.history.state?.back
-  if (back && staysInWallet(router, back)) {
+  if (back && staysInWallet(router, back) && !isPage(router, back, routeName)) {
     router.back()
   } else {
     router.push('/overview')
+  }
+}
+
+/** Whether `path` resolves to the route named `routeName`. False where no name is given. */
+const isPage = (router, path, routeName) => {
+  if (!routeName) return false
+  try {
+    return router.resolve(path).name === routeName
+  } catch {
+    return false
   }
 }
 

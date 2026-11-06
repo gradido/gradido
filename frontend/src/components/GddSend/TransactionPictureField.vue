@@ -225,8 +225,7 @@ const remove = () => {
   focusOn(chooseButton)
 }
 
-// The picture went from outside -- "Zurücksetzen", or after the transfer was sent: the choice
-// does not stay open over an empty field.
+// Where the picture goes from outside, the choice does not stay open over an empty field.
 watch(
   () => props.picture,
   (picture) => {

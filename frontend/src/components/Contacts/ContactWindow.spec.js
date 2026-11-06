@@ -15,6 +15,16 @@ const pushSpy = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushSpy }),
 }))
+// The way back the window hands to the send form (E-043; useSendReturn has a spec of its own):
+// what is put, and what is taken back.
+const sendReturn = vi.hoisted(() => ({
+  put: vi.fn((handover) => ({ ...handover })),
+  drop: vi.fn(),
+}))
+vi.mock('@/composables/useSendReturn', () => ({
+  useSendReturn: () => sendReturn,
+  clearSendReturn: vi.fn(),
+}))
 /**
  * The one word the window fills in by itself, the video call's default topic (V4a), as a word:
  * it goes into the room's address, and a test reads it there. A test may change it for a
@@ -268,7 +278,9 @@ describe('ContactWindow', () => {
 
   afterEach(() => {
     wrapper?.unmount()
-    pushSpy.mockClear()
+    pushSpy.mockReset()
+    sendReturn.put.mockClear()
+    sendReturn.drop.mockClear()
     serverMutes.mockReset()
     serverRooms.mockReset()
     serverChoices.mockReset()
@@ -995,6 +1007,51 @@ describe('ContactWindow', () => {
       query: { art: 'send' },
     })
     expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+  })
+
+  /**
+   * E-043: the form's "Zurück" leads back into this conversation. The window hands its place over
+   * before it opens the form -- the address a chat mail's reply button has -- and takes it back
+   * where the form is not reached.
+   */
+  describe('the way back from the send form', () => {
+    it('is handed over before the form is opened', async () => {
+      mountWindow()
+      await sendButton().trigger('click')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledTimes(1)
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/home-uuid/carla-id',
+        back: { path: '/contacts', query: { with: 'carla-id', community: 'home-uuid' } },
+      })
+      expect(sendReturn.put.mock.invocationCallOrder[0]).toBeLessThan(
+        pushSpy.mock.invocationCallOrder[0],
+      )
+      expect(sendReturn.drop).not.toHaveBeenCalled()
+    })
+
+    it('names the conversation of a member of another community by their community', async () => {
+      mountWindow(STRANGER)
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('thank')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/provence-uuid/sarah-id',
+        back: { path: '/contacts', query: { with: 'sarah-id', community: 'provence-uuid' } },
+      })
+    })
+
+    // The same person tapped twice beside /send: the router refuses the second navigation.
+    it('is taken back where the form is not reached', async () => {
+      pushSpy.mockResolvedValueOnce({ type: 16 })
+      mountWindow()
+      await sendButton().trigger('click')
+      await flushPromises()
+
+      expect(sendReturn.drop).toHaveBeenCalledTimes(1)
+      expect(sendReturn.drop).toHaveBeenCalledWith(sendReturn.put.mock.results[0].value)
+    })
   })
 
   /**
