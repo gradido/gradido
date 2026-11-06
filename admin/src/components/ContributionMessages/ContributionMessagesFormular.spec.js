@@ -157,6 +157,20 @@ describe('ContributionMessagesFormular', () => {
     expect(messageField().element.value).toBe('')
   })
 
+  // A note leaves the status of the contribution as it is on the server, so the row must not turn
+  // to "question asked" either: the details button showed "?" after every note, also over a
+  // member's answer, until the list came back.
+  it('leaves the status of the row alone after a note', async () => {
+    wrapper = await mountForm()
+    await openTab(1)
+    await textareas()[1].setValue('a note for the moderation')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith(expect.objectContaining({ messageType: 'MODERATOR' }))
+    expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[42]])
+    expect(wrapper.emitted('update-status')).toBeUndefined()
+  })
+
   it('sends DIALOG contribution message', async () => {
     wrapper = await mountForm()
     await messageField().setValue('text form message')

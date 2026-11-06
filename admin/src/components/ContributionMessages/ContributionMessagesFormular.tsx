@@ -272,7 +272,11 @@ export const ContributionMessagesFormular = defineComponent({
             emit('update-contributions')
           } else {
             emit('get-list-contribution-messages', props.contributionId)
-            if (!updateOnlyResubmissionAt) {
+            // The row turns to "question asked" for a message to the member: that is what such a
+            // message makes the contribution on the server. A note leaves the status as it is
+            // there, so it leaves the row alone too -- before, the details button showed "?"
+            // after every note until the list came back, also over a member's answer.
+            if (!updateOnlyResubmissionAt && variables.messageType === messageType.DIALOG) {
               emit('update-status', props.contributionId)
             }
           }
