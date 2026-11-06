@@ -46,7 +46,8 @@ const at = (value) => new Date(value).getTime()
  *   conversation (E-059): its words are somebody else's, and so was the call. Not one that did
  *   not reach the other side (`FAILED`): the window does not open a room nobody else knows, so
  *   there was no call.
- * - `seen`: the member answered the line on this device already ("Danke sagen", "Nicht jetzt").
+ * - `seen`: the member answered the line on this device already: "Nicht jetzt" -- and "Danke
+ *   sagen" in a conversation of two whose thread holds no transfers (the member's switch off).
  *
  * The call began at the time the invitation names where it is planned, else when the message was
  * written. An invitation that was changed (E-060) is read as it stands now: its time is the one

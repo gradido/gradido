@@ -289,9 +289,9 @@ const props = defineProps({
  *
  * `thank`: "Danke sagen" under a video invitation of one's own (W2) -- for the window, which opens
  * the send form with this person named, the way its own button "Gradido senden" does. In a
- * group's thread the user of the member chosen comes with it, and the send form names them. With
- * one person the answer is remembered here already; in a group nothing is (E-043 B): the member's
- * own bookings tell whom they thanked.
+ * group's thread the user of the member chosen comes with it, and the send form names them.
+ * Nothing is remembered here (E-043 B): the member's own bookings tell whom they thanked -- but
+ * in the thread of two with the transfers switched off, which holds none.
  */
 const emit = defineEmits([
   'chatConversation',
@@ -366,6 +366,12 @@ const hasMore = computed(() => Boolean(page.value?.hasMore))
  * time, as bubbles of their own.
  */
 const store = useWalletStore()
+/**
+ * Whether this thread holds the transfers between the two: the member's own switch (Einstellungen
+ * › Nachrichten), on unless switched off -- null is a store from before the field. Never in a
+ * group: a transfer is between two (E-050 F6). Taken once, as the thread takes its person.
+ */
+const transfersInThread = !inGroup && store.transfersInChat !== false
 const {
   transfers,
   settled: transfersSettled,
@@ -373,11 +379,7 @@ const {
   hasMore: transfersHaveMore,
   loadOlderTransfers,
   takeReaction: takeTransferReaction,
-} = useChatTransfers(apolloClient, memberRef, {
-  // The member's own switch (Einstellungen › Nachrichten), on unless switched off: null is a
-  // store from before the field. Never in a group: a transfer is between two (E-050 F6).
-  enabled: !inGroup && store.transfersInChat !== false,
-})
+} = useChatTransfers(apolloClient, memberRef, { enabled: transfersInThread })
 
 /** The group's name, where this is a group's thread (P5). */
 const groupTitle = computed(() => props.group?.title ?? '')
@@ -588,16 +590,18 @@ watch(newestReceivedShown, (newest) => {
  * für das Gespräch bedanken?" with "Danke sagen" and "Nicht jetzt" -- where the window can take
  * the member to the send form with this person: the pair complete, as its button asks.
  *
- * ⚠️ Where the member switched the transfers in the conversation off, the thread holds none, and a
- * thank-you sent another way does not end the line; "Nicht jetzt" does.
- *
  * In a group's thread (Bernd, 28.10.2026): "Möchtest Du Dich für das Gespräch bedanken?" with
  * "Jemandem danken", which shows the members to choose from -- one tap on one takes the member
  * to the send form with them. Whom the member thanked since the call began is read off their own
  * bookings (E-043 B, Bernd 05.11.2026): that member is no longer among them, and once all are,
- * the line goes. The tap itself remembers nothing -- a thank-you begun and not sent leaves the
- * member standing, and what was booked counts on every device. "Nicht jetzt" ends the line, as
- * with one person.
+ * the line goes.
+ *
+ * In both kinds of conversation what was thanked is what was booked: the tap remembers nothing --
+ * a thank-you begun and not sent leaves the line, and what was booked counts on every device
+ * (with one person too since 06.11.2026, Bernd: "Ja, mitnehmen"). "Nicht jetzt" ends the line.
+ * ⚠️ Only where the member switched the transfers in the conversation off does the thread of two
+ * hold none: there "Danke sagen" is remembered on this device -- the line would never end after a
+ * thank-you otherwise --, and a thank-you sent another way does not end it; "Nicht jetzt" does.
  */
 const thanksOffered = inGroup || Boolean(props.member?.gradidoID && props.member?.communityUuid)
 const { isSeen: thanksSeen, markSeen: markThanksSeen } = useThanksNudges()
@@ -749,14 +753,13 @@ const thanksDue = computed(() => {
 
 /**
  * "Danke sagen", or a member chosen in a group's thread: to the window, which opens the send form
- * -- with the member chosen, in a group. With one person the answer is remembered on this device:
- * where the member switched the transfers in the conversation off, that thread holds none, and
- * the line would not end after a thank-you. In a group nothing is remembered (E-043 B): what the
- * member then books ends it for that member, and a send form left without sending leaves them
- * standing.
+ * -- with the member chosen, in a group. Nothing is remembered where the thread knows the
+ * bookings (E-043 B): what the member then books ends the line, and a send form left without
+ * sending leaves it standing. Only the thread of two with the transfers switched off holds none:
+ * there the answer is remembered on this device, or the line would not end after a thank-you.
  */
 const thankAfterCall = (message, user) => {
-  if (!inGroup) markThanksSeen('call', message.messageUuid)
+  if (!inGroup && !transfersInThread) markThanksSeen('call', message.messageUuid)
   if (user) emit('thank', user)
   else emit('thank')
 }
