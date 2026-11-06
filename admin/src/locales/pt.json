@@ -126,6 +126,7 @@
       "answer": "resposta do membro",
       "changed": "alterado pelo membro",
       "conversation": "conversa",
+      "note": "nota sobre a pergunta",
       "question": "pergunta feita"
     },
     "noGroup": "(sem grupo)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "registou-se em {createdAt}.",
+    "noteWakesResubmission": "A tua nota retira o lembrete definido por {name}.",
+    "noteWakesResubmissionPlain": "A tua nota retira o lembrete.",
     "resubmissionDateInPast": "A data de lembrete está no passado!"
   },
   "contributions": {

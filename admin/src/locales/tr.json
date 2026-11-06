@@ -126,6 +126,7 @@
       "answer": "üyenin yanıtı",
       "changed": "üye tarafından değiştirildi",
       "conversation": "yazışma",
+      "note": "soruya not",
       "question": "soru soruldu"
     },
     "noGroup": "(grupsuz)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "{createdAt} tarihinde kaydoldu.",
+    "noteWakesResubmission": "Notun, {name} tarafından kurulan hatırlatmayı kaldırır.",
+    "noteWakesResubmissionPlain": "Notun hatırlatmayı kaldırır.",
     "resubmissionDateInPast": "Hatırlatma tarihi geçmişte!"
   },
   "contributions": {
