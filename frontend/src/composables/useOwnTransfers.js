@@ -31,7 +31,9 @@ const isSentToSomebody = (booking) =>
  *
  * ⛔ `no-cache`: the whole list of one's own bookings is nothing to keep beside the booking page's
  * own answer until logout. ⛔ Nothing in the store or on the device: it is read again with the
- * next opening.
+ * next opening. ⛔ `renewSession: false`: the asking is never the member's own doing -- a line
+ * turned due on the thread's clock, or while the page was out of sight -- and must not move the
+ * idle logout on (plugins/apolloProvider.js); the thread's own page renews it on opening.
  *
  * Read once, on the first `ask`; a later one does nothing, also for another moment -- the thread
  * that asks is made anew with every opening of its window, and asks then.
@@ -58,6 +60,7 @@ export const useOwnTransfers = (apolloClient) => {
         counterparty: null,
       },
       fetchPolicy: 'no-cache',
+      context: { renewSession: false },
     })
     return data?.transactionList
   }

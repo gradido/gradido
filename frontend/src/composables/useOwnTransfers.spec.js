@@ -49,8 +49,9 @@ describe('useOwnTransfers', () => {
   })
 
   // ⛔ The whole list of one's own bookings is nothing to keep in the cache beside the booking
-  // page's own answer: `no-cache`, and not narrowed to anybody.
-  it('asks the member’s own booking list, newest first, a page of 25, past the cache', async () => {
+  // page's own answer: `no-cache`, and not narrowed to anybody. ⛔ And it leaves the session clock
+  // alone: the asking is never the member's own doing (a line turned due on the thread's clock).
+  it('asks the member’s own booking list, newest first, a page of 25, past the cache, quietly', async () => {
     const client = clientWith({ 1: page([row(1)]) })
     const { ask } = useOwnTransfers(client)
 
@@ -61,6 +62,7 @@ describe('useOwnTransfers', () => {
       query: transactionsQuery,
       variables: { currentPage: 1, pageSize: 25, order: 'DESC', counterparty: null },
       fetchPolicy: 'no-cache',
+      context: { renewSession: false },
     })
     expect(OWN_TRANSFER_PAGE_SIZE).toBe(25)
   })

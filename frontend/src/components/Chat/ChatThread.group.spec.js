@@ -871,9 +871,10 @@ describe('ChatThread in a group', () => {
       expect(window.localStorage.getItem('thanks-nudge:me-id:call:uuid-2')).toBe('1')
     })
 
-    // W7: not on opening for nothing, not on the beat -- once, when the first line is due.
+    // W7: not on opening for nothing, not on the beat -- once, when the first line is due. And
+    // quietly: the clock turned the line due, not the member -- the idle logout stays where it was.
     describe('the member’s own bookings', () => {
-      it('are not asked before a line is due, and once when it is', async () => {
+      it('are not asked before a line is due, and once when it is, leaving the session clock alone', async () => {
         await mountAt(29)
         expect(bookingsAsked()).toHaveLength(0)
 
@@ -885,6 +886,7 @@ describe('ChatThread in a group', () => {
           query: transactionsQuery,
           variables: { currentPage: 1, pageSize: 25, order: 'DESC', counterparty: null },
           fetchPolicy: 'no-cache',
+          context: { renewSession: false },
         })
       })
 
