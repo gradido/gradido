@@ -5,7 +5,7 @@ import { sendAddedContributionMessageEmail } from 'core'
 import { AppDatabase, Contribution as DbContribution, Event as DbEvent, EventType } from 'database'
 import { GraphQLError } from 'graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   adminCreateContributionMessage,
   createContribution,
@@ -74,11 +74,11 @@ describe('ContributionMessageResolver', () => {
 
     describe('authenticated', () => {
       beforeAll(async () => {
-        await userFactory(testEnv, bibiBloxberg) // seed alias 'BBB'
+        await userFactoryDrizzle(bibiBloxberg) // seed alias 'BBB'
         // The message type answers with alias and colour digit instead of the real name
         // (NU-020/NU-017); this seed user has no alias of his own, so pin one here.
-        await userFactory(testEnv, { ...peterLustig, alias: 'peterl' })
-        await userFactory(testEnv, bobBaumeister)
+        await userFactoryDrizzle({ ...peterLustig, alias: 'peterl' })
+        await userFactoryDrizzle(bobBaumeister)
         await mutate({
           mutation: login,
           variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },

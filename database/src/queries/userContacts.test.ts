@@ -1,16 +1,16 @@
 // AI-GENERATED — not an architecture reference
 import { eq, inArray } from 'drizzle-orm'
 import { OptInType, UserContactType } from 'shared'
-import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { AccountState } from '../enum'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { userContactsTable, usersTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
+import { DbUser } from './user'
 import {
   dbConfirmRegistrationContact,
   dbFindConfirmedUserContactEmails,
@@ -80,8 +80,8 @@ describe('userContacts.queries', () => {
     await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
-    bibi = await userFactory(bibiBloxberg)
-    peter = await userFactory(peterLustig)
+    bibi = await userFactoryDrizzle(bibiBloxberg)
+    peter = await userFactoryDrizzle(peterLustig)
 
     // Inserted after the registration row but dated before it: the order has to come from
     // `created_at`, not from the id.
@@ -263,7 +263,7 @@ describe('userContacts.queries', () => {
       )[0]
 
     beforeAll(async () => {
-      guest = await userFactory({
+      guest = await userFactoryDrizzle({
         alias: 'GuestC',
         email: 'guest@confirm.test',
         firstName: 'Guest',
@@ -323,7 +323,7 @@ describe('the user_contacts queries registration uses', () => {
   beforeAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
     await createCommunity(false)
-    bibiId = (await userFactory(bibiBloxberg)).id
+    bibiId = (await userFactoryDrizzle(bibiBloxberg)).id
   })
 
   const newContact = (email: string, emailVerificationCode: bigint) => ({

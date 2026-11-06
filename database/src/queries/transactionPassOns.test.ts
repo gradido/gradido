@@ -4,9 +4,10 @@ import { GradidoUnit } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { TransactionTypeId } from '../enum'
 import { transactionPassOnsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
-import { transferGradidos } from '../seeds/factory/transaction'
+import { createTransaction, transferGradidos } from '../seeds/factory/transaction'
 import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
@@ -48,6 +49,21 @@ beforeAll(async () => {
     return { send: send.id, receive: receive.id }
   }
   // Dates only go forward: a booking takes its balance from the member's last one.
+  // Both send more than they ever receive here.
+  for (const [member, moderator] of [
+    [peter, bibi],
+    [bibi, peter],
+  ]) {
+    await createTransaction(
+      GradidoUnit.fromNumber(1000),
+      'to send from',
+      member,
+      moderator,
+      TransactionTypeId.CREATION,
+      day(0),
+      day(0),
+    )
+  }
   thanks = await transfer(peter, bibi, 'Danke fürs Brot', day(1))
   toBob = await transfer(bibi, bob, 'Weitergegeben', day(2))
   toPeter = await transfer(bibi, peter, 'Und noch einmal weitergegeben', day(3))

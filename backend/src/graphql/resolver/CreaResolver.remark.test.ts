@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { gql } from 'graphql-tag'
 import { getLogger as originalGetLogger } from 'log4js'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login, setUserRemark } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -21,8 +21,8 @@ let db: AppDatabase
 
 // bibi is a KI-moderator and asks Crea; raeuber is the member the remark is about; bob a member
 // without one.
-let raeuber: User
-let bob: User
+let raeuber: DbUser
+let bob: DbUser
 
 const fake = {
   evaluateContribution: jest.fn(),
@@ -96,10 +96,10 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   await db.getDataSource().query('DELETE FROM user_remarks')
-  const bibi = await userFactory(testEnv, bibiBloxberg)
+  const bibi = await userFactoryDrizzle(bibiBloxberg)
   await setRole(bibi.id, RoleNames.MODERATOR_AI)
-  raeuber = await userFactory(testEnv, raeuberHotzenplotz)
-  bob = await userFactory(testEnv, bobBaumeister)
+  raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
+  bob = await userFactoryDrizzle(bobBaumeister)
   await loginAs('bibi@bloxberg.de')
   const { errors } = await mutate({
     mutation: setUserRemark,

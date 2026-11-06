@@ -1,8 +1,8 @@
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, CreationGroup as DbCreationGroup, User } from 'database'
+import { AppDatabase, CreationGroup as DbCreationGroup, DbUser } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { loadAllContributions } from './util/contributions'
@@ -27,7 +27,7 @@ jest.mock('core', () => {
 
 let mutate: ApolloServerTestClient['mutate']
 let db: AppDatabase
-let member: User
+let member: DbUser
 
 const PLAIN = 'wallet filter test about the garden'
 const TAGGED = 'wallet filter test about the choir'
@@ -55,7 +55,7 @@ beforeAll(async () => {
   group.name = 'Wallet filter group'
   await group.save()
 
-  member = await userFactory(testEnv, bibiBloxberg)
+  member = await userFactoryDrizzle(bibiBloxberg)
   resetToken()
   await mutate({ mutation: login, variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' } })
   for (const [memo, creationGroups] of [

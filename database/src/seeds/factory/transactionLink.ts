@@ -1,56 +1,43 @@
 import { randomBytes } from 'node:crypto'
 import { CODE_VALID_DAYS_DURATION, Duration, GradidoUnit } from 'shared'
-import { AppDatabase } from '../../AppDatabase'
-import { TransactionLink, User } from '../../entity'
-import { findUserByIdentifier } from '../../queries'
+import { dbInsertTransactionLinks } from '../../queries/transactionLinks'
+import { dbFindUserByEmail } from '../../queries/user'
 import { TransactionLinksInsert } from '../../schemas/drizzle.schema'
 import { TransactionLinkInterface } from '../transactionLink/TransactionLinkInterface'
-import { SeedUserRef } from './user'
+import { SEED_BATCH_SIZE } from './batchSize'
 
 export async function transactionLinkFactory(
   transactionLinkData: TransactionLinkInterface,
   userId?: number,
-): Promise<TransactionLink> {
+): Promise<TransactionLinksInsert & { id: number }> {
   if (!userId) {
-    const user = await findUserByIdentifier(transactionLinkData.email)
+    const user = await dbFindUserByEmail(transactionLinkData.email)
     if (!user) {
       throw new Error(`User ${transactionLinkData.email} not found`)
     }
     userId = user.id
   }
-  return createTransactionLink(transactionLinkData, userId)
+  const row = buildTransactionLinkRow(transactionLinkData, userId)
+  const [id] = await dbInsertTransactionLinks([row])
+  return { ...row, id }
 }
 
+// The links with the ids the database gave them, in the order of `transactionLinks`.
 export async function transactionLinkFactoryBulk(
   transactionLinks: TransactionLinkInterface[],
-  userCreationIndexedByEmail: Map<string, User>,
-): Promise<TransactionLink[]> {
-  const dbTransactionLinks: TransactionLink[] = []
-  for (const transactionLink of transactionLinks) {
-    const user = userCreationIndexedByEmail.get(transactionLink.email)
-    if (!user) {
-      throw new Error(`User ${transactionLink.email} not found`)
-    }
-    dbTransactionLinks.push(await createTransactionLink(transactionLink, user.id, false))
+  usersByEmail: Map<string, { id: number }>,
+): Promise<(TransactionLinksInsert & { id: number })[]> {
+  const created: (TransactionLinksInsert & { id: number })[] = []
+  for (let offset = 0; offset < transactionLinks.length; offset += SEED_BATCH_SIZE) {
+    const batch = transactionLinks.slice(offset, offset + SEED_BATCH_SIZE)
+    const rows = buildSeedTransactionLinkRows(batch, usersByEmail)
+    const ids = await dbInsertTransactionLinks(rows)
+    created.push(...rows.map((row, index) => ({ ...row, id: ids[index] })))
   }
-  const dataSource = AppDatabase.getInstance().getDataSource()
-  await dataSource.getRepository(TransactionLink).insert(dbTransactionLinks)
-  return dbTransactionLinks
+  return created
 }
 
-export async function createTransactionLink(
-  transactionLinkData: TransactionLinkInterface,
-  userId: number,
-  store: boolean = true,
-): Promise<TransactionLink> {
-  const transactionLink = Object.assign(
-    new TransactionLink(),
-    buildTransactionLinkRow(transactionLinkData, userId),
-  )
-  return store ? transactionLink.save() : transactionLink
-}
-
-// The row of one transaction link, for createTransactionLink and the seed alike.
+// The row of one transaction link, for the factories and the seed alike.
 export function buildTransactionLinkRow(
   transactionLinkData: TransactionLinkInterface,
   userId: number,
@@ -74,7 +61,7 @@ export function buildTransactionLinkRow(
 // The rows of one batch of seed transaction links.
 export function buildSeedTransactionLinkRows(
   transactionLinks: TransactionLinkInterface[],
-  refsByEmail: Map<string, SeedUserRef>,
+  refsByEmail: Map<string, { id: number }>,
 ): TransactionLinksInsert[] {
   return transactionLinks.map((transactionLink) => {
     const user = refsByEmail.get(transactionLink.email)

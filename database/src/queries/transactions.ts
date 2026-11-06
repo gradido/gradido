@@ -1,4 +1,4 @@
-import { and, count, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
@@ -6,7 +6,7 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
-import { TransactionInsert, transactionsTable, usersTable } from '../schemas'
+import { TransactionInsert, TransactionSelect, transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
 import {
@@ -839,15 +839,42 @@ export async function dbCountAndSumTransactionsOfTypeByWeek(
     .orderBy(week)
 }
 
-// One statement for all the rows it is given
+/** A member's latest booking, by booking time and then id, or null if they have none. */
+export async function dbSelectLastTransaction(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<TransactionSelect | null> {
+  const rows = await tx
+    .select()
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.balanceDate), desc(transactionsTable.id))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+// One statement for all the rows it is given. Returns their ids, in the order of the rows.
 export async function dbInsertTransactions(
   transactions: TransactionInsert[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<void> {
+): Promise<number[]> {
   if (transactions.length === 0) {
-    return
+    return []
   }
-  await tx.insert(transactionsTable).values(transactions)
+  const inserted = await tx.insert(transactionsTable).values(transactions).$returningId()
+  return inserted.map(({ id }) => id)
+}
+
+/** Names the other row of a transfer on this one. */
+export async function dbUpdateLinkedTransactionId(
+  id: number,
+  linkedTransactionId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx
+    .update(transactionsTable)
+    .set({ linkedTransactionId })
+    .where(eq(transactionsTable.id, id))
 }
 
 /** The bookings of one type that carry a picture: a motif of the greeting, or a photo. */

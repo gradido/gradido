@@ -1,7 +1,8 @@
 import { GradidoUnit, PendingTransactionState } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { User as DbUser } from '..'
-import { AppDatabase } from '../AppDatabase'
+import { AppDatabase, drizzleDb } from '../AppDatabase'
+import { pendingTransactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { pendingTransactionFactory } from '../seeds/factory/pendingTransaction'
 import { userFactory } from '../seeds/factory/user'
@@ -10,7 +11,7 @@ import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
-import { countOpenPendingTransactions } from './pendingTransactions'
+import { countOpenPendingTransactions, dbInsertPendingTransaction } from './pendingTransactions'
 
 const db = AppDatabase.getInstance()
 
@@ -108,5 +109,28 @@ describe('countOpenPendingTransactions', () => {
   it('bob has one transaction, should return 1', async () => {
     const count = await countOpenPendingTransactions([bob.gradidoID])
     expect(count).toBe(1)
+  })
+})
+
+describe('dbInsertPendingTransaction', () => {
+  it('writes the row as it is given', async () => {
+    await drizzleDb().delete(pendingTransactionsTable)
+    const row = {
+      state: PendingTransactionState.NEW,
+      memo: 'a memo',
+      amount: GradidoUnit.fromNumber(12.5),
+      userId: 1,
+      userGradidoId: uuidv4(),
+      userCommunityUuid: uuidv4(),
+      linkedUserId: 2,
+      linkedUserGradidoId: uuidv4(),
+      linkedUserCommunityUuid: uuidv4(),
+    }
+
+    await dbInsertPendingTransaction(row)
+
+    const rows = await drizzleDb().select().from(pendingTransactionsTable)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject(row)
   })
 })
