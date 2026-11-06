@@ -93,6 +93,7 @@ export async function settlePendingReceiveTransaction(
     transactionReceive.previous = receiveBalance ? receiveBalance.lastTransactionId : null
     transactionReceive.linkedTransactionId = pendingTx.linkedTransactionId
     transactionReceive.transactionLinkId = pendingTx.transactionLinkId
+    transactionReceive.seen = receiverUser.transfersInChat === false
     await queryRunner.manager.insert(dbTransaction, transactionReceive)
     logger.debug(`receive Transaction inserted: ${new TransactionLoggingView(transactionReceive)}`)
 

@@ -1001,6 +1001,10 @@ describe('send coins', () => {
         expect(mailed).toHaveBeenCalledWith(
           expect.objectContaining({ email: 'peter@lustig.de', memo: 'with a mail, please' }),
         )
+        // Unread at the sender's name until he sees it (Chat E-086).
+        await expect(
+          Transaction.findOne({ where: { userId: peter.id, memo: 'with a mail, please' } }),
+        ).resolves.toMatchObject({ seen: false })
       })
 
       it('stays at home where the recipient switched transfers off, the transfer made all the same', async () => {
@@ -1011,9 +1015,10 @@ describe('send coins', () => {
           errors: undefined,
         })
         expect(mailed).not.toHaveBeenCalled()
+        // Booked as seen: nothing he reads could ever mark it (Chat E-086).
         await expect(
           Transaction.findOne({ where: { userId: peter.id, memo: 'no mail, please' } }),
-        ).resolves.not.toBeNull()
+        ).resolves.toMatchObject({ seen: true })
       })
     })
   })

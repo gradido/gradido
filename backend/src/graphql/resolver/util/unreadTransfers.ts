@@ -1,26 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import {
-  dbSelectTransactionReadsStart,
-  dbSelectUnreadReceivedTransfers,
-  UnreadReceivedTransfers,
-} from 'database'
-import { unreadTransfersByPerson } from '@/data/ChatTransfers.logic'
-
-/**
- * Where the counting of unread transfers begins on this server (migration 0165): read once in a
- * process -- it never changes once the migration ran --, and read again after a failure.
- */
-let start: Promise<number> | null = null
-
-export const transactionReadsStart = (): Promise<number> => {
-  if (!start) {
-    start = dbSelectTransactionReadsStart().catch((error) => {
-      start = null
-      throw error
-    })
-  }
-  return start
-}
+import { dbSelectUnreadReceivedTransfers, UnreadReceivedTransfers } from 'database'
+import { transferPersonKey } from '@/data/ChatTransfers.logic'
 
 /**
  * The transfers `user` received and has not seen, per person (Chat E-086) -- none where the
@@ -34,6 +14,6 @@ export const unreadTransfersOfUser = async (user: {
   if (user.transfersInChat === false) {
     return new Map()
   }
-  const afterId = await transactionReadsStart()
-  return unreadTransfersByPerson(await dbSelectUnreadReceivedTransfers(user.id, afterId))
+  const rows = await dbSelectUnreadReceivedTransfers(user.id)
+  return new Map(rows.map((row) => [transferPersonKey(row.sender), row]))
 }

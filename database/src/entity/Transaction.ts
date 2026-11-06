@@ -65,6 +65,13 @@ export class Transaction extends BaseEntity {
   })
   transactionPictureId?: number | null
 
+  /**
+   * Whether the recipient saw the transfer (migration 0169), on a RECEIVE row only. Set when a
+   * received transfer is booked; marked later through Drizzle (`dbMarkReceivedTransferSeen`).
+   */
+  @Column({ type: 'bool', default: false })
+  seen?: boolean
+
   @Column({
     name: 'amount_gdd4',
     type: 'bigint',

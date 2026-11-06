@@ -38,7 +38,6 @@ jest.mock('database', () => {
     // for every page and update which of its conversations are groups).
     dbSelectChatGroupUuids: jest.fn(async () => new Map()),
     // The transfers the caller has not seen (Chat E-086): none unless a test says so.
-    dbSelectTransactionReadsStart: jest.fn(async () => 1000),
     dbSelectUnreadReceivedTransfers: jest.fn(async () => []),
     dbSelectDirectChatPartnersWithUnread: jest.fn(async () => []),
   }
@@ -596,7 +595,7 @@ describe('newChatMessagesSince, the transfers not seen', () => {
 
   it('counts a person whose transfer waits, beside the conversations', async () => {
     unreadTransfers.mockResolvedValue([
-      { communityUuid: HOME, gradidoId: PAUL, count: 2, latestId: 1207 },
+      { sender: { communityUuid: HOME, gradidoId: PAUL }, count: 2, latestId: 1207 },
     ])
 
     const update = await askAs(lenaWith(true))
@@ -604,14 +603,14 @@ describe('newChatMessagesSince, the transfers not seen', () => {
     expect(update.unreadConversations).toBe(2)
     expect(update.unreadTransfers).toBe(2)
     expect(update.latestUnreadTransferId).toBe(1207)
-    // Her own bookings only, above the start of the counting.
-    expect(unreadTransfers).toHaveBeenCalledWith(17, 1000)
+    // Her own bookings only.
+    expect(unreadTransfers).toHaveBeenCalledWith(17)
   })
 
   // Max's message waits and his transfer too: one person, one thing to see to.
   it('counts a person once whose message waits as well', async () => {
     unreadTransfers.mockResolvedValue([
-      { communityUuid: HOME, gradidoId: MAX.toUpperCase(), count: 1, latestId: 1300 },
+      { sender: { communityUuid: HOME, gradidoId: MAX.toUpperCase() }, count: 1, latestId: 1300 },
     ])
     partnersWithUnread.mockResolvedValue([{ communityUuid: HOME, gradidoId: MAX }])
 
@@ -632,7 +631,7 @@ describe('newChatMessagesSince, the transfers not seen', () => {
   // Switched out of her conversations, a transfer stands nowhere she reads it.
   it('reads no transfer for a member who keeps them out of her conversations', async () => {
     unreadTransfers.mockResolvedValue([
-      { communityUuid: HOME, gradidoId: PAUL, count: 2, latestId: 1207 },
+      { sender: { communityUuid: HOME, gradidoId: PAUL }, count: 2, latestId: 1207 },
     ])
 
     const update = await askAs(lenaWith(false))
