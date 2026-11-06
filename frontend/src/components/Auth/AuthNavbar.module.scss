@@ -77,6 +77,46 @@
 }
 
 /*
+  With a session (ZE-038, L1a): one link, the member's circle and "To my account" in one line,
+  centred, 8px apart -- on a phone in the row below the logo, on the right, where the two words
+  stand without a session. The link keeps their height (44px on a phone, 32px on the desk): the
+  circle, 30px, gives back in its margins what it is taller than the line of text, and the line
+  is 1.5em high (Bootstrap's line-height), so they are 0.75em - 15px.
+*/
+.authHeader .toAccount :global(.nav-link) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toAccountFace {
+  flex: none;
+  margin-block: calc(0.75em - 15px);
+}
+
+/*
+  Hover marks the word, as it marks the two words without a session: the underline
+  (.auth-template a:hover) and, in dark mode, the brighter green (gradido-template-dark.scss).
+  Set on the whole link they would reach the circle too -- the underline under its letters,
+  the brightness on the member's picture.
+*/
+.authHeader .toAccount :global(.nav-link):hover {
+  text-decoration: none;
+}
+
+.authHeader .toAccount :global(.nav-link):hover .toAccountWord {
+  text-decoration: underline;
+}
+
+:global(#app.dark-mode) .toAccount :global(.nav-link):hover {
+  filter: none;
+}
+
+:global(#app.dark-mode) .toAccount :global(.nav-link):hover .toAccountWord {
+  filter: brightness(1.35);
+}
+
+/*
   On a phone the logo is 45px high, 153px wide: halfway between the 109px it had here and
   the desk's 200px (Bernd, 22.09.2026 -- it had become too small). The two words take the
   row below it, still on the right, on every phone and in every language alike. Beside the
