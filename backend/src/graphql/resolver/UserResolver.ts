@@ -96,6 +96,7 @@ import {
   parseOrThrowFirstIssue,
   passwordSchema,
   Result,
+  USER_NOT_FOUND,
   updateAllDefinedAndChanged,
 } from 'shared'
 import {
@@ -1714,7 +1715,7 @@ export class UserResolver {
     const foundDbUser = await findUserByIdentifier(identifier, communityIdentifier)
     if (!foundDbUser) {
       createLogger('user').debug('User not found', identifier, communityIdentifier)
-      throw new Error('User not found')
+      throw new Error(USER_NOT_FOUND)
     }
     return new User(foundDbUser)
   }

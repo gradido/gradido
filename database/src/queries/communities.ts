@@ -17,10 +17,10 @@ import {
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import * as v from 'valibot'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { eqCommunityIdentifier } from '../data'
 import { Community as DbCommunity } from '../entity'
 import { CommunityUniqueKey } from '../enum'
 import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
-import { eqCommunityIdentifier } from '../logic'
 import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */

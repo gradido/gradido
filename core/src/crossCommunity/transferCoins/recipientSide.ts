@@ -16,14 +16,14 @@ import * as v from 'valibot'
 import { memberAvatarDateForTransfer } from '../../apis'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendTransactionReceivedEmail } from '../../emails'
-import { calculateRecipientBalance } from '../../logic'
+import { calculateRecipientBalance, storeForeignUser } from '../../logic'
 import { ApiClientCompleted } from '../ApiClient'
 import {
   CrossGroupTransaction,
   CrossGroupTransactionWire,
   crossGroupTransactionSchema,
+  userPublicInfoWireSchema,
 } from '../schema'
-import { storeForeignUser } from '../storeForeignUser'
 import {
   mapToPendingTx,
   mapTxToLog,
@@ -68,16 +68,16 @@ export async function auth(context: {
 
 export async function prepareSendCoins({
   tx,
-  recipientSender,
+  recipientUser,
 }: {
   tx: CrossGroupTransaction
-  recipientSender: UserSelect
+  recipientUser: UserSelect
 }) {
   const logger = createLogger('prepareSendCoins')
   try {
     if (
       (await countOpenPendingTransactions(
-        [tx.sender.gradidoId, recipientSender.gradidoId],
+        [tx.sender.gradidoId, recipientUser.gradidoId],
         PendingTransactionState.NEW,
       )) > 0
     ) {
@@ -87,22 +87,23 @@ export async function prepareSendCoins({
     }
 
     const [receiveBalance, avatarUpdatedAt] = await Promise.all([
-      calculateRecipientBalance(recipientSender.id, tx.amount, tx.balanceDate),
+      calculateRecipientBalance(recipientUser.id, tx.amount, tx.balanceDate),
       // The recipient's picture date for the sender's lists, read before the pending
       // transaction is written. Null when the recipient has nothing members may see;
       // memberAvatarDateForTransfer answers null for a failed read as well.
-      memberAvatarDateForTransfer(recipientSender.id),
+      memberAvatarDateForTransfer(recipientUser.id),
     ])
 
     const pendingTx = mapToPendingTx(
       tx,
       receiveBalance,
-      recipientSender,
-      recipientSender.id,
+      recipientUser,
+      recipientUser.id,
       TransactionTypeId.RECEIVE,
     )
     await dbInsertPendingTransaction(pendingTx)
-    return { ...recipientSender, avatarUpdatedAt }
+    // only what the sender's side needs of the recipient: the public info, nothing else of the row
+    return v.parse(userPublicInfoWireSchema, { ...recipientUser, avatarUpdatedAt })
   } catch (err) {
     logger.error(`Error in voteForSendCoins: `, err)
     return status('Internal Server Error')

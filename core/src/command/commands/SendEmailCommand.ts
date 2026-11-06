@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto'
 import {
   ChatMessageMailState,
   User as DbUser,
-  dbInsertForeignUser,
   dbUpdateForeignUserAlias,
+  dbUpsertForeignUser,
   findUserByUuids,
   getCommunityByUuid,
 } from 'database'
@@ -430,7 +430,7 @@ export class SendEmailCommand extends BaseCommand<
       ) {
         return null
       }
-      const filed = await dbInsertForeignUser({
+      const filed = await dbUpsertForeignUser({
         communityUuid: senderComUuid,
         gradidoId: senderGradidoId,
         alias,

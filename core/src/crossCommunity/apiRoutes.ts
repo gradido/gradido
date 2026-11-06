@@ -15,7 +15,7 @@ import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { ApiClientCompleted } from './ApiClient'
 import { ApiClientCache } from './ApiClientCache'
-import { crossGroupTransactionWireSchema } from './schema'
+import { crossGroupTransactionWireSchema, userPublicInfoWireSchema } from './schema'
 import {
   auth,
   emailTransactionReceived,
@@ -108,9 +108,17 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
     (app) =>
       app
         .resolve(auth)
+        // the recipient's public info goes back sealed for the sender, as the request came
         .post('prepareSendCoins', prepareSendCoins, {
-          // mapResponse: signedEncryptedJsonResponse,
-          // response: userPublicInfoWireSchema
+          mapResponse: signedEncryptedJsonResponse,
+          // an error answer is a status with its name as body, unsealed; 404 is auth's answer
+          // for a recipient nobody has here
+          response: {
+            200: userPublicInfoWireSchema,
+            404: v.string(),
+            500: v.string(),
+            503: v.string(),
+          },
         })
         .post('revertSendCoins', revertSendCoins, {
           mapResponse: signedJsonResponse,
@@ -153,7 +161,8 @@ async function signedJsonResponse<T>(
   }: Pick<Context, 'request' | 'set'> & {
     responseValue: T
     nonce?: string
-    senderClient: ApiClientCompleted
+    // only a route behind derive has one; a public route answers unencrypted
+    senderClient?: ApiClientCompleted
   },
   encrypt?: boolean,
 ) {
@@ -166,6 +175,9 @@ async function signedJsonResponse<T>(
   let body: string | BodyInit = JSON.stringify(value)
   let contentHash: string | undefined
   if (encrypt) {
+    if (!senderClient) {
+      throw new Error('cannot encrypt the answer of a route without a sender client')
+    }
     const { box, hash } = AppContext.getInstance()
       .getHomeCommunity()
       .encryptAndHash(body, senderClient.publicEncryptionKey)

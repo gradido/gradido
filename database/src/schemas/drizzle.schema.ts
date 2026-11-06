@@ -20,7 +20,8 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/mysql-core'
-
+import { createSelectSchema } from 'drizzle-orm/valibot'
+import * as v from 'valibot'
 import { AccountState } from '../enum/AccountState'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
@@ -875,6 +876,9 @@ export const usersTable = mysqlTable(
 
 export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
+export const userSelectSchema = createSelectSchema(usersTable, {
+  accountState: v.enum(AccountState),
+})
 
 // A member's addresses - every one they ever held stays; `users.email_id` marks the one in
 // force (see queries/userContacts.typeorm.ts for the life of a row). Mirrors the table as
@@ -923,6 +927,7 @@ export const userContactsTable = mysqlTable(
 
 export type UserContactSelect = typeof userContactsTable.$inferSelect
 export type UserContactInsert = typeof userContactsTable.$inferInsert
+export const userContactSelectSchema = createSelectSchema(userContactsTable)
 
 // Every name a member owns; `users.alias` marks the current one (see migration 0116).
 // `origin` is one of the AliasOrigin values next to the UserAlias entity.
@@ -1000,6 +1005,7 @@ export const userRolesTable = mysqlTable(
 
 export type UserRoleSelect = typeof userRolesTable.$inferSelect
 export type UserRoleInsert = typeof userRolesTable.$inferInsert
+export const userRoleSelectSchema = createSelectSchema(userRolesTable)
 
 // A member's favourites: the people they marked with the heart (see migration 0128).
 //
@@ -1134,6 +1140,7 @@ export const foreignMemberAvatarDatesTable = mysqlTable(
 
 export type ForeignMemberAvatarDateSelect = typeof foreignMemberAvatarDatesTable.$inferSelect
 export type ForeignMemberAvatarDateInsert = typeof foreignMemberAvatarDatesTable.$inferInsert
+export const foreignMemberAvatarDateSelectSchema = createSelectSchema(foreignMemberAvatarDatesTable)
 
 // Paying with a printed card. Three tables, split along who owns what: the PIN and the
 // limits belong to the person, the code and the failure counter belong to the card, and

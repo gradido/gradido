@@ -131,7 +131,7 @@ export async function findPendingTransaction(
 
 export async function settlePendingTransaction(
   pendingTx: PendingTransactionSelect,
-): Promise<VoidResult<CrossCommunityError>> {
+): Promise<Result<number, CrossCommunityError>> {
   // acquire lock
   const mutex = new Mutex(AppDatabase.getInstance().getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
@@ -162,7 +162,7 @@ export async function settlePendingTransaction(
         return xcomError(CrossCommunityErrorType.insertTxFailed, m)
       }
       await dbUpdatePendingTransactionState(pendingTx.id, PendingTransactionState.SETTLED, tx)
-      return { success: true as const }
+      return insertResult
     },
     {
       isolationLevel: 'repeatable read',

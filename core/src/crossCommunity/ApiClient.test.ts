@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
 import { randomBytes } from 'node:crypto'
 import { Elysia } from 'elysia'
 import { appendSignature } from 'http-message-sig'
@@ -85,57 +85,69 @@ const peerAnswering = (
   answerExchangeId: (requested: string) => string = (requested) => requested,
   answerRequest: (request: Request) => Requested = (request) => request,
 ) =>
-  new Elysia()
-    .get(
-      'peer-api/v1/communityInfos',
-      ({ query, request }) => {
-        const exchangeId = answerExchangeId(query.exchangeId)
-        return signedAnswer(
-          JSON.stringify({ ...communityInfo, exchangeId }),
-          'application/json',
-          exchangeId,
-          answerRequest(request),
-        )
-      },
-      { query: v.object({ exchangeId: signatureNonceSchema }) },
-    )
-    .listen(0)
+  new Elysia().get(
+    'peer-api/v1/communityInfos',
+    ({ query, request }) => {
+      const exchangeId = answerExchangeId(query.exchangeId)
+      return signedAnswer(
+        JSON.stringify({ ...communityInfo, exchangeId }),
+        'application/json',
+        exchangeId,
+        answerRequest(request),
+      )
+    },
+    { query: v.object({ exchangeId: signatureNonceSchema }) },
+  )
 
-const honestPeer = peerAnswering()
+// No peer listens on a socket: the client's fetch hands the request to the peer its hostname names,
+// and gives up on an aborted signal as fetch does.
+const peers: Record<string, Pick<Elysia, 'handle'>> = {}
+const urlOf = (name: string, peer: Pick<Elysia, 'handle'>) => {
+  peers[name] = peer
+  return `http://${name}/`
+}
+const fetchSpy = spyOn(globalThis, 'fetch').mockImplementation(
+  ((request: Request) =>
+    new Promise<Response>((resolve, reject) => {
+      request.signal.addEventListener('abort', () => reject(request.signal.reason))
+      peers[new URL(request.url).hostname].handle(request).then(resolve, reject)
+    })) as never,
+)
+afterAll(() => fetchSpy.mockRestore())
+
+const honest = urlOf('honest', peerAnswering())
 // signs as the answer of another of its routes
-const otherRoutePeer = peerAnswering(undefined, (request) => ({
-  method: request.method,
-  url: request.url.replace('communityInfos', 'other'),
-}))
+const otherRoute = urlOf(
+  'other-route',
+  peerAnswering(undefined, (request) => ({
+    method: request.method,
+    url: request.url.replace('communityInfos', 'other'),
+  })),
+)
 // answers nothing signed at all
-const unsignedPeer = new Elysia().get('peer-api/v1/communityInfos', () => communityInfo).listen(0)
+const unsigned = urlOf(
+  'unsigned',
+  new Elysia().get('peer-api/v1/communityInfos', () => communityInfo),
+)
 // accepts the request and never answers
-const silentPeer = new Elysia()
-  .get(
+const silent = urlOf(
+  'silent',
+  new Elysia().get(
     'peer-api/v1/communityInfos',
     () =>
       new Promise<never>(() => {
         // never resolved
       }),
-  )
-  .listen(0)
-afterAll(() => {
-  honestPeer.stop()
-  otherRoutePeer.stop()
-  unsignedPeer.stop()
-  // the request of the timeout test is still open
-  silentPeer.stop(true)
-})
-const urlOf = (peer: Pick<Elysia, 'server'>) => `http://localhost:${peer.server?.port}/`
+  ),
+)
 
 describe('ApiClient.getCommunityInfos', () => {
   const exchangeId = randomBytes(16).toString('hex')
 
   it('hands out the answer signed by the announced key for this request', async () => {
-    const { data, error } = await new ApiClient(
-      urlOf(honestPeer),
-      communityKeyPair,
-    ).getCommunityInfos(exchangeId)
+    const { data, error } = await new ApiClient(honest, communityKeyPair).getCommunityInfos(
+      exchangeId,
+    )
     expect(error).toBeNull()
     // Eden reads an ISO date string as Date
     expect(data as unknown).toMatchObject({
@@ -146,7 +158,7 @@ describe('ApiClient.getCommunityInfos', () => {
 
   it('refuses the answer under another announced key', async () => {
     const { data, error } = await new ApiClient(
-      urlOf(honestPeer),
+      honest,
       new Ed25519KeyPair(Ed25519KeyPair.generate().publicKeyToBuffer()),
     ).getCommunityInfos(exchangeId)
     expect(data).toBeNull()
@@ -154,20 +166,18 @@ describe('ApiClient.getCommunityInfos', () => {
   })
 
   it('refuses a signed answer of another route', async () => {
-    const { data, error } = await new ApiClient(
-      urlOf(otherRoutePeer),
-      communityKeyPair,
-    ).getCommunityInfos(exchangeId)
+    const { data, error } = await new ApiClient(otherRoute, communityKeyPair).getCommunityInfos(
+      exchangeId,
+    )
     expect(data).toBeNull()
     // a SignatureError of http-message-sig, handed on as it is
     expect((error?.value as { code?: string } | undefined)?.code).toBe('VerificationFailed')
   })
 
   it('refuses an answer that is not signed', async () => {
-    const { data, error } = await new ApiClient(
-      urlOf(unsignedPeer),
-      communityKeyPair,
-    ).getCommunityInfos(exchangeId)
+    const { data, error } = await new ApiClient(unsigned, communityKeyPair).getCommunityInfos(
+      exchangeId,
+    )
     expect(data).toBeNull()
     expect(error).not.toBeNull()
   })
@@ -175,7 +185,7 @@ describe('ApiClient.getCommunityInfos', () => {
   it('gives up a community that does not answer in time', async () => {
     const started = performance.now()
     const { data, error } = await new ApiClient(
-      urlOf(silentPeer),
+      silent,
       communityKeyPair,
       undefined,
       50,
@@ -217,22 +227,20 @@ describe('ApiClient.emailTransactionReceived', () => {
     signedAnswer('"OK"', 'application/json', nonceOf(request), request)
   // takes the request as it came over the wire, as a peer that knows nothing but the wire does
   let received: { request: Request; body: Uint8Array } | undefined
-  const peer = new Elysia()
-    .post(
+  const recipient = urlOf(
+    'recipient',
+    new Elysia().post(
       'peer-api/v1/emailTransactionReceived',
       async ({ request, body }) => {
         received = { request, body: new Uint8Array(body as ArrayBuffer) }
         return answer(request)
       },
       { parse: 'arrayBuffer' },
-    )
-    .listen(0)
-  afterAll(() => {
-    peer.stop()
-  })
+    ),
+  )
   const client = () => {
     received = undefined
-    return new ApiClient(urlOf(peer), communityKeyPair, new X25519KeyPair(recipientKeys.publicKey))
+    return new ApiClient(recipient, communityKeyPair, new X25519KeyPair(recipientKeys.publicKey))
   }
 
   it('sends the transaction encrypted for the recipient and signed by the home community', async () => {
@@ -308,7 +316,7 @@ describe('ApiClient.emailTransactionReceived', () => {
   it('sends nothing without the encryption key of the recipient', async () => {
     received = undefined
     const { data, error } = await new ApiClient(
-      urlOf(peer),
+      recipient,
       communityKeyPair,
     ).emailTransactionReceived(tx)
     expect(data).toBeNull()

@@ -27,6 +27,7 @@ import {
   PasswordEncryptionType,
   Result,
   UserIdentifier,
+  UserPublicInfo,
   Uuidv4,
   uuidv4Schema,
   VoidResult,
@@ -34,6 +35,7 @@ import {
 
 import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { DbLoginUser, DbUser } from '../data'
 import { AccountState, EventType } from '../enum'
 import {
   DBDuplicateEntryError,
@@ -44,9 +46,7 @@ import {
 import {
   eventsTable,
   transactionsTable,
-  UserContactSelect,
   UserInsert,
-  UserRoleSelect,
   UserSelect,
   userAliasesTable,
   userAvatarsTable,
@@ -54,6 +54,7 @@ import {
   userRolesTable,
   usersTable,
 } from '../schemas/drizzle.schema'
+import { getHomeCommunityDrizzle } from './communities'
 import { countFields, countsOfRow, rowsFrom, WeeklyCount, weekStartOf } from './figureCounts'
 
 // Drizzle only. The `users` queries still on TypeORM live in `./user.typeorm` until they
@@ -129,6 +130,10 @@ export async function dbFindUserLoginByEmail(
  * ⛔ Deleted accounts INCLUDED, deliberately: a deleted member still holds their address - the
  * row stays, and `user_contacts.email` is unique - so a registration with it has to find them
  * and answer as for any taken address, instead of colliding on the insert.
+ *
+ * ⛔ The address in force only (`users.email_id`): a change somebody typed in and never
+ * confirmed is a second contact row of theirs, and it makes them nobody's account for that
+ * address - a registration with it releases that row (RegisterUser.role).
  */
 export async function dbFindUserByEmail(
   email: Email,
@@ -137,7 +142,7 @@ export async function dbFindUserByEmail(
   const rows = await tx
     .select({ ...getColumns(usersTable) })
     .from(usersTable)
-    .leftJoin(userContactsTable, eq(usersTable.id, userContactsTable.userId))
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
     .where(eq(userContactsTable.email, email))
   return rows[0] ? rows[0] : null
 }
@@ -194,27 +199,6 @@ export async function dbInsertUser(
     }
     throw error
   }
-}
-
-/**
- * A `users` row together with the address in force for it -- the shape almost everything
- * above the database means when it says "the user". The TypeORM entity carries the same
- * pair as `User` + `User.emailContact`, which is why the consumers of both take
- * `DbUser | User` while the translation is under way.
- *
- * ⚠️ The two spell the id differently: the entity has `gradidoID`, the row `gradidoId`.
- * Whoever accepts both reads it through `gradidoIdOf` rather than picking one.
- */
-export type DbUser = UserSelect & {
-  emailContact: UserContactSelect
-}
-
-/** What {@link dbFindUserLoginByEmail} hands back: a {@link DbUser} plus the two things
- * the login answer needs and the row cannot carry -- the member's role and the small
- * rendition of their picture. Both null where there is none. */
-export type DbLoginUser = DbUser & {
-  role: UserRoleSelect | null
-  avatar: Buffer | null
 }
 
 /**
@@ -379,11 +363,8 @@ export async function dbCountUnconfirmedVouchedAccounts(
 export async function dbHasGuestRegisteredByLink(
   referrerId: number,
   transactionLinkId: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<boolean> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .select({ id: usersTable.id })
     .from(usersTable)
@@ -468,24 +449,41 @@ export async function dbSelectUsersByUuids(
  * has not caught up with a rename over there) is not taken from it.
  */
 
-export async function dbInsertForeignUser(member: {
-  communityUuid: string
-  gradidoId: string
-  alias: string
-}): Promise<Result<number, DBInsertFailed<Partial<UserSelect>>>> {
-  const rows = await drizzleDb()
-    .insert(usersTable)
-    .values({
-      foreign: true,
-      accountState: AccountState.FOREIGN,
-      communityUuid: member.communityUuid,
-      gradidoId: member.gradidoId,
-      alias: member.alias,
-    })
-    .onDuplicateKeyUpdate({ set: { gradidoId: sql`${usersTable.gradidoId}` } })
-  return rows[0]
-    ? { success: true, value: rows[0].insertId }
-    : { success: false, error: new DBInsertFailed('users', member) }
+export async function dbUpsertForeignUser(
+  member: UserPublicInfo,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<Result<number, DBInsertFailed<Partial<UserSelect>> | DBDuplicateEntryError>> {
+  if (member.communityUuid === (await getHomeCommunityDrizzle()).communityUuid) {
+    throw new Error('Try to feed a home community user to a foreign user function')
+  }
+  const row = {
+    foreign: true,
+    accountState: AccountState.FOREIGN,
+    communityUuid: member.communityUuid,
+    gradidoId: member.gradidoId,
+    alias: member.alias,
+  }
+  try {
+    const rows = await tx
+      .insert(usersTable)
+      .values(row)
+      .onDuplicateKeyUpdate({
+        set: { alias: sql`IF(gradido_id = VALUES(gradido_id), VALUES(alias), alias)` },
+      })
+      .$returningId()
+    if (!rows[0]) {
+      return { success: false, error: new DBInsertFailed('users', row) }
+    }
+    if (!rows[0].id) {
+      return { success: false, error: new DBDuplicateEntryError('users', 'alias', member.alias) }
+    }
+    return { success: true, value: rows[0].id }
+  } catch (err) {
+    if (isDuplicateEntry(err)) {
+      return { success: false, error: new DBDuplicateEntryError('users', 'alias', member.alias) }
+    }
+    throw err
+  }
 }
 
 /**

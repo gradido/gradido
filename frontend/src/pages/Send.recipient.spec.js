@@ -113,10 +113,8 @@ const NETWORK_DOWN = Object.assign(new Error('Failed to fetch'), {
   graphQLErrors: [],
   networkError: new Error('Failed to fetch'),
 })
-const VOTE_NO = new Error(
-  'Error: voteForSendCoins failed for endpoint=https://w/api/, err=Error: voteForSendCoins with ' +
-    'unknown recipientUserIdentifier in the community=Gradido Wien: {"response":{}}{}',
-)
+// a member nobody has in the other community: the backend's sentence, as for one of this community
+const AWAY_NOT_FOUND = new Error(`The recipient user was not found: ${ADDRESS}`)
 
 const FOUND = { data: { user: { alias: 'Sarah-K', gradidoID: 'uuid-sarah' } } }
 
@@ -544,7 +542,7 @@ describe('Send, the recipient nobody has', () => {
     }
 
     it('another community does not know them: the same step, not the dead end', async () => {
-      await sendFails(VOTE_NO, { targetCommunity: AWAY })
+      await sendFails(AWAY_NOT_FOUND, { targetCommunity: AWAY })
 
       expect(page.vm.currentTransactionStep).toBe('recipientNotFound')
       expect(data('recipient-not-found-title').text()).toBe('form.recipient-not-found.title-email')
@@ -576,7 +574,7 @@ describe('Send, the recipient nobody has', () => {
 
     it('a mail from there makes a plain link in this community: no picture goes along', async () => {
       page.vm.picture = { motif: 'bouquet' }
-      await sendFails(VOTE_NO, { targetCommunity: AWAY })
+      await sendFails(AWAY_NOT_FOUND, { targetCommunity: AWAY })
 
       await sendByEmail()
 

@@ -71,42 +71,51 @@ describe('countOpenPendingTransactions', () => {
     )
   })
   it('should return 0 if called with empty array', async () => {
-    const count = await countOpenPendingTransactions([])
+    const count = await countOpenPendingTransactions([], PendingTransactionState.NEW)
     expect(count).toBe(0)
   })
 
   it('should return 0 if called with unknown gradido id', async () => {
-    const count = await countOpenPendingTransactions([uuidv4()])
+    const count = await countOpenPendingTransactions([uuidv4()], PendingTransactionState.NEW)
     expect(count).toBe(0)
   })
 
   it('should return 0 if there are no pending transactions for the given user', async () => {
-    const count = await countOpenPendingTransactions([garrick.gradidoID])
+    const count = await countOpenPendingTransactions(
+      [garrick.gradidoID],
+      PendingTransactionState.NEW,
+    )
     expect(count).toBe(0)
   })
 
   it('bibi and peter have two transactions together and peter one additional, should return 3', async () => {
-    const count = await countOpenPendingTransactions([bibi.gradidoID, peter.gradidoID])
+    const count = await countOpenPendingTransactions(
+      [bibi.gradidoID, peter.gradidoID],
+      PendingTransactionState.NEW,
+    )
     expect(count).toBe(3)
   })
 
   it('peter and bob have one transaction together, peter two additional, should return 3', async () => {
-    const count = await countOpenPendingTransactions([peter.gradidoID, bob.gradidoID])
+    const count = await countOpenPendingTransactions(
+      [peter.gradidoID, bob.gradidoID],
+      PendingTransactionState.NEW,
+    )
     expect(count).toBe(3)
   })
 
   it('peter has three transactions, should return 3', async () => {
-    const count = await countOpenPendingTransactions([peter.gradidoID])
+    const count = await countOpenPendingTransactions([peter.gradidoID], PendingTransactionState.NEW)
     expect(count).toBe(3)
   })
 
   it('bibi has two transactions, should return 2', async () => {
-    const count = await countOpenPendingTransactions([bibi.gradidoID])
+    const count = await countOpenPendingTransactions([bibi.gradidoID], PendingTransactionState.NEW)
     expect(count).toBe(2)
   })
 
   it('bob has one transaction, should return 1', async () => {
-    const count = await countOpenPendingTransactions([bob.gradidoID])
+    const count = await countOpenPendingTransactions([bob.gradidoID], PendingTransactionState.NEW)
     expect(count).toBe(1)
   })
 })

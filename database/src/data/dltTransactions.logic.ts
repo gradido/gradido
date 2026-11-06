@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { Result, UnhandledEnum } from 'shared'
 import { GrdtTransactionType, LedgerAnchor } from 'shared-native'
-import { DBMissingJoin, DBNotFoundError, DltTransactionType } from '../'
+import { DBMissingJoin, DBNotFoundError, DltTransactionType } from '..'
 import { drizzleDb } from '../AppDatabase'
 import {
   DltTransactionContribution,

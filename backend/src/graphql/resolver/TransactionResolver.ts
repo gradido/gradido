@@ -18,6 +18,7 @@ import {
   transactionLinksDecayed,
   transferTransaction,
   V1_0_CommandClient,
+  crossGroupTransactionSchema,
 } from 'core'
 import {
   AppDatabase,
@@ -45,11 +46,18 @@ import {
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
   getLastTransaction,
+  typeOrmUserToDbLoginUser,
   UserLoggingView,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { DecayCalculationType, GradidoUnit, parseOrThrowFirstIssue } from 'shared'
+import {
+  DecayCalculationType,
+  GradidoUnit,
+  PendingTransactionState,
+  parseOrThrowFirstIssue,
+  RECIPIENT_NOT_FOUND,
+} from 'shared'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -88,6 +96,7 @@ import {
   remoteUserFromBooking,
 } from './util/counterparty'
 import { acceptedPassOnOrigin } from './util/transactionPassOn'
+import * as v from 'valibot'
 
 const db = AppDatabase.getInstance()
 const createLogger = () =>
@@ -181,7 +190,12 @@ export const executeTransaction = async (
       new UserLoggingView(recipient),
     )
 
-    if ((await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID])) > 0) {
+    if (
+      (await countOpenPendingTransactions(
+        [sender.gradidoID, recipient.gradidoID],
+        PendingTransactionState.NEW,
+      )) > 0
+    ) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
@@ -866,7 +880,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
+        const errmsg = `${RECIPIENT_NOT_FOUND}: ${recipientIdentifier}`
         logger.error(errmsg)
         throw new Error(errmsg)
       }
@@ -947,10 +961,10 @@ export class TransactionResolver {
         logger.warn('passOnOf dropped: ACROSS_THE_BORDER', passOnOf)
       }
       await processXComCompleteTransaction(
-        senderUser,
+        typeOrmUserToDbLoginUser(senderUser),
         recipientCommunityIdentifier,
         recipientIdentifier,
-        amount.toString(),
+        amount,
         memo,
       )
     }
@@ -977,7 +991,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
+        const errmsg = `${RECIPIENT_NOT_FOUND}: ${recipientIdentifier}`
         logger.error(errmsg)
         throw new Error(errmsg)
       }

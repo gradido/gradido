@@ -7,15 +7,22 @@ import {
   dbInsertPendingTransaction,
 } from 'database'
 import { getLogger } from 'log4js'
-import { GradidoUnit, PendingTransactionState, Result, UserPublicInfo } from 'shared'
-import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
+import {
+  GradidoUnit,
+  PendingTransactionState,
+  RECIPIENT_NOT_FOUND,
+  Result,
+  UserPublicInfo,
+  userPublicInfoSchema,
+} from 'shared'
+import { Ed25519KeyPair, MonotonicTimer, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
 import { sendTransactionLinkRedeemedEmail } from '../../emails'
 import { TransactionTypeId } from '../../graphql/enum/TransactionTypeId'
-import { storeLinkAsRedeemed } from '../../graphql/logic/storeLinkAsRedeemed'
-import { calculateSenderBalance } from '../../logic'
+import { calculateSenderBalance, storeForeignUser } from '../../logic'
+import { storeLinkAsRedeemed } from '../../logic/transactionLink.logic'
 import { ApiClient } from '../ApiClient'
 import { ApiClientCache } from '../ApiClientCache'
 import { CrossCommunityError, CrossCommunityErrorType, xcomError } from '../errorTypes'
@@ -24,7 +31,6 @@ import {
   crossGroupTransactionSchema,
   crossGroupTransactionWireSchema,
 } from '../schema'
-import { storeForeignUser } from '../storeForeignUser'
 import { findPendingTransaction, mapToPendingTx, settlePendingTransaction } from './bothSides'
 
 const createLogger = (method: string) =>
@@ -34,14 +40,15 @@ const createLogger = (method: string) =>
 const genericTransactionFailedMessage = 'Transaction failed!'
 
 export async function processXComCompleteTransaction(
-  senderUser: DbUser,
+  sender: DbUser,
   recipientCommunityIdentifier: string,
   recipientIdentifier: string,
   amount: GradidoUnit,
   memo: string,
   transactionLink?: DbTransactionLink,
 ): Promise<boolean> {
-  const logger = createLogger(`run`)
+  const timer = new MonotonicTimer()
+  const logger = createLogger(`processXComCompleteTransaction`)
   // processing a x-community sendCoins
   logger.info('processing a x-community transaction...')
   if (!CONFIG_CORE.FEDERATION_XCOM_SENDCOINS_ENABLED) {
@@ -66,9 +73,8 @@ export async function processXComCompleteTransaction(
 
   try {
     const tx = v.parse(crossGroupTransactionSchema, {
-      senderUser,
-      recipientCommunityUuid: recipientCom.communityUuid,
-      recipientIdentifier,
+      sender,
+      recipient: { communityUuid: recipientCom.communityUuid, identifier: recipientIdentifier },
       balanceDate,
       amount,
       memo,
@@ -79,47 +85,58 @@ export async function processXComCompleteTransaction(
       new Ed25519KeyPair(recipientCom.publicKey),
       new X25519KeyPair(recipientCom.publicEncryptionKey),
     )
-    const pendingResult = await processXComPendingSendCoins(client, tx, senderUser.id)
+    const pendingResult = await processXComPendingSendCoins(client, tx, sender.id)
     if (!pendingResult.success) {
-      logger.error(pendingResult)
+      logger.warn(pendingResult.error.message)
+      // the other community has no such member: the wallet's sentence, as for a member of this one
+      if (pendingResult.error.type === CrossCommunityErrorType.notFound) {
+        throw new Error(`${RECIPIENT_NOT_FOUND}: ${recipientIdentifier}`)
+      }
       throw new Error(genericTransactionFailedMessage)
     }
-    const foreignUser = pendingResult.value.recipient
-    tx.sender.avatarUpdatedAt = await dbFindMemberAvatarTimestamp(senderUser.id)
-    const committingResult = await processXComCommittingSendCoins(
-      client,
-      tx,
-      pendingResult.value.recipient,
-    )
+    const foreignUser = pendingResult.value
+    tx.sender.avatarUpdatedAt = await dbFindMemberAvatarTimestamp(sender.id)
+    const committingResult = await processXComCommittingSendCoins(client, tx, foreignUser)
     if (!committingResult.success) {
       logger.warn(
-        `${recipientCommunityIdentifier} refused our transaction for ${recipientIdentifier}`,
+        `${recipientCommunityIdentifier} refused our transaction for ${recipientIdentifier} because: ${committingResult.error.message}`,
       )
       throw new Error(genericTransactionFailedMessage)
     }
     // after successful x-com-tx store the recipient as foreign user
-    await storeForeignUser(foreignUser)
+    const foreignUserStoreResult = await storeForeignUser(foreignUser)
 
     if (transactionLink != null) {
       // after successful x-com-tx per link store the link as redeemed
-      await storeLinkAsRedeemed(transactionLink, foreignUser, balanceDate)
+      if (foreignUserStoreResult.success) {
+        await storeLinkAsRedeemed(transactionLink, foreignUserStoreResult.value, balanceDate)
+      } else {
+        const m = `couldn't mark transaction link: ${transactionLink.id} as redeemed because of missing foreign user id`
+        logger.error(m)
+      }
       await sendTransactionLinkRedeemedEmail({
-        firstName: senderUser.firstName!,
-        lastName: senderUser.lastName!,
-        email: senderUser.emailContact.email,
-        language: senderUser.language,
+        firstName: sender.firstName!,
+        lastName: sender.lastName!,
+        email: sender.emailContact.email,
+        language: sender.language,
         senderAlias: foreignUser.alias,
         senderCommunity: recipientCom.name!,
         // The pair of whoever accepted, for the mail's button into the conversation with
         // them: the id the other server answered with, as the foreign user was just stored
         // under, and the uuid recipientCom was found by.
-        senderUuid: committingResult.value.recipGradidoID,
+        senderUuid: foreignUser.gradidoId,
         senderCommunityUuid: recipientCom.communityUuid,
         transactionAmount: amount,
         transactionMemo: memo,
       })
     }
-  } catch (_err) {
+    logger.info(`cross community tx: ${committingResult.value} finished after ${timer}`)
+  } catch (err) {
+    // the sentence above goes out as decided; anything else is a crash, and the wallet hears no detail of it
+    if (err instanceof Error && err.message.startsWith(RECIPIENT_NOT_FOUND)) {
+      throw err
+    }
+    logger.error(`unexcpected error:`, err)
     throw new Error(genericTransactionFailedMessage)
   }
   return true
@@ -153,18 +170,29 @@ async function processXComPendingSendCoins(
     )
   }
 
-  const { data: prepareResponse, error } = await client.prepareSendCoins(
+  const { data, error } = await client.prepareSendCoins(
     v.parse(crossGroupTransactionWireSchema, txData),
   )
-  if (!prepareResponse) {
+  if (error) {
+    if (error.status === 404) {
+      const m = `${txData.recipient.communityUuid} has no member ${txData.recipient.identifier}`
+      return xcomError(CrossCommunityErrorType.notFound, m)
+    }
     const m = `prepare for send coins failed: ${JSON.stringify(error.value, null, 2)}`
     return xcomError(CrossCommunityErrorType.apiCallFailed, m)
   }
+  // the answer of another server: taken only as far as it is the recipient's public info
+  const parsedUserInfo = v.safeParse(userPublicInfoSchema, data)
+  if (!parsedUserInfo.success) {
+    const m = `prepare for send coins answered with wrong type: ${JSON.stringify(data, null, 2)}`
+    return xcomError(CrossCommunityErrorType.apiCallFailed, m)
+  }
+  const recipientUser = parsedUserInfo.output
 
   // writing the pending transaction on receiver-side was successfull, so now write the sender side
   try {
     await dbInsertPendingTransaction(
-      mapToPendingTx(txData, senderBalance.value, prepareResponse, userId, TransactionTypeId.SEND),
+      mapToPendingTx(txData, senderBalance.value, recipientUser, userId, TransactionTypeId.SEND),
     )
   } catch (err) {
     // revert the existing pending transaction on receiver side
@@ -180,14 +208,14 @@ async function processXComPendingSendCoins(
       JSON.stringify(err, null, 2)
     return xcomError(CrossCommunityErrorType.foreignRevertSendCoinFailed, m)
   }
-  return { success: true, value: prepareResponse }
+  return { success: true, value: recipientUser }
 }
 
 async function processXComCommittingSendCoins(
   client: ApiClient,
   tx: CrossGroupTransaction,
   recipientUser: UserPublicInfo,
-): Promise<Result<boolean, CrossCommunityError>> {
+): Promise<Result<number, CrossCommunityError>> {
   const logger = createLogger('senderCommit')
   try {
     // first find pending Tx with given parameters. Deliberately NOT by the name: the
@@ -233,9 +261,11 @@ async function processXComCommittingSendCoins(
         const m = 'Failed to send command with error: ' + foreignEmailResult.error
         return xcomError(CrossCommunityErrorType.apiCallFailed, m)
       }
+      return settleResult
     }
+    const m = `settleSendCoins call failed with error: ${JSON.stringify(acknowledge.error)}`
+    return xcomError(CrossCommunityErrorType.apiCallFailed, m)
   } catch (err) {
     return xcomError(CrossCommunityErrorType.unknown, `Error: ${JSON.stringify(err, null, 2)}`)
   }
-  return { success: true, value: true }
 }
