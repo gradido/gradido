@@ -256,8 +256,8 @@ export const OpenCreationsTable = defineComponent({
       }
     }
 
-    const updateStatus = (id: number) => {
-      emit('update-status', id)
+    const updateStatus = (event: unknown) => {
+      emit('update-status', event)
     }
     const reloadContribution = (id: number) => {
       emit('reload-contribution', id)

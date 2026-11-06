@@ -601,9 +601,40 @@ describe('CreationConfirm', () => {
 
     it('ends with a message to the member', async () => {
       await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: null })
-      await table().vm.$emit('update-status', 1)
+      await table().vm.$emit('update-status', { id: 1, resubmissionAt: null })
       expect(row(1).colleagueNoteOnQuestion).toBe(false)
     })
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): a message to the member leaves the row
+  // with the resubmission it went out with -- the next opening of the row pre-fills that one.
+  it('takes the resubmission a message to the member went out with', async () => {
+    await simulateQueryResult({
+      adminListContributions: {
+        contributionCount: 1,
+        contributionList: [
+          {
+            id: 1,
+            contributionStatus: 'PENDING',
+            messagesCount: 1,
+            resubmissionAt: '2026-11-12T10:00:00.000Z',
+            colleagueNoteOnQuestion: true,
+          },
+        ],
+      },
+    })
+    const LATER = '2026-11-20T09:00:00.000Z'
+    await table().vm.$emit('update-status', { id: 1, resubmissionAt: LATER })
+    expect(table().props('items')[0]).toEqual(
+      expect.objectContaining({
+        contributionStatus: 'IN_PROGRESS',
+        messagesCount: 2,
+        resubmissionAt: LATER,
+        colleagueNoteOnQuestion: false,
+      }),
+    )
+    await table().vm.$emit('update-status', { id: 1, resubmissionAt: null })
+    expect(table().props('items')[0].resubmissionAt).toBeNull()
   })
 
   it('shows a neutral notice for a no-reminder no-op even within a group', async () => {

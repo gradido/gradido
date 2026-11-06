@@ -277,12 +277,15 @@ export const ContributionMessagesFormular = defineComponent({
         mutation = updateContributionMutation
         variables.id = props.contributionId
         updateOnlyResubmissionAt = true
-      } else if (tabindex.value !== 2) {
+      } else if (tabindex.value !== 2 && form.value.text !== '') {
         mutation = createContributionMessageMutation
         variables.message = form.value.text
         variables.messageType = tabindex.value === 0 ? messageType.DIALOG : messageType.MODERATOR
         variables.contributionId = props.contributionId
       } else {
+        // The memo -- also from the message or note tab with an empty field, where the memo was
+        // changed: that save used to send an empty message (to the member, a mail without words)
+        // and drop the changed memo.
         mutation = updateContributionMutation
         variables.memo = form.value.memo
         variables.id = props.contributionId
@@ -298,7 +301,7 @@ export const ContributionMessagesFormular = defineComponent({
         .then(() => {
           if (
             (props.hideResubmission && resubmissionAtDate && resubmissionAtDate > new Date()) ||
-            tabindex.value === 2
+            'memo' in variables
           ) {
             emit('update-contributions')
           } else {
@@ -307,8 +310,13 @@ export const ContributionMessagesFormular = defineComponent({
             // message makes the contribution on the server. A note leaves the status as it is
             // there, so it leaves the row alone too -- before, the details button showed "?"
             // after every note until the list came back, also over a member's answer.
+            // With the resubmission the message went out with, which the server keeps: the next
+            // opening of the row pre-fills it (it used to pre-fill the one before).
             if (!updateOnlyResubmissionAt && variables.messageType === messageType.DIALOG) {
-              emit('update-status', props.contributionId)
+              emit('update-status', {
+                id: props.contributionId,
+                resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toISOString() : null,
+              })
             }
             // A note: the row takes in place what the note did on the server (a refetch would close
             // the open row) -- whether a colleague's note now stands on the question, and the

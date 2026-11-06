@@ -198,8 +198,8 @@ export const ContributionMessagesList = defineComponent({
       return asker === me ? null : { name: question.userAlias ?? '' }
     })
 
-    const updateStatus = (id: number) => {
-      emit('update-status', id)
+    const updateStatus = (event: unknown) => {
+      emit('update-status', event)
     }
 
     const reloadContribution = (id: number) => {

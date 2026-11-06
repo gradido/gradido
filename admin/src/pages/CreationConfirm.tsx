@@ -73,6 +73,13 @@ type ResubmissionSaved = {
   unchanged?: boolean
 }
 
+// What ContributionMessagesFormular tells of a message to the member it has written: the
+// resubmission the message went out with, which the server keeps.
+type MessageSent = {
+  id: number
+  resubmissionAt: string | null
+}
+
 // What ContributionMessagesFormular tells of a note it has written: whether a colleague's note now
 // stands on the question, and the resubmission the note went out with.
 type NoteAdded = {
@@ -609,13 +616,15 @@ export const CreationConfirm = defineComponent({
       showCreaModal()
     }
 
-    const updateStatus = (id: number) => {
+    const updateStatus = ({ id, resubmissionAt }: MessageSent) => {
       const target = items.value.find((obj) => obj.id === id)
       if (target) {
         target.messagesCount++
         target.contributionStatus = 'IN_PROGRESS'
         // The message to the member is the newest word now, not a colleague's note.
         target.colleagueNoteOnQuestion = false
+        // And the next opening of the row pre-fills the resubmission the message went out with.
+        target.resubmissionAt = resubmissionAt
       }
     }
 

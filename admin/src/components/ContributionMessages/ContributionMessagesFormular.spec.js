@@ -151,7 +151,7 @@ describe('ContributionMessagesFormular', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
     expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[42]])
-    expect(wrapper.emitted('update-status')).toEqual([[42]])
+    expect(wrapper.emitted('update-status')).toEqual([[{ id: 42, resubmissionAt: null }]])
     expect(mockToastSuccess).toHaveBeenCalledWith('message.request')
     // And the field is empty again for the next message.
     expect(messageField().element.value).toBe('')
@@ -346,6 +346,47 @@ describe('ContributionMessagesFormular', () => {
       messageType: 'MODERATOR',
       contributionId: 42,
     })
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): after a message with a date, the row
+  // kept the one before, and the next opening of the row pre-filled that one again.
+  it('tells the row the resubmission a message went out with', async () => {
+    wrapper = await mountForm({ hideResubmission: false })
+    await messageField().setValue('One more question.')
+    await setReminder(IN_A_WEEK, '08:46')
+
+    await submit()
+    const expected = new Date(IN_A_WEEK)
+    expected.setHours(8)
+    expected.setMinutes(46)
+    expect(wrapper.emitted('update-status')).toEqual([
+      [{ id: 42, resubmissionAt: expected.toISOString() }],
+    ])
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): a changed memo, then the message tab with
+  // an empty field and a ticked reminder, sent an empty message -- a mail without words to the
+  // member -- and dropped the memo.
+  it('saves a changed memo, and no empty message, from the message tab', async () => {
+    wrapper = await mountForm({ hideResubmission: false })
+    await openTab(2)
+    await memoField().setValue('It is a test memo, with the hours added')
+    await openTab(0)
+    await setReminder(IN_A_WEEK, '08:46')
+
+    await submit()
+    const expected = new Date(IN_A_WEEK)
+    expected.setHours(8)
+    expected.setMinutes(46)
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: expected.toString(),
+      memo: 'It is a test memo, with the hours added',
+      id: 42,
+    })
+    // As every save of the memo: the list comes anew.
+    expect(wrapper.emitted('update-contributions')).toEqual([[]])
+    expect(wrapper.emitted('update-status')).toBeUndefined()
   })
 
   it('sends resubmission contribution message', async () => {
