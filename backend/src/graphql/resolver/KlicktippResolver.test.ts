@@ -3,7 +3,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, Event as DbEvent, EventType, UserContact } from 'database'
 import { GraphQLError } from 'graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login, subscribeNewsletter, unsubscribeNewsletter } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 
@@ -27,7 +27,7 @@ afterAll(async () => {
 
 describe('KlicktippResolver', () => {
   beforeAll(async () => {
-    await userFactory(testEnv, bibiBloxberg)
+    await userFactoryDrizzle(bibiBloxberg)
   })
 
   afterAll(async () => {

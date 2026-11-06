@@ -2,6 +2,7 @@
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  creationFactory,
   Transaction as DbTransaction,
   dbSelectThankYouGreetingsByLinkIds,
   foreignReceive,
@@ -10,7 +11,6 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   createTransactionLink,
@@ -151,7 +151,7 @@ beforeAll(async () => {
   bibi = await userFactory(testEnv, bibiBloxberg)
   bob = await userFactory(testEnv, bobBaumeister)
   await userFactory(testEnv, raeuberHotzenplotz)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 
   await loginAs('bibi@bloxberg.de')
   greetingLink = await created({ amount: '20', memo: GREETING_MEMO, greeting: GREETING })

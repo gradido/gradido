@@ -11,9 +11,11 @@ import {
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  creationFactory,
   DBInsertFailed,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
+  DbUser,
   dbInsertThankYouGreeting,
   dbInsertThankYouGreetingPicture,
   EventType,
@@ -28,8 +30,7 @@ import { reencodeImage } from 'shared-native'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { deleteTransactionLink, login, redeemTransactionLink } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -85,7 +86,7 @@ let query: ApolloServerTestClient['query']
 let db: AppDatabase
 let server: Server
 let port: number
-let bibi: User
+let bibi: DbUser
 
 const LINE = 'Einfach so — weil es Dich gibt.'
 const WORDS = 'Liebe Sarah, mit Eurem iPad hat alles angefangen.\nEure Oma'
@@ -340,10 +341,10 @@ beforeAll(async () => {
   port = (server.address() as AddressInfo).port
   await cleanDB()
   // The admin has to exist for creationFactory.
-  await userFactory(testEnv, peterLustig)
-  bibi = await userFactory(testEnv, bibiBloxberg)
-  await userFactory(testEnv, bobBaumeister)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await userFactoryDrizzle(peterLustig)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
+  await userFactoryDrizzle(bobBaumeister)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 })
 
 afterAll(async () => {

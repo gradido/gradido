@@ -4,10 +4,10 @@ import {
   contributionDateFormatter,
   testEnvironment,
 } from '@test/helpers'
-import { AppDatabase, Contribution, User } from 'database'
+import { AppDatabase, Contribution, DbUser } from 'database'
 import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { adminCreateContribution, createContribution, login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -40,14 +40,14 @@ const setZeroHours = (date: Date): Date => {
 }
 
 describe('util/creation', () => {
-  let user: User
-  let admin: User
+  let user: DbUser
+  let admin: DbUser
 
   const now = new Date()
 
   beforeAll(async () => {
-    user = await userFactory(testEnv, bibiBloxberg)
-    admin = await userFactory(testEnv, peterLustig)
+    user = await userFactoryDrizzle(bibiBloxberg)
+    admin = await userFactoryDrizzle(peterLustig)
   })
 
   describe('getUserCreations', () => {

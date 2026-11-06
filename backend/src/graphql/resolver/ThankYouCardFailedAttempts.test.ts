@@ -3,7 +3,7 @@
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { AppDatabase } from 'database'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   confirmThankYouCardPayment,
   createThankYouCard,
@@ -71,8 +71,8 @@ describe('thank you card: the wrong-pin counter', () => {
     db = testEnv.db
     await cleanDB()
 
-    await userFactory(testEnv, bibiBloxberg)
-    await userFactory(testEnv, bobBaumeister)
+    await userFactoryDrizzle(bibiBloxberg)
+    await userFactoryDrizzle(bobBaumeister)
 
     // The card and its PIN belong to the payer.
     await asPayer()

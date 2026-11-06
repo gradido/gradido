@@ -11,7 +11,7 @@ import {
 import { AppDatabase } from '../AppDatabase'
 import { AccountState, RoleNames } from '../enum'
 import { createCommunity } from '../seeds/community'
-import { createUserRole, userFactory } from '../seeds/factory/user'
+import { userFactory } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -33,6 +33,7 @@ import {
   findUserByIdentifier,
 } from './user.typeorm'
 import { dbInsertUserAlias } from './userAliases'
+import { dbInsertUserRoles } from './userRoles'
 
 const db = AppDatabase.getInstance()
 const userIdentifierLoggerName = `${LOG4JS_QUERIES_CATEGORY_NAME}.user.findUserByIdentifier`
@@ -587,7 +588,7 @@ describe('user.typeorm.queries', () => {
         await userFactory(raeuberHotzenplotz),
       ]
       for (const member of members) {
-        await createUserRole(member.id, RoleNames.MODERATOR)
+        await dbInsertUserRoles([{ userId: member.id, role: RoleNames.MODERATOR }])
       }
       // A member without a role, so the admin list has somebody to leave out.
       await userFactory(peterLustig)

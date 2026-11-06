@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User as DbUser } from 'database'
+import { AppDatabase, DbUser, User } from 'database'
 import { GraphQLError } from 'graphql'
 import { avatarColorIndex } from 'shared'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { showFriends } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -37,19 +37,19 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  host = await userFactory(testEnv, bibiBloxberg)
-  arrived = await userFactory(testEnv, peterLustig)
-  await DbUser.update(arrived.id, { referrerId: host.id })
+  host = await userFactoryDrizzle(bibiBloxberg)
+  arrived = await userFactoryDrizzle(peterLustig)
+  await User.update(arrived.id, { referrerId: host.id })
   // A second pair, untouched by the tests above: this arrival HAS a user name, so alias
   // and identifier are different strings. `emailChecked`, because only a confirmed
   // address counts as an arrival at all.
-  const namedHost = await userFactory(testEnv, bobBaumeister)
-  namedArrival = await userFactory(testEnv, {
+  const namedHost = await userFactoryDrizzle(bobBaumeister)
+  namedArrival = await userFactoryDrizzle({
     ...garrickOllivander,
     alias: 'carla-sonne',
     emailChecked: true,
   })
-  await DbUser.update(namedArrival.id, { referrerId: namedHost.id })
+  await User.update(namedArrival.id, { referrerId: namedHost.id })
 })
 
 afterAll(async () => {
@@ -77,7 +77,7 @@ describe('ShowFriendsResolver', () => {
           showFriends: {
             referrerAlias: null,
             latestArrival: {
-              gradidoID: arrived.gradidoID,
+              gradidoID: arrived.gradidoId,
               alias: arrived.alias,
               first: true,
             },
@@ -106,7 +106,7 @@ describe('ShowFriendsResolver', () => {
         data: {
           showFriends: {
             latestArrival: {
-              gradidoID: namedArrival.gradidoID,
+              gradidoID: namedArrival.gradidoId,
               alias: 'carla-sonne',
               // The colour digit is the one the contact list gives for the same member:
               // hashed here from the real names, which do not leave this side (NU-019).

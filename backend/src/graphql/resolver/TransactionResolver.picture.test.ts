@@ -12,6 +12,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
   countOpenPendingTransactions,
+  creationFactory,
   Transaction as DbTransaction,
   dbInsertEvent,
   dbInsertTransactionPicture,
@@ -27,7 +28,6 @@ import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { TRANSACTION_PICTURES_MAX_PER_REQUEST } from '@/data/TransactionPicture.logic'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   createTransactionLink,
@@ -209,7 +209,7 @@ beforeAll(async () => {
   bibi = await userFactory(testEnv, bibiBloxberg)
   bob = await userFactory(testEnv, bobBaumeister)
   await userFactory(testEnv, raeuberHotzenplotz)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 
   await loginAs('bibi@bloxberg.de')
   await sent('peter@lustig.de', MOTIF_MEMO, { motif: 'giving-hands' })
@@ -422,8 +422,7 @@ describe('a booking received from another community', () => {
     )
     // What settlePendingReceiveTransaction writes: the id the booking has on the OTHER server
     // -- here it happens to be the id of the booking with the photo.
-    fromAfar.linkedTransactionId = withPhoto.id
-    await fromAfar.save()
+    await DbTransaction.update({ id: fromAfar.id }, { linkedTransactionId: withPhoto.id })
 
     const row = (await listOf('bob@baumeister.de')).find((booking) => booking.id === fromAfar.id)
 

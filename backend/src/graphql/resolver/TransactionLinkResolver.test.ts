@@ -11,12 +11,14 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { sendTransactionLinkRedeemedEmail } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   ContributionLink as DbContributionLink,
   Event as DbEvent,
+  DbUser,
   dbInsertEvent,
   EventType,
   Transaction,
-  User,
+  transactionLinkFactory,
   UserContact,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -24,9 +26,7 @@ import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
-import { transactionLinkFactory } from '@/seeds/factory/transactionLink'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   confirmContribution,
   createContribution,
@@ -73,7 +73,7 @@ let testEnv: {
   db: AppDatabase
 }
 
-let user: User
+let user: DbUser
 
 beforeAll(async () => {
   testEnv = await testEnvironment()
@@ -81,8 +81,8 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await userFactory(testEnv, bibiBloxberg)
-  await userFactory(testEnv, peterLustig)
+  await userFactoryDrizzle(bibiBloxberg)
+  await userFactoryDrizzle(peterLustig)
 })
 
 afterAll(async () => {
@@ -974,7 +974,7 @@ describe('TransactionLinkResolver', () => {
     describe('authenticated', () => {
       describe('without admin rights', () => {
         beforeAll(async () => {
-          user = await userFactory(testEnv, bibiBloxberg)
+          user = await userFactoryDrizzle(bibiBloxberg)
           await mutate({
             mutation: login,
             variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
@@ -1003,21 +1003,21 @@ describe('TransactionLinkResolver', () => {
       describe('with admin rights', () => {
         beforeAll(async () => {
           // admin 'peter@lustig.de' has to exists for 'creationFactory'
-          await userFactory(testEnv, peterLustig)
+          await userFactoryDrizzle(peterLustig)
 
-          user = await userFactory(testEnv, bibiBloxberg)
+          user = await userFactoryDrizzle(bibiBloxberg)
           variables.userId = user.id
           variables.pageSize = 25
           // bibi needs GDDs
           const bibisCreation = creations.find((creation) => creation.email === 'bibi@bloxberg.de')
 
-          await creationFactory(testEnv, bibisCreation!)
+          await creationFactory(bibisCreation!)
           // bibis transaktion links
           const bibisTransaktionLinks = transactionLinks.filter(
             (transactionLink) => transactionLink.email === 'bibi@bloxberg.de',
           )
           for (const bibisTransaktionLink of bibisTransaktionLinks) {
-            await transactionLinkFactory(testEnv, bibisTransaktionLink)
+            await transactionLinkFactory(bibisTransaktionLink)
           }
 
           // admin: only now log in

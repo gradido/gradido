@@ -9,15 +9,16 @@ import {
 import {
   AccountState,
   AppDatabase,
-  User as DbUser,
+  DbUser,
   UserContact as DbUserContact,
   dbFindOldestUserContact,
+  User,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { CONFIG } from '@/config'
 import { mintGuarantorCode } from '@/data/GuarantorCode.logic'
 import { writeHomeCommunityEntry } from '@/seeds/community'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   confirmEmail,
   confirmEmailChange,
@@ -77,10 +78,7 @@ const loginAs = (email: string, password = PASSWORD) =>
  *
  * `more`: what else the registration brings -- the entry of an event link.
  */
-const openAtTheTable = async (
-  email: string,
-  more: Record<string, unknown> = {},
-): Promise<DbUser> => {
+const openAtTheTable = async (email: string, more: Record<string, unknown> = {}): Promise<User> => {
   const result = await mutate({
     mutation: createUser,
     variables: {
@@ -95,7 +93,7 @@ const openAtTheTable = async (
     },
   })
   expect(result.errors).toBeUndefined()
-  const guest = await DbUser.findOneOrFail({
+  const guest = await User.findOneOrFail({
     where: { emailContact: { email } },
     relations: ['emailContact'],
   })
@@ -124,7 +122,7 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   communityUuid = (await writeHomeCommunityEntry()).communityUuid as string
-  bob = await userFactory(testEnv, bobBaumeister)
+  bob = await userFactoryDrizzle(bobBaumeister)
 })
 
 afterAll(async () => {
@@ -190,7 +188,7 @@ describe('AssistedRegistrationResolver', () => {
 
       const reloaded = await DbUserContact.findOneOrFail({ where: { id: contact.id } })
       expect(reloaded.emailChecked).toBe(true)
-      await expect(DbUser.findOneOrFail({ where: { id: contact.userId } })).resolves.toMatchObject({
+      await expect(User.findOneOrFail({ where: { id: contact.userId } })).resolves.toMatchObject({
         accountState: AccountState.ACTIVATED,
       })
 
@@ -295,7 +293,7 @@ describe('AssistedRegistrationResolver', () => {
       expect(typoRow).toBeNull()
 
       // the real address is now the oldest living row = the GDT anchor
-      const guest3 = await DbUser.findOneOrFail({
+      const guest3 = await User.findOneOrFail({
         where: { emailContact: { email: realEmail } },
       })
       const oldest = await dbFindOldestUserContact(guest3.id)
@@ -352,7 +350,7 @@ describe('AssistedRegistrationResolver', () => {
 
     describe('at an account that confirms its address by the mail', () => {
       const email = 'event-guest@example.org'
-      let guest: DbUser
+      let guest: User
 
       beforeAll(async () => {
         guest = await openAtTheTable(email, { eventMatchingEntry })
@@ -423,7 +421,7 @@ describe('AssistedRegistrationResolver', () => {
      */
     describe('at an account that saved the entry itself before it confirmed', () => {
       const email = 'event-early@example.org'
-      let guest: DbUser
+      let guest: User
 
       beforeAll(async () => {
         guest = await openAtTheTable(email, { eventMatchingEntry })
@@ -468,7 +466,7 @@ describe('AssistedRegistrationResolver', () => {
     describe('at an account that corrects its address before it confirmed one', () => {
       const typoEmail = 'event-typo@example.org'
       const realEmail = 'event-real@example.org'
-      let guest: DbUser
+      let guest: User
 
       beforeAll(async () => {
         guest = await openAtTheTable(typoEmail, {

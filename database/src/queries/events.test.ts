@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { IsNull } from 'typeorm'
-import { Event as DbEvent, User as DbUser } from '..'
+import { Event as DbEvent } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { EventType } from '../enum/EventType'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { peterLustig } from '../seeds/users/peter-lustig'
@@ -26,7 +26,7 @@ import {
   dbInsertEvent,
 } from './events'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
-import { dbUserUpdateField } from './user'
+import { DbUser, dbUserUpdateField } from './user'
 
 const db = AppDatabase.getInstance()
 
@@ -79,8 +79,8 @@ describe('events.queries', () => {
       await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
-      bibi = await userFactory(bibiBloxberg)
-      peter = await userFactory(peterLustig)
+      bibi = await userFactoryDrizzle(bibiBloxberg)
+      peter = await userFactoryDrizzle(peterLustig)
 
       const now = Date.now()
       await recordEvent('EMAIL_CHANGE_REQUEST', bibi.id, new Date(now - 3 * HOUR_MS))
@@ -113,8 +113,8 @@ describe('events.queries', () => {
       await dbDeleteAllRowsExceptMigrations()
 
       await createCommunity(false)
-      bibi = await userFactory(bibiBloxberg)
-      peter = await userFactory(peterLustig)
+      bibi = await userFactoryDrizzle(bibiBloxberg)
+      peter = await userFactoryDrizzle(peterLustig)
 
       await recordRegisterRedeem(bibi.id, MY_LINK)
       // A registration that found no link behind its redeem code: the event is written
@@ -173,7 +173,7 @@ describe('events.queries', () => {
     beforeAll(async () => {
       await dbDeleteAllRowsExceptMigrations()
       await createCommunity(false)
-      bibi = await userFactory(bibiBloxberg)
+      bibi = await userFactoryDrizzle(bibiBloxberg)
     })
 
     it('stores the event when the transaction commits', async () => {
@@ -298,11 +298,11 @@ describe('the counts of the figures page', () => {
       await createCommunity(false)
       // Peter brings people along: Bibi over his address, Räuber at his table, Stephen over
       // his address too, who deleted his account since. Bob came on his own.
-      const peter = await userFactory(peterLustig)
-      const bibi = await userFactory(bibiBloxberg)
-      const bob = await userFactory(bobBaumeister)
-      const raeuber = await userFactory(raeuberHotzenplotz)
-      const stephen = await userFactory(stephenHawking)
+      const peter = await userFactoryDrizzle(peterLustig)
+      const bibi = await userFactoryDrizzle(bibiBloxberg)
+      const bob = await userFactoryDrizzle(bobBaumeister)
+      const raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
+      const stephen = await userFactoryDrizzle(stephenHawking)
       for (const guest of [bibi, raeuber, stephen]) {
         await dbUserUpdateField(guest.id, 'referrerId', peter.id)
       }
@@ -504,11 +504,11 @@ describe('the counts of the figures page by week', () => {
       await dbDeleteAllRowsExceptMigrations()
       await createCommunity(false)
       // Peter brings Bibi, Räuber and Stephen along; Bob came on his own.
-      const peter = await userFactory(peterLustig)
-      const bibi = await userFactory(bibiBloxberg)
-      const bob = await userFactory(bobBaumeister)
-      const raeuber = await userFactory(raeuberHotzenplotz)
-      const stephen = await userFactory(stephenHawking)
+      const peter = await userFactoryDrizzle(peterLustig)
+      const bibi = await userFactoryDrizzle(bibiBloxberg)
+      const bob = await userFactoryDrizzle(bobBaumeister)
+      const raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
+      const stephen = await userFactoryDrizzle(stephenHawking)
       for (const guest of [bibi, raeuber, stephen]) {
         await dbUserUpdateField(guest.id, 'referrerId', peter.id)
       }

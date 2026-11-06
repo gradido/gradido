@@ -1,14 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, UserContactType } from 'shared'
 import { EntityNotFoundError } from 'typeorm'
-import { User as DbUser, UserContact as DbUserContact } from '..'
+import { UserContact as DbUserContact, User } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
+import { DbUser } from './user'
 import {
   dbFindConfirmedUserContactEmails,
   dbPurgeExpiredEmailChanges,
@@ -59,8 +60,8 @@ describe('userContacts.typeorm.queries', () => {
     await dbDeleteAllRowsExceptMigrations()
 
     await createCommunity(false)
-    bibi = await userFactory(bibiBloxberg)
-    peter = await userFactory(peterLustig)
+    bibi = await userFactoryDrizzle(bibiBloxberg)
+    peter = await userFactoryDrizzle(peterLustig)
   })
 
   describe('a pending change next to the registration address', () => {
@@ -453,20 +454,20 @@ describe('userContacts.typeorm.queries', () => {
     // The case the lookup by user_id got wrong: after a confirmed change the address in
     // force is NOT the member's oldest row.
     it('follow users.email_id when the address in force is a newer row', async () => {
-      await DbUser.update({ id: peter.id }, { emailId: change.id })
+      await User.update({ id: peter.id }, { emailId: change.id })
       try {
         expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(change.id)
       } finally {
-        await DbUser.update({ id: peter.id }, { emailId: current.id })
+        await User.update({ id: peter.id }, { emailId: current.id })
       }
     })
 
     it('still find the address of a deleted member', async () => {
-      await DbUser.update({ id: peter.id }, { deletedAt: new Date() })
+      await User.update({ id: peter.id }, { deletedAt: new Date() })
       try {
         expect((await emailContactByUserIdQuery(peter.id).getOneOrFail()).id).toBe(current.id)
       } finally {
-        await DbUser.update({ id: peter.id }, { deletedAt: null })
+        await User.update({ id: peter.id }, { deletedAt: null })
       }
     })
   })

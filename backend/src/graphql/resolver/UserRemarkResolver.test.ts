@@ -2,13 +2,13 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { USER_REMARK_MAX_CHARS } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { USER_REMARKS_MAX_PER_REQUEST } from '@/data/UserRemark.logic'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login, setUserRemark } from '@/seeds/graphql/mutations'
 import { adminListContributions, userRemark } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -29,9 +29,9 @@ let db: AppDatabase
 
 // bibi moderates, peter administrates, bob is a member -- and raeuber the member the remarks are
 // about.
-let bibi: User
-let bob: User
-let raeuber: User
+let bibi: DbUser
+let bob: DbUser
+let raeuber: DbUser
 
 /** user_remarks is a drizzle table, so cleanDB() does not reach it -- that one walks the TypeORM entities. */
 const clearRemarks = async (): Promise<void> => {
@@ -83,11 +83,11 @@ beforeAll(async () => {
   await cleanDB()
   await clearRemarks()
 
-  bibi = await userFactory(testEnv, bibiBloxberg)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
   await setRole(bibi.id, RoleNames.MODERATOR)
-  await userFactory(testEnv, peterLustig) // administrator
-  bob = await userFactory(testEnv, bobBaumeister)
-  raeuber = await userFactory(testEnv, raeuberHotzenplotz)
+  await userFactoryDrizzle(peterLustig) // administrator
+  bob = await userFactoryDrizzle(bobBaumeister)
+  raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
 })
 
 afterAll(async () => {

@@ -1,42 +1,18 @@
 import { GradidoUnit } from 'shared'
-import { ContributionLink } from '../../entity'
 import { ContributionCycleType } from '../../enum'
+import { dbInsertContributionLink } from '../../queries/contributionLinks'
 import { ContributionLinksInsert } from '../../schemas/drizzle.schema'
 import { ContributionLinkInterface } from '../contributionLink/ContributionLinkInterface'
 import { transactionLinkCode } from './transactionLink'
 
-export function contributionLinkFactory(
+export async function contributionLinkFactory(
   contributionLink: ContributionLinkInterface,
-): Promise<ContributionLink> {
-  return createContributionLink(contributionLink)
+): Promise<ContributionLinksInsert & { id: number }> {
+  const row = buildContributionLinkRow(contributionLink)
+  return { ...row, id: await dbInsertContributionLink(row) }
 }
 
-export function createContributionLink(
-  contributionLinkData: ContributionLinkInterface,
-): Promise<ContributionLink> {
-  const contributionLink = new ContributionLink()
-  contributionLink.amount = GradidoUnit.fromNumber(contributionLinkData.amount)
-  contributionLink.name = contributionLinkData.name
-  contributionLink.memo = contributionLinkData.memo
-  contributionLink.createdAt = new Date()
-  contributionLink.code = transactionLinkCode(new Date())
-  contributionLink.cycle = ContributionCycleType.ONCE
-  if (contributionLinkData.validFrom) {
-    contributionLink.validFrom = contributionLinkData.validFrom
-  }
-  if (contributionLinkData.validTo) {
-    contributionLink.validTo = contributionLinkData.validTo
-  }
-  contributionLink.maxAmountPerMonth = GradidoUnit.fromNumber(200)
-  contributionLink.maxPerCycle = 1
-
-  return contributionLink.save()
-}
-
-/**
- * The row createContributionLink writes, for the seed. The entity calls the amount columns
- * `amount` and `maxAmountPerMonth`, the drizzle schema by their column names.
- */
+// The row of one contribution link, for contributionLinkFactory and the seed alike.
 export function buildContributionLinkRow(
   contributionLinkData: ContributionLinkInterface,
 ): ContributionLinksInsert {
