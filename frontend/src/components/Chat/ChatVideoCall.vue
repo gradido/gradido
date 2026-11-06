@@ -407,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useApolloClient } from '@vue/apollo-composable'
@@ -424,6 +424,7 @@ import {
 } from '@/utils/chatVideoInvite'
 import { CHAT_VIDEO_TOPIC_MAX, withChatVideoTopic } from '@/utils/chatVideoTopic'
 import {
+  CHAT_VIDEO_JOINED,
   chatVideoAppUrl,
   offersJitsiApp,
   openInJitsiApp,
@@ -1384,14 +1385,25 @@ watch(videoJoining, (open) => {
 })
 
 /**
+ * Where the window notes that the member went into the room of an invitation from this wallet
+ * (E-043 C): handed the link, it notes the invitation the link belongs to (utils/chatVideoJoined),
+ * for the line after the call. Without a window that provides it, nothing is noted.
+ */
+const noteJoined = inject(CHAT_VIDEO_JOINED, null)
+
+/**
  * "Join call": the room in the Jitsi app where the box is ticked, else in a window of its own --
  * both in the click itself, where the browser allows either. The window as the thread's link
  * opens it: no `opener`, no referrer. The app's way waits for the app's sign, as the start does.
+ *
+ * Pressing it is the member going into the room (E-043 C, Festlegung 2), on either way: told to
+ * the window before the room opens -- not when the question opened, which may be cancelled.
  */
 const joinVideoCall = () => {
   if (videoJoinWaiting.value) return
   const roomUrl = videoJoinRoom.value
   if (!roomUrl) return
+  noteJoined?.(roomUrl)
   const appUrl = offersJitsiApp() && videoInApp.value ? chatVideoAppUrl(roomUrl) : null
   if (!appUrl) {
     videoJoining.value = false

@@ -8,7 +8,7 @@ import ChatGroupWindow from './ChatGroupWindow.vue'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
@@ -67,6 +67,8 @@ const video = vi.hoisted(() => ({
   // thread answers to the change (`edits`).
   edit: vi.fn(),
   edits: vi.fn(),
+  // E-043 C: which invitation the thread finds for a clicked video link (`invitationInRoom`).
+  rooms: vi.fn(),
 }))
 /**
  * The question for the member's own note on the group (useChatWindowNote), apart from the members'
@@ -196,13 +198,19 @@ describe('ChatGroupWindow', () => {
               'forwardMessage',
               'thank',
             ],
-            inject: { join: { from: CHAT_VIDEO_JOIN, default: null } },
+            inject: {
+              join: { from: CHAT_VIDEO_JOIN, default: null },
+              joined: { from: CHAT_VIDEO_JOINED, default: null },
+            },
             methods: {
               deliver(message) {
                 return video.delivers(message, this.group.groupUuid)
               },
               edit(changed) {
                 return video.edits(changed, this.group.groupUuid)
+              },
+              invitationInRoom(roomUrl) {
+                return video.rooms(roomUrl, this.group.groupUuid)
               },
               searchStep(direction) {
                 searchSteps.push(direction)
@@ -683,6 +691,40 @@ describe('ChatGroupWindow', () => {
       mountWindow()
       wrapper.findComponent({ name: 'ChatThread' }).vm.join('https://meet.ffmuc.net/room')
       expect(video.askJoin).toHaveBeenCalledWith('https://meet.ffmuc.net/room')
+    })
+
+    // E-043 C: a link that took the member into the room -- on a phone the link itself, on a
+    // computer "Anruf beitreten" (ChatVideoCall, which takes the same hand) -- is noted by the
+    // invitation the group's thread finds for it, the room's address kept nowhere.
+    describe('a link that took the member into the room', () => {
+      const LINK = 'https://meet.ffmuc.net/room#config.subject=%22Videoanruf%22'
+      const joined = () => JSON.parse(localStorage.getItem('chat-video-joined:me-id') ?? 'null')
+
+      afterEach(() => {
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('chat-video-joined:')) localStorage.removeItem(key)
+        }
+      })
+
+      it('is noted by the invitation the thread finds for it', () => {
+        video.rooms.mockReturnValue('uuid-7')
+        mountWindow()
+
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK)
+
+        expect(video.rooms).toHaveBeenCalledWith(LINK, 'cafe-uuid')
+        expect(joined()).toEqual({ 'uuid-7': expect.any(Number) })
+        expect(localStorage.getItem('chat-video-joined:me-id')).not.toContain('meet.ffmuc')
+      })
+
+      it('notes nothing where the thread finds no invitation for it', () => {
+        video.rooms.mockReturnValue(null)
+        mountWindow()
+
+        wrapper.findComponent({ name: 'ChatThread' }).vm.joined(LINK)
+
+        expect(joined()).toBeNull()
+      })
     })
 
     it('lets a question go when the window comes to another group', async () => {

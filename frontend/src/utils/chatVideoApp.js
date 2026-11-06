@@ -206,3 +206,12 @@ export const JITSI_APP_DOWNLOADS = 'https://jitsi.org/downloads/'
  * straight away. Without a provider the link stays a plain link.
  */
 export const CHAT_VIDEO_JOIN = Symbol('chatVideoJoin')
+
+/**
+ * Where a link of a video invitation reports that it took the member into the room (E-043 C): a
+ * click the browser opens the room for -- on a phone the plain one, anywhere one with a key held
+ * --, and on a computer "Anruf beitreten" in the question (ChatVideoCall). The window provides it
+ * and notes the invitation for the line after the call (utils/chatVideoJoined); it is handed the
+ * link. Without a provider nothing is noted.
+ */
+export const CHAT_VIDEO_JOINED = Symbol('chatVideoJoined')
