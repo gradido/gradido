@@ -5,6 +5,8 @@ import { walletStore } from '@test/walletStore'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { nextTick } from 'vue'
+import { useWalletStore } from '@/store/useWalletStore'
 import { AuthNavbar } from './AuthNavbar'
 
 vi.mock('vue-i18n', async (importOriginal) => ({
@@ -31,10 +33,12 @@ vi.mock('../Menu/NavItem', () => ({
   NavItem: { name: 'NavItem', props: ['to'], template: '<li class="nav-item"><slot /></li>' },
 }))
 
-const mountWith = (darkMode, gradidoID = null) =>
+// `member` is what the sign-in leaves in the store besides the ID: the user name, the real names
+// and the small picture (avatar, base64 without a prefix). `pinia` lets a spec keep the store.
+const mountWith = (darkMode, gradidoID = null, member = {}, pinia = null) =>
   mount(AuthNavbar, {
     global: {
-      plugins: [walletStore({ darkMode, gradidoID })],
+      plugins: [pinia ?? walletStore({ darkMode, gradidoID, ...member })],
       stubs: {
         BCollapse: { template: '<div class="navbar-collapse"><slot /></div>' },
         RouterLink: RouterLinkStub,
@@ -136,10 +140,94 @@ describe('AuthNavbar', () => {
     })
   })
 
-  it('keeps both links on every width', () => {
+  it('signed out: keeps both links on every width', () => {
     const nav = mountWith(true).find('.navbar-nav')
     expect(nav.classes()).not.toContain('d-none')
     expect(nav.findAll('.nav-item').map((item) => item.text())).toEqual(['signup', 'signin'])
+    expect(nav.find('[data-test="auth-to-account"]').exists()).toBe(false)
+  })
+
+  /**
+   * ZE-038, L1a (Bernd, 06.11.2026): back at a thank-you link after signing in, the bar still
+   * said "Register | Sign in", and nothing on the page told him he was signed in. With a session
+   * the bar shows the member instead: their own circle and "To my account", one link to the
+   * overview. The page under the bar stays the same for everybody (PS-011).
+   */
+  describe('with a session', () => {
+    const BERND = { username: 'Bernd', firstName: 'Bernd', lastName: 'Hückstädt' }
+    const toAccount = (wrapper) => wrapper.find('[data-test="auth-to-account"]')
+
+    it("shows the member's face and 'Zum Konto', no sign-up and no sign-in", () => {
+      const nav = mountWith(true, 'a-member', BERND).find('.navbar-nav')
+      const items = nav.findAll('.nav-item')
+      expect(items).toHaveLength(1)
+      expect(items[0].attributes('data-test')).toBe('auth-to-account')
+      expect(items[0].find('.app-avatar').exists()).toBe(true)
+      expect(items[0].text()).toContain('auth.toAccount')
+      expect(nav.text()).not.toContain('signup')
+      expect(nav.text()).not.toContain('signin')
+    })
+
+    // To the overview, where the logo leads with a session too: nothing of the page's address
+    // goes along, not the link's code and not a guarantor code.
+    it('leads to the overview, and takes nothing of the page address along', () => {
+      route.current = {
+        params: { code: 'abc123', alias: 'bernd' },
+        query: { guarantor: 'c', referrer: 'bernd' },
+      }
+      try {
+        const links = mountWith(true, 'a-member', BERND)
+          .findAllComponents({ name: 'NavItem' })
+          .map((item) => item.props('to'))
+        expect(links).toEqual(['/overview'])
+      } finally {
+        route.current = { params: {}, query: {} }
+      }
+    })
+
+    it('shows the picture where the store holds one, the letters otherwise', () => {
+      const withPicture = toAccount(mountWith(true, 'a-member', { ...BERND, avatar: 'QUJD' }))
+      expect(withPicture.find('img[src^="data:image/jpeg;base64,"]').exists()).toBe(true)
+      expect(withPicture.find('img').attributes('src')).toBe('data:image/jpeg;base64,QUJD')
+      expect(withPicture.find('.app-avatar').text()).toBe('')
+
+      const withLetters = toAccount(mountWith(true, 'a-member', BERND))
+      expect(withLetters.find('img').exists()).toBe(false)
+      expect(withLetters.find('.app-avatar').text()).toBe('BE')
+    })
+
+    // As the bar of the signed-in wallet draws it (Navbar.vue): the letters from the user name,
+    // the colour from the real initials (AS-010) -- the colour the member's circle has
+    // everywhere else -- and white letters. 30px: the line it stands in is 44px high.
+    it('draws the circle 30px, its letters from the user name, its colour from the real initials', () => {
+      const circle = mountWith(false, 'a-member', BERND).findComponent({ name: 'AppAvatar' })
+      expect(circle.props('size')).toBe(30)
+      expect(circle.props('initials')).toBe('BE')
+      expect(circle.props('colorSeed')).toBe('BH')
+      expect(circle.props('color')).toBe('#fff')
+    })
+
+    // One link, its name the word: the circle is no stop of its own for a keyboard (a plain div,
+    // no button) and says nothing to a screen reader -- its letters would only spell the name.
+    it('hides the circle from a screen reader and gives it no stop of its own', () => {
+      const circle = toAccount(mountWith(true, 'a-member', BERND)).find('.app-avatar')
+      expect(circle.element.tagName).toBe('DIV')
+      expect(circle.attributes('aria-hidden')).toBe('true')
+      expect(circle.attributes('tabindex')).toBeUndefined()
+    })
+
+    it('goes back to both links when the member signs out', async () => {
+      const pinia = walletStore({ darkMode: true, gradidoID: 'a-member', ...BERND })
+      const wrapper = mountWith(true, 'a-member', BERND, pinia)
+      expect(toAccount(wrapper).exists()).toBe(true)
+      useWalletStore(pinia).setGradidoID(null)
+      await nextTick()
+      expect(toAccount(wrapper).exists()).toBe(false)
+      expect(wrapper.findAll('.navbar-nav .nav-item').map((item) => item.text())).toEqual([
+        'signup',
+        'signin',
+      ])
+    })
   })
 
   /**
@@ -235,6 +323,35 @@ describe('AuthNavbar', () => {
       expect(css).toMatch(/\.authHome:focus-visible\s*\{[^}]*outline:\s*2px solid #276e6f;/)
       expect(css).toMatch(
         /:global\(\.dark-mode\) \.authHome:focus-visible\s*\{[^}]*outline-color:\s*#8ed0d1;/,
+      )
+    })
+
+    // ZE-038, L1a: face and word in one line, centred, 8px apart -- on every width, so outside
+    // the two @media blocks. The circle gives back in its margins what it is taller than the
+    // line (1.5em), so the link keeps the height of the two words it replaces.
+    it('sets the face and the word in one line, 8px apart, without growing the link', () => {
+      expect(css).toMatch(
+        /\.authHeader \.toAccount :global\(\.nav-link\)\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*gap:\s*8px;/,
+      )
+      expect(css).toMatch(/\.toAccountFace\s*\{[^}]*margin-block:\s*calc\(0\.75em - 15px\);/)
+      expect(media('1024.98px')).not.toMatch(/toAccount/)
+      expect(media('767.98px')).not.toMatch(/toAccount/)
+    })
+
+    // Hover marks the word, as it marks the two words without a session: the underline, and the
+    // brighter green in dark mode. The circle -- letters or the member's picture -- stays as it is.
+    it('marks only the word on hover, in both modes', () => {
+      expect(css).toMatch(
+        /\.authHeader \.toAccount :global\(\.nav-link\):hover\s*\{[^}]*text-decoration:\s*none;/,
+      )
+      expect(css).toMatch(
+        /\.authHeader \.toAccount :global\(\.nav-link\):hover \.toAccountWord\s*\{[^}]*text-decoration:\s*underline;/,
+      )
+      expect(css).toMatch(
+        /:global\(#app\.dark-mode\) \.toAccount :global\(\.nav-link\):hover\s*\{[^}]*filter:\s*none;/,
+      )
+      expect(css).toMatch(
+        /:global\(#app\.dark-mode\) \.toAccount :global\(\.nav-link\):hover \.toAccountWord\s*\{[^}]*filter:\s*brightness\(1\.35\);/,
       )
     })
 
