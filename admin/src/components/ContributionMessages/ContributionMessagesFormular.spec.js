@@ -202,7 +202,7 @@ describe('ContributionMessagesFormular', () => {
         contributionId: 42,
       })
       expect(wrapper.emitted('note-added')).toEqual([
-        [{ id: 42, colleagueNote: true, resubmissionWithdrawn: true }],
+        [{ id: 42, colleagueNote: true, resubmissionAt: null }],
       ])
       // Nothing to spread to other contributions, and no refetch: the open row stays open.
       expect(wrapper.emitted('resubmission-saved')).toBeUndefined()
@@ -211,6 +211,27 @@ describe('ContributionMessagesFormular', () => {
       expect(reminderBox().element.checked).toBe(false)
       expect(hint().exists()).toBe(false)
       expect(noteField().attributes('aria-describedby')).toBeUndefined()
+    })
+
+    // The second reader, 06.11.2026: the box unticks only where it still shows what went out.
+    it('leaves the box alone when the moderator changed it while the note was on its way', async () => {
+      let answer
+      mockMutate.mockReturnValueOnce(
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+      )
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await writeNote()
+      await submitButton().trigger('click')
+      // On its way: the moderator picks another time.
+      await wrapper.find('input[placeholder="hh:mm"]').setValue('12:15')
+      answer({})
+      await flushPromises()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: null, messageType: 'MODERATOR' }),
+      )
+      expect(reminderBox().element.checked).toBe(true)
     })
 
     it('says it without a name where the colleague has none', async () => {
@@ -255,7 +276,7 @@ describe('ContributionMessagesFormular', () => {
         expect.objectContaining({ resubmissionAt: expected.toString(), messageType: 'MODERATOR' }),
       )
       expect(wrapper.emitted('note-added')).toEqual([
-        [{ id: 42, colleagueNote: true, resubmissionWithdrawn: false }],
+        [{ id: 42, colleagueNote: true, resubmissionAt: expected.toISOString() }],
       ])
     })
 
@@ -273,7 +294,7 @@ describe('ContributionMessagesFormular', () => {
         expect.objectContaining({ resubmissionAt: held.toString(), messageType: 'MODERATOR' }),
       )
       expect(wrapper.emitted('note-added')).toEqual([
-        [{ id: 42, colleagueNote: false, resubmissionWithdrawn: false }],
+        [{ id: 42, colleagueNote: false, resubmissionAt: held.toISOString() }],
       ])
     })
 

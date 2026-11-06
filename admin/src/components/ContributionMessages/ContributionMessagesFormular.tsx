@@ -251,7 +251,7 @@ export const ContributionMessagesFormular = defineComponent({
     // A note on a colleague's question takes the resubmission back, as a member's answer does
     // (Bernd, 06.11.2026): the contribution comes back to the list of the moderator who asked, and
     // the details button shows the note. Only where the moderator leaves the resubmission as it
-    // came: a date of their own stays, and an unticked box was their own decision anyway.
+    // came: a date they set here stays, and an unticked box was their own decision anyway.
     const noteWakesResubmission = computed(
       () => tabindex.value === 1 && props.colleagueQuestion !== null && resubmissionAsItCame.value,
     )
@@ -261,9 +261,12 @@ export const ContributionMessagesFormular = defineComponent({
       loading.value = true
       let mutation: typeof updateContributionMutation
       let updateOnlyResubmissionAt = false
-      // Decided with the note that goes out, never for a save without one (an empty note field is
-      // a save of the resubmission alone).
+      // Decided with the words of a note that goes out: a save with an empty note field never takes
+      // the resubmission back.
       const wakesResubmission = form.value.text !== '' && noteWakesResubmission.value
+      // What the box shows as the note goes out. Only if it still shows that when the answer comes
+      // does it untick: the moderator may have picked another date in the meantime.
+      const boxAsSent = [showResubmissionDate.value, resubmissionDate.value, resubmissionTime.value]
       const resubmissionAtDate =
         showResubmissionDate.value && !wakesResubmission ? combineResubmissionDateAndTime() : null
       const variables: Record<string, unknown> = {
@@ -307,14 +310,15 @@ export const ContributionMessagesFormular = defineComponent({
             if (!updateOnlyResubmissionAt && variables.messageType === messageType.DIALOG) {
               emit('update-status', props.contributionId)
             }
-            // A note: the row says what the server says now, in place (a refetch would close the
-            // open row) -- whether a colleague's note stands on the question, and that the
-            // resubmission is gone where the note went out without one.
+            // A note: the row takes in place what the note did on the server (a refetch would close
+            // the open row) -- whether a colleague's note now stands on the question, and the
+            // resubmission the note went out with, which the server keeps (none where it went out
+            // without one).
             if (variables.messageType === messageType.MODERATOR) {
               emit('note-added', {
                 id: props.contributionId,
                 colleagueNote: props.colleagueQuestion !== null,
-                resubmissionWithdrawn: resubmissionAtDate === null && !!props.inputResubmissionDate,
+                resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toISOString() : null,
               })
             }
           }
@@ -330,7 +334,12 @@ export const ContributionMessagesFormular = defineComponent({
             })
           }
           // The box says what is left: the note took the resubmission back.
-          if (wakesResubmission) {
+          if (
+            wakesResubmission &&
+            showResubmissionDate.value === boxAsSent[0] &&
+            resubmissionDate.value === boxAsSent[1] &&
+            resubmissionTime.value === boxAsSent[2]
+          ) {
             showResubmissionDate.value = false
           }
           toastSuccess(t('message.request'))

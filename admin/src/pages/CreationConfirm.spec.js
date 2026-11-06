@@ -572,11 +572,7 @@ describe('CreationConfirm', () => {
     })
 
     it("shows a colleague's note and drops the resubmission it took back", async () => {
-      await table().vm.$emit('note-added', {
-        id: 1,
-        colleagueNote: true,
-        resubmissionWithdrawn: true,
-      })
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: null })
       expect(row(1)).toEqual(
         expect.objectContaining({
           contributionStatus: 'IN_PROGRESS',
@@ -588,29 +584,23 @@ describe('CreationConfirm', () => {
       expect(row(2)).toEqual(expect.objectContaining({ messagesCount: 2 }))
     })
 
-    it('keeps the status and the resubmission where the note left them', async () => {
-      await table().vm.$emit('note-added', {
-        id: 2,
-        colleagueNote: false,
-        resubmissionWithdrawn: false,
-      })
+    it('keeps the status, and takes the resubmission the note went out with', async () => {
+      await table().vm.$emit('note-added', { id: 2, colleagueNote: false, resubmissionAt: null })
       expect(row(2)).toEqual(
         expect.objectContaining({ contributionStatus: 'PENDING', messagesCount: 3 }),
       )
-      await table().vm.$emit('note-added', {
-        id: 1,
-        colleagueNote: false,
-        resubmissionWithdrawn: false,
-      })
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: false, resubmissionAt: HELD })
       expect(row(1).resubmissionAt).toBe(HELD)
+      // A date the moderator set with the note: the next opening of the row must show it.
+      const LATER = '2026-11-20T09:00:00.000Z'
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: LATER })
+      expect(row(1)).toEqual(
+        expect.objectContaining({ resubmissionAt: LATER, colleagueNoteOnQuestion: true }),
+      )
     })
 
     it('ends with a message to the member', async () => {
-      await table().vm.$emit('note-added', {
-        id: 1,
-        colleagueNote: true,
-        resubmissionWithdrawn: true,
-      })
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: null })
       await table().vm.$emit('update-status', 1)
       expect(row(1).colleagueNoteOnQuestion).toBe(false)
     })
