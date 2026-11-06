@@ -264,9 +264,14 @@ export const ContributionMessagesFormular = defineComponent({
       // Decided with the words of a note that goes out: a save with an empty note field never takes
       // the resubmission back.
       const wakesResubmission = form.value.text !== '' && noteWakesResubmission.value
-      // What the box shows as the note goes out. Only if it still shows that when the answer comes
-      // does it untick: the moderator may have picked another date in the meantime.
-      const boxAsSent = [showResubmissionDate.value, resubmissionDate.value, resubmissionTime.value]
+      // What the box shows as the note goes out, to the minute -- the day picked again is the same
+      // day, whatever object the calendar hands over (coderabbit, #4248). Only if it still shows that
+      // when the answer comes does it untick: the moderator may have picked another date meanwhile.
+      const boxShows = () =>
+        showResubmissionDate.value && resubmissionDate.value
+          ? Math.floor(combineResubmissionDateAndTime().getTime() / 60000)
+          : null
+      const boxAsSent = boxShows()
       const resubmissionAtDate =
         showResubmissionDate.value && !wakesResubmission ? combineResubmissionDateAndTime() : null
       const variables: Record<string, unknown> = {
@@ -342,12 +347,7 @@ export const ContributionMessagesFormular = defineComponent({
             })
           }
           // The box says what is left: the note took the resubmission back.
-          if (
-            wakesResubmission &&
-            showResubmissionDate.value === boxAsSent[0] &&
-            resubmissionDate.value === boxAsSent[1] &&
-            resubmissionTime.value === boxAsSent[2]
-          ) {
+          if (wakesResubmission && boxShows() === boxAsSent) {
             showResubmissionDate.value = false
           }
           toastSuccess(t('message.request'))

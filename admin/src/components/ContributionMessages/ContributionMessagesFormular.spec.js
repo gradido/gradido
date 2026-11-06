@@ -234,6 +234,27 @@ describe('ContributionMessagesFormular', () => {
       expect(reminderBox().element.checked).toBe(true)
     })
 
+    // coderabbit, #4248: the calendar hands over a new Date for the day picked again -- that is no
+    // change, and the box unticks as it would have.
+    it('unticks the box all the same when the same day is picked again on the way', async () => {
+      let answer
+      mockMutate.mockReturnValueOnce(
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+      )
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await writeNote()
+      await submitButton().trigger('click')
+      const sameDay = new Date(held)
+      sameDay.setHours(0, 0, 0, 0)
+      datepicker().vm.$emit('update:modelValue', sameDay)
+      await nextTick()
+      answer({})
+      await flushPromises()
+      expect(reminderBox().element.checked).toBe(false)
+    })
+
     it('says it without a name where the colleague has none', async () => {
       wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: { name: '' } })
       await writeNote()
