@@ -22,6 +22,8 @@ const link = (overrides = {}) => ({
   amount: '20',
   memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma' },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   ...overrides,
 })
 
@@ -137,6 +139,74 @@ describe('RedeemThanksPaper', () => {
 
     it('keeps the circle from being read out: the sentence beside it names the sender', () => {
       expect(paper().find('.redeem-thanks-paper-initial').attributes('aria-hidden')).toBe('true')
+    })
+
+    // ZE-038: the face the link carries (senderAvatar) where the letter stood, the same size.
+    describe('with the face the link carries', () => {
+      const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+      const face = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-face"]')
+
+      it('shows the face of the sender instead of the letter', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).element.tagName).toBe('IMG')
+        expect(face(wrapper).attributes('src')).toBe(`data:image/jpeg;base64,${FACE}`)
+        expect(face(wrapper).classes()).toContain('redeem-thanks-paper-face')
+        expect(wrapper.find('.redeem-thanks-paper-initial').exists()).toBe(false)
+      })
+
+      // Null is the server's answer for a member without a face to show; a link from before
+      // the field, or a sheet made in the wallet, has none at all.
+      it('shows the letter where the link carries no face', () => {
+        for (const senderAvatar of [null, undefined, '']) {
+          const wrapper = paper(link({ senderAvatar }))
+
+          expect(face(wrapper).exists(), String(senderAvatar)).toBe(false)
+          expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
+        }
+      })
+
+      it('keeps the face from being read out, as the circle: the sentence names the sender', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).attributes('alt')).toBe('')
+        expect(face(wrapper).attributes('aria-hidden')).toBe('true')
+        expect(from(wrapper).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
+      })
+
+      // The room stands before the picture is decoded: nothing beside it moves when it comes.
+      it('gives the face its size before the picture is there', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).attributes('width')).toBe('64')
+        expect(face(wrapper).attributes('height')).toBe('64')
+      })
+
+      // The short sheet ("Dein Dank ist da.") has no line of the sender, so no face either.
+      it('stands not on the short sheet', () => {
+        const wrapper = mount(RedeemThanksPaper, {
+          props: { linkData: link({ senderAvatar: FACE }), short: true },
+          global: { plugins: [i18n] },
+        })
+
+        expect(face(wrapper).exists()).toBe(false)
+        expect(wrapper.find('.redeem-thanks-paper-initial').exists()).toBe(false)
+      })
+
+      it('is 64px round, as is the circle of the letter, 12px from the sentence', () => {
+        const rule = (selector) =>
+          css.match(new RegExp(`(?:^|\\n)\\s*\\${selector}\\s*\\{([^}]*)\\}`))?.[1]
+        for (const selector of ['.redeem-thanks-paper-face', '.redeem-thanks-paper-initial']) {
+          const body = rule(selector)
+          expect(body, selector).toMatch(/(^|[\s;])width:\s*64px;/)
+          expect(body, selector).toMatch(/(^|[\s;])height:\s*64px;/)
+          expect(body, selector).toMatch(/(^|[\s;])border-radius:\s*50%;/)
+          expect(body, selector).toMatch(/(^|[\s;])flex:\s*none;/)
+        }
+        expect(rule('.redeem-thanks-paper-face')).toMatch(/(^|[\s;])object-fit:\s*cover;/)
+        expect(rule('.redeem-thanks-paper-initial')).toMatch(/(^|[\s;])font-size:\s*26px;/)
+        expect(rule('.redeem-thanks-paper-sender')).toMatch(/(^|[\s;])gap:\s*12px;/)
+      })
     })
   })
 

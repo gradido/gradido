@@ -216,6 +216,7 @@ export const queryTransactionLink = gql`
           recipientName
           hasPicture
         }
+        senderAvatar
         communities {
           foreign
           name
