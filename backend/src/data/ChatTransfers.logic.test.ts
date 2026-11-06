@@ -1,7 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import {
-  transferPersonKey,
-} from './ChatTransfers.logic'
+import { transferPersonKey } from './ChatTransfers.logic'
 
 const HOME = '11111111-1111-4111-8111-111111111111'
 const LENA = { communityUuid: HOME, gradidoId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' }
@@ -17,4 +15,3 @@ describe('transferPersonKey', () => {
     expect(transferPersonKey(MAX)).not.toBe(transferPersonKey(LENA))
   })
 })
-
