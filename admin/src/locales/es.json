@@ -126,6 +126,7 @@
       "answer": "respuesta del miembro",
       "changed": "modificado por el miembro",
       "conversation": "conversación",
+      "note": "nota sobre la pregunta",
       "question": "pregunta enviada"
     },
     "noGroup": "(sin grupo)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "se registró el {createdAt}.",
+    "noteWakesResubmission": "Tu nota quita el recordatorio que puso {name}.",
+    "noteWakesResubmissionPlain": "Tu nota quita el recordatorio.",
     "resubmissionDateInPast": "¡La fecha de recordatorio está en el pasado!"
   },
   "contributions": {
