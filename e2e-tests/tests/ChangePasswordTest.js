@@ -20,8 +20,9 @@ test('change password successfully', async ({ page, request }) => {
   await loginPage.login(user.email, 'Aa12345_')
   await new OverviewPage(page).assertLoggedInAs('Bob der Baumeister')
 
+  // The name question is still open, and it waits outside the settings (NU-025): nothing may
+  // cover the form here.
   await page.goto(`${FRONTEND_URL}/settings`)
-  await new AliasFirstChoice(page).keepSuggestion()
   const settingsPage = new SettingsPage(page)
   await settingsPage.openChangePasswordForm()
   await settingsPage.changePassword('Aa12345_', '12345Aa_')
@@ -32,4 +33,6 @@ test('change password successfully', async ({ page, request }) => {
   await new Toasts(page).assertErrorToastVisible()
   await loginPage.login(user.email, '12345Aa_')
   await new OverviewPage(page).assertLoggedInAs('Bob der Baumeister')
+  // Back outside the settings, the name question comes.
+  await new AliasFirstChoice(page).keepSuggestion()
 })

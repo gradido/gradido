@@ -90,6 +90,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { BModal, BButton, BFormInput } from 'bootstrap-vue-next'
@@ -113,6 +114,7 @@ import CONFIG from '@/config'
  * because a window with no way out would be an imposition at exactly the wrong moment.
  */
 const store = useWalletStore()
+const route = useRoute()
 const { t } = useI18n()
 const { toastError } = useAppToast()
 
@@ -177,9 +179,18 @@ onBeforeUnmount(stopProbing)
 // Whether this window has a question to ask -- which is not the same as being on screen.
 // Three first-login windows hang side by side in DashboardLayout and two BModals stack, so
 // which of them the member sees is decided in one place (ES-003, useFirstLoginWindow).
+//
+// Never over the settings, like the other first-login windows (EmailConfirmationReminder,
+// EventMatchingHomeInvitation, FirstCreation): the name is changed there, and the address
+// reminder sends people there to correct the address. Not a dismissal -- leaving the settings
+// brings it back (NU-025).
+const onSettings = computed(() => route.path.startsWith('/settings'))
 const wants = computed(
   () =>
-    !dismissed.value && !!currentAlias.value && result.value?.aliasStatus?.aliasSettled === false,
+    !dismissed.value &&
+    !!currentAlias.value &&
+    result.value?.aliasStatus?.aliasSettled === false &&
+    !onSettings.value,
 )
 watch(wants, (value) => setFirstLoginWindowWanted('alias', value), { immediate: true })
 onBeforeUnmount(() => setFirstLoginWindowWanted('alias', false))
@@ -198,9 +209,9 @@ const visible = computed({
   get: () => onScreen.value,
   set: (open) => {
     // ⚠️ Only the member closing it counts. This getter also goes false when the address
-    // reminder takes the screen, or the conversation an address opened, and BModal writes that
-    // back -- read as an answer, the name question would be retired for the session without
-    // ever having been asked.
+    // reminder takes the screen, or the conversation an address opened, or the member steps
+    // into the settings, and BModal writes that back -- read as an answer, the name question
+    // would be retired for the session without ever having been asked.
     if (!open && onScreen.value) {
       dismissed.value = true
       stopProbing()
