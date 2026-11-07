@@ -509,6 +509,19 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
+  // The budget as queryTransactionLink leaves it where it looked up the face of the member who
+  // made an open link -- the answer holds the link's code next to the face.
+  it('is left out where the request looked up the face of the member who made a link', async () => {
+    const picture = Buffer.from('the face of Bibi, on the page of her link').toString('base64')
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), senderAvatarsServed: 1 } },
+      { queryTransactionLink: { code: 'a1b2c3d4e5f6a1b2c3d4e5f6', senderAvatar: picture } },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).not.toContain('a1b2c3d4e5f6a1b2c3d4e5f6')
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
   it("is left out where the request read a member's own note", async () => {
     const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), userNotesServed: 1 } },

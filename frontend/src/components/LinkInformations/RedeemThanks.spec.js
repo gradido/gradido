@@ -100,6 +100,8 @@ const link = (overrides = {}) => ({
   redeemedAt: null,
   deletedAt: null,
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   communities: [HOME, WIEN],
   ...overrides,
 })
@@ -1076,6 +1078,43 @@ describe('RedeemThanks', () => {
       expect(wrapper.text()).not.toMatch(/\p{Extended_Pictographic}/u)
       // And every sentence found its text: a missing key would stand there as its own name.
       expect(wrapper.text()).not.toContain('redeem-thanks.')
+    })
+  })
+
+  // ZE-038: the face the server hands out with an open link stands on the sheet -- for whoever
+  // may accept it, and for the sender, who sees the sheet as the other person will.
+  describe('the face of the sender', () => {
+    const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+    const face = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-face"]')
+
+    it.each([...GUEST_STATES, 'VALID', 'SELF_CREATOR'])(
+      'stands on the sheet of an open link (%s)',
+      async (state) => {
+        const wrapper = await view(state, { linkData: link({ senderAvatar: FACE }) })
+
+        expect(face(wrapper).attributes('src')).toBe(`data:image/jpeg;base64,${FACE}`)
+      },
+    )
+
+    it('gives way to the letter where the link carries none', async () => {
+      const wrapper = await view('LOGGED_OUT')
+
+      expect(face(wrapper).exists()).toBe(false)
+      expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
+    })
+
+    // The short sheet under "Dein Dank ist da." has no line of the sender.
+    it('stands not on the sheet in short, once the thank-you has arrived', async () => {
+      const LINE = 'Einfach so — weil es Dich gibt.'
+      const linkData = link({
+        memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
+        greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah' },
+        senderAvatar: FACE,
+      })
+      const wrapper = await view('VALID', { linkData, stage: 'arrived' })
+
+      expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(true)
+      expect(face(wrapper).exists()).toBe(false)
     })
   })
 

@@ -1243,8 +1243,9 @@ const copyText = async () => {
    sheet's own proportion, RedeemThanksPaper).
 
    The colour: the brown of the sheet on the light bubbles, a light gold on the dark ones -- the
-   bubble follows the theme, the sheet does not. Measured on all four bubbles (the other's and
-   one's own, light and dark); the house's gold would not reach 4.5 : 1 on the dark ones. */
+   bubble follows the theme, and since ZE-038 the sheet does too, with the same two. Measured on
+   all four bubbles (the other's and one's own, light and dark); the house's gold would not reach
+   4.5 : 1 on the dark ones. */
 .chat-bubble-greeting-line {
   margin: 0 0 0.3rem;
   color: #8a6124;

@@ -63,7 +63,20 @@
       <template v-if="!short">
         <div class="redeem-thanks-paper-rule"></div>
         <div class="redeem-thanks-paper-sender">
-          <span class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
+          <!-- The face of the member who made the link, where the link carries it, and the first
+               letter of the name in a circle of the same size where it does not. Neither is read
+               out: the sentence beside it names the sender. -->
+          <img
+            v-if="linkData.senderAvatar"
+            class="redeem-thanks-paper-face"
+            :src="`data:image/jpeg;base64,${linkData.senderAvatar}`"
+            alt=""
+            aria-hidden="true"
+            width="64"
+            height="64"
+            data-test="redeem-thanks-paper-face"
+          />
+          <span v-else class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
           <!-- One sentence with two bold parts, and the ten languages put them in different
                places: through <i18n-t> with slots, not by cutting the sentence around them. The
                amount takes its unit along, so both stand bold as one. -->
@@ -110,6 +123,11 @@
  *
  * A greeting with a photo of the sender's own (`greeting.hasPicture`) has that photo where the
  * motif would stand, in the same room (`picture`).
+ *
+ * Beside the sentence stands the face of the sender, as their account shows it (ZE-038): the
+ * small picture the link carries (`linkData.senderAvatar`) -- the server hands it out for an
+ * open link of a member who shows their face to other members, and null everywhere else. Where
+ * there is none, the first letter of the name, in a circle of the same size.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -177,19 +195,31 @@ const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderN
 /* Block comments only: lightningcss parses SFC style blocks and a double slash is not a
    comment to it.
 
-   ⛔ The sheet stays light in dark mode, on purpose: it is paper, and paper lying on a dark
-   table is still cream. So every colour here is written out and none follows the theme --
-   no token, no Bootstrap variable, nothing inherited. That is also why nothing in it is a
-   card, a heading, a link or a rule: the dark sheet repaints all four
-   (gradido-template-dark.scss), and the text colour a dark page hands down is near white.
+   The sheet follows the theme (ZE-038). Light, it is white like every box of the wallet; dark,
+   it is a step lighter than the card of the page around it (`--surface-muted` on `--surface`),
+   with the gold of the greeting bubble in the chat. Until then it was cream in both themes, as
+   paper (ZE-020) -- and on the device it stood out in both, in the dark one most.
+
+   The light colours are written out; the dark ones are the tokens of the house, which only the
+   dark theme defines (gradido-template-dark.scss), in the rules under `.dark-mode` at the end.
+   That class sits on #app, outside this component, and the scoped rules reach the sheet as
+   they reach the page around it (RedeemThanks). Each text sets its colour in both themes:
+   nothing is left to inherit.
+
+   ⛔ The room of the picture stays cream in both themes: a photo fitted in whole carries its
+   margin in that colour inside the picture (ZE-024), and the room has to vanish around it.
+
+   ⛔ Nothing on the sheet is a card, a heading, a link or a rule: the dark sheet repaints all
+   four with `!important` (gradido-template-dark.scss). A card would stand in the card's own
+   `--surface`, and the sheet would lose its step above the card it lies on.
 
    The sizes are in em, of the card's own size: the "Aa" control of the layout sets that one,
    and the words on the sheet grow with it. At the usual 16px they come to 15px and 13.5px. */
 .redeem-thanks-paper {
   overflow: hidden;
   border-radius: 14px;
-  background: #fffdf8;
-  box-shadow: 0 8px 24px rgb(90 70 30 / 16%);
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
   text-align: left;
 }
 
@@ -203,8 +233,9 @@ const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderN
 /* The room of the picture: the motifs are 360 x 250. A ground of their own colour until the
    file is there; the picture fills the room whole. ⛔ That colour is also the margin of a photo
    that was fitted in whole (THANK_YOU_PICTURE_GROUND, held by thankYouPicture.drift.spec.js): the
-   margin has to vanish into the room. A photo is 36 : 25 to a pixel's rounding, and `cover` takes
-   that pixel instead of stretching the picture. */
+   margin has to vanish into the room -- in the dark theme as in the light one, so the room has
+   no rule under `.dark-mode`. A photo is 36 : 25 to a pixel's rounding, and `cover` takes that
+   pixel instead of stretching the picture. */
 .redeem-thanks-paper-picture {
   aspect-ratio: 36 / 25;
   background: #fbf3de;
@@ -272,26 +303,38 @@ const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderN
 
 .redeem-thanks-paper-rule {
   height: 1px;
-  background: #ecdfc2;
+  background: #e6e6e6;
 }
 
 .redeem-thanks-paper-sender {
   display: flex;
-  gap: 9px;
+  gap: 12px;
   align-items: center;
 }
 
+/* The face of the sender, 64px round, as their account shows it (ZE-038). Its own size, the
+   sentence beside it grows with "Aa". */
+.redeem-thanks-paper-face {
+  display: block;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Where there is no face: the first letter of the name, in a circle the size of the face. */
 .redeem-thanks-paper-initial {
   display: flex;
-  flex-shrink: 0;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: #8a6124;
-  color: #fffdf8;
-  font-size: 13px;
+  color: #fff;
+  font-size: 26px;
   font-weight: 700;
 }
 
@@ -307,5 +350,37 @@ const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderN
    "20" and "Gradido". A short run, far narrower than the sheet on any phone. */
 .redeem-thanks-paper-amount {
   white-space: nowrap;
+}
+
+/* The dark theme. The sheet a step lighter than the card (#36383c on #2a2c30), its shadow
+   deeper than in the light theme -- on a dark page a light shadow does not read. The words and
+   the sender in the text colour of the house; the gold of the greeting bubble in the chat
+   (ChatBubble, `.chat-bubble-greeting-line`): 6.2 : 1 on this sheet, where the house's own gold
+   (`--gold`) comes to 4.0. The circle turns round: gold ground, dark letter (9.0 : 1). */
+.dark-mode .redeem-thanks-paper {
+  background: var(--surface-muted);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+}
+
+.dark-mode .redeem-thanks-paper-message {
+  color: var(--text);
+}
+
+.dark-mode .redeem-thanks-paper-from {
+  color: var(--text);
+}
+
+.dark-mode .redeem-thanks-paper-rule {
+  background: rgb(255 255 255 / 14%);
+}
+
+.dark-mode .redeem-thanks-paper-for,
+.dark-mode .redeem-thanks-paper-line {
+  color: #e2b55c;
+}
+
+.dark-mode .redeem-thanks-paper-initial {
+  background: #e2b55c;
+  color: #1b1b1b;
 }
 </style>

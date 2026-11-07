@@ -1,6 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import {
   BButton,
@@ -33,6 +36,8 @@ const link = (overrides = {}) => ({
   amount: '20',
   memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   ...overrides,
 })
 const greeted = (recipientName = 'Sarah') =>
@@ -184,6 +189,72 @@ describe('RedeemThanksAccount', () => {
 
         expect(wrapper.find('img').exists()).toBe(false)
         expect(room(wrapper).exists()).toBe(false)
+      })
+    })
+
+    // ZE-038: where the link has no picture of its own, the face of the sender stands there, as
+    // the sheet showed it a moment ago.
+    describe('with the face of the sender', () => {
+      const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+      const PHOTO = 'blob:https://ki-playground.gradido.net/1c2d'
+      const face = (wrapper) => strip(wrapper).find('[data-test="redeem-thanks-strip-face"]')
+      const withPhoto = () =>
+        link({
+          memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
+          greeting: { motif: null, line: LINE, recipientName: 'Sarah', hasPicture: true },
+          senderAvatar: FACE,
+        })
+
+      it('shows it beside the sentence of a plain link, 48px and not read out', async () => {
+        const wrapper = await view({ linkData: link({ senderAvatar: FACE }) })
+
+        expect(face(wrapper).element.tagName).toBe('IMG')
+        expect(face(wrapper).attributes('src')).toBe(`data:image/jpeg;base64,${FACE}`)
+        expect(face(wrapper).attributes('alt')).toBe('')
+        expect(face(wrapper).attributes('aria-hidden')).toBe('true')
+        expect(face(wrapper).attributes('width')).toBe('48')
+        expect(face(wrapper).attributes('height')).toBe('48')
+        expect(strip(wrapper).findAll('img')).toHaveLength(1)
+        expect(strip(wrapper).text()).toBe(
+          'Oma-Emma hat Dir einen Dank geschickt. Schön, dass Du da bist.',
+        )
+      })
+
+      it('gives way to the motif of a greeting', async () => {
+        const wrapper = await view({ linkData: { ...greeted(), senderAvatar: FACE } })
+
+        expect(face(wrapper).exists()).toBe(false)
+        expect(strip(wrapper).find('[data-test="redeem-thanks-strip-motif"]').exists()).toBe(true)
+        expect(strip(wrapper).findAll('img')).toHaveLength(1)
+      })
+
+      it('gives way to the photo of a greeting, and to its room before it has come', async () => {
+        const shown = await view({ linkData: withPhoto(), picture: PHOTO })
+        expect(face(shown).exists()).toBe(false)
+        expect(strip(shown).find('[data-test="redeem-thanks-strip-photo"]').exists()).toBe(true)
+
+        const waiting = await view({ linkData: withPhoto() })
+        expect(face(waiting).exists()).toBe(false)
+        expect(strip(waiting).find('[data-test="redeem-thanks-strip-photo-room"]').exists()).toBe(
+          true,
+        )
+      })
+
+      it('is 48px round', () => {
+        const sfc = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'RedeemThanksAccount.vue'),
+          'utf8',
+        )
+        const css = sfc
+          .slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>'))
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const body = css.match(/(?:^|\n)\s*\.redeem-thanks-strip-face\s*\{([^}]*)\}/)?.[1]
+
+        expect(body).toMatch(/(^|[\s;])width:\s*48px;/)
+        expect(body).toMatch(/(^|[\s;])height:\s*48px;/)
+        expect(body).toMatch(/(^|[\s;])border-radius:\s*50%;/)
+        expect(body).toMatch(/(^|[\s;])object-fit:\s*cover;/)
+        expect(body).toMatch(/(^|[\s;])flex:\s*none;/)
       })
     })
 

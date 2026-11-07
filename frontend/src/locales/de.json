@@ -40,6 +40,7 @@
       "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil Du bei uns bist.",
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     },
+    "toAccount": "Zum Konto",
     "triads": {
       "design": {
         "communityBased": "Gemeinschaftsbasiert.",
@@ -785,7 +786,7 @@
     "password_old": "Altes Passwort",
     "recipient": "Empfänger",
     "recipient-not-found": {
-      "by-email": "Sonst schick Deinen Dank per E-Mail: Gradido legt dafür einen Link an, der {days} Tage wartet. Damit wird ein Konto angelegt — oder der Dank in ein bestehendes genommen.",
+      "by-email": "Du kannst Deinen Dank trotzdem schicken, per E-Mail: Gradido legt dafür einen Link an, der {days} Tage wartet. Wer ihn öffnet, nimmt den Dank in sein Konto — oder legt sich gleich dort eines an.",
       "change-address": "Adresse ändern",
       "change-entry": "Eingabe ändern",
       "choose-community": "Gemeinschaft wählen",
@@ -916,7 +917,7 @@
     "share-line1": "{name} dankt Dir mit {amount} Gradido:",
     "share-line2": "„{memo}“",
     "share-line3": "Magst Du den Dank annehmen?",
-    "share-line4": "Er wartet bis zum {date} auf Dich. Nimmst Du ihn nicht an, passiert nichts.",
+    "share-line4": "Lass Dir Zeit: Er wartet bis zum {date} auf Dich.",
     "to-login": "Log Dich ein",
     "to-register": "Registriere ein neues Konto.",
     "to-switch": "Jetzt weiterleiten",
@@ -1376,7 +1377,7 @@
       "disabled": "Dein Bild siehst jetzt nur noch Du.",
       "enabled": "Dein Bild ist für andere Mitglieder sichtbar.",
       "visibility": "Mein Bild anderen Mitgliedern zeigen",
-      "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
+      "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Auch wer einen Link von Dir öffnet, sieht es dort, solange der Link offen ist. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
     },
     "community": "Kreise",
     "creationAccount": {

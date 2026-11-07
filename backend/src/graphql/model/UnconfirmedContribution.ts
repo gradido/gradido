@@ -28,6 +28,8 @@ export class UnconfirmedContribution {
       : undefined
     this.lastMessageType = last ? last.type : null
     this.lastMessageByModerator = last ? last.isModerator : null
+    // Left to adminListContributions, the one place that may tell it (see the field).
+    this.colleagueNoteOnQuestion = null
 
     this.messages = dbContribution.messages
       ? dbContribution.messages.map(
@@ -72,6 +74,13 @@ export class UnconfirmedContribution {
 
   @Field(() => Boolean, { nullable: true })
   lastMessageByModerator: boolean | null
+
+  // Whether a colleague's internal note is the newest word on the open question
+  // (ContributionConversation.logic.ts), for the admin's details button. Set by
+  // adminListContributions alone and null everywhere else: it tells that a note exists, and the
+  // notes are no member's business.
+  @Field(() => Boolean, { nullable: true })
+  colleagueNoteOnQuestion: boolean | null
 
   @Field(() => [ContributionMessage], { nullable: true })
   messages: ContributionMessage[] | null

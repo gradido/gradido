@@ -452,8 +452,8 @@ const closed = computed(() => {
    comment to it.
 
    The sizes are in em of the card's own size, which the "Aa" control of the layout sets: at
-   the usual 16px they are the 14px and 13.5px of the drawing. Unlike the sheet, everything
-   here follows the theme. */
+   the usual 16px they are the 14px and 13.5px of the drawing. Everything here follows the
+   theme, and so does the sheet since ZE-038 (RedeemThanksPaper). */
 .redeem-thanks-title {
   margin-bottom: 12px;
 }

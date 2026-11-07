@@ -537,6 +537,106 @@ describe('CreationConfirm', () => {
     expect(mockToastWarning).toHaveBeenCalled()
   })
 
+  // Bernd, 06.11.2026: a note written in an open row changes the row in place -- a refetch would
+  // close it. A colleague's note on the question shows, and a resubmission the note went out
+  // without is gone.
+  describe('a note written in an open row', () => {
+    const HELD = '2026-11-12T10:00:00.000Z'
+    const row = (id) =>
+      table()
+        .props('items')
+        .find((item) => item.id === id)
+
+    beforeEach(async () => {
+      await simulateQueryResult({
+        adminListContributions: {
+          contributionCount: 2,
+          contributionList: [
+            {
+              id: 1,
+              contributionStatus: 'IN_PROGRESS',
+              messagesCount: 1,
+              resubmissionAt: HELD,
+              colleagueNoteOnQuestion: false,
+            },
+            {
+              id: 2,
+              contributionStatus: 'PENDING',
+              messagesCount: 2,
+              resubmissionAt: null,
+              colleagueNoteOnQuestion: false,
+            },
+          ],
+        },
+      })
+    })
+
+    it("shows a colleague's note and drops the resubmission it took back", async () => {
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: null })
+      expect(row(1)).toEqual(
+        expect.objectContaining({
+          contributionStatus: 'IN_PROGRESS',
+          colleagueNoteOnQuestion: true,
+          resubmissionAt: null,
+          messagesCount: 2,
+        }),
+      )
+      expect(row(2)).toEqual(expect.objectContaining({ messagesCount: 2 }))
+    })
+
+    it('keeps the status, and takes the resubmission the note went out with', async () => {
+      await table().vm.$emit('note-added', { id: 2, colleagueNote: false, resubmissionAt: null })
+      expect(row(2)).toEqual(
+        expect.objectContaining({ contributionStatus: 'PENDING', messagesCount: 3 }),
+      )
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: false, resubmissionAt: HELD })
+      expect(row(1).resubmissionAt).toBe(HELD)
+      // A date the moderator set with the note: the next opening of the row must show it.
+      const LATER = '2026-11-20T09:00:00.000Z'
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: LATER })
+      expect(row(1)).toEqual(
+        expect.objectContaining({ resubmissionAt: LATER, colleagueNoteOnQuestion: true }),
+      )
+    })
+
+    it('ends with a message to the member', async () => {
+      await table().vm.$emit('note-added', { id: 1, colleagueNote: true, resubmissionAt: null })
+      await table().vm.$emit('update-status', { id: 1, resubmissionAt: null })
+      expect(row(1).colleagueNoteOnQuestion).toBe(false)
+    })
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): a message to the member leaves the row
+  // with the resubmission it went out with -- the next opening of the row pre-fills that one.
+  it('takes the resubmission a message to the member went out with', async () => {
+    await simulateQueryResult({
+      adminListContributions: {
+        contributionCount: 1,
+        contributionList: [
+          {
+            id: 1,
+            contributionStatus: 'PENDING',
+            messagesCount: 1,
+            resubmissionAt: '2026-11-12T10:00:00.000Z',
+            colleagueNoteOnQuestion: true,
+          },
+        ],
+      },
+    })
+    const LATER = '2026-11-20T09:00:00.000Z'
+    await table().vm.$emit('update-status', { id: 1, resubmissionAt: LATER })
+    expect(table().props('items')[0]).toEqual(
+      expect.objectContaining({
+        contributionStatus: 'IN_PROGRESS',
+        messagesCount: 2,
+        resubmissionAt: LATER,
+        colleagueNoteOnQuestion: false,
+      }),
+    )
+    await table().vm.$emit('update-status', { id: 1, resubmissionAt: null })
+    expect(table().props('items')[0].resubmissionAt).toBeNull()
+  })
+
   it('shows a neutral notice for a no-reminder no-op even within a group', async () => {
     await simulateQueryResult({
       adminListContributions: { contributionCount: 3, contributionList: openItems(3, 7) },

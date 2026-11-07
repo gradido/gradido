@@ -40,6 +40,7 @@
       "oneDonation": "You are a gift for the community. 1000 thanks because you are with us.",
       "oneGratitude": "For each other, for all people, for nature."
     },
+    "toAccount": "To my account",
     "triads": {
       "design": {
         "communityBased": "Community-based.",
@@ -785,7 +786,7 @@
     "password_old": "Old password",
     "recipient": "Recipient",
     "recipient-not-found": {
-      "by-email": "Otherwise send your thank-you by email: Gradido creates a link for it that waits for {days} days. With it, an account is created — or the thank-you goes into an existing one.",
+      "by-email": "You can still send your thank-you, by email: Gradido creates a link for it that waits for {days} days. Whoever opens it takes the thank-you into their account — or opens one right there.",
       "change-address": "Change address",
       "change-entry": "Change entry",
       "choose-community": "Select community",
@@ -916,7 +917,7 @@
     "share-line1": "{name} thanks you with {amount} Gradido:",
     "share-line2": "“{memo}”",
     "share-line3": "Would you like to accept this thank-you?",
-    "share-line4": "It will wait for you until {date}. If you don't accept it, nothing happens.",
+    "share-line4": "Take your time: it will wait for you until {date}.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "to-switch": "Redirect now",
@@ -1376,7 +1377,7 @@
       "disabled": "Only you can see your picture now.",
       "enabled": "Your picture is visible to other members.",
       "visibility": "Show my picture to other members",
-      "visibilityInfo": "Other members see your picture — for example next to the bookings you share. When the setting is switched off, your initials appear, as before."
+      "visibilityInfo": "Other members see your picture — for example next to the bookings you share. Anyone who opens a link from you sees it there too, as long as the link is open. When the setting is switched off, your initials appear, as before."
     },
     "community": "Circles",
     "creationAccount": {

@@ -150,6 +150,8 @@ const memberLink = (overrides = {}) => ({
   redeemedAt: null,
   deletedAt: null,
   senderUser: { __typename: 'User', gradidoID: SENDER, alias: 'Oma-Emma', publisherId: null },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   communities: [HOME],
   ...overrides,
 })
@@ -625,6 +627,38 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       expect(toasts.toastSuccess).not.toHaveBeenCalled()
       expect(thanks(wrapper).exists()).toBe(false)
       expect(router.currentRoute.value.path).toBe('/overview')
+    })
+  })
+
+  // ZE-038: the face the query answers with reaches the sheet, and the strip above the form.
+  describe('the face of the sender', () => {
+    const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+
+    it('comes from the answer of the query onto the sheet', async () => {
+      const { wrapper } = await open(memberLink({ senderAvatar: FACE }))
+
+      expect(wrapper.find('[data-test="redeem-thanks-paper-face"]').attributes('src')).toBe(
+        `data:image/jpeg;base64,${FACE}`,
+      )
+    })
+
+    it('stands beside the sentence above the form a guest opens an account with', async () => {
+      const { wrapper } = await open(memberLink({ senderAvatar: FACE }))
+
+      await accept(wrapper).trigger('click')
+      await flushPromises()
+
+      expect(form(wrapper).exists()).toBe(true)
+      expect(wrapper.find('[data-test="redeem-thanks-strip-face"]').attributes('src')).toBe(
+        `data:image/jpeg;base64,${FACE}`,
+      )
+    })
+
+    it('is the letter where the answer carries none', async () => {
+      const { wrapper } = await open(memberLink())
+
+      expect(wrapper.find('[data-test="redeem-thanks-paper-face"]').exists()).toBe(false)
+      expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
     })
   })
 
