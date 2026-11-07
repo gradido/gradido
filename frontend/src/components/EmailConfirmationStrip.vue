@@ -81,14 +81,18 @@ const goToSettings = () => {
 
    One surface over the width of the content column, in the wallet's own values, light and dark:
    the card's surface and text, framed in the gold of `--warning` -- the clock runs, nothing is
-   wrong yet. The radius is the cards' and the alerts'. The air below it is the page's: the strip
+   wrong yet. The radius is the cards' and the alerts'. The air above it is the page's: the strip
    stands where the page begins and takes the page's own distance above it (DashboardLayout,
-   `.main-content`).
+   `.main-content`); below it, 1rem to the page.
 
-   Text and buttons side by side where they fit, the buttons under the text where they do not --
-   on a phone always, on the desk where the column is wide enough. Decided by the room the strip
-   has, not by the width of the screen: beside the menu and the right column the content column
-   of a desk is as narrow as a tablet. */
+   The buttons beside the text where the sentence keeps to two lines there, under it where it
+   would not -- on a phone always, on the desk beside the menu and the right column too: there
+   the content column is as narrow as a tablet's, and with the buttons beside it the sentence ran
+   to four lines in a column a third of the strip wide (measured at 1280 px). Decided by the room
+   the strip has, not by the width of the screen: the basis below is the width in which the German
+   sentence keeps to two lines (measured: 1101 px on one line, two lines at 576 px; el, fr and ru
+   take three there). In the wallet of today that puts the buttons beside the text only on pages
+   without the right column, such as the calculator on the desk. */
 .email-confirmation-strip {
   display: flex;
   flex-wrap: wrap;
@@ -104,7 +108,7 @@ const goToSettings = () => {
 
 /* ⛔ `min-width: 0`: a flex item's least width is its content. */
 .email-confirmation-strip-text {
-  flex: 1 1 20rem;
+  flex: 1 1 36rem;
   min-width: 0;
 }
 
