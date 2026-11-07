@@ -16,6 +16,7 @@ import {
   TransactionLink as DbTransactionLink,
   DbUser,
   dbDeleteThankYouGreetingByLinkCode,
+  dbFindMemberAvatarsSmall,
   dbInsertThankYouGreeting,
   dbSelectThankYouGreetingsByLinkCodes,
   EventType,
@@ -53,7 +54,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
  * and who gets to read a greeting.
  *
  * The three queries of the greeting's table are the real ones, wrapped so that a test can make
- * one of them fail once and count how often the list asks.
+ * one of them fail once and count how often the list asks. So is the read of the face of the
+ * member who made a link.
  */
 jest.mock('database', () => {
   const original = jest.requireActual('database')
@@ -63,6 +65,7 @@ jest.mock('database', () => {
     dbInsertThankYouGreeting: jest.fn(original.dbInsertThankYouGreeting),
     dbSelectThankYouGreetingsByLinkCodes: jest.fn(original.dbSelectThankYouGreetingsByLinkCodes),
     dbDeleteThankYouGreetingByLinkCode: jest.fn(original.dbDeleteThankYouGreetingByLinkCode),
+    dbFindMemberAvatarsSmall: jest.fn(original.dbFindMemberAvatarsSmall),
   }
 })
 
@@ -75,12 +78,16 @@ const selectGreetings = dbSelectThankYouGreetingsByLinkCodes as jest.MockedFunct
 const deleteGreeting = dbDeleteThankYouGreetingByLinkCode as jest.MockedFunction<
   typeof dbDeleteThankYouGreetingByLinkCode
 >
+const findFaces = dbFindMemberAvatarsSmall as jest.MockedFunction<typeof dbFindMemberAvatarsSmall>
 
 CONFIG.DLT_ACTIVE = false
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 const removeLogger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.removeThankYouGreeting`,
+)
+const queryLinkLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.queryTransactionLink`,
 )
 
 let mutate: ApolloServerTestClient['mutate']
@@ -602,6 +609,41 @@ describe('queryTransactionLink, the face of the member who made the link', () =>
       resetToken()
 
       expect(await faceOf(plainLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    // A read of the face that fails takes nothing else with it: the link comes as it is,
+    // without its face, as past the cap. Drizzle writes the statement and its parameters into
+    // the message of its error -- the member's id among them --, and this answer goes to whoever
+    // holds the code. What reaches the log is the driver's code.
+    it('comes without the face where the face cannot be read, and logs the driver code only', async () => {
+      resetToken()
+      findFaces.mockRejectedValueOnce(
+        Object.assign(
+          new Error(`Failed query: select \`avatar_small\` ... params: ${bibi.gradidoId}`),
+          { cause: { code: 'ECONNRESET' } },
+        ),
+      )
+
+      const result = await query({
+        query: queryThankYouGreeting,
+        variables: { code: greetingLink.code },
+      })
+
+      expect(result.errors).toBeUndefined()
+      expect(result.data.queryTransactionLink).toMatchObject({
+        id: greetingLink.id,
+        greeting: GREETING,
+        senderAvatar: null,
+      })
+      expect(queryLinkLogger.error).toHaveBeenCalledWith(
+        'sender avatar could not be read',
+        'ECONNRESET',
+      )
+      const logged = JSON.stringify(queryLinkLogger.error.mock.calls)
+      expect(logged).not.toContain('Failed query')
+      expect(logged).not.toContain(bibi.gradidoId)
+      // Once: the next request reads the face again.
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
     })
 
     it('is null where the member does not show her face to other members, and back once she does', async () => {

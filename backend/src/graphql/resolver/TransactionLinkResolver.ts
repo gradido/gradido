@@ -410,13 +410,19 @@ export class TransactionLinkResolver {
         // more for an open link: the picture lies in a table of its own, and its guard in that
         // query. ⛔ Counted in the HTTP request's budget before it is read, as a document may
         // name this query under any number of aliases, each with a code of its own; past the
-        // cap the link comes without its face.
+        // cap the link comes without its face. So it does where the read fails: the face is one
+        // part of the answer, and its failure goes into the log with the driver's code alone
+        // (driverCodeOf) -- the message of a failed Drizzle query carries the statement and its
+        // parameters, and this answer goes to whoever holds the code.
         let senderAvatar: Buffer | null = null
         if (showsSenderAvatar(dbTransactionLink, user.deletedAt, new Date())) {
           context.requestBudget.senderAvatarsServed += 1
           if (context.requestBudget.senderAvatarsServed <= SENDER_AVATARS_MAX_PER_REQUEST) {
             // The row of this member: the id is unique only per community.
-            const rows = await dbFindMemberAvatarsSmall([user.gradidoID])
+            const rows = await dbFindMemberAvatarsSmall([user.gradidoID]).catch((e: unknown) => {
+              methodLogger.error('sender avatar could not be read', driverCodeOf(e))
+              return []
+            })
             senderAvatar =
               rows.find((row) => row.communityUuid === user.communityUuid)?.avatarSmall ?? null
           }
