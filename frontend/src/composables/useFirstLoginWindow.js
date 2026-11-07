@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive } from 'vue'
 
 /**
  * Which of the windows a member meets on their first logins is the one on screen right now
@@ -21,6 +21,11 @@ import { computed, reactive, ref } from 'vue'
  * leave behind: each window says only whether it WOULD show, and who is on screen follows
  * from that plus the order below. A window that goes away takes its own claim with it,
  * because the claim was never a separate thing.
+ *
+ * ⛔ For the same reason, what waits for the next start waits in this module and not in the
+ * store (`held`, below): a hold written there would outlive the session it was said in and
+ * keep a window away for good. Here a reload ends it, a sign-in ends it (store.js, `login`),
+ * and the logout forgets it.
  *
  * ★ And the order lives HERE, in one line, rather than in the order the layout happens to
  * render the three components in. Their order in that template is arbitrary today -- the
@@ -72,14 +77,23 @@ const wanted = reactive({
 const undecided = reactive({ alias: false, home: false })
 
 /**
- * Once the invitation onto the map was due in this session, the first creation waits for the
- * next start -- a new sign-in, or the page loaded anew (KA-015: "erst beim nächsten Neustart").
- * Whatever the member answered the invitation, and wherever they stood when it was due (on
- * the home tab it does not open, it leads there): one ask at a time, and not two in the first
- * minutes. A ref in this module, so a reload ends it; the logout and a new sign-in end it as
- * well (store.js).
+ * Windows that wait for the next start -- a new sign-in, or the page loaded anew --, whatever
+ * they would say in the session they were held in. Two say so:
+ *
+ * - The invitation onto the map holds the first creation once it was due in this session
+ *   (KA-015: "erst beim nächsten Neustart"). Whatever the member answered the invitation, and
+ *   wherever they stood when it was due (on the home tab it does not open, it leads there): one
+ *   ask at a time, and not two in the first minutes.
+ * - The page where a thank-you opened the account holds the name and the first creation (E-044,
+ *   ES-024, NU-025): whoever came for a thank-you meets it first, and the windows about
+ *   themselves at the next start, the name before the first creation (ES-003). The address is
+ *   not held: it is the one window that must be said -- the account is on a clock of 24 hours,
+ *   and on this way the guest typed the address themselves (E-044).
+ *
+ * A held window is passed over, not waited for: it is neither wanted nor undecided in this
+ * session, so it holds back none of the windows after it.
  */
-const firstCreationHeld = ref(false)
+const held = reactive({ alias: false, firstCreation: false })
 
 /**
  * The window that has the screen, or null.
@@ -87,8 +101,8 @@ const firstCreationHeld = ref(false)
  */
 export const firstLoginWindow = computed(() => {
   for (const name of ORDER) {
+    if (held[name]) continue
     if (undecided[name]) return null
-    if (name === 'firstCreation' && firstCreationHeld.value) return null
     if (wanted[name]) return name
   }
   return null
@@ -119,17 +133,32 @@ export const setFirstLoginWindowWanted = (name, value) => {
  * the first creation waits for the next start.
  */
 export const holdFirstCreationForThisSession = () => {
-  firstCreationHeld.value = true
+  held.firstCreation = true
 }
 
 /**
- * A new start, at a sign-in (store.js, `login`): the first creation no longer waits for the
- * invitation of a session before. Only that -- which windows would show, the windows say
+ * Said by the page where a thank-you opened the account (pages/TransactionLink.vue), once the
+ * sign-in is through: the windows about the member themselves -- the name and the first
+ * creation -- wait for the next start, and the thank-you comes first (E-044, ES-024, NU-025).
+ *
+ * ⛔ After the sign-in, never before it: the sign-in ends every hold (store.js, `login`), so a
+ * hold said before it would be gone by the time the member meets the windows.
+ */
+export const holdAccountWindowsForThisSession = () => {
+  held.alias = true
+  held.firstCreation = true
+}
+
+/**
+ * A new start, at a sign-in (store.js, `login`): no window waits any longer for a session
+ * before -- neither the first creation behind an invitation onto the map nor the name and the
+ * first creation behind a thank-you. Only that -- which windows would show, the windows say
  * themselves, mounted with the layout, and resetting it from outside would leave a mounted one
  * believing what is no longer written here.
  */
-export const endFirstCreationHold = () => {
-  firstCreationHeld.value = false
+export const endFirstLoginHolds = () => {
+  held.alias = false
+  held.firstCreation = false
 }
 
 /**
@@ -147,7 +176,7 @@ export const setFirstLoginWindowUndecided = (name, value) => {
  * Forgotten on logout, like the hearts and the open portrait beside it in store.js. Logging
  * out does not reload the page, so this module outlives the session that filled it -- and
  * the next member on this browser must meet their own windows, not the last member's
- * unanswered ones. (A sign-in ends only the hold, `endFirstCreationHold`.)
+ * unanswered ones. (A sign-in ends only the holds, `endFirstLoginHolds`.)
  */
 export const forgetFirstLoginWindows = () => {
   ORDER.forEach((name) => {
@@ -155,5 +184,5 @@ export const forgetFirstLoginWindows = () => {
   })
   undecided.alias = false
   undecided.home = false
-  firstCreationHeld.value = false
+  endFirstLoginHolds()
 }

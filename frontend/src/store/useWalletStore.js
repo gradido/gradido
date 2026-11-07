@@ -19,7 +19,7 @@ import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
-import { endFirstCreationHold, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
+import { endFirstLoginHolds, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
@@ -276,11 +276,15 @@ export const useWalletStore = defineStore('wallet', {
       // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
       // comes through here.
       letOldChatDraftsGo()
-      // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"): the
-      // first creation no longer waits for an invitation onto the map of the session before, and
-      // an event link opened in that session is not this one's. Neither the sign-in nor the
-      // handover from the admin area reloads the page, and `/login` opens over a running session.
-      endFirstCreationHold()
+      // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart";
+      // E-044): no window waits any longer for the session before -- neither the first creation
+      // behind an invitation onto the map nor the name and the first creation behind a
+      // thank-you --, and an event link opened in that session is not this one's. Neither the
+      // sign-in nor the handover from the admin area reloads the page, and `/login` opens over a
+      // running session.
+      // ⛔ That is why the page where a thank-you opens the account says its hold AFTER the
+      // sign-in (pages/TransactionLink.vue).
+      endFirstLoginHolds()
       forgetEventLinkArrival()
     },
     /**
