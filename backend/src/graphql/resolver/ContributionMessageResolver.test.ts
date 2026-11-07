@@ -2,7 +2,13 @@ import { ContributionStatus } from '@enum/ContributionStatus'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { sendAddedContributionMessageEmail } from 'core'
-import { AppDatabase, Contribution as DbContribution, Event as DbEvent, EventType } from 'database'
+import {
+  AppDatabase,
+  Contribution as DbContribution,
+  ContributionMessage as DbContributionMessage,
+  Event as DbEvent,
+  EventType,
+} from 'database'
 import { GraphQLError } from 'graphql'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
@@ -686,6 +692,65 @@ describe('ContributionMessageResolver', () => {
           }),
         )
       })
+    })
+  })
+
+  // Last on purpose: the messages written here would otherwise be counted by the lists
+  // above.
+  // Whose words a message carries: the admin names the model of the Crea draft it inserted,
+  // and the row keeps the name. A member's own message is theirs, whatever the client sends.
+  describe('the model named on a message', () => {
+    const aiModelOf = async (id: number) =>
+      (await DbContributionMessage.findOneOrFail({ where: { id } })).aiModel
+
+    afterAll(() => {
+      resetToken()
+    })
+
+    it('is recorded on a moderator message', async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'peter@lustig.de', password: 'Aa12345_' },
+      })
+      const { data, errors } = await mutate({
+        mutation: adminCreateContributionMessage,
+        variables: {
+          contributionId: result.data.createContribution.id,
+          message: 'Danke für deinen Beitrag!',
+          aiModel: 'claude-test',
+        },
+      })
+      expect(errors).toBeUndefined()
+      expect(await aiModelOf(data.adminCreateContributionMessage.id)).toBe('claude-test')
+    })
+
+    it('stays empty on a moderator message that names none', async () => {
+      const { data } = await mutate({
+        mutation: adminCreateContributionMessage,
+        variables: {
+          contributionId: result.data.createContribution.id,
+          message: 'Von Hand geschrieben',
+          messageType: 'MODERATOR',
+        },
+      })
+      expect(await aiModelOf(data.adminCreateContributionMessage.id)).toBeNull()
+    })
+
+    it("is ignored on a member's own message", async () => {
+      await mutate({
+        mutation: login,
+        variables: { email: 'bibi@bloxberg.de', password: 'Aa12345_' },
+      })
+      const { data, errors } = await mutate({
+        mutation: createContributionMessage,
+        variables: {
+          contributionId: result.data.createContribution.id,
+          message: 'Gern geschehen',
+          aiModel: 'claude-test',
+        },
+      })
+      expect(errors).toBeUndefined()
+      expect(await aiModelOf(data.createContributionMessage.id)).toBeNull()
     })
   })
 })

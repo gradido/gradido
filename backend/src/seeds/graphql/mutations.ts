@@ -423,8 +423,8 @@ export const denyContribution = gql`
 `
 
 export const createContributionMessage = gql`
-  mutation ($contributionId: Int!, $message: String!) {
-    createContributionMessage(contributionId: $contributionId, message: $message) {
+  mutation ($contributionId: Int!, $message: String!, $aiModel: String) {
+    createContributionMessage(contributionId: $contributionId, message: $message, aiModel: $aiModel) {
       id
       message
       createdAt
@@ -437,11 +437,17 @@ export const createContributionMessage = gql`
 `
 
 export const adminCreateContributionMessage = gql`
-  mutation ($contributionId: Int!, $message: String!, $messageType: ContributionMessageType) {
+  mutation (
+    $contributionId: Int!
+    $message: String!
+    $messageType: ContributionMessageType
+    $aiModel: String
+  ) {
     adminCreateContributionMessage(
       contributionId: $contributionId
       message: $message
       messageType: $messageType
+      aiModel: $aiModel
     ) {
       id
       message
@@ -489,6 +495,7 @@ export const login = gql`
       avatar
       avatarVisibleToMembers
       creationAllowed
+      firstCreationStatus
       transfersInChat
     }
   }
@@ -926,6 +933,7 @@ export const submitFirstCreation = gql`
         confirmed
         status
       }
+      referrerAlias
       functionTestsEnabled
       testRunsLeft
       isFirstCreationSigner

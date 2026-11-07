@@ -81,4 +81,9 @@ export class CreaEvaluation {
 
   @Field(() => [String])
   flags: string[]
+
+  // The model that wrote responseText, by name: the admin sends it back with the message
+  // it inserts the draft into, so the thread records whose words these were.
+  @Field()
+  model: string
 }

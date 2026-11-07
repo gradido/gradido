@@ -532,6 +532,40 @@ describe('ContributionMessagesFormular', () => {
     expect(messageField().element.value).toBe('Liebe Anna, danke!')
   })
 
+  it('sends the model of the inserted Crea draft with the message, edits around it included', async () => {
+    useCreaClipboard().setLastResponse('Liebe Anna, danke!', 'claude-test')
+    wrapper = await mountForm()
+    await wrapper.find('[data-test="crea-insert-draft"]').trigger('click')
+    await nextTick()
+    await messageField().setValue('Liebe Anna, danke! Und bis bald.')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: null,
+      message: 'Liebe Anna, danke! Und bis bald.',
+      messageType: 'DIALOG',
+      contributionId: 42,
+      aiModel: 'claude-test',
+    })
+  })
+
+  it('names no model once the inserted draft was cleared away', async () => {
+    useCreaClipboard().setLastResponse('Liebe Anna, danke!', 'claude-test')
+    wrapper = await mountForm()
+    await wrapper.find('[data-test="crea-insert-draft"]').trigger('click')
+    await nextTick()
+    await messageField().setValue('')
+    await messageField().setValue('eigener Text')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: null,
+      message: 'eigener Text',
+      messageType: 'DIALOG',
+      contributionId: 42,
+    })
+  })
+
   it('appends the Crea draft when the field already has text and was not focused', async () => {
     useCreaClipboard().setLastResponse('draft')
     wrapper = await mountForm()

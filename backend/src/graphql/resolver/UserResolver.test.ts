@@ -1691,6 +1691,8 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                // ES-002: not asked yet, so the window will ask.
+                firstCreationStatus: null,
                 transfersInChat: true,
               },
             },
@@ -1942,6 +1944,7 @@ describe('UserResolver', () => {
                   lastName: 'Bloxberg',
                   language: 'de',
                   creationAllowed: true,
+                  firstCreationStatus: null,
                   klickTipp: {
                     newsletterState: false,
                   },
@@ -2698,6 +2701,8 @@ describe('UserResolver', () => {
                 avatar: null,
                 avatarVisibleToMembers: true,
                 creationAllowed: true,
+                // ES-002: not asked yet, so the window will ask.
+                firstCreationStatus: null,
                 transfersInChat: true,
               },
             },

@@ -16,6 +16,7 @@ const evaluationWith = (responseText: string): CreaEvaluation =>
     defaultSalutation: '',
     openPoints: [],
     flags: [],
+    model: 'claude-test',
   }) as CreaEvaluation
 
 describe('crea postprocess — salutation', () => {

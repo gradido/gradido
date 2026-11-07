@@ -16,7 +16,7 @@ import {
   UserContact as DbUserContact,
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
-import { AccountState, EventType } from '../enum'
+import { AccountState, EventType, FirstCreationStatus } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
@@ -63,6 +63,7 @@ import {
   dbSelectReferralContactsByUserId,
   dbSelectUsersByUuids,
   dbUpdateForeignUserAlias,
+  dbUpdateUserFirstCreationStatus,
   dbUserUpdateField,
   dbUserUpdatePassword,
   findUserNamesByIds,
@@ -425,6 +426,66 @@ describe('user.queries', () => {
     it('reports a member that does not exist', async () => {
       const result = await dbClearGmsRegistration(registered.id + 1000)
 
+      expect(result.success).toBe(false)
+    })
+  })
+
+  describe('dbUpdateUserFirstCreationStatus', () => {
+    let member: DbUser
+
+    beforeAll(async () => {
+      await dbDeleteAllRowsExceptMigrations()
+      await createCommunity(false)
+      member = await userFactory(bibiBloxberg)
+    })
+
+    it('claims the process of a member who has not started, once', async () => {
+      const claimed = await dbUpdateUserFirstCreationStatus(
+        member.id,
+        null,
+        FirstCreationStatus.SUBMITTED,
+      )
+      expect(claimed.success).toBe(true)
+      // The second tab, one Save later: the row is no longer in the state it expects.
+      const again = await dbUpdateUserFirstCreationStatus(
+        member.id,
+        null,
+        FirstCreationStatus.SUBMITTED,
+      )
+      expect(again.success).toBe(false)
+      if (!again.success) {
+        expect(again.error).toBeInstanceOf(DBNotFoundError)
+      }
+      const stored = await DbUser.findOneByOrFail({ id: member.id })
+      expect(stored.firstCreationStatus).toBe(FirstCreationStatus.SUBMITTED)
+    })
+
+    it('moves forward only from the state it is expected to be in', async () => {
+      const done = await dbUpdateUserFirstCreationStatus(
+        member.id,
+        FirstCreationStatus.SUBMITTED,
+        FirstCreationStatus.DONE,
+      )
+      expect(done.success).toBe(true)
+      // A late writer that still believes the process is SUBMITTED after it has moved on
+      // finds nothing -- the whole protection against a model answer arriving after the
+      // deadline.
+      const late = await dbUpdateUserFirstCreationStatus(
+        member.id,
+        FirstCreationStatus.SUBMITTED,
+        FirstCreationStatus.IN_REVIEW,
+      )
+      expect(late.success).toBe(false)
+      const stored = await DbUser.findOneByOrFail({ id: member.id })
+      expect(stored.firstCreationStatus).toBe(FirstCreationStatus.DONE)
+    })
+
+    it('reports a member that does not exist', async () => {
+      const result = await dbUpdateUserFirstCreationStatus(
+        member.id + 1000,
+        null,
+        FirstCreationStatus.SUBMITTED,
+      )
       expect(result.success).toBe(false)
     })
   })
