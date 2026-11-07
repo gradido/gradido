@@ -10,6 +10,7 @@ import {
   configRule,
   DLT_ACTIVE,
   DLT_CONNECTOR_URL,
+  FEDERATION_DHT_SEED,
   GDT_ACTIVE,
   GDT_API_URL,
   GMS_ACTIVE,
@@ -200,6 +201,11 @@ const environment = v.object({
     ),
     60000,
   ),
+
+  // The dht-node derives the home community's signing key pair from it and stops its start when
+  // the stored one differs. Only the seed reads it here, to write the key pair the dht-node will
+  // derive; without it the seed writes a random one, which the dht-node then refuses.
+  FEDERATION_DHT_SEED: v.optional(FEDERATION_DHT_SEED),
 
   // Any string: chatVideoServers() reads it entry by entry and skips an unusable entry with a
   // warning. A rule here would keep the whole backend from starting over one mistyped server.

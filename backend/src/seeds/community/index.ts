@@ -12,9 +12,13 @@ import { CONFIG } from '@/config'
 
 const HOME_COMMUNITY_URL = 'http://localhost/api/'
 
-// a new Ed25519 key pair the way the dht-node stores it: privateKey = seed || publicKey
+// the Ed25519 key pair the way the dht-node derives and stores it: crypto_sign_seed_keypair of
+// FEDERATION_DHT_SEED, privateKey = seed || publicKey. Without the seed a random one, which the
+// dht-node refuses at its start.
 function signingKeys(): { publicKey: Buffer; privateKey: Buffer } {
-  const keyPair = Ed25519KeyPair.generate()
+  const keyPair = CONFIG.FEDERATION_DHT_SEED
+    ? Ed25519KeyPair.generate(Buffer.from(CONFIG.FEDERATION_DHT_SEED, 'hex'))
+    : Ed25519KeyPair.generate()
   const publicKey = keyPair.publicKeyToBuffer()
   return { publicKey, privateKey: Buffer.concat([keyPair.privateKeyToBuffer(), publicKey]) }
 }
