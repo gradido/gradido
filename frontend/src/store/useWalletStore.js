@@ -86,7 +86,8 @@ export const useWalletStore = defineStore('wallet', {
     hideAmountGDD: null,
     hideAmountGDT: null,
     // EM-013: whether the member's address is confirmed, and when the account was
-    // created — the confirm-reminder modal derives its deadline from the two.
+    // created — the address reminder derives its deadline from the two
+    // (useEmailConfirmation: the strip inside the 24 hours, the window after them).
     emailChecked: null,
     accountCreatedAt: null,
     email: '',

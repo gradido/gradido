@@ -7,7 +7,8 @@ import { computed, reactive } from 'vue'
  * (ES-003).
  *
  * Four of them hang side by side in DashboardLayout and each has its own reason to open:
- * the address is not confirmed yet, the name is still the one the system built, the member
+ * the address is still not confirmed when its 24 hours are over (inside them a strip on the
+ * page says so, EmailConfirmationStrip), the name is still the one the system built, the member
  * came in by an event link and is not on the map yet, the first creation has not happened.
  * Nothing stopped two of them from opening at the same moment, and two BModals stack -- the
  * one underneath is reachable only by dismissing the one on top, which is not what either of
@@ -36,11 +37,16 @@ import { computed, reactive } from 'vue'
 /**
  * ⚠️ First is FIRST on screen, and the order is not decoration.
  *
- * The address reminder comes before the name because it can be waved away ("Später") while
- * the other two want an answer, and inside the 24-hour grace period the account is on a
- * clock the member has to be told about (EM-013). The name comes before the first creation
- * because the creation message greets them by it (ES-003): asked in the other order, the
- * community would thank somebody by a name they are in the middle of replacing.
+ * The address reminder comes before the name because it is a window only past the 24-hour
+ * grace period (EM-013, EM-014): then the account is narrowed down until the address is
+ * confirmed, the window cannot be closed, and no other window may stand in front of the one
+ * way out. Inside the grace period the clock is told by a strip on the page
+ * (EmailConfirmationStrip) that covers nothing and takes no part in this order -- so inside the
+ * 24 hours the first window a member meets is the name's.
+ *
+ * The name comes before the first creation because the creation message greets them by it
+ * (ES-003): asked in the other order, the community would thank somebody by a name they are in
+ * the middle of replacing.
  *
  * The invitation onto the map after an event link (`'home'`, EventMatchingHomeInvitation)
  * comes right after the name and before the first creation (Bernd, 16.10.2026, KA-015): who
@@ -87,8 +93,10 @@ const undecided = reactive({ alias: false, home: false })
  * - The page where a thank-you opened the account holds the name and the first creation (E-044,
  *   ES-024, NU-025): whoever came for a thank-you meets it first, and the windows about
  *   themselves at the next start, the name before the first creation (ES-003). The address is
- *   not held: it is the one window that must be said -- the account is on a clock of 24 hours,
- *   and on this way the guest typed the address themselves (E-044).
+ *   not held: it is the one thing that must be said -- the account is on a clock of 24 hours,
+ *   and on this way the guest typed the address themselves (E-044) --, and inside those hours it
+ *   is said by a strip on the page, not by a window (EM-014). Past them its window is the way
+ *   out of a narrowed account.
  *
  * A held window is passed over, not waited for: it is neither wanted nor undecided in this
  * session, so it holds back none of the windows after it.

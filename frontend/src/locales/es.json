@@ -586,12 +586,11 @@
   },
   "emailConfirmation": {
     "changeAddress": "Corregir dirección",
-    "grace": "Hasta {deadline} puedes usar tu cuenta plenamente — después esperará tu confirmación.",
-    "later": "Más tarde",
     "mailSent": "Un correo de confirmación va de camino a tu dirección. Haz clic en el enlace que contiene.",
     "overdue": "El plazo de transición ha terminado. Confirma tu dirección de correo — tu cuenta volverá a abrirse por completo en ese momento.",
     "resend": "Enviar correo de nuevo",
     "resent": "El correo de confirmación va de camino otra vez.",
+    "strip": "Un correo de confirmación va de camino hacia ti — haz clic en el enlace que contiene. Ya puedes usar tu cuenta plenamente hasta el {deadline}.",
     "title": "Confirma tu dirección de correo"
   },
   "emoji": {

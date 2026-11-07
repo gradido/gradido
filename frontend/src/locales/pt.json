@@ -586,12 +586,11 @@
   },
   "emailConfirmation": {
     "changeAddress": "Corrigir endereço",
-    "grace": "Até {deadline} já podes usar a tua conta por completo — depois ela ficará à espera da tua confirmação.",
-    "later": "Mais tarde",
     "mailSent": "Um e-mail de confirmação vai a caminho do teu endereço. Clica na ligação que ele contém.",
     "overdue": "O período de transição terminou. Confirma o teu endereço de e-mail — logo a seguir a tua conta volta a abrir por completo.",
     "resend": "Enviar e-mail de novo",
     "resent": "O e-mail de confirmação vai de novo a caminho.",
+    "strip": "Um e-mail de confirmação vai a caminho de ti — clica na ligação que ele contém. Já podes usar a tua conta por completo até {deadline}.",
     "title": "Confirma o teu endereço de e-mail"
   },
   "emoji": {

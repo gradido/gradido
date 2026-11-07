@@ -586,12 +586,11 @@
   },
   "emailConfirmation": {
     "changeAddress": "Adres corrigeren",
-    "grace": "Tot {deadline} kun je je account al volledig gebruiken — daarna wacht het op je bevestiging.",
-    "later": "Later",
     "mailSent": "Een bevestigingsmail is onderweg naar je e-mailadres. Klik op de link erin.",
     "overdue": "De overgangstijd is voorbij. Bevestig je e-mailadres — daarna staat je account meteen weer volledig open.",
     "resend": "Mail opnieuw sturen",
     "resent": "De bevestigingsmail is opnieuw onderweg.",
+    "strip": "Er is een bevestigingsmail naar je onderweg — klik op de link erin. Tot {deadline} kun je je account al volledig gebruiken.",
     "title": "Bevestig je e-mailadres"
   },
   "emoji": {
