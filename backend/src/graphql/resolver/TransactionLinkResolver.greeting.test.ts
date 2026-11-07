@@ -1,5 +1,12 @@
 // AI-GENERATED — not an architecture reference
-import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
+import {
+  ApolloServerTestClient,
+  cleanDB,
+  resetToken,
+  TEST_AVATAR_FULL_BASE64,
+  TEST_AVATAR_SMALL_BASE64,
+  testEnvironment,
+} from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
@@ -9,17 +16,29 @@ import {
   TransactionLink as DbTransactionLink,
   DbUser,
   dbDeleteThankYouGreetingByLinkCode,
+  dbFindMemberAvatarsSmall,
   dbInsertThankYouGreeting,
   dbSelectThankYouGreetingsByLinkCodes,
   EventType,
   thankYouGreetingsTable,
+  User,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { gql } from 'graphql-tag'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { SENDER_AVATARS_MAX_PER_REQUEST } from '@/data/SenderAvatar.logic'
 import { creations } from '@/seeds/creation/index'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
-import { createTransactionLink, deleteTransactionLink, login } from '@/seeds/graphql/mutations'
+import {
+  createTransactionLink,
+  deleteTransactionLink,
+  login,
+  redeemTransactionLink,
+  removeUserAvatar,
+  setUserAvatar,
+  updateUserInfos,
+} from '@/seeds/graphql/mutations'
 import {
   listTransactionLinks,
   listTransactionLinksAdmin,
@@ -35,7 +54,8 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
  * and who gets to read a greeting.
  *
  * The three queries of the greeting's table are the real ones, wrapped so that a test can make
- * one of them fail once and count how often the list asks.
+ * one of them fail once and count how often the list asks. So is the read of the face of the
+ * member who made a link.
  */
 jest.mock('database', () => {
   const original = jest.requireActual('database')
@@ -45,6 +65,7 @@ jest.mock('database', () => {
     dbInsertThankYouGreeting: jest.fn(original.dbInsertThankYouGreeting),
     dbSelectThankYouGreetingsByLinkCodes: jest.fn(original.dbSelectThankYouGreetingsByLinkCodes),
     dbDeleteThankYouGreetingByLinkCode: jest.fn(original.dbDeleteThankYouGreetingByLinkCode),
+    dbFindMemberAvatarsSmall: jest.fn(original.dbFindMemberAvatarsSmall),
   }
 })
 
@@ -57,12 +78,16 @@ const selectGreetings = dbSelectThankYouGreetingsByLinkCodes as jest.MockedFunct
 const deleteGreeting = dbDeleteThankYouGreetingByLinkCode as jest.MockedFunction<
   typeof dbDeleteThankYouGreetingByLinkCode
 >
+const findFaces = dbFindMemberAvatarsSmall as jest.MockedFunction<typeof dbFindMemberAvatarsSmall>
 
 CONFIG.DLT_ACTIVE = false
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 const removeLogger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.removeThankYouGreeting`,
+)
+const queryLinkLogger = getLogger(
+  `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.TransactionLinkResolver.queryTransactionLink`,
 )
 
 let mutate: ApolloServerTestClient['mutate']
@@ -499,6 +524,275 @@ describe('queryTransactionLink', () => {
     expect(result.data.queryTransactionLink.deletedAt).not.toBeNull()
     expect(result.data.queryTransactionLink.greeting).toBeNull()
     expect(selectGreetings).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The face of the member who made a link, on the page of that link (senderAvatar, ZE-038):
+ * the small picture, for whoever holds the code of an OPEN link, where the member shows their
+ * face to other members. The rule of the link's state has a test of every row of its own
+ * (SenderAvatar.logic.test.ts); these hold that the query reads it, and the switch, at all.
+ * Each case first sees the face, then makes the one change, so that a fixture which never
+ * showed it cannot pass for a guard.
+ */
+describe('queryTransactionLink, the face of the member who made the link', () => {
+  // The links of this block, made by Bibi: a greeting and a plain link, both open.
+  let greetingLink: { id: number; code: string }
+  let plainLink: { id: number; code: string }
+
+  /** What the page of a link is handed of its sender's face, asked by whoever is signed in. */
+  const faceOf = async (code: string): Promise<string | null> => {
+    const result = await query({ query: queryThankYouGreeting, variables: { code } })
+    expect(result.errors).toBeUndefined()
+    return result.data.queryTransactionLink.senderAvatar
+  }
+
+  /** Bibi's switch "my picture for other members", set as she sets it. */
+  const showFace = async (avatarVisibleToMembers: boolean) => {
+    await loginAs('bibi@bloxberg.de')
+    const switched = await mutate({
+      mutation: updateUserInfos,
+      variables: { avatarVisibleToMembers },
+    })
+    expect(switched.errors).toBeUndefined()
+    // The fixture proves itself: a switch silently left as it was would make the case below
+    // find no face for a reason that has nothing to do with the switch.
+    expect((await User.findOneByOrFail({ id: bibi.id })).avatarVisibleToMembers).toBe(
+      avatarVisibleToMembers,
+    )
+  }
+
+  beforeAll(async () => {
+    await loginAs('bibi@bloxberg.de')
+    greetingLink = await created({ ...sarah, memo: `${LINE}\nMit Gesicht` })
+    plainLink = await created({ amount: '5', memo: 'Schlicht, mit Gesicht' })
+  })
+
+  it('is null while the member has no picture', async () => {
+    resetToken()
+
+    expect(await faceOf(greetingLink.code)).toBeNull()
+    expect(await faceOf(plainLink.code)).toBeNull()
+  })
+
+  describe('with a picture of the member', () => {
+    beforeAll(async () => {
+      await loginAs('bibi@bloxberg.de')
+      const set = await mutate({
+        mutation: setUserAvatar,
+        variables: { avatarSmall: TEST_AVATAR_SMALL_BASE64, avatarFull: TEST_AVATAR_FULL_BASE64 },
+      })
+      expect(set.errors).toBeUndefined()
+    })
+
+    // The rest of the file finds Bibi as it was: without a picture, the switch on.
+    afterAll(async () => {
+      await showFace(true)
+      const removed = await mutate({ mutation: removeUserAvatar })
+      expect(removed.errors).toBeUndefined()
+    })
+
+    it('hands the small picture to whoever holds the code of an open link, signed in or not', async () => {
+      resetToken()
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+
+      await loginAs('peter@lustig.de')
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+
+      // …and to the member herself, on the page of her own link: what she sees there is what
+      // the one she sends it to sees.
+      await loginAs('bibi@bloxberg.de')
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    it('hands it with a plain link as with a greeting', async () => {
+      resetToken()
+
+      expect(await faceOf(plainLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    // A read of the face that fails takes nothing else with it: the link comes as it is,
+    // without its face, as past the cap. Drizzle writes the statement and its parameters into
+    // the message of its error -- the member's id among them --, and this answer goes to whoever
+    // holds the code. What reaches the log is the driver's code.
+    it('comes without the face where the face cannot be read, and logs the driver code only', async () => {
+      resetToken()
+      findFaces.mockRejectedValueOnce(
+        Object.assign(
+          new Error(`Failed query: select \`avatar_small\` ... params: ${bibi.gradidoId}`),
+          { cause: { code: 'ECONNRESET' } },
+        ),
+      )
+
+      const result = await query({
+        query: queryThankYouGreeting,
+        variables: { code: greetingLink.code },
+      })
+
+      expect(result.errors).toBeUndefined()
+      expect(result.data.queryTransactionLink).toMatchObject({
+        id: greetingLink.id,
+        greeting: GREETING,
+        senderAvatar: null,
+      })
+      expect(queryLinkLogger.error).toHaveBeenCalledWith(
+        'sender avatar could not be read',
+        'ECONNRESET',
+      )
+      const logged = JSON.stringify(queryLinkLogger.error.mock.calls)
+      expect(logged).not.toContain('Failed query')
+      expect(logged).not.toContain(bibi.gradidoId)
+      // Once: the next request reads the face again.
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    it('is null where the member does not show her face to other members, and back once she does', async () => {
+      await showFace(false)
+      try {
+        resetToken()
+        expect(await faceOf(greetingLink.code)).toBeNull()
+      } finally {
+        await showFace(true)
+      }
+
+      resetToken()
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    it('is null once the link is accepted', async () => {
+      const link = await created({ amount: '5', memo: 'Angenommen, mit Gesicht' })
+      resetToken()
+      expect(await faceOf(link.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+
+      await loginAs('peter@lustig.de')
+      const redeemed = await mutate({
+        mutation: redeemTransactionLink,
+        variables: { code: link.code },
+      })
+      expect(redeemed.errors).toBeUndefined()
+      expect(redeemed.data.redeemTransactionLink).toBe(true)
+
+      expect(await faceOf(link.code)).toBeNull()
+      resetToken()
+      expect(await faceOf(link.code)).toBeNull()
+    })
+
+    it('is null once the link has run out', async () => {
+      const link = await created({ amount: '5', memo: 'Abgelaufen, mit Gesicht' })
+      resetToken()
+      expect(await faceOf(link.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+
+      await DbTransactionLink.update({ id: link.id }, { validUntil: new Date(Date.now() - 60_000) })
+
+      expect(await faceOf(link.code)).toBeNull()
+    })
+
+    it('is null for a deleted link', async () => {
+      const link = await created({ amount: '5', memo: 'Gelöscht, mit Gesicht' })
+      resetToken()
+      expect(await faceOf(link.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+
+      await loginAs('bibi@bloxberg.de')
+      await expect(
+        mutate({ mutation: deleteTransactionLink, variables: { id: link.id } }),
+      ).resolves.toMatchObject({ data: { deleteTransactionLink: true } })
+      resetToken()
+
+      const result = await query({ query: queryThankYouGreeting, variables: { code: link.code } })
+      expect(result.errors).toBeUndefined()
+      expect(result.data.queryTransactionLink.deletedAt).not.toBeNull()
+      expect(result.data.queryTransactionLink.senderAvatar).toBeNull()
+    })
+
+    // ⛔ The page of a link of a member whose account is deleted opens no more: the query reads
+    // the member without the deleted ones and answers with an error -- and the face does not
+    // ride along with it.
+    it('hands no face out with the error where the account of the member is deleted', async () => {
+      resetToken()
+      await User.update({ id: bibi.id }, { deletedAt: new Date() })
+      try {
+        const result = await query({
+          query: queryThankYouGreeting,
+          variables: { code: greetingLink.code },
+        })
+        expect(result.errors).toBeDefined()
+        expect(result.data?.queryTransactionLink ?? null).toBeNull()
+        expect(JSON.stringify(result)).not.toContain(TEST_AVATAR_SMALL_BASE64)
+      } finally {
+        await User.update({ id: bibi.id }, { deletedAt: null })
+      }
+
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    it('is null in the lists of links and in the answer of createTransactionLink', async () => {
+      const made = await mutate({
+        mutation: gql`
+          mutation ($amount: GradidoUnit!, $memo: String!) {
+            createTransactionLink(amount: $amount, memo: $memo) {
+              code
+              senderAvatar
+            }
+          }
+        `,
+        variables: { amount: '5', memo: 'Neu, ohne Gesicht in der Antwort' },
+      })
+      expect(made.errors).toBeUndefined()
+      expect(made.data.createTransactionLink.senderAvatar).toBeNull()
+
+      const listed = await query({
+        query: gql`
+          query {
+            listTransactionLinks(currentPage: 1, pageSize: 50) {
+              links {
+                code
+                senderAvatar
+              }
+            }
+          }
+        `,
+      })
+      expect(listed.errors).toBeUndefined()
+      const links: { code: string; senderAvatar: string | null }[] =
+        listed.data.listTransactionLinks.links
+      // The open links of this block are on the page, so the list could have carried a face.
+      expect(links.map((link) => link.code)).toEqual(
+        expect.arrayContaining([greetingLink.code, plainLink.code]),
+      )
+      expect(links.every((link) => link.senderAvatar === null)).toBe(true)
+      // …and the page of the same link carries it.
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
+
+    // ⛔ A document may name the query under any number of aliases, each with a code of its
+    // own; the same code under all of them asks the same way. One request is handed at most
+    // SENDER_AVATARS_MAX_PER_REQUEST faces; the links past the cap come without theirs.
+    it('hands one request at most SENDER_AVATARS_MAX_PER_REQUEST faces, over every alias', async () => {
+      const aliases = SENDER_AVATARS_MAX_PER_REQUEST + 2
+      const fields = Array.from(
+        { length: aliases },
+        (_, i) =>
+          `face${i}: queryTransactionLink(code: $code) { ... on TransactionLink { code senderAvatar } }`,
+      )
+      resetToken()
+
+      const result = await query({
+        query: gql(`query ($code: String!) {\n${fields.join('\n')}\n}`),
+        variables: { code: greetingLink.code },
+      })
+
+      expect(result.errors).toBeUndefined()
+      const answers: { code: string; senderAvatar: string | null }[] = Object.values(result.data)
+      expect(answers).toHaveLength(aliases)
+      // Every alias was answered with the link itself, with or without its face.
+      expect(answers.every((answer) => answer.code === greetingLink.code)).toBe(true)
+      const faces = answers.filter((answer) => answer.senderAvatar === TEST_AVATAR_SMALL_BASE64)
+      expect(faces).toHaveLength(SENDER_AVATARS_MAX_PER_REQUEST)
+      expect(answers.filter((answer) => answer.senderAvatar === null)).toHaveLength(2)
+
+      // The budget is the request's: the next one is handed the face again.
+      expect(await faceOf(greetingLink.code)).toBe(TEST_AVATAR_SMALL_BASE64)
+    })
   })
 })
 

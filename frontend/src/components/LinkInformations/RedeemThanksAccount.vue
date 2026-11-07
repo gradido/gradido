@@ -2,7 +2,8 @@
 <template>
   <div class="redeem-thanks-open-account">
     <!-- The house's strip, as above the registration form ("… hat Dir Gradido gezeigt"): who
-         sent the thank-you, with the greeting's picture small. A plain link has no picture. -->
+         sent the thank-you, with the greeting's picture small. Where the link has no picture of
+         its own, the face of the sender stands there, as the sheet showed it. -->
     <p class="alert gradido-border-radius redeem-thanks-strip" data-test="redeem-thanks-strip">
       <!-- A photo of the sender's own, the one the sheet showed a moment ago: the page hands
            it on. Its room stands where it has not come. -->
@@ -29,6 +30,17 @@
         :width="THANK_YOU_MOTIF_WIDTH"
         :height="THANK_YOU_MOTIF_HEIGHT"
         data-test="redeem-thanks-strip-motif"
+      />
+      <!-- Not read out: the sentence beside it names the sender. -->
+      <img
+        v-else-if="linkData.senderAvatar"
+        class="redeem-thanks-strip-face"
+        :src="`data:image/jpeg;base64,${linkData.senderAvatar}`"
+        alt=""
+        aria-hidden="true"
+        width="48"
+        height="48"
+        data-test="redeem-thanks-strip-face"
       />
       <span>{{ $t('redeem-thanks.account-strip', { name: senderName }) }}</span>
     </p>
@@ -145,6 +157,17 @@ const onSubmit = handleSubmit((values) => {
 .redeem-thanks-strip-picture.is-photo {
   aspect-ratio: 36 / 25;
   background: #fbf3de;
+  object-fit: cover;
+}
+
+/* The face of the sender, where the link has no picture of its own: 48px round, beside the
+   sentence as on the sheet. */
+.redeem-thanks-strip-face {
+  display: block;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   object-fit: cover;
 }
 

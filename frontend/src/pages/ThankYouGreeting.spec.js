@@ -672,6 +672,31 @@ describe('ThankYouGreeting', () => {
       )
     })
 
+    // ZE-038: the page of the link carries the member's face where they show it to other
+    // members; the preview shows what will arrive.
+    it('shows the member’s face beside the sentence, where they show it to other members', async () => {
+      await open()
+      const store = useWalletStore(pinia)
+      store.avatar = 'the-small-picture-of-Oma-Emma'
+      store.avatarVisibleToMembers = true
+      await toPreview()
+      const face = () => wrapper.find('[data-test="redeem-thanks-paper-face"]')
+
+      expect(face().attributes('src')).toBe('data:image/jpeg;base64,the-small-picture-of-Oma-Emma')
+
+      for (const shown of [false, null]) {
+        store.avatarVisibleToMembers = shown
+        await flushPromises()
+        expect(face().exists(), String(shown)).toBe(false)
+        expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
+      }
+
+      store.avatarVisibleToMembers = true
+      store.avatar = null
+      await flushPromises()
+      expect(face().exists()).toBe(false)
+    })
+
     it('shows all three steps as passed or current', async () => {
       await open()
       await toPreview()

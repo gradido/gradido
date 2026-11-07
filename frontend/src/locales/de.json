@@ -1377,7 +1377,7 @@
       "disabled": "Dein Bild siehst jetzt nur noch Du.",
       "enabled": "Dein Bild ist für andere Mitglieder sichtbar.",
       "visibility": "Mein Bild anderen Mitgliedern zeigen",
-      "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
+      "visibilityInfo": "Andere Mitglieder sehen Dein Bild — zum Beispiel neben Euren gemeinsamen Buchungen. Auch wer einen Link von Dir öffnet, sieht es dort, solange der Link offen ist. Wenn die Einstellung ausgeschaltet ist, erscheinen wie bisher Deine Anfangsbuchstaben."
     },
     "community": "Kreise",
     "creationAccount": {

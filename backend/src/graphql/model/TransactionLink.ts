@@ -15,6 +15,7 @@ export class TransactionLink {
     redeemedBy?: User,
     dbCommunities?: DbCommunity[],
     greeting?: ThankYouGreeting | null,
+    senderAvatar?: Buffer | null,
   ) {
     if (dbTransactionLink !== undefined) {
       this.id = dbTransactionLink.id
@@ -38,6 +39,7 @@ export class TransactionLink {
       this.communities = dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
     }
     this.greeting = greeting ?? null
+    this.senderAvatar = senderAvatar ? senderAvatar.toString('base64') : null
   }
 
   @Field(() => Int)
@@ -88,6 +90,16 @@ export class TransactionLink {
    */
   @Field(() => ThankYouGreeting, { nullable: true })
   greeting: ThankYouGreeting | null
+
+  /**
+   * The small picture of the member who made the link, base64 without a data-URI prefix like
+   * User.avatar -- for whoever holds the code of an OPEN link, and only where the member shows
+   * their face to other members (mayBeShownToMembers); null everywhere else (SenderAvatar.logic).
+   * Handed in by the one caller that reads it, queryTransactionLink; the lists and
+   * createTransactionLink pass nothing.
+   */
+  @Field(() => String, { nullable: true })
+  senderAvatar: string | null
 }
 
 @ObjectType()

@@ -63,7 +63,20 @@
       <template v-if="!short">
         <div class="redeem-thanks-paper-rule"></div>
         <div class="redeem-thanks-paper-sender">
-          <span class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
+          <!-- The face of the member who made the link, where the link carries it, and the first
+               letter of the name in a circle of the same size where it does not. Neither is read
+               out: the sentence beside it names the sender. -->
+          <img
+            v-if="linkData.senderAvatar"
+            class="redeem-thanks-paper-face"
+            :src="`data:image/jpeg;base64,${linkData.senderAvatar}`"
+            alt=""
+            aria-hidden="true"
+            width="64"
+            height="64"
+            data-test="redeem-thanks-paper-face"
+          />
+          <span v-else class="redeem-thanks-paper-initial" aria-hidden="true">{{ initial }}</span>
           <!-- One sentence with two bold parts, and the ten languages put them in different
                places: through <i18n-t> with slots, not by cutting the sentence around them. The
                amount takes its unit along, so both stand bold as one. -->
@@ -110,6 +123,11 @@
  *
  * A greeting with a photo of the sender's own (`greeting.hasPicture`) has that photo where the
  * motif would stand, in the same room (`picture`).
+ *
+ * Beside the sentence stands the face of the sender, as their account shows it (ZE-038): the
+ * small picture the link carries (`linkData.senderAvatar`) -- the server hands it out for an
+ * open link of a member who shows their face to other members, and null everywhere else. Where
+ * there is none, the first letter of the name, in a circle of the same size.
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -290,21 +308,33 @@ const photoAlt = computed(() => t('thank-you-greeting.photo-of', { name: senderN
 
 .redeem-thanks-paper-sender {
   display: flex;
-  gap: 9px;
+  gap: 12px;
   align-items: center;
 }
 
+/* The face of the sender, 64px round, as their account shows it (ZE-038). Its own size, the
+   sentence beside it grows with "Aa". */
+.redeem-thanks-paper-face {
+  display: block;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Where there is no face: the first letter of the name, in a circle the size of the face. */
 .redeem-thanks-paper-initial {
   display: flex;
-  flex-shrink: 0;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: #8a6124;
   color: #fff;
-  font-size: 13px;
+  font-size: 26px;
   font-weight: 700;
 }
 
