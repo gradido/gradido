@@ -40,6 +40,7 @@
       "oneDonation": "Sen toplum için bir armağansın. Bizimle olduğun için 1000lerce teşekkürler.",
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
     },
+    "toAccount": "Hesabıma git",
     "triads": {
       "design": {
         "communityBased": "Topluluk temelli.",
@@ -785,7 +786,7 @@
     "password_old": "Eski şifre",
     "recipient": "Alıcı",
     "recipient-not-found": {
-      "by-email": "Ya da teşekkürünü e-postayla gönder: Gradido bunun için {days} gün bekleyen bir link oluşturur. Bu linkle bir hesap açılır — ya da teşekkür mevcut bir hesaba geçer.",
+      "by-email": "Teşekkürünü yine de e-postayla gönderebilirsin: Gradido bunun için {days} gün bekleyen bir link oluşturur. Linki açan kişi teşekkürü kendi hesabına alır — ya da hemen orada bir hesap açar.",
       "change-address": "Adresi değiştir",
       "change-entry": "Yazdığını değiştir",
       "choose-community": "Topluluk seç",
@@ -916,7 +917,7 @@
     "share-line1": "{name}, {amount} Gradido ile sana teşekkür ediyor:",
     "share-line2": "“{memo}”",
     "share-line3": "Bu teşekkürü kabul etmek ister misin?",
-    "share-line4": "{date} tarihine kadar seni bekliyor. Kabul etmezsen hiçbir şey olmaz.",
+    "share-line4": "Acele etme: {date} tarihine kadar seni bekliyor.",
     "to-login": "Giriş yap",
     "to-register": "Yeni hesap aç.",
     "to-switch": "Şimdi yönlendir",
@@ -1376,7 +1377,7 @@
       "disabled": "Resmini artık yalnızca sen görüyorsun.",
       "enabled": "Resmin diğer üyeler tarafından görülebiliyor.",
       "visibility": "Resmimi diğer üyelere göster",
-      "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
+      "visibilityInfo": "Diğer üyeler resmini, örneğin paylaştığın işlemlerin yanında görür. Linklerinden birini açan kişi de, link açık olduğu sürece onu orada görür. Ayar kapalıyken şimdiye kadar olduğu gibi baş harflerin görünür."
     },
     "community": "Çemberler",
     "creationAccount": {

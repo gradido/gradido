@@ -30,6 +30,7 @@ import IBiPencilFill from '~icons/bi/pencil-fill'
 import IBiQuestionLg from '~icons/bi/question-lg'
 import IBiQuestionSquare from '~icons/bi/question-square'
 import IBiSearch from '~icons/bi/search'
+import IBiStickyFill from '~icons/bi/sticky-fill'
 import IBiTrash from '~icons/bi/trash'
 import IBiX from '~icons/bi/x'
 import IBiXCircle from '~icons/bi/x-circle'
@@ -77,6 +78,9 @@ export type Contribution = {
   // internal notes out): its kind and whether a moderator wrote it. Null without a conversation.
   lastMessageType?: 'DIALOG' | 'HISTORY' | null
   lastMessageByModerator?: boolean | null
+  // Whether a colleague's internal note is the newest word on the open question: a note by somebody
+  // other than the moderator who asked (the server tells it from the whole thread).
+  colleagueNoteOnQuestion?: boolean | null
 }
 
 type Row = {
@@ -151,6 +155,7 @@ export const OpenCreationsTable = defineComponent({
     'search-for-email',
     'crea-evaluate',
     'resubmission-saved',
+    'note-added',
   ],
   setup(props, { emit }) {
     const store = useAdminStore()
@@ -251,8 +256,8 @@ export const OpenCreationsTable = defineComponent({
       }
     }
 
-    const updateStatus = (id: number) => {
-      emit('update-status', id)
+    const updateStatus = (event: unknown) => {
+      emit('update-status', event)
     }
     const reloadContribution = (id: number) => {
       emit('reload-contribution', id)
@@ -455,7 +460,9 @@ export const OpenCreationsTable = defineComponent({
     // conversation with nothing waiting in it. Or nothing: no conversation at all.
     const detailsState = (item: Contribution) => {
       if (item.contributionStatus === 'IN_PROGRESS') {
-        return 'question'
+        // A colleague's note on the question takes the place of the question mark (Bernd,
+        // 06.11.2026): the moderator who asked sees that somebody reacted to it.
+        return item.colleagueNoteOnQuestion ? 'note' : 'question'
       }
       if (item.contributionStatus === 'PENDING' && item.lastMessageByModerator === false) {
         return item.lastMessageType === 'HISTORY' ? 'changed' : 'answer'
@@ -470,7 +477,8 @@ export const OpenCreationsTable = defineComponent({
     // White and without a frame of its own: the button is the frame, and a diamond around one
     // sign, a disc behind another and a circle around a third made the column restless (Bernd,
     // 25.10.2026). Only what waits for the moderation stands out, in a bright yellow
-    // (.details-signal): the member's answer and the member's change. The answer's mark is a bold
+    // (.details-signal): the member's answer, the member's change and a colleague's note on the
+    // question (06.11.2026), with the note's own sign from the thread. The answer's mark is a bold
     // one, as heavy as the pencil -- Bootstrap's own came out thinner than the question mark.
     const detailsIcon = (item: Contribution, showing: boolean) => {
       if (showing) {
@@ -479,6 +487,8 @@ export const OpenCreationsTable = defineComponent({
       switch (detailsState(item)) {
         case 'question':
           return <IBiQuestionLg />
+        case 'note':
+          return <IBiStickyFill class='details-signal' />
         case 'answer':
           return <IIcRoundPriorityHigh class='details-signal' />
         case 'changed':
@@ -500,6 +510,8 @@ export const OpenCreationsTable = defineComponent({
       switch (detailsState(item)) {
         case 'question':
           return `${t('details')} – ${t('contribution.detailsState.question')}`
+        case 'note':
+          return `${t('details')} – ${t('contribution.detailsState.note')}`
         case 'answer':
           return `${t('details')} – ${t('contribution.detailsState.answer')}`
         case 'changed':
@@ -860,6 +872,7 @@ export const OpenCreationsTable = defineComponent({
                       onReload-contribution={reloadContribution}
                       onUpdate-contributions={updateContributions}
                       onResubmission-saved={(event: unknown) => emit('resubmission-saved', event)}
+                      onNote-added={(event: unknown) => emit('note-added', event)}
                     />
                   ),
                 }}

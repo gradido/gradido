@@ -89,6 +89,7 @@ const linkData = ref({
   memo: '',
   senderCommunity: null,
   senderUser: null,
+  senderAvatar: null,
   recipientCommunity: null,
   recipientUser: null,
   deletedAt: null,

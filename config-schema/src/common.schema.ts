@@ -191,6 +191,14 @@ export const LOGIN_APP_SECRET = v.pipe(
   v.description('App secret for salt component for libsodium crypto_pwhash'),
 )
 
+// The home community's signing key pair is derived from it and never changes: the dht-node
+// derives it at every start, the backend's seed writes the same one
+export const FEDERATION_DHT_SEED = v.pipe(
+  hexSchema,
+  v.length(64, 'need to be valid hex with 64 character'),
+  v.description('Seed for libsodium crypto_sign_seed_keypair: 32 bytes as 64 hex characters'),
+)
+
 export const LOGIN_SERVER_KEY = v.pipe(
   hexSchema,
   v.length(32, 'need to be valid hex and 32 character'),

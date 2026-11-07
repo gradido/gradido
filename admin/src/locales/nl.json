@@ -126,6 +126,7 @@
       "answer": "antwoord van het lid",
       "changed": "gewijzigd door het lid",
       "conversation": "gesprek",
+      "note": "notitie bij de vraag",
       "question": "vraag gesteld"
     },
     "noGroup": "(zonder groep)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "heeft zich op {createdAt} geregistreerd.",
+    "noteWakesResubmission": "Je notitie haalt de herinnering van {name} weg.",
+    "noteWakesResubmissionPlain": "Je notitie haalt de herinnering weg.",
     "resubmissionDateInPast": "De herinneringsdatum ligt in het verleden!"
   },
   "contributions": {

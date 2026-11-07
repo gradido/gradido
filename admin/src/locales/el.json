@@ -126,6 +126,7 @@
       "answer": "απάντηση του μέλους",
       "changed": "τροποποιήθηκε από το μέλος",
       "conversation": "συνομιλία",
+      "note": "σημείωση στην ερώτηση",
       "question": "στάλθηκε ερώτηση"
     },
     "noGroup": "(χωρίς ομάδα)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "εγγράφηκε στις {createdAt}.",
+    "noteWakesResubmission": "Η σημείωσή σου αφαιρεί την υπενθύμιση που όρισε {name}.",
+    "noteWakesResubmissionPlain": "Η σημείωσή σου αφαιρεί την υπενθύμιση.",
     "resubmissionDateInPast": "Η ημερομηνία υπενθύμισης είναι στο παρελθόν!"
   },
   "contributions": {

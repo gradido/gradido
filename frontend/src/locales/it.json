@@ -40,6 +40,7 @@
       "oneDonation": "Sei un dono per la comunità. 1000 grazie per essere con noi.",
       "oneGratitude": "Per gli altri, per tutti gli esseri umani, per la natura."
     },
+    "toAccount": "Vai al mio conto",
     "triads": {
       "design": {
         "communityBased": "Basato sulla comunità.",
@@ -785,7 +786,7 @@
     "password_old": "Vecchia password",
     "recipient": "Destinatario",
     "recipient-not-found": {
-      "by-email": "Altrimenti invia il tuo ringraziamento via e-mail: Gradido crea un link che aspetta {days} giorni. Con questo link si apre un account — oppure il ringraziamento arriva su un account esistente.",
+      "by-email": "Puoi comunque inviare il tuo ringraziamento, via e-mail: Gradido crea un link che aspetta {days} giorni. Chi lo apre riceve il ringraziamento sul proprio account — oppure ne crea uno direttamente lì.",
       "change-address": "Modifica l'indirizzo",
       "change-entry": "Modifica il testo inserito",
       "choose-community": "Scegli la comunità",
@@ -916,7 +917,7 @@
     "share-line1": "{name} ti ringrazia con {amount} Gradido:",
     "share-line2": "«{memo}»",
     "share-line3": "Vuoi accettare il ringraziamento?",
-    "share-line4": "Ti aspetta fino al giorno {date}. Se non lo accetti, non succede nulla.",
+    "share-line4": "Fai con calma: ti aspetta fino al giorno {date}.",
     "to-login": "Accedi",
     "to-register": "Registra un nuovo account.",
     "to-switch": "Inoltra ora",
@@ -1376,7 +1377,7 @@
       "disabled": "Ora la tua immagine la vedi solo tu.",
       "enabled": "La tua immagine è visibile agli altri membri.",
       "visibility": "Mostrare la mia immagine agli altri membri",
-      "visibilityInfo": "Gli altri membri vedono la tua immagine, per esempio accanto alle transazioni che avete in comune. Quando l’impostazione è disattivata, compaiono le tue iniziali, come finora."
+      "visibilityInfo": "Gli altri membri vedono la tua immagine, per esempio accanto alle transazioni che avete in comune. La vede lì anche chi apre un tuo link, finché il link è aperto. Quando l’impostazione è disattivata, compaiono le tue iniziali, come finora."
     },
     "community": "Circoli",
     "creationAccount": {

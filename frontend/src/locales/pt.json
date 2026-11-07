@@ -40,6 +40,7 @@
       "oneDonation": "És um presente para a comunidade. 1000 obrigado por estares connosco.",
       "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
     },
+    "toAccount": "Ir para a minha conta",
     "triads": {
       "design": {
         "communityBased": "Baseado na comunidade.",
@@ -785,7 +786,7 @@
     "password_old": "Palavra-passe antiga",
     "recipient": "Destinatário",
     "recipient-not-found": {
-      "by-email": "Caso contrário, envia o teu agradecimento por e-mail: o Gradido cria para isso um link que espera {days} dias. Com ele cria-se uma conta — ou o agradecimento entra numa conta existente.",
+      "by-email": "Mesmo assim, podes enviar o teu agradecimento por e-mail: o Gradido cria para isso um link que espera {days} dias. Quem o abrir recebe o agradecimento na sua conta — ou cria uma ali mesmo.",
       "change-address": "Alterar endereço",
       "change-entry": "Alterar o que escreveste",
       "choose-community": "Selecionar comunidade",
@@ -916,7 +917,7 @@
     "share-line1": "{name} agradece-te com {amount} Gradido:",
     "share-line2": "«{memo}»",
     "share-line3": "Queres aceitar o agradecimento?",
-    "share-line4": "Fica à tua espera até {date}. Se não o aceitares, não acontece nada.",
+    "share-line4": "Não tenhas pressa: fica à tua espera até {date}.",
     "to-login": "Inicia sessão",
     "to-register": "Regista uma nova conta.",
     "to-switch": "Reencaminhar agora",
@@ -1376,7 +1377,7 @@
       "disabled": "Agora só tu vês a tua imagem.",
       "enabled": "A tua imagem está visível para outros membros.",
       "visibility": "Mostrar a minha imagem a outros membros",
-      "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
+      "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quem abrir um link teu também a vê lá, enquanto o link estiver em aberto. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
     "community": "Círculos",
     "creationAccount": {

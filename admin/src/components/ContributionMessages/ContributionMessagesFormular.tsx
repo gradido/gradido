@@ -12,7 +12,7 @@ import {
   BTabs,
   BTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, nextTick, type PropType, ref, watch, withModifiers } from 'vue'
+import { computed, defineComponent, nextTick, type PropType, ref, useId, withModifiers } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Datepicker from 'vue3-datepicker'
 import { TimePicker } from '@/components/input/TimePicker'
@@ -57,6 +57,13 @@ export const ContributionMessagesFormular = defineComponent({
       type: String as PropType<string | null>,
       required: false,
     },
+    // Who asked the open question, where it was a colleague (ContributionMessagesList): a note
+    // written here then takes the resubmission back. Null where the moderator signed in asked it,
+    // and where no question is open.
+    colleagueQuestion: {
+      type: Object as PropType<{ name: string } | null>,
+      default: null,
+    },
   },
   emits: [
     'update-contribution',
@@ -65,6 +72,7 @@ export const ContributionMessagesFormular = defineComponent({
     'update-status',
     'get-list-contribution-messages',
     'resubmission-saved',
+    'note-added',
   ],
   setup(props, { emit }) {
     const { t } = useI18n()
@@ -242,13 +250,43 @@ export const ContributionMessagesFormular = defineComponent({
       return formattedDate
     }
 
+    // The resubmission as it came, to the minute: the box still ticked, and its date and time
+    // the ones the contribution holds.
+    const resubmissionAsItCame = computed(() => {
+      if (!props.inputResubmissionDate || !showResubmissionDate.value || !resubmissionDate.value) {
+        return false
+      }
+      const shown = combineResubmissionDateAndTime().getTime()
+      const held = new Date(props.inputResubmissionDate).getTime()
+      return Math.floor(shown / 60000) === Math.floor(held / 60000)
+    })
+
+    // A note on a colleague's question takes the resubmission back, as a member's answer does
+    // (Bernd, 06.11.2026): the contribution comes back to the list of the moderator who asked, and
+    // the details button shows the note. Only where the moderator leaves the resubmission as it
+    // came: a date they set here stays, and an unticked box was their own decision anyway.
+    const noteWakesResubmission = computed(
+      () => tabindex.value === 1 && props.colleagueQuestion !== null && resubmissionAsItCame.value,
+    )
+    const noteHintId = useId()
+
     const onSubmit = () => {
       loading.value = true
       let mutation: typeof updateContributionMutation
       let updateOnlyResubmissionAt = false
-      const resubmissionAtDate = showResubmissionDate.value
-        ? combineResubmissionDateAndTime()
-        : null
+      // Decided with the words of a note that goes out: a save with an empty note field never takes
+      // the resubmission back.
+      const wakesResubmission = form.value.text !== '' && noteWakesResubmission.value
+      // What the box shows as the note goes out, to the minute -- the day picked again is the same
+      // day, whatever object the calendar hands over (coderabbit, #4248). Only if it still shows that
+      // when the answer comes does it untick: the moderator may have picked another date meanwhile.
+      const boxShows = () =>
+        showResubmissionDate.value && resubmissionDate.value
+          ? Math.floor(combineResubmissionDateAndTime().getTime() / 60000)
+          : null
+      const boxAsSent = boxShows()
+      const resubmissionAtDate =
+        showResubmissionDate.value && !wakesResubmission ? combineResubmissionDateAndTime() : null
       const variables: Record<string, unknown> = {
         resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toString() : null,
       }
@@ -257,7 +295,7 @@ export const ContributionMessagesFormular = defineComponent({
         mutation = updateContributionMutation
         variables.id = props.contributionId
         updateOnlyResubmissionAt = true
-      } else if (tabindex.value !== 2) {
+      } else if (tabindex.value !== 2 && form.value.text !== '') {
         mutation = createContributionMessageMutation
         variables.message = form.value.text
         variables.messageType = tabindex.value === 0 ? messageType.DIALOG : messageType.MODERATOR
@@ -266,12 +304,15 @@ export const ContributionMessagesFormular = defineComponent({
           variables.aiModel = creaModelInText.value
         }
       } else {
+        // The memo -- also from the message or note tab with an empty field, where the memo was
+        // changed: that save used to send an empty message (to the member, a mail without words)
+        // and drop the changed memo.
         mutation = updateContributionMutation
         variables.memo = form.value.memo
         variables.id = props.contributionId
       }
 
-      if (showResubmissionDate.value && (resubmissionAtDate as Date) < new Date()) {
+      if (resubmissionAtDate && resubmissionAtDate < new Date()) {
         toastError(t('contributionMessagesForm.resubmissionDateInPast'))
         loading.value = false
         return
@@ -280,16 +321,34 @@ export const ContributionMessagesFormular = defineComponent({
       mutation({ ...variables })
         .then(() => {
           if (
-            (props.hideResubmission &&
-              showResubmissionDate.value &&
-              (resubmissionAtDate as Date) > new Date()) ||
-            tabindex.value === 2
+            (props.hideResubmission && resubmissionAtDate && resubmissionAtDate > new Date()) ||
+            'memo' in variables
           ) {
             emit('update-contributions')
           } else {
             emit('get-list-contribution-messages', props.contributionId)
-            if (!updateOnlyResubmissionAt) {
-              emit('update-status', props.contributionId)
+            // The row turns to "question asked" for a message to the member: that is what such a
+            // message makes the contribution on the server. A note leaves the status as it is
+            // there, so it leaves the row alone too -- before, the details button showed "?"
+            // after every note until the list came back, also over a member's answer.
+            // With the resubmission the message went out with, which the server keeps: the next
+            // opening of the row pre-fills it (it used to pre-fill the one before).
+            if (!updateOnlyResubmissionAt && variables.messageType === messageType.DIALOG) {
+              emit('update-status', {
+                id: props.contributionId,
+                resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toISOString() : null,
+              })
+            }
+            // A note: the row takes in place what the note did on the server (a refetch would close
+            // the open row) -- whether a colleague's note now stands on the question, and the
+            // resubmission the note went out with, which the server keeps (none where it went out
+            // without one).
+            if (variables.messageType === messageType.MODERATOR) {
+              emit('note-added', {
+                id: props.contributionId,
+                colleagueNote: props.colleagueQuestion !== null,
+                resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toISOString() : null,
+              })
             }
           }
           // Signal a saved reminder change up to the page, which may offer to apply it to
@@ -302,6 +361,10 @@ export const ContributionMessagesFormular = defineComponent({
               resubmissionAt: resubmissionAtDate ? resubmissionAtDate.toString() : null,
               unchanged: false,
             })
+          }
+          // The box says what is left: the note took the resubmission back.
+          if (wakesResubmission && boxShows() === boxAsSent) {
+            showResubmissionDate.value = false
           }
           toastSuccess(t('message.request'))
           form.value = {
@@ -438,7 +501,7 @@ export const ContributionMessagesFormular = defineComponent({
                     t('moderator.notice'),
                     t('moderator.notice-tooltip'),
                   ),
-                  default: () => (
+                  default: () => [
                     <BFormTextarea
                       id='textarea'
                       v-model={form.value.text}
@@ -446,8 +509,23 @@ export const ContributionMessagesFormular = defineComponent({
                       rows={textRows.value}
                       onKeydown={onTextKeydown}
                       onFocus={captureCreaField}
-                    />
-                  ),
+                      aria-describedby={noteWakesResubmission.value ? noteHintId : undefined}
+                    />,
+                    // Before the note goes out: it takes the colleague's resubmission back.
+                    noteWakesResubmission.value ? (
+                      <p
+                        id={noteHintId}
+                        class='mt-1 mb-0 small'
+                        data-test='note-wakes-resubmission'
+                      >
+                        {props.colleagueQuestion?.name
+                          ? t('contributionMessagesForm.noteWakesResubmission', {
+                              name: props.colleagueQuestion.name,
+                            })
+                          : t('contributionMessagesForm.noteWakesResubmissionPlain')}
+                      </p>
+                    ) : null,
+                  ],
                 }}
               </BTab>
               {/* The memo is the only part of the contribution itself a moderator edits here.
