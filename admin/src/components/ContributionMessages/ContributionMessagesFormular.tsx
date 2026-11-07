@@ -12,7 +12,7 @@ import {
   BTabs,
   BTooltip,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, nextTick, type PropType, ref, withModifiers } from 'vue'
+import { computed, defineComponent, nextTick, type PropType, ref, watch, withModifiers } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Datepicker from 'vue3-datepicker'
 import { TimePicker } from '@/components/input/TimePicker'
@@ -117,8 +117,20 @@ export const ContributionMessagesFormular = defineComponent({
     // Crea's last reply draft (held in the browser) drops into the message field with one
     // click - no OS clipboard needed inside the admin. Only on the message/note tabs
     // (tabs 0/1 both bind form.text); the memo tab (2) edits the member's own text.
-    const { lastResponse } = useCreaClipboard()
+    const { lastResponse, lastResponseModel } = useCreaClipboard()
     const creaTextAreaEl = ref<HTMLTextAreaElement | null>(null)
+    // The model of the draft that went into the field, sent along with the message so the
+    // thread records whose words these were. Set on insert, forgotten with an emptied field;
+    // the moderator's edits around the draft do not take it away.
+    const creaModelInText = ref<string | null>(null)
+    watch(
+      () => form.value.text,
+      (text) => {
+        if (!text) {
+          creaModelInText.value = null
+        }
+      },
+    )
     const captureCreaField = (event: FocusEvent) => {
       creaTextAreaEl.value = event.target as HTMLTextAreaElement
     }
@@ -130,6 +142,7 @@ export const ContributionMessagesFormular = defineComponent({
       }
       const current = form.value.text
       const el = creaTextAreaEl.value
+      creaModelInText.value = lastResponseModel.value || null
       if (!current) {
         // Empty field: just fill it.
         form.value.text = draft
@@ -249,6 +262,9 @@ export const ContributionMessagesFormular = defineComponent({
         variables.message = form.value.text
         variables.messageType = tabindex.value === 0 ? messageType.DIALOG : messageType.MODERATOR
         variables.contributionId = props.contributionId
+        if (creaModelInText.value) {
+          variables.aiModel = creaModelInText.value
+        }
       } else {
         mutation = updateContributionMutation
         variables.memo = form.value.memo

@@ -84,6 +84,8 @@ type Verdict = 'confirm' | 'inquire' | 'deny'
 
 interface Evaluation {
   responseText: string
+  // The model that wrote responseText; travels with the draft into the reply field.
+  model: string
   defaultSalutation?: string | null
   overallVerdict: string
   reasoning?: string
@@ -124,6 +126,7 @@ export const CreaEvaluationModal = defineComponent({
     // The backend reply still carries the [SIGNATUR] placeholder; the signature is
     // filled in locally and reactively, so it appears the moment it is entered or changed.
     const rawResponseText = ref('')
+    const responseModel = ref('')
     // The moderator's chosen outcome (E-017). Preselected to Crea's own recommendation
     // when the evaluation arrives, so "follow" = leave it. Pure UI state until the
     // moderator hits "write for my decision".
@@ -300,10 +303,12 @@ export const CreaEvaluationModal = defineComponent({
     // inserted into the reply field with one click — no OS clipboard needed inside the
     // admin. Guard on a real, non-empty evaluation so closing the modal (which clears
     // responseText via resetState) never wipes the stored proposal.
+    // Text and model together: a rewrite that lands on the same words still names the
+    // model that wrote them.
     const { setLastResponse } = useCreaClipboard()
-    watch(responseText, (value) => {
+    watch([responseText, responseModel], ([value, model]) => {
       if (evaluation.value && value) {
-        setLastResponse(value)
+        setLastResponse(value, model)
       }
     })
 
@@ -517,6 +522,7 @@ export const CreaEvaluationModal = defineComponent({
     const applyEvaluation = (result: Evaluation) => {
       evaluation.value = result
       rawResponseText.value = result.responseText
+      responseModel.value = result.model
       defaultSalutation.value = result.defaultSalutation ?? ''
       const stored = salutationFor(props.contribution) ?? ''
       if (!salutationChanged.value) {
@@ -696,6 +702,7 @@ export const CreaEvaluationModal = defineComponent({
           }
           const result = response?.data.creaRewriteBatch
           rawResponseText.value = result.responseText
+          responseModel.value = result.model
           applyDraft()
           // A confirm deviation also carries the public memo note (E-019); surfacing it fills
           // the "Ergänzung" field and enables the "Text ergänzen" button in the reply form.
@@ -715,6 +722,7 @@ export const CreaEvaluationModal = defineComponent({
           }
           const result = response?.data.creaRewriteResponse
           rawResponseText.value = result.responseText
+          responseModel.value = result.model
           applyDraft()
           // A confirm rewrite also carries the public memo note (E-019); inquire/deny return
           // null. Surfacing it fills the editable field above and the "Text ergänzen" button.

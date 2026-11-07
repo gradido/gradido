@@ -11,4 +11,8 @@ export class CreaRewriteResult {
 
   @Field(() => String, { nullable: true })
   memoSupplement?: string | null
+
+  // The model that wrote responseText, by name -- see CreaEvaluation.model.
+  @Field()
+  model: string
 }

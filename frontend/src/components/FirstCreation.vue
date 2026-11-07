@@ -337,7 +337,6 @@ import {
   skipFirstCreation,
   submitFirstCreation,
 } from '@/graphql/firstCreation.graphql'
-import { showFriends } from '@/graphql/showFriends.graphql'
 import { declareProjectAccount } from '@/graphql/user.graphql'
 import ProjectAccountConfirm from '@/components/UserSettings/ProjectAccountConfirm.vue'
 import {
@@ -368,6 +367,12 @@ import CONFIG from '@/config'
  * (store.js) — both, because either one alone has a hole: the emptying misses a member
  * change that does not run the logout action, and the policy alone would still show the
  * previous answer for the length of one round trip.
+ *
+ * ⛔ And asked only while the window might still open. The login answer carries where the
+ * member stands (`firstCreationStatus` in the store): a settled process, or a member who
+ * found the regular path on their own, is a state nothing here can change, so the query
+ * stays off for them -- that is every member but the newest, on every visit for the rest
+ * of their life here. Not started, armed by the function test, or still running: those ask.
  */
 
 const props = defineProps({
@@ -391,18 +396,14 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 
+/** The states in which the window still has something to ask the server. */
+const ASKING_STATES = [null, 'FORCED', 'FORCED_UNBOOKED', 'SUBMITTED']
+const mightOpen = computed(() => ASKING_STATES.includes(store.firstCreationStatus ?? null))
+
 const { result, refetch } = useQuery(firstCreationStatus, null, {
   fetchPolicy: 'cache-and-network',
+  enabled: mightOpen,
 })
-
-/**
- * Who brought this member here, for "now thank somebody" below. ⚠️ Same reason for
- * `cache-and-network` as the query above: no arguments, so one cache key for everybody.
- */
-const { result: friendsResult } = useQuery(showFriends, null, {
-  fetchPolicy: 'cache-and-network',
-})
-const referrerAlias = computed(() => friendsResult.value?.showFriends?.referrerAlias ?? null)
 const { mutate: sendEntries } = useMutation(submitFirstCreation)
 const { mutate: sendSkip } = useMutation(skipFirstCreation)
 const { mutate: sendDeclare } = useMutation(declareProjectAccount)
@@ -749,6 +750,12 @@ const screen = computed(() => {
 const doneEntries = computed(() => status.value?.entries ?? [])
 const message = computed(() => status.value?.message ?? '')
 const unbooked = computed(() => status.value?.state === 'DONE_UNBOOKED')
+/**
+ * Who brought this member here, for "now thank somebody" below. Part of the settled answer
+ * rather than a query of its own: the server names them once the bundle is thanked, which
+ * is the one moment the button is on screen.
+ */
+const referrerAlias = computed(() => status.value?.referrerAlias ?? null)
 
 /**
  * The small print under the message. W4: the COMMUNITY signs here, not the person set as
@@ -785,6 +792,14 @@ const pendingLines = computed(() => {
 
 const applyStatus = (next) => {
   settled.value = next && SETTLED_STATES.includes(next.state) ? next : null
+  if (settled.value) {
+    /*
+     * The store learns where the member stands, the way `declareProject` tells it about the
+     * account kind: from here on nothing in this session asks the server about the window
+     * again (`mightOpen`), and the answer on screen is the settled one.
+     */
+    store.setFirstCreationStatus(next.state)
+  }
   if (next?.state === 'DONE') {
     /* The header carries the same number; one refetch serves both (see `balanceStamp`). */
     emit('update-transactions')

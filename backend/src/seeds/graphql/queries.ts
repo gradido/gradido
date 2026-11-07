@@ -7,6 +7,7 @@ export const verifyLogin = gql`
       lastName
       language
       creationAllowed
+      firstCreationStatus
       klickTipp {
         newsletterState
       }
@@ -927,6 +928,7 @@ export const firstCreationStatus = gql`
         status
       }
       skippedBefore
+      referrerAlias
       functionTestsEnabled
       testRunsLeft
       isFirstCreationSigner

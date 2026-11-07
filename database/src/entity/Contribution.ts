@@ -102,6 +102,10 @@ export class Contribution extends BaseEntity {
   @Column({ type: 'datetime', nullable: true, name: 'creation_groups_set_at' })
   creationGroupsSetAt: Date | null
 
+  // Part of the member's first creation (ES-002, migration 0170): the bundle the window filed.
+  @Column({ name: 'first_creation', type: 'bool', default: false })
+  firstCreation: boolean
+
   @DeleteDateColumn({ type: 'datetime', name: 'deleted_at' })
   deletedAt: Date | null
 

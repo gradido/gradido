@@ -11,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm'
 import { AccountState } from '../enum/AccountState'
+import { FirstCreationStatus } from '../enum/FirstCreationStatus'
 import { type Community as CommunityType } from './Community'
 import { type Contribution as ContributionType } from './Contribution'
 import { type ContributionMessage as ContributionMessageType } from './ContributionMessage'
@@ -199,6 +200,19 @@ export class User extends BaseEntity {
   // backend is what makes it hold against a bare API call.
   @Column({ name: 'creation_allowed', type: 'bool', default: true })
   creationAllowed: boolean
+
+  // Where the member's first creation stands (ES-002, migration 0170): NULL until the question
+  // is first asked, then a FirstCreationStatus. Read off the row the context user is loaded
+  // with, so the window learns on the login whether it has to ask at all.
+  // ⛔ Append only - see FirstCreationStatus.
+  @Column({
+    name: 'first_creation_status',
+    type: 'enum',
+    enum: FirstCreationStatus,
+    nullable: true,
+    default: null,
+  })
+  firstCreationStatus: FirstCreationStatus | null
 
   // Whether the transfers with somebody stand in the conversation with them, and whether a mail
   // goes out about a transfer received (migration 0147). The account holder's switch, on by

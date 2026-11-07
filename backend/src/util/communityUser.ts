@@ -28,6 +28,7 @@ const communityDbUser: dbUser = {
   // counterparty of a CREATION booking, never the account that creates. A stand-in that
   // "may create" would be a person nobody can ask.
   creationAllowed: false,
+  firstCreationStatus: null,
   // The column's default: this stand-in has no address to confirm.
   accountState: AccountState.REGISTERED,
   // false, not the column's default either: the stand-in has no conversations and no

@@ -327,6 +327,8 @@ export const login = gql`
       # ES-021: whether this account creates (a person) or receives thanks only (a project
       # account). The "Create" menu item hangs on it.
       creationAllowed
+      # ES-002: where the member's first creation stands (see verifyLogin).
+      firstCreationStatus
       # The transfers in the conversations, the member's own switch (see verifyLogin).
       transfersInChat
       role
