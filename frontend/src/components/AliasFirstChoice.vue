@@ -200,7 +200,29 @@ onBeforeUnmount(() => setFirstLoginWindowWanted('alias', false))
 // onto the map, or the first creation, took the screen for the moment of the round trip and was
 // pushed off it again when the name question arrived: a window that flashed in before the one
 // that comes first (KA-015).
-const undecided = computed(() => !!currentAlias.value && !result.value?.aliasStatus && !error.value)
+//
+// And again after the name changed somewhere else while the question was open -- in the
+// settings, where the member can be while it waits (NU-025). That may have settled it, but the
+// answer in hand was fetched before, so it is asked afresh and the window waits for it. Without
+// this the window stood on the overview with the name just chosen: until the settings page's own
+// refresh came in, and for good when the page was left before that refresh went out (vue-apollo
+// stops a query on unmount). Not for a name emptied at logout (no token left to ask with), and
+// not when this window took the name itself: it has its answer and asks on its own.
+const rechecking = ref(false)
+watch(currentAlias, async (name) => {
+  if (!name || dismissed.value || result.value?.aliasStatus?.aliasSettled !== false) return
+  rechecking.value = true
+  try {
+    await refetch()
+  } catch {
+    // A check that could not run leaves the answer in hand standing, and the window goes by it.
+  } finally {
+    rechecking.value = false
+  }
+})
+const undecided = computed(
+  () => !!currentAlias.value && (rechecking.value || (!result.value?.aliasStatus && !error.value)),
+)
 watch(undecided, (value) => setFirstLoginWindowUndecided('alias', value), { immediate: true })
 onBeforeUnmount(() => setFirstLoginWindowUndecided('alias', false))
 

@@ -182,6 +182,12 @@ describe('AliasFirstChoice', () => {
     await nextTick()
   }
 
+  // A few rounds of Vue's queue, for answers that come back through an `await`. Not
+  // `flushPromises`: it waits on a timer, and the timers here are fake.
+  const settle = async () => {
+    for (let round = 0; round < 4; round++) await nextTick()
+  }
+
   // Everything the status line is saying right now, by name. The row itself is an
   // unconditional div, so asking whether it EXISTS answers nothing; what it says is
   // the part that can be wrong.
@@ -300,6 +306,79 @@ describe('AliasFirstChoice', () => {
       routePath.value = '/overview'
       await nextTick()
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    /**
+     * The other side of the guard above: the member can now be in the settings while the
+     * question is open, and change the name there. That settles it, but the answer in hand was
+     * fetched before -- so the window asks again and waits. (Apollo writes a refetch's answer
+     * into `result`; the fake answers through `statusMock` the same way.)
+     */
+    describe('when the name changes elsewhere while the question is open', () => {
+      let answer
+      const refetchWaits = () => {
+        refetchMock.mockImplementationOnce(
+          () =>
+            new Promise((resolve, reject) => {
+              answer = { resolve, reject }
+            }),
+        )
+      }
+
+      afterEach(() => refetchMock.mockReset())
+
+      it('takes a name chosen in the settings as the answer, and shows nothing in between', async () => {
+        routePath.value = '/settings/account'
+        await nextTick()
+        refetchWaits()
+
+        mockWallet.current.setUsername('Maximilian')
+        await nextTick()
+        expect(refetchMock).toHaveBeenCalledTimes(1)
+
+        // Back on the overview before the answer is in: the window waits, and so do the ones
+        // after it.
+        routePath.value = '/overview'
+        await nextTick()
+        expect(firstLoginWindow.value).toBeNull()
+        expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+
+        statusMock.value = { aliasStatus: { aliasSettled: true } }
+        answer.resolve()
+        await settle()
+        expect(firstLoginWindow.value).toBeNull()
+        expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+      })
+
+      // Waiting must end, or the windows after this one would wait for good.
+      it('goes by the answer in hand when the check could not run', async () => {
+        refetchWaits()
+        mockWallet.current.setUsername('Maximilian')
+        await nextTick()
+        expect(firstLoginWindow.value).toBeNull()
+
+        answer.reject(new Error('Network error'))
+        await settle()
+        expect(firstLoginWindow.value).toBe('alias')
+        expect(wrapper.find('[data-test="alias-proposal"]').text()).toBe('Maximilian')
+      })
+
+      it('does not ask where the answer in hand already says the question is settled', async () => {
+        statusMock.value = { aliasStatus: { aliasSettled: true } }
+        await nextTick()
+
+        mockWallet.current.setUsername('Maximilian')
+        await settle()
+        expect(refetchMock).not.toHaveBeenCalled()
+      })
+
+      // At logout the name is emptied while the window still stands, and there is no token
+      // left to ask with.
+      it('does not ask for a name emptied at logout', async () => {
+        mockWallet.current.setUsername('')
+        await settle()
+        expect(refetchMock).not.toHaveBeenCalled()
+      })
     })
 
     it('lets go of the screen when it is unmounted', () => {
@@ -526,6 +605,16 @@ describe('AliasFirstChoice', () => {
       // them does not.
       expect(updateMock).toHaveBeenCalledTimes(1)
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+    })
+
+    // Its own choice changes the name too. The window has its answer then and asks the
+    // server once: the second question, for a name changed elsewhere, stays out of it.
+    it('asks the server once after saving its own choice', async () => {
+      await type('Bernd')
+      await wrapper.find('[data-test="alias-first-save"]').trigger('click')
+      await settle()
+
+      expect(refetchMock).toHaveBeenCalledTimes(1)
     })
 
     /**
