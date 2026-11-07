@@ -786,7 +786,7 @@
     "password_old": "Eski şifre",
     "recipient": "Alıcı",
     "recipient-not-found": {
-      "by-email": "Teşekkürünü yine de e-postayla gönderebilirsin: Gradido bunun için {days} gün bekleyen bir link oluşturur. Linki açan kişi teşekkürü kendi hesabına alır — ya da hemen orada bir hesap açar.",
+      "by-email": "Teşekkürünü e-postayla da gönderebilirsin. Gradido bunun için {days} gün bekleyen bir link oluşturur. Linki açan kişi teşekkürü kendi hesabına alır — ya da hemen orada bir hesap açar.",
       "change-address": "Adresi değiştir",
       "change-entry": "Yazdığını değiştir",
       "choose-community": "Topluluk seç",
