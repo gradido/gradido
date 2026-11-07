@@ -786,7 +786,7 @@
     "password_old": "Oud wachtwoord",
     "recipient": "Ontvanger",
     "recipient-not-found": {
-      "by-email": "Je kunt je bedankje alsnog sturen, per e-mail: Gradido maakt daarvoor een link aan die {days} dagen wacht. Wie de link opent, krijgt het bedankje op het eigen account — of maakt er ter plekke een aan.",
+      "by-email": "Je kunt je bedankje ook per e-mail sturen. Gradido maakt daarvoor een link aan die {days} dagen wacht. Wie de link opent, krijgt het bedankje op het eigen account — of maakt er ter plekke een aan.",
       "change-address": "Adres wijzigen",
       "change-entry": "Invoer wijzigen",
       "choose-community": "Gemeenschap selecteren",

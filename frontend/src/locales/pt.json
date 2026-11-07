@@ -786,7 +786,7 @@
     "password_old": "Palavra-passe antiga",
     "recipient": "Destinatário",
     "recipient-not-found": {
-      "by-email": "Mesmo assim, podes enviar o teu agradecimento por e-mail: o Gradido cria para isso um link que espera {days} dias. Quem o abrir recebe o agradecimento na sua conta — ou cria uma ali mesmo.",
+      "by-email": "Também podes enviar o teu agradecimento por e-mail. O Gradido cria para isso um link que espera {days} dias. Quem o abrir recebe o agradecimento na sua conta — ou cria uma ali mesmo.",
       "change-address": "Alterar endereço",
       "change-entry": "Alterar o que escreveste",
       "choose-community": "Selecionar comunidade",
