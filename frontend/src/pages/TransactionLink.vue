@@ -68,6 +68,7 @@ import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import RedeemThanks from '@/components/LinkInformations/RedeemThanks'
 import { useSignIn } from '@/composables/useSignIn'
+import { holdAccountWindowsForThisSession } from '@/composables/useFirstLoginWindow'
 import { useThankYouLinkPicture } from '@/composables/useThankYouLinkPicture'
 import { useAppToast } from '@/composables/useToast'
 import { queryTransactionLink } from '@/graphql/queries'
@@ -473,6 +474,8 @@ async function refreshLink() {
  *   (E-017) -- unless the link is no longer open, then that is what there is to say.
  * - Signed in but not booked (the link was accepted or ran out in the meantime): the member is
  *   in, and the page shows what became of the link.
+ * - Signed in to an account that is not confirmed yet: the name and the first creation wait for
+ *   the next start, the thank-you comes first (E-044). The address still comes.
  * - The network failing is no answer: the usual message, the button free again, and the next
  *   tap goes on with the step that is open.
  *
@@ -512,6 +515,14 @@ async function openAccount({ firstName, lastName, email, password }) {
         return
       }
       signedInAs = email
+      // E-044: whoever came for a thank-you meets it first; the name and the first creation wait
+      // for the next start (useFirstLoginWindow). Only where the account is not confirmed yet:
+      // whether it was opened just now cannot be read here -- `createUser` answers alike for
+      // every address, and for one that had an account the server sends the mail about the
+      // attempt (EM-013) --, so the confirmation is the mark. An account opened on this page is
+      // unconfirmed; a confirmed member who only signs in here meets the windows as ever.
+      // ⛔ After `signIn`, never before it: the sign-in ends every hold (store.js, `login`).
+      if (store.emailChecked === false) holdAccountWindowsForThisSession()
     }
     try {
       await redeemMutate({ code: redeemCode.value })

@@ -17,6 +17,12 @@ import {
 import i18n from '@/i18n'
 import CONFIG from '@/config'
 import { loadAllRules } from '@/validation-rules'
+import {
+  endFirstLoginHolds,
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 import TransactionLink from './TransactionLink.vue'
 import RedeemThanks from '@/components/LinkInformations/RedeemThanks.vue'
 import RedeemThanksAccount from '@/components/LinkInformations/RedeemThanksAccount.vue'
@@ -213,6 +219,8 @@ const NEW_MEMBER = {
   lastName: 'Bernard',
   alias: null,
   language: 'de',
+  // An account opened a moment ago: its address is not confirmed yet.
+  emailChecked: false,
 }
 
 // The server answered, and refused -- as Apollo hands such an answer on.
@@ -235,8 +243,11 @@ const OLD_BLOCKS = [
 const signedOut = { token: null, tokenTime: null, gradidoID: null, firstName: null, alias: null }
 
 /**
- * A store that signs a member in as the wallet's does, as far as the page reads it: the token
- * and who it is. The rest of the session is what the registration form sends along.
+ * A store that signs a member in as the wallet's does, as far as the page reads it: the token,
+ * who it is and whether the address is confirmed -- and, as every sign-in does, it ends the holds
+ * of the windows of the first logins (store.js, `login`). The page holds two of them after the
+ * sign-in (E-044); only a sign-in that ends them can tell after from before. The rest of the
+ * session is what the registration form sends along.
  */
 const newStore = (session) => {
   const pinia = walletStore({
@@ -248,7 +259,7 @@ const newStore = (session) => {
     ...session,
   })
   const store = useWalletStore(pinia)
-  store.login = (user) =>
+  store.login = (user) => {
     store.$patch({
       token: 'token-of-the-new-session',
       tokenTime: Math.floor(Date.now() / 1000) + 600,
@@ -256,7 +267,10 @@ const newStore = (session) => {
       firstName: user.firstName,
       alias: user.alias,
       language: user.language,
+      emailChecked: user.emailChecked ?? null,
     })
+    endFirstLoginHolds()
+  }
   return pinia
 }
 const signedInAs = (gradidoID) => ({
@@ -388,6 +402,8 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
   afterEach(() => {
     mounted.splice(0).forEach((wrapper) => wrapper.unmount())
     vi.unstubAllGlobals()
+    // The windows of the first logins live in a module, which outlives a test.
+    forgetFirstLoginWindows()
   })
 
   describe('which page a link gets', () => {
@@ -909,6 +925,45 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         expect(title(wrapper).text()).toBe('Dein Dank ist da.')
       })
+
+      /**
+       * E-044: whoever came for a thank-you meets it first. The name and the first creation wait
+       * for the next start; the address still comes. ⛔ Held after the sign-in: the sign-in ends
+       * every hold, as the store here does (`newStore`).
+       */
+      it('holds the windows about the member for this session, once the sign-in is through', async () => {
+        const { wrapper } = await ready()
+        setFirstLoginWindowWanted('alias', true)
+        setFirstLoginWindowWanted('firstCreation', true)
+        // The fixture proves itself: before the account is opened, the name has the screen.
+        expect(firstLoginWindow.value).toBe('alias')
+
+        await send(wrapper)
+
+        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(firstLoginWindow.value).toBeNull()
+        setFirstLoginWindowWanted('email', true)
+        expect(firstLoginWindow.value).toBe('email')
+      })
+
+      // Whether the account was opened just now cannot be read on the page -- `createUser`
+      // answers alike for every address --, so the confirmation is the mark.
+      it.each([
+        ['a confirmed member who just signs in', true],
+        ['an answer that does not say', null],
+      ])('holds nothing for %s', async (_, emailChecked) => {
+        apollo.login = vi
+          .fn()
+          .mockResolvedValue({ data: { login: { ...NEW_MEMBER, emailChecked } } })
+        const { wrapper } = await ready()
+
+        await send(wrapper)
+
+        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        setFirstLoginWindowWanted('alias', true)
+        setFirstLoginWindowWanted('firstCreation', true)
+        expect(firstLoginWindow.value).toBe('alias')
+      })
     })
 
     describe('while the chain runs', () => {
@@ -1026,6 +1081,18 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(store.gradidoID).toBeNull()
       })
 
+      // ⛔ The windows are held after the sign-in, so nothing is held where it did not go through.
+      it('holds back none of the windows of the first logins', async () => {
+        apollo.login = vi.fn().mockRejectedValue(refused('No user with this credentials'))
+        const { wrapper } = await ready()
+
+        await send(wrapper)
+
+        setFirstLoginWindowWanted('alias', true)
+        setFirstLoginWindowWanted('firstCreation', true)
+        expect(firstLoginWindow.value).toBe('alias')
+      })
+
       it('leads to the sign-in with the code, and back to the link from there', async () => {
         apollo.login = vi.fn().mockRejectedValue(refused('No user with this credentials'))
         const { wrapper, router } = await ready()
@@ -1104,6 +1171,23 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(title(wrapper).text()).toBe('Dieser Dank ist angenommen.')
         expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
         expect(apollo.refetch).toHaveBeenCalledTimes(1)
+      })
+
+      // The account was opened here all the same: its name and first creation wait for the next
+      // start (E-044). Held at the sign-in, not at the booking.
+      it('holds the windows about the member all the same', async () => {
+        apollo.redeem = vi.fn().mockRejectedValue(refused('Transaction link already redeemed'))
+        apollo.refetch = vi.fn().mockResolvedValue({
+          data: { queryTransactionLink: memberLink({ redeemedAt: '2026-07-01T10:08:43.000Z' }) },
+        })
+        const { wrapper } = await ready()
+
+        await send(wrapper)
+
+        expect(title(wrapper).text()).toBe('Dieser Dank ist angenommen.')
+        setFirstLoginWindowWanted('alias', true)
+        setFirstLoginWindowWanted('firstCreation', true)
+        expect(firstLoginWindow.value).toBeNull()
       })
 
       // A link that is open after all: the new member reads the sheet with the member's
