@@ -590,7 +590,7 @@
     "overdue": "The grace period has ended. Please confirm your e-mail address — your account opens up fully again the moment you do.",
     "resend": "Send mail again",
     "resent": "The confirmation mail is on its way again.",
-    "strip": "A confirmation email is on its way to you — please click the link in it. Until {deadline} you can already use your account in full.",
+    "strip": "A confirmation e-mail is on its way to you — please click the link in it. Until {deadline}, you can already use your account in full.",
     "title": "Confirm your e-mail address"
   },
   "emoji": {

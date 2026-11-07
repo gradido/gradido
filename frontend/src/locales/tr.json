@@ -586,12 +586,11 @@
   },
   "emailConfirmation": {
     "changeAddress": "Adresi düzelt",
-    "grace": "{deadline} tarihine kadar hesabını tam olarak kullanabilirsin — sonrasında onayını bekler.",
-    "later": "Daha sonra",
     "mailSent": "Bir onay e-postası adresine doğru yolda. Lütfen içindeki bağlantıya tıkla.",
     "overdue": "Geçiş süresi doldu. Lütfen e-posta adresini onayla — hesabın hemen yeniden tamamen açılır.",
     "resend": "E-postayı yeniden gönder",
     "resent": "Onay e-postası yeniden yolda.",
+    "strip": "Bir onay e-postası sana doğru yolda — lütfen içindeki bağlantıya tıkla. {deadline} tarihine kadar hesabını şimdiden tam olarak kullanabilirsin.",
     "title": "E-posta adresini onayla"
   },
   "emoji": {
