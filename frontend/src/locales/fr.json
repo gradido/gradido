@@ -1377,7 +1377,7 @@
       "disabled": "Désormais, toi seul vois ton image.",
       "enabled": "Ton image est visible par les autres membres.",
       "visibility": "Montrer mon image aux autres membres",
-      "visibilityInfo": "Les autres membres voient ton image, par exemple à côté des transactions que vous partagez. Quand le réglage est désactivé, ce sont tes initiales qui apparaissent, comme avant."
+      "visibilityInfo": "Les autres membres voient ton image, par exemple à côté des transactions que vous partagez. Toute personne qui ouvre un de tes liens la voit aussi, tant que le lien est ouvert. Quand le réglage est désactivé, ce sont tes initiales qui apparaissent, comme avant."
     },
     "community": "Cercles",
     "creationAccount": {
