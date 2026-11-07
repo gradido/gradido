@@ -586,12 +586,11 @@
   },
   "emailConfirmation": {
     "changeAddress": "Adresse korrigieren",
-    "grace": "Bis {deadline} kannst Du Dein Konto schon vollständig nutzen — danach wartet es auf Deine Bestätigung.",
-    "later": "Später",
     "mailSent": "Eine Bestätigungs-Mail ist an Deine E-Mail-Adresse unterwegs. Bitte klicke auf den Link darin.",
     "overdue": "Die Übergangszeit ist abgelaufen. Bitte bestätige Deine E-Mail-Adresse — danach steht Dir Dein Konto sofort wieder vollständig offen.",
     "resend": "Mail erneut senden",
     "resent": "Die Bestätigungs-Mail ist erneut unterwegs.",
+    "strip": "Eine Bestätigungs-Mail ist an Dich unterwegs — bitte klicke auf den Link darin. Bis {deadline} kannst Du Dein Konto schon vollständig nutzen.",
     "title": "Bestätige Deine E-Mail-Adresse"
   },
   "emoji": {
