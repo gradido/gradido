@@ -171,7 +171,7 @@ export async function dbFindMemberAvatarTimestamp(userId: number): Promise<Date 
     .where(and(eq(userAvatarsTable.userId, userId), mayBeShownToMembers()))
     .limit(1)
 
-  return rows[0].updatedAt ?? null
+  return rows[0]?.updatedAt ?? null
 }
 
 /**
