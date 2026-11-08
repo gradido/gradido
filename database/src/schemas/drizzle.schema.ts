@@ -874,6 +874,7 @@ export type UserSelect = typeof usersTable.$inferSelect
 export type UserInsert = typeof usersTable.$inferInsert
 export const userSelectSchema = createSelectSchema(usersTable, {
   accountState: v.enum(AccountState),
+  firstCreationStatus: v.nullable(v.enum(FirstCreationStatus)),
 })
 
 // A member's addresses - every one they ever held stays; `users.email_id` marks the one in
