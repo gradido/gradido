@@ -18,6 +18,7 @@ declare module 'vue' {
     onKeydown?: HTMLAttributes['onKeydown']
     onChange?: HTMLAttributes['onChange']
     onFocus?: HTMLAttributes['onFocus']
+    onBlur?: HTMLAttributes['onBlur']
     onInput?: HTMLAttributes['onInput']
     onMouseover?: HTMLAttributes['onMouseover']
   }

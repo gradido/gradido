@@ -1,4 +1,10 @@
-import { useRoute, useRouter } from 'vue-router'
+import { type LocationQueryRaw, type RouteParamsRaw, useRoute, useRouter } from 'vue-router'
+
+/** What a caller adds to the current route's own params and query. */
+export type AuthLinkOptions = { params?: RouteParamsRaw; query?: LocationQueryRaw }
+
+/** A vue3 routing object for `:to`. */
+export type AuthLink = { name: string; params: RouteParamsRaw; query: LocationQueryRaw }
 
 export function useAuthLinks() {
   const route = useRoute()
@@ -8,10 +14,8 @@ export function useAuthLinks() {
    * The names of the params the target route declares in its path. vue-router does not expose
    * them on a route record, so they are read from the path: `/checkEmail/:optin/:code?` gives
    * `optin` and `code`. A route nobody registered declares none.
-   * @param {string} routeName
-   * @returns {Set<string>}
    */
-  function paramNamesOfRoute(routeName) {
+  function paramNamesOfRoute(routeName: string): Set<string> {
     const path = router.getRoutes().find((record) => record.name === routeName)?.path ?? ''
     return new Set([...path.matchAll(/:(\w+)/g)].map(([, paramName]) => paramName))
   }
@@ -30,11 +34,8 @@ export function useAuthLinks() {
    * the entrance of an event link the query is what the link offers -- somebody else's words,
    * and nothing the registration or the sign-in is to read (routes.js). What the caller hands
    * in as `options.query` still does.
-   * @param {string} name
-   * @param {{ params: {}, query: {} }} options
-   * @returns {{ name: string, params: {}, query: {} }} a vue3 routing object for :to
    */
-  const routeWithParamsAndQuery = (name, options = { params: {}, query: {} }) => {
+  const routeWithParamsAndQuery = (name: string, options: AuthLinkOptions = {}): AuthLink => {
     const params = { ...route.params, ...options.params }
     const expectedParams = paramNamesOfRoute(name)
     return {

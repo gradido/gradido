@@ -1,8 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { useMutation } from '@vue/apollo-composable'
-import { useWalletStore } from '@/store/useWalletStore'
 import { login, updateUserInfos } from '@/graphql/mutations'
 import { clearApolloCache } from '@/plugins/apolloCache'
+import { useWalletStore } from '@/store/useWalletStore'
+
+export type SignInCredentials = { email: string; password: string }
 
 /**
  * Signing in: everything the wallet does with an address and a password, before and after the
@@ -17,13 +19,16 @@ export function useSignIn() {
   const { mutate } = useMutation(login)
   const { mutate: mutateUpdateUserInfos } = useMutation(updateUserInfos)
 
-  const signIn = async ({ email, password }) => {
+  const signIn = async ({ email, password }: SignInCredentials) => {
     const result = await mutate({
       email,
       password,
       publisherId: store.publisherId,
       project: store.project,
     })
+    if (!result?.data) {
+      throw new Error('login: no answer')
+    }
     const { login: loginResponse } = result.data
     // ⛔ Before this member is written into the store, and it is the same reason the
     // `/authenticate` guard gives: nothing here reloads the page, so every answer the
@@ -51,7 +56,7 @@ export function useSignIn() {
     if (preLoginLanguage && preLoginLanguage !== loginResponse.language) {
       try {
         await mutateUpdateUserInfos({ locale: preLoginLanguage })
-      } catch (error) {
+      } catch {
         // best effort: the chosen language already applies locally
       }
     }
@@ -66,7 +71,7 @@ export function useSignIn() {
     // Release the field before the page changes under it: in the iPhone's home-screen app, iOS
     // kept offering the saved password after every later tap (Bernd, 28.09.2026) -- the form
     // went away while its field still held the focus.
-    document.activeElement?.blur()
+    ;(document.activeElement as HTMLElement | null)?.blur()
     return loginResponse
   }
 

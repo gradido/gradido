@@ -26,7 +26,7 @@ import { useI18n } from 'vue-i18n'
 import { useMutation } from '@vue/apollo-composable'
 import { BButton } from 'bootstrap-vue-next'
 import { confirmEmailChange, revokeEmailChange } from '@/graphql/mutations'
-import Message from '@/components/Message/Message.vue'
+import { Message } from '@/components/Message/Message'
 
 const route = useRoute()
 const { t } = useI18n()

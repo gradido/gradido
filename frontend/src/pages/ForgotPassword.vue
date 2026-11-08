@@ -44,8 +44,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
-import InputEmail from '@/components/Inputs/InputEmail'
-import Message from '@/components/Message/Message'
+import { InputEmail } from '@/components/Inputs/InputEmail'
+import { Message } from '@/components/Message/Message'
 import { useAppToast } from '@/composables/useToast'
 import { forgotPassword } from '@/graphql/mutations'
 import { useRoute } from 'vue-router'

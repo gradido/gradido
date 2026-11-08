@@ -2,7 +2,7 @@
 
 import { describe, it, expect, beforeAll } from 'vitest'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { basename, dirname, join, relative } from 'node:path'
+import { basename, dirname, extname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createI18n } from 'vue-i18n'
 import { validate } from 'vee-validate'
@@ -27,8 +27,11 @@ import en from '@/locales/en.json'
  * - a string handed to `useField` (`useField('firstname', …)`), or
  * - a component that registers the name it is given (`useField(props.name, …)`): then the
  *   `name` attribute of every tag that uses it, or its prop default where a tag sets none.
- * A name that is only known at run time (`:name="…"`, a variable) cannot be read here and
- * fails the spec instead of slipping through.
+ * A name that is only known at run time (`:name="…"`, `name={…}`, a variable) cannot be read
+ * here and fails the spec instead of slipping through.
+ *
+ * Tags stand in the templates of the .vue files and in the render functions of the .tsx
+ * files; a wrapper is one or the other as well.
  *
  * Comments come out first (HTML, block and whole-line ones): a comment that shows a tag or
  * a call is not a field.
@@ -44,7 +47,11 @@ const sourceFiles = (dir) => {
     const path = join(dir, entry)
     if (statSync(path).isDirectory()) {
       found.push(...sourceFiles(path))
-    } else if (/\.(vue|js)$/.test(entry) && !/\.(spec|test)\.js$/.test(entry)) {
+    } else if (
+      /\.(vue|js|ts|tsx)$/.test(entry) &&
+      !/\.(spec|test)\.(js|ts|tsx)$/.test(entry) &&
+      !entry.endsWith('.d.ts')
+    ) {
       found.push(path)
     }
   }
@@ -74,18 +81,27 @@ const firstArgument = (code, from) => {
   return null
 }
 
-/** The attributes of a tag, read from just after its name; null where the tag is unreadable. */
+/** A value a tag computes (`name={…}` in a .tsx file): only known at run time. */
+const RUN_TIME = Symbol('run time')
+
+/**
+ * The attributes of a tag, read from just after its name; null where the tag is unreadable. A
+ * value in braces (one level of nesting, as `{t('form.email')}` has) is RUN_TIME.
+ */
 const attributesOf = (code, from) => {
   const attributes = {}
-  const token = /\s*(?:(\/?>)|([^\s=/>]+)(?:\s*=\s*("[^"]*"|'[^']*'))?)/y
+  const token = /\s*(?:(\/?>)|([^\s=/>]+)(?:\s*=\s*("[^"]*"|'[^']*'|\{(?:[^{}]|\{[^{}]*\})*\}))?)/y
   token.lastIndex = from
   let match = token.exec(code)
   while (match && !match[1]) {
-    attributes[match[2]] = match[3] ? match[3].slice(1, -1) : true
+    const value = match[3]
+    attributes[match[2]] = !value ? true : value.startsWith('{') ? RUN_TIME : value.slice(1, -1)
     match = token.exec(code)
   }
   return match ? attributes : null
 }
+
+const isComponentFile = (where) => /\.(vue|tsx)$/.test(where)
 
 const kebab = (pascal) => pascal.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
 
@@ -100,18 +116,18 @@ const addField = (name, where) => fields.set(name, [...(fields.get(name) ?? []),
 
 const wrappers = []
 for (const { where, code } of files) {
-  for (const call of code.matchAll(/\buseField\(/g)) {
+  for (const call of code.matchAll(/\buseField(?:<[^()]*>)?\(/g)) {
     const argument = firstArgument(code, call.index + call[0].length) ?? ''
     const literal = argument.match(/^(['"])([^'"]+)\1$/)
     if (literal) {
       addField(literal[2], where)
     } else if (
-      where.endsWith('.vue') &&
+      isComponentFile(where) &&
       /\bname\b/.test(argument) &&
       /\bname\s*:\s*\{/.test(code)
     ) {
       const fallback = code.match(/\bname\s*:\s*\{[^{}]*?\bdefault\s*:\s*(['"])([^'"]+)\1/)?.[2]
-      wrappers.push({ component: basename(where, '.vue'), fallback, home: where })
+      wrappers.push({ component: basename(where, extname(where)), fallback, home: where })
     } else {
       unreadable.push(`${where}: useField(${argument})`)
     }
@@ -121,12 +137,16 @@ for (const { where, code } of files) {
 for (const { component, fallback, home } of wrappers) {
   const tag = kebab(component)
   const opening = new RegExp(`<(?:${component}|${tag})(?=[\\s/>])`, 'g')
-  for (const { where, code } of files.filter((file) => file.where.endsWith('.vue'))) {
+  for (const { where, code } of files.filter((file) => isComponentFile(file.where))) {
     for (const use of code.matchAll(opening)) {
       const attributes = attributesOf(code, use.index + use[0].length)
       if (!attributes) {
         unreadable.push(`${where}: a <${tag}> tag this spec cannot read`)
-      } else if (':name' in attributes || 'v-bind:name' in attributes) {
+      } else if (
+        ':name' in attributes ||
+        'v-bind:name' in attributes ||
+        attributes.name === RUN_TIME
+      ) {
         unreadable.push(`${where}: <${tag} :name="…">, a name only known at run time`)
       } else if (typeof attributes.name === 'string') {
         addField(attributes.name, where)
@@ -154,7 +174,7 @@ describe('the name a validation message gives a field', () => {
     expect(fields.get('newPassword') ?? []).toContain(
       'components/Inputs/InputPasswordConfirmation.vue',
     )
-    expect(fields.get('password') ?? []).toContain('pages/Login.vue')
+    expect(fields.get('password') ?? []).toContain('pages/Login.tsx')
     // The fields an account is opened with, shared by the registration form and the page a
     // thank-you is accepted on.
     expect(fields.get('firstname') ?? []).toContain('components/Auth/AccountFields.vue')

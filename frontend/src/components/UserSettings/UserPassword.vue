@@ -62,7 +62,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BRow, BCol, BForm, BButton } from 'bootstrap-vue-next'
-import InputPassword from '@/components/Inputs/InputPassword'
+import { InputPassword } from '@/components/Inputs/InputPassword'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { updateUserInfos } from '@/graphql/mutations'
 import { useForm } from 'vee-validate'

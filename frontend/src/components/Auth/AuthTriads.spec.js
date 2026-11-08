@@ -5,7 +5,7 @@ import { createI18n } from 'vue-i18n'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import AuthTriads from './AuthTriads.vue'
+import { AuthTriads } from './AuthTriads'
 import de from '@/locales/de.json'
 
 const INTERVAL_MS = 7000
@@ -131,26 +131,26 @@ describe('AuthTriads', () => {
 
   // Layout lives in the stylesheet, and jsdom lays nothing out. These are the lines that
   // carry the promise of the tests above on a real screen.
+  // The rules are a CSS module (AuthTriads.module.scss): the names below are the ones the
+  // component reads from it, each under the root class.
   describe('the stylesheet', () => {
     const source = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), 'AuthTriads.vue'),
+      resolve(dirname(fileURLToPath(import.meta.url)), 'AuthTriads.module.scss'),
       'utf8',
     )
     // Comments name the same properties; only declarations may count.
-    const css = source
-      .slice(source.indexOf('<style'), source.indexOf('</style>'))
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, '')
 
     it('puts all triads into one grid cell', () => {
-      expect(css).toMatch(/\.triad-stage > \*\s*\{[^}]*grid-area:\s*1 \/ 1;/)
-      expect(css).toMatch(/\.triad-sizer\s*\{[^}]*visibility:\s*hidden;/)
+      expect(css).toMatch(/\.authTriads \.triadStage > \*\s*\{[^}]*grid-area:\s*1 \/ 1;/)
+      expect(css).toMatch(/\.authTriads \.triadSizer\s*\{[^}]*visibility:\s*hidden;/)
     })
 
     // Bernd, 21.09.2026: with the wider card a phone has room for a triad on one line. Where
     // one does not fit, it breaks between two parts, and the stage keeps the tallest one's
     // height: two lines on a phone instead of three.
     it('lines the parts up on every width and breaks only between them', () => {
-      const triad = css.match(/\n\.triad\s*\{([^}]*)\}/)
+      const triad = css.match(/\n\.authTriads \.triad\s*\{([^}]*)\}/)
       expect(triad).not.toBeNull()
       expect(triad[1]).toMatch(/flex-flow:\s*row wrap;/)
       expect(triad[1]).toMatch(/column-gap:\s*0\.3em;/)
@@ -158,20 +158,20 @@ describe('AuthTriads', () => {
       expect(triad[1]).toMatch(/place-content:\s*center;/)
       expect(css).not.toMatch(/flex-direction:\s*column/)
       // No width switches the shape any more.
-      expect(css).not.toMatch(/@media[^{]*\{\s*\.triad\s*\{/)
+      expect(css).not.toMatch(/@media[^{]*\{\s*\.authTriads \.triad\s*\{/)
     })
 
     // Bernd, 22.09.2026: less space above and below the triads on a phone, so that the card
     // gets shorter. The gap to what follows is theirs, so it is the same on all five doors.
     it("keeps 48px to what follows, 24px on a phone, and there gives up the card body's padding above", () => {
       const everyWidth = css.slice(0, css.indexOf('@media'))
-      expect(everyWidth).toMatch(/\.auth-triads\s*\{[^}]*padding-bottom:\s*3rem;/)
+      expect(everyWidth).toMatch(/\.authTriads\s*\{[^}]*padding-bottom:\s*3rem;/)
       const at = css.indexOf('(width <= 767.98px)')
       expect(at).toBeGreaterThan(-1)
       const phone = css.slice(at, css.indexOf('\n}', at))
-      expect(phone).toMatch(/\.auth-triads\s*\{[^}]*padding-bottom:\s*1\.5rem;/)
+      expect(phone).toMatch(/\.authTriads\s*\{[^}]*padding-bottom:\s*1\.5rem;/)
       expect(phone).toMatch(
-        /\.auth-triads\s*\{[^}]*margin-top:\s*calc\(-1 \* var\(--bs-card-spacer-y\)\);/,
+        /\.authTriads\s*\{[^}]*margin-top:\s*calc\(-1 \* var\(--bs-card-spacer-y\)\);/,
       )
     })
 

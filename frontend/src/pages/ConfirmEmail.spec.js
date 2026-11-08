@@ -11,8 +11,8 @@ vi.mock('bootstrap-vue-next', () => ({
   },
 }))
 
-vi.mock('@/components/Message/Message.vue', () => ({
-  default: {
+vi.mock('@/components/Message/Message', () => ({
+  Message: {
     name: 'Message',
     props: ['headline', 'subtitle', 'buttonText', 'linkTo'],
     template: '<div data-test="message">{{ headline }} | {{ subtitle }}</div>',

@@ -1,15 +1,15 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import Login from './Login.vue'
-import AuthTriads from '@/components/Auth/AuthTriads.vue'
+import { Login } from './Login'
+import { AuthTriads } from '@/components/Auth/AuthTriads'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import { BButton, BCol, BContainer, BFormInput, BRow } from 'bootstrap-vue-next'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import InputPassword from '@/components/Inputs/InputPassword.vue'
+import { InputEmail } from '@/components/Inputs/InputEmail'
+import { InputPassword } from '@/components/Inputs/InputPassword'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import { configure, defineRule } from 'vee-validate'
 import { email, min, required } from '@vee-validate/rules'
@@ -81,6 +81,8 @@ describe('Login', () => {
         { path: '/overview', name: 'Overview' },
         { path: '/redeem/:code', name: 'Redeem' },
         { path: '/login/:code?', name: 'Login' },
+        // The page links to the registration; the link resolves its route when it is drawn.
+        { path: '/register/:code?', name: 'Register' },
         { path: '/contacts', name: 'Contacts' },
         { path: '/matching/:tab', name: 'Matching' },
       ],
@@ -555,6 +557,29 @@ describe('Login', () => {
           await signIn()
 
           expect(wallet.eventMatchingEntry).toBeNull()
+        })
+      })
+
+      // coderabbit on #4259: the space may answer without data (`result.data` null), not only
+      // with an error. That is no address to go to: it is told as any other failure.
+      describe('and a project whose space answers without data', () => {
+        beforeEach(() => {
+          wallet.project = 'garden'
+          mockMutate
+            .mockResolvedValueOnce({ data: { login: { language: 'en' } } })
+            .mockResolvedValueOnce({ data: null })
+        })
+        afterEach(() => {
+          wallet.project = null
+        })
+
+        it('toasts the missing answer instead of leaving for nowhere', async () => {
+          await signIn()
+
+          expect(mockToastError).toHaveBeenCalledWith(
+            'Unknown errorauthenticateHumhubAutoLogin: no answer',
+          )
+          expect(router.currentRoute.value.fullPath).not.toBe('/matching/entries')
         })
       })
     })

@@ -2,7 +2,7 @@
 
 /**
  * The slogan as both printed cards carry it: the first of the three triads on the sign-in
- * pages (`components/Auth/AuthTriads.vue`), on one line.
+ * pages (`components/Auth/AuthTriads.tsx`), on one line.
  *
  * Built in one place, so the business card and the thank-you card cannot come to say it
  * differently -- and reused from the sign-in pages rather than written again, so it needs no

@@ -17,7 +17,7 @@ vi.mock('vee-validate', () => {
 })
 
 vi.mock('@/components/Inputs/InputPassword', () => ({
-  default: {
+  InputPassword: {
     name: 'InputPassword',
     template:
       '<input type="password" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',

@@ -89,7 +89,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { BButton } from 'bootstrap-vue-next'
-import AuthTriads from '@/components/Auth/AuthTriads'
+import { AuthTriads } from '@/components/Auth/AuthTriads'
 import { readEventMatchingLink } from '@/utils/eventMatchingLink'
 
 const route = useRoute()

@@ -2,6 +2,21 @@
 import { ref } from 'vue'
 
 /**
+ * What the entry form opens with. `remote`: whether the form opens with "found from afar"
+ * ticked (off where it is not said); `unlessThere`: the entries page makes the entry at once
+ * instead of opening the form, and says nothing where the member has it. Both are what an
+ * event link brings (utils/eventMatchingLink) -- its words come out of an address, so the
+ * reason below for keeping a search out of one does not stand in its way.
+ */
+export type EntryDraft = {
+  summary: string
+  details: string
+  matchingType: string
+  remote?: boolean
+  unlessThere?: boolean
+}
+
+/**
  * A one-shot handover between two pages of the matching: the map hands a typed
  * search to the entry form, which opens with it already filled in.
  *
@@ -15,7 +30,7 @@ import { ref } from 'vue'
  * a reload loses it - which is right, because the offer to keep a search only makes
  * sense in the breath after making it.
  */
-const draft = ref(null)
+const draft = ref<EntryDraft | null>(null)
 
 /**
  * Drop anything held, because the session it belonged to has ended.
@@ -31,20 +46,12 @@ export function clearEntryDraft() {
 
 export function useEntryDraft() {
   return {
-    /**
-     * @param {{summary: string, details: string, matchingType: string, remote?: boolean,
-     *   unlessThere?: boolean}} next `remote`: whether the form opens with "found from afar"
-     *   ticked (off where it is not said); `unlessThere`: the entries page makes the entry at
-     *   once instead of opening the form, and says nothing where the member has it. Both are what
-     *   an event link brings (utils/eventMatchingLink) -- its words come out of an address,
-     *   so the reason above for keeping a search out of one does not stand in its way.
-     */
-    put(next) {
+    put(next: EntryDraft) {
       draft.value = next
     },
 
     /** Reads and clears in one go, so the same offer cannot be taken up twice. */
-    take() {
+    take(): EntryDraft | null {
       const held = draft.value
       draft.value = null
       return held

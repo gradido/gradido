@@ -42,7 +42,7 @@
   </div>
 </template>
 <script setup>
-import InputPassword from './InputPassword'
+import { InputPassword } from './InputPassword'
 
 defineProps({
   // Never read here — the two fields register themselves with vee-validate. Optional

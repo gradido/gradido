@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useAppToast } from '@/composables/useToast'
 import TransactionLinkItem from '@/components/TransactionLinkItem.vue'
-import AuthTriads from '@/components/Auth/AuthTriads.vue'
+import { AuthTriads } from '@/components/Auth/AuthTriads'
 
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({

@@ -439,7 +439,7 @@ const routes = [
   {
     name: 'Login',
     path: '/login/:code?',
-    component: () => import('@/pages/Login'),
+    component: () => import('@/pages/Login').then((page) => page.Login),
   },
   {
     name: 'Register',
