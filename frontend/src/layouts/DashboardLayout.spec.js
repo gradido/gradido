@@ -463,6 +463,56 @@ describe('DashboardLayout', () => {
     })
 
     /**
+     * EM-014: inside the 24 hours the address reminder is a strip at the top of the page. It
+     * hangs where the page begins -- the first thing in `.main-content`, outside the fade --, so
+     * it takes the page's own distance and the calculator's lift with it, and it goes where the
+     * chrome goes. Whether it shows is its own question (EmailConfirmationStrip.spec.js).
+     */
+    describe('the strip about the address', () => {
+      const strip = () => wrapper.find('email-confirmation-strip-stub')
+
+      // In place of the wrapper the surrounding beforeEach mounted, not beside it: one layout
+      // at a time, for the reason the note at the top of this block gives.
+      beforeEach(async () => {
+        wrapper.unmount()
+        wrapper = createWrapper({ EmailConfirmationStrip: true })
+        wrapper.vm.skeleton = false
+        await nextTick()
+      })
+
+      it('is the first thing where the page begins, outside the fade', () => {
+        const content = wrapper.find('.main-content').element
+        expect(strip().exists()).toBe(true)
+        expect(content.firstElementChild).toBe(strip().element)
+        expect(strip().element.closest('transition-fade')).toBeNull()
+        expect(strip().element.nextElementSibling.tagName.toLowerCase()).toBe('transition-fade')
+      })
+
+      // The map (`bareChrome: true`, every size) is left out: its route exists only with
+      // MATCHING_ACTIVE, and in this file `/matching/karte` lands on the not-found record
+      // (measured: `meta` is empty there). The binding is the same `chromeHidden` as the rows
+      // above.
+      it.each([
+        ['/overview', []],
+        ['/calculator', ['d-none', 'd-lg-flex']],
+        ['/scan', ['d-none', 'd-lg-flex']],
+      ])('at %s it carries the classes of the chrome: %j', async (path, expected) => {
+        await router.push(path)
+        await nextTick()
+        const classes = [...strip().element.classList].filter((name) => name.startsWith('d-'))
+        expect(classes).toEqual(expected)
+      })
+
+      // The lift stays on the page's block, and the strip is inside it: on the desk the
+      // calculator's place in the heading's row goes to the strip, and nothing overlaps it.
+      it('stands inside the block the calculator lifts', async () => {
+        await router.push('/calculator')
+        await nextTick()
+        expect(strip().element.closest('.main-content.content-at-heading')).not.toBeNull()
+      })
+    })
+
+    /**
      * KF-009. The column now has two positions on three routes, and which one it starts on
      * is the route's own answer -- the overview opens on bookings because that is the page
      * one opens to see where one stands; the send form and the booking list open on

@@ -586,12 +586,12 @@
   },
   "emailConfirmation": {
     "changeAddress": "Corriger l'adresse",
-    "grace": "Jusqu'au {deadline}, tu peux déjà utiliser pleinement ton compte — ensuite il attendra ta confirmation.",
-    "later": "Plus tard",
     "mailSent": "Un e-mail de confirmation est en route vers ton adresse. Clique sur le lien qu’il contient.",
     "overdue": "La période de transition est terminée. Confirme ton adresse e-mail — ton compte se rouvrira aussitôt entièrement.",
     "resend": "Renvoyer l'e-mail",
+    "resendTooSoon": "L'e-mail de confirmation vient tout juste de partir. Attends quelques minutes avant de le redemander.",
     "resent": "L'e-mail de confirmation est de nouveau en route.",
+    "strip": "Un e-mail de confirmation est en route vers toi — clique sur le lien qu'il contient. Jusqu'au {deadline}, tu peux déjà utiliser pleinement ton compte.",
     "title": "Confirme ton adresse e-mail"
   },
   "emoji": {
@@ -646,7 +646,7 @@
     "landing": {
       "added": "Ton entrée a été ajoutée : {sentence}",
       "firstEntry": "Ta première entrée :",
-      "haveAccount": "J'ai déjà un compte",
+      "haveAccount": "J'ai déjà un compte Gradido",
       "headline": "La carte qui te mène aux personnes de ton projet",
       "otherCommunity": "Ton compte est dans une autre communauté ? Alors identifie-toi là-bas et saisis la phrase à la main.",
       "register": "Créer un compte"
@@ -714,7 +714,7 @@
       "text": "Chez Gradido, chaque personne peut créer : pour ce qu'elle fait pour les autres. Si ce compte n'est pas une personne mais une association, un projet ou un commerce, dis-le-nous ici — un compte projet ne crée pas, il reçoit des remerciements.",
       "title": "Pas de souci — la question reviendra la prochaine fois."
     },
-    "question": "Qu'as-tu déjà fait de bien ces dernières semaines ?",
+    "question": "Qu'as-tu fait de bien ces dernières semaines ?",
     "remove": "Retirer l'entrée",
     "review": "Une personne doit encore regarder tes entrées. Tu auras de nos nouvelles.",
     "showLess": "Afficher moins",
@@ -786,7 +786,7 @@
     "password_old": "Ancien mot de passe",
     "recipient": "Destinataire",
     "recipient-not-found": {
-      "by-email": "Tu peux quand même envoyer ton remerciement, par e-mail : Gradido crée pour cela un lien qui attend {days} jours. La personne qui l'ouvre reçoit le remerciement sur son compte — ou en crée un sur place.",
+      "by-email": "Tu peux aussi envoyer ton remerciement par e-mail. Gradido crée pour cela un lien qui attend {days} jours. La personne qui l'ouvre reçoit le remerciement sur son compte — ou en crée un sur place.",
       "change-address": "Modifier l'adresse",
       "change-entry": "Modifier la saisie",
       "choose-community": "Choisir la communauté",
@@ -917,7 +917,7 @@
     "share-line1": "{name} te remercie avec {amount} Gradido :",
     "share-line2": "« {memo} »",
     "share-line3": "Veux-tu accepter ce remerciement ?",
-    "share-line4": "Prends ton temps : il t'attend jusqu'au {date}.",
+    "share-line4": "Rien ne presse. Il t'attend jusqu'au {date}.",
     "to-login": "Connexion",
     "to-register": "Enregistrer un nouveau compte.",
     "to-switch": "Rediriger maintenant",
@@ -1286,16 +1286,12 @@
     "almost-have-account": "Tu avais déjà un compte avec cette adresse ? Alors identifie-toi.",
     "almost-text": "Regarde dans ta boîte mail : tu y trouveras un e-mail de notre part pour continuer. Ton remerciement t'attend ici.",
     "almost-title": "Tu y es presque",
-    "answer": "Répondre à {name}",
-    "answer-short": "Répondre",
-    "arrived-text": "Tu as maintenant {amount} Gradido de {name} sur ton compte.",
-    "arrived-title": "Le remerciement est arrivé.",
     "deleted-text": "{name} a supprimé le lien le {date}.",
     "deleted-title": "Ce remerciement n'existe plus.",
     "expired-text": "Il est retourné à {name} — rien n'est perdu.",
     "expired-title": "Ce remerciement a attendu {days} jours.",
     "from": "{name} te remercie avec {amount}",
-    "have-account": "J'ai déjà un compte",
+    "have-account": "J'ai déjà un compte Gradido",
     "how": "Comment ça marche",
     "invite": "Aimerais-tu, toi aussi, remercier d'autres personnes de cette belle manière ?",
     "other-community": "Si ton compte est dans une autre communauté, choisis-la. Nous t'y redirigeons.",
@@ -1676,6 +1672,7 @@
     "done": {
       "another": "Encore un pour quelqu'un d'autre",
       "edit-hint": "Tu peux modifier la phrase avant l'envoi. Tes mots ne figurent que sur la carte.",
+      "edit-hint-email": "Tu peux adapter et compléter le texte de l'e-mail avant l'envoi.",
       "edit-hint-plain": "Tu peux modifier le texte avant l'envoi.",
       "find-again": "Tu le retrouveras dans {transactions}, sous « {links} ».",
       "link-hint": "Toute personne qui a le lien peut accepter le remerciement. Envoie-le uniquement à la personne à qui il est destiné.",

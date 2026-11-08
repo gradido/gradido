@@ -1,9 +1,9 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <!-- The visible half of the EM-013 blockade. Inside the grace period the modal can be
-       waved away ("Später") and only reminds; past the deadline it loses every way to
+  <!-- The visible half of the EM-013 blockade, past the deadline: the modal has no way to
        close and the server has already narrowed the account down (see the backend's
        RESTRICTED_WHILE_UNCONFIRMED) — the modal is the explanation, not the enforcement.
+       The 24 hours before belong to the strip on the page (EmailConfirmationStrip, EM-014).
        Two ways out stay open on purpose: resending the mail, and correcting the address
        in the settings — which is why this modal never shows on /settings routes. -->
   <BModal
@@ -11,17 +11,14 @@
     v-model="visible"
     centered
     no-header
-    :no-close-on-backdrop="overdue"
-    :no-close-on-esc="overdue"
+    no-close-on-backdrop
+    no-close-on-esc
     data-test="email-confirmation-reminder"
   >
     <div class="text-center px-2 pt-3">
       <p class="h5 mb-3">{{ $t('emailConfirmation.title') }}</p>
       <p class="mb-2">{{ $t('emailConfirmation.mailSent') }}</p>
-      <p v-if="!overdue" class="mb-0" data-test="email-confirmation-grace">
-        {{ $t('emailConfirmation.grace', { deadline: deadlineText }) }}
-      </p>
-      <p v-else class="mb-0" data-test="email-confirmation-overdue">
+      <p class="mb-0" data-test="email-confirmation-overdue">
         {{ $t('emailConfirmation.overdue') }}
       </p>
       <p v-if="resent" class="small text-success mt-3 mb-0" data-test="email-confirmation-resent">
@@ -45,89 +42,34 @@
       >
         {{ $t('emailConfirmation.resend') }}
       </BButton>
-      <BButton
-        v-if="!overdue"
-        variant="gradido"
-        data-test="email-confirmation-later"
-        @click="visible = false"
-      >
-        {{ $t('emailConfirmation.later') }}
-      </BButton>
     </template>
   </BModal>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useWalletStore } from '@/store/useWalletStore'
+import { computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useMutation } from '@vue/apollo-composable'
 import { BButton, BModal } from 'bootstrap-vue-next'
-import { resendConfirmationEmail } from '@/graphql/mutations'
-import { useAppToast } from '@/composables/useToast'
+import { useEmailConfirmation } from '@/composables/useEmailConfirmation'
 import {
   firstLoginWindowOnScreen,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
 
-// ⚠️ Mirrors CONFIRMATION_GRACE_PERIOD_HOURS in the backend
-// (backend/src/data/EmailConfirmation.logic.ts). The server enforces its own copy;
-// this one only decides what the modal says and whether it can be waved away —
-// change one, change both.
-const CONFIRMATION_GRACE_HOURS = 24
-
-const store = useWalletStore()
 const route = useRoute()
 const router = useRouter()
-const { toastError } = useAppToast()
-
-const dismissed = ref(false)
-const resent = ref(false)
-const resending = ref(false)
-
-const deadline = computed(() =>
-  store.accountCreatedAt
-    ? new Date(
-        new Date(store.accountCreatedAt).getTime() + CONFIRMATION_GRACE_HOURS * 60 * 60 * 1000,
-      )
-    : null,
-)
-
-// A bare Date.now() is invisible to Vue: without a ticking source the computed would
-// freeze on its first value, and a session kept open across the deadline would never
-// see the modal return. One-minute steps are plenty for a 24h grace period — and they
-// make the modal appear by itself the moment the deadline passes.
-const now = ref(Date.now())
-let ticker = null
-onMounted(() => {
-  ticker = setInterval(() => {
-    now.value = Date.now()
-  }, 60000)
-})
-onUnmounted(() => clearInterval(ticker))
-
-const overdue = computed(() => !!deadline.value && now.value > deadline.value.getTime())
-
-const deadlineText = computed(() =>
-  deadline.value
-    ? deadline.value.toLocaleString(store.language || undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      })
-    : '',
-)
+const { unconfirmed, overdue, resend, resending, resent } = useEmailConfirmation()
 
 // Whether this window has something to say -- not the same as being on screen. It is FIRST
-// of the three first-login windows (ES-003, useFirstLoginWindow): it can be waved away
-// while the other two want an answer, and inside the grace period the member is on a clock
-// they have to be told about.
+// of the first-login windows (ES-003, useFirstLoginWindow), and only past the deadline: inside
+// the grace period the strip on the page tells the member about the clock, and this window
+// stays away (EM-014). Past it, it returns on every route change — coming back from the
+// settings without having corrected anything must not leave the account silently narrowed
+// down with no explanation in sight.
 const wants = computed(
   () =>
-    store.emailChecked === false &&
-    // `overdue` overrides `dismissed`: past the deadline the modal returns on every
-    // route change — coming back from the settings without having corrected anything
-    // must not leave the account silently narrowed down with no explanation in sight.
-    (overdue.value || !dismissed.value) &&
+    unconfirmed.value &&
+    overdue.value &&
     // Never in the settings: correcting the address lives there, and an unclosable
     // modal on top of it would wall off its own way out.
     !route.path.startsWith('/settings'),
@@ -138,33 +80,15 @@ onUnmounted(() => setFirstLoginWindowWanted('email', false))
 const onScreen = firstLoginWindowOnScreen('email')
 const visible = computed({
   get: () => onScreen.value,
-  set: (value) => {
-    // Only the member closing it counts -- see AliasFirstChoice for the same guard. The
-    // getter goes false on its own while the conversation an address opened has the screen
-    // (`/contacts?with=…`, useFirstLoginWindow), and BModal writes that back: read as "Später",
-    // the reminder would be retired for the session without having been seen.
-    if (!value && onScreen.value) {
-      dismissed.value = true
-    }
-  },
+  // Nothing to record: the member has no way to close this window (no header, neither the
+  // backdrop nor Esc), and what BModal writes back when the getter goes false on its own --
+  // while the conversation an address opened has the screen (`/contacts?with=…`,
+  // useFirstLoginWindow) -- is not an answer. The setter is only there because `v-model`
+  // writes back.
+  set: () => {},
 })
 
-const { mutate: resendMutation } = useMutation(resendConfirmationEmail)
-
-const resend = async () => {
-  resending.value = true
-  try {
-    await resendMutation()
-    resent.value = true
-  } catch (error) {
-    toastError(error.message)
-  } finally {
-    resending.value = false
-  }
-}
-
 const goToSettings = () => {
-  dismissed.value = true
   router.push('/settings/account')
 }
 </script>

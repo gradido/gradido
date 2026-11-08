@@ -1,10 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
-  endFirstCreationHold,
+  endFirstLoginHolds,
   firstLoginWindow,
   firstLoginWindowOnScreen,
   forgetFirstLoginWindows,
+  holdAccountWindowsForThisSession,
   holdFirstCreationForThisSession,
   setFirstLoginWindowUndecided,
   setFirstLoginWindowWanted,
@@ -159,7 +160,7 @@ describe('useFirstLoginWindow', () => {
       wants('firstCreation')
       holdFirstCreationForThisSession()
 
-      endFirstCreationHold()
+      endFirstLoginHolds()
 
       expect(firstLoginWindow.value).toBe('firstCreation')
     })
@@ -170,7 +171,7 @@ describe('useFirstLoginWindow', () => {
       setFirstLoginWindowUndecided('home', true)
       holdFirstCreationForThisSession()
 
-      endFirstCreationHold()
+      endFirstLoginHolds()
 
       expect(firstLoginWindow.value).toBe('alias')
       setFirstLoginWindowWanted('alias', false)
@@ -272,6 +273,96 @@ describe('useFirstLoginWindow', () => {
       wants('home')
 
       expect(firstLoginWindow.value).toBe('home')
+    })
+  })
+
+  /**
+   * The page where a thank-you opened the account (E-044, ES-024, NU-025): whoever came for a
+   * thank-you meets it first. The name and the first creation wait for the next start, in their
+   * order; the address still comes.
+   */
+  describe('the windows about the member, after a thank-you opened the account', () => {
+    it('holds back the name and the first creation', () => {
+      wants('alias', 'firstCreation')
+      // The fixture proves itself: without the hold, the name has the screen.
+      expect(firstLoginWindow.value).toBe('alias')
+
+      holdAccountWindowsForThisSession()
+
+      expect(firstLoginWindow.value).toBeNull()
+      expect(firstLoginWindowOnScreen('alias').value).toBe(false)
+      expect(firstLoginWindowOnScreen('firstCreation').value).toBe(false)
+    })
+
+    it('lets the address come all the same, and nothing after it', () => {
+      holdAccountWindowsForThisSession()
+      wants('email', 'alias', 'firstCreation')
+
+      expect(firstLoginWindow.value).toBe('email')
+      setFirstLoginWindowWanted('email', false)
+      expect(firstLoginWindow.value).toBeNull()
+    })
+
+    // "Antworten" opens the conversation (the overview's tile, the reply of a mail): the others
+    // wait behind it, and then only the address comes.
+    it('lets only the address come once the conversation an address opened is closed', () => {
+      holdAccountWindowsForThisSession()
+      wants('contact', 'email', 'alias', 'firstCreation')
+
+      expect(firstLoginWindow.value).toBe('contact')
+      setFirstLoginWindowWanted('contact', false)
+      expect(firstLoginWindow.value).toBe('email')
+      setFirstLoginWindowWanted('email', false)
+      expect(firstLoginWindow.value).toBeNull()
+    })
+
+    // Passed over, not waited for: whether the name would come is of no matter in this session.
+    it('passes the name over while its answer is on its way, holding back nothing after it', () => {
+      holdAccountWindowsForThisSession()
+      wants('home')
+      setFirstLoginWindowUndecided('alias', true)
+
+      expect(firstLoginWindow.value).toBe('home')
+    })
+
+    // The next start is the page loaded anew -- this module then starts empty --, a sign-in,
+    // or, for the next member on this browser, the logout.
+    it('lets both come again after the logout', () => {
+      holdAccountWindowsForThisSession()
+
+      forgetFirstLoginWindows()
+      wants('alias', 'firstCreation')
+
+      expect(firstLoginWindow.value).toBe('alias')
+    })
+
+    it('lets both come again at the next sign-in, the name first (ES-003)', () => {
+      wants('alias', 'firstCreation')
+      holdAccountWindowsForThisSession()
+
+      endFirstLoginHolds()
+
+      expect(firstLoginWindow.value).toBe('alias')
+      setFirstLoginWindowWanted('alias', false)
+      expect(firstLoginWindow.value).toBe('firstCreation')
+    })
+
+    it('holds nothing in a session in which no thank-you opened an account', () => {
+      wants('alias', 'firstCreation')
+
+      expect(firstLoginWindow.value).toBe('alias')
+      setFirstLoginWindowWanted('alias', false)
+      expect(firstLoginWindow.value).toBe('firstCreation')
+    })
+
+    // The invitation onto the map holds the first creation and no more, as before.
+    it('is not what an event link holds: there the name still comes', () => {
+      holdFirstCreationForThisSession()
+      wants('alias', 'firstCreation')
+
+      expect(firstLoginWindow.value).toBe('alias')
+      setFirstLoginWindowWanted('alias', false)
+      expect(firstLoginWindow.value).toBeNull()
     })
   })
 })
