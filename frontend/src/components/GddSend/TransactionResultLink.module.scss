@@ -1,0 +1,23 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Under the root class: the scoped rules these were had one level more (the scope attribute),
+   and that level is what put `.cheque-icon` over Bootstrap's `.btn-sm`. */
+.transactionResultLink .chequeLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.transactionResultLink .chequeIcon {
+  padding: 0.15rem 0.45rem;
+  line-height: 1;
+}
+
+.transactionResultLink .chequePreview {
+  width: 100%;
+  max-width: 340px;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 18%);
+}

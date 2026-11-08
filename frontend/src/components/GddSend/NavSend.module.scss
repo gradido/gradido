@@ -1,0 +1,34 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Under the root class: the scoped rules these were had one level more (the scope attribute). */
+.navSend .navSendBtnWrapper {
+  background-color: #d1d1d1;
+
+  > :global(*) {
+    width: calc(100% / 3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    text-wrap: nowrap;
+    color: black !important;
+    border-radius: 25px;
+  }
+}
+
+.navSend :global(.svg-icon) {
+  filter: brightness(0) invert(0);
+}
+
+.navSend :global(.router-link-active) {
+  background-color: rgb(23 141 129);
+  color: white !important;
+  font-weight: bold;
+  padding: 0.625rem 1.25rem;
+  border-radius: 25px;
+}
+
+.navSend :global(.router-link-active .svg-icon) {
+  filter: brightness(0) invert(1);
+}

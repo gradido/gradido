@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { LINK_VALID_DAYS } from '@/constants'
-import RecipientNotFound from './RecipientNotFound.vue'
+import { RecipientNotFound } from './RecipientNotFound'
 
 const COMMUNITY = 'Gradido-Akademie'
 const ADDRESS = 'sarah@kongress-beispiel.de'

@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, shallowMount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import Send from './Send.vue'
+import { Send } from './Send'
 import { useMutation } from '@vue/apollo-composable'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { encodeChatImage } from '@/utils/chatImage'
@@ -19,7 +19,7 @@ import { walletStore } from '@test/walletStore'
  */
 // The form and the check view say what they were handed, and the form can say what it says.
 vi.mock('@/components/GddSend/TransactionForm', () => ({
-  default: {
+  TransactionForm: {
     name: 'TransactionForm',
     props: { picture: { type: Object, default: null } },
     emits: ['update:picture', 'set-transaction'],
@@ -27,20 +27,20 @@ vi.mock('@/components/GddSend/TransactionForm', () => ({
   },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
-  default: {
+  TransactionConfirmationSend: {
     name: 'TransactionConfirmationSend',
     props: { picture: { type: Object, default: null } },
     template: '<div></div>',
   },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
-  default: { template: '<div></div>' },
+  TransactionConfirmationLink: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultSendError: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultLink', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultLink: { template: '<div></div>' },
 }))
 
 const t = (key) => key
