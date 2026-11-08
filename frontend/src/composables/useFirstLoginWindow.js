@@ -25,8 +25,8 @@ import { computed, reactive } from 'vue'
  *
  * ⛔ For the same reason, what waits for the next start waits in this module and not in the
  * store (`held`, below): a hold written there would outlive the session it was said in and
- * keep a window away for good. Here a reload ends it, a sign-in ends it (store.js, `login`),
- * and the logout forgets it.
+ * keep a window away for good. Here a reload ends it, a sign-in ends it (store.js, `login`), the
+ * page "Schöpfen" ends it (pages/Contributions.vue, E-045), and the logout forgets it.
  *
  * ★ And the order lives HERE, in one line, rather than in the order the layout happens to
  * render the three components in. Their order in that template is arbitrary today -- the
@@ -55,9 +55,9 @@ import { computed, reactive } from 'vue'
  *
  * Before all of them comes a window that is none of them: the conversation an address opens
  * (`/contacts?with=…`, pages/Contacts.vue). Somebody who has just accepted a thank-you and
- * taps "… antworten" arrives in the wallet for the first time through that address, and what
- * they came for is the conversation -- the others wait, and come in their order once it is
- * closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one
+ * taps "Antworten" on the overview's tile, or the reply button of a mail, arrives in the
+ * conversation through that address, and what they came for is the conversation -- the others
+ * wait, and come in their order once it is closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one
  * at a time" still stands in this one line. Nothing shows by it: no component binds to it.
  */
 const ORDER = ['contact', 'email', 'alias', 'home', 'firstCreation']
@@ -84,7 +84,8 @@ const undecided = reactive({ alias: false, home: false })
 
 /**
  * Windows that wait for the next start -- a new sign-in, or the page loaded anew --, whatever
- * they would say in the session they were held in. Two say so:
+ * they would say in the session they were held in, or until the member opens "Schöpfen" (E-045:
+ * whoever goes there wants to create). Two say so:
  *
  * - The invitation onto the map holds the first creation once it was due in this session
  *   (KA-015: "erst beim nächsten Neustart"). Whatever the member answered the invitation, and
@@ -163,6 +164,10 @@ export const holdAccountWindowsForThisSession = () => {
  * first creation behind a thank-you. Only that -- which windows would show, the windows say
  * themselves, mounted with the layout, and resetting it from outside would leave a mounted one
  * believing what is no longer written here.
+ *
+ * And the page "Schöpfen" (pages/Contributions.vue, E-045), when it is built: whoever opens it
+ * wants to create, so what waited comes now, in its order -- the name before the first creation
+ * (ES-003). Every hold, as the sign-in: one rule, not one per hold.
  */
 export const endFirstLoginHolds = () => {
   held.alias = false

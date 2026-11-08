@@ -303,8 +303,8 @@ describe('useFirstLoginWindow', () => {
       expect(firstLoginWindow.value).toBeNull()
     })
 
-    // "… antworten" opens the conversation: the others wait behind it, and then only the
-    // address comes.
+    // "Antworten" opens the conversation (the overview's tile, the reply of a mail): the others
+    // wait behind it, and then only the address comes.
     it('lets only the address come once the conversation an address opened is closed', () => {
       holdAccountWindowsForThisSession()
       wants('contact', 'email', 'alias', 'firstCreation')

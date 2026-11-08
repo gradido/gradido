@@ -182,17 +182,6 @@ describe('RedeemThanksPaper', () => {
         expect(face(wrapper).attributes('height')).toBe('64')
       })
 
-      // The short sheet ("Dein Dank ist da.") has no line of the sender, so no face either.
-      it('stands not on the short sheet', () => {
-        const wrapper = mount(RedeemThanksPaper, {
-          props: { linkData: link({ senderAvatar: FACE }), short: true },
-          global: { plugins: [i18n] },
-        })
-
-        expect(face(wrapper).exists()).toBe(false)
-        expect(wrapper.find('.redeem-thanks-paper-initial').exists()).toBe(false)
-      })
-
       it('is 64px round, as is the circle of the letter, 12px from the sentence', () => {
         const rule = (selector) =>
           css.match(new RegExp(`(?:^|\\n)\\s*\\${selector}\\s*\\{([^}]*)\\}`))?.[1]
@@ -413,14 +402,6 @@ describe('RedeemThanksPaper', () => {
         expect(wrapper.find('.redeem-thanks-paper-picture').exists()).toBe(false)
       })
 
-      // "Dein Dank ist da.": the short sheet keeps the photo.
-      it('stays on the short sheet', () => {
-        const wrapper = withPhoto(photoGreeting(), { picture: PHOTO, short: true })
-
-        expect(photo(wrapper).attributes('src')).toBe(PHOTO)
-        expect(message(wrapper).exists()).toBe(false)
-      })
-
       // A photo is 36 : 25 to a pixel's rounding: it fills the room, and is not stretched.
       it('fills its room without being stretched', () => {
         expect(css).toMatch(
@@ -541,59 +522,6 @@ describe('RedeemThanksPaper', () => {
       expect(message(wrapper).element.children).toHaveLength(0)
       expect(wrapper.find('img').exists()).toBe(false)
       expect(wrapper.find('b b').exists()).toBe(false)
-    })
-  })
-
-  // "Dein Dank ist da." shows the greeting that was just accepted in short (ZE-017 F5): the
-  // picture, whom it is for and the line. The words were read a moment ago, and who thanked
-  // with how much is what the page says itself, right above.
-  describe('the short sheet', () => {
-    const LINE = 'Einfach so — weil es Dich gibt.'
-    const greeted = link({
-      memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
-      greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah' },
-    })
-    const short = (linkData = greeted) =>
-      mount(RedeemThanksPaper, {
-        props: { linkData, short: true },
-        global: { plugins: [i18n] },
-      })
-
-    it('keeps the picture, whom it is for and the line', () => {
-      const wrapper = short()
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
-        '/img/thank-you-greeting/morning-light.svg',
-      )
-      expect(wrapper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
-      expect(wrapper.find('[data-test="redeem-thanks-paper-line"]').text()).toBe(LINE)
-    })
-
-    it('leaves out the words, the rule and the line of the sender', () => {
-      const wrapper = short()
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').exists()).toBe(false)
-      expect(wrapper.find('.redeem-thanks-paper-rule').exists()).toBe(false)
-      expect(wrapper.find('.redeem-thanks-paper-sender').exists()).toBe(false)
-      expect(from(wrapper).exists()).toBe(false)
-      expect(wrapper.text()).toBe(`FÜR SARAH${LINE}`)
-    })
-
-    it('leaves out the words of a memo that does not begin with the line as well', () => {
-      const wrapper = short(link({ ...greeted, memo: 'Ganz andere Worte.' }))
-
-      expect(wrapper.text()).not.toContain('Ganz andere Worte.')
-    })
-
-    // Not asked for: every sheet the wallet showed before is the whole one.
-    it('is not what a sheet is unless asked', () => {
-      const wrapper = paper(greeted)
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').text()).toBe(
-        'Liebe Sarah, mit Eurem iPad hat alles angefangen.',
-      )
-      expect(from(wrapper).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
-      expect(wrapper.find('.redeem-thanks-paper-rule').exists()).toBe(true)
     })
   })
 

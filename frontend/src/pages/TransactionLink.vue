@@ -140,9 +140,10 @@ const isThanksLink = computed(
     result.value?.queryTransactionLink?.__typename === 'TransactionLink',
 )
 
-// What just happened to the thank-you on this page, for RedeemThanks: 'arrived' once it is
-// booked, 'almost' where the account opened here could not be signed in to. It belongs to the
-// moment: it is not in the address and not in the store, so a reload shows the link's state.
+// What just happened to the thank-you on this page, for RedeemThanks: 'almost' where the account
+// opened here could not be signed in to. It belongs to the moment: it is not in the address and
+// not in the store, so a reload shows the link's state. A thank-you booked here has no stage: the
+// page leads to the overview (E-045).
 const thanksStage = ref(null)
 
 const redeemCode = computed(() => params.code)
@@ -294,8 +295,7 @@ watch(itemType, (newItemType) => {
 
 // The photo of a thank-you greeting that carries one, for the sheet (useThankYouLinkPicture):
 // asked for once, as soon as the page knows that the link is open and its greeting has a photo
-// -- and kept from then on. ⛔ It is not asked for again once the thank-you is accepted on this
-// page: "Dein Dank ist da." shows the picture the page holds.
+// -- and kept from then on: the sheet and the strip over the account form show the same one.
 const { picture: thanksPicture, load: loadThanksPicture } = useThankYouLinkPicture()
 watch(
   () => [isThanksLink.value, linkData.value?.greeting?.hasPicture, itemType.value],
@@ -431,15 +431,17 @@ function setRedeemJwtLinkInformation() {
 // Before, a double tap on "redeem" sent the request twice.
 const accepting = ref(false)
 
-// A member takes the thank-you with one tap, and reads where it is now (F16): "Dein Dank ist
-// da.", on this page. Where the booking fails, the page says why and leads to the overview,
-// as before.
+// A member takes the thank-you with one tap, and stands on the overview once it is booked.
+// Where the booking fails, the page says why and leads to the overview, as before.
 async function acceptThanks() {
   if (accepting.value) return
   accepting.value = true
   try {
     await redeemMutate({ code: redeemCode.value })
-    thanksStage.value = 'arrived'
+    // E-045 (Bernd, 08.11.2026): the page after the booking said what the overview says anyway --
+    // the tile, the answer, the chat mark; so the member lands there. The button stays locked
+    // until the overview stands.
+    await router.push('/overview')
   } catch (err) {
     toastError(err.message)
     await router.push('/overview')
@@ -462,8 +464,8 @@ async function refreshLink() {
 
 /**
  * A guest accepts the thank-you: the account is opened right here (ZE-017 F5). One tap, three
- * steps -- open the account, sign in as the login page does, book the thank-you -- and then
- * "Dein Dank ist da.".
+ * steps -- open the account, sign in as the login page does, book the thank-you -- and then the
+ * overview, where the tile "Dein Dank ist da." stands (E-045).
  *
  * - No step runs twice. The button is locked while the chain runs, and a step that succeeded
  *   is remembered: a second `createUser` for the same address would write the new member the
@@ -532,7 +534,10 @@ async function openAccount({ firstName, lastName, email, password }) {
       await refreshLink()
       return
     }
-    thanksStage.value = 'arrived'
+    // E-045 (Bernd, 08.11.2026): the page after the booking said what the overview says anyway --
+    // the tile, the answer, the chat mark; so the member lands there. The hold above was said
+    // before the booking and lives in a module: the jump does not end it.
+    await router.push('/overview')
   } catch (err) {
     // The text ends in its own space, as on the login page.
     toastError(t('error.unknown-error') + err.message)

@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useMutation } from '@vue/apollo-composable'
+import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '@/store/useWalletStore'
 import { resendConfirmationEmail } from '@/graphql/mutations'
 import { useAppToast } from '@/composables/useToast'
@@ -27,6 +28,7 @@ export const CONFIRMATION_GRACE_HOURS = 24
 export const useEmailConfirmation = () => {
   const store = useWalletStore()
   const { toastError } = useAppToast()
+  const { t } = useI18n()
 
   // `=== false`: null means the state is not known, and nothing is said about an address
   // nobody knows the state of.
@@ -74,7 +76,15 @@ export const useEmailConfirmation = () => {
       await resendMutation()
       resent.value = true
     } catch (error) {
-      toastError(error.message)
+      // The server says "Email already sent less than N minutes ago" (AssistedRegistrationResolver,
+      // EMAIL_CODE_REQUEST_TIME): recognised the way Login.vue recognises its server texts, and
+      // said without the number, which is the server's to know (E-045). Any other refusal in its
+      // own words.
+      toastError(
+        error.message.includes('Email already sent')
+          ? t('emailConfirmation.resendTooSoon')
+          : error.message,
+      )
     } finally {
       resending.value = false
     }

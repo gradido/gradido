@@ -265,7 +265,7 @@ describe('FirstCreation', () => {
     it('asks the question plainly and offers the sentences rather than demanding them', () => {
       const form = build().find('[data-test="first-creation-form"]').text()
       // "für das Gemeinwohl" moved up into the intro: the question no longer carries it.
-      expect(form).toContain('Was hast Du in den vergangenen Wochen schon Gutes getan?')
+      expect(form).toContain('Was hast Du in den vergangenen Wochen Gutes getan?')
       expect(form).not.toContain('schon Gutes für das Gemeinwohl getan')
       // And the line under it says the sentences may be reshaped -- since #3857 the box
       // carries the opening, so "vervollständige" was no longer the whole truth.
