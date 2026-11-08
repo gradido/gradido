@@ -96,7 +96,7 @@ export function mapTxToLog(tx: CrossGroupTransaction) {
   return {
     user: tx.sender,
     linkedUser: tx.recipient,
-    creationDate: tx.balanceDate.toISOString(),
+    balanceDate: tx.balanceDate.toISOString(),
     amount: tx.amount.toString(4),
     memo: tx.memo.substring(0, 5),
   }
@@ -121,7 +121,7 @@ export async function findPendingTransaction(
 
   if (!pendingTx || !pendingTx.amount || tx.amount.comparedTo(pendingTx.amount) !== 0n) {
     if (logger.isDebugEnabled()) {
-      logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx))
+      logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx), recipientUser)
     }
     const m = `missing pending transaction for commit on ${transactionTypeId === TransactionTypeId.SEND ? 'sender' : 'recipient'} side`
     return xcomError(CrossCommunityErrorType.notFound, m)

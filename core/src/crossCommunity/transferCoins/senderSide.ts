@@ -95,12 +95,24 @@ export async function processXComCompleteTransaction(
       throw new Error(genericTransactionFailedMessage)
     }
     const foreignUser = pendingResult.value
+    if (foreignUser.communityUuid !== client.communityUuid || foreignUser.communityUuid !== recipientCom.communityUuid) {
+      logger.error(`recipient user community uuid and recipient community uuid not match`, {
+        foreignUserComUuid: foreignUser.communityUuid,
+        clientComUuid: client.communityUuid,
+        recipientComUuid: recipientCom.communityUuid
+      })
+      throw new Error(genericTransactionFailedMessage)
+    }
     tx.sender.avatarUpdatedAt = await dbFindMemberAvatarTimestamp(sender.id)
     const committingResult = await processXComCommittingSendCoins(client, tx, foreignUser)
     if (!committingResult.success) {
-      logger.warn(
-        `${recipientCommunityIdentifier} refused our transaction for ${recipientIdentifier} because: ${committingResult.error.message}`,
-      )
+      if (committingResult.error.type === CrossCommunityErrorType.notFound) {
+        logger.error(committingResult.error.message)
+      } else {
+        logger.warn(
+          `${recipientCommunityIdentifier} refused our transaction for ${recipientIdentifier} because: ${committingResult.error.message}`,
+        )
+      }
       throw new Error(genericTransactionFailedMessage)
     }
     // after successful x-com-tx store the recipient as foreign user
@@ -191,9 +203,10 @@ async function processXComPendingSendCoins(
 
   // writing the pending transaction on receiver-side was successfull, so now write the sender side
   try {
-    await dbInsertPendingTransaction(
+    const insertResult = await dbInsertPendingTransaction(
       mapToPendingTx(txData, senderBalance.value, recipientUser, userId, TransactionTypeId.SEND),
     )
+    if (!insertResult.success) { throw insertResult }
   } catch (err) {
     // revert the existing pending transaction on receiver side
     let revertCount = 0
