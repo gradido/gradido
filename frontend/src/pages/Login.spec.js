@@ -559,6 +559,29 @@ describe('Login', () => {
           expect(wallet.eventMatchingEntry).toBeNull()
         })
       })
+
+      // coderabbit on #4259: the space may answer without data (`result.data` null), not only
+      // with an error. That is no address to go to: it is told as any other failure.
+      describe('and a project whose space answers without data', () => {
+        beforeEach(() => {
+          wallet.project = 'garden'
+          mockMutate
+            .mockResolvedValueOnce({ data: { login: { language: 'en' } } })
+            .mockResolvedValueOnce({ data: null })
+        })
+        afterEach(() => {
+          wallet.project = null
+        })
+
+        it('toasts the missing answer instead of leaving for nowhere', async () => {
+          await signIn()
+
+          expect(mockToastError).toHaveBeenCalledWith(
+            'Unknown errorauthenticateHumhubAutoLogin: no answer',
+          )
+          expect(router.currentRoute.value.fullPath).not.toBe('/matching/entries')
+        })
+      })
     })
 
     it('hands nothing to the form for a new entry where no event link was opened', async () => {

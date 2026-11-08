@@ -68,7 +68,7 @@ export const Login = defineComponent({
           const result = await mutateHumhubAutoLogin({
             project: store.project,
           })
-          if (!result) {
+          if (!result?.data) {
             throw new Error('authenticateHumhubAutoLogin: no answer')
           }
           window.location.href = result.data.authenticateHumhubAutoLogin
