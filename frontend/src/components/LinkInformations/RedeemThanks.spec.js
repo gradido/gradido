@@ -100,6 +100,8 @@ const link = (overrides = {}) => ({
   redeemedAt: null,
   deletedAt: null,
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   communities: [HOME, WIEN],
   ...overrides,
 })
@@ -158,7 +160,6 @@ const how = (wrapper) => wrapper.find('[data-test="redeem-thanks-how"]')
 const toAccount = (wrapper) => wrapper.find('[data-test="redeem-thanks-to-account"]')
 const ownLinks = (wrapper) => wrapper.find('[data-test="redeem-thanks-own-links"]')
 const text = (wrapper) => wrapper.find('[data-test="redeem-thanks-text"]')
-const answer = (wrapper) => wrapper.find('[data-test="redeem-thanks-answer"]')
 const form = (wrapper) => wrapper.findComponent(RedeemThanksAccount)
 
 const GUEST_STATES = ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY']
@@ -252,7 +253,7 @@ describe('RedeemThanks', () => {
       await accept(wrapper).trigger('click')
       await flushPromises()
 
-      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Konto')
+      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Gradido-Konto')
       expect(form(wrapper).element.contains(haveAccount(wrapper).element)).toBe(true)
       expect(
         wrapper.find('form').element.compareDocumentPosition(haveAccount(wrapper).element) &
@@ -326,7 +327,7 @@ describe('RedeemThanks', () => {
     it('is led straight to the sign-in, with the code of the address', async () => {
       const wrapper = await view('LOGGED_OUT')
 
-      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Konto')
+      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Gradido-Konto')
       expect(haveAccount(wrapper).element.tagName).toBe('A')
       expect(haveAccount(wrapper).attributes('href')).toBe(`/login/${CODE}`)
     })
@@ -361,7 +362,7 @@ describe('RedeemThanks', () => {
     it('finds the line closed, and nothing is asked before it is opened', async () => {
       const wrapper = await view('REDEEM_SELECT_COMMUNITY')
 
-      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Konto')
+      expect(haveAccount(wrapper).text()).toBe('Ich habe schon ein Gradido-Konto')
       expect(haveAccount(wrapper).element.tagName).toBe('BUTTON')
       expect(haveAccount(wrapper).attributes('type')).toBe('button')
       expect(haveAccount(wrapper).attributes('aria-expanded')).toBe('false')
@@ -786,196 +787,6 @@ describe('RedeemThanks', () => {
     })
   })
 
-  // ZE-017 F5 and F16: the thank-you was booked on this page, a moment ago. The page says so
-  // with `stage`, and the view shows where the thank-you is now -- to somebody who has just
-  // opened the account and to a member alike, whatever the state says the link is in.
-  describe.each([
-    ['somebody who has just opened the account', 'LOGGED_OUT'],
-    ['the same where links cross communities', 'REDEEM_SELECT_COMMUNITY'],
-    ['a member', 'VALID'],
-    ['a link the server already calls accepted', 'TEXT_REDEEMED'],
-  ])('the thank-you has arrived, for %s', (_, state) => {
-    const LINE = 'Einfach so — weil es Dich gibt.'
-    const greeted = link({
-      memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
-      greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah' },
-      redeemedAt: state === 'TEXT_REDEEMED' ? '2026-07-12T10:08:43.000Z' : null,
-    })
-    const plain = link({
-      redeemedAt: state === 'TEXT_REDEEMED' ? '2026-07-12T10:08:43.000Z' : null,
-    })
-    const arrived = (linkData = plain) => view(state, { linkData, stage: 'arrived' })
-
-    it('says so, with the amount and who it is from', async () => {
-      const wrapper = await arrived()
-
-      expect(wrapper.find('[data-test="redeem-thanks-arrived"]').exists()).toBe(true)
-      expect(title(wrapper).element.tagName).toBe('H2')
-      expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-      expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
-      expect(wrapper.findAll('h1, h2, h3')).toHaveLength(1)
-    })
-
-    it('shows the sign of an accepted thank-you, drawn and not read out', async () => {
-      const wrapper = await arrived()
-      const sign = wrapper.find('svg.redeem-thanks-sign')
-
-      expect(sign.classes()).toContain('is-accepted')
-      expect(sign.attributes('aria-hidden')).toBe('true')
-    })
-
-    // F5, the short form: the picture, whom it is for and the line -- so that both buttons
-    // stand on the first screen of a phone.
-    it('shows a greeting in short: no words, no line of the sender', async () => {
-      const wrapper = await arrived(greeted)
-      const paper = wrapper.findComponent(RedeemThanksPaper)
-
-      expect(paper.props('short')).toBe(true)
-      expect(paper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
-        '/img/thank-you-greeting/morning-light.svg',
-      )
-      expect(paper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
-      expect(paper.find('[data-test="redeem-thanks-paper-line"]').text()).toBe(LINE)
-      expect(paper.find('[data-test="redeem-thanks-paper-message"]').exists()).toBe(false)
-      expect(paper.text()).not.toContain('mit Eurem iPad')
-      expect(paper.text()).not.toContain('Oma-Emma')
-    })
-
-    it('shows no sheet for a plain link', async () => {
-      const wrapper = await arrived()
-
-      expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(false)
-      expect(wrapper.find('img').exists()).toBe(false)
-    })
-
-    // The answer is a message in the conversation with whoever thanked, as the button of the
-    // mail opens it.
-    it('leads the golden button to the conversation with whoever thanked', async () => {
-      const wrapper = await arrived()
-
-      expect(answer(wrapper).text()).toBe('Oma-Emma antworten')
-      expect(answer(wrapper).attributes('href')).toBe(`/contacts?with=${GRADIDO_ID}`)
-      expect(answer(wrapper).classes()).toContain('btn-gradido')
-      expect(answer(wrapper).classes()).toContain('redeem-thanks-accept')
-    })
-
-    it('leads to the account with the quiet button under it', async () => {
-      const wrapper = await arrived()
-
-      expect(toAccount(wrapper).text()).toBe('Zum Konto')
-      expect(toAccount(wrapper).attributes('href')).toBe('/overview')
-      expect(
-        toAccount(wrapper)
-          .classes()
-          .filter((name) => /^btn-(?!md$)/.test(name)),
-      ).toEqual([])
-      expect(
-        answer(wrapper).element.compareDocumentPosition(toAccount(wrapper).element) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy()
-      expect(wrapper.findAll('a, button')).toHaveLength(2)
-    })
-
-    it('offers nothing to accept any more, and no form', async () => {
-      const wrapper = await arrived()
-
-      expect(accept(wrapper).exists()).toBe(false)
-      expect(form(wrapper).exists()).toBe(false)
-      expect(haveAccount(wrapper).exists()).toBe(false)
-      expect(wrapper.text()).not.toContain('Dieser Dank ist angenommen.')
-    })
-
-    it('writes the amount with the decimal mark of the language', async () => {
-      const wrapper = await arrived(link({ amount: '12.5' }))
-
-      expect(text(wrapper).text()).toBe('Du hast jetzt 12,5 Gradido von Oma-Emma auf Deinem Konto.')
-    })
-  })
-
-  // A user name may be 20 characters, and the button of a 320px phone holds fewer: the name
-  // goes where the label would not stay one line. jsdom lays nothing out, so the widths are
-  // handed in here; the measure in the built wallet is part of the delivery.
-  describe('the name on the answer button', () => {
-    const LONG = link({
-      senderUser: { gradidoID: GRADIDO_ID, alias: 'Maximiliane-Musterfr', publisherId: null },
-    })
-    let widths
-
-    beforeEach(() => {
-      widths = { box: 226, perLetter: 9 }
-      const isLine = (element) => element.classList.contains('redeem-thanks-answer-line')
-      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
-        return isLine(this) ? widths.box : 0
-      })
-      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
-        return isLine(this)
-          ? Math.max(widths.box, this.textContent.trim().length * widths.perLetter)
-          : 0
-      })
-    })
-
-    afterEach(() => {
-      vi.restoreAllMocks()
-    })
-
-    it('stands there while the label is one line', async () => {
-      const wrapper = await view('VALID', { stage: 'arrived' })
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Oma-Emma antworten')
-    })
-
-    it('goes where the label would not fit', async () => {
-      const wrapper = await view('VALID', { linkData: LONG, stage: 'arrived' })
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Antworten')
-      expect(answer(wrapper).attributes('href')).toBe(`/contacts?with=${GRADIDO_ID}`)
-    })
-
-    it('goes for the same name in a language that needs more room, and stays in one that needs less', async () => {
-      // 26 letters fit: "Reply to Oma-Emma-Musterfr" does, the Turkish label does not.
-      widths.box = 240
-      const sender = link({
-        senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma-Musterfr', publisherId: null },
-      })
-      const wrapper = await view('VALID', { linkData: sender, stage: 'arrived' })
-      i18n.global.locale.value = 'en'
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Reply to Oma-Emma-Musterfr')
-
-      i18n.global.locale.value = 'tr'
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Yanıtla')
-
-      i18n.global.locale.value = 'en'
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Reply to Oma-Emma-Musterfr')
-    })
-
-    // The view was mounted before the thank-you was booked: the button comes with the stage.
-    it('is measured when the view turns to "arrived"', async () => {
-      const wrapper = await view('VALID', { linkData: LONG })
-
-      await wrapper.setProps({ stage: 'arrived' })
-      await flushPromises()
-
-      expect(answer(wrapper).text()).toBe('Antworten')
-    })
-
-    it('has the line cut what does not fit, so that it can be measured', () => {
-      const here = dirname(fileURLToPath(import.meta.url))
-      const sfc = readFileSync(join(here, 'RedeemThanks.vue'), 'utf8')
-      const [, rule] = sfc.match(/\.redeem-thanks-answer-line\s*\{([^}]*)\}/)
-
-      expect(rule).toMatch(/white-space:\s*nowrap/)
-      expect(rule).toMatch(/overflow:\s*hidden/)
-    })
-  })
-
   // The account opened here could not be signed in to. ⛔ One view for every reason, and it
   // names none (E-017): an address that is taken and a link that did not vouch read the same.
   describe.each(GUEST_STATES)('almost there (%s)', (state) => {
@@ -1056,7 +867,7 @@ describe('RedeemThanks', () => {
   // Signs are drawn, not typed: no pictograph in any text of any state, in either language
   // the texts are written in first.
   describe.each(['de', 'en'])('the texts (%s)', (language) => {
-    it.each(['arrived', 'almost'])('carry no emoji in the view "%s"', async (stage) => {
+    it.each(['almost'])('carry no emoji in the view "%s"', async (stage) => {
       i18n.global.locale.value = language
       const wrapper = await view('LOGGED_OUT', { stage })
 
@@ -1076,6 +887,29 @@ describe('RedeemThanks', () => {
       expect(wrapper.text()).not.toMatch(/\p{Extended_Pictographic}/u)
       // And every sentence found its text: a missing key would stand there as its own name.
       expect(wrapper.text()).not.toContain('redeem-thanks.')
+    })
+  })
+
+  // ZE-038: the face the server hands out with an open link stands on the sheet -- for whoever
+  // may accept it, and for the sender, who sees the sheet as the other person will.
+  describe('the face of the sender', () => {
+    const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+    const face = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-face"]')
+
+    it.each([...GUEST_STATES, 'VALID', 'SELF_CREATOR'])(
+      'stands on the sheet of an open link (%s)',
+      async (state) => {
+        const wrapper = await view(state, { linkData: link({ senderAvatar: FACE }) })
+
+        expect(face(wrapper).attributes('src')).toBe(`data:image/jpeg;base64,${FACE}`)
+      },
+    )
+
+    it('gives way to the letter where the link carries none', async () => {
+      const wrapper = await view('LOGGED_OUT')
+
+      expect(face(wrapper).exists()).toBe(false)
+      expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
     })
   })
 
@@ -1158,8 +992,8 @@ describe('RedeemThanks', () => {
 
     /**
      * A greeting with a photo of the sender's own (ZE-019). The page fetched the photo once and
-     * holds it; the view hands that one picture to every place that shows it -- the sheet, the
-     * strip over the account form, and the short sheet of "Dein Dank ist da.".
+     * holds it; the view hands that one picture to every place that shows it -- the sheet and the
+     * strip over the account form.
      */
     describe('with a photo of the sender’s own', () => {
       const PHOTO = 'blob:https://ki-playground.gradido.net/1c2d'
@@ -1201,23 +1035,6 @@ describe('RedeemThanks', () => {
         expect(wrapper.find('[data-test="redeem-thanks-strip-photo"]').attributes('src')).toBe(
           PHOTO,
         )
-      })
-
-      /**
-       * ⛔ "Dein Dank ist da.": the photo stays as the page holds it. The link is accepted by
-       * then, and the server serves its picture under the link's address no more.
-       */
-      it('keeps the photo on the short sheet once the thank-you has arrived', async () => {
-        const wrapper = await view('TEXT_REDEEMED', {
-          linkData: withPhoto({ redeemedAt: '2026-07-01T09:30:00.000Z' }),
-          stage: 'arrived',
-          picture: PHOTO,
-        })
-        const paper = wrapper.findComponent(RedeemThanksPaper)
-
-        expect(paper.props('short')).toBe(true)
-        expect(paper.props('picture')).toBe(PHOTO)
-        expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO)
       })
 
       // Opened later: no sheet, and so no photo -- whatever the page might hold.

@@ -6,8 +6,13 @@ import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSea
 import { fileLinkService } from '@/utils/chatFileLink'
 import { chatMarkdown, isPlainChatText } from '@/utils/chatMarkdown'
 import '@/components/Chat/chatMarkdown.scss'
-import { CHAT_VIDEO_JOIN, chatVideoAppUrl, offersJitsiApp } from '@/utils/chatVideoApp'
-import { withoutChatVideoTopic } from '@/utils/chatVideoTopic'
+import {
+  CHAT_VIDEO_JOIN,
+  CHAT_VIDEO_JOINED,
+  chatVideoAppUrl,
+  offersJitsiApp,
+} from '@/utils/chatVideoApp'
+import { readChatVideoAddition, withoutChatVideoTopic } from '@/utils/chatVideoTopic'
 
 /** A click that opens a link where it stands: no key held, the main button. The others -- a new
  * tab, a new window, a download -- are the browser's, and they go as they always did. */
@@ -109,6 +114,12 @@ const HEADING_TAGS = ['h4', 'h5', 'h6', 'h6', 'h6', 'h6']
  * on any link. On a phone, and where no window provides the question, it opens the room straight
  * away, as it always did. Whether this is a computer is asked at the click, nothing kept.
  *
+ * And where the browser opens the room itself -- on a phone the plain click, anywhere a click with
+ * a key held or with the middle button --, the link tells the window that the member went in
+ * (`CHAT_VIDEO_JOINED`, E-043 C): the window notes the invitation, for the line "Möchtest Du Dich
+ * bei … bedanken?" half an hour after the click (utils/chatVideoJoined). On a computer the
+ * question tells it, at "Join call" -- not at its opening. "Copy link" tells nothing.
+ *
  * Searched for in the thread (E-057), the hits are marked where they stand -- in the words,
  * emphasised or not, in code and in the addresses as shown; a file card is a card, not words, and
  * stays as it is. The search itself reads the message as it was typed.
@@ -126,6 +137,7 @@ export default {
   },
   setup(props) {
     const join = inject(CHAT_VIDEO_JOIN, null)
+    const noteJoined = inject(CHAT_VIDEO_JOINED, null)
     const search = useChatSearchNeedle()
     // Read once for a text, not at every picture: the search marks its hits by drawing anew.
     const blocks = computed(() => chatMarkdown(props.text))
@@ -137,7 +149,15 @@ export default {
       const address = (part) => {
         const shown = withoutChatVideoTopic(part.value)
         const video = shown !== part.value
+        // An invitation of our own (E-038 Punkt 5) asks first on a computer, where a window gives
+        // the question (V4b): a plain click -- and "Anruf beitreten" there tells the window that
+        // the member went in. Every other click on a room of Gradido's own form -- the address
+        // the thread reads an invitation by (readChatVideoAddition), one whose time was changed
+        // too (E-060) -- opens the room in the browser and tells it here: on a phone the plain
+        // one, anywhere one with a key held or with the middle button (E-043 C, Festlegung 2).
+        // Nothing is held back from the browser then.
         const asks = join && chatVideoAppUrl(part.value) !== null
+        const tells = noteJoined && readChatVideoAddition(part.value) !== null
         const link = h(
           'a',
           {
@@ -145,12 +165,22 @@ export default {
             href: part.value,
             target: '_blank',
             rel: 'noopener noreferrer',
-            ...(asks
+            ...(asks || tells
               ? {
                   onClick: (event) => {
-                    if (!plainClick(event) || !offersJitsiApp()) return
-                    event.preventDefault()
-                    join(part.value)
+                    if (asks && plainClick(event) && offersJitsiApp()) {
+                      event.preventDefault()
+                      join(part.value)
+                      return
+                    }
+                    if (tells) noteJoined(part.value)
+                  },
+                }
+              : {}),
+            ...(tells
+              ? {
+                  onAuxclick: (event) => {
+                    if (event.button === 1) noteJoined(part.value)
                   },
                 }
               : {}),

@@ -1,4 +1,17 @@
-import { and, count, eq, gte, inArray, isNotNull, isNull, ne, SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  ne,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { ContactOrigin, GradidoUnit, isAliasEraName, Order, Result, VoidResult } from 'shared'
 import { FindOptionsWhere, In, IsNull } from 'typeorm'
@@ -6,7 +19,7 @@ import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { Transaction as DbTransaction } from '../entity'
 import { TransactionTypeId } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
-import { TransactionInsert, transactionsTable, usersTable } from '../schemas'
+import { TransactionInsert, TransactionSelect, transactionsTable, usersTable } from '../schemas'
 import { ChatMemberRef } from './chatConversationMembers'
 import { dbSelectDirectChatContactsByMember } from './chatConversations'
 import {
@@ -839,15 +852,42 @@ export async function dbCountAndSumTransactionsOfTypeByWeek(
     .orderBy(week)
 }
 
-// One statement for all the rows it is given
+/** A member's latest booking, by booking time and then id, or null if they have none. */
+export async function dbSelectLastTransaction(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<TransactionSelect | null> {
+  const rows = await tx
+    .select()
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.balanceDate), desc(transactionsTable.id))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+// One statement for all the rows it is given. Returns their ids, in the order of the rows.
 export async function dbInsertTransactions(
   transactions: TransactionInsert[],
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<void> {
+): Promise<number[]> {
   if (transactions.length === 0) {
-    return
+    return []
   }
-  await tx.insert(transactionsTable).values(transactions)
+  const inserted = await tx.insert(transactionsTable).values(transactions).$returningId()
+  return inserted.map(({ id }) => id)
+}
+
+/** Names the other row of a transfer on this one. */
+export async function dbUpdateLinkedTransactionId(
+  id: number,
+  linkedTransactionId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx
+    .update(transactionsTable)
+    .set({ linkedTransactionId })
+    .where(eq(transactionsTable.id, id))
 }
 
 /** The bookings of one type that carry a picture: a motif of the greeting, or a photo. */
@@ -928,4 +968,166 @@ export async function dbCountFirstSendersByWeek(from: Date): Promise<WeeklyCount
     .where(derivedAtOrAfter(firstSends.firstSentAt, transactionsTable.balanceDate, from))
     .groupBy(week)
     .orderBy(week)
+}
+
+/** Transfers from one person the member has not seen yet (Chat E-086). */
+export interface UnreadReceivedTransfers {
+  /** Whoever sent them, by the pair the member's bookings name them by (`linked_user_*`). */
+  sender: ChatMemberRef
+  /** How many of their transfers the member has not seen. */
+  count: number
+  /** The newest of them, by its id: the member's RECEIVE booking. */
+  latestId: number
+}
+
+/** The member's own RECEIVE bookings they have not seen yet. */
+const unseenReceivedBy = (userId: number) =>
+  and(
+    eq(transactionsTable.userId, userId),
+    eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+    eq(transactionsTable.seen, false),
+  )
+
+/**
+ * The transfers the member received and has not seen, per person who sent them (Chat E-086). The
+ * chat's beat asks this every fifteen seconds while a wallet is open; it reads the member's
+ * bookings through the index `user_id`.
+ *
+ * Bookings without the pair of whoever sent them have no person to stand at and are left out.
+ * One entry per sender, however their pair is spelled: both columns are `utf8mb4_unicode_ci`, so
+ * the GROUP BY compares without regard to case. Which spelling comes back is up to the database.
+ */
+export async function dbSelectUnreadReceivedTransfers(
+  userId: number,
+): Promise<UnreadReceivedTransfers[]> {
+  const rows = await drizzleDb()
+    .select({
+      communityUuid: transactionsTable.linkedUserCommunityUuid,
+      gradidoId: transactionsTable.linkedUserGradidoId,
+      count: sql`count(*)`.mapWith(Number),
+      latestId: sql`max(${transactionsTable.id})`.mapWith(Number),
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        unseenReceivedBy(userId),
+        isNotNull(transactionsTable.linkedUserCommunityUuid),
+        isNotNull(transactionsTable.linkedUserGradidoId),
+      ),
+    )
+    .groupBy(transactionsTable.linkedUserCommunityUuid, transactionsTable.linkedUserGradidoId)
+  return rows.flatMap((row) =>
+    row.communityUuid && row.gradidoId
+      ? [
+          {
+            sender: { communityUuid: row.communityUuid, gradidoId: row.gradidoId },
+            count: row.count,
+            latestId: row.latestId,
+          },
+        ]
+      : [],
+  )
+}
+
+/**
+ * When this member last sent Gradido to each of these members of this community: the time of the
+ * member's newest SEND booking to each, by the counterparty's `users` id -- one entry per member
+ * sent to, none for one never sent to. What a booking list says a thank-you was answered with
+ * (F E-046, ThanksAnswer.logic in the backend): Gradido sent back to the giver after the
+ * thank-you came.
+ *
+ * The member's own SEND rows only: a RECEIVE row is what came, not what went. By
+ * `linked_user_id`, which a transfer between two members here carries on both of its rows; a
+ * member of another community is named by the pair alone and is never asked for here.
+ *
+ * ⛔ Not a sending through a link (`transaction_link_id`): redeeming a link books the transfer on
+ * the maker's side at the moment the other person redeems it, whenever the link was made. A link
+ * made before the thank-you and redeemed after it would count as an answer the member never gave.
+ * Left out, too, is a link made after it: the time a link was made is no column of these rows.
+ *
+ * The time is read the way Drizzle reads a datetime, as UTC -- why that compares with the
+ * booking times TypeORM reads is said where the two meet (ThanksAnswer.logic).
+ *
+ * An empty list asks nothing.
+ */
+export async function dbSelectLastSentToByUser(
+  userId: number,
+  linkedUserIds: number[],
+): Promise<Array<{ linkedUserId: number; lastSentAt: Date }>> {
+  if (linkedUserIds.length === 0) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({
+      linkedUserId: transactionsTable.linkedUserId,
+      lastSentAt: sql`max(${transactionsTable.balanceDate})`.mapWith(transactionsTable.balanceDate),
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.userId, userId),
+        eq(transactionsTable.typeId, TransactionTypeId.SEND),
+        inArray(transactionsTable.linkedUserId, linkedUserIds),
+        isNull(transactionsTable.transactionLinkId),
+      ),
+    )
+    .groupBy(transactionsTable.linkedUserId)
+  return rows.flatMap((row) =>
+    row.linkedUserId === null
+      ? []
+      : [{ linkedUserId: row.linkedUserId, lastSentAt: row.lastSentAt }],
+  )
+}
+
+/**
+ * Marks as seen the transfers the member received from `partner` up to `upToId`: what their
+ * conversation showed. The thread hands over the newest transfer it showed, and the older ones count
+ * as seen with it. Answers how many were marked just now; already seen is no failure.
+ *
+ * Only the member's own RECEIVE bookings from that person are touched, whatever id is handed. The
+ * pair is compared by the column's own collation.
+ */
+export async function dbMarkReceivedTransfersSeen(
+  userId: number,
+  partner: ChatMemberRef,
+  upToId: number,
+): Promise<number> {
+  const result = await drizzleDb()
+    .update(transactionsTable)
+    .set({ seen: true })
+    .where(
+      and(
+        unseenReceivedBy(userId),
+        lte(transactionsTable.id, upToId),
+        eq(transactionsTable.linkedUserCommunityUuid, partner.communityUuid),
+        eq(transactionsTable.linkedUserGradidoId, partner.gradidoId),
+      ),
+    )
+  // `seen = false` is part of the condition, so the matched rows are the ones marked just now.
+  return result[0]?.affectedRows ?? 0
+}
+
+/**
+ * Marks one transfer the member received as seen: they opened it in the booking list, or answered
+ * it with a reaction (Chat E-086). Only that one: an older transfer from the same person stays
+ * unread until it is seen itself. False where the id is no RECEIVE booking of the member's; already
+ * seen is true.
+ */
+export async function dbMarkReceivedTransferSeen(
+  userId: number,
+  transactionId: number,
+): Promise<boolean> {
+  const result = await drizzleDb()
+    .update(transactionsTable)
+    .set({ seen: true })
+    .where(
+      and(
+        eq(transactionsTable.id, transactionId),
+        eq(transactionsTable.userId, userId),
+        eq(transactionsTable.typeId, TransactionTypeId.RECEIVE),
+      ),
+    )
+  // mysql2 connects with FOUND_ROWS: `affectedRows` counts the rows matched, so a transfer that
+  // was already seen still answers true.
+  return result[0]?.affectedRows === 1
 }

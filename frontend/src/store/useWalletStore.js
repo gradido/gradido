@@ -19,7 +19,7 @@ import { forgetContactsPanel } from '../composables/useContactsPanel'
 import { stopChatUpdates } from '../composables/useChatUpdates'
 import { forgetParkedAmount } from '../composables/useParkedAmount'
 import { forgetEventLinkArrival } from '../composables/useEventMatchingArrival'
-import { endFirstCreationHold, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
+import { endFirstLoginHolds, forgetFirstLoginWindows } from '../composables/useFirstLoginWindow'
 import { forgetLegacyMapPrefs } from '../utils/matchingPrefs'
 import { forgetChatDrafts, letOldChatDraftsGo } from '../utils/chatDraft'
 import { forgetChatReturn } from '../utils/chatReturn'
@@ -76,6 +76,10 @@ export const useWalletStore = defineStore('wallet', {
     gmsAllowed: null,
     avatarVisibleToMembers: null,
     creationAllowed: null,
+    // ES-002: where the member's first creation stands, as the login answered it -- null for a
+    // member who has not been asked yet, or where the answer does not say. The window asks its
+    // own status query only while this says it might still open.
+    firstCreationStatus: null,
     transfersInChat: null,
     humhubAllowed: null,
     gmsPublishLocation: null,
@@ -86,7 +90,8 @@ export const useWalletStore = defineStore('wallet', {
     hideAmountGDD: null,
     hideAmountGDT: null,
     // EM-013: whether the member's address is confirmed, and when the account was
-    // created — the confirm-reminder modal derives its deadline from the two.
+    // created — the address reminder derives its deadline from the two
+    // (useEmailConfirmation: the strip inside the 24 hours, the window after them).
     emailChecked: null,
     accountCreatedAt: null,
     email: '',
@@ -151,6 +156,9 @@ export const useWalletStore = defineStore('wallet', {
     // (a store persisted before the field existed, or a login answer that does not carry it).
     setCreationAllowed(creationAllowed) {
       this.creationAllowed = creationAllowed
+    },
+    setFirstCreationStatus(firstCreationStatus) {
+      this.firstCreationStatus = firstCreationStatus
     },
     // Whether the transfers stand in the conversations and a mail goes out about one received
     // (Einstellungen › Nachrichten). null = not known yet, and read as on, the column's default:
@@ -254,6 +262,7 @@ export const useWalletStore = defineStore('wallet', {
       // that still holds the last one's.
       this.setAvatarVisibleToMembers(data.avatarVisibleToMembers ?? null)
       this.setCreationAllowed(data.creationAllowed ?? null)
+      this.setFirstCreationStatus(data.firstCreationStatus ?? null)
       this.setTransfersInChat(data.transfersInChat ?? null)
       this.setHumhubAllowed(data.humhubAllowed)
       this.setGmsPublishLocation(data.gmsPublishLocation)
@@ -276,11 +285,15 @@ export const useWalletStore = defineStore('wallet', {
       // sign-out: a wallet closed with its tab runs no sign-out, and whoever uses this browser next
       // comes through here.
       letOldChatDraftsGo()
-      // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart"): the
-      // first creation no longer waits for an invitation onto the map of the session before, and
-      // an event link opened in that session is not this one's. Neither the sign-in nor the
-      // handover from the admin area reloads the page, and `/login` opens over a running session.
-      endFirstCreationHold()
+      // A sign-in is a new start (KA-015: the first creation comes "beim nächsten Neustart";
+      // E-044): no window waits any longer for the session before -- neither the first creation
+      // behind an invitation onto the map nor the name and the first creation behind a
+      // thank-you --, and an event link opened in that session is not this one's. Neither the
+      // sign-in nor the handover from the admin area reloads the page, and `/login` opens over a
+      // running session.
+      // ⛔ That is why the page where a thank-you opens the account says its hold AFTER the
+      // sign-in (pages/TransactionLink.vue).
+      endFirstLoginHolds()
       forgetEventLinkArrival()
     },
     /**
@@ -305,6 +318,7 @@ export const useWalletStore = defineStore('wallet', {
       this.setGmsAllowed(null)
       this.setAvatarVisibleToMembers(null)
       this.setCreationAllowed(null)
+      this.setFirstCreationStatus(null)
       this.setTransfersInChat(null)
       this.setHumhubAllowed(null)
       this.setGmsPublishLocation(null)

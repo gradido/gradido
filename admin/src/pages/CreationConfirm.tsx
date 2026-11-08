@@ -73,6 +73,21 @@ type ResubmissionSaved = {
   unchanged?: boolean
 }
 
+// What ContributionMessagesFormular tells of a message to the member it has written: the
+// resubmission the message went out with, which the server keeps.
+type MessageSent = {
+  id: number
+  resubmissionAt: string | null
+}
+
+// What ContributionMessagesFormular tells of a note it has written: whether a colleague's note now
+// stands on the question, and the resubmission the note went out with.
+type NoteAdded = {
+  id: number
+  colleagueNote: boolean
+  resubmissionAt: string | null
+}
+
 const FILTER_TAB_MAP = [
   ['IN_PROGRESS', 'PENDING'],
   ['CONFIRMED'],
@@ -601,12 +616,30 @@ export const CreationConfirm = defineComponent({
       showCreaModal()
     }
 
-    const updateStatus = (id: number) => {
+    const updateStatus = ({ id, resubmissionAt }: MessageSent) => {
       const target = items.value.find((obj) => obj.id === id)
       if (target) {
         target.messagesCount++
         target.contributionStatus = 'IN_PROGRESS'
+        // The message to the member is the newest word now, not a colleague's note.
+        target.colleagueNoteOnQuestion = false
+        // And the next opening of the row pre-fills the resubmission the message went out with.
+        target.resubmissionAt = resubmissionAt
       }
+    }
+
+    // A note written in an open row: the row takes in place what the note did on the server -- a
+    // refetch would close it. Whether a colleague's note now stands on the question (Bernd,
+    // 06.11.2026), and the resubmission the note went out with: the server keeps that one, also
+    // none, and the next opening of the row has to show it.
+    const noteAdded = ({ id, colleagueNote, resubmissionAt }: NoteAdded) => {
+      const target = items.value.find((obj) => obj.id === id)
+      if (!target) {
+        return
+      }
+      target.messagesCount++
+      target.colleagueNoteOnQuestion = colleagueNote
+      target.resubmissionAt = resubmissionAt
     }
 
     // Bulk resubmission: after a moderator saves a reminder on one contribution, offer to
@@ -798,6 +831,7 @@ export const CreationConfirm = defineComponent({
           }}
           onCrea-evaluate={openCreaModal}
           onResubmission-saved={onResubmissionSaved}
+          onNote-added={noteAdded}
         />
 
         {/* On a phone `‹`, three numbers and `›` -- every page stays reachable, and the pager

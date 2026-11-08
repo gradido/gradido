@@ -162,7 +162,7 @@ describe('ThankYouGreetingDone', () => {
     const SENTENCE = [
       'Sarah, ich habe einen Dank-Gruß für Dich:',
       LINK,
-      'Er wartet bis zum 16.10.2026 auf Dich. Nimmst Du ihn nicht an, passiert nichts.',
+      'Keine Eile. Er wartet bis zum 16.10.2026 auf Dich.',
     ].join('\n')
 
     it('stands there word for word, with the link on a line of its own', () => {
@@ -288,6 +288,27 @@ describe('ThankYouGreetingDone', () => {
       expect(data(wrapper, 'another').exists()).toBe(true)
     })
 
+    // E-045: the text goes into the member's own mail program, where it can be adjusted and added
+    // to -- with a greeting and without one. Without an address the sentence of the share sheet
+    // stays.
+    it.each([
+      ['a greeting', () => created()],
+      ['a plain link', () => plain()],
+    ])('says that the text in the e-mail can be adjusted, for %s', (_, answer) => {
+      expect(data(withAddress(answer()), 'edit-hint').text()).toBe(
+        'Den Text in der E-Mail kannst Du vor dem Senden anpassen und ergänzen.',
+      )
+    })
+
+    it('keeps the sentences of the share sheet where no address is known', () => {
+      expect(data(done(), 'edit-hint').text()).toBe(
+        'Den Satz kannst Du vor dem Senden ändern. Deine Worte stehen erst auf der Karte.',
+      )
+      expect(data(done(plain()), 'edit-hint').text()).toBe(
+        'Den Text kannst Du vor dem Senden ändern.',
+      )
+    })
+
     it('is a real link, to no address where none is known', () => {
       const wrapper = done()
       const button = data(wrapper, 'email')
@@ -376,7 +397,9 @@ describe('ThankYouGreetingDone', () => {
         const wrapper = withAddress(plain())
 
         expect(wrapper.text()).toContain('Dieser Text geht mit auf die Reise:')
-        expect(wrapper.text()).toContain('Den Text kannst Du vor dem Senden ändern.')
+        expect(wrapper.text()).toContain(
+          'Den Text in der E-Mail kannst Du vor dem Senden anpassen und ergänzen.',
+        )
         expect(wrapper.text()).not.toContain('Deine Worte stehen erst auf der Karte')
       })
 

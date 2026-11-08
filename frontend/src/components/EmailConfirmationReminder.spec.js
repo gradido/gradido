@@ -7,6 +7,7 @@ import { createI18n } from 'vue-i18n'
 import { BModal } from 'bootstrap-vue-next'
 import EmailConfirmationReminder from './EmailConfirmationReminder.vue'
 import {
+  firstLoginWindow,
   forgetFirstLoginWindows,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
@@ -17,10 +18,11 @@ vi.mock('bootstrap-vue-next', () => ({
     template: '<button :disabled="disabled" @click="$emit(`click`)"><slot></slot></button>',
   },
   BModal: {
-    // The stub carries the two closing props so the overdue state is observable: the
+    // The stub carries the two closing props so the unclosable state is observable: the
     // real BModal reads them, and a stub that dropped them would let every test pass
-    // with a modal anybody could close.
-    props: ['modelValue', 'noCloseOnBackdrop', 'noCloseOnEsc'],
+    // with a modal anybody could close. Typed as bootstrap-vue-next types them (Boolean):
+    // the window sets them as bare attributes, and only a Boolean prop reads those as true.
+    props: { modelValue: Boolean, noCloseOnBackdrop: Boolean, noCloseOnEsc: Boolean },
     template:
       '<div v-if="modelValue" :data-no-close="noCloseOnBackdrop && noCloseOnEsc"><slot></slot><slot name="footer"></slot></div>',
   },
@@ -50,12 +52,11 @@ const i18n = createI18n({
     en: {
       'emailConfirmation.title': 'Confirm your e-mail address',
       'emailConfirmation.mailSent': 'a mail is on its way',
-      'emailConfirmation.grace': 'until {deadline} you can use everything',
       'emailConfirmation.overdue': 'the grace period has ended',
       'emailConfirmation.resent': 'mail is on its way again',
       'emailConfirmation.resend': 'Send mail again',
+      'emailConfirmation.resendTooSoon': 'the mail has only just gone',
       'emailConfirmation.changeAddress': 'Correct address',
-      'emailConfirmation.later': 'Later',
     },
   },
 })
@@ -78,7 +79,7 @@ describe('EmailConfirmationReminder', () => {
 
   it('stays away from a confirmed account — and from one whose state is unknown', () => {
     expect(
-      mountWith({ emailChecked: true, accountCreatedAt: hoursAgo(1) })
+      mountWith({ emailChecked: true, accountCreatedAt: hoursAgo(25) })
         .find('[data-test="email-confirmation-reminder"]')
         .exists(),
     ).toBe(false)
@@ -89,27 +90,38 @@ describe('EmailConfirmationReminder', () => {
     ).toBe(false)
   })
 
+  // EM-014: inside the 24 hours the strip on the page tells the member about the clock
+  // (EmailConfirmationStrip). The window does not open and does not stand in the order of the
+  // first-login windows -- the question of the name comes first.
   describe('inside the grace period', () => {
-    it('reminds, names the deadline and can be waved away', async () => {
+    it('does not show, and claims no place among the first-login windows', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
-      expect(wrapper.find('[data-test="email-confirmation-grace"]').exists()).toBe(true)
-      expect(wrapper.find('[data-test="email-confirmation-later"]').exists()).toBe(true)
-      expect(
-        wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close'),
-      ).toBe('false')
-      await wrapper.find('[data-test="email-confirmation-later"]').trigger('click')
       expect(wrapper.find('[data-test="email-confirmation-reminder"]').exists()).toBe(false)
+      expect(firstLoginWindow.value).toBeNull()
+
+      setFirstLoginWindowWanted('alias', true)
+      expect(firstLoginWindow.value).toBe('alias')
     })
   })
 
   describe('past the grace period', () => {
-    it('loses every way to close and switches to the overdue text', () => {
+    it('has no way to close and says the grace period has ended', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
-      expect(wrapper.find('[data-test="email-confirmation-later"]').exists()).toBe(false)
       expect(
         wrapper.find('[data-test="email-confirmation-reminder"]').attributes('data-no-close'),
       ).toBe('true')
+      // Two buttons, the two ways out -- nothing that puts the window aside.
+      expect(wrapper.findAll('button').map((button) => button.attributes('data-test'))).toEqual([
+        'email-confirmation-change-address',
+        'email-confirmation-resend',
+      ])
+    })
+
+    it('comes first, before the question of the name', () => {
+      mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
+      setFirstLoginWindowWanted('alias', true)
+      expect(firstLoginWindow.value).toBe('email')
     })
 
     it('keeps the two ways out: resending the mail …', async () => {
@@ -132,12 +144,12 @@ describe('EmailConfirmationReminder', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       await wrapper.find('[data-test="email-confirmation-resend"]').trigger('click')
       await wrapper.vm.$nextTick()
-      expect(toastErrorMock).toHaveBeenCalledWith('Email already sent less than 10 minutes ago')
+      expect(toastErrorMock).toHaveBeenCalledWith('the mail has only just gone')
     })
   })
 
   describe('when the deadline passes mid-session', () => {
-    it('returns by itself — overdue overrides the earlier dismissal', async () => {
+    it('appears by itself, and cannot be closed', async () => {
       vi.useFakeTimers()
       try {
         // 30 seconds of grace left when the wallet opens.
@@ -145,8 +157,6 @@ describe('EmailConfirmationReminder', () => {
           emailChecked: false,
           accountCreatedAt: new Date(Date.now() - (24 * 60 * 60 * 1000 - 30000)).toISOString(),
         })
-        expect(wrapper.find('[data-test="email-confirmation-grace"]').exists()).toBe(true)
-        await wrapper.find('[data-test="email-confirmation-later"]').trigger('click')
         expect(wrapper.find('[data-test="email-confirmation-reminder"]').exists()).toBe(false)
 
         // Two minutes later the ticker has fired and the deadline lies behind us.
@@ -178,7 +188,7 @@ describe('EmailConfirmationReminder', () => {
 
     it('waits, and comes once the conversation is closed', async () => {
       setFirstLoginWindowWanted('contact', true)
-      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
 
       expect(reminder(wrapper).exists()).toBe(false)
 
@@ -186,10 +196,11 @@ describe('EmailConfirmationReminder', () => {
       await nextTick()
 
       expect(reminder(wrapper).exists()).toBe(true)
+      expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
     })
 
     it('gives way where it was open, and comes back afterwards', async () => {
-      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       expect(reminder(wrapper).exists()).toBe(true)
 
       setFirstLoginWindowWanted('contact', true)
@@ -201,10 +212,10 @@ describe('EmailConfirmationReminder', () => {
       expect(reminder(wrapper).exists()).toBe(true)
     })
 
-    // The window writes back that it closed. That is not the member saying "Später": read as
-    // one, the reminder would be gone for the session without having been seen.
-    it('does not take giving way for "Später"', async () => {
-      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(1) })
+    // The window writes back that it closed. That is no answer of the member's -- there is no
+    // way to close this window -- and it must not keep it away once the conversation is closed.
+    it('does not take giving way for an answer', async () => {
+      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       setFirstLoginWindowWanted('contact', true)
       await nextTick()
 
@@ -214,18 +225,6 @@ describe('EmailConfirmationReminder', () => {
       await nextTick()
 
       expect(reminder(wrapper).exists()).toBe(true)
-    })
-
-    it('waits past the grace period as well: one window at a time', async () => {
-      setFirstLoginWindowWanted('contact', true)
-      const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
-
-      expect(reminder(wrapper).exists()).toBe(false)
-
-      setFirstLoginWindowWanted('contact', false)
-      await nextTick()
-
-      expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
     })
   })
 })

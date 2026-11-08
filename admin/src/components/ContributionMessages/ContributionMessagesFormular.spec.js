@@ -151,10 +151,195 @@ describe('ContributionMessagesFormular', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
     expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[42]])
-    expect(wrapper.emitted('update-status')).toEqual([[42]])
+    expect(wrapper.emitted('update-status')).toEqual([[{ id: 42, resubmissionAt: null }]])
     expect(mockToastSuccess).toHaveBeenCalledWith('message.request')
     // And the field is empty again for the next message.
     expect(messageField().element.value).toBe('')
+  })
+
+  // A note leaves the status of the contribution as it is on the server, so the row must not turn
+  // to "question asked" either: the details button showed "?" after every note, also over a
+  // member's answer, until the list came back.
+  it('leaves the status of the row alone after a note', async () => {
+    wrapper = await mountForm()
+    await openTab(1)
+    await textareas()[1].setValue('a note for the moderation')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith(expect.objectContaining({ messageType: 'MODERATOR' }))
+    expect(wrapper.emitted('get-list-contribution-messages')).toEqual([[42]])
+    expect(wrapper.emitted('update-status')).toBeUndefined()
+  })
+
+  // Bernd, 06.11.2026: a note on a colleague's question takes the resubmission back, as a member's
+  // answer does -- where the moderator leaves it as it came.
+  describe("a note on a colleague's question", () => {
+    const COLLEAGUE = { name: 'elfi' }
+    // The resubmission the contribution holds, to the minute, as this form sets them.
+    const held = new Date(IN_A_WEEK)
+    held.setHours(10, 0, 0, 0)
+    const HELD = held.toISOString()
+    const NOTE = 'She answered by mail: all of it unpaid.'
+    const hint = () => wrapper.find('[data-test="note-wakes-resubmission"]')
+    const noteField = () => textareas()[1]
+    const writeNote = async (text = NOTE) => {
+      await openTab(1)
+      await noteField().setValue(text)
+    }
+
+    it('takes the resubmission back, and says so before', async () => {
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      expect(reminderBox().element.checked).toBe(true)
+      await writeNote()
+      expect(hint().text()).toBe('contributionMessagesForm.noteWakesResubmission {"name":"elfi"}')
+      expect(noteField().attributes('aria-describedby')).toBe(hint().attributes('id'))
+
+      await submit()
+      expect(mockMutate).toHaveBeenCalledWith({
+        resubmissionAt: null,
+        message: NOTE,
+        messageType: 'MODERATOR',
+        contributionId: 42,
+      })
+      expect(wrapper.emitted('note-added')).toEqual([
+        [{ id: 42, colleagueNote: true, resubmissionAt: null }],
+      ])
+      // Nothing to spread to other contributions, and no refetch: the open row stays open.
+      expect(wrapper.emitted('resubmission-saved')).toBeUndefined()
+      expect(wrapper.emitted('update-contributions')).toBeUndefined()
+      // The box says what is left.
+      expect(reminderBox().element.checked).toBe(false)
+      expect(hint().exists()).toBe(false)
+      expect(noteField().attributes('aria-describedby')).toBeUndefined()
+    })
+
+    // The second reader, 06.11.2026: the box unticks only where it still shows what went out.
+    it('leaves the box alone when the moderator changed it while the note was on its way', async () => {
+      let answer
+      mockMutate.mockReturnValueOnce(
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+      )
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await writeNote()
+      await submitButton().trigger('click')
+      // On its way: the moderator picks another time.
+      await wrapper.find('input[placeholder="hh:mm"]').setValue('12:15')
+      answer({})
+      await flushPromises()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: null, messageType: 'MODERATOR' }),
+      )
+      expect(reminderBox().element.checked).toBe(true)
+    })
+
+    // coderabbit, #4248: the calendar hands over a new Date for the day picked again -- that is no
+    // change, and the box unticks as it would have.
+    it('unticks the box all the same when the same day is picked again on the way', async () => {
+      let answer
+      mockMutate.mockReturnValueOnce(
+        new Promise((resolve) => {
+          answer = resolve
+        }),
+      )
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await writeNote()
+      await submitButton().trigger('click')
+      const sameDay = new Date(held)
+      sameDay.setHours(0, 0, 0, 0)
+      datepicker().vm.$emit('update:modelValue', sameDay)
+      await nextTick()
+      answer({})
+      await flushPromises()
+      expect(reminderBox().element.checked).toBe(false)
+    })
+
+    it('says it without a name where the colleague has none', async () => {
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: { name: '' } })
+      await writeNote()
+      expect(hint().text()).toBe('contributionMessagesForm.noteWakesResubmissionPlain')
+    })
+
+    it('takes back a resubmission that is due, without asking for a new date', async () => {
+      const due = new Date(Date.now() - 60 * 60 * 1000)
+      due.setSeconds(0, 0)
+      wrapper = await mountForm({
+        inputResubmissionDate: due.toISOString(),
+        colleagueQuestion: COLLEAGUE,
+      })
+      await writeNote()
+      await submit()
+      expect(mockToastError).not.toHaveBeenCalled()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: null, messageType: 'MODERATOR' }),
+      )
+    })
+
+    // With the resubmissions shown: where they are hidden, a date in the future takes the row out of
+    // the list, which comes anew (as before), and nothing is left to update in place.
+    it('keeps a date the moderator sets', async () => {
+      wrapper = await mountForm({
+        inputResubmissionDate: HELD,
+        colleagueQuestion: COLLEAGUE,
+        hideResubmission: false,
+      })
+      await writeNote()
+      await wrapper.find('input[placeholder="hh:mm"]').setValue('11:30')
+      await nextTick()
+      expect(hint().exists()).toBe(false)
+
+      await submit()
+      const expected = new Date(held)
+      expected.setHours(11)
+      expected.setMinutes(30)
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: expected.toString(), messageType: 'MODERATOR' }),
+      )
+      expect(wrapper.emitted('note-added')).toEqual([
+        [{ id: 42, colleagueNote: true, resubmissionAt: expected.toISOString() }],
+      ])
+    })
+
+    it('leaves the resubmission alone for a note on the own question', async () => {
+      wrapper = await mountForm({
+        inputResubmissionDate: HELD,
+        colleagueQuestion: null,
+        hideResubmission: false,
+      })
+      await writeNote()
+      expect(hint().exists()).toBe(false)
+
+      await submit()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: held.toString(), messageType: 'MODERATOR' }),
+      )
+      expect(wrapper.emitted('note-added')).toEqual([
+        [{ id: 42, colleagueNote: false, resubmissionAt: held.toISOString() }],
+      ])
+    })
+
+    it('leaves it alone for a message to the member', async () => {
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await messageField().setValue('One more question.')
+      expect(hint().exists()).toBe(false)
+
+      await submit()
+      expect(mockMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ resubmissionAt: held.toString(), messageType: 'DIALOG' }),
+      )
+      expect(wrapper.emitted('note-added')).toBeUndefined()
+    })
+
+    it('does nothing of it for a save without a note', async () => {
+      wrapper = await mountForm({ inputResubmissionDate: HELD, colleagueQuestion: COLLEAGUE })
+      await openTab(1)
+      expect(hint().exists()).toBe(true)
+
+      await submit()
+      // The save of the resubmission alone, as it came.
+      expect(mockMutate).toHaveBeenCalledWith({ resubmissionAt: held.toString(), id: 42 })
+    })
   })
 
   it('sends DIALOG contribution message', async () => {
@@ -182,6 +367,47 @@ describe('ContributionMessagesFormular', () => {
       messageType: 'MODERATOR',
       contributionId: 42,
     })
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): after a message with a date, the row
+  // kept the one before, and the next opening of the row pre-filled that one again.
+  it('tells the row the resubmission a message went out with', async () => {
+    wrapper = await mountForm({ hideResubmission: false })
+    await messageField().setValue('One more question.')
+    await setReminder(IN_A_WEEK, '08:46')
+
+    await submit()
+    const expected = new Date(IN_A_WEEK)
+    expected.setHours(8)
+    expected.setMinutes(46)
+    expect(wrapper.emitted('update-status')).toEqual([
+      [{ id: 42, resubmissionAt: expected.toISOString() }],
+    ])
+  })
+
+  // Bernd, 06.11.2026 (a side find of the second reader): a changed memo, then the message tab with
+  // an empty field and a ticked reminder, sent an empty message -- a mail without words to the
+  // member -- and dropped the memo.
+  it('saves a changed memo, and no empty message, from the message tab', async () => {
+    wrapper = await mountForm({ hideResubmission: false })
+    await openTab(2)
+    await memoField().setValue('It is a test memo, with the hours added')
+    await openTab(0)
+    await setReminder(IN_A_WEEK, '08:46')
+
+    await submit()
+    const expected = new Date(IN_A_WEEK)
+    expected.setHours(8)
+    expected.setMinutes(46)
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: expected.toString(),
+      memo: 'It is a test memo, with the hours added',
+      id: 42,
+    })
+    // As every save of the memo: the list comes anew.
+    expect(wrapper.emitted('update-contributions')).toEqual([[]])
+    expect(wrapper.emitted('update-status')).toBeUndefined()
   })
 
   it('sends resubmission contribution message', async () => {
@@ -304,6 +530,40 @@ describe('ContributionMessagesFormular', () => {
     await wrapper.find('[data-test="crea-insert-draft"]').trigger('click')
     await nextTick()
     expect(messageField().element.value).toBe('Liebe Anna, danke!')
+  })
+
+  it('sends the model of the inserted Crea draft with the message, edits around it included', async () => {
+    useCreaClipboard().setLastResponse('Liebe Anna, danke!', 'claude-test')
+    wrapper = await mountForm()
+    await wrapper.find('[data-test="crea-insert-draft"]').trigger('click')
+    await nextTick()
+    await messageField().setValue('Liebe Anna, danke! Und bis bald.')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: null,
+      message: 'Liebe Anna, danke! Und bis bald.',
+      messageType: 'DIALOG',
+      contributionId: 42,
+      aiModel: 'claude-test',
+    })
+  })
+
+  it('names no model once the inserted draft was cleared away', async () => {
+    useCreaClipboard().setLastResponse('Liebe Anna, danke!', 'claude-test')
+    wrapper = await mountForm()
+    await wrapper.find('[data-test="crea-insert-draft"]').trigger('click')
+    await nextTick()
+    await messageField().setValue('')
+    await messageField().setValue('eigener Text')
+
+    await submit()
+    expect(mockMutate).toHaveBeenCalledWith({
+      resubmissionAt: null,
+      message: 'eigener Text',
+      messageType: 'DIALOG',
+      contributionId: 42,
+    })
   })
 
   it('appends the Crea draft when the field already has text and was not focused', async () => {

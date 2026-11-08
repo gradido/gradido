@@ -22,6 +22,8 @@ const link = (overrides = {}) => ({
   amount: '20',
   memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
   senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma' },
+  // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
+  senderAvatar: null,
   ...overrides,
 })
 
@@ -137,6 +139,63 @@ describe('RedeemThanksPaper', () => {
 
     it('keeps the circle from being read out: the sentence beside it names the sender', () => {
       expect(paper().find('.redeem-thanks-paper-initial').attributes('aria-hidden')).toBe('true')
+    })
+
+    // ZE-038: the face the link carries (senderAvatar) where the letter stood, the same size.
+    describe('with the face the link carries', () => {
+      const FACE = '/9j/4AAQSkZJRgABAQ-the-face-of-Oma-Emma'
+      const face = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-face"]')
+
+      it('shows the face of the sender instead of the letter', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).element.tagName).toBe('IMG')
+        expect(face(wrapper).attributes('src')).toBe(`data:image/jpeg;base64,${FACE}`)
+        expect(face(wrapper).classes()).toContain('redeem-thanks-paper-face')
+        expect(wrapper.find('.redeem-thanks-paper-initial').exists()).toBe(false)
+      })
+
+      // Null is the server's answer for a member without a face to show; a link from before
+      // the field, or a sheet made in the wallet, has none at all.
+      it('shows the letter where the link carries no face', () => {
+        for (const senderAvatar of [null, undefined, '']) {
+          const wrapper = paper(link({ senderAvatar }))
+
+          expect(face(wrapper).exists(), String(senderAvatar)).toBe(false)
+          expect(wrapper.find('.redeem-thanks-paper-initial').text()).toBe('O')
+        }
+      })
+
+      it('keeps the face from being read out, as the circle: the sentence names the sender', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).attributes('alt')).toBe('')
+        expect(face(wrapper).attributes('aria-hidden')).toBe('true')
+        expect(from(wrapper).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
+      })
+
+      // The room stands before the picture is decoded: nothing beside it moves when it comes.
+      it('gives the face its size before the picture is there', () => {
+        const wrapper = paper(link({ senderAvatar: FACE }))
+
+        expect(face(wrapper).attributes('width')).toBe('64')
+        expect(face(wrapper).attributes('height')).toBe('64')
+      })
+
+      it('is 64px round, as is the circle of the letter, 12px from the sentence', () => {
+        const rule = (selector) =>
+          css.match(new RegExp(`(?:^|\\n)\\s*\\${selector}\\s*\\{([^}]*)\\}`))?.[1]
+        for (const selector of ['.redeem-thanks-paper-face', '.redeem-thanks-paper-initial']) {
+          const body = rule(selector)
+          expect(body, selector).toMatch(/(^|[\s;])width:\s*64px;/)
+          expect(body, selector).toMatch(/(^|[\s;])height:\s*64px;/)
+          expect(body, selector).toMatch(/(^|[\s;])border-radius:\s*50%;/)
+          expect(body, selector).toMatch(/(^|[\s;])flex:\s*none;/)
+        }
+        expect(rule('.redeem-thanks-paper-face')).toMatch(/(^|[\s;])object-fit:\s*cover;/)
+        expect(rule('.redeem-thanks-paper-initial')).toMatch(/(^|[\s;])font-size:\s*26px;/)
+        expect(rule('.redeem-thanks-paper-sender')).toMatch(/(^|[\s;])gap:\s*12px;/)
+      })
     })
   })
 
@@ -343,14 +402,6 @@ describe('RedeemThanksPaper', () => {
         expect(wrapper.find('.redeem-thanks-paper-picture').exists()).toBe(false)
       })
 
-      // "Dein Dank ist da.": the short sheet keeps the photo.
-      it('stays on the short sheet', () => {
-        const wrapper = withPhoto(photoGreeting(), { picture: PHOTO, short: true })
-
-        expect(photo(wrapper).attributes('src')).toBe(PHOTO)
-        expect(message(wrapper).exists()).toBe(false)
-      })
-
       // A photo is 36 : 25 to a pixel's rounding: it fills the room, and is not stretched.
       it('fills its room without being stretched', () => {
         expect(css).toMatch(
@@ -474,59 +525,6 @@ describe('RedeemThanksPaper', () => {
     })
   })
 
-  // "Dein Dank ist da." shows the greeting that was just accepted in short (ZE-017 F5): the
-  // picture, whom it is for and the line. The words were read a moment ago, and who thanked
-  // with how much is what the page says itself, right above.
-  describe('the short sheet', () => {
-    const LINE = 'Einfach so — weil es Dich gibt.'
-    const greeted = link({
-      memo: `${LINE}\nLiebe Sarah, mit Eurem iPad hat alles angefangen.`,
-      greeting: { motif: 'morning-light', line: LINE, recipientName: 'Sarah' },
-    })
-    const short = (linkData = greeted) =>
-      mount(RedeemThanksPaper, {
-        props: { linkData, short: true },
-        global: { plugins: [i18n] },
-      })
-
-    it('keeps the picture, whom it is for and the line', () => {
-      const wrapper = short()
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-motif"]').attributes('src')).toBe(
-        '/img/thank-you-greeting/morning-light.svg',
-      )
-      expect(wrapper.find('[data-test="redeem-thanks-paper-for"]').text()).toBe('FÜR SARAH')
-      expect(wrapper.find('[data-test="redeem-thanks-paper-line"]').text()).toBe(LINE)
-    })
-
-    it('leaves out the words, the rule and the line of the sender', () => {
-      const wrapper = short()
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').exists()).toBe(false)
-      expect(wrapper.find('.redeem-thanks-paper-rule').exists()).toBe(false)
-      expect(wrapper.find('.redeem-thanks-paper-sender').exists()).toBe(false)
-      expect(from(wrapper).exists()).toBe(false)
-      expect(wrapper.text()).toBe(`FÜR SARAH${LINE}`)
-    })
-
-    it('leaves out the words of a memo that does not begin with the line as well', () => {
-      const wrapper = short(link({ ...greeted, memo: 'Ganz andere Worte.' }))
-
-      expect(wrapper.text()).not.toContain('Ganz andere Worte.')
-    })
-
-    // Not asked for: every sheet the wallet showed before is the whole one.
-    it('is not what a sheet is unless asked', () => {
-      const wrapper = paper(greeted)
-
-      expect(wrapper.find('[data-test="redeem-thanks-paper-message"]').text()).toBe(
-        'Liebe Sarah, mit Eurem iPad hat alles angefangen.',
-      )
-      expect(from(wrapper).element.textContent).toBe('Oma-Emma dankt Dir mit 20 Gradido')
-      expect(wrapper.find('.redeem-thanks-paper-rule').exists()).toBe(true)
-    })
-  })
-
   describe('a plain link', () => {
     it('is the sheet it was: no picture, nobody named, no line, the memo whole', () => {
       for (const data of [link(), link({ greeting: null })]) {
@@ -572,13 +570,35 @@ describe('RedeemThanksPaper', () => {
 
   // jsdom lays nothing out and reads no stylesheet, so what a test can hold is the source.
   // The measure in the real bundle, in both themes, is part of the delivery.
-  describe('paper stays light in dark mode', () => {
-    it('writes every colour out', () => {
-      expect(css).toMatch(/background:\s*#fffdf8;/)
-      expect(css).not.toMatch(/var\(/)
-      expect(css).not.toMatch(/dark-mode/)
+  //
+  // ZE-038: light the sheet is white, dark a step lighter than the card, with the gold of the
+  // greeting bubble. It was cream in both themes (ZE-020); these tests held that until then.
+  describe('the sheet follows the theme', () => {
+    // The rules under `.dark-mode`, flat as this file writes them -- and everything else, which
+    // is the light theme.
+    const DARK_RULE = /([^{}]*\.dark-mode[^{}]*)\{([^{}]*)\}/g
+    const darkRules = [...css.matchAll(DARK_RULE)].map(([, selectors, body]) => ({
+      selectors: selectors.split(',').map((selector) => selector.trim()),
+      body,
+    }))
+    const lightCss = css.replace(DARK_RULE, '')
+    const lightRule = (selector) =>
+      lightCss.match(new RegExp(`(?:^|\\n)\\s*\\${selector}\\s*\\{([^}]*)\\}`))?.[1]
+    const darkRulesOf = (selector) =>
+      darkRules.filter((rule) => rule.selectors.includes(`.dark-mode ${selector}`))
+    // What the one dark rule of a selector sets for a property.
+    const darkValue = (selector, property) => {
+      const rules = darkRulesOf(selector)
+      expect(rules, selector).toHaveLength(1)
+      return rules[0].body.match(new RegExp(`(?:^|[\\s;])${property}:\\s*([^;]+);`))?.[1]
+    }
+
+    it('is white in the light theme, every colour written out', () => {
+      expect(lightRule('.redeem-thanks-paper')).toMatch(/background:\s*#fff;/)
+      expect(lightCss).not.toMatch(/var\(/)
+      expect(lightCss).not.toMatch(/dark-mode/)
+      // Each text sets its own colour, in both themes: nothing is left to inherit.
       expect(css).not.toMatch(/currentcolor|inherit/i)
-      // Each text sets its own colour: what the page hands down is near white in dark mode.
       for (const selector of [
         '.redeem-thanks-paper-message',
         '.redeem-thanks-paper-from',
@@ -586,9 +606,34 @@ describe('RedeemThanksPaper', () => {
         '.redeem-thanks-paper-for',
         '.redeem-thanks-paper-line',
       ]) {
-        const [, body] = css.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))
-        expect(body).toMatch(/(^|[\s;])color:\s*#[0-9a-f]{6};/)
+        expect(lightRule(selector), selector).toMatch(/(^|[\s;])color:\s*#(?:[0-9a-f]{3}){1,2};/)
       }
+    })
+
+    it('takes the tokens of the house and the gold of the greeting bubble in the dark theme', () => {
+      expect(darkRules.length).toBeGreaterThan(0)
+      for (const { selectors } of darkRules) {
+        for (const selector of selectors) {
+          expect(selector).toMatch(/^\.dark-mode \.redeem-thanks-paper(-[a-z]+)?$/)
+        }
+      }
+      expect(darkValue('.redeem-thanks-paper', 'background')).toBe('var(--surface-muted)')
+      expect(darkValue('.redeem-thanks-paper-message', 'color')).toBe('var(--text)')
+      expect(darkValue('.redeem-thanks-paper-from', 'color')).toBe('var(--text)')
+      expect(darkValue('.redeem-thanks-paper-rule', 'background')).toBe('rgb(255 255 255 / 14%)')
+      expect(darkValue('.redeem-thanks-paper-for', 'color')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-line', 'color')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-initial', 'background')).toBe('#e2b55c')
+      expect(darkValue('.redeem-thanks-paper-initial', 'color')).toBe('#1b1b1b')
+    })
+
+    // ZE-024: a photo fitted in whole carries its margin in this colour inside the picture, so
+    // the room keeps it in both themes.
+    it('keeps the room of the picture cream in both themes', () => {
+      expect(css.match(/#fbf3de/gi)).toHaveLength(1)
+      expect(lightRule('.redeem-thanks-paper-picture')).toMatch(/background:\s*#fbf3de;/)
+      expect(darkRules.filter(({ body }) => /#fbf3de/i.test(body))).toHaveLength(0)
+      expect(darkRulesOf('.redeem-thanks-paper-picture')).toHaveLength(0)
     })
 
     // The dark sheet repaints cards, headings, links and rules, each with more weight than a

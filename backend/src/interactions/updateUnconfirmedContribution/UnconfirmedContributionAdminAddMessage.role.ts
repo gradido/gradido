@@ -69,6 +69,7 @@ export class UnconfirmedContributionAdminAddMessageRole extends AbstractUnconfir
       return builder
         .setIsModerator(true)
         .setMessageAndType(this.updateData.message, this.updateData.messageType)
+        .setAiModel(this.updateData.aiModel ?? null)
     }
   }
 }

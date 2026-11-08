@@ -7,12 +7,14 @@ import { chatMemberKey } from './chatMemberKey'
  * storage, and no clock of its own: the time always comes in as `now`, so the same moment gives
  * the same answer wherever it is asked.
  *
- * - After a video call: under one's own invitation in a conversation of two, half an hour after
- *   the call began. Bernd (26.10.2026): the end of a call cannot be measured -- it runs on a Jitsi
- *   server of its own --, its beginning can, and whoever invited is most likely in it. And in a
- *   group's thread (Bernd, 28.10.2026): there the member chooses whom to thank among the members
- *   -- and a member thanked since the call began is no longer among them (E-043 B, 05.11.2026).
- *   In both kinds of conversation, what was thanked is what was booked.
+ * - After a video call: half an hour after the call began, for whoever went into it from this
+ *   wallet. Bernd (26.10.2026): the end of a call cannot be measured -- it runs on a Jitsi server
+ *   of its own --, its beginning can. Whoever invited is most likely in it; and since 05.11.2026
+ *   (E-043 C) so is whoever was invited and clicked the invitation's link here -- for them the
+ *   call begins with that click. And in a group's thread (Bernd, 28.10.2026): there the member
+ *   chooses whom to thank among the members -- and a member thanked since the call began is no
+ *   longer among them (E-043 B, 05.11.2026). In both kinds of conversation, what was thanked is
+ *   what was booked.
  * - After a thank-you received: in the opened row of the booking, "pass it on" -- outwards, never
  *   back to the giver (the waves run outwards; a thank-you that expects one back is the market).
  *
@@ -21,7 +23,9 @@ import { chatMemberKey } from './chatMemberKey'
  * caller's to say (useThanksNudges).
  *
  * And the third ring (W3), the moment of arrival: which thank-yous received the tile "Dein Dank
- * ist da." on the overview shows (`arrivalItems`), within the same seven days.
+ * ist da." on the overview shows (`arrivalItems`), within the same seven days -- and only those
+ * the member has not answered since: a message to the giver or Gradido sent back, the server's
+ * word (`answered`, F E-046).
  */
 
 /** From when on the line stands under an invitation: half an hour after the call began. */
@@ -38,28 +42,43 @@ const at = (value) => new Date(value).getTime()
  * the message is no such occasion now, whatever was sent since. What the thread asks the member's
  * own transfers from in a group, and the beginning the rule below counts a thank-you from.
  *
- * - `invitation`: the video invitation the message is, as `readChatVideoInvite` reads it -- or
- *   null for every other message, and for an invitation the wallet does not read as its own
- *   words (another language, another clock): that one gets no line.
- * - `message`: the message as the thread holds it now. Only one's own (`mine`): the one who
- *   invited is the one asked, never the one invited. Not a copy forwarded from another
- *   conversation (E-059): its words are somebody else's, and so was the call. Not one that did
- *   not reach the other side (`FAILED`): the window does not open a room nobody else knows, so
- *   there was no call.
+ * - `invitation`: the video invitation the message is, as the thread reads it -- one's own word
+ *   for word (`readChatVideoInvite`), somebody else's by its link -- or null for every other
+ *   message: that one gets no line.
+ * - `message`: the message as the thread holds it now. Whoever went into the call from this
+ *   wallet is asked (E-043 C): the one who invited, whose invitation is their own (`mine`), and the
+ *   one invited, where the device knows their click (`videoJoinedAt`). Somebody else's invitation
+ *   without that click gets no line: the link may have reached them another way, or another
+ *   device. Not a copy forwarded from another conversation (E-059, W10): its words are somebody
+ *   else's, and so was the call -- with a click as without. Not one's own that did not reach the
+ *   other side (`FAILED`): the window does not open a room nobody else knows, so there was no
+ *   call.
+ * - `videoJoinedAt`: when the member clicked the link of this invitation of somebody else's here
+ *   (utils/chatVideoJoined), in milliseconds -- null where they did not. Not read for one's own.
  * - `seen`: the member answered the line on this device already: "Nicht jetzt" -- and "Danke
  *   sagen" in a conversation of two whose thread holds no transfers (the member's switch off).
  *
- * The call began at the time the invitation names where it is planned, else when the message was
- * written. An invitation that was changed (E-060) is read as it stands now: its time is the one
- * it shows. The line is due from half an hour after that until seven days after it.
+ * The call began, for the one who invited, at the time the invitation names where it is planned,
+ * else when the message was written; for the one invited, with their click -- for a planned call
+ * at the later of the click and the planned time (Festlegung 3: a click days before the meeting is
+ * no conversation). An invitation that was changed (E-060) is read as it stands now: its time is
+ * the one it shows. The line is due from half an hour after that until seven days after it.
  *
- * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, seen: boolean }} occasion
+ * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, seen: boolean, videoJoinedAt?: number | null }} occasion
  * @returns {number | null} the beginning, in milliseconds
  */
-export const callNudgeStart = ({ invitation, message, now, seen }) => {
-  if (!invitation || !message?.mine || message.forwarded || seen) return null
-  if (message.deliveryState === 'FAILED') return null
-  const start = at(invitation.when?.start ?? message.createdAt)
+export const callNudgeStart = ({ invitation, message, now, seen, videoJoinedAt = null }) => {
+  if (!invitation || !message || message.forwarded || seen) return null
+  let start
+  if (message.mine) {
+    if (message.deliveryState === 'FAILED') return null
+    start = at(invitation.when?.start ?? message.createdAt)
+  } else {
+    if (videoJoinedAt === null || videoJoinedAt === undefined) return null
+    start = invitation.when?.start
+      ? Math.max(at(videoJoinedAt), at(invitation.when.start))
+      : at(videoJoinedAt)
+  }
   const since = now - start
   // Written so that a time nobody can read (NaN) is no occasion either.
   if (!(since >= THANKS_NUDGE_AFTER_CALL_MS && since <= THANKS_NUDGE_HOLDS_MS)) return null
@@ -98,8 +117,10 @@ export const membersToThank = ({ members, transfers, start, ownCommunityUuid = n
 
 /**
  * Whether the line "Möchtest Du Dich bei … für das Gespräch bedanken?" stands under a message:
- * where it is due by its time (`callNudgeStart`, with what that reads), and nothing was thanked
- * for the call yet. What was thanked is what was booked, in both kinds of conversation:
+ * where it is due by its time (`callNudgeStart`, with what that reads -- `videoJoinedAt` too),
+ * and nothing was thanked for the call yet. Under somebody else's invitation the one to thank in
+ * a conversation of two is the one who invited, the other person. What was thanked is what was
+ * booked, in both kinds of conversation:
  *
  * - `transfers`: in a conversation of two, the transfers between the two as the thread holds
  *   them; in a group, the member's own bookings (useOwnTransfers). Null while they are not known
@@ -110,7 +131,7 @@ export const membersToThank = ({ members, transfers, start, ownCommunityUuid = n
  *   `members` is left to thank (`membersToThank`); once all are thanked, it goes.
  *   `ownCommunityUuid` is the member's own community, for a booking that names none.
  *
- * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, group?: boolean, members?: Array, ownCommunityUuid?: string | null, seen: boolean }} occasion
+ * @param {{ invitation: { when: { start: Date } | null } | null, message: { mine: boolean, forwarded?: boolean, createdAt: string, deliveryState?: string | null }, now: number, transfers: Array<{ typeId: string, balanceDate: string }> | null, group?: boolean, members?: Array, ownCommunityUuid?: string | null, seen: boolean, videoJoinedAt?: number | null }} occasion
  * @returns {'hidden' | 'show'}
  */
 export const callNudgeState = ({
@@ -122,8 +143,9 @@ export const callNudgeState = ({
   members = [],
   ownCommunityUuid = null,
   seen,
+  videoJoinedAt = null,
 }) => {
-  const start = callNudgeStart({ invitation, message, now, seen })
+  const start = callNudgeStart({ invitation, message, now, seen, videoJoinedAt })
   if (start === null || !transfers) return 'hidden'
   if (group) {
     return membersToThank({ members, transfers, start, ownCommunityUuid }).length > 0
@@ -162,15 +184,19 @@ export const THANKS_ARRIVAL_MOST = 3
  * The thank-yous the tile "Dein Dank ist da." on the overview shows (W3): of a list of bookings,
  * those the member received from a person (`RECEIVE` with somebody named on the other side, as
  * the row names its counterparty) and may react to (`canReact` -- the server's word, and the very
- * set a first reaction mails the giver about, W1), that have no reaction yet, came within the last
- * seven days, and that the member did not put aside on this device ("Später": `seen('arrival',
- * id)`). The newest first, and at most THANKS_ARRIVAL_MOST of them.
+ * set a first reaction mails the giver about, W1), that have no reaction yet, that the member has
+ * not answered since -- a message to the giver or Gradido sent back, the server's word
+ * (`answered`, F E-046) --, came within the last seven days, and that the member did not put aside
+ * on this device ("Später": `seen('arrival', id)`). The newest first, and at most
+ * THANKS_ARRIVAL_MOST of them.
  *
  * As for the line in the opened row, only the seven days are a bound: a booking whose time lies a
  * little ahead of the device's clock has just come. A time nobody can read is no thank-you to show.
- * Two that came at the same moment stand in the order of their ids, the later one first.
+ * Two that came at the same moment stand in the order of their ids, the later one first. A booking
+ * without `answered` -- from a server that does not say it yet -- counts as not answered, and the
+ * tile shows it as it did before.
  *
- * @param {{ transactions: Array<{ id: number, typeId: string, balanceDate: string, canReact?: boolean, reaction?: string | null, linkedUser?: { gradidoID?: string } | null }> | null | undefined, now: number, seen: (kind: 'arrival', id: number) => boolean }} occasion
+ * @param {{ transactions: Array<{ id: number, typeId: string, balanceDate: string, canReact?: boolean, reaction?: string | null, answered?: boolean, linkedUser?: { gradidoID?: string } | null }> | null | undefined, now: number, seen: (kind: 'arrival', id: number) => boolean }} occasion
  * @returns {Array} the bookings themselves, as they came
  */
 export const arrivalItems = ({ transactions, now, seen }) =>
@@ -180,6 +206,7 @@ export const arrivalItems = ({ transactions, now, seen }) =>
         booking?.typeId === 'RECEIVE' &&
         booking.canReact === true &&
         !booking.reaction &&
+        !booking.answered &&
         Boolean(booking.linkedUser?.gradidoID) &&
         // Written so that a time nobody can read (NaN) is no thank-you either.
         now - at(booking.balanceDate) <= THANKS_NUDGE_HOLDS_MS &&

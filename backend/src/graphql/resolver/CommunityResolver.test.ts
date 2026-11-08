@@ -13,7 +13,7 @@ import {
 import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
 import { CONFIG } from '@/config'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   login,
   updateHomeCommunityLocationQuery,
@@ -122,7 +122,7 @@ describe('CommunityResolver', () => {
 
     beforeAll(async () => {
       // create admin and login as admin
-      await userFactory(testEnv, peterLustig)
+      await userFactoryDrizzle(peterLustig)
       await mutate({ mutation: login, variables: peterLoginData })
     })
 
@@ -591,7 +591,7 @@ describe('CommunityResolver', () => {
       await cleanDB()
 
       // create admin and login as admin
-      await userFactory(testEnv, peterLustig)
+      await userFactoryDrizzle(peterLustig)
       homeCom = (await getHomeCommunity())!
       foreignCom1 = await createCommunity(true, false)
       foreignCom2 = await createCommunity(true, false)

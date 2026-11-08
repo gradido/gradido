@@ -241,6 +241,32 @@ describe("somebody else's address", () => {
     ).toBe('jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22x%22')
   })
 
+  // E-060: a planned call changed in its time carries, after its time, the start it had first
+  // and the count of its changes -- for the calendar. The app gets the topic only, as above.
+  it('is taken with what a call changed in its time carries, and the app gets the topic alone', () => {
+    expect(
+      chatVideoAppUrl(
+        `${FFMUC}#config.subject=%22x%22&gradido.start=1790773200&gradido.end=1790776800&gradido.first=1790686800&gradido.seq=2`,
+      ),
+    ).toBe('jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22x%22')
+  })
+
+  // Whatever the wallet writes for an invitation (withChatVideoTopic) is an invitation of our own
+  // here, changed in its time or not: the two rules may not drift apart again.
+  it.each([
+    ['a call now', null, null],
+    ['a planned call', { start: new Date(1790773200000), end: new Date(1790776800000) }, null],
+    [
+      'a planned call changed in its time',
+      { start: new Date(1790773200000), end: new Date(1790776800000) },
+      { first: new Date(1790686800000), sequence: 3 },
+    ],
+  ])('is taken as the wallet writes it: %s', (_, when, revision) => {
+    expect(chatVideoAppUrl(withChatVideoTopic(FFMUC, 'Lesekreis', when, revision))).toBe(
+      withChatVideoTopic('jitsi-meet://meet.ffmuc.net/k7m2x9q4t8wz', 'Lesekreis'),
+    )
+  })
+
   it.each([
     ['a time without its end', `${FFMUC}#config.subject=%22x%22&gradido.start=1790773200`],
     [
@@ -254,6 +280,18 @@ describe("somebody else's address", () => {
     [
       'a setting after the time',
       `${FFMUC}#config.subject=%22x%22&gradido.start=1&gradido.end=2&foo=1`,
+    ],
+    [
+      'a change without the time',
+      `${FFMUC}#config.subject=%22x%22&gradido.first=1790686800&gradido.seq=2`,
+    ],
+    [
+      'a change without its count',
+      `${FFMUC}#config.subject=%22x%22&gradido.start=1&gradido.end=2&gradido.first=3`,
+    ],
+    [
+      'a setting after the change',
+      `${FFMUC}#config.subject=%22x%22&gradido.start=1&gradido.end=2&gradido.first=3&gradido.seq=1&foo=1`,
     ],
     ['another addition', `${FFMUC}#foo`],
     ['a second setting', `${FFMUC}#config.subject=%22x%22&config.startWithAudioMuted=true`],

@@ -209,7 +209,7 @@ export class AnthropicClient {
     // Layer-3 post-processing (authoritative discrepancy + the locally resolved
     // salutation) is shared with the stub preview so both paths behave identically
     // (E-012 / E-013). Both placeholders travel on to the client, which fills them.
-    return applyCreaDeterministics(input, evaluation)
+    return { ...applyCreaDeterministics(input, evaluation), model: params.model }
   }
 
   /**
@@ -265,6 +265,7 @@ export class AnthropicClient {
     return {
       responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
+      model: params.model,
     }
   }
 
@@ -316,6 +317,7 @@ export class AnthropicClient {
       ...parsed,
       defaultSalutation: defaultSalutationFor(input.recipientFirstName),
       flags: uncertain ? [SALUTATION_UNCERTAIN_FLAG] : [],
+      model: params.model,
     }
   }
 
@@ -368,6 +370,7 @@ export class AnthropicClient {
     return {
       responseText: parsed.responseText,
       memoSupplement: parsed.memoSupplement?.trim() || null,
+      model: params.model,
     }
   }
 

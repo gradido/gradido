@@ -126,6 +126,7 @@
       "answer": "Antwort des Mitglieds",
       "changed": "vom Mitglied geändert",
       "conversation": "Gespräch",
+      "note": "Notiz zur Rückfrage",
       "question": "Rückfrage gestellt"
     },
     "noGroup": "(ohne Gruppe)"
@@ -160,6 +161,8 @@
   },
   "contributionMessagesForm": {
     "hasRegisteredAt": "hat sich am {createdAt} registriert.",
+    "noteWakesResubmission": "Deine Notiz nimmt die Wiedervorlage von {name} zurück.",
+    "noteWakesResubmissionPlain": "Deine Notiz nimmt die Wiedervorlage zurück.",
     "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
   },
   "contributions": {

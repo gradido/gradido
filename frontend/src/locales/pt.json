@@ -40,6 +40,7 @@
       "oneDonation": "És um presente para a comunidade. 1000 obrigado por estares connosco.",
       "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
     },
+    "toAccount": "Ir para a minha conta",
     "triads": {
       "design": {
         "communityBased": "Baseado na comunidade.",
@@ -585,12 +586,12 @@
   },
   "emailConfirmation": {
     "changeAddress": "Corrigir endereço",
-    "grace": "Até {deadline} já podes usar a tua conta por completo — depois ela ficará à espera da tua confirmação.",
-    "later": "Mais tarde",
     "mailSent": "Um e-mail de confirmação vai a caminho do teu endereço. Clica na ligação que ele contém.",
     "overdue": "O período de transição terminou. Confirma o teu endereço de e-mail — logo a seguir a tua conta volta a abrir por completo.",
     "resend": "Enviar e-mail de novo",
+    "resendTooSoon": "O e-mail de confirmação acabou de ser enviado. Aguarda alguns minutos antes de o pedires de novo.",
     "resent": "O e-mail de confirmação vai de novo a caminho.",
+    "strip": "Um e-mail de confirmação vai a caminho de ti — clica na ligação que ele contém. Já podes usar a tua conta por completo até {deadline}.",
     "title": "Confirma o teu endereço de e-mail"
   },
   "emoji": {
@@ -645,7 +646,7 @@
     "landing": {
       "added": "A tua entrada foi adicionada: {sentence}",
       "firstEntry": "A tua primeira entrada:",
-      "haveAccount": "Já tenho uma conta",
+      "haveAccount": "Já tenho uma conta Gradido",
       "headline": "O mapa que te leva às pessoas do teu projeto",
       "otherCommunity": "A tua conta está noutra comunidade? Então inicia sessão lá e escreve a frase à mão.",
       "register": "Criar conta"
@@ -713,7 +714,7 @@
       "text": "Cada pessoa pode criar no Gradido: por aquilo que faz pelos outros. Se esta conta não for uma pessoa, mas uma associação, um projeto ou um negócio, diz-nos aqui — uma conta de projeto não cria, recebe agradecimentos.",
       "title": "Está tudo bem — a pergunta volta da próxima vez."
     },
-    "question": "Que coisas boas já fizeste nas últimas semanas?",
+    "question": "Que coisas boas fizeste nas últimas semanas?",
     "remove": "Remover entrada",
     "review": "Uma pessoa ainda vai ver as tuas entradas. Terás notícias nossas.",
     "showLess": "Mostrar menos",
@@ -785,7 +786,7 @@
     "password_old": "Palavra-passe antiga",
     "recipient": "Destinatário",
     "recipient-not-found": {
-      "by-email": "Caso contrário, envia o teu agradecimento por e-mail: o Gradido cria para isso um link que espera {days} dias. Com ele cria-se uma conta — ou o agradecimento entra numa conta existente.",
+      "by-email": "Também podes enviar o teu agradecimento por e-mail. O Gradido cria para isso um link que espera {days} dias. Quem o abrir recebe o agradecimento na sua conta — ou cria uma ali mesmo.",
       "change-address": "Alterar endereço",
       "change-entry": "Alterar o que escreveste",
       "choose-community": "Selecionar comunidade",
@@ -916,7 +917,7 @@
     "share-line1": "{name} agradece-te com {amount} Gradido:",
     "share-line2": "«{memo}»",
     "share-line3": "Queres aceitar o agradecimento?",
-    "share-line4": "Fica à tua espera até {date}. Se não o aceitares, não acontece nada.",
+    "share-line4": "Sem pressa. Fica à tua espera até {date}.",
     "to-login": "Inicia sessão",
     "to-register": "Regista uma nova conta.",
     "to-switch": "Reencaminhar agora",
@@ -1285,16 +1286,12 @@
     "almost-have-account": "Já tinhas uma conta com este endereço? Então inicia sessão.",
     "almost-text": "Vê a tua caixa de correio: está lá um e-mail nosso para continuares. O teu agradecimento espera por ti aqui.",
     "almost-title": "Quase lá",
-    "answer": "Responder a {name}",
-    "answer-short": "Responder",
-    "arrived-text": "Tens agora na tua conta {amount} Gradido de {name}.",
-    "arrived-title": "O agradecimento chegou.",
     "deleted-text": "{name} eliminou o link no dia {date}.",
     "deleted-title": "Este agradecimento já não existe.",
     "expired-text": "Voltou para {name} — nada se perdeu.",
     "expired-title": "Este agradecimento esperou {days} dias.",
     "from": "{name} agradece-te com {amount}",
-    "have-account": "Já tenho uma conta",
+    "have-account": "Já tenho uma conta Gradido",
     "how": "Como funciona",
     "invite": "Também gostavas de agradecer a outras pessoas desta forma tão bonita?",
     "other-community": "Se a tua conta estiver noutra comunidade, escolhe-a. Reencaminhamos-te para lá.",
@@ -1376,7 +1373,7 @@
       "disabled": "Agora só tu vês a tua imagem.",
       "enabled": "A tua imagem está visível para outros membros.",
       "visibility": "Mostrar a minha imagem a outros membros",
-      "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
+      "visibilityInfo": "Os outros membros veem a tua imagem, por exemplo ao lado das transações que partilham. Quem abrir um link teu também a vê lá, enquanto o link estiver em aberto. Quando a definição está desligada, aparecem as tuas iniciais, como até agora."
     },
     "community": "Círculos",
     "creationAccount": {
@@ -1424,8 +1421,10 @@
         "failed": "Isso não funcionou. Recarrega a página e tenta outra vez.",
         "intro": "A primeira criação aparece só uma vez por conta — para uma conta que já criou, nunca mais volta. Aqui podes abri-la de novo para a tua própria conta e percorrer todo o processo a sério.",
         "noRunsLeft": "A quota deste mês está esgotada — restam 0 de {total} testes.",
+        "reloginHint": "Após o início tens de terminar a sessão e voltar a iniciá-la: a carteira fica a saber o estado da primeira criação ao iniciar sessão.",
         "runsLeft": "Testes restantes este mês: {left} de {total}",
         "signerHint": "A tua conta está definida como signatária da primeira criação. Ninguém pode confirmar a sua própria contribuição, por isso o teste não funciona na tua conta — usa outra conta de administrador.",
+        "started": "O teste está preparado. Termina a sessão e volta a iniciá-la – a primeira criação abre após o início de sessão.",
         "title": "Primeira criação",
         "unbookedHint": "Sem lançamento, as contribuições ficam como contribuições em aberto na área de administração. Aí podes confirmá-las ou eliminá-las à mão — enquanto lá estiverem, contam para a tua quota mensal.",
         "withBooking": "Repetir a primeira criação – com lançamento",
@@ -1673,6 +1672,7 @@
     "done": {
       "another": "Mais um para outra pessoa",
       "edit-hint": "Podes alterar a frase antes de a enviares. As tuas palavras só aparecem no postal.",
+      "edit-hint-email": "Podes ajustar e completar o texto do e-mail antes de o enviares.",
       "edit-hint-plain": "Podes alterar o texto antes de o enviares.",
       "find-again": "Voltas a encontrá-lo em {transactions}, em «{links}».",
       "link-hint": "Quem tiver o link pode aceitar o agradecimento. Envia-o só à pessoa a quem se destina.",

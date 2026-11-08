@@ -31,6 +31,7 @@ const virtualLinkTransaction = (amount: GradidoUnit, user: User): Transaction =>
     picture: null,
     reaction: null,
     canReact: false,
+    answered: false,
   }
 }
 
@@ -67,6 +68,7 @@ const virtualDecayTransaction = (
     picture: null,
     reaction: null,
     canReact: false,
+    answered: false,
   }
 }
 

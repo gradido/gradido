@@ -3,18 +3,18 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  DbUser,
   dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbWriteMatchingEntryKeying,
   MatchingEntrySelect,
-  User,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import { MATCHING_ENTRY_DETAILS_MAX_CHARS, MATCHING_ENTRY_SUMMARY_MAX_CHARS } from 'shared'
 import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   acceptEventMatchingEntry,
   createMatchingEntry,
@@ -65,8 +65,8 @@ let testEnv: {
   db: AppDatabase
 }
 
-let bibi: User
-let bob: User
+let bibi: DbUser
+let bob: DbUser
 
 /**
  * matching_entries is a drizzle table, so cleanDB() does not reach it — that one walks
@@ -120,8 +120,8 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
   await clearEntries()
-  bibi = await userFactory(testEnv, bibiBloxberg)
-  bob = await userFactory(testEnv, bobBaumeister)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
+  bob = await userFactoryDrizzle(bobBaumeister)
 })
 
 afterAll(async () => {

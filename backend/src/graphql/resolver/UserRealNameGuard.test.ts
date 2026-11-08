@@ -2,10 +2,10 @@
 
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User as DbUser, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { gql } from 'graphql-tag'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
@@ -67,9 +67,9 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  await userFactory(testEnv, bibiBloxberg)
-  bob = await userFactory(testEnv, bobBaumeister)
-  await userFactory(testEnv, peterLustig) // the seeded administrator
+  await userFactoryDrizzle(bibiBloxberg)
+  bob = await userFactoryDrizzle(bobBaumeister)
+  await userFactoryDrizzle(peterLustig) // the seeded administrator
 })
 
 afterAll(async () => {

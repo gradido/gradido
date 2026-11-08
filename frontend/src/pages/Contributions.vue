@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@vue/apollo-composable'
 import ContributionEdit from '@/components/Contributions/ContributionEdit'
@@ -33,7 +33,14 @@ import ContributionListAll from '@/components/Contributions/ContributionListAll'
 import NavContributions from '@/components/Contributions/NavContributions'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
 import { useAppToast } from '@/composables/useToast'
+import { endFirstLoginHolds } from '@/composables/useFirstLoginWindow'
 import { useI18n } from 'vue-i18n'
+
+// E-045 (Bernd, 08.11.2026): whoever opens "Schöpfen" wants to create -- the windows about the
+// member that waited for the next start (E-044, KA-015) come now, the name before the first
+// creation (ES-003). Every hold, as a sign-in ends them: the place of use is the place of the
+// change (PS-024).
+onMounted(endFirstLoginHolds)
 
 const tabRoutes = {
   contribute: 'contribute',

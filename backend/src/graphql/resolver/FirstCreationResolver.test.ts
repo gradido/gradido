@@ -6,6 +6,7 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import { sendAddedContributionMessageEmail, sendContributionConfirmedEmail } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   Contribution as DbContribution,
   ContributionMessage as DbContributionMessage,
   Event as DbEvent,
@@ -13,16 +14,10 @@ import {
   UserContact as DbUserContact,
   UserRole as DbUserRole,
   dbInsertEvent,
-  dbSelectFirstCreationByUserId,
-  dbUpdateFirstCreationOutcome,
   EventInsert,
   EventType,
-  FirstCreationReviewReason,
   FirstCreationStatus,
-  FirstCreationTestMode,
-  firstCreationsTable,
 } from 'database'
-import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -31,7 +26,6 @@ import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
 import { CONFIG } from '@/config'
 import { composeFirstCreationGreeting } from '@/data/FirstCreation.logic'
 import { createUserContribution } from '@/graphql/resolver/util/createUserContribution'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   login,
@@ -119,12 +113,17 @@ let bibi: DbUser
 let bob: DbUser
 let raeuber: DbUser
 
-const loginAs = async (email: string): Promise<void> => {
+/** Signs in and hands back the login answer: it carries the member's first-creation state. */
+const loginAs = async (email: string): Promise<{ firstCreationStatus: string | null }> => {
   resetToken()
-  const { errors } = await mutate({ mutation: login, variables: { email, password: 'Aa12345_' } })
+  const { data, errors } = await mutate({
+    mutation: login,
+    variables: { email, password: 'Aa12345_' },
+  })
   // A failed login leaves the token empty, and an empty token answers every guarded call
   // with `401 Unauthorized` - the very words some tests below assert.
   expect(errors).toBeUndefined()
+  return data.login
 }
 
 const answer = (lines: string[], suspicious = false, reason = '') => ({
@@ -146,16 +145,16 @@ const bundle = [
   { catalogKey: 'retiree' },
 ]
 
-const rowOf = async (user: DbUser) => {
-  const row = await dbSelectFirstCreationByUserId(user.id)
-  if (!row) {
-    throw new Error('no first creation row')
-  }
-  return row
-}
+/** Where the member's first creation stands: the column on their row. */
+const statusOf = async (user: DbUser) =>
+  (await DbUser.findOneByOrFail({ id: user.id })).firstCreationStatus
 
 const contributionsOf = (user: DbUser) =>
   DbContribution.find({ where: { userId: user.id }, order: { id: 'ASC' }, withDeleted: true })
+
+/** The ids of the member's first-creation bundle: the rows that carry the mark. */
+const bundleOf = async (user: DbUser) =>
+  (await contributionsOf(user)).filter((c) => c.firstCreation).map((c) => c.id)
 
 const messagesOn = (contributionId: number) =>
   DbContributionMessage.find({ where: { contributionId }, order: { id: 'ASC' } })
@@ -164,17 +163,21 @@ const eventsOf = (type: EventType, user: DbUser) =>
   DbEvent.find({ where: { type, affectedUserId: user.id } })
 
 /**
- * Reopens a finished process the way startFirstCreationTest does: the SAME row, FORCED.
- * By hand rather than through that mutation, because most members reopened here are plain
- * members who do not hold FUNCTION_TESTS — the mutation itself is exercised further down.
+ * Reopens a finished process the way startFirstCreationTest does: the state put to FORCED,
+ * the previous bundle unmarked. By hand rather than through that mutation, because most
+ * members reopened here are plain members who do not hold FUNCTION_TESTS — the mutation
+ * itself is exercised further down.
  */
-const reopen = async (user: DbUser, testMode: FirstCreationTestMode | null) => {
-  const row = await rowOf(user)
-  const moved = await dbUpdateFirstCreationOutcome(row.id, row.status as FirstCreationStatus, {
-    status: FirstCreationStatus.FORCED,
-    testMode,
-  })
-  expect(moved.success).toBe(true)
+const reopen = async (user: DbUser, withBooking: boolean) => {
+  await DbUser.update(
+    { id: user.id },
+    {
+      firstCreationStatus: withBooking
+        ? FirstCreationStatus.FORCED
+        : FirstCreationStatus.FORCED_UNBOOKED,
+    },
+  )
+  await DbContribution.update({ userId: user.id, firstCreation: true }, { firstCreation: false })
 }
 
 beforeAll(async () => {
@@ -304,7 +307,7 @@ describe('FirstCreationResolver', () => {
       const skipped = await mutate({ mutation: skipFirstCreation })
       expect(skipped.data.skipFirstCreation).toBe(true)
       expect(await eventsOf(EventType.FIRST_CREATION_SKIP, bibi)).toHaveLength(1)
-      expect(await dbSelectFirstCreationByUserId(bibi.id)).toBeNull()
+      expect(await statusOf(bibi)).toBeNull()
       const again = await query({ query: firstCreationStatus })
       expect(again.data.firstCreationStatus).toMatchObject({ eligible: true, skippedBefore: true })
     })
@@ -343,7 +346,10 @@ describe('FirstCreationResolver', () => {
       firstCreationLines.mockResolvedValue(
         answer(['für den Kuchen zum Gemeindefest', 'für das Kochen für die Nachbarskinder']),
       )
-      await loginAs('bibi@bloxberg.de')
+      // Peter brought Bibi here: the window offers him as the one to thank (ZE-007).
+      await DbUser.update({ id: bibi.id }, { referrerId: peter.id })
+      // The login carries the state, and a member who has not started carries none.
+      expect((await loginAs('bibi@bloxberg.de')).firstCreationStatus).toBeNull()
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
         variables: { entries: bundle },
@@ -371,6 +377,7 @@ describe('FirstCreationResolver', () => {
         state: FirstCreationStatus.DONE,
         eligible: false,
         message: expectedMessage,
+        referrerAlias: peter.alias,
       })
       expect(data.submitFirstCreation.entries).toEqual([
         { memo: expect.stringContaining('Gemeindefest'), confirmed: true, status: 'CONFIRMED' },
@@ -399,6 +406,8 @@ describe('FirstCreationResolver', () => {
         type: ContributionMessageType.DIALOG,
         isModerator: true,
         message: expectedMessage,
+        // The lines are the model's, and the row says so.
+        aiModel: 'claude-test',
       })
       expect(await messagesOn(contributions[1].id)).toHaveLength(0)
       // The one comment mail plus the normal confirmation mail per contribution.
@@ -412,16 +421,9 @@ describe('FirstCreationResolver', () => {
         answerable: false,
       })
       expect(confirmedMail).toHaveBeenCalledTimes(3)
-      // The row and the event.
-      expect(await rowOf(bibi)).toMatchObject({
-        status: FirstCreationStatus.DONE,
-        entriesCount: 3,
-        contributionIds: contributions.map((c) => c.id),
-        message: expectedMessage,
-        model: 'claude-test',
-        signerUserId: peter.id,
-        reviewReason: null,
-      })
+      // The state, the mark and the event.
+      expect(await statusOf(bibi)).toBe(FirstCreationStatus.DONE)
+      expect(await bundleOf(bibi)).toEqual(contributions.map((c) => c.id))
       expect(await eventsOf(EventType.FIRST_CREATION_DONE, bibi)).toHaveLength(1)
       expect((await eventsOf(EventType.FIRST_CREATION_DONE, bibi))[0]).toMatchObject({
         actingUserId: peter.id,
@@ -430,7 +432,9 @@ describe('FirstCreationResolver', () => {
     })
 
     it('a second save is refused, and the status reads the ticks off the contributions', async () => {
-      await loginAs('bibi@bloxberg.de')
+      // The login now says where she stands: the wallet asks no status query for a member
+      // whose process is settled.
+      expect((await loginAs('bibi@bloxberg.de')).firstCreationStatus).toBe(FirstCreationStatus.DONE)
       const { errors } = await mutate({
         mutation: submitFirstCreation,
         variables: { entries: bundle },
@@ -495,11 +499,14 @@ describe('FirstCreationResolver', () => {
       })
       expect(contribution.amount.toString()).toBe('100')
       const messages = await messagesOn(contribution.id)
-      expect(messages.map((m) => [m.type, m.message])).toEqual([
-        [ContributionMessageType.DIALOG, review],
+      // The neutral note to the member is the house's; the reason in the internal note is
+      // the model's, and only that row names it.
+      expect(messages.map((m) => [m.type, m.message, m.aiModel])).toEqual([
+        [ContributionMessageType.DIALOG, review, null],
         [
           ContributionMessageType.MODERATOR,
           'Crea hat bei der Erst-Schöpfung angehalten: Gewaltverherrlichung in Eintrag 0. Bitte prüfen und von Hand bestätigen, ändern oder ablehnen.',
+          'claude-test',
         ],
       ])
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
@@ -507,18 +514,14 @@ describe('FirstCreationResolver', () => {
       // and the member is meant to be able to write back to them (ES-018).
       expect(addedMessageMail.mock.calls[0][0]).toMatchObject({ answerable: true })
       expect(confirmedMail).not.toHaveBeenCalled()
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.SUSPICION,
-        message: review,
-        signerUserId: peter.id,
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await bundleOf(raeuber)).toEqual([contribution.id])
       expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(1)
     })
 
-    it('timeout: same path, no internal note, the reason on the row', async () => {
+    it('timeout: same path, no internal note', async () => {
       // The same member once more, reopened the way the function test will do it.
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, true)
       firstCreationLines.mockResolvedValue({
         success: false,
         error: { reason: 'MODEL_TIMEOUT', message: 'FIRST_CREATION_MODEL_TIMEOUT' },
@@ -540,11 +543,9 @@ describe('FirstCreationResolver', () => {
       expect(fresh.map((c) => c.confirmedAt)).toEqual([null, null])
       expect(await messagesOn(fresh[0].id)).toHaveLength(1)
       expect(confirmedMail).not.toHaveBeenCalled()
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.MODEL_TIMEOUT,
-        contributionIds: fresh.map((c) => c.id),
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
+      // The bundle is the fresh one: the reopening took the mark off the earlier run.
+      expect(await bundleOf(raeuber)).toEqual(fresh.map((c) => c.id))
     })
 
     /**
@@ -558,7 +559,7 @@ describe('FirstCreationResolver', () => {
      * at all; this path is for every client that is not our wallet.
      */
     it('two ticks that exclude each other: to a moderator, and the model is never asked', async () => {
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, true)
       await loginAs('raeuber@hotzenplotz.de')
       const before = (await contributionsOf(raeuber)).length
       const reviewsBefore = (await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).length
@@ -608,12 +609,8 @@ describe('FirstCreationResolver', () => {
       // that put it on Crea would send a moderator through reasoning that does not exist.
       expect(messages[1].message).not.toContain('Crea')
 
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.CHECK_CONFLICT,
-        model: null,
-        contributionIds: fresh.map((c) => c.id),
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await bundleOf(raeuber)).toEqual(fresh.map((c) => c.id))
       expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(
         reviewsBefore + 1,
       )
@@ -630,7 +627,7 @@ describe('FirstCreationResolver', () => {
      * reads "all confirmed" and answers DONE. Measured the hard way, in the CI.
      */
     it('one of the two ticks alone is nothing to stop', async () => {
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, true)
       firstCreationLines.mockResolvedValue({
         success: false,
         error: { reason: 'MODEL_TIMEOUT', message: 'FIRST_CREATION_MODEL_TIMEOUT' },
@@ -650,22 +647,22 @@ describe('FirstCreationResolver', () => {
       // fire on a single tick. Where it lands afterwards is the model's business, not ours.
       expect(firstCreationLines).toHaveBeenCalledTimes(1)
       expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
-      expect(await rowOf(raeuber)).toMatchObject({
-        reviewReason: FirstCreationReviewReason.MODEL_TIMEOUT,
-      })
     })
   })
 
   describe('reopened by the function test (FORCED)', () => {
     it('outcome B: without booking, the thread and the mail come, the confirms do not', async () => {
-      await reopen(bibi, FirstCreationTestMode.WITHOUT_BOOKING)
+      await reopen(bibi, false)
       firstCreationLines.mockResolvedValue(answer(['für die Pizzakartons']))
       await loginAs('bibi@bloxberg.de')
       const before = (await contributionsOf(bibi)).length
       const status = await query({ query: firstCreationStatus })
       expect(status.data.firstCreationStatus).toMatchObject({
-        state: FirstCreationStatus.FORCED,
+        state: FirstCreationStatus.FORCED_UNBOOKED,
         eligible: true,
+        // A window about to reopen shows nothing of the run before it.
+        entries: [],
+        message: null,
       })
       const { data, errors } = await mutate({
         mutation: submitFirstCreation,
@@ -694,19 +691,14 @@ describe('FirstCreationResolver', () => {
       // there for. The mail is not switched globally — it is switched per outcome.
       expect(addedMessageMail.mock.calls[0][0]).toMatchObject({ answerable: true })
       expect(confirmedMail).not.toHaveBeenCalled()
-      // The SAME row, moved on: still one row per member.
-      const row = await rowOf(bibi)
-      expect(row).toMatchObject({
-        status: FirstCreationStatus.DONE_UNBOOKED,
-        entriesCount: 1,
-        contributionIds: [fresh.id],
-        testMode: FirstCreationTestMode.WITHOUT_BOOKING,
-      })
+      // The state moved on, and the bundle is the fresh one alone.
+      expect(await statusOf(bibi)).toBe(FirstCreationStatus.DONE_UNBOOKED)
+      expect(await bundleOf(bibi)).toEqual([fresh.id])
       expect(await eventsOf(EventType.FIRST_CREATION_UNBOOKED, bibi)).toHaveLength(1)
     })
 
     it('splits seven entries into 14,32 + six times 14,28 and books all seven', async () => {
-      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(bibi, true)
       firstCreationLines.mockResolvedValue(
         answer(Array.from({ length: 7 }, (_, i) => `für Ding ${i}`)),
       )
@@ -737,7 +729,7 @@ describe('FirstCreationResolver', () => {
     })
 
     it('keeps a thanked bundle thanked when only the outcome event fails', async () => {
-      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(bibi, true)
       firstCreationLines.mockResolvedValue(answer(['für den Zaun']))
       failEventOnce(EventType.FIRST_CREATION_DONE)
       await loginAs('bibi@bloxberg.de')
@@ -754,13 +746,13 @@ describe('FirstCreationResolver', () => {
       expect(data.submitFirstCreation.message).toContain('für den Zaun')
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
       expect(confirmedMail).toHaveBeenCalledTimes(1)
-      expect((await rowOf(bibi)).status).toBe(FirstCreationStatus.DONE)
+      expect(await statusOf(bibi)).toBe(FirstCreationStatus.DONE)
       // The process is not counted under a second outcome.
       expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, bibi)).toHaveLength(reviewsBefore)
     })
 
     it('refuses more than ten entries before filing anything', async () => {
-      await reopen(bibi, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(bibi, true)
       await loginAs('bibi@bloxberg.de')
       const before = (await contributionsOf(bibi)).length
       const { errors } = await mutate({
@@ -791,7 +783,7 @@ describe('FirstCreationResolver', () => {
       const used = thisMonth.reduce((sum, c) => sum.add(c.amount), new GradidoUnit(0n))
       const topUp = Number((GradidoUnit.fromNumber(950).subtract(used).gddCent / 10000n).toString())
       expect(topUp).toBeGreaterThan(0)
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'bibi@bloxberg.de',
         amount: topUp,
         memo: 'Aufgefuellt bis kurz unter die Grenze',
@@ -828,7 +820,7 @@ describe('FirstCreationResolver', () => {
       // Half her month spent, and spent on a contribution she filed HERSELF: that is what
       // makes her an account the window would never open for again (ES-011), which is the
       // whole reason the function test exists.
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'tessa@testerin.de',
         amount: 500,
         memo: 'Im Garten der Nachbarin geholfen',
@@ -853,9 +845,9 @@ describe('FirstCreationResolver', () => {
         variables: { withBooking: true },
       })
       expect(errors).toEqual([new GraphQLError('FIRST_CREATION_TEST_REFUSED: IS_SIGNER')])
-      // Not merely an error message: a forced row for the signer would sit there with a
+      // Not merely an error message: a forced state for the signer would sit there with a
       // window that can never open, because loadSignerFor answers IS_MEMBER for them.
-      expect(await dbSelectFirstCreationByUserId(peter.id)).toBeNull()
+      expect(await statusOf(peter)).toBeNull()
     })
 
     it('tells the signer so before they press, and counts nothing for a member', async () => {
@@ -876,7 +868,8 @@ describe('FirstCreationResolver', () => {
     })
 
     it('counts the runs the month still has room for, out of the quota itself', async () => {
-      await loginAs('tessa@testerin.de')
+      // Nobody has asked yet: the login says so.
+      expect((await loginAs('tessa@testerin.de')).firstCreationStatus).toBeNull()
       const { data } = await query({ query: firstCreationStatus })
       expect(data.firstCreationStatus).toMatchObject({
         // 1000 GDD a month, 500 of them spent above: five bundles of 100 still fit.
@@ -885,7 +878,14 @@ describe('FirstCreationResolver', () => {
         // She filed that creation herself, so the window is shut for her (ES-011) - which
         // is exactly the state the button below has to get past.
         eligible: false,
+        state: FirstCreationStatus.HAS_CREATED,
       })
+      // Written down the first time it was asked: from now on the answer is on her row, and
+      // her login says it, so the wallet asks no more.
+      expect(await statusOf(tessa)).toBe(FirstCreationStatus.HAS_CREATED)
+      expect((await loginAs('tessa@testerin.de')).firstCreationStatus).toBe(
+        FirstCreationStatus.HAS_CREATED,
+      )
     })
 
     it('reopens the window of an account that has long since created', async () => {
@@ -896,12 +896,10 @@ describe('FirstCreationResolver', () => {
       })
       expect(errors).toBeUndefined()
       expect(data.startFirstCreationTest).toBe(true)
-      const row = await rowOf(tessa)
-      expect(row.status).toBe(FirstCreationStatus.FORCED)
-      expect(row.testMode).toBe(FirstCreationTestMode.WITHOUT_BOOKING)
+      expect(await statusOf(tessa)).toBe(FirstCreationStatus.FORCED_UNBOOKED)
       const status = await query({ query: firstCreationStatus })
       expect(status.data.firstCreationStatus).toMatchObject({
-        state: FirstCreationStatus.FORCED,
+        state: FirstCreationStatus.FORCED_UNBOOKED,
         eligible: true,
       })
       expect(await eventsOf(EventType.FIRST_CREATION_TEST, tessa)).toHaveLength(1)
@@ -914,7 +912,7 @@ describe('FirstCreationResolver', () => {
         variables: { withBooking: true },
       })
       expect(errors).toBeUndefined()
-      expect((await rowOf(tessa)).testMode).toBe(FirstCreationTestMode.WITH_BOOKING)
+      expect(await statusOf(tessa)).toBe(FirstCreationStatus.FORCED)
     })
 
     /**
@@ -952,7 +950,7 @@ describe('FirstCreationResolver', () => {
       const before = await query({ query: firstCreationStatus })
       const runsLeft = before.data.firstCreationStatus.testRunsLeft
       expect(runsLeft).toBeGreaterThan(0)
-      await creationFactory(testEnv, {
+      await creationFactory({
         email: 'tessa@testerin.de',
         amount: runsLeft * 100,
         memo: 'Den Rest des Monats aufgebraucht',
@@ -1023,54 +1021,34 @@ describe('FirstCreationResolver', () => {
   })
 
   describe('healing a process that broke between filing and confirming', () => {
-    const drizzle = () => AppDatabase.getInstance().getDrizzleDataSource()
-
     it('reads DONE when every contribution turned out confirmed', async () => {
-      // Bob's process is DONE; put it back to SUBMITTED as if the last update had been lost.
-      const row = await rowOf(bob)
-      await drizzle()
-        .update(firstCreationsTable)
-        .set({
-          status: FirstCreationStatus.SUBMITTED,
-          updatedAt: new Date(Date.now() - 6 * 60 * 1000),
-        })
-        .where(eq(firstCreationsTable.id, row.id))
+      // Bob's process is DONE; put it back to SUBMITTED as if the last step had been lost.
+      await DbUser.update({ id: bob.id }, { firstCreationStatus: FirstCreationStatus.SUBMITTED })
+      const bundle = await bundleOf(bob)
       const doneBefore = (await eventsOf(EventType.FIRST_CREATION_DONE, bob)).length
       await loginAs('bob@baumeister.de')
       const { data } = await query({ query: firstCreationStatus })
       expect(data.firstCreationStatus.state).toBe(FirstCreationStatus.DONE)
-      expect((await rowOf(bob)).status).toBe(FirstCreationStatus.DONE)
+      expect(await statusOf(bob)).toBe(FirstCreationStatus.DONE)
       // The healing writes the outcome event the process would have written, in the signer's name.
       const done = await eventsOf(EventType.FIRST_CREATION_DONE, bob)
       expect(done).toHaveLength(doneBefore + 1)
       expect(done[done.length - 1]).toMatchObject({
         actingUserId: peter.id,
-        involvedContributionId: row.contributionIds[0],
+        involvedContributionId: bundle[0],
       })
     })
 
-    it('leaves a young SUBMITTED row alone and hands a stale one to a human', async () => {
-      // Raeuber's contributions are open (IN_REVIEW above); stage a SUBMITTED row on them.
-      const row = await rowOf(raeuber)
-      await drizzle()
-        .update(firstCreationsTable)
-        .set({
-          status: FirstCreationStatus.SUBMITTED,
-          reviewReason: null,
-          message: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(firstCreationsTable.id, row.id))
+    it('leaves a SUBMITTED process alone while its lock is held, and hands it to a human once it is free', async () => {
+      // Raeuber's contributions are open (IN_REVIEW above); stage a SUBMITTED process on them.
+      await DbUser.update(
+        { id: raeuber.id },
+        { firstCreationStatus: FirstCreationStatus.SUBMITTED },
+      )
+      const [first] = await bundleOf(raeuber)
+      const messagesBefore = (await messagesOn(first)).length
       await loginAs('raeuber@hotzenplotz.de')
-      const young = await query({ query: firstCreationStatus })
-      expect(young.data.firstCreationStatus.state).toBe(FirstCreationStatus.SUBMITTED)
-
-      await drizzle()
-        .update(firstCreationsTable)
-        .set({ updatedAt: new Date(Date.now() - 6 * 60 * 1000) })
-        .where(eq(firstCreationsTable.id, row.id))
-      const messagesBefore = (await messagesOn(row.contributionIds[0])).length
-      // While somebody holds the member's lock the row is alive, however old it looks.
+      // While somebody holds the member's lock the process is alive, whatever it looks like.
       const held = new Mutex(
         AppDatabase.getInstance().getRedisClient(),
         `FIRST_CREATION_LOCK:${raeuber.id}`,
@@ -1078,19 +1056,16 @@ describe('FirstCreationResolver', () => {
       expect(await held.tryAcquire()).toBe(true)
       const alive = await query({ query: firstCreationStatus })
       expect(alive.data.firstCreationStatus.state).toBe(FirstCreationStatus.SUBMITTED)
-      expect(await messagesOn(row.contributionIds[0])).toHaveLength(messagesBefore)
+      expect(await messagesOn(first)).toHaveLength(messagesBefore)
       await held.release()
       const stale = await query({ query: firstCreationStatus })
       expect(stale.data.firstCreationStatus).toMatchObject({
         state: FirstCreationStatus.IN_REVIEW,
         message: 'Deine Einträge schaut sich noch ein Mensch an. Du hörst von uns.',
       })
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
       // The review note went onto the thread once more, in the signer's name.
-      const messages = await messagesOn(row.contributionIds[0])
+      const messages = await messagesOn(first)
       expect(messages).toHaveLength(messagesBefore + 1)
       expect(messages[messages.length - 1]).toMatchObject({
         userId: peter.id,
@@ -1099,9 +1074,9 @@ describe('FirstCreationResolver', () => {
     })
   })
 
-  describe('when the process breaks after the row is claimed', () => {
+  describe('when the process breaks after the state is claimed', () => {
     it('a confirm failing mid-bundle lands in review with the note on the first open contribution', async () => {
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, true)
       firstCreationLines.mockResolvedValue(answer(['für eins', 'für zwei', 'für drei']))
       // The mail after the SECOND booking fails: that contribution is committed, the third
       // is never reached.
@@ -1130,18 +1105,15 @@ describe('FirstCreationResolver', () => {
       expect((await messagesOn(fresh[2].id))[0].message).toContain('noch ein Mensch')
       // Thanks note on the first, review note on the third: two mails, no more.
       expect(addedMessageMail).toHaveBeenCalledTimes(2)
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
-        contributionIds: fresh.map((c) => c.id),
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await bundleOf(raeuber)).toEqual(fresh.map((c) => c.id))
       expect(await eventsOf(EventType.FIRST_CREATION_REVIEW, raeuber)).toHaveLength(
         reviewsBefore + 1,
       )
     })
 
-    it('a failing entry leaves the ones before it on the row, in review, with a note', async () => {
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+    it('a failing entry leaves the ones before it marked, in review, with a note', async () => {
+      await reopen(raeuber, true)
       let calls = 0
       fileOne.mockImplementation((...args: unknown[]) => {
         calls += 1
@@ -1167,13 +1139,10 @@ describe('FirstCreationResolver', () => {
       const fresh = (await contributionsOf(raeuber)).slice(before)
       expect(fresh).toHaveLength(1)
       expect(await messagesOn(fresh[0].id)).toHaveLength(1)
-      expect(await rowOf(raeuber)).toMatchObject({
-        status: FirstCreationStatus.IN_REVIEW,
-        reviewReason: FirstCreationReviewReason.PROCESS_ERROR,
-        contributionIds: [fresh[0].id],
-      })
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
+      expect(await bundleOf(raeuber)).toEqual([fresh[0].id])
       expect(firstCreationLines).not.toHaveBeenCalled()
-      // The window is not shut for good: the row is there, the moderation sees the bundle.
+      // The window is not shut for good: the state is there, the moderation sees the bundle.
       const status = await query({ query: firstCreationStatus })
       expect(status.data.firstCreationStatus).toMatchObject({
         state: FirstCreationStatus.IN_REVIEW,
@@ -1182,7 +1151,7 @@ describe('FirstCreationResolver', () => {
     })
 
     it('a review whose event fails still writes the note exactly once', async () => {
-      await reopen(raeuber, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(raeuber, true)
       firstCreationLines.mockResolvedValue(answer(['für etwas'], true, 'Grund'))
       failEventOnce(EventType.FIRST_CREATION_REVIEW)
       await loginAs('raeuber@hotzenplotz.de')
@@ -1199,11 +1168,11 @@ describe('FirstCreationResolver', () => {
         ContributionMessageType.MODERATOR,
       ])
       expect(addedMessageMail).toHaveBeenCalledTimes(1)
-      expect((await rowOf(raeuber)).reviewReason).toBe(FirstCreationReviewReason.SUSPICION)
+      expect(await statusOf(raeuber)).toBe(FirstCreationStatus.IN_REVIEW)
     })
 
     it('a model call that throws is a model failure, not an error to the member', async () => {
-      await reopen(bob, FirstCreationTestMode.WITH_BOOKING)
+      await reopen(bob, true)
       firstCreationLines.mockRejectedValue(new Error('settings table unreachable'))
       await loginAs('bob@baumeister.de')
       const { data, errors } = await mutate({
@@ -1212,7 +1181,7 @@ describe('FirstCreationResolver', () => {
       })
       expect(errors).toBeUndefined()
       expect(data.submitFirstCreation.state).toBe(FirstCreationStatus.IN_REVIEW)
-      expect((await rowOf(bob)).reviewReason).toBe(FirstCreationReviewReason.MODEL_ERROR)
+      expect(await statusOf(bob)).toBe(FirstCreationStatus.IN_REVIEW)
     })
   })
 
@@ -1278,12 +1247,11 @@ describe('FirstCreationResolver', () => {
       expect(data.setFirstCreationSigner).toBeNull()
       const settings = await query({ query: creaSettings })
       expect(settings.data.creaSettings.firstCreationSigner).toBeNull()
-      // Bob never finished a process the window would count as "started" for eligibility -
-      // he did (DONE); so ask a fresh reading of somebody with a row: eligible is false for
-      // everybody now, and the state is still readable.
+      // Ask a fresh reading of somebody with a state: eligible is false for everybody now,
+      // and the state is still readable.
       await loginAs('bob@baumeister.de')
       const status = await query({ query: firstCreationStatus })
-      // Whatever Bob's row says after the runs above, it is a row - and no signer means no
+      // Whatever Bob's state says after the runs above, it is one - and no signer means no
       // window for anybody who has one.
       expect(status.data.firstCreationStatus.state).not.toBe('NONE')
       expect(status.data.firstCreationStatus.eligible).toBe(false)

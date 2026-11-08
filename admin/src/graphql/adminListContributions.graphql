@@ -35,6 +35,7 @@ query adminListContributions(
       messagesCount
       lastMessageType
       lastMessageByModerator
+      colleagueNoteOnQuestion
       moderatorId
       moderatorUserName
       userId

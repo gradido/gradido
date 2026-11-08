@@ -1,9 +1,9 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, User, UserRole } from 'database'
+import { AppDatabase, DbUser, UserRole } from 'database'
 import { gql } from 'graphql-tag'
 import { getLogger as originalGetLogger } from 'log4js'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -76,11 +76,11 @@ const scopeOf = async (): Promise<{
 }
 
 describe('verifyLogin — moderator group visibility scope', () => {
-  let moderator: User
+  let moderator: DbUser
 
   beforeAll(async () => {
-    await userFactory(testEnv, peterLustig) // administrator
-    moderator = await userFactory(testEnv, bibiBloxberg)
+    await userFactoryDrizzle(peterLustig) // administrator
+    moderator = await userFactoryDrizzle(bibiBloxberg)
   })
 
   it('reports an administrator as unrestricted', async () => {

@@ -1,49 +1,53 @@
-import { Community as DbCommunity } from 'database'
-import { createKeyPair, HomeCommunityInsertInput } from 'shared'
+import {
+  CommunitiesSelect,
+  dbInsertHomeCommunity,
+  dbSelectHomeCommunity,
+  dbUpdateHomeCommunity,
+} from 'database'
+import { createKeyPair, HomeCommunityInsertInput, MissingHomeCommunityError } from 'shared'
 import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import { v4 as uuidv4 } from 'uuid'
 
 import { CONFIG } from '@/config'
 
-// a new Ed25519 key pair the way the dht-node stores it: privateKey = seed || publicKey
+const HOME_COMMUNITY_URL = 'http://localhost/api/'
+
+// the Ed25519 key pair the way the dht-node derives and stores it: crypto_sign_seed_keypair of
+// FEDERATION_DHT_SEED, privateKey = seed || publicKey. Without the seed a random one, which the
+// dht-node refuses at its start.
 function signingKeys(): { publicKey: Buffer; privateKey: Buffer } {
-  const keyPair = Ed25519KeyPair.generate()
+  const keyPair = CONFIG.FEDERATION_DHT_SEED
+    ? Ed25519KeyPair.generate(Buffer.from(CONFIG.FEDERATION_DHT_SEED, 'hex'))
+    : Ed25519KeyPair.generate()
   const publicKey = keyPair.publicKeyToBuffer()
   return { publicKey, privateKey: Buffer.concat([keyPair.privateKeyToBuffer(), publicKey]) }
 }
 
-export async function writeHomeCommunityEntry(): Promise<DbCommunity> {
-  try {
-    // check for existing homeCommunity entry
-    let homeCom = await DbCommunity.findOne({ where: { foreign: false } })
-    if (homeCom) {
-      // simply update the existing entry, but it MUST keep the ID and UUID because of possible
-      // relations, and its keys never change
-      homeCom.url = 'http://localhost/api/'
-      homeCom.name = CONFIG.COMMUNITY_NAME
-      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
-      await DbCommunity.save(homeCom)
-    } else {
-      // insert a new homecommunity entry including a new ID and a new but ensured unique UUID
-      homeCom = new DbCommunity()
-      homeCom.foreign = false
-      const { publicKey, privateKey } = signingKeys()
-      homeCom.publicKey = publicKey
-      homeCom.privateKey = privateKey
-      homeCom.communityUuid = uuidv4() // await newCommunityUuid()
-      homeCom.url = 'http://localhost/api/'
-      homeCom.name = CONFIG.COMMUNITY_NAME
-      homeCom.description = CONFIG.COMMUNITY_DESCRIPTION
-      homeCom.creationDate = new Date()
-      const encryptionKeyPair = X25519KeyPair.generate()
-      homeCom.publicEncryptionKey = encryptionKeyPair.publicKeyToBuffer()
-      homeCom.privateEncryptionKey = encryptionKeyPair.privateKeyToBuffer()
-      await DbCommunity.insert(homeCom)
-    }
-    return homeCom
-  } catch (_err) {
-    throw new Error(`Seeding: Error writing HomeCommunity-Entry`) // : ${err}`)
+/**
+ * The home community for a test: written complete if there is none, and otherwise set to this
+ * configuration. An existing one MUST keep its id and uuid because of possible relations, and its
+ * keys never change.
+ */
+export async function writeHomeCommunityEntry(): Promise<CommunitiesSelect> {
+  const homeCommunity = await dbSelectHomeCommunity()
+  if (!homeCommunity) {
+    await dbInsertHomeCommunity(await buildHomeCommunity())
+  } else if (
+    homeCommunity.url !== HOME_COMMUNITY_URL ||
+    homeCommunity.name !== CONFIG.COMMUNITY_NAME ||
+    homeCommunity.description !== CONFIG.COMMUNITY_DESCRIPTION
+  ) {
+    await dbUpdateHomeCommunity({
+      url: HOME_COMMUNITY_URL,
+      name: CONFIG.COMMUNITY_NAME,
+      description: CONFIG.COMMUNITY_DESCRIPTION,
+    })
   }
+  const written = await dbSelectHomeCommunity()
+  if (!written) {
+    throw new MissingHomeCommunityError()
+  }
+  return written
 }
 
 /**
@@ -59,7 +63,7 @@ export async function buildHomeCommunity(): Promise<HomeCommunityInsertInput> {
     publicKey,
     privateKey,
     communityUuid: uuidv4(),
-    url: 'http://localhost/api/',
+    url: HOME_COMMUNITY_URL,
     name: CONFIG.COMMUNITY_NAME,
     description: CONFIG.COMMUNITY_DESCRIPTION,
     creationDate: new Date(),

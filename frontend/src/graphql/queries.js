@@ -81,6 +81,11 @@ export const verifyLogin = gql`
       # mutation: whichever of the two a member arrives through has to be able to answer
       # the menu, and one of them is always the first thing they arrive through.
       creationAllowed
+      # ES-002: where the member's first creation stands, null until they were first asked.
+      # The window reads it off the store and asks its own status query only while it might
+      # still open -- a settled state, or a member who created on their own, costs no query on
+      # any later visit. Here AND on the login mutation, for the reason above.
+      firstCreationStatus
       # Whether the transfers stand in the conversations -- the member's own switch under
       # Einstellungen › Nachrichten, which ChatThread reads. Here AND on the login mutation,
       # for the reason above.
@@ -216,6 +221,7 @@ export const queryTransactionLink = gql`
           recipientName
           hasPicture
         }
+        senderAvatar
         communities {
           foreign
           name

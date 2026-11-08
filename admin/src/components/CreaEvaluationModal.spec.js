@@ -112,7 +112,7 @@ describe('CreaEvaluationModal — salutation', () => {
   }
 
   beforeEach(() => {
-    rewriteResult = { responseText: RAW_REPLY, memoSupplement: null }
+    rewriteResult = { responseText: RAW_REPLY, memoSupplement: null, model: 'claude-rewrite' }
     mutate = vi.fn(async () => ({
       data: {
         creaEvaluateContribution: {
@@ -122,6 +122,7 @@ describe('CreaEvaluationModal — salutation', () => {
           flags: [],
           activities: [],
           openPoints: [],
+          model: 'claude-test',
         },
         creaRewriteResponse: rewriteResult,
       },
@@ -133,6 +134,15 @@ describe('CreaEvaluationModal — salutation', () => {
         query: vi.fn(async () => ({ data: { adminListContributions: { contributionList: [] } } })),
       }),
     })
+  })
+
+  it('holds the draft for the reply field together with the model that wrote it', async () => {
+    const wrapper = mountModal()
+    await open(wrapper)
+    expect(localStorage.getItem('crea.lastResponse')).toContain('Lieber Thomas')
+    expect(localStorage.getItem('crea.lastResponseModel')).toBe('claude-test')
+    await rewriteFor(wrapper, 'deny')
+    expect(localStorage.getItem('crea.lastResponseModel')).toBe('claude-rewrite')
   })
 
   it('fills the placeholder from the name heuristic when nothing is stored', async () => {

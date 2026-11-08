@@ -4,6 +4,7 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { sendTransactionReactionReceivedEmail, sendTransactionReceivedEmail } from 'core'
 import {
   AppDatabase,
+  creationFactory,
   Transaction as DbTransaction,
   UserContact as DbUserContact,
   foreignReceive,
@@ -16,7 +17,6 @@ import { GradidoUnit } from 'shared'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { creations } from '@/seeds/creation/index'
-import { creationFactory } from '@/seeds/factory/creation'
 import { userFactory } from '@/seeds/factory/user'
 import {
   createTransactionLink,
@@ -194,7 +194,7 @@ beforeAll(async () => {
   bibi = await userFactory(testEnv, bibiBloxberg)
   // Bob is the third member: of the transfers between Bibi and Peter he is no part.
   bob = await userFactory(testEnv, bobBaumeister)
-  await creationFactory(testEnv, creations.find((c) => c.email === 'bibi@bloxberg.de')!)
+  await creationFactory(creations.find((c) => c.email === 'bibi@bloxberg.de')!)
 
   // Two transfers from afar for Peter, before everything else: a booking takes its balance from
   // the member's last one. Sarah is named by her pair alone; for Lotte there is a `users` row

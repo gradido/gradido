@@ -3,7 +3,6 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
 import FunctionTests from './FunctionTests.vue'
-import { firstCreationStatus } from '@/graphql/firstCreation.graphql'
 
 /**
  * The function-test area (ES-014). What is worth measuring here is who gets in and what
@@ -170,28 +169,26 @@ describe('the function-test area', () => {
     })
 
     /**
-     * The window hangs in the layout and keeps away from every /settings route, so the
-     * whole point of the press is met somewhere else.
+     * The window asks the server only while the store's login state says it might open, and a
+     * tester's state is settled until the next sign-in. So the page does not send anybody to
+     * the overview, where nothing would happen -- it stays and says what to do.
      */
-    it('goes to the overview, where the window opens', async () => {
+    it('stays put and says to sign in again once the press went through', async () => {
       const wrapper = mountArea()
+      expect(wrapper.find('[data-test="function-tests-relogin-hint"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="function-tests-started"]').exists()).toBe(false)
 
       await wrapper.find('[data-test="function-tests-with-booking"]').trigger('click')
       await wrapper.vm.$nextTick()
 
-      expect(pushed).toEqual(['/overview'])
+      expect(wrapper.find('[data-test="function-tests-started"]').exists()).toBe(true)
+      expect(pushed).toEqual([])
     })
 
-    /**
-     * ⛔ The window's own query answered long ago and nothing about a mutation makes it ask
-     * again. Without this the member arrives at the overview before the window knows it may
-     * open — and sees nothing at all.
-     */
-    it('asks the status afresh, and waits for it, before it moves', () => {
+    it('asks the status for nobody: the window learns its state with the sign-in', () => {
       mountArea()
 
-      expect(mutationOptions.awaitRefetchQueries).toBe(true)
-      expect(mutationOptions.refetchQueries).toEqual([{ query: firstCreationStatus }])
+      expect(mutationOptions?.refetchQueries).toBeUndefined()
     })
 
     it('says so when it did not work, and stays put', async () => {

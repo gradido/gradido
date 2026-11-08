@@ -14,6 +14,7 @@ mutation creaEvaluateBatch($input: CreaBatchInput!) {
       relatesTo
     }
     flags
+    model
   }
 }
 
@@ -42,6 +43,7 @@ mutation creaEvaluateContribution ($input: CreaContributionInput!) {
       relatesTo
     }
     flags
+    model
   }
 }
 
@@ -53,6 +55,7 @@ mutation creaRewriteBatch ($input: CreaBatchInput!) {
   creaRewriteBatch(input: $input) {
     responseText
     memoSupplement
+    model
   }
 }
 
@@ -64,6 +67,7 @@ mutation creaRewriteResponse($input: CreaContributionInput!) {
   creaRewriteResponse(input: $input) {
     responseText
     memoSupplement
+    model
   }
 }
 

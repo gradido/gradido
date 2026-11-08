@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { ref } from 'vue'
 import ChatMessageText from './ChatMessageText'
 import { CHAT_SEARCH } from '@/utils/chatSearch'
-import { CHAT_VIDEO_JOIN } from '@/utils/chatVideoApp'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
+import { chatVideoInvitation } from '@/utils/chatVideoCalendar'
 
 // The card and the copy button have specs of their own; here they are marks where they stand.
 vi.mock('@/components/Chat/ChatFileCard.vue', async () => {
@@ -38,11 +39,15 @@ vi.mock('@/components/Chat/ChatVideoLinkCopy.vue', async () => {
 describe('ChatMessageText', () => {
   let wrapper
 
-  const show = (text, { needle = '', join = null } = {}) => {
+  const show = (text, { needle = '', join = null, joined = null } = {}) => {
     wrapper = mount(ChatMessageText, {
       props: { text },
       global: {
-        provide: { [CHAT_SEARCH]: ref(needle), ...(join ? { [CHAT_VIDEO_JOIN]: join } : {}) },
+        provide: {
+          [CHAT_SEARCH]: ref(needle),
+          ...(join ? { [CHAT_VIDEO_JOIN]: join } : {}),
+          ...(joined ? { [CHAT_VIDEO_JOINED]: joined } : {}),
+        },
       },
     })
     return wrapper
@@ -539,6 +544,143 @@ describe('ChatMessageText', () => {
       expect(link.getAttribute('href')).toBe(ROOM)
       expect(link.textContent).toBe('https://meet.ffmuc.net/k7m2x9q4t8wz')
       expect(root().querySelector('li [data-test="video-copy"]').dataset.href).toBe(ROOM)
+    })
+  })
+
+  /**
+   * E-043 C: where the browser opens the room itself, the link tells the window that the member
+   * went in (`CHAT_VIDEO_JOINED`) -- on a phone the plain click, anywhere a click with a key held
+   * or the middle button (Festlegung 2). On a computer the plain click asks (`CHAT_VIDEO_JOIN`),
+   * and the question tells, at "Join call". The device is the browser's to say: a stand-in for
+   * `matchMedia` that answers the one question asked.
+   */
+  describe('a click that takes the member into the room', () => {
+    const ROOM = 'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Lesekreis%22'
+    const INVITATION = `📹 Videoanruf: Lesekreis\nDer Raum liegt auf einem Jitsi-Server von Freifunk München — ein Vorschlag, kein Dienst von Gradido: ${ROOM}`
+    let asking
+    let joined
+    const onA = ({ computer }) => {
+      vi.stubGlobal('matchMedia', (query) => ({
+        matches: query === '(pointer: fine) and (hover: hover)' && computer,
+      }))
+    }
+    const mountWith = (text = INVITATION, hands = { join: true, joined: true }) => {
+      asking = vi.fn()
+      joined = vi.fn()
+      show(text, { join: hands.join ? asking : null, joined: hands.joined ? joined : null })
+    }
+    const link = () => root().querySelector('a')
+    /** A click as the member makes it; `false` where the page claimed it (preventDefault). */
+    const click = (init = {}, type = 'click') =>
+      link().dispatchEvent(
+        new MouseEvent(type, { bubbles: true, cancelable: true, button: 0, ...init }),
+      )
+
+    afterEach(() => {
+      vi.unstubAllGlobals()
+    })
+
+    it('tells the window on a phone, and leaves the opening to the browser', () => {
+      onA({ computer: false })
+      mountWith()
+
+      expect(click()).toBe(true)
+      expect(joined).toHaveBeenCalledWith(ROOM)
+      expect(asking).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['Ctrl', { ctrlKey: true }],
+      ['Cmd', { metaKey: true }],
+      ['Shift', { shiftKey: true }],
+      ['Alt', { altKey: true }],
+    ])('tells it for a click with %s, on a computer too', (_, init) => {
+      onA({ computer: true })
+      mountWith()
+
+      expect(click(init)).toBe(true)
+      expect(joined).toHaveBeenCalledWith(ROOM)
+      expect(asking).not.toHaveBeenCalled()
+    })
+
+    // A new tab, with the middle button; the right one opens the browser's menu, no room.
+    it('tells it for the middle button, not for the right one', () => {
+      onA({ computer: true })
+      mountWith()
+
+      click({ button: 2 }, 'auxclick')
+      expect(joined).not.toHaveBeenCalled()
+      click({ button: 1 }, 'auxclick')
+      expect(joined).toHaveBeenCalledWith(ROOM)
+    })
+
+    it('asks on a computer, and tells nothing yet -- the question does, at "Join call"', () => {
+      onA({ computer: true })
+      mountWith()
+
+      expect(click()).toBe(false)
+      expect(asking).toHaveBeenCalledWith(ROOM)
+      expect(joined).not.toHaveBeenCalled()
+    })
+
+    it('tells it on a computer where no window provides the question', () => {
+      onA({ computer: true })
+      mountWith(INVITATION, { join: false, joined: true })
+
+      expect(click()).toBe(true)
+      expect(joined).toHaveBeenCalledWith(ROOM)
+    })
+
+    it('stays a plain link where no window gives either hand', () => {
+      onA({ computer: true })
+      mountWith(INVITATION, { join: false, joined: false })
+
+      expect(click()).toBe(true)
+      expect(joined).not.toHaveBeenCalled()
+      expect(asking).not.toHaveBeenCalled()
+    })
+
+    it('tells nothing for an address of somebody else’s', () => {
+      onA({ computer: false })
+      mountWith('Unser Raum: https://meet.jit.si/OffenerRaum')
+
+      expect(click()).toBe(true)
+      expect(joined).not.toHaveBeenCalled()
+    })
+
+    // E-060: a call whose time was changed carries what it had first in its address. The thread
+    // reads it as an invitation, and its link is one of our own like any other: it asks on a
+    // computer (Bernd, 06.11.2026, F3a -- before, it opened the room straight away) and tells
+    // the window on a phone (the second reader, F3).
+    const CHANGED = `${ROOM}&gradido.start=1793955600&gradido.end=1793959200&gradido.first=1793869200&gradido.seq=1`
+
+    it('asks on a computer for a call whose time was changed', () => {
+      onA({ computer: true })
+      mountWith(`📹 Lesekreis: ${CHANGED}`)
+
+      expect(click()).toBe(false)
+      expect(asking).toHaveBeenCalledWith(CHANGED)
+      expect(joined).not.toHaveBeenCalled()
+    })
+
+    it('tells it on a phone for a call whose time was changed', () => {
+      onA({ computer: false })
+      mountWith(`📹 Lesekreis: ${CHANGED}`)
+
+      expect(click()).toBe(true)
+      expect(joined).toHaveBeenCalledWith(CHANGED)
+      expect(asking).not.toHaveBeenCalled()
+    })
+
+    // The window finds the invitation by this link (ChatThread `invitationInRoom`): it is the very
+    // address the thread reads the invitation from.
+    it('hands on the link the thread reads the invitation from', () => {
+      onA({ computer: false })
+      mountWith()
+
+      click()
+
+      expect(joined.mock.calls[0][0]).toBe(chatVideoInvitation(INVITATION).url)
     })
   })
 

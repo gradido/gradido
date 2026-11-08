@@ -22,6 +22,7 @@ import {
 } from 'drizzle-orm/mysql-core'
 
 import { AccountState } from '../enum/AccountState'
+import { FirstCreationStatus } from '../enum/FirstCreationStatus'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
 // The tables an empty database is built with (migration/createFromSchema.ts), so this file
@@ -179,6 +180,10 @@ export const contributionsTable = mysqlTable(
     creationGroupsSetAt: datetime('creation_groups_set_at', { mode: 'date', fsp: 3 }).default(
       sql`NULL`,
     ),
+    // Part of the member's first creation (ES-002, migration 0170): the bundle the window filed
+    // and shows. An ordinary USER contribution otherwise; the mark is what the window and the
+    // healing path select by, in place of a list of ids kept elsewhere.
+    firstCreation: boolean('first_creation').default(false).notNull(),
   },
   (table) => [
     index('idx_contributions_user_created').on(table.userId, table.createdAt),
@@ -255,6 +260,10 @@ export const contributionMessagesTable = mysqlTable(
     deletedBy: int('deleted_by', { unsigned: true }).default(sql`NULL`),
     type: varchar({ length: 12 }).default('DIALOG').notNull(),
     isModerator: boolean('is_moderator').default(false).notNull(),
+    // The language model whose words this message carries, by name -- NULL where a person
+    // wrote it. The first creation's thank-you, Crea's internal note, and a Crea draft the
+    // admin inserted into its answer are the writers. Length: AI_MODEL_MAX_CHARS (shared).
+    aiModel: varchar('ai_model', { length: 64 }).default(sql`NULL`),
   },
   (table) => [index('contribution_id').on(table.contributionId)],
 )
@@ -688,6 +697,9 @@ export const transactionsTable = mysqlTable(
     linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
     linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
     linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+    // Whether the recipient saw the transfer (migration 0169, Chat E-086). Only meaningful on a
+    // RECEIVE row; a received transfer with `seen` false counts as unread.
+    seen: boolean().default(false).notNull(),
   },
   (table) => [
     index('user_id').on(table.userId),
@@ -724,27 +736,6 @@ export const transactionReactionsTable = mysqlTable(
 
 export type TransactionReactionSelect = typeof transactionReactionsTable.$inferSelect
 export type TransactionReactionInsert = typeof transactionReactionsTable.$inferInsert
-
-// Received transfers the member has seen (migration 0165, Chat E-086): one row a transfer, hung
-// on the recipient's RECEIVE booking as a reaction is. A transfer received after the start
-// (`transactionReadsStartTable`) without a row here counts as unread -- the gold dot, the bold
-// line under the name, the mark in the menu.
-export const transactionReadsTable = mysqlTable('transaction_reads', {
-  transactionId: int('transaction_id', { unsigned: true }).primaryKey().notNull(),
-  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-    .default(sql`current_timestamp(3)`)
-    .notNull(),
-})
-
-// One row (`id` 1): the highest booking id when migration 0165 ran. Transfers received up to it
-// count as seen.
-export const transactionReadsStartTable = mysqlTable('transaction_reads_start', {
-  id: tinyint({ unsigned: true }).primaryKey().notNull(),
-  transactionId: int('transaction_id', { unsigned: true }).notNull(),
-  createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-    .default(sql`current_timestamp(3)`)
-    .notNull(),
-})
 
 // Transfers that pass a received thank-you on (migration 0166, the trail of the waves of
 // gratitude): one row for the sender's SEND booking of such a transfer, naming the RECEIVE
@@ -846,6 +837,11 @@ export const usersTable = mysqlTable(
     // ES-021: a person may create, a project account may not. 1 for every account that
     // exists today - the distinction is made by the holder, never by a migration.
     creationAllowed: boolean('creation_allowed').default(true).notNull(),
+    // Where the member's first creation stands (migration 0170): NULL until it is asked, then
+    // one of FirstCreationStatus. The contributions of the bundle carry `first_creation`.
+    // A MySQL ENUM like account_state: a value outside the list is refused by the server.
+    // ⛔ Append only - see FirstCreationStatus.
+    firstCreationStatus: mysqlEnum('first_creation_status', FirstCreationStatus).default(sql`NULL`),
     // The transfers in the conversations and the mail about one received: the holder's switch,
     // on by default (migration 0147).
     transfersInChat: boolean('transfers_in_chat').default(true).notNull(),
@@ -1235,48 +1231,6 @@ export const thankYouCardPaymentsTable = mysqlTable(
 
 export type ThankYouCardPaymentSelect = typeof thankYouCardPaymentsTable.$inferSelect
 export type ThankYouCardPaymentInsert = typeof thankYouCardPaymentsTable.$inferInsert
-
-// The first creation (ES-002..ES-011): one process per member, from "sentences saved"
-// to "thanked" or "waiting for a human". The contributions themselves are ordinary rows
-// in `contributions` (type USER) — this table only remembers which of them belong to
-// the process, what state it is in, and the one message that is shown three times
-// (thread of the first contribution, mail, window).
-//
-// `contribution_ids` is a JSON list rather than a child table: the window and the healing
-// path both need "all contributions of this process" as one value, nothing ever asks
-// for a single link, and a member has at most a handful of entries.
-//
-// ⚠️ Two ORMs, no shared transaction: the contributions are written through TypeORM, this
-// row through Drizzle. The interaction is therefore a state machine that heals on the
-// next read, never an atomic block (see FirstCreation.context.ts).
-export const firstCreationsTable = mysqlTable(
-  'first_creations',
-  {
-    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-    // `unsigned`, because `users.id` is `int(10) unsigned` and migration 0130 mirrors it.
-    userId: int('user_id', { unsigned: true }).notNull(),
-    status: varchar({ length: 16 }).notNull(),
-    reviewReason: varchar('review_reason', { length: 16 }).default(sql`NULL`),
-    entriesCount: tinyint('entries_count', { unsigned: true }).notNull(),
-    contributionIds: json('contribution_ids').$type<number[]>().notNull(),
-    message: text().default(sql`NULL`),
-    model: varchar({ length: 64 }).default(sql`NULL`),
-    testMode: varchar('test_mode', { length: 16 }).default(sql`NULL`),
-    signerUserId: int('signer_user_id', { unsigned: true }).default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-    // Maintained by the update queries, not by an ON UPDATE clause — same reason as
-    // creachat_threads.
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-  },
-  (table) => [unique('first_creations_user_id_key').on(table.userId)],
-)
-
-export type FirstCreationSelect = typeof firstCreationsTable.$inferSelect
-export type FirstCreationInsert = typeof firstCreationsTable.$inferInsert
 
 // The chat (see migration 0142). A message is filed once per SERVER, not once per member:
 // one row here, whoever it is for, and the read pointer on each member's own row. Members

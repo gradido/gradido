@@ -42,6 +42,7 @@ const evaluation: CreaEvaluation = {
   defaultSalutation: 'Lieber Thomas',
   openPoints: [],
   flags: [],
+  model: 'claude-test',
 }
 
 describe('crea records — buildCreaRecordRows', () => {

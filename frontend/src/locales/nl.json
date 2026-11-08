@@ -40,6 +40,7 @@
       "oneDonation": "Jij bent een geschenk voor de gemeenschap. 1000 dank dat je bij ons bent.",
       "oneGratitude": "Voor elkaar, voor alle mensen, voor de natuur."
     },
+    "toAccount": "Naar mijn rekening",
     "triads": {
       "design": {
         "communityBased": "Gemeenschapsgericht.",
@@ -585,12 +586,12 @@
   },
   "emailConfirmation": {
     "changeAddress": "Adres corrigeren",
-    "grace": "Tot {deadline} kun je je account al volledig gebruiken — daarna wacht het op je bevestiging.",
-    "later": "Later",
     "mailSent": "Een bevestigingsmail is onderweg naar je e-mailadres. Klik op de link erin.",
     "overdue": "De overgangstijd is voorbij. Bevestig je e-mailadres — daarna staat je account meteen weer volledig open.",
     "resend": "Mail opnieuw sturen",
+    "resendTooSoon": "De bevestigingsmail is nog maar net verstuurd. Wacht een paar minuten voordat je hem opnieuw aanvraagt.",
     "resent": "De bevestigingsmail is opnieuw onderweg.",
+    "strip": "Er is een bevestigingsmail naar je onderweg — klik op de link erin. Tot {deadline} kun je je account al volledig gebruiken.",
     "title": "Bevestig je e-mailadres"
   },
   "emoji": {
@@ -645,7 +646,7 @@
     "landing": {
       "added": "Je vermelding is toegevoegd: {sentence}",
       "firstEntry": "Je eerste vermelding:",
-      "haveAccount": "Ik heb al een account",
+      "haveAccount": "Ik heb al een Gradido-account",
       "headline": "De kaart naar de mensen van je project",
       "otherCommunity": "Staat je account in een andere gemeenschap? Meld je dan daar aan en voer de zin met de hand in.",
       "register": "Account aanmaken"
@@ -713,7 +714,7 @@
       "text": "Ieder mens kan bij Gradido creëren: voor wat hij of zij voor anderen doet. Is dit account geen mens maar een vereniging, een project of een bedrijf, laat het ons dan hier weten — een projectaccount creëert niet, het ontvangt dank.",
       "title": "Geen probleem — de vraag komt de volgende keer terug."
     },
-    "question": "Wat heb je de afgelopen weken al voor goeds gedaan?",
+    "question": "Wat heb je de afgelopen weken voor goeds gedaan?",
     "remove": "Vermelding verwijderen",
     "review": "Er kijkt nog een mens naar je vermeldingen. Je hoort van ons.",
     "showLess": "Minder tonen",
@@ -785,7 +786,7 @@
     "password_old": "Oud wachtwoord",
     "recipient": "Ontvanger",
     "recipient-not-found": {
-      "by-email": "Stuur anders je bedankje per e-mail: Gradido maakt daarvoor een link aan die {days} dagen wacht. Daarmee wordt een account aangemaakt — of komt het bedankje op een bestaand account.",
+      "by-email": "Je kunt je bedankje ook per e-mail sturen. Gradido maakt daarvoor een link aan die {days} dagen wacht. Wie de link opent, krijgt het bedankje op het eigen account — of maakt er ter plekke een aan.",
       "change-address": "Adres wijzigen",
       "change-entry": "Invoer wijzigen",
       "choose-community": "Gemeenschap selecteren",
@@ -916,7 +917,7 @@
     "share-line1": "{name} bedankt jou met {amount} Gradido:",
     "share-line2": "‘{memo}’",
     "share-line3": "Wil je dit bedankje aannemen?",
-    "share-line4": "Het wacht tot {date} op je. Neem je het niet aan, dan gebeurt er niets.",
+    "share-line4": "Geen haast. Het wacht tot {date} op je.",
     "to-login": "Inloggen",
     "to-register": "Registreer een nieuwe rekening.",
     "to-switch": "Nu doorsturen",
@@ -1285,16 +1286,12 @@
     "almost-have-account": "Had je al een account met dit adres? Meld je dan aan.",
     "almost-text": "Kijk in je postvak: daar ligt een e-mail van ons waarmee je verder kunt. Je bedankje wacht hier op je.",
     "almost-title": "Bijna klaar",
-    "answer": "{name} antwoorden",
-    "answer-short": "Antwoorden",
-    "arrived-text": "Er staat nu {amount} Gradido van {name} op je rekening.",
-    "arrived-title": "Je bedankje is er.",
     "deleted-text": "{name} heeft de link op {date} verwijderd.",
     "deleted-title": "Dit bedankje bestaat niet meer.",
     "expired-text": "Het is teruggegaan naar {name} — er is niets verloren.",
     "expired-title": "Dit bedankje heeft {days} dagen gewacht.",
     "from": "{name} bedankt jou met {amount}",
-    "have-account": "Ik heb al een account",
+    "have-account": "Ik heb al een Gradido-account",
     "how": "Zo werkt het",
     "invite": "Wil jij ook op deze mooie manier andere mensen bedanken?",
     "other-community": "Staat je account in een andere gemeenschap, kies die dan. Je wordt daarheen doorgestuurd.",
@@ -1376,7 +1373,7 @@
       "disabled": "Jouw afbeelding zie nu alleen jij nog.",
       "enabled": "Jouw afbeelding is zichtbaar voor andere leden.",
       "visibility": "Mijn afbeelding aan andere leden tonen",
-      "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
+      "visibilityInfo": "Andere leden zien jouw afbeelding, bijvoorbeeld naast de boekingen die jullie delen. Ook wie een link van jou opent, ziet die daar, zolang de link open is. Wanneer de instelling is uitgeschakeld, verschijnen zoals tot nu toe jouw initialen."
     },
     "community": "Kringen",
     "creationAccount": {
@@ -1424,8 +1421,10 @@
         "failed": "Dat is niet gelukt. Laad de pagina opnieuw en probeer het nog eens.",
         "intro": "De eerste creatie verschijnt maar één keer per account — voor een account dat al heeft gecreëerd, komt ze nooit meer terug. Hier kun je haar voor je eigen account opnieuw openen en het hele proces echt doorlopen.",
         "noRunsLeft": "Het quotum van deze maand is op — nog 0 van {total} testruns.",
+        "reloginHint": "Na de start moet je je een keer af- en weer aanmelden: waar de eerste creatie staat, hoort de wallet bij het inloggen.",
         "runsLeft": "Nog {left} van {total} testruns deze maand",
         "signerHint": "Je bent ingesteld als ondertekenaar van de eerste creatie. Niemand kan zijn eigen bijdrage bevestigen, daarom werkt de test niet op je account — neem een ander beheerdersaccount.",
+        "started": "De test is voorbereid. Meld je af en weer aan – de eerste creatie opent na het inloggen.",
         "title": "Eerste creatie",
         "unbookedHint": "Zonder boeking blijven de bijdragen als openstaande bijdragen in de beheeromgeving staan. Daar kun je ze met de hand bevestigen of verwijderen — zolang ze er staan, tellen ze mee voor je maandquotum.",
         "withBooking": "Eerste creatie opnieuw doorlopen – met boeking",
@@ -1673,6 +1672,7 @@
     "done": {
       "another": "Nog een voor iemand anders",
       "edit-hint": "Je kunt de zin vóór het versturen aanpassen. Jouw woorden staan pas op de kaart.",
+      "edit-hint-email": "Je kunt de tekst in de e-mail vóór het versturen aanpassen en aanvullen.",
       "edit-hint-plain": "Je kunt de tekst vóór het versturen aanpassen.",
       "find-again": "Je vindt het terug onder {transactions}, bij “{links}”.",
       "link-hint": "Wie de link heeft, kan het bedankje aannemen. Stuur hem alleen naar de persoon voor wie hij bedoeld is.",

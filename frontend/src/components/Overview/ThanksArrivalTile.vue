@@ -172,7 +172,9 @@
  * ⛔ WHICH thank-yous, the overview decides once, before the tiles are painted, and hands in
  * (`thanks`, composables/useThanksArrivals): a list that arrived later would push every tile
  * below this one down under a finger. From then on only the member takes thank-yous out of it --
- * with "Später", or with "Nicht jetzt" after the reaction. When none is left, the tile is gone.
+ * with "Später", or with "Nicht jetzt" after the reaction, or by answering it in a conversation
+ * opened over the overview (a reaction, a message to the giver). When none is left, the tile is
+ * gone.
  *
  * Nothing of it is kept anywhere but on this device, under the member's key (useThanksNudges):
  * no setting (E-020), no mail of its own, no number (ZE-007). A second device shows a thank-you
@@ -190,6 +192,7 @@ import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetin
 import MemoText from '@/components/TransactionRows/MemoText'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
+import { onChatMessageSent } from '@/composables/useChatSent'
 import { pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import { usePassOnDraft } from '@/composables/usePassOnDraft'
@@ -202,6 +205,7 @@ import {
 } from '@/composables/useTransactionReactions'
 import { LIST_AVATAR_SIZE } from '@/constants'
 import { useWalletStore } from '@/store/useWalletStore'
+import { chatMemberKey } from '@/utils/chatMemberKey'
 import { memberAlias } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from '@/utils/thankYouMotifs'
@@ -355,6 +359,24 @@ const stopReactions = onTransactionReaction(({ transactionId, reaction }) => {
   if (booking) gone.add(booking.id)
 })
 onBeforeUnmount(stopReactions)
+
+/**
+ * A message written to a giver while the overview stands -- in a conversation opened over it from
+ * the column beside it: the thank-you is answered (F E-046), and leaves the tile, as the server
+ * will leave it out on the next opening (`answered`). Every thank-you of that person, named the
+ * way the chat names a person: without regard to case, a missing community being this one
+ * (chatMemberKey). As with a reaction from elsewhere, not one the member reacted to here: there
+ * "Dank weitergeben?" stands, a question of its own. Not through `leave`: the keyboard is in the
+ * window over the tile.
+ */
+const stopMessages = onChatMessageSent((person) => {
+  const writtenTo = chatMemberKey(person, store.communityUuid)
+  for (const booking of shown.value) {
+    if (reacted.has(booking.id)) continue
+    if (chatMemberKey(booking.linkedUser, store.communityUuid) === writtenTo) gone.add(booking.id)
+  }
+})
+onBeforeUnmount(stopMessages)
 
 /**
  * "Jemandem danken": the send form with nobody named -- outwards, never back to the giver. Its

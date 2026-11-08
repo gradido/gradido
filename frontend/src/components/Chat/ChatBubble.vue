@@ -223,10 +223,12 @@
           {{ t('chatThread.videoDuplicate') }}
         </button>
       </div>
-      <!-- Half an hour after a video call of one's own began, a quiet suggestion to thank the other
-           person for it (W2 of the waves of gratitude; the thread decides when, utils/thanksNudge):
-           under the invitation, where the occasion stands. Only the one who invited sees it. In a
-           group's thread "Jemandem danken" opens the members to choose from (Bernd, 28.10.2026). -->
+      <!-- Half an hour after a video call began, a quiet suggestion to thank the other person for it
+           (W2 of the waves of gratitude; the thread decides when, utils/thanksNudge): under the
+           invitation, where the occasion stands. Whoever went into the call from this wallet sees
+           it -- the one who invited, and the one invited half an hour after their own click on the
+           link (E-043 C, utils/chatVideoJoined). In a group's thread "Jemandem danken" opens the
+           members to choose from (Bernd, 28.10.2026). -->
       <thanks-nudge
         v-if="thanksAfterCall"
         ref="thanksLine"
@@ -357,7 +359,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, provide, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 // The face of the handwriting: declared once for every place that sets a line in it.
 import '@/assets/fonts/caveat/caveat.css'
@@ -396,6 +398,7 @@ import {
   saveChatVideoCalendarFile,
 } from '@/utils/chatVideoCalendar'
 import { readChatVideoInvite } from '@/utils/chatVideoInvite'
+import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
 /**
  * ⛔ The enum NAMES, not the column values. The backend registers the database objects
@@ -454,8 +457,9 @@ const props = defineProps({
   reactionUnderway: { type: Boolean, default: false },
   /**
    * Whether the suggestion to thank stands under this message (W2): a video invitation of one's
-   * own, half an hour after the call began -- the thread decides it (utils/thanksNudge), it holds
-   * the transfers and knows what was answered on this device.
+   * own half an hour after the call began, or somebody else's half an hour after the member's
+   * click on its link (E-043 C) -- the thread decides it (utils/thanksNudge), it holds the
+   * transfers and knows what was answered and clicked on this device.
    */
   thanksAfterCall: { type: Boolean, default: false },
   /**
@@ -501,6 +505,20 @@ const emit = defineEmits([
 
 const { t, d, locale } = useI18n()
 const { toastSuccess, toastError } = useAppToast()
+
+/**
+ * The window's hands for a video link in this bubble (ChatMessageText: the question before
+ * joining, and the note that the member went in), handed on with the message they stand in
+ * (E-043 C, Bernd 06.11.2026: the device notes the invitation that was clicked) -- not another
+ * message that carries the same room, as a call duplicated ahead for the next week does (E-058).
+ * Read at the click: the message the bubble shows then. Without a window's hand, none here.
+ */
+const windowJoin = inject(CHAT_VIDEO_JOIN, null)
+const windowJoined = inject(CHAT_VIDEO_JOINED, null)
+if (windowJoin) provide(CHAT_VIDEO_JOIN, (url) => windowJoin(url, props.message.messageUuid))
+if (windowJoined) {
+  provide(CHAT_VIDEO_JOINED, (url) => windowJoined(url, props.message.messageUuid))
+}
 
 /**
  * Who wrote a message of somebody else in a group (P5), as the server named them with it; null in
@@ -1225,8 +1243,9 @@ const copyText = async () => {
    sheet's own proportion, RedeemThanksPaper).
 
    The colour: the brown of the sheet on the light bubbles, a light gold on the dark ones -- the
-   bubble follows the theme, the sheet does not. Measured on all four bubbles (the other's and
-   one's own, light and dark); the house's gold would not reach 4.5 : 1 on the dark ones. */
+   bubble follows the theme, and since ZE-038 the sheet does too, with the same two. Measured on
+   all four bubbles (the other's and one's own, light and dark); the house's gold would not reach
+   4.5 : 1 on the dark ones. */
 .chat-bubble-greeting-line {
   margin: 0 0 0.3rem;
   color: #8a6124;

@@ -28,10 +28,13 @@ import {
   dbCountFirstSendersByWeek,
   dbCountTransactionsWithPicture,
   dbCountTransactionsWithPictureByWeek,
+  dbInsertTransactions,
   dbSelectBookingLinesOfUser,
   dbSelectContactsByUserId,
+  dbSelectLastTransaction,
   dbSelectReceivedTransferOfUser,
   dbSelectTransactionsByUserId,
+  dbUpdateLinkedTransactionId,
 } from './transactions'
 import { dbFindUserIdByUuids } from './user'
 
@@ -1299,9 +1302,8 @@ describe('the newest booking with a contact (E-083)', () => {
     expect(page.contacts[0].lastBookingAt?.getTime()).toBe(day(22).getTime())
   })
 
-  // ⚠️ The seed writes both rows of a transfer with the amount as given; the server writes the
-  // SEND row negative (TransactionResolver). So the sign is not what this asserts -- the line
-  // builder takes the amount without it either way (chatPreviews.test.ts).
+  // The line builder takes the amount without its sign (chatPreviews.test.ts), so the sign is not
+  // what this asserts.
   it("hands back the member's own rows: what was given, its amount, memo and time", async () => {
     const lines = await dbSelectBookingLinesOfUser(garrick.id, [
       bookedFirst[0].id,
@@ -1523,5 +1525,57 @@ describe('dbCountFirstSendersByWeek', () => {
       { weekStart: '2026-09-07', n: 1 },
       { weekStart: '2026-09-21', n: 1 },
     ])
+  })
+})
+
+describe('writing and reading single bookings', () => {
+  const USER_ID = 987654
+  const booking = (memo: string, balanceDate: Date) => ({
+    memo,
+    balanceDate,
+    userId: USER_ID,
+    userGradidoId: uuidv4(),
+  })
+
+  afterEach(async () => {
+    await drizzleDb().delete(transactionsTable).where(eq(transactionsTable.userId, USER_ID))
+  })
+
+  it('dbSelectLastTransaction takes the latest booking time, then the highest id', async () => {
+    await dbInsertTransactions([
+      booking('same moment, lower id', day(30)),
+      booking('same moment, higher id', day(30)),
+      booking('earlier, written last', day(29)),
+    ])
+
+    expect((await dbSelectLastTransaction(USER_ID))?.memo).toBe('same moment, higher id')
+  })
+
+  it('dbSelectLastTransaction answers null for a member without bookings', async () => {
+    expect(await dbSelectLastTransaction(USER_ID)).toBeNull()
+  })
+
+  it('dbInsertTransactions returns the id of each row, in their order', async () => {
+    const ids = await dbInsertTransactions([booking('a', day(1)), booking('b', day(2))])
+
+    const rows = await drizzleDb()
+      .select({ id: transactionsTable.id, memo: transactionsTable.memo })
+      .from(transactionsTable)
+      .where(eq(transactionsTable.userId, USER_ID))
+    expect(ids.map((id) => rows.find((row) => row.id === id)?.memo)).toEqual(['a', 'b'])
+    expect(await dbInsertTransactions([])).toEqual([])
+  })
+
+  it('dbUpdateLinkedTransactionId sets it on that row only', async () => {
+    const [first, second] = await dbInsertTransactions([booking('a', day(1)), booking('b', day(2))])
+
+    await dbUpdateLinkedTransactionId(first, second)
+
+    const rows = await drizzleDb()
+      .select({ id: transactionsTable.id, linked: transactionsTable.linkedTransactionId })
+      .from(transactionsTable)
+      .where(eq(transactionsTable.userId, USER_ID))
+    expect(rows.find((row) => row.id === first)?.linked).toBe(second)
+    expect(rows.find((row) => row.id === second)?.linked).toBeNull()
   })
 })

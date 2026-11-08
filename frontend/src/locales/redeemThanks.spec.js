@@ -19,8 +19,8 @@ import i18n from '@/i18n'
  * - The days a thank-you waited are a number, and Russian has three forms for it.
  * - Where an account is opened on the page (ZE-017 F5), the heading and the greeting of the
  *   strip are the words the wallet has for them elsewhere: one way of saying it per language.
- * - The sentence after accepting names an amount and a sender. The amount is any number, and
- *   no file has a second form for it: the sentence has to carry "1" as well as "20".
+ * - After accepting the page leads on to the overview (E-045): it has no sentence of its own for
+ *   that moment any more.
  *
  * ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class, and node turns an
  * instance of it away as coming from another realm.
@@ -42,10 +42,6 @@ const KEYS = [
   'almost-have-account',
   'almost-text',
   'almost-title',
-  'answer',
-  'answer-short',
-  'arrived-text',
-  'arrived-title',
   'deleted-text',
   'deleted-title',
   'expired-text',
@@ -153,27 +149,14 @@ describe('redeem-thanks in the language files', () => {
     }
   })
 
-  it.each(languages)('names the sender and the amount where they belong, in %s', (lang) => {
+  it.each(languages)('names the sender where they belong, in %s', (lang) => {
     expect(render(lang, 'expired-text', { name: 'Oma-Emma' })).toContain('Oma-Emma')
     expect(render(lang, 'account-strip', { name: 'Oma-Emma' })).toContain('Oma-Emma')
-    expect(render(lang, 'answer', { name: 'Oma-Emma' })).toContain('Oma-Emma')
-
-    for (const amount of ['20', '12,5', '1']) {
-      const arrived = render(lang, 'arrived-text', { name: 'Oma-Emma', amount })
-
-      expect(arrived).toContain(`${amount} Gradido`)
-      expect(arrived).toContain('Oma-Emma')
-      expect(arrived).not.toMatch(/\||\{|\}/)
-      expect(arrived).toMatch(/\.$/)
-    }
   })
 
-  // The button without the name is the button with it, cut short: it must not be longer.
-  it.each(languages)('has a short form of the answer button that names nobody, in %s', (lang) => {
-    const short = thanksIn(lang)['answer-short']
-
-    expect(short).not.toMatch(/\{|\}/)
-    expect(short.length).toBeLessThan(render(lang, 'answer', { name: 'Oma' }).length)
+  // E-045: the way in for somebody with an account names the account it means.
+  it.each(languages)('names the Gradido account in "I already have one", in %s', (lang) => {
+    expect(thanksIn(lang)['have-account']).toContain('Gradido')
   })
 
   // "Konto anlegen" stands on the public profile as well, and the strip above the form greets
@@ -190,7 +173,7 @@ describe('redeem-thanks in the language files', () => {
   // The sender may be a woman or a man, and the page does not know which: no Russian verb in
   // the past tense beside the name, which would have to choose.
   it('names the sender in Russian without a verb that takes a gender', () => {
-    for (const key of ['account-strip', 'arrived-text', 'answer']) {
+    for (const key of ['account-strip']) {
       expect(`${key}: ${thanksIn('ru')[key]}`).not.toMatch(/\{name\}\s+\S+(л|ла)\s/)
     }
     // What the pattern is for: the sentence a word-for-word translation would be.

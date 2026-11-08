@@ -19,6 +19,16 @@ describe('useCreaClipboard', () => {
     expect(localStorage.getItem('crea.lastResponse')).toBe('a draft')
   })
 
+  it('keeps the model that wrote the draft beside it, and persists both', () => {
+    const { lastResponseModel, setLastResponse } = useCreaClipboard()
+    setLastResponse('a draft', 'claude-test')
+    expect(lastResponseModel.value).toBe('claude-test')
+    expect(localStorage.getItem('crea.lastResponseModel')).toBe('claude-test')
+    // A draft stored without a model names none.
+    setLastResponse('typed by hand')
+    expect(lastResponseModel.value).toBe('')
+  })
+
   it('shares one value across all callers', () => {
     const a = useCreaClipboard()
     const b = useCreaClipboard()

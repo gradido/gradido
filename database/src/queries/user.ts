@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import {
   and,
   count,
@@ -32,6 +33,7 @@ import {
 import * as v from 'valibot'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType } from '../enum'
+import { FirstCreationStatus } from '../enum/FirstCreationStatus'
 import {
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -158,6 +160,23 @@ export async function dbFindUserById(
   return rows[0] ? rows[0] : null
 }
 
+/** dbFindUserWithContactById for a deleted member too, for whoever just wrote the row. */
+export async function dbSelectUserWithContactById(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<DbUser | null> {
+  const rows = await tx
+    .select({
+      ...getColumns(usersTable),
+      emailContact: userContactsTable,
+    })
+    .from(usersTable)
+    .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(eq(usersTable.id, userId))
+
+  return rows[0] ?? null
+}
+
 export async function dbFindUserWithContactById(
   userId: number,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
@@ -172,6 +191,15 @@ export async function dbFindUserWithContactById(
     .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
 
   return rows[0] ?? null
+}
+
+/** Names the address a member is reached at: `users.email_id`. */
+export async function dbUpdateUserEmailId(
+  userId: number,
+  emailId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx.update(usersTable).set({ emailId }).where(eq(usersTable.id, userId))
 }
 
 export async function dbInsertUser(
@@ -553,6 +581,40 @@ export async function dbClearGmsRegistration(userId: number): Promise<VoidResult
     return { success: true }
   }
   return { success: false, error: new DBNotFoundError('users', `id = ${userId}`) }
+}
+
+/**
+ * Moves a member's first creation from `expected` to `next` -- a state-machine step, not a
+ * plain update (FirstCreation.context.ts). The WHERE on the current value is what makes a
+ * late writer harmless: a model answer that arrives after the row has already moved to
+ * IN_REVIEW finds nothing to update and gets DBNotFoundError, which is the expected outcome
+ * there. `expected` null is the member who has not started: the step that claims the
+ * process, and two tabs saving at once are decided by it rather than by a lock.
+ */
+export async function dbUpdateUserFirstCreationStatus(
+  userId: number,
+  expected: FirstCreationStatus | null,
+  next: FirstCreationStatus,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(usersTable)
+    .set({ firstCreationStatus: next })
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        expected === null
+          ? isNull(usersTable.firstCreationStatus)
+          : eq(usersTable.firstCreationStatus, expected),
+      ),
+    )
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return {
+    success: false,
+    error: new DBNotFoundError('users', `id = ${userId} AND first_creation_status = ${expected}`),
+  }
 }
 
 /**

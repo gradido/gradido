@@ -613,6 +613,9 @@ const previewLink = computed(() => ({
   amount: amountToSend.value,
   memo: memo.value,
   senderUser: { alias: store.username, gradidoID: store.gradidoID },
+  // The face the page of the link will carry (ZE-038): the member's small picture, where they
+  // show it to other members -- the server hands it out there by the same switch.
+  senderAvatar: store.avatarVisibleToMembers === true ? store.avatar : null,
   // `hasPicture`: what the server will say of the greeting once it is made.
   greeting: { ...greeting.value, hasPicture: photoChosen.value },
 }))

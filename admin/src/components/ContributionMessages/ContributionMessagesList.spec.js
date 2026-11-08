@@ -3,6 +3,7 @@ import { mount, RouterLinkStub } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppToast } from '@/composables/useToast'
 import { forgetUserRemarks } from '@/composables/useUserRemark'
+import { useAdminStore } from '@/store/useAdminStore'
 import { MemberWalletLink } from '../MemberWalletLink'
 import { ContributionMessagesList } from './ContributionMessagesList'
 
@@ -139,6 +140,7 @@ describe('ContributionMessagesList', () => {
               'contributionMemo',
               'hideResubmission',
               'inputResubmissionDate',
+              'colleagueQuestion',
             ],
           },
           BTooltip: true,
@@ -180,6 +182,7 @@ describe('ContributionMessagesList', () => {
       contributionMemo: 'test memo',
       hideResubmission: true,
       inputResubmissionDate: undefined,
+      colleagueQuestion: null,
     })
   })
 
@@ -250,6 +253,98 @@ describe('ContributionMessagesList', () => {
   it('passes a saved resubmission on', () => {
     formular().vm.$emit('resubmission-saved', 'unchanged')
     expect(wrapper.emitted('resubmission-saved')).toEqual([['unchanged']])
+  })
+
+  // Bernd, 06.11.2026: a note on a colleague's question takes the resubmission back. The list tells
+  // the formular whether the open question is a colleague's, from the thread it holds.
+  describe('the open question of a colleague', () => {
+    const question = (gradidoID, extra = {}) => ({
+      id: 50,
+      message: 'What part of it is unpaid?',
+      createdAt: '2026-11-05T10:00:00.000Z',
+      type: 'DIALOG',
+      userAlias: 'elfi',
+      userGradidoID: gradidoID,
+      userCommunityUuid: 'home',
+      isModerator: true,
+      ...extra,
+    })
+    const note = {
+      id: 51,
+      message: 'She answered by mail.',
+      createdAt: '2026-11-06T10:00:00.000Z',
+      type: 'MODERATOR',
+      userAlias: 'bernd',
+      userGradidoID: 'g-bernd',
+      userCommunityUuid: 'home',
+      isModerator: true,
+    }
+    const answer = {
+      id: 52,
+      message: 'All of it.',
+      createdAt: '2026-11-07T10:00:00.000Z',
+      type: 'DIALOG',
+      userAlias: 'julia',
+      userGradidoID: 'g-julia',
+      userCommunityUuid: 'home',
+      isModerator: false,
+    }
+    // The thread as it arrives, and what the formular is told of it.
+    const thread = async (messages, { status = 'IN_PROGRESS', count = messages.length } = {}) => {
+      await wrapper.setProps({
+        contribution: {
+          id: 42,
+          memo: 'test memo',
+          userId: 108,
+          contributionStatus: status,
+          user: defaultUser,
+        },
+      })
+      result.value = { adminListContributionMessages: { count, messages } }
+      answerArrived()
+      await wrapper.vm.$nextTick()
+      return formular().props('colleagueQuestion')
+    }
+
+    beforeEach(() => {
+      useAdminStore().setModerator({ gradidoID: 'g-bernd', communityUuid: 'home', alias: 'bernd' })
+    })
+
+    it('names the colleague who asked, the notes left out', async () => {
+      expect(await thread([question('g-elfi')])).toEqual({ name: 'elfi' })
+      expect(await thread([question('g-elfi'), note])).toEqual({ name: 'elfi' })
+    })
+
+    it('is none where the moderator signed in asked, the pair taken without its case', async () => {
+      expect(await thread([question('g-bernd')])).toBeNull()
+      expect(await thread([question('G-BERND', { userCommunityUuid: 'HOME' })])).toBeNull()
+    })
+
+    it('is none once the member answered, and where no question is open', async () => {
+      expect(await thread([question('g-elfi'), answer])).toBeNull()
+      expect(await thread([question('g-elfi')], { status: 'PENDING' })).toBeNull()
+      expect(await thread([])).toBeNull()
+    })
+
+    it('is none where the thread is not all here, the asker unknown, or nobody signed in', async () => {
+      expect(await thread([question('g-elfi')], { count: 26 })).toBeNull()
+      expect(await thread([question(null)])).toBeNull()
+      useAdminStore().setModerator(null)
+      expect(await thread([question('g-elfi')])).toBeNull()
+    })
+
+    it('takes the newest question by its time, and the later id where two share it', async () => {
+      const earlierMine = question('g-bernd', { id: 60, createdAt: '2026-11-01T10:00:00.000Z' })
+      expect(await thread([question('g-elfi'), earlierMine])).toEqual({ name: 'elfi' })
+      const sameTimeMine = question('g-bernd', { id: 49 })
+      expect(await thread([question('g-elfi'), sameTimeMine])).toEqual({ name: 'elfi' })
+      expect(await thread([sameTimeMine, question('g-elfi')])).toEqual({ name: 'elfi' })
+    })
+
+    it('passes a written note on', () => {
+      formular().vm.$emit('note-added', { id: 42, colleagueNote: true })
+      expect(wrapper.emitted('note-added')).toEqual([[{ id: 42, colleagueNote: true }]])
+    })
   })
 
   it('asks for the messages again when the formular sent one', () => {

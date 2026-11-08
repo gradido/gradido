@@ -7,11 +7,10 @@ import { fetchThankYouPicture, thankYouPictureAddress } from '@/utils/thankYouPi
  * from the address the server serves it under to whoever holds the code -- signed in or not --,
  * and kept in the memory of the page as an address an <img> can show.
  *
- * ⛔ Once, and kept: the sheet, the strip over the account form and "Dein Dank ist da." show the
- * same picture. After the thank-you is accepted the address serves it no more -- the large
- * rendition is deleted then --, so whatever asked again at that moment would lose the picture it
- * had a second before. And the server lets the browser keep nothing (`no-store`): an <img> that
- * named the address itself would ask anew each time it is drawn.
+ * ⛔ Once, and kept: the sheet and the strip over the account form show the same picture. After
+ * the thank-you is accepted the address serves it no more -- the large rendition is deleted then
+ * --, and the page leads on to the overview (E-045). And the server lets the browser keep nothing
+ * (`no-store`): an <img> that named the address itself would ask anew each time it is drawn.
  *
  * Fetched, not named in an <img> (`fetchThankYouPicture` says why): that is also what brings it
  * over in development, where the server is another port than the wallet.

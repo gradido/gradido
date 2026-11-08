@@ -1,13 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { User as DbUser } from '..'
+import { User } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { userRemarksTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
-import { userFactory } from '../seeds/factory/user'
+import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
+import { DbUser } from './user'
 import {
   dbDeleteUserRemark,
   dbSelectUserRemark,
@@ -32,8 +33,8 @@ beforeAll(async () => {
   db = drizzleDb()
   await dbDeleteAllRowsExceptMigrations()
   await createCommunity(false)
-  bibi = await userFactory(bibiBloxberg)
-  peter = await userFactory(peterLustig)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
+  peter = await userFactoryDrizzle(peterLustig)
 })
 afterAll(async () => {
   await dbDeleteAllRowsExceptMigrations()
@@ -77,7 +78,7 @@ describe('userRemarks query test', () => {
 
   it('names nobody where the moderator who wrote it last was deleted, and keeps the words', async () => {
     await dbUpsertUserRemark(LEONI, 'Rentner seit Januar 25', peter.id, AT)
-    await DbUser.update({ id: peter.id }, { deletedAt: new Date() })
+    await User.update({ id: peter.id }, { deletedAt: new Date() })
     try {
       expect(await dbSelectUserRemark(LEONI)).toEqual({
         remark: 'Rentner seit Januar 25',
@@ -85,7 +86,7 @@ describe('userRemarks query test', () => {
         updatedByName: null,
       })
     } finally {
-      await DbUser.update({ id: peter.id }, { deletedAt: null })
+      await User.update({ id: peter.id }, { deletedAt: null })
     }
   })
 
