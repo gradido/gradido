@@ -29,6 +29,7 @@ import {
 } from '@/graphql/chat.graphql'
 import { setTransactionReaction, transactionsQuery } from '@/graphql/transactions.graphql'
 import { onTransactionReaction, reactToTransaction } from '@/composables/useTransactionReactions'
+import { onChatMessageSent } from '@/composables/useChatSent'
 
 /**
  * The chat's beat as the thread sees it: whoever listens -- for the messages that arrived, and for
@@ -3408,6 +3409,85 @@ describe('ChatThread', () => {
       await write('Hallo')
       expect(markRead).toHaveBeenCalledTimes(1)
       expect(markRead.mock.calls[0][1].upToMessageId).toBe(5)
+    })
+  })
+
+  /**
+   * W3b (F E-046): a message the member sent to the person is said to whoever listens -- the
+   * tile "Dein Dank ist da." on the overview, under a window over it (useChatSent). Only what
+   * the server took, and the person by the pair the thread holds.
+   */
+  describe('what the overview hears of a message sent', () => {
+    const heard = []
+    let stopListening = () => {}
+    beforeEach(() => {
+      heard.length = 0
+      stopListening = onChatMessageSent((person) => heard.push(person))
+    })
+    afterEach(() => stopListening())
+
+    it('says to whoever listens that the person was written to, by the pair', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Danke Dir!'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Danke Dir!')
+
+      expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
+    })
+
+    // Stored on the server, and so an answer to a thank-you of hers as the server counts it.
+    it('says it of a copy that came back not delivered as well', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Kommt sie an?', { deliveryState: 'FAILED' }))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Kommt sie an?')
+
+      expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
+    })
+
+    it('says nothing where the server said no', async () => {
+      serverSends.mockRejectedValue(new Error('CHAT_MESSAGE_NOT_SENT: NOT_STORED'))
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Geht nicht durch')
+
+      expect(heard).toEqual([])
+    })
+
+    // A message on its way is no answer yet.
+    it('says nothing while the message is on its way, and then once', async () => {
+      let land = () => {}
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            land = resolve
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Gleich da')
+      expect(heard).toEqual([])
+
+      land(ownCopy(99, 'Gleich da'))
+      await flushPromises()
+      expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
+    })
+
+    // The window's invitation to a call goes the same way out; a person without a community is
+    // named so, as the thread holds them (a missing community is this one).
+    it('says it of the window’s invitation too, for a person named without a community', async () => {
+      serverSends.mockResolvedValue(ownCopy(99, 'Videoanruf'))
+      mountThread({ gradidoID: 'lena-id' })
+      await arrive(page([1, 2]))
+
+      await wrapper.vm.deliver({ body: 'Videoanruf', notify: 'NONE' })
+      await flushPromises()
+
+      expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: null }])
     })
   })
 

@@ -14,6 +14,7 @@ import {
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { holdChatText } from '@/utils/chatReturn'
 import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
+import { onChatMessageSent } from '@/composables/useChatSent'
 
 /**
  * A group's thread (P5): ChatThread in its group's kind. What it shares with the thread of two --
@@ -526,6 +527,24 @@ describe('ChatThread in a group', () => {
         body: 'Hallo zusammen',
       })
       expect(bubbleTexts().at(-1)).toBe('Hallo zusammen')
+    })
+
+    // W3b (F E-046): only a message to one person answers a thank-you. The tile on the overview
+    // hears nothing of a group's (useChatSent).
+    it('says nothing to the overview of a message to the group', async () => {
+      const heard = []
+      const stop = onChatMessageSent((person) => heard.push(person))
+      try {
+        mountThread({ role: 'OWNER' })
+        await arrive(page([message(1)]))
+
+        await write('Hallo zusammen')
+
+        expect(serverSends).toHaveBeenCalledTimes(1)
+        expect(heard).toEqual([])
+      } finally {
+        stop()
+      }
     })
 
     // E-050 F5: the box is the announcement, by mail to every member but the sender.
