@@ -1,5 +1,5 @@
-import { ApiVersionType } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { ApiVersionType } from '../enum/apiVersionType'
 import { CommandClient as V1_0_CommandClient } from './1_0/CommandClient'
 import { CommandClient as V1_1_CommandClient } from './1_1/CommandClient'
 
