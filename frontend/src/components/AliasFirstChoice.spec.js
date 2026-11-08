@@ -101,6 +101,18 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }))
 
+// The route the window sits beside. A getter over a ref, the way FirstCreation.spec.js does
+// it, because the real `useRoute()` is reactive: a plain object set before mounting could show
+// that the window stays away on the settings, never that it comes back on the way out.
+const routePath = ref('/overview')
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    get path() {
+      return routePath.value
+    },
+  }),
+}))
+
 vi.mock('@/graphql/user.graphql', () => ({ aliasStatus: 'ALIAS_STATUS' }))
 vi.mock('@/graphql/queries', () => ({ checkUsername: 'CHECK_USERNAME' }))
 vi.mock('@/graphql/mutations', () => ({ adoptAlias: 'ADOPT', updateUserInfos: 'UPDATE' }))
@@ -170,6 +182,12 @@ describe('AliasFirstChoice', () => {
     await nextTick()
   }
 
+  // A few rounds of Vue's queue, for answers that come back through an `await`. Not
+  // `flushPromises`: it waits on a timer, and the timers here are fake.
+  const settle = async () => {
+    for (let round = 0; round < 4; round++) await nextTick()
+  }
+
   // Everything the status line is saying right now, by name. The row itself is an
   // unconditional div, so asking whether it EXISTS answers nothing; what it says is
   // the part that can be wrong.
@@ -188,6 +206,7 @@ describe('AliasFirstChoice', () => {
     failingNames.value = []
     holdAnswer.value = false
     asked.value = []
+    routePath.value = '/overview'
     wrapper = mountComponent()
   })
 
@@ -246,6 +265,120 @@ describe('AliasFirstChoice', () => {
       setFirstLoginWindowWanted('email', false)
       await nextTick()
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    /**
+     * NU-025: never over the settings, like the other first-login windows. The name is changed
+     * there, and the address reminder sends people there to correct the address -- before this,
+     * the name question was the next window in line and opened on top of the very page the
+     * member had just been sent to (Bernd's walk-through, 07.11.2026, picture 4).
+     */
+    it('never covers the settings — the name is changed there, and the address reminder sends people there', async () => {
+      setFirstLoginWindowWanted('email', true)
+      await nextTick()
+      expect(firstLoginWindow.value).toBe('email')
+
+      // "Correct address": the reminder lets go of the screen and the member is in the settings.
+      setFirstLoginWindowWanted('email', false)
+      routePath.value = '/settings/account'
+      await nextTick()
+      expect(firstLoginWindow.value).toBeNull()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+
+      // The counter-check, in the same test: it is waiting, not gone.
+      routePath.value = '/overview'
+      await nextTick()
+      expect(firstLoginWindow.value).toBe('alias')
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    it('is not answered by the member stepping into the settings', async () => {
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+
+      routePath.value = '/settings/account'
+      await nextTick()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+      // BModal writes the closing back when its `modelValue` goes false on its own. Read as an
+      // answer, the name question would be retired for the session unasked.
+      await wrapper.findComponent({ name: 'BModal' }).vm.$emit('update:modelValue', false)
+      await nextTick()
+
+      routePath.value = '/overview'
+      await nextTick()
+      expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(true)
+    })
+
+    /**
+     * The other side of the guard above: the member can now be in the settings while the
+     * question is open, and change the name there. That settles it, but the answer in hand was
+     * fetched before -- so the window asks again and waits. (Apollo writes a refetch's answer
+     * into `result`; the fake answers through `statusMock` the same way.)
+     */
+    describe('when the name changes elsewhere while the question is open', () => {
+      let answer
+      const refetchWaits = () => {
+        refetchMock.mockImplementationOnce(
+          () =>
+            new Promise((resolve, reject) => {
+              answer = { resolve, reject }
+            }),
+        )
+      }
+
+      afterEach(() => refetchMock.mockReset())
+
+      it('takes a name chosen in the settings as the answer, and shows nothing in between', async () => {
+        routePath.value = '/settings/account'
+        await nextTick()
+        refetchWaits()
+
+        mockWallet.current.setUsername('Maximilian')
+        await nextTick()
+        expect(refetchMock).toHaveBeenCalledTimes(1)
+
+        // Back on the overview before the answer is in: the window waits, and so do the ones
+        // after it.
+        routePath.value = '/overview'
+        await nextTick()
+        expect(firstLoginWindow.value).toBeNull()
+        expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+
+        statusMock.value = { aliasStatus: { aliasSettled: true } }
+        answer.resolve()
+        await settle()
+        expect(firstLoginWindow.value).toBeNull()
+        expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+      })
+
+      // Waiting must end, or the windows after this one would wait for good.
+      it('goes by the answer in hand when the check could not run', async () => {
+        refetchWaits()
+        mockWallet.current.setUsername('Maximilian')
+        await nextTick()
+        expect(firstLoginWindow.value).toBeNull()
+
+        answer.reject(new Error('Network error'))
+        await settle()
+        expect(firstLoginWindow.value).toBe('alias')
+        expect(wrapper.find('[data-test="alias-proposal"]').text()).toBe('Maximilian')
+      })
+
+      it('does not ask where the answer in hand already says the question is settled', async () => {
+        statusMock.value = { aliasStatus: { aliasSettled: true } }
+        await nextTick()
+
+        mockWallet.current.setUsername('Maximilian')
+        await settle()
+        expect(refetchMock).not.toHaveBeenCalled()
+      })
+
+      // At logout the name is emptied while the window still stands, and there is no token
+      // left to ask with.
+      it('does not ask for a name emptied at logout', async () => {
+        mockWallet.current.setUsername('')
+        await settle()
+        expect(refetchMock).not.toHaveBeenCalled()
+      })
     })
 
     it('lets go of the screen when it is unmounted', () => {
@@ -472,6 +605,16 @@ describe('AliasFirstChoice', () => {
       // them does not.
       expect(updateMock).toHaveBeenCalledTimes(1)
       expect(wrapper.find('[data-test="alias-first-choice"]').exists()).toBe(false)
+    })
+
+    // Its own choice changes the name too. The window has its answer then and asks the
+    // server once: the second question, for a name changed elsewhere, stays out of it.
+    it('asks the server once after saving its own choice', async () => {
+      await type('Bernd')
+      await wrapper.find('[data-test="alias-first-save"]').trigger('click')
+      await settle()
+
+      expect(refetchMock).toHaveBeenCalledTimes(1)
     })
 
     /**

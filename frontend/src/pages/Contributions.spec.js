@@ -4,6 +4,13 @@ import { mount } from '@vue/test-utils'
 import { BTab, BTabs } from 'bootstrap-vue-next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useRoute, useRouter } from 'vue-router'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  holdAccountWindowsForThisSession,
+  holdFirstCreationForThisSession,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 import Contributions from './Contributions'
 
 // Mock external dependencies
@@ -116,6 +123,50 @@ describe('Contributions', () => {
       vi.mocked(useRoute).mockReturnValue({ params: { tab: 'contributions' } })
       await wrapper.vm.$nextTick()
       expect(wrapper.vm.tabIndex).toBe(1)
+    })
+  })
+
+  /**
+   * E-045 (Bernd, 08.11.2026): whoever opens "Schöpfen" wants to create. The windows about the
+   * member that waited for the next start -- after a thank-you (E-044) or after an event link
+   * (KA-015) -- come now, the name before the first creation (ES-003). With the real windows
+   * module: which window has the screen is its answer, not the page's.
+   */
+  describe('the windows that wait for the next start', () => {
+    const mountPage = () =>
+      mount(Contributions, {
+        global: { mocks: { $t: (key) => key }, components: { BTabs, BTab } },
+      })
+
+    afterEach(() => {
+      // The windows live in a module, which outlives a test.
+      forgetFirstLoginWindows()
+    })
+
+    it('come once the page is built, the name before the first creation', () => {
+      holdAccountWindowsForThisSession()
+      setFirstLoginWindowWanted('alias', true)
+      setFirstLoginWindowWanted('firstCreation', true)
+      // The fixture proves itself: held, neither of them shows.
+      expect(firstLoginWindow.value).toBeNull()
+
+      const page = mountPage()
+
+      expect(firstLoginWindow.value).toBe('alias')
+      setFirstLoginWindowWanted('alias', false)
+      expect(firstLoginWindow.value).toBe('firstCreation')
+      page.unmount()
+    })
+
+    it('lets the first creation come that waited behind the invitation onto the map', () => {
+      holdFirstCreationForThisSession()
+      setFirstLoginWindowWanted('firstCreation', true)
+      expect(firstLoginWindow.value).toBeNull()
+
+      const page = mountPage()
+
+      expect(firstLoginWindow.value).toBe('firstCreation')
+      page.unmount()
     })
   })
 

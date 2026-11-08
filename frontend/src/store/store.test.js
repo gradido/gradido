@@ -24,6 +24,7 @@ import {
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,
+  holdAccountWindowsForThisSession,
   holdFirstCreationForThisSession,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
@@ -474,6 +475,23 @@ describe('Pinia store', () => {
 
           wallet.login(commitedData)
 
+          expect(firstLoginWindow.value).toBe('firstCreation')
+          forgetFirstLoginWindows()
+        })
+
+        // E-044: what a thank-you held back -- the name and the first creation -- comes at the
+        // next sign-in, the name first.
+        it('lets the name and the first creation come that waited behind a thank-you', () => {
+          holdAccountWindowsForThisSession()
+          setFirstLoginWindowWanted('alias', true)
+          setFirstLoginWindowWanted('firstCreation', true)
+          // The fixture proves itself: both wait.
+          expect(firstLoginWindow.value).toBeNull()
+
+          wallet.login(commitedData)
+
+          expect(firstLoginWindow.value).toBe('alias')
+          setFirstLoginWindowWanted('alias', false)
           expect(firstLoginWindow.value).toBe('firstCreation')
           forgetFirstLoginWindows()
         })

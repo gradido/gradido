@@ -586,12 +586,12 @@
   },
   "emailConfirmation": {
     "changeAddress": "Correct address",
-    "grace": "Until {deadline} you can already use your account fully — after that it waits for your confirmation.",
-    "later": "Later",
     "mailSent": "A confirmation mail is on its way to your e-mail address. Please click the link inside.",
     "overdue": "The grace period has ended. Please confirm your e-mail address — your account opens up fully again the moment you do.",
     "resend": "Send mail again",
+    "resendTooSoon": "The confirmation e-mail has only just gone out. Please wait a few minutes before asking for it again.",
     "resent": "The confirmation mail is on its way again.",
+    "strip": "A confirmation e-mail is on its way to you — please click the link in it. Until {deadline}, you can already use your account in full.",
     "title": "Confirm your e-mail address"
   },
   "emoji": {
@@ -646,7 +646,7 @@
     "landing": {
       "added": "Your entry is in: {sentence}",
       "firstEntry": "Your first entry:",
-      "haveAccount": "I already have an account",
+      "haveAccount": "I already have a Gradido account",
       "headline": "The map to the people of your project",
       "otherCommunity": "Is your account in another community? Then sign in there and type the sentence by hand.",
       "register": "Create an account"
@@ -714,7 +714,7 @@
       "text": "Every person can create at Gradido: for what they do for others. If this account is not a person but an association, a project or a business, tell us here — a project account does not create, it receives thanks.",
       "title": "All good — the question comes back next time."
     },
-    "question": "What good have you done in the past few weeks?",
+    "question": "What good things have you done in the past few weeks?",
     "remove": "Remove entry",
     "review": "A person will take a look at your entries. You will hear from us.",
     "showLess": "Show less",
@@ -786,7 +786,7 @@
     "password_old": "Old password",
     "recipient": "Recipient",
     "recipient-not-found": {
-      "by-email": "You can still send your thank-you, by email: Gradido creates a link for it that waits for {days} days. Whoever opens it takes the thank-you into their account — or opens one right there.",
+      "by-email": "You can also send your thank-you by email. Gradido creates a link for it that waits for {days} days. Whoever opens it takes the thank-you into their account — or opens one right there.",
       "change-address": "Change address",
       "change-entry": "Change entry",
       "choose-community": "Select community",
@@ -917,7 +917,7 @@
     "share-line1": "{name} thanks you with {amount} Gradido:",
     "share-line2": "“{memo}”",
     "share-line3": "Would you like to accept this thank-you?",
-    "share-line4": "Take your time: it will wait for you until {date}.",
+    "share-line4": "No hurry. It will wait for you until {date}.",
     "to-login": "Log in",
     "to-register": "Register a new account.",
     "to-switch": "Redirect now",
@@ -1286,16 +1286,12 @@
     "almost-have-account": "Did you already have an account with this address? Then sign in.",
     "almost-text": "Check your mailbox: there is an e-mail from us that lets you continue. Your thank-you is waiting for you here.",
     "almost-title": "Almost there",
-    "answer": "Reply to {name}",
-    "answer-short": "Reply",
-    "arrived-text": "You now have {amount} Gradido from {name} in your account.",
-    "arrived-title": "Your thank-you is here.",
     "deleted-text": "{name} deleted the link on {date}.",
     "deleted-title": "This thank-you no longer exists.",
     "expired-text": "It has returned to {name} — nothing is lost.",
     "expired-title": "This thank-you waited for {days} days.",
     "from": "{name} thanks you with {amount}",
-    "have-account": "I already have an account",
+    "have-account": "I already have a Gradido account",
     "how": "How it works",
     "invite": "Would you like to thank other people in this lovely way, too?",
     "other-community": "If your account is in another community, choose it. You will be taken there.",
@@ -1674,6 +1670,7 @@
     "done": {
       "another": "Another one for somebody else",
       "edit-hint": "You can change the sentence before sending. Your words only appear on the card.",
+      "edit-hint-email": "You can adjust and add to the text in the e-mail before sending.",
       "edit-hint-plain": "You can change the text before sending.",
       "find-again": "You will find it again under {transactions}, in “{links}”.",
       "link-hint": "Whoever has the link can accept the thank-you. Only send it to the person it is meant for.",
