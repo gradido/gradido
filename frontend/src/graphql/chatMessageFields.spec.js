@@ -135,9 +135,7 @@ describe('the fields of a chat message', () => {
     ])
   })
 
-  // ⛔ The backend's request log masks a variable by its name (plugins.ts): `body` is written as
-  // "***". Under any other name the changed text would stand in the log with every change.
-  it('names the changed text `$body`, the name the request log masks', () => {
+  it('names the changed text `$body`', () => {
     const operation = chat.definitions.find(
       (definition) => definition.name?.value === 'editChatMessage',
     )

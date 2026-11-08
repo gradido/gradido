@@ -26,7 +26,8 @@ import { resolveCommunityUuid } from './util/communities'
  * A member's own notes on a person or a group (Bernd, 27.10.2026): the button beside the
  * magnifier of a chat window. Only the member reads them -- every query here is the signed-in
  * member's own, by `user.id`, and nothing of a note reaches the person or the group it is about,
- * another community, or the log (filterVariables, and the answer of a request that read one).
+ * another community, or the log (the request log writes no variables, and leaves out the answer
+ * of a request that read one).
  *
  * The right of the contacts: a note is the member's own, as the hearts are.
  */

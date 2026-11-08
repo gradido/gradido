@@ -1,5 +1,4 @@
-import { Kind, parse, print, visit } from 'graphql'
-import clonedeep from 'lodash.clonedeep'
+import { Kind } from 'graphql'
 
 const setHeadersPlugin = {
   async requestDidStart() {
@@ -15,139 +14,12 @@ const setHeadersPlugin = {
   },
 }
 
-const filterVariables = (variables: any) => {
-  const vars = clonedeep(variables)
-  if (vars?.password) {
-    vars.password = '***'
-  }
-  if (vars?.passwordNew) {
-    vars.passwordNew = '***'
-  }
-  if (vars?.guarantorCode) {
-    vars.guarantorCode = '***'
-  }
-  // What one member writes to another: a chat message (sendChatMessage, `$body` in the wallet's
-  // chat.graphql) and the subject of a letter (sendEmail, `$subject`). A chat message may carry
-  // the address of a video room, and whoever knows it can join the call. No other document of
-  // wallet or admin names a variable so. The letter's text travels as `memo`, like the text of
-  // every booking and contribution, and is still written.
-  if (vars?.body) {
-    vars.body = '***'
-  }
-  if (vars?.subject) {
-    vars.subject = '***'
-  }
-  // The name of a chat group (createChatGroup, `$title`, P5): what a circle calls itself can say
-  // who is in it. No other document of wallet or admin names a variable so; the wallet's has to.
-  if (vars?.title) {
-    vars.title = '***'
-  }
-  // A picture in a chat message (sendChatMessage, `$image`): one member's picture for another,
-  // and some 80,000 characters of base64 in every line that would carry it. Its size stays
-  // readable. The wallet's document has to name the variable so (P7c).
-  if (vars?.image?.data) {
-    vars.image.data = '***'
-  }
-  // The two renditions of a member's avatar (setUserAvatar, `$avatarSmall` and `$avatarFull` in
-  // the wallet's mutations.js): up to some 95,000 characters of base64, written with every upload
-  // until now.
-  if (vars?.avatarSmall) {
-    vars.avatarSmall = '***'
-  }
-  if (vars?.avatarFull) {
-    vars.avatarFull = '***'
-  }
-  // "Für wen?" of a thank-you greeting (createTransactionLink, `$greeting`): a name one member
-  // writes about somebody else, who has no account here and was never asked. The wallet's
-  // document has to name the variable so. The greeting's line stays readable: it is the
-  // beginning of `memo`, which is written like the text of every booking.
-  if (vars?.greeting?.recipientName) {
-    vars.greeting.recipientName = '***'
-  }
-  // The picture of a thank-you greeting that carries a photo of the member's own, in its two
-  // renditions: the small one comes inside `$greeting` (createTransactionLink), the large one
-  // as `$picture` (addThankYouGreetingPicture) -- up to some 98,000 characters of base64. Their
-  // sizes stay readable. The wallet's documents have to name the variables so. The photo sent
-  // with a transfer comes as `$picture` as well (sendCoins).
-  if (vars?.greeting?.picture?.data) {
-    vars.greeting.picture.data = '***'
-  }
-  if (vars?.picture?.data) {
-    vars.picture.data = '***'
-  }
-  // The place a member pins for the member search (updateUserInfos, `$gmsLocation` in the
-  // wallet's mutations.js): theirs alone -- the server answers it to nobody else -- and this
-  // line is written at level info. That the request sets one stays readable.
-  if (vars?.gmsLocation) {
-    vars.gmsLocation = '***'
-  }
-  // The emoji a member reacts to a chat message with (setChatMessageReaction, `$emoji`): what one
-  // member says to the others of a conversation, as the words of a message are -- and this line
-  // names the message beside it, the next one the member. Whether the request sets a reaction or
-  // takes one back stays readable: taken back, the emoji comes as null. No other document of
-  // wallet or admin names a variable so; the wallet's has to.
-  if (vars?.emoji) {
-    vars.emoji = '***'
-  }
-  // The entry an event link offered, sent along with a registration (createUser,
-  // `$eventMatchingEntry` in the wallet's mutations.js): what somebody is interested in, in the
-  // same line as their name and address. That a registration brings one stays readable. The
-  // wallet names the variable so for a signed-in member's link as well
-  // (acceptEventMatchingEntry), and this line covers it there too.
-  if (vars?.eventMatchingEntry) {
-    vars.eventMatchingEntry = '***'
-  }
-  // A member's own note on a person or a group (setUserNote, `$note`): what they keep for
-  // themselves alone -- somebody's full name, where they met. Which person or group it is about
-  // stays readable. No other document of wallet or admin names a variable so; the wallet's has to.
-  if (vars?.note) {
-    vars.note = '***'
-  }
-  // The moderation's remark on a member (setUserRemark, `$remark` in the admin's
-  // graphql/userRemark.ts): what the moderators know of a person -- whose daughter,
-  // which office --, written in the line before the moderator's id. Whom it is about stays
-  // readable (`$userId`). No other document of wallet or admin names a variable so; the admin's
-  // has to.
-  if (vars?.remark) {
-    vars.remark = '***'
-  }
-  // Whom "Jetzt prüfen" asks about (user, `$identifier` in the wallet's queries.js): an address or a
-  // name a member typed, of somebody who may have no account here and was never asked -- written in
-  // the line before the member's id. In which community stays readable (`$communityIdentifier`). No
-  // other document of wallet or admin names a variable so; the wallet's has to.
-  if (vars?.identifier) {
-    vars.identifier = '***'
-  }
-  return vars
-}
-
 // The same name on its way back: the answers of createTransactionLink, queryTransactionLink, the
 // lists of links and -- with the booking made from the link -- the booking list carry the
 // greeting. The field is written as "***" wherever an answer holds it -- no other type of the
 // schema names a field so.
 const withoutRecipientNames = (key: string, value: unknown): unknown =>
   key === 'recipientName' && typeof value === 'string' ? '***' : value
-
-// A value written into the document itself instead of into a variable -- a picture, a text, a
-// password, as a client of its own may send them -- never passes filterVariables (coderabbit on
-// #4001). The log gets the document as graphql-js reads it, every string value written as "***"
-// and no comment: graphql-js's own parser, so a block string and its escapes end where GraphQL
-// says they end. A document it cannot read is written as its length only. The wallet and the
-// admin send their values as variables; what a request asks for stays readable.
-const withoutStringValues = (document: string | undefined): string => {
-  if (!document) {
-    return ''
-  }
-  try {
-    return print(
-      visit(parse(document, { noLocation: true }), {
-        StringValue: () => ({ kind: Kind.STRING, value: '***' }),
-      }),
-    )
-  } catch {
-    return `(a document that does not parse, ${document.length} characters)`
-  }
-}
 
 // An error may quote back what the request carried. A failed check keeps the value it refused --
 // class-validator's `value`, the whole picture where its width is out of bounds, however small the
@@ -169,62 +41,75 @@ const withoutRequestValues = (key: string, value: unknown): unknown => {
   return value.length > LOGGED_STRING_MAX_LENGTH ? `*** ${value.length} characters` : value
 }
 
+// One line per request: what it asked for, by whom, how long it took, and whether it failed --
+// `mutation login`, `query transactionList,communityStatistics`. Most documents of wallet and
+// admin carry no name, so the line names the root fields; an alias is written by the field it
+// stands for. Neither the document nor its variables are written: the document is the client's
+// own code, and the variables are what members write (names, addresses, texts, pictures).
+const requestSummary = (requestContext: any): string => {
+  const { operation, operationName } = requestContext
+  if (!operation) {
+    // The document did not parse or validate; its errors follow at level error.
+    return operationName ?? '(no operation)'
+  }
+  const fields = operation.selectionSet.selections
+    .map((selection: any) => (selection.kind === Kind.FIELD ? selection.name.value : '...'))
+    .join(',')
+  return `${operation.operation} ${fields}`
+}
+
 export const logPlugin = {
   async requestDidStart(requestContext: any) {
     const { logger } = requestContext
-    const { query, mutation, variables, operationName } = requestContext.request
-    if (operationName !== 'IntrospectionQuery') {
-      logger.debug('requestDidStart:', { operationName, variables: filterVariables(variables) })
-      logger.info(`Request:
-${withoutStringValues(mutation || query)}
-variables: ${JSON.stringify(filterVariables(variables), null, 2)}`)
-    }
+    const started = performance.now()
     return {
       async willSendResponse(requestContext: any) {
+        if (requestContext.request.operationName === 'IntrospectionQuery') {
+          return requestContext
+        }
         // What is answered: Apollo Server 5 keeps data and errors one level down, and has
         // neither for an answer that is delivered in parts.
         const { body } = requestContext.response
         const answer = body.kind === 'single' ? body.singleResult : {}
-        if (operationName !== 'IntrospectionQuery') {
-          if (requestContext.contextValue.user) {
-            logger.info(`User ID: ${requestContext.contextValue.user.id}`)
-          }
-          if (answer.data) {
-            logger.info('Response Success!')
-            // A video room is open to whoever knows its address: the answer of a request that was
-            // handed one (chatVideoRoom) stays out of the log. The request's budget counts the
-            // rooms, over every alias.
-            if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
-              logger.trace('Response-Data: left out, it holds a video room')
-            } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
-              // A member's own notes (userNote, userNotes) are theirs alone.
-              logger.trace('Response-Data: left out, it holds a note')
-            } else if (requestContext.contextValue.requestBudget?.userRemarksServed) {
-              // The moderation's remark on a member (userRemark, setUserRemark) is for the
-              // moderators alone -- and so is Crea's answer where she read one (CreaResolver).
-              logger.trace('Response-Data: left out, it holds a remark')
-            } else if (
-              requestContext.contextValue.requestBudget?.chatImagesServed ||
-              requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||
-              requestContext.contextValue.requestBudget?.transactionPicturesServed ||
-              requestContext.contextValue.requestBudget?.senderAvatarsServed
-            ) {
-              // A picture of a chat message (chatMessageImage) is one member's for another, and
-              // so are the picture of a thank-you greeting (thankYouGreetingPicture) and the
-              // photo sent with a transfer (transactionPicture) -- and the face of the member
-              // who made a link, on the page of an open link (queryTransactionLink).
-              logger.trace('Response-Data: left out, it holds a picture')
-            } else if (logger.isTraceEnabled()) {
-              // Formatted only where it is written: the whole answer as indented text costs the
-              // server time on every request, also while the level is off.
-              logger.trace(`Response-Data:
+        const userId = requestContext.contextValue?.user?.id ?? '-'
+        const duration = Math.round(performance.now() - started)
+        logger.info(
+          `${requestSummary(requestContext)} user=${userId} ${duration}ms ${answer.errors ? 'errors' : 'ok'}`,
+        )
+        if (answer.data) {
+          // A video room is open to whoever knows its address: the answer of a request that was
+          // handed one (chatVideoRoom) stays out of the log. The request's budget counts the
+          // rooms, over every alias.
+          if (requestContext.contextValue.requestBudget?.chatVideoRoomsServed) {
+            logger.trace('Response-Data: left out, it holds a video room')
+          } else if (requestContext.contextValue.requestBudget?.userNotesServed) {
+            // A member's own notes (userNote, userNotes) are theirs alone.
+            logger.trace('Response-Data: left out, it holds a note')
+          } else if (requestContext.contextValue.requestBudget?.userRemarksServed) {
+            // The moderation's remark on a member (userRemark, setUserRemark) is for the
+            // moderators alone -- and so is Crea's answer where she read one (CreaResolver).
+            logger.trace('Response-Data: left out, it holds a remark')
+          } else if (
+            requestContext.contextValue.requestBudget?.chatImagesServed ||
+            requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||
+            requestContext.contextValue.requestBudget?.transactionPicturesServed ||
+            requestContext.contextValue.requestBudget?.senderAvatarsServed
+          ) {
+            // A picture of a chat message (chatMessageImage) is one member's for another, and
+            // so are the picture of a thank-you greeting (thankYouGreetingPicture) and the
+            // photo sent with a transfer (transactionPicture) -- and the face of the member
+            // who made a link, on the page of an open link (queryTransactionLink).
+            logger.trace('Response-Data: left out, it holds a picture')
+          } else if (logger.isTraceEnabled()) {
+            // Formatted only where it is written: the whole answer as indented text costs the
+            // server time on every request, also while the level is off.
+            logger.trace(`Response-Data:
 ${JSON.stringify(answer.data, withoutRecipientNames, 2)}`)
-            }
           }
-          if (answer.errors) {
-            logger.error(`Response-Errors:
+        }
+        if (answer.errors) {
+          logger.error(`Response-Errors:
 ${JSON.stringify(answer.errors, withoutRequestValues, 2)}`)
-          }
         }
         return requestContext
       },

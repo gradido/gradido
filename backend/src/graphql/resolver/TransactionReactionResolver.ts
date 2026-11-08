@@ -109,9 +109,8 @@ export class TransactionReactionResolver {
    * And NOT_STORED where the database failed.
    *
    * The log gets the booking's id and whether a reaction was set or taken back, never the
-   * emoji. The request log leaves it out as well, by the variable's name (`$emoji` in
-   * filterVariables) -- the wallet's document is held to that name. Only at trace level, where
-   * the server writes down whole answers, this one stands among them.
+   * emoji. The request log writes no variables at all. Only at trace level, where the server
+   * writes down whole answers, this one stands among them.
    */
   @Authorized([RIGHTS.REACT_TO_TRANSACTION])
   @Mutation(() => String, { nullable: true })
