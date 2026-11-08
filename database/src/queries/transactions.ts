@@ -1040,6 +1040,11 @@ export async function dbSelectUnreadReceivedTransfers(
  * `linked_user_id`, which a transfer between two members here carries on both of its rows; a
  * member of another community is named by the pair alone and is never asked for here.
  *
+ * ⛔ Not a sending through a link (`transaction_link_id`): redeeming a link books the transfer on
+ * the maker's side at the moment the other person redeems it, whenever the link was made. A link
+ * made before the thank-you and redeemed after it would count as an answer the member never gave.
+ * Left out, too, is a link made after it: the time a link was made is no column of these rows.
+ *
  * The time is read the way Drizzle reads a datetime, as UTC -- why that compares with the
  * booking times TypeORM reads is said where the two meet (ThanksAnswer.logic).
  *
@@ -1063,6 +1068,7 @@ export async function dbSelectLastSentToByUser(
         eq(transactionsTable.userId, userId),
         eq(transactionsTable.typeId, TransactionTypeId.SEND),
         inArray(transactionsTable.linkedUserId, linkedUserIds),
+        isNull(transactionsTable.transactionLinkId),
       ),
     )
     .groupBy(transactionsTable.linkedUserId)

@@ -55,8 +55,9 @@ export const thanksPartnerIdsOf = (
  *
  * Not an answer (F E-046): opening the conversation -- that is "seen" (Chat E-086), a column of
  * its own --, a message in a group, a message of the giver's, a message or a sending from before
- * the thank-you came. A reaction is not decided here either: it is a field of its own
- * (reactionOfBooking), and the tile leaves out both.
+ * the thank-you came, a link of the member's the giver redeemed (dbSelectLastSentToByUser leaves
+ * it out: it is booked when it is redeemed, not when it was made). A reaction is not decided here
+ * either: it is a field of its own (reactionOfBooking), and the tile leaves out both.
  *
  * ⚠️ The times compare only because both sides of the comparison are UTC. The booking's comes
  * through TypeORM, which reads a `datetime` as the process's local time; the message's and the
