@@ -91,17 +91,6 @@ export async function processXComCompleteTransaction(
       throw new Error(genericTransactionFailedMessage)
     }
     const foreignUser = pendingResult.value
-    if (
-      foreignUser.communityUuid !== client.communityUuid ||
-      foreignUser.communityUuid !== recipientCom.communityUuid
-    ) {
-      logger.error(`recipient user community uuid and recipient community uuid not match`, {
-        foreignUserComUuid: foreignUser.communityUuid,
-        clientComUuid: client.communityUuid,
-        recipientComUuid: recipientCom.communityUuid,
-      })
-      throw new Error(genericTransactionFailedMessage)
-    }
     tx.sender.avatarUpdatedAt = await dbFindMemberAvatarTimestamp(sender.id)
     const committingResult = await processXComCommittingSendCoins(client, tx, foreignUser)
     if (!committingResult.success) {
@@ -192,6 +181,7 @@ async function processXComPendingSendCoins(
     const m = `prepare for send coins failed: ${JSON.stringify(error.value, null, 2)}`
     return xcomError(CrossCommunityErrorType.apiCallFailed, m)
   }
+
   // the answer of another server: taken only as far as it is the recipient's public info
   const parsedUserInfo = v.safeParse(userPublicInfoSchema, data)
   if (!parsedUserInfo.success) {
@@ -199,7 +189,10 @@ async function processXComPendingSendCoins(
     return xcomError(CrossCommunityErrorType.apiCallFailed, m)
   }
   const recipientUser = parsedUserInfo.output
-
+  if (recipientUser.communityUuid !== client.communityUuid) {
+    const m = `recipient user community uuid: ${recipientUser.communityUuid} and recipient community uuid: ${client.communityUuid} not match`
+    return xcomError(CrossCommunityErrorType.unknown, m)
+  }
   // writing the pending transaction on receiver-side was successfull, so now write the sender side
   try {
     const insertResult = await dbInsertPendingTransaction(
