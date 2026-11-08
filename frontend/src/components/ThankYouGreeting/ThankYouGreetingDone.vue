@@ -143,11 +143,16 @@
       <blockquote class="tyg-done-quote" data-test="thank-you-greeting-share-text">
         {{ linkText }}
       </blockquote>
-      <p class="tyg-done-muted small mb-0">
+      <!-- With an address the text goes into the member's own mail program, where it can be
+           adjusted and added to (E-045) -- with a greeting and without one. Shared, it is the
+           sentence the share sheet sends. -->
+      <p class="tyg-done-muted small mb-0" data-test="thank-you-greeting-edit-hint">
         {{
-          isGreeting
-            ? $t('thank-you-greeting.done.edit-hint')
-            : $t('thank-you-greeting.done.edit-hint-plain')
+          emailAddress
+            ? $t('thank-you-greeting.done.edit-hint-email')
+            : isGreeting
+              ? $t('thank-you-greeting.done.edit-hint')
+              : $t('thank-you-greeting.done.edit-hint-plain')
         }}
       </p>
     </div>

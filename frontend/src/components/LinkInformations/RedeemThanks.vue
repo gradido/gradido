@@ -1,66 +1,9 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
   <div class="redeem-thanks text-center">
-    <!-- The thank-you was accepted on this page, a moment ago: where it is now, the greeting
-         in short, and the two ways on. It belongs to the moment -- whoever loads the page
-         again reads "Dieser Dank ist angenommen." below. -->
-    <div v-if="stage === 'arrived'" class="redeem-thanks-closed" data-test="redeem-thanks-arrived">
-      <svg
-        class="redeem-thanks-sign is-accepted"
-        viewBox="0 0 20 20"
-        width="26"
-        height="26"
-        aria-hidden="true"
-      >
-        <path
-          fill="currentColor"
-          d="M10 17C5.5 13.8 3 11.4 3 8.6C3 6.4 4.7 5 6.5 5C8 5 9.2 5.9 10 7.2C10.8 5.9 12 5 13.5 5C15.3 5 17 6.4 17 8.6C17 11.4 14.5 13.8 10 17Z"
-        />
-      </svg>
-      <h2 class="redeem-thanks-closed-title" data-test="redeem-thanks-title">
-        {{ $t('redeem-thanks.arrived-title') }}
-      </h2>
-      <p class="redeem-thanks-closed-text" data-test="redeem-thanks-text">{{ arrivedText }}</p>
-      <!-- ⛔ The photo of a greeting stays as the page holds it: after the thank-you is
-           accepted the server serves it under the link's address no more. -->
-      <redeem-thanks-paper
-        v-if="linkData.greeting"
-        class="redeem-thanks-arrived-paper"
-        :link-data="linkData"
-        :picture="picture"
-        short
-      />
-      <!-- The answer is a message in the conversation with whoever thanked; the greeting
-           stands there as a bubble, and the heart is there (ZE-017 F6). -->
-      <div class="redeem-thanks-actions">
-        <BButton
-          variant="gradido"
-          class="redeem-thanks-accept"
-          :to="answerTo"
-          data-test="redeem-thanks-answer"
-        >
-          <span ref="answerLine" class="redeem-thanks-answer-line">{{ answerLabel }}</span>
-        </BButton>
-      </div>
-      <div class="redeem-thanks-onward">
-        <BButton
-          :variant="null"
-          class="redeem-thanks-to-account"
-          to="/overview"
-          data-test="redeem-thanks-to-account"
-        >
-          {{ $t('redeem-thanks.to-account') }}
-        </BButton>
-      </div>
-    </div>
-
     <!-- The account could not be signed in to. ⛔ One view for every reason, and it names none
          (E-017): an address that is taken and a link that did not vouch read the same. -->
-    <div
-      v-else-if="stage === 'almost'"
-      class="redeem-thanks-closed"
-      data-test="redeem-thanks-almost"
-    >
+    <div v-if="stage === 'almost'" class="redeem-thanks-closed" data-test="redeem-thanks-almost">
       <svg
         class="redeem-thanks-sign is-almost"
         viewBox="0 0 20 20"
@@ -254,21 +197,20 @@
  * - The sender (`SELF_CREATOR`): the sheet as the other person will see it.
  * - Opened later (`TEXT_REDEEMED`, `TEXT_EXPIRED`, `TEXT_DELETED`): what became of it.
  *
- * And two views that belong to the moment, which the page names with `stage`: "arrived", once
- * the thank-you was booked on this page -- for a new member and for one who had an account --
- * and "almost", where the new account could not be signed in to.
+ * And one view that belongs to the moment, which the page names with `stage`: "almost", where
+ * the new account could not be signed in to. A thank-you booked on the page leads to the overview
+ * instead (E-045): the page after the booking said what the overview says anyway.
  *
  * Contribution links and links from another community do not come here; they keep the page
  * they had.
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { BButton, BLink } from 'bootstrap-vue-next'
 import RedeemThanksAccount from '@/components/LinkInformations/RedeemThanksAccount'
 import RedeemThanksHaveAccount from '@/components/LinkInformations/RedeemThanksHaveAccount'
 import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper'
-import { useAmountInText } from '@/composables/useAmountInText'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import { memberAlias } from '@/utils/gradidoAddress'
 
@@ -282,11 +224,11 @@ const props = defineProps({
   redeemCode: { type: String, required: true },
   // The page's booking is on its way: the button waits for the answer.
   accepting: { type: Boolean, default: false },
-  // What just happened on this page: 'arrived' or 'almost' (see above). Null otherwise.
+  // What just happened on this page: 'almost' (see above). Null otherwise.
   stage: { type: String, default: null },
   // The photo of a greeting that carries one, as the page fetched it once from the address of
-  // the open link: the sheet, the strip over the account form and "Dein Dank ist da." show the
-  // same one. Null where none has come.
+  // the open link: the sheet and the strip over the account form show the same one. Null where
+  // none has come.
   picture: { type: String, default: null },
 })
 
@@ -296,7 +238,6 @@ const { t, d, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { routeWithParamsAndQuery } = useAuthLinks()
-const amountInText = useAmountInText()
 
 const isGuest = computed(() => ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY'].includes(props.state))
 const isMember = computed(() => props.state === 'VALID')
@@ -352,58 +293,6 @@ onBeforeUnmount(() => window.removeEventListener('popstate', followHistory))
 const senderName = computed(() =>
   memberAlias(props.linkData.senderUser?.alias, props.linkData.senderUser?.gradidoID),
 )
-
-// "Dein Dank ist da.": the amount as the sheet writes it, with the decimal mark of the language.
-const arrivedText = computed(() =>
-  t('redeem-thanks.arrived-text', {
-    amount: amountInText(props.linkData.amount),
-    name: senderName.value,
-  }),
-)
-
-// The conversation with whoever thanked, as the button of their mail opens it. A missing
-// community is this one.
-const answerTo = computed(() => ({
-  path: '/contacts',
-  query: { with: props.linkData.senderUser?.gradidoID },
-}))
-
-/**
- * "… antworten" names whoever thanked while the label stays one line, and goes without the name
- * where it does not: a user name may be 20 characters, and the button of a 320px phone holds
- * fewer. Measured at the label itself rather than counted in letters -- how wide a name is
- * depends on its letters, on the language around it and on the size the reader chose ("Aa").
- *
- * The line cuts what does not fit (see the style), so a label too wide is one whose content is
- * wider than its box. Tried with the name each time, before the browser paints.
- */
-const answerLine = ref(null)
-const nameFits = ref(true)
-const answerWithName = computed(() => t('redeem-thanks.answer', { name: senderName.value }))
-const answerLabel = computed(() =>
-  nameFits.value ? answerWithName.value : t('redeem-thanks.answer-short'),
-)
-
-const fitAnswer = async () => {
-  nameFits.value = true
-  await nextTick()
-  const line = answerLine.value
-  if (line && line.scrollWidth > line.clientWidth) nameFits.value = false
-}
-
-// The width of the page and the size of the letters both change the line's box.
-const lineWatcher = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fitAnswer)
-watch(answerLine, (line, before) => {
-  if (before) lineWatcher?.unobserve(before)
-  if (!line) return
-  lineWatcher?.observe(line)
-  fitAnswer()
-})
-onBeforeUnmount(() => lineWatcher?.disconnect())
-// Another language, another length.
-watch(answerWithName, fitAnswer)
-// The house's letters may arrive after the view: they are not as wide as the ones that stood in.
-document.fonts?.ready?.then(fitAnswer)
 
 // How long the link was open for, from the link itself: the wallet holds no number of days of
 // its own. Rounded, because the server counts the days on its own clock and an hour of summer
@@ -479,15 +368,6 @@ const closed = computed(() => {
   padding: 0.6875em 0.75rem !important;
 }
 
-/* One line, whatever the name: what does not fit is cut here, and the view then leaves the
-   name out (`fitAnswer`). */
-.redeem-thanks-answer-line {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* A link with the height a thumb needs. */
 .redeem-thanks :deep(.redeem-thanks-link) {
   display: inline-flex;
@@ -552,11 +432,6 @@ const closed = computed(() => {
 /* A letter is on its way: the colour of the thank-you that waits. */
 .redeem-thanks-sign.is-almost {
   color: #a8732a;
-}
-
-/* The greeting in short, between the sentence and the two ways on. */
-.redeem-thanks-arrived-paper {
-  margin-top: 14px;
 }
 
 .redeem-thanks-closed-title {

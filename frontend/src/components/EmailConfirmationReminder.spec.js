@@ -55,6 +55,7 @@ const i18n = createI18n({
       'emailConfirmation.overdue': 'the grace period has ended',
       'emailConfirmation.resent': 'mail is on its way again',
       'emailConfirmation.resend': 'Send mail again',
+      'emailConfirmation.resendTooSoon': 'the mail has only just gone',
       'emailConfirmation.changeAddress': 'Correct address',
     },
   },
@@ -143,7 +144,7 @@ describe('EmailConfirmationReminder', () => {
       const wrapper = mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25) })
       await wrapper.find('[data-test="email-confirmation-resend"]').trigger('click')
       await wrapper.vm.$nextTick()
-      expect(toastErrorMock).toHaveBeenCalledWith('Email already sent less than 10 minutes ago')
+      expect(toastErrorMock).toHaveBeenCalledWith('the mail has only just gone')
     })
   })
 

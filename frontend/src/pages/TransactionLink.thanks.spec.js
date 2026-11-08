@@ -335,7 +335,6 @@ const thanks = (wrapper) => wrapper.findComponent(RedeemThanks)
 const oldBlocks = (wrapper) => OLD_BLOCKS.filter((name) => wrapper.findComponent({ name }).exists())
 const accept = (wrapper) => wrapper.find('[data-test="redeem-thanks-accept"]')
 const title = (wrapper) => wrapper.find('[data-test="redeem-thanks-title"]')
-const text = (wrapper) => wrapper.find('[data-test="redeem-thanks-text"]')
 const form = (wrapper) => wrapper.findComponent(RedeemThanksAccount)
 const formButton = (wrapper) => wrapper.find('[data-test="redeem-thanks-open-account"]')
 
@@ -515,10 +514,10 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     })
   })
 
-  // F16: a member reads where the thank-you is now on the page itself, as somebody new does.
-  // The message and the jump to the overview that slice 1 had are gone for a member's link.
+  // E-045: once the thank-you is booked, the member stands on the overview -- the tile "Dein Dank
+  // ist da.", the answer and the chat mark are there. No page in between, and no message.
   describe('a member accepts', () => {
-    it('books the link and says "Dein Dank ist da." on the page', async () => {
+    it('books the link and goes on to the overview, without a message', async () => {
       const { wrapper, router } = await open(memberLink(), { session: signedInAs(ME) })
 
       await accept(wrapper).trigger('click')
@@ -527,39 +526,20 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       expect(apollo.redeem).toHaveBeenCalledTimes(1)
       expect(apollo.redeem).toHaveBeenCalledWith({ code: CODE })
       expect(apollo.disburse).not.toHaveBeenCalled()
-      expect(thanks(wrapper).props('stage')).toBe('arrived')
-      expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-      expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
+      expect(router.currentRoute.value.path).toBe('/overview')
+      expect(wrapper.find('[data-test="page-overview"]').exists()).toBe(true)
+      expect(thanks(wrapper).exists()).toBe(false)
       expect(toasts.toastSuccess).not.toHaveBeenCalled()
       expect(toasts.toastError).not.toHaveBeenCalled()
-      expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
-      expect(accept(wrapper).exists()).toBe(false)
     })
 
-    it('offers the answer and the way to the account from there', async () => {
-      const { wrapper, router } = await open(memberLink(), { session: signedInAs(ME) })
+    it('goes on to the overview for a link with a greeting as well', async () => {
+      const { wrapper, router } = await open(greetingLink(), { session: signedInAs(ME) })
       await accept(wrapper).trigger('click')
-      await flushPromises()
-
-      expect(wrapper.find('[data-test="redeem-thanks-answer"]').attributes('href')).toBe(
-        `/contacts?with=${SENDER}`,
-      )
-
-      await wrapper.find('[data-test="redeem-thanks-to-account"]').trigger('click')
       await flushPromises()
 
       expect(router.currentRoute.value.path).toBe('/overview')
-      expect(wrapper.find('[data-test="page-overview"]').exists()).toBe(true)
-    })
-
-    it('shows the greeting in short where the link carried one', async () => {
-      const { wrapper } = await open(greetingLink(), { session: signedInAs(ME) })
-      await accept(wrapper).trigger('click')
-      await flushPromises()
-
-      const paper = wrapper.findComponent(RedeemThanksPaper)
-      expect(paper.props('short')).toBe(true)
-      expect(paper.text()).toBe('FÜR SARAHEinfach so — weil es Dich gibt.')
+      expect(wrapper.findComponent(RedeemThanksPaper).exists()).toBe(false)
     })
 
     // The members signed in to nothing new: none of the chain's other steps runs for them.
@@ -592,8 +572,37 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       await flushPromises()
 
       expect(apollo.redeem).toHaveBeenCalledTimes(1)
-      expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+      expect(router.currentRoute.value.path).toBe('/overview')
+    })
+
+    // The overview can take a moment to come (its part of the wallet is loaded on the way): the
+    // button stays locked until it stands, so a second tap books nothing and asks nothing.
+    it('keeps the button locked until the overview stands', async () => {
+      let arrive
+      const underwayToOverview = new Promise((resolve) => {
+        arrive = resolve
+      })
+      const { wrapper, router } = await open(memberLink(), { session: signedInAs(ME) })
+      router.beforeEach(async (to) => {
+        if (to.path === '/overview') await underwayToOverview
+      })
+
+      await accept(wrapper).trigger('click')
+      await flushPromises()
+
+      expect(apollo.redeem).toHaveBeenCalledTimes(1)
       expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
+      expect(accept(wrapper).element.disabled).toBe(true)
+
+      await accept(wrapper).trigger('click')
+      await flushPromises()
+      expect(apollo.redeem).toHaveBeenCalledTimes(1)
+
+      arrive()
+      await flushPromises()
+
+      expect(router.currentRoute.value.path).toBe('/overview')
+      expect(toasts.toastError).not.toHaveBeenCalled()
     })
 
     // Two taps in one go, before the page has drawn the locked button: the page itself asks
@@ -601,7 +610,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     it('sends one request for a double tap', async () => {
       const booking = underway()
       apollo.redeem = vi.fn(() => booking.answer)
-      const { wrapper } = await open(memberLink(), { session: signedInAs(ME) })
+      const { wrapper, router } = await open(memberLink(), { session: signedInAs(ME) })
 
       const button = accept(wrapper).element
       button.click()
@@ -614,7 +623,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       await flushPromises()
 
       expect(apollo.redeem).toHaveBeenCalledTimes(1)
-      expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+      expect(router.currentRoute.value.path).toBe('/overview')
     })
 
     // The page leaves for the overview where a booking failed. Where the wallet does not get
@@ -787,24 +796,22 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       })
 
       /**
-       * A greeting with a photo: the page fetched it once for the sheet. The strip over the form
-       * and "Dein Dank ist da." show that same picture -- ⛔ the address is not asked again, it
-       * serves the photo no more once the thank-you is accepted.
+       * A greeting with a photo: the page fetched it once for the sheet, and the strip over the
+       * form shows that same picture. ⛔ The address is not asked again -- it serves the photo no
+       * more once the thank-you is accepted --, and the page gives the picture back as it is left.
        */
-      it('keeps the photo of a greeting from the sheet to "Dein Dank ist da.", asked for once', async () => {
+      it('shows the photo of a greeting on the strip over the form, asked for once', async () => {
         const photo = servesPhoto()
-        const { wrapper } = await ready(photoLink())
+        const { wrapper, router } = await ready(photoLink())
         expect(wrapper.find('[data-test="redeem-thanks-strip-photo"]').attributes('src')).toBe(
           PHOTO_ADDRESS,
         )
 
         await send(wrapper)
 
-        expect(thanks(wrapper).props('stage')).toBe('arrived')
-        expect(wrapper.find('[data-test="redeem-thanks-paper-photo"]').attributes('src')).toBe(
-          PHOTO_ADDRESS,
-        )
+        expect(router.currentRoute.value.path).toBe('/overview')
         expect(photo).toHaveBeenCalledTimes(1)
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith(PHOTO_ADDRESS)
       })
 
       // What the registration form sends -- language and publisher among it -- and with it the
@@ -866,32 +873,17 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(apollo.disburse).not.toHaveBeenCalled()
       })
 
-      it('says "Dein Dank ist da." on the page, with the amount and who it is from', async () => {
+      // E-045: no page in between -- the overview says where the thank-you is now.
+      it('goes on to the overview once the thank-you is booked, without a message', async () => {
         const { wrapper, router } = await ready()
 
         await send(wrapper)
 
-        expect(thanks(wrapper).props('stage')).toBe('arrived')
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
-        expect(text(wrapper).text()).toBe('Du hast jetzt 20 Gradido von Oma-Emma auf Deinem Konto.')
-        expect(form(wrapper).exists()).toBe(false)
-        expect(router.currentRoute.value.path).toBe(`/redeem/${CODE}`)
+        expect(router.currentRoute.value.path).toBe('/overview')
+        expect(wrapper.find('[data-test="page-overview"]').exists()).toBe(true)
+        expect(thanks(wrapper).exists()).toBe(false)
         expect(toasts.toastSuccess).not.toHaveBeenCalled()
         expect(toasts.toastError).not.toHaveBeenCalled()
-      })
-
-      it('shows the greeting in short, and leads on to the answer and to the account', async () => {
-        const { wrapper } = await ready(greetingLink())
-
-        await send(wrapper)
-
-        expect(wrapper.findComponent(RedeemThanksPaper).props('short')).toBe(true)
-        expect(wrapper.find('[data-test="redeem-thanks-answer"]').attributes('href')).toBe(
-          `/contacts?with=${SENDER}`,
-        )
-        expect(wrapper.find('[data-test="redeem-thanks-to-account"]').attributes('href')).toBe(
-          '/overview',
-        )
       })
 
       // The greeting says whom it is for; the account is opened under the name the guest types.
@@ -919,11 +911,12 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       // An address that is taken, with the password that belongs to it: the server answers
       // `createUser` as always, the sign-in goes through, and the thank-you is booked.
       it('just signs in and books for an address that had an account, with its password', async () => {
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
 
         await send(wrapper)
 
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(apollo.redeem).toHaveBeenCalledWith({ code: CODE })
+        expect(router.currentRoute.value.path).toBe('/overview')
       })
 
       /**
@@ -932,7 +925,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
        * every hold, as the store here does (`newStore`).
        */
       it('holds the windows about the member for this session, once the sign-in is through', async () => {
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
         setFirstLoginWindowWanted('alias', true)
         setFirstLoginWindowWanted('firstCreation', true)
         // The fixture proves itself: before the account is opened, the name has the screen.
@@ -940,7 +933,8 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         await send(wrapper)
 
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        // The hold outlives the jump to the overview: it was said before the booking.
+        expect(router.currentRoute.value.path).toBe('/overview')
         expect(firstLoginWindow.value).toBeNull()
         setFirstLoginWindowWanted('email', true)
         expect(firstLoginWindow.value).toBe('email')
@@ -955,11 +949,11 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         apollo.login = vi
           .fn()
           .mockResolvedValue({ data: { login: { ...NEW_MEMBER, emailChecked } } })
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
 
         await send(wrapper)
 
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(router.currentRoute.value.path).toBe('/overview')
         setFirstLoginWindowWanted('alias', true)
         setFirstLoginWindowWanted('firstCreation', true)
         expect(firstLoginWindow.value).toBe('alias')
@@ -974,7 +968,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         apollo.createUser = vi.fn(() => creating.answer)
         apollo.login = vi.fn(() => signingIn.answer)
         apollo.redeem = vi.fn(() => booking.answer)
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
 
         expect(formButton(wrapper).element.disabled).toBe(false)
 
@@ -995,7 +989,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
 
         booking.resolve({ data: { redeemTransactionLink: true } })
         await flushPromises()
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(router.currentRoute.value.path).toBe('/overview')
       })
 
       // Two taps in one go, before the locked button is drawn, and the Enter key on top.
@@ -1197,7 +1191,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
           .fn()
           .mockRejectedValueOnce(refused('Something nobody thought of'))
           .mockResolvedValue({ data: { redeemTransactionLink: true } })
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
 
         await send(wrapper)
 
@@ -1211,7 +1205,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(apollo.createUser).toHaveBeenCalledTimes(1)
         expect(apollo.login).toHaveBeenCalledTimes(1)
         expect(apollo.redeem).toHaveBeenCalledTimes(2)
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(router.currentRoute.value.path).toBe('/overview')
       })
     })
 
@@ -1230,7 +1224,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
           .fn()
           .mockRejectedValueOnce(offline())
           .mockImplementation((...args) => answer(...args))
-        const { wrapper } = await ready()
+        const { wrapper, router } = await ready()
 
         await send(wrapper)
 
@@ -1248,7 +1242,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(apollo.createUser).toHaveBeenCalledTimes(asked.createUser)
         expect(apollo.login).toHaveBeenCalledTimes(asked.login)
         expect(apollo.redeem).toHaveBeenCalledTimes(asked.redeem)
-        expect(title(wrapper).text()).toBe('Dein Dank ist da.')
+        expect(router.currentRoute.value.path).toBe('/overview')
         expect(toasts.toastError).toHaveBeenCalledTimes(1)
       })
 
@@ -1339,7 +1333,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(apollo.login.mock.calls[0][0].password).toBe(SECRET)
         expect(apollo.redeem.mock.calls[0][0]).toEqual({ code: CODE })
         expect(everywhere(page)).not.toContain(SECRET)
-        // The page shows "Dein Dank ist da.", and the form with its fields is gone.
+        // The page has led on to the overview, and the form with its fields is gone.
         expect(page.wrapper.html()).not.toContain(SECRET)
         expect(page.wrapper.find('input').exists()).toBe(false)
       })
@@ -1470,21 +1464,21 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     })
 
     /**
-     * ⛔ "Dein Dank ist da.": the photo stays as the page holds it, and the address is not asked
-     * again -- the large rendition is deleted with the booking.
+     * ⛔ A member who accepts does not make the page ask for the photo again -- the large
+     * rendition is deleted with the booking --; the page leads on to the overview and gives the
+     * picture back.
      */
-    it('keeps the photo when a member accepts, and does not ask for it again', async () => {
+    it('does not ask for the photo again when a member accepts', async () => {
       const photo = servesPhoto()
-      const { wrapper } = await open(photoLink(), { session: signedInAs(ME) })
+      const { wrapper, router } = await open(photoLink(), { session: signedInAs(ME) })
 
       photo.mockResolvedValue({ ok: false, status: 404, blob: () => Promise.resolve(new Blob([])) })
       await accept(wrapper).trigger('click')
       await flushPromises()
 
-      expect(thanks(wrapper).props('stage')).toBe('arrived')
-      expect(wrapper.findComponent(RedeemThanksPaper).props('short')).toBe(true)
-      expect(photoOnSheet(wrapper).attributes('src')).toBe(PHOTO_ADDRESS)
+      expect(router.currentRoute.value.path).toBe('/overview')
       expect(photo).toHaveBeenCalledTimes(1)
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith(PHOTO_ADDRESS)
     })
 
     it('gives the address of the picture back to the browser when the page is left', async () => {

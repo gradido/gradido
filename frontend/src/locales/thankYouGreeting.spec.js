@@ -62,6 +62,7 @@ const MOTIFS = ['heart-leaves', 'giving-hands', 'bouquet', 'glowing-swirl', 'mor
 const KEYS = [
   'done.another',
   'done.edit-hint',
+  'done.edit-hint-email',
   'done.edit-hint-plain',
   'done.find-again',
   'done.link-hint',
