@@ -3498,6 +3498,30 @@ describe('ChatThread', () => {
       expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
     })
 
+    // A device can change hands while a message is on its way -- signing out reloads nothing --,
+    // and the next member's tile would lose a thank-you from the same person.
+    it('says nothing where another member signed in while the message was on its way', async () => {
+      let land = () => {}
+      serverSends.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            land = resolve
+          }),
+      )
+      mountThread()
+      await arrive(page([1, 2]))
+
+      await write('Gleich da')
+      storeState.gradidoID = 'next-id'
+      try {
+        land(ownCopy(99, 'Gleich da'))
+        await flushPromises()
+        expect(heard).toEqual([])
+      } finally {
+        storeState.gradidoID = 'me-id'
+      }
+    })
+
     // The window's invitation to a call goes the same way out; a person without a community is
     // named so, as the thread holds them (a missing community is this one).
     it('says it of the window’s invitation too, for a person named without a community', async () => {
