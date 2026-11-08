@@ -6,7 +6,8 @@ export function initLogging() {
   initLogger(
     [
       defaultCategory('backend', CONFIG.LOG_LEVEL),
-      defaultCategory('apollo', CONFIG.LOG_LEVEL),
+      // A line for every request: in apollo.log, and only what went wrong on stdout.
+      { ...defaultCategory('apollo', CONFIG.LOG_LEVEL), stdoutLevel: 'warn' },
       defaultCategory('klicktipp', CONFIG.LOG_LEVEL),
       defaultCategory('gms', CONFIG.LOG_LEVEL),
       defaultCategory('seed', CONFIG.LOG_LEVEL),

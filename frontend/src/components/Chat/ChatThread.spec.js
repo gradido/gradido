@@ -3071,8 +3071,8 @@ describe('ChatThread', () => {
     })
 
     /**
-     * P7: the picture the bar hands over goes as `$image` -- the name the backend's request log
-     * masks (LOG-071) -- and a message without one carries no `image` at all.
+     * P7: the picture the bar hands over goes as `$image`, and a message without one carries no
+     * `image` at all.
      */
     it('sends the picture the bar hands over, and no picture where there is none', async () => {
       const PICTURE = { data: 'SlBFRw==', width: 800, height: 600 }
@@ -5466,9 +5466,7 @@ describe('ChatThread', () => {
         .join(' ')
 
     /**
-     * ⛔ `$image`, by that name (LOG-071): the backend's request log masks the variable of that
-     * name, and a picture under any other would be written into it whole, some 44,000 characters
-     * a message. Nullable, of the input the server takes.
+     * `$image`, nullable, of the input the server takes.
      */
     it('sends the picture as $image, of the input type the server takes', () => {
       const operation = sendChatMessage.definitions.find(

@@ -446,12 +446,12 @@ export class UserResolver {
       infos.push(`project=${args.project}`)
     }
     // That a guarantor code came along, never the code itself: for ten minutes it vouches for an
-    // account in a member's name. The request log masks it too (filterVariables).
+    // account in a member's name. The request log writes no variables.
     if (args.guarantorCode) {
       infos.push('guarantorCode')
     }
     // That an event link's entry came along, never its words: an interest named beside an
-    // address says something about the person. The request log masks it too (filterVariables).
+    // address says something about the person. The request log writes no variables.
     if (args.eventMatchingEntry) {
       infos.push('eventMatchingEntry')
     }

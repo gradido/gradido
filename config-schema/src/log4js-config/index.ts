@@ -26,6 +26,7 @@ addLayout('coloredContext', createColoredContextLayout)
 
 export function createLog4jsConfig(categories: Category[], basePath?: string): Configuration {
   const customFileAppenders: CustomFileAppender[] = []
+  const stdoutFilters: Configuration['appenders'] = {}
   const result: Configuration = {
     appenders: {},
     categories: {},
@@ -43,7 +44,20 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
       appenders: ['out', 'errors'],
       enableCallStack: true,
     }
-    const appenders = [category.name, 'out']
+    const appenders = [category.name]
+    if (category.stdoutLevel) {
+      // A category that writes much at its own level keeps that to its file; stdout gets only
+      // what is at least this level.
+      const stdoutFilter = `out-${category.stdoutLevel}`
+      stdoutFilters[stdoutFilter] = {
+        type: 'logLevelFilter',
+        level: category.stdoutLevel,
+        appender: 'out',
+      }
+      appenders.push(stdoutFilter)
+    } else {
+      appenders.push('out')
+    }
     if (category.additionalErrorsFile) {
       appenders.push('errors')
     }
@@ -54,7 +68,7 @@ export function createLog4jsConfig(categories: Category[], basePath?: string): C
     }
   })
 
-  result.appenders = createAppenderConfig(customFileAppenders, basePath)
+  result.appenders = { ...createAppenderConfig(customFileAppenders, basePath), ...stdoutFilters }
   return result
 }
 
