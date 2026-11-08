@@ -3457,6 +3457,27 @@ describe('ChatThread', () => {
       expect(heard).toEqual([])
     })
 
+    // It is said while the thread settles the message: a listener that fails must not turn a
+    // message the server took into one the bar keeps -- a second press would send it twice.
+    it('takes a message the server took for sent, whatever a listener does', async () => {
+      const stopFailing = onChatMessageSent(() => {
+        throw new Error('a listener’s own fault')
+      })
+      try {
+        serverSends.mockResolvedValue(ownCopy(99, 'Danke Dir!'))
+        mountThread()
+        await arrive(page([1, 2]))
+
+        await write('Danke Dir!')
+
+        expect(bar().props('failed')).toBe(false)
+        expect(field().element.value).toBe('')
+        expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
+      } finally {
+        stopFailing()
+      }
+    })
+
     // A message on its way is no answer yet.
     it('says nothing while the message is on its way, and then once', async () => {
       let land = () => {}

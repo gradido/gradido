@@ -41,4 +41,23 @@ describe('useChatSent', () => {
 
     expect(heard).toEqual([])
   })
+
+  // The thread says it while it settles the message: a listener that failed must not make a
+  // message the server took read as one not sent.
+  it('lets no listener’s failure reach the thread or the other listeners', () => {
+    const heard = []
+    const stopFailing = onChatMessageSent(() => {
+      throw new Error('a listener’s own fault')
+    })
+    const stopHearing = onChatMessageSent((person) => heard.push(person))
+    try {
+      expect(() =>
+        noteChatMessageSent({ gradidoID: 'lena-id', communityUuid: 'home-uuid' }),
+      ).not.toThrow()
+      expect(heard).toEqual([{ gradidoID: 'lena-id', communityUuid: 'home-uuid' }])
+    } finally {
+      stopFailing()
+      stopHearing()
+    }
+  })
 })

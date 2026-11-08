@@ -31,9 +31,18 @@ export const onChatMessageSent = (listener) => {
 /**
  * Says to everybody who listens that the member sent a message to this person. Only for a message
  * the server took, and never for one to a group: a group is no answer to one person.
+ *
+ * ⛔ Throws nothing, whatever a listener does: the thread says it while it settles what became of
+ * the message, and a failure here would read as a message not sent -- its words kept in the bar,
+ * where a second press would send them twice. A listener's failure is its own, and the others
+ * still hear.
  */
 export const noteChatMessageSent = ({ gradidoID, communityUuid = null }) => {
   for (const listener of [...listeners]) {
-    listener({ gradidoID, communityUuid })
+    try {
+      listener({ gradidoID, communityUuid })
+    } catch {
+      // The listener's own: see above.
+    }
   }
 }
