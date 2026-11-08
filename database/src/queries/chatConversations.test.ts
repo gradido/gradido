@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+// ⛔ All of the runner's functions from here, not only `spyOn`: a file that imports from bun:test
+// gets none of them as globals (CI, 08.11.2026: "beforeAll is not defined").
+import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
+import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
@@ -27,6 +30,7 @@ import {
   dbSelectChatGroupsByMember,
   dbSelectChatGroupUuids,
   dbSelectDirectChatContactsByMember,
+  dbSelectLastOwnDirectMessageAtByPartner,
   dbUpdateChatGroupTitle,
   directChatPairKey,
 } from './chatConversations'
@@ -411,6 +415,168 @@ describe('dbSelectDirectChatContactsByMember', () => {
 
   it('answers nothing for somebody without a conversation', async () => {
     expect(await dbSelectDirectChatContactsByMember(member())).toEqual([])
+  })
+})
+
+// What a booking list says a thank-you was answered with (F E-046): when the member last wrote to
+// each partner. Members of their own, and the block takes away what it wrote: the blocks below
+// count conversations and messages.
+describe('dbSelectLastOwnDirectMessageAtByPartner', () => {
+  const at = (day: number) => new Date(Date.UTC(2026, 9, day, 12, 0, 0))
+  const member = () => ({ communityUuid: HOME, gradidoId: uuidv4() })
+  // Whose list it is.
+  const TOM = member()
+  // Both wrote: Tom last on day 4, Ute after him on day 5.
+  const UTE = member()
+  // Only Vera wrote.
+  const VERA = member()
+  // Tom's newest message to Will is deleted; the one before it counts.
+  const WILL = member()
+  // Tom's only message to Xaver is deleted.
+  const XAVER = member()
+  // No conversation with Tom; the two are in a group, where Tom wrote.
+  const YARA = member()
+  // Nobody Tom ever wrote to: in another community, with nothing between them.
+  const ZOE = { communityUuid: OTHER, gradidoId: uuidv4() }
+
+  const conversationIds: number[] = []
+  const opened = async (a: ChatMemberRef, b: ChatMemberRef) => {
+    const conversation = await dbEnsureDirectChatConversation(a, b)
+    conversationIds.push(conversation.id)
+    return conversation
+  }
+  const write = async (conversationId: number, sender: ChatMemberRef, day: number) => {
+    const stored = await dbInsertChatMessage({
+      messageUuid: uuidv4(),
+      conversationId,
+      senderCommunityUuid: sender.communityUuid,
+      senderGradidoId: sender.gradidoId,
+      subject: null,
+      body: `day ${day}`,
+      notify: 'email',
+      deliveryState: 'delivered',
+      createdAt: at(day),
+    })
+    if (!stored.success) {
+      throw new Error(`fixture: the message of day ${day} was not filed`)
+    }
+    return stored.value
+  }
+  const deleteMessage = (id: number, day: number) =>
+    db
+      .update(chatMessagesTable)
+      .set({ deletedAt: at(day) })
+      .where(eq(chatMessagesTable.id, id))
+  const lastOwnOf = async (who: ChatMemberRef, partners: ChatMemberRef[]) =>
+    Object.fromEntries(
+      (await dbSelectLastOwnDirectMessageAtByPartner(who, partners)).map((entry) => [
+        entry.partner.gradidoId.toLowerCase(),
+        entry.lastOwnMessageAt.getTime(),
+      ]),
+    )
+
+  beforeAll(async () => {
+    const withUte = await opened(TOM, UTE)
+    await write(withUte.id, TOM, 1)
+    await write(withUte.id, UTE, 2)
+    await write(withUte.id, TOM, 4)
+    await write(withUte.id, UTE, 5)
+
+    const withVera = await opened(VERA, TOM)
+    await write(withVera.id, VERA, 3)
+
+    const withWill = await opened(TOM, WILL)
+    await write(withWill.id, TOM, 6)
+    await deleteMessage((await write(withWill.id, TOM, 7)).id, 8)
+
+    const withXaver = await opened(TOM, XAVER)
+    await deleteMessage((await write(withXaver.id, TOM, 9)).id, 10)
+
+    // A group with Tom and Yara in it, Tom wrote there. It carries the key their direct
+    // conversation would have -- a key no writer gives a group, and the schema does not refuse.
+    await db.insert(chatConversationsTable).values({
+      conversationUuid: uuidv4(),
+      kind: 'group',
+      homeCommunityUuid: HOME,
+      directPairKey: directChatPairKey(TOM, YARA),
+      title: 'Tuesday choir',
+      createdByCommunityUuid: TOM.communityUuid,
+      createdByGradidoId: TOM.gradidoId,
+    })
+    const [group] = await db
+      .select()
+      .from(chatConversationsTable)
+      .where(eq(chatConversationsTable.title, 'Tuesday choir'))
+    conversationIds.push(group.id)
+    await db.insert(chatConversationMembersTable).values([
+      { conversationId: group.id, ...TOM },
+      { conversationId: group.id, ...YARA },
+    ])
+    await write(group.id, TOM, 11)
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatMessagesTable)
+      .where(inArray(chatMessagesTable.conversationId, conversationIds))
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, conversationIds))
+    await db
+      .delete(chatConversationsTable)
+      .where(inArray(chatConversationsTable.id, conversationIds))
+  })
+
+  it("dates a partner by the newest message the member wrote them, the partner's later one not counted", async () => {
+    expect(await lastOwnOf(TOM, [UTE])).toEqual({ [UTE.gradidoId]: at(4).getTime() })
+    // From the other side, the other one's own.
+    expect(await lastOwnOf(UTE, [TOM])).toEqual({ [TOM.gradidoId]: at(5).getTime() })
+  })
+
+  it('answers for several partners at once, each from their own conversation', async () => {
+    expect(await lastOwnOf(TOM, [UTE, WILL, VERA])).toEqual({
+      [UTE.gradidoId]: at(4).getTime(),
+      [WILL.gradidoId]: at(6).getTime(),
+    })
+  })
+
+  it('leaves out a partner only the partner wrote to', async () => {
+    expect(await lastOwnOf(TOM, [VERA])).toEqual({})
+    expect(await lastOwnOf(VERA, [TOM])).toEqual({ [TOM.gradidoId]: at(3).getTime() })
+  })
+
+  it('counts no message marked deleted: the one before counts, and none is none', async () => {
+    expect(await lastOwnOf(TOM, [WILL, XAVER])).toEqual({ [WILL.gradidoId]: at(6).getTime() })
+  })
+
+  it('leaves out a partner without a conversation, and a group with both in it', async () => {
+    expect(await lastOwnOf(TOM, [YARA, ZOE])).toEqual({})
+  })
+
+  it('finds a partner named in capitals, and hands back the partner as it was handed in', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: UTE.gradidoId.toUpperCase() }
+    const found = await dbSelectLastOwnDirectMessageAtByPartner(TOM, [shouting])
+    expect(found).toHaveLength(1)
+    expect(found[0].partner).toBe(shouting)
+    expect(found[0].lastOwnMessageAt.getTime()).toBe(at(4).getTime())
+  })
+
+  it('answers the same for the member named in capitals, as the columns compare', async () => {
+    const shouting = { communityUuid: HOME.toUpperCase(), gradidoId: TOM.gradidoId.toUpperCase() }
+    expect(await lastOwnOf(shouting, [UTE, WILL])).toEqual(await lastOwnOf(TOM, [UTE, WILL]))
+  })
+
+  it('asks nothing for no partner', async () => {
+    const asked = spyOn(AppDatabase.getInstance(), 'getDrizzleDataSource')
+    try {
+      expect(await dbSelectLastOwnDirectMessageAtByPartner(TOM, [])).toEqual([])
+      expect(asked).not.toHaveBeenCalled()
+      // The spy sees the statement where there is one to send.
+      await dbSelectLastOwnDirectMessageAtByPartner(TOM, [UTE])
+      expect(asked).toHaveBeenCalled()
+    } finally {
+      asked.mockRestore()
+    }
   })
 })
 

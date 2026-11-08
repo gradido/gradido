@@ -624,6 +624,14 @@ describe('the thank-yous the tile on the overview shows', () => {
     expect(shown([thanks(1, { reaction: '❤️' }), thanks(2)])).toEqual([2])
   })
 
+  // Bernd (08.11.2026): a message to the giver after it, or Gradido sent back, is an answer as
+  // well -- whatever the way. The server says it with the booking; the device decides nothing.
+  it('leaves out what the member answered since, the server’s word', () => {
+    expect(shown([thanks(1, { answered: true }), thanks(2, { answered: false })])).toEqual([2])
+    // A server that does not say it yet: the tile shows the thank-you as before.
+    expect(shown([thanks(3)])).toEqual([3])
+  })
+
   it('leaves out what the member may not react to', () => {
     expect(shown([thanks(1, { canReact: false }), thanks(2)])).toEqual([2])
     // A server that does not say so: no.

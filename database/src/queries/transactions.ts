@@ -1030,6 +1030,56 @@ export async function dbSelectUnreadReceivedTransfers(
 }
 
 /**
+ * When this member last sent Gradido to each of these members of this community: the time of the
+ * member's newest SEND booking to each, by the counterparty's `users` id -- one entry per member
+ * sent to, none for one never sent to. What a booking list says a thank-you was answered with
+ * (F E-046, ThanksAnswer.logic in the backend): Gradido sent back to the giver after the
+ * thank-you came.
+ *
+ * The member's own SEND rows only: a RECEIVE row is what came, not what went. By
+ * `linked_user_id`, which a transfer between two members here carries on both of its rows; a
+ * member of another community is named by the pair alone and is never asked for here.
+ *
+ * ⛔ Not a sending through a link (`transaction_link_id`): redeeming a link books the transfer on
+ * the maker's side at the moment the other person redeems it, whenever the link was made. A link
+ * made before the thank-you and redeemed after it would count as an answer the member never gave.
+ * Left out, too, is a link made after it: the time a link was made is no column of these rows.
+ *
+ * The time is read the way Drizzle reads a datetime, as UTC -- why that compares with the
+ * booking times TypeORM reads is said where the two meet (ThanksAnswer.logic).
+ *
+ * An empty list asks nothing.
+ */
+export async function dbSelectLastSentToByUser(
+  userId: number,
+  linkedUserIds: number[],
+): Promise<Array<{ linkedUserId: number; lastSentAt: Date }>> {
+  if (linkedUserIds.length === 0) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({
+      linkedUserId: transactionsTable.linkedUserId,
+      lastSentAt: sql`max(${transactionsTable.balanceDate})`.mapWith(transactionsTable.balanceDate),
+    })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.userId, userId),
+        eq(transactionsTable.typeId, TransactionTypeId.SEND),
+        inArray(transactionsTable.linkedUserId, linkedUserIds),
+        isNull(transactionsTable.transactionLinkId),
+      ),
+    )
+    .groupBy(transactionsTable.linkedUserId)
+  return rows.flatMap((row) =>
+    row.linkedUserId === null
+      ? []
+      : [{ linkedUserId: row.linkedUserId, lastSentAt: row.lastSentAt }],
+  )
+}
+
+/**
  * Marks as seen the transfers the member received from `partner` up to `upToId`: what their
  * conversation showed. The thread hands over the newest transfer it showed, and the older ones count
  * as seen with it. Answers how many were marked just now; already seen is no failure.

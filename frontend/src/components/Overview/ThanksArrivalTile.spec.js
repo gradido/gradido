@@ -17,6 +17,7 @@ import {
   rememberMemberAvatars,
 } from '@/composables/useMemberAvatars'
 import { clearPassOnDraft, usePassOnDraft } from '@/composables/usePassOnDraft'
+import { noteChatMessageSent } from '@/composables/useChatSent'
 import { useThanksNudges } from '@/composables/useThanksNudges'
 import { reactToTransaction } from '@/composables/useTransactionReactions'
 import { LIST_AVATAR_SIZE } from '@/constants'
@@ -47,6 +48,21 @@ vi.mock('@/composables/useMemberAvatars', async (importOriginal) => ({
   ...(await importOriginal()),
   fetchMemberAvatars: vi.fn(),
 }))
+
+// ⛔ PARTIAL as well: the event a message to one person makes stays real (useChatSent); only the
+// stopping of each listener is watched, so a case can see the tile stop listening when it goes.
+const sentStops = vi.hoisted(() => [])
+vi.mock('@/composables/useChatSent', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    onChatMessageSent: (listener) => {
+      const stop = vi.fn(actual.onChatMessageSent(listener))
+      sentStops.push(stop)
+      return stop
+    },
+  }
+})
 
 const beat = vi.hoisted(() => ({ asked: 0 }))
 vi.mock('@/composables/useChatUpdates', () => ({
@@ -655,5 +671,91 @@ describe('ThanksArrivalTile', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-test="thanks-arrival-tile"]').exists()).toBe(false)
+  })
+
+  /**
+   * W3b (F E-046): a conversation opened over the overview from the column beside it, and a
+   * message to the giver written there -- the thank-you is answered and leaves the tile at once,
+   * as the server leaves it out on the next opening (`answered`).
+   */
+  describe('a message sent to the giver while the overview stands', () => {
+    it('takes the thank-you of the person written to out, and leaves another', async () => {
+      mountTile([thanks(1), thanks(2)])
+
+      noteChatMessageSent({ gradidoID: 'giver-1', communityUuid: 'home-uuid' })
+      await flushPromises()
+
+      expect(itemIds()).toEqual([2])
+    })
+
+    it('takes every thank-you of that person out', async () => {
+      mountTile([thanks(1), thanks(2), thanks(3, { linkedUser: thanks(1).linkedUser })])
+
+      noteChatMessageSent({ gradidoID: 'giver-1', communityUuid: 'home-uuid' })
+      await flushPromises()
+
+      expect(itemIds()).toEqual([2])
+    })
+
+    it('changes nothing for a message to somebody without a thank-you here', async () => {
+      mountTile([thanks(1), thanks(2)])
+
+      noteChatMessageSent({ gradidoID: 'somebody-else', communityUuid: 'home-uuid' })
+      await flushPromises()
+
+      expect(itemIds()).toEqual([1, 2])
+    })
+
+    // The same gradido id in another community is another person.
+    it('changes nothing for a message to the same id in another community', async () => {
+      mountTile([thanks(1)])
+
+      noteChatMessageSent({ gradidoID: 'giver-1', communityUuid: 'other-uuid' })
+      await flushPromises()
+
+      expect(itemIds()).toEqual([1])
+    })
+
+    // As the chat names a person (chatMemberKey): without regard to case, and a missing
+    // community -- on either side -- is this one.
+    it('finds the giver named in capitals, or without a community', async () => {
+      mountTile([
+        thanks(1),
+        thanks(2),
+        thanks(3, { linkedUser: { ...thanks(3).linkedUser, communityUuid: null } }),
+      ])
+
+      noteChatMessageSent({ gradidoID: 'GIVER-1', communityUuid: 'HOME-UUID' })
+      noteChatMessageSent({ gradidoID: 'giver-2', communityUuid: null })
+      noteChatMessageSent({ gradidoID: 'giver-3', communityUuid: 'home-uuid' })
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="thanks-arrival-tile"]').exists()).toBe(false)
+    })
+
+    // As with a reaction set elsewhere: where the member reacted here, "Dank weitergeben?" stands,
+    // a question of its own that a message does not answer.
+    it('leaves a thank-you the member reacted to here, with its line', async () => {
+      mountTile([thanks(1)])
+      await press(1)
+      expect(lineOf(1).exists()).toBe(true)
+
+      noteChatMessageSent({ gradidoID: 'giver-1', communityUuid: 'home-uuid' })
+      await flushPromises()
+
+      expect(itemIds()).toEqual([1])
+      expect(lineOf(1).exists()).toBe(true)
+    })
+
+    it('stops listening when it goes', () => {
+      mountTile([thanks(1)])
+      const stop = sentStops.at(-1)
+      expect(stop).not.toHaveBeenCalled()
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(stop).toHaveBeenCalledTimes(1)
+    })
   })
 })

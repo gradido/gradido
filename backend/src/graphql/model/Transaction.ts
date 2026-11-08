@@ -18,6 +18,7 @@ export class Transaction {
     picture: TransactionPicture | null = null,
     reaction: string | null = null,
     canReact = false,
+    answered = false,
   ) {
     this.id = transaction.id
     this.user = user
@@ -42,6 +43,7 @@ export class Transaction {
     this.picture = picture
     this.reaction = reaction
     this.canReact = canReact
+    this.answered = answered
   }
 
   @Field(() => Int)
@@ -150,4 +152,15 @@ export class Transaction {
    */
   @Field(() => Boolean)
   canReact: boolean
+
+  /**
+   * Whether the member whose list this is has answered this thank-you since it came: wrote its
+   * giver a message in their conversation, or sent them Gradido (not through a link), after the
+   * booking's time (F E-046). True only on their own RECEIVE row of a transfer from a member of this server (the
+   * rows `canReact` is true for); false on every other row. Decided where the list is built
+   * (ThanksAnswer.logic). Not a reaction (`reaction`), not whether the transfer was seen (`seen`,
+   * E-086).
+   */
+  @Field(() => Boolean)
+  answered: boolean
 }
