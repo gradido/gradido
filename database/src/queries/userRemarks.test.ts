@@ -21,10 +21,12 @@ let db: MySql2Database
 
 // Two moderators who write, and two members the remarks are about. The members need no row of
 // their own (the table carries no foreign key on purpose); the moderators do, for their names.
+// The members' ids lie above every row: the cleanup deletes rows but leaves the counter, so
+// a fixed number lands on a real member sooner or later.
 let bibi: DbUser
 let peter: DbUser
-const LEONI = 101
-const MARTA = 102
+let LEONI: number
+let MARTA: number
 const AT = new Date('2026-10-28T09:40:12.345Z')
 const LATER = new Date('2026-10-28T10:05:00.000Z')
 
@@ -35,6 +37,8 @@ beforeAll(async () => {
   await createCommunity(false)
   bibi = await userFactoryDrizzle(bibiBloxberg)
   peter = await userFactoryDrizzle(peterLustig)
+  LEONI = Math.max(bibi.id, peter.id) + 1
+  MARTA = LEONI + 1
 })
 afterAll(async () => {
   await dbDeleteAllRowsExceptMigrations()

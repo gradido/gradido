@@ -220,6 +220,42 @@ describe('X25519KeyPair', () => {
     })
   })
 
+  describe('equals', () => {
+    const keyPair = fromHex(alice)
+
+    it('is true for the same public key, with or without private key', () => {
+      assert.equal(keyPair.equals(publicOf(keyPair)), true)
+      assert.equal(publicOf(keyPair).equals(keyPair), true)
+      assert.equal(keyPair.equals(keyPair), true)
+    })
+
+    it('is false for another public key', () => {
+      assert.equal(keyPair.equals(fromHex(bob)), false)
+    })
+
+    it('compares with a public key given as bytes', () => {
+      assert.equal(keyPair.equals(Buffer.from(alice.publicKey, 'hex')), true)
+      assert.equal(keyPair.equals(Buffer.from(bob.publicKey, 'hex')), false)
+    })
+
+    it('throws for anything but an X25519KeyPair or a public key of 32 bytes', () => {
+      assert.throws(() => keyPair.equals(Buffer.alloc(31)), /32 bytes/)
+      assert.throws(
+        () => keyPair.equals(new Ed25519KeyPair(Buffer.from(bob.publicKey, 'hex'))),
+        TypeError,
+      )
+      assert.throws(() => keyPair.equals(alice.publicKey), TypeError)
+      assert.throws(() => keyPair.equals(), TypeError)
+    })
+
+    it('throws for an object that only has the prototype of an X25519KeyPair', () => {
+      assert.throws(
+        () => keyPair.equals(Object.create(X25519KeyPair.prototype)),
+        /Invalid argument/,
+      )
+    })
+  })
+
   describe('exports', () => {
     it('exports both keys as copies, null for a missing private key', () => {
       const keyPair = fromHex(alice)

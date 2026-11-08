@@ -39,7 +39,7 @@ const mockGetApiClient = jest.fn()
 jest.mock('log4js', () => ({ getLogger: () => mockLogger }))
 jest.mock('database', () => mockDatabase)
 jest.mock('core', () => ({
-  ApiClientCache: { getInstance: () => ({ get: mockGetApiClient }) },
+  ApiClientCache: { getInstance: () => ({ getByUrl: mockGetApiClient }) },
 }))
 
 type ValidateCommunitiesModule = typeof import('./validateCommunities')

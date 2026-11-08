@@ -173,8 +173,10 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
   logger.addContext('apiUrl', fedComB.endPoint)
 
   // the announced public key as a key pair, as soon as it is used as a key
-  const keyPair = new Ed25519KeyPair(fedComB.publicKey)
-  const peerClient = ApiClientCache.getInstance().get(fedComB.endPoint, keyPair)
+  const peerClient = ApiClientCache.getInstance().getByUrl(
+    fedComB.endPoint,
+    new Ed25519KeyPair(fedComB.publicKey),
+  )
   // the client refuses an answer whose signature does not verify against that key
   const exchangeId = randomBytes(16).toString('hex')
   const { data: rawPubComInfo, error } = await peerClient.getCommunityInfos(exchangeId)

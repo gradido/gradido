@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+
 import { treaty } from '@elysia/eden'
 import { appendSignature, FieldOccurrence } from 'http-message-sig'
 import {
@@ -13,7 +14,7 @@ import {
 import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
-import { CrossGroupTransaction, crossGroupTransactionWireSchema } from './schema'
+import { CrossGroupTransactionWireInput, crossGroupTransactionWireSchema } from './schema'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 type FetchOptions = {
@@ -29,14 +30,15 @@ export class ApiClient {
   private signVerifyClient: ElysiaApiRoutesClientType
   private verifyClient: ElysiaApiRoutesClientType
   private encryptSignVerifyClient: ElysiaApiRoutesClientType
-  /** the announced X25519 key of the community, a sealed request is encrypted for it */
-  public publicEncryptionKey: X25519KeyPair | undefined
+
   public communityUuid: Uuidv4 | undefined
 
   /** keyPair: the announced public key; every signed answer is verified against it */
   public constructor(
     public readonly url: string,
     public readonly keyPair: Ed25519KeyPair,
+    /** the announced X25519 key of the community, a sealed request is encrypted for it */
+    public publicEncryptionKey?: X25519KeyPair,
     private readonly timeoutMs = FEDERATION_REQUEST_TIMEOUT_MS,
   ) {
     this.encryptSignVerifyDecryptClient = treaty<typeof apiRoutes>(
@@ -249,7 +251,31 @@ export class ApiClient {
     })
   }
 
-  public emailTransactionReceived(tx: CrossGroupTransaction) {
+  public prepareSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.prepareSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public revertSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.encryptSignVerifyClient['peer-api'].v1.revertSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public revertSettledSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.encryptSignVerifyClient['peer-api'].v1.revertSettledSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public settleSendCoins(tx: CrossGroupTransactionWireInput) {
+    return this.encryptSignVerifyClient['peer-api'].v1.settleSendCoins.post(
+      v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public emailTransactionReceived(tx: CrossGroupTransactionWireInput) {
     return this.encryptSignVerifyClient['peer-api'].v1.emailTransactionReceived.post(
       v.parse(crossGroupTransactionWireSchema, tx),
     )

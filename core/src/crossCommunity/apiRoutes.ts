@@ -1,32 +1,29 @@
-import {
-  dbFindUserByIdentifier,
-  dbFindUserContact,
-  getHomeCommunityDrizzle,
-  UserSelect,
-} from 'database'
+import { getHomeCommunityDrizzle } from 'database'
 import { Context, Elysia, ElysiaCustomStatusResponse, StatusMap, status } from 'elysia'
 import { FieldOccurrence } from 'http-message-sig'
 import { getLogger } from 'log4js'
 import {
   AppContext,
   communityInfoWireSchema,
-  Result,
   signatureNonceSchema,
   signHttpMessage,
-  Uuidv4,
+  uuidv4Schema,
   verifyHttpMessage,
 } from 'shared'
 import { hashGenericBase64 } from 'shared-native'
 import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
-import { sendTransactionReceivedEmail } from '../emails'
+import { ApiClientCompleted } from './ApiClient'
 import { ApiClientCache } from './ApiClientCache'
-import { CrossCommunityError, xcomError } from './errorTypes'
+import { crossGroupTransactionWireSchema, userPublicInfoWireSchema } from './schema'
 import {
-  crossGroupTransactionSchema,
-  crossGroupTransactionWireSchema,
-  InvolvedParties,
-} from './schema'
+  auth,
+  emailTransactionReceived,
+  prepareSendCoins,
+  revertSendCoins,
+  revertSettledSendCoins,
+  settleSendCoins,
+} from './transferCoins'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.crossCommunity.apiRoutes`)
 
@@ -84,7 +81,7 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
     if (!decryptResult.success) {
       logger.debug(
         `error on decrypt from community:  ${senderComPublicKeyHex}`,
-        decryptResult.error,
+        decryptResult.error.message,
       )
       throw status('Bad Request')
     }
@@ -99,53 +96,42 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
       logger.debug(`body is no JSON, from community: ${senderComPublicKeyHex}`)
       throw status('Bad Request')
     }
-    return { senderCommunityUuid: senderClient.communityUuid, nonce }
+    return { senderClient, nonce }
   })
-  // routes for other communities: derive has verified the signature, decrypted the body and named
-  // the community of the signing key
-  .post(
-    'emailTransactionReceived',
-    async ({ body, senderCommunityUuid }) => {
-      // change from wire format to runtime format
-      const tx = v.parse(crossGroupTransactionSchema, body)
-      const userResult = await auth(tx, senderCommunityUuid)
-      if (!userResult.success) {
-        logger.debug(userResult.error.message)
-        return status(userResult.error.status)
-      }
-      const user = userResult.value
-      if (user.transfersInChat !== false && user.emailId) {
-        const userContact = await dbFindUserContact(user.emailId)
-        if (!userContact) {
-          logger.error(`missing user contact for user ${user.emailId}`)
-          return status('Not Found')
-        }
-        // TODO: add check for pending tx with state settled with this transaction data
-        const emailSendResult = await sendTransactionReceivedEmail({
-          ...user,
-          senderAlias: tx.sender.alias, // change parmater structure in sendTransactionReceivedEmail
-          firstName: user.firstName ?? '', // TODO: change to Not NULL
-          lastName: user.lastName ?? '', // TODO: change to Not NULL
-          email: userContact?.email,
-          memo: tx.memo,
-          transactionAmount: tx.amount, // change parmater structure in sendTransactionReceivedEmail
-        })
-        const e = `Transaction Received Email couldn't be sended to user: ${user.id}`
-        if (typeof emailSendResult !== 'object') {
-          if (logger.isDebugEnabled()) {
-            logger.debug(e, JSON.stringify(emailSendResult, null, 2))
-          } else {
-            logger.warn(e)
-          }
-        }
-      }
-      // TODO: extend pending transaction state by email_sended, or finished.. or..  to prevent double send email
-      return status('OK')
-    },
+  // routes for other communities: derive has verified the signature, decrypted the body
+  // Routes for Receiving a GDD Transaction from another community
+  .guard(
     {
       body: crossGroupTransactionWireSchema,
-      mapResponse: signedJsonResponse,
+      senderCommunityUuid: uuidv4Schema,
     },
+    (app) =>
+      app
+        .resolve(auth)
+        // the recipient's public info goes back sealed for the sender, as the request came
+        .post('prepareSendCoins', prepareSendCoins, {
+          mapResponse: signedEncryptedJsonResponse,
+          // an error answer is a status with its name as body, unsealed; 404 is auth's answer
+          // for a recipient nobody has here
+          response: {
+            200: userPublicInfoWireSchema,
+            404: v.string(),
+            500: v.string(),
+            503: v.string(),
+          },
+        })
+        .post('revertSendCoins', revertSendCoins, {
+          mapResponse: signedJsonResponse,
+        })
+        .post('settleSendCoins', settleSendCoins, {
+          mapResponse: signedJsonResponse,
+        })
+        .post('revertSettledSendCoins', revertSettledSendCoins, {
+          mapResponse: signedJsonResponse,
+        })
+        .post('emailTransactionReceived', emailTransactionReceived, {
+          mapResponse: signedJsonResponse,
+        }),
   )
 
 // The part of the Elysia context signedJsonResponse needs, so it can stand in as mapResponse of any
@@ -154,22 +140,57 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
 // Serializes the answer of a route as JSON and signs it with the home community's key. An error
 // answer is not signed and carries no data. status() arrives here as it is, not in set.status: a
 // Response returned without its code would turn a 404 into a 200.
-async function signedJsonResponse<T>({
-  responseValue,
-  set,
-  request,
-  nonce,
-}: Pick<Context, 'request' | 'set'> & { responseValue: T; nonce?: string }) {
+
+async function signedEncryptedJsonResponse<T>(
+  context: Pick<Context, 'request' | 'set'> & {
+    responseValue: T
+    nonce?: string
+    senderClient: ApiClientCompleted
+  },
+) {
+  return signedJsonResponse(context, true)
+}
+
+async function signedJsonResponse<T>(
+  {
+    responseValue,
+    set,
+    request,
+    nonce,
+    senderClient,
+  }: Pick<Context, 'request' | 'set'> & {
+    responseValue: T
+    nonce?: string
+    // only a route behind derive has one; a public route answers unencrypted
+    senderClient?: ApiClientCompleted
+  },
+  encrypt?: boolean,
+) {
   const isStatus = responseValue instanceof ElysiaCustomStatusResponse
   const status = isStatus ? (responseValue.code as number) : statusNumber(set.status)
   const value: unknown = isStatus ? responseValue.response : responseValue
   if (status >= 400) {
     return new Response(String(value), { status })
   }
-  const body = JSON.stringify(value)
+  let body: string | BodyInit = JSON.stringify(value)
+  let contentHash: string | undefined
+  if (encrypt) {
+    if (!senderClient) {
+      throw new Error('cannot encrypt the answer of a route without a sender client')
+    }
+    const { box, hash } = AppContext.getInstance()
+      .getHomeCommunity()
+      .encryptAndHash(body, senderClient.publicEncryptionKey)
+    contentHash = hash
+    // create view to existing buffer
+    body = new Uint8Array(box.buffer as ArrayBuffer, box.byteOffset, box.byteLength)
+    set.headers['content-type'] = 'application/octet-stream'
+  } else {
+    contentHash = hashGenericBase64(body)
+    set.headers['content-type'] = 'application/json'
+  }
   // Elysia sets it only after mapResponse, and not at all on a returned Response; it is signed here
-  set.headers['content-type'] = 'application/json'
-  set.headers['content-digest'] = `blake2b-256=:${hashGenericBase64(body)}:`
+  set.headers['content-digest'] = `blake2b-256=:${contentHash}:`
   const message = {
     kind: 'response' as const,
     status,
@@ -187,32 +208,6 @@ async function signedJsonResponse<T>({
 
 function statusNumber(status?: number | keyof StatusMap): number {
   return typeof status === 'string' ? StatusMap[status] : (status ?? 200)
-}
-// check if tx came from correct community and if recipient user exist and if, return it
-async function auth(
-  parties: InvolvedParties,
-  senderCommunityUuid: Uuidv4, // the community of the key that signed the request
-): Promise<Result<UserSelect, CrossCommunityError>> {
-  const { sender, recipient } = parties
-  // first, check if we are in fact the correct recipient community
-  const homeCom = await getHomeCommunityDrizzle()
-  if (homeCom.communityUuid !== recipient.communityUuid) {
-    const e = `We got a cross transaction for another community: ${recipient.communityUuid}`
-    return xcomError('Unauthorized', e)
-  }
-  // and the sender is the correct sender community
-  if (senderCommunityUuid !== sender.communityUuid) {
-    const e = `We got a cross transaction from a wrong community: expected: ${sender.communityUuid}, actual: ${senderCommunityUuid}`
-    return xcomError('Unauthorized', e)
-  }
-
-  // second check if receiver user exists in this community
-  const recipientUser = await dbFindUserByIdentifier(recipient.identifier, recipient.communityUuid)
-  if (!recipientUser) {
-    const e = `User with identifier ${recipient.identifier} not found`
-    return xcomError('Not Found', e)
-  }
-  return { success: true, value: recipientUser }
 }
 
 export const apiRoutes = new Elysia({ prefix: 'peer-api' }).use(apiRoutesV1)

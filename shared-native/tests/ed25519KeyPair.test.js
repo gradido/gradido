@@ -139,9 +139,15 @@ describe('Ed25519KeyPair', () => {
       assert.equal(keyPair.equals(Ed25519KeyPair.generate()), false)
     })
 
-    it('throws for anything but an Ed25519KeyPair', () => {
-      assert.throws(() => keyPair.equals(keyPair.publicKeyToBuffer()), TypeError)
+    it('compares with a public key given as bytes', () => {
+      assert.equal(keyPair.equals(keyPair.publicKeyToBuffer()), true)
+      assert.equal(keyPair.equals(Ed25519KeyPair.generate().publicKeyToBuffer()), false)
+    })
+
+    it('throws for anything but an Ed25519KeyPair or a public key of 32 bytes', () => {
+      assert.throws(() => keyPair.equals(keyPair.publicKeyToBuffer().subarray(1)), /32 bytes/)
       assert.throws(() => keyPair.equals(X25519KeyPair.generate()), TypeError)
+      assert.throws(() => keyPair.equals(keyPair.publicKeyToHex()), TypeError)
       assert.throws(() => keyPair.equals(), TypeError)
     })
 

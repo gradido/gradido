@@ -43,7 +43,7 @@ namespace gradido::crypto {
         // throws without private key
         Napi::Value Sign(const Napi::CallbackInfo& info);
         Napi::Value Verify(const Napi::CallbackInfo& info);
-        // (other: Ed25519KeyPair) -> boolean; the same public key, with or without private key
+        // (other: Ed25519KeyPair | public key of 32 bytes) -> boolean; see KeyPair::Equals
         Napi::Value Equals(const Napi::CallbackInfo& info);
 
         Ed25519Keys mKeys;

@@ -74,18 +74,7 @@ namespace gradido::crypto {
 
     Napi::Value Ed25519KeyPair::Equals(const Napi::CallbackInfo& info)
     {
-        Napi::Env env = info.Env();
-        Napi::FunctionReference& constructor = env.GetInstanceData<AddonData>()->ed25519KeyPair;
-        if (info.Length() != 1 || !info[0].IsObject() || !info[0].As<Napi::Object>().InstanceOf(constructor.Value())) {
-            Napi::TypeError::New(env, "[Ed25519KeyPair.equals] Expected other to be an Ed25519KeyPair").ThrowAsJavaScriptException();
-            return env.Null();
-        }
-        // null for an object that only has the prototype (Object.create), the exception is pending
-        const Ed25519KeyPair* other = Ed25519KeyPair::Unwrap(info[0].As<Napi::Object>());
-        if (!other) {
-            return env.Null();
-        }
-        return Napi::Boolean::New(env, mKeys.samePublicKey(other->mKeys));
+        return KeyPair::Equals<Ed25519KeyPair>(info, info.Env().GetInstanceData<AddonData>()->ed25519KeyPair);
     }
 
 } // namespace gradido::crypto

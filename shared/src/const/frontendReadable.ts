@@ -58,3 +58,15 @@ export const CHAT_REACTION_EMOJI_ROWS: readonly (readonly string[])[] = [
 // The admin interface has no dependency on `shared`; userRemark.drift.spec.ts there holds its
 // copy against this one.
 export const USER_REMARK_MAX_CHARS = 2000
+
+// What the backend answers a send (sendCoins, sendEmail) to a member nobody has, here or in
+// another community, with what was looked for behind a colon: `${RECIPIENT_NOT_FOUND}: ${identifier}`.
+// The wallet tells "no such account" from every other failure of a send by this sentence
+// (frontend/src/utils/recipientNotFound.js); recipientNotFound.drift.spec.js holds its copy
+// against this one. ⛔ Across the border too: a 404 of the other community becomes this sentence
+// in core (processXComCompleteTransaction), nothing of that community's own words reaches the wallet.
+export const RECIPIENT_NOT_FOUND = 'The recipient user was not found'
+
+// What `user` answers for a member nobody has (UserResolver): the wallet's check "Jetzt prüfen"
+// reads it whole, same file and spec as above.
+export const USER_NOT_FOUND = 'User not found'

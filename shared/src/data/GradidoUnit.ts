@@ -195,6 +195,10 @@ export class GradidoUnit {
     return this.gddCentValue < 0n
   }
 
+  public isPositive(): boolean {
+    return this.gddCentValue > 0n
+  }
+
   /**
    * Returns the absolute value of this GradidoUnit
    * @returns A new GradidoUnit with the absolute value

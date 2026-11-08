@@ -1,7 +1,8 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
+  CommunityIdentifier,
   Ed25519PublicKey,
   HomeCommunityInsertInput,
   HomeCommunityUpdateInput,
@@ -16,6 +17,7 @@ import {
 import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import * as v from 'valibot'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { eqCommunityIdentifier } from '../data'
 import { Community as DbCommunity } from '../entity'
 import { CommunityUniqueKey } from '../enum'
 import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
@@ -269,6 +271,22 @@ export async function dbFindForeignCommunitiesByUuid(
   return map
 }
 
+export async function dbFindAuthenticatedForeignCommunityByIdentifier(
+  communityIdentifier: CommunityIdentifier,
+): Promise<CommunitiesSelect | null> {
+  const rows = await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(
+      and(
+        eq(communitiesTable.foreign, true),
+        eqCommunityIdentifier(communityIdentifier),
+        isNotNull(communitiesTable.authenticatedAt),
+      ),
+    )
+  return rows[0] ?? null
+}
+
 // the foreign community a signed request names with its public key, null for an unknown key
 export async function dbFindForeignCommunityByPublicKey(
   publicKey: Buffer,
@@ -287,7 +305,7 @@ export async function dbFindForeignCommunityByPublicKey(
  * (backend UserResolver relayMemberAvatars) -- the other side refuses a community that has
  * not completed the handshake with it, so asking any other would only cost the time limit.
  *
- * TypeORM, like its neighbours here: the caller hands each row to `xcomMemberAvatars`, which
+ * TypeORM, like its neighbors here: the caller hands each row to `xcomMemberAvatars`, which
  * takes the entity.
  */
 export async function dbSelectAuthenticatedForeignCommunities(): Promise<DbCommunity[]> {

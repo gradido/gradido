@@ -1,15 +1,17 @@
 import {
   EncryptedTransferArgs,
-  interpretEncryptedTransferArgs,
-  processXComCompleteTransaction,
+  // interpretEncryptedTransferArgs,
+  // processXComCompleteTransaction,
 } from 'core'
-import { getLogger } from 'log4js'
-import { DisburseJwtPayloadType } from 'shared'
+// import { getLogger } from 'log4js'
+// import { DisburseJwtPayloadType } from 'shared'
 import { Arg, Mutation, Resolver } from 'type-graphql'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+// import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
+/*
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.api.1_0.resolver.DisbursementResolver.${method}`)
+  */
 
 @Resolver()
 export class DisbursementResolver {
@@ -18,6 +20,9 @@ export class DisbursementResolver {
     @Arg('data')
     args: EncryptedTransferArgs,
   ): Promise<string> {
+    // TODO: rewrite with elysiaJS REST
+    throw new Error('Not longer implemented')
+    /*
     const methodLogger = createLogger(`processDisburseJwtOnSenderCommunity`)
     methodLogger.addContext('handshakeID', args.handshakeID)
     if (methodLogger.isDebugEnabled()) {
@@ -55,5 +60,6 @@ export class DisbursementResolver {
       methodLogger.error(result)
     }
     return result
+    */
   }
 }
