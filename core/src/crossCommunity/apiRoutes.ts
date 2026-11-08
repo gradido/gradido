@@ -81,7 +81,7 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
     if (!decryptResult.success) {
       logger.debug(
         `error on decrypt from community:  ${senderComPublicKeyHex}`,
-        decryptResult.error,
+        decryptResult.error.message,
       )
       throw status('Bad Request')
     }
