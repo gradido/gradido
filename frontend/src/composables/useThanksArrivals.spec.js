@@ -95,7 +95,7 @@ describe('useThanksArrivals', () => {
     expect(ids(held)).toEqual([1])
   })
 
-  it('chooses them by the rule: received, may be answered, no reaction yet, the newest three', () => {
+  it('chooses them by the rule: received, may be answered, no reaction yet, not answered since, the newest three', () => {
     const held = open()
 
     answer([
@@ -103,12 +103,14 @@ describe('useThanksArrivals', () => {
       booking(2, { reaction: '❤️' }),
       booking(3),
       booking(4, { canReact: false }),
-      booking(5),
+      // Answered with a message or Gradido sent back, as the server says (F E-046).
+      booking(5, { answered: true }),
       booking(6),
       booking(7),
+      booking(8),
     ])
 
-    expect(ids(held)).toEqual([3, 5, 6])
+    expect(ids(held)).toEqual([3, 6, 7])
   })
 
   it('settles with nothing to show where there is no thank-you to show', () => {

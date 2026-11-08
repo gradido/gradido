@@ -177,6 +177,66 @@ export async function dbSelectDirectChatContactsByMember(member: ChatMemberRef) 
 }
 
 /**
+ * When this member last wrote to each of these partners in their direct conversation: the
+ * moment the member's own newest message arrived here (E-018) -- one entry per partner the
+ * member has written to, each with the partner as it was handed in. A partner without a
+ * conversation, or one the member never wrote to, has none. What a booking list says a
+ * thank-you was answered with (F E-046, ThanksAnswer.logic in the backend).
+ *
+ * The member's own messages only, and none marked deleted: what the partner wrote answers
+ * nothing of the member's. Direct conversations only: a group is no conversation with one
+ * person, whoever is in it.
+ *
+ * One statement for all partners. Each conversation is found by its pair key (a unique index,
+ * built by directChatPairKey, so a pair written in capitals finds it too), and in it the
+ * member's newest message is read from the end of the conversation's range in the index on
+ * (conversation_id, id), backwards until a message of the member's own comes -- not max():
+ * inside a correlated subquery MariaDB reads the whole range for that (dbSelectChatUnreadSummary).
+ * In a conversation the member never wrote in, that is the whole range all the same.
+ *
+ * An empty list of partners asks nothing.
+ */
+export async function dbSelectLastOwnDirectMessageAtByPartner(
+  member: ChatMemberRef,
+  partners: ChatMemberRef[],
+): Promise<Array<{ partner: ChatMemberRef; lastOwnMessageAt: Date }>> {
+  if (partners.length === 0) {
+    return []
+  }
+  const partnerByKey = new Map(
+    partners.map((partner) => [directChatPairKey(member, partner), partner] as const),
+  )
+  // Named pieces, wrapped once more where they become a field: drizzle writes a column that
+  // stands directly in a field of a one-table select without its table, and in the subquery
+  // every column should say which table it belongs to (dbSelectChatUnreadSummary).
+  const ofThisConversation = sql`${chatMessagesTable.conversationId} = ${chatConversationsTable.id}`
+  const writtenByTheMember = sql`${chatMessagesTable.senderCommunityUuid} = ${member.communityUuid} and ${chatMessagesTable.senderGradidoId} = ${member.gradidoId}`
+  const newestOwnMessageAt = sql`(select ${chatMessagesTable.createdAt} from ${chatMessagesTable} where ${ofThisConversation} and ${writtenByTheMember} and ${chatMessagesTable.deletedAt} is null order by ${chatMessagesTable.id} desc limit 1)`
+  const rows = await drizzleDb()
+    .select({
+      directPairKey: chatConversationsTable.directPairKey,
+      // Null where the member wrote nothing there: decoded the column's way where there is one.
+      lastOwnMessageAt: sql<Date | null>`${newestOwnMessageAt}`.mapWith(
+        chatMessagesTable.createdAt,
+      ),
+    })
+    .from(chatConversationsTable)
+    .where(
+      and(
+        eq(chatConversationsTable.kind, 'direct'),
+        inArray(chatConversationsTable.directPairKey, [...partnerByKey.keys()]),
+      ),
+    )
+  return rows.flatMap((row) => {
+    // The key as it is stored, matched without regard to case the way the column compares.
+    const partner = row.directPairKey ? partnerByKey.get(row.directPairKey.toLowerCase()) : null
+    return partner && row.lastOwnMessageAt
+      ? [{ partner, lastOwnMessageAt: row.lastOwnMessageAt }]
+      : []
+  })
+}
+
+/**
  * A group (P5) by the uuid it is known by -- to the wallet, and in the links of its mails -- or
  * null: no such conversation, or one that is not a group. The uuid of a direct conversation does
  * not make it a group.

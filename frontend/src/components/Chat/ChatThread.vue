@@ -176,6 +176,7 @@ import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
+import { noteChatMessageSent } from '@/composables/useChatSent'
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useOwnTransfers } from '@/composables/useOwnTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
@@ -1809,6 +1810,8 @@ const post = async ({ body, notify, image = null, replyTo = null }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
+  // Who writes it: what the overview hears below is said for this member only.
+  const writer = store.gradidoID
   try {
     const answer = await sendToServer(
       {
@@ -1834,6 +1837,14 @@ const post = async ({ body, notify, image = null, replyTo = null }) => {
     )
     const own = answer?.data?.[THREAD.copy] ?? null
     if (own) sentNotice.value = noticeFor(own)
+    // A message to this person that the server took -- a copy that came back not delivered across
+    // the border as well: it is stored, and the server counts it as an answer to a thank-you of
+    // theirs (F E-046). The tile "Dein Dank ist da." under a window over the overview hears it
+    // (useChatSent). Never a group's message: a group is no answer to one person. And only while
+    // the member who wrote it is the one signed in: a device can change hands while a message is
+    // on its way -- signing out reloads nothing --, and the next member's tile would lose a
+    // thank-you from the same person.
+    if (own && !inGroup && store.gradidoID === writer) noteChatMessageSent(memberRef)
     return { own, refusal: null }
   } catch (error) {
     return { own: null, refusal: chatImageRefusal(error) }
