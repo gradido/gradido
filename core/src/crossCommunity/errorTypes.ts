@@ -1,7 +1,8 @@
 import { StatusMap } from 'elysia'
+
 import { DomainError } from 'shared'
 
-export class CrossCommunityError extends DomainError {
+export class CrossCommunityApiError extends DomainError {
   public constructor(
     public readonly status: keyof StatusMap,
     public readonly message: string,
@@ -10,8 +11,37 @@ export class CrossCommunityError extends DomainError {
   }
 }
 
-// shot form for cross community error
-export const xcomError = (status: keyof StatusMap, message: string) => ({
+// short form for cross community api error
+export const xcomApiError = (status: keyof StatusMap, message: string) => ({
   success: false as const,
-  error: new CrossCommunityError(status, message),
+  error: new CrossCommunityApiError(status, message),
+})
+
+export enum CrossCommunityErrorType {
+  previousUserTxNotFinished,
+  insufficientBalance,
+  apiCallFailed,
+  foreignPrepareSendCoinFailed,
+  insertPendingTxFailed,
+  insertTxFailed,
+  foreignRevertSendCoinFailed,
+  foreignRevertSettledSendCoinFailed,
+  authFailed,
+  notFound,
+  unknown,
+  invalidTransactionOrder,
+}
+
+export class CrossCommunityError extends DomainError {
+  public constructor(
+    public readonly type: CrossCommunityErrorType,
+    public readonly message: string,
+  ) {
+    super(message)
+  }
+}
+// short form for cross community error
+export const xcomError = (type: CrossCommunityErrorType, message: string) => ({
+  success: false as const,
+  error: new CrossCommunityError(type, message),
 })

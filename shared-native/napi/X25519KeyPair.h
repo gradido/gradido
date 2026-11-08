@@ -47,6 +47,8 @@ namespace gradido::crypto {
         KeyResult GenerateKeys(const uint8_t* seed) override { return mKeys.generate(seed); }
 
     private:
+        // (other: X25519KeyPair | public key of 32 bytes) -> boolean; see KeyPair::Equals
+        Napi::Value Equals(const Napi::CallbackInfo& info);
         // throw without private key
         Napi::Value Encrypt(const Napi::CallbackInfo& info);
         Napi::Value Decrypt(const Napi::CallbackInfo& info);

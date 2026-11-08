@@ -48,11 +48,18 @@ import {
   getCommunityByUuid,
   getCommunityWithFederatedCommunityByIdentifier,
   getLastTransaction,
+  typeOrmUserToDbLoginUser,
   UserLoggingView,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
-import { DecayCalculationType, GradidoUnit, parseOrThrowFirstIssue } from 'shared'
+import {
+  DecayCalculationType,
+  GradidoUnit,
+  PendingTransactionState,
+  parseOrThrowFirstIssue,
+  RECIPIENT_NOT_FOUND,
+} from 'shared'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -185,7 +192,12 @@ export const executeTransaction = async (
       new UserLoggingView(recipient),
     )
 
-    if ((await countOpenPendingTransactions([sender.gradidoID, recipient.gradidoID])) > 0) {
+    if (
+      (await countOpenPendingTransactions(
+        [sender.gradidoID, recipient.gradidoID],
+        PendingTransactionState.NEW,
+      )) > 0
+    ) {
       throw new LogError(
         `There exist still ongoing 'Pending-Transactions' for the involved users on sender-side!`,
       )
@@ -908,7 +920,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
+        const errmsg = `${RECIPIENT_NOT_FOUND}: ${recipientIdentifier}`
         logger.error(errmsg)
         throw new Error(errmsg)
       }
@@ -941,6 +953,8 @@ export class TransactionResolver {
         // missing, and never money on its way while the picture is quietly lost: where the
         // picture cannot be filed, nothing is booked and the DLT has heard nothing; where the
         // booking is not made after it, the picture is taken back out.
+        //
+        // TODO: revert, picture goes last, because it is expensive! And a invalid picture shouldn't stop a
         //
         // The two cheap refusals come before the filing, so that such an attempt does not cost
         // a filing and a removal. executeTransaction asks both again, and decides.
@@ -987,11 +1001,10 @@ export class TransactionResolver {
         logger.warn('passOnOf dropped: ACROSS_THE_BORDER', passOnOf)
       }
       await processXComCompleteTransaction(
-        senderUser.communityUuid,
-        senderUser.gradidoID,
+        typeOrmUserToDbLoginUser(senderUser),
         recipientCommunityIdentifier,
         recipientIdentifier,
-        amount.toString(),
+        amount,
         memo,
       )
     }
@@ -1018,7 +1031,7 @@ export class TransactionResolver {
         recipientCommunityIdentifier,
       )
       if (!recipientUser) {
-        const errmsg = 'The recipient user was not found: ' + recipientIdentifier
+        const errmsg = `${RECIPIENT_NOT_FOUND}: ${recipientIdentifier}`
         logger.error(errmsg)
         throw new Error(errmsg)
       }

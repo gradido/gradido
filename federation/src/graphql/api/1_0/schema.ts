@@ -3,7 +3,6 @@ import { BlockchainNotificationResolver } from './resolver/BlockchainNotificatio
 import { CommandResolver } from './resolver/CommandResolver'
 import { DisbursementResolver } from './resolver/DisbursementResolver'
 import { MemberAvatarsResolver } from './resolver/MemberAvatarsResolver'
-import { SendCoinsResolver } from './resolver/SendCoinsResolver'
 
 export const getApiResolvers = (): NonEmptyArray<Function> => {
   return [
@@ -11,6 +10,5 @@ export const getApiResolvers = (): NonEmptyArray<Function> => {
     CommandResolver,
     DisbursementResolver,
     MemberAvatarsResolver,
-    SendCoinsResolver,
   ]
 }

@@ -87,6 +87,8 @@ Turbo and `bun run` automatically invoke the correct test runner defined in the 
 # Conventions
 
 - Workspace dependencies point one way: `config-schema` and `shared-native` → `shared` → `database` → `core` → the services (`backend`, `federation`, `dht-node`). A package imports only from packages before it, never from one after it. `config-schema` sits at the very top, above `shared`: `shared` may take a schema from it (`communityNameSchema`), `config-schema` never imports from `shared`.
+- Where logic lives follows that chain. A helper that more than one package needs goes to `shared`; if it depends on the database (a Drizzle type, a TypeORM entity, a query) it goes to `core/src/logic/*.logic.ts`. `database/src/logic` is only for code that works directly on Drizzle types inside the database package, not a home for shared helpers. A helper used by one package stays in that package.
+- Moving code means moving it: every importer is changed in the same step and the old file is deleted. No re-exporting stub "for the existing callers" -- it is a dead file the next reader has to follow. Backend's Jest resolves `core` through its build, so after moving something into `core`, `bunx turbo build --filter=core` before running backend tests.
 - Naming: DB tables and columns are `snake_case`; the TypeScript representation is `camelCase`. A table `user_contacts` maps to the schema export `userContactsTable` and the query file `database/src/queries/userContacts.ts`. Existing singular file names (e.g. `queries/user.ts` for `users`) are legacy — new files follow the table name.
 - Queries: every DB access lives in `database/src/queries/[tableName].ts` — never inline in a resolver, service, or interaction. Co-located tests are `[tableName].test.ts`.
 - **A query belongs to the table it selects `from`**, regardless of what it joins or returns. `from users join transactions` is a user query. Specialized projections have no table of their own, so the return type cannot decide this — `from` can, and it is mechanically checkable.
@@ -242,6 +244,28 @@ This applies to new files written by an AI, not to edits an AI makes to existing
 **Marked files must not be used as an architecture reference.** Do not copy their structure, their file layout, or their patterns into new code, and do not treat them as evidence of how something is done here. Fluent code and thorough comments are not evidence of a considered design — an AI produces both regardless, which makes generated code more tempting to imitate than it has earned (`apis/anthropic/crea/` is the example in this repo). Take conventions from this document and from the reference implementations it names, never from unreviewed generated code.
 
 Remove the marker once a human has reviewed the file and stands behind it. A marker that is never removed stops meaning anything.
+
+# Code shape
+
+Compact and readable beats visibly thorough. Volume is expensive three times over: a human reads it, an AI pays tokens for it, and the more there is, the easier the one line that matters is overlooked. When in doubt, leave it out. A line that decides nothing -- a guard for a case that cannot occur, a branch the type lists but the code never reaches, a value taken apart only to be put back together, a function that only hands its arguments on -- is a line to read, to keep in step, and to get wrong. The legacy code is full of them, and generated code adds its own; do not add more. Measure: for every line, what does it decide? If the answer is nothing, it goes.
+
+- **Let valibot do the shape work.** Picking fields out of an object, converting them and copying them into a new one is one `v.parse`, not a destructuring followed by an object literal. The schema already says what belongs and how it is spelled; the `v.object` drops what it does not name, so a spread with a wider object is fine. Drizzle hands out a schema for every row (`createSelectSchema`/`createInsertSchema` in `database/src/schemas/drizzle.schema.ts`), so a row rarely needs a hand-written schema or a hand-written copy.
+
+  ```ts
+  // not this
+  const { alias, gradidoId, communityUuid, avatarUpdatedAt } = foreignUser
+  await dbUpsertForeignMemberAvatarDates([{ communityUuid, gradidoId, avatarUpdatedAt, checkedAt: new Date() }])
+  // this
+  await dbUpsertForeignMemberAvatarDates([
+    v.parse(foreignMemberAvatarDateSelectSchema, { ...foreignUser, checkedAt: new Date() }),
+  ])
+  ```
+
+- **One decision per branch.** A `Result` is `success` or not: check it once, return early, go on with `value`. Do not add a branch for an error class only because the union names it; if the code cannot reach it, the branch is noise. Where the kind of failure does not change what happens next, do not branch on it to word a log -- log `error.message`.
+- **Destructure to use, not to rename.** Pulling fields out of an object is for using them several times under a short name. Pulling them out to pass them on individually, or to assemble another object, is not a reason.
+- **No defensive extras.** A check the caller already made, a null guard on a value the type says is there, a fallback for an input the boundary already rejected -- none of these make the code safer, they make it longer. If a case genuinely needs handling, handle it; if it cannot occur, say so with a type or a schema, not with an `if`.
+- **No function that does nothing new.** A name is an abstraction, and an abstraction has to pay for the jump the reader makes to follow it. A one-line helper used once, a wrapper that calls the next function with the same arguments, a "step" that only renames what it was handed -- each is a detour that hides what happens rather than explaining it. Inline them. A function earns its name when it is called from more than one place, when it carries a decision the caller should not have to read (and that decision has its own test), or when the name tells the reader at the call site what an inline body would hide -- `mapResponse: signedEncryptedJsonResponse` says in the route list that this answer goes out sealed, and keeps that line in the same form as `mapResponse: signedJsonResponse` on the routes beside it; `(ctx) => signedJsonResponse(ctx, true)` would say neither. Generated code in this tree leans to the opposite; when you touch such a function, fold it away.
+- **Read it back as the other person.** The question is not whether the code is thorough but whether a TypeScript developer sees in one pass what it does. Three dense lines that carry the whole decision beat ten that carry it in pieces.
 
 # Judgement calls
 

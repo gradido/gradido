@@ -1,5 +1,5 @@
-import { ApiVersionType } from 'core'
 import { FederatedCommunity as DbFederatedCommunity } from 'database'
+import { ApiVersionType } from '../enum/apiVersionType'
 import { CommandClient as V1_0_CommandClient } from './1_0/CommandClient'
 import { CommandClient as V1_1_CommandClient } from './1_1/CommandClient'
 
@@ -39,6 +39,7 @@ export class CommandClientFactory {
    * just one instance of each subclass around.
    */
   public static getInstance(dbCom: DbFederatedCommunity): CommandClient | null {
+    // TODO: don't use DbFederatedCommunity.id as key, because dht-node rewrite the entries every 10 minutes
     const instance = CommandClientFactory.instanceArray.find((instance) => instance.id === dbCom.id)
     if (instance) {
       return instance.client

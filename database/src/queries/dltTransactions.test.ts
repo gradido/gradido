@@ -8,7 +8,7 @@ import {
   TransactionTypeId,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
-import { resolveDltTransactionByLedgerAnchor } from '../logic'
+import { resolveDltTransactionByLedgerAnchor } from '../data'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
 import { transferGradidos } from '../seeds/factory/transaction'

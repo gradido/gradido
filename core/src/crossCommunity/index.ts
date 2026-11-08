@@ -1,4 +1,6 @@
 export * from './ApiClient'
 export * from './ApiClientCache'
 export * from './apiRoutes'
+export * from './errorTypes'
 export * from './schema'
+export * from './transferCoins'

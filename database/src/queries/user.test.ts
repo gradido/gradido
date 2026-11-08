@@ -17,7 +17,7 @@ import {
 } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { AccountState, EventType, FirstCreationStatus } from '../enum'
-import { DBDuplicateEntryError, DBInsertFailed, DBNotFoundError } from '../errorTypes'
+import { DBDuplicateEntryError, DBNotFoundError } from '../errorTypes'
 import { userContactsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { creationFactory, nMonthsBefore } from '../seeds/factory/creation'
@@ -51,7 +51,6 @@ import {
   dbFindUserLoginByEmail,
   dbFindUserWithContactById,
   dbHasGuestRegisteredByLink,
-  dbInsertForeignUser,
   dbInsertUser,
   dbIsHomeCommunityUserExistByUuid,
   dbLocalUserGradidoIdExist,
@@ -64,6 +63,7 @@ import {
   dbSelectUsersByUuids,
   dbUpdateForeignUserAlias,
   dbUpdateUserFirstCreationStatus,
+  dbUpsertForeignUser,
   dbUserUpdateField,
   dbUserUpdatePassword,
   findUserNamesByIds,
@@ -668,7 +668,7 @@ describe('user.queries', () => {
    * E-034: the first chat message from a member of another community files them here, the way
    * the receiving side of a transfer files its sender -- foreign, the pair, the alias.
    */
-  describe('dbInsertForeignUser and dbUpdateForeignUserAlias', () => {
+  describe('dbUpsertForeignUser and dbUpdateForeignUserAlias', () => {
     const PEER = '77777777-7777-4777-8777-777777777777'
     const NEWCOMER = '88888888-8888-4888-8888-888888888881'
     const TWICE = '88888888-8888-4888-8888-888888888882'
@@ -686,7 +686,7 @@ describe('user.queries', () => {
     })
 
     it('files an unknown member as foreign, with the pair and the alias, nothing else', async () => {
-      const filed = await dbInsertForeignUser({
+      const filed = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: NEWCOMER,
         alias: 'newcomer',
@@ -707,12 +707,12 @@ describe('user.queries', () => {
 
     // Two first messages at the same moment: the second insert meets the first row.
     it('files one row for a pair that is on file already, and hands back its id', async () => {
-      const first = await dbInsertForeignUser({
+      const first = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: TWICE,
         alias: 'twice',
       })
-      const second = await dbInsertForeignUser({
+      const second = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: TWICE,
         alias: 'twiceAgain',
@@ -720,23 +720,21 @@ describe('user.queries', () => {
 
       expect(second).toEqual(first)
       expect(await DbUser.count({ where: { gradidoID: TWICE } })).toBe(1)
-      expect((await rowOf(TWICE)).alias).toBe('twice')
+      expect((await rowOf(TWICE)).alias).toBe('twiceAgain')
     })
 
+    // A member of this community is a programmer error on the caller's side, not a runtime case.
     it('never turns a member of this community into a foreign one', async () => {
-      const filed = await dbInsertForeignUser({
-        communityUuid: home,
-        gradidoId: bibi.gradidoID,
-        alias: 'notBibi',
-      })
+      await expect(
+        dbUpsertForeignUser({ communityUuid: home, gradidoId: bibi.gradidoID, alias: 'notBibi' }),
+      ).rejects.toThrow('home community')
 
-      expect(filed).toEqual({ success: false, error: expect.any(DBInsertFailed) })
       expect(await rowOf(bibi.gradidoID)).toMatchObject({ id: bibi.id, foreign: false })
       expect(await DbUser.count({ where: { gradidoID: bibi.gradidoID } })).toBe(1)
     })
 
     it('sets the alias of a foreign row, and takes the same alias again as done', async () => {
-      const filed = await dbInsertForeignUser({
+      const filed = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: RENAMED,
         alias: 'renamed',
@@ -754,7 +752,7 @@ describe('user.queries', () => {
 
     // A rename over there that this server has not seen yet: the old row still holds the name.
     it('keeps the alias a row had when another row of that community holds the new one', async () => {
-      const holder = await dbInsertForeignUser({
+      const holder = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: HOLDER,
         alias: 'taken',
@@ -774,14 +772,26 @@ describe('user.queries', () => {
     it('files nothing for a newcomer under an alias another row of that community holds', async () => {
       const newcomer = v4()
 
-      const filed = await dbInsertForeignUser({
+      const filed = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: newcomer,
         alias: 'taken',
       })
 
-      expect(filed).toEqual({ success: false, error: expect.any(DBInsertFailed) })
+      expect(filed).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
       expect(await DbUser.count({ where: { gradidoID: newcomer } })).toBe(0)
+      expect((await rowOf(HOLDER)).alias).toBe('taken')
+    })
+
+    it('keeps the alias of a known pair when another row of that community holds the new one', async () => {
+      const filed = await dbUpsertForeignUser({
+        communityUuid: PEER,
+        gradidoId: RENAMED,
+        alias: 'taken',
+      })
+
+      expect(filed).toEqual({ success: false, error: expect.any(DBDuplicateEntryError) })
+      expect((await rowOf(RENAMED)).alias).toBe('annaFar')
       expect((await rowOf(HOLDER)).alias).toBe('taken')
     })
 
@@ -789,7 +799,7 @@ describe('user.queries', () => {
     it('files a member of another community under an alias this community holds', async () => {
       const namesake = v4()
 
-      const filed = await dbInsertForeignUser({
+      const filed = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: namesake,
         alias: bibi.alias,
@@ -1657,6 +1667,19 @@ describe('user.queries', () => {
         await DbUser.softRemove(gone)
         expect((await dbFindUserByEmail('gone@example.org'))?.id).toBe(gone.id)
       })
+
+      // A change typed in and never confirmed is a second row of the member's, not their
+      // address: whoever registers with it finds nobody and releases the row.
+      it('finds nobody for an address a never-confirmed change holds', async () => {
+        await drizzleDb().insert(userContactsTable).values({
+          userId: bob.id,
+          email: 'wanted@example.org',
+          type: UserContactType.USER_CONTACT_EMAIL,
+          emailChecked: false,
+          emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
+        })
+        expect(await dbFindUserByEmail('wanted@example.org')).toBeNull()
+      })
     })
 
     describe('dbInsertUser, dbFindUserWithContactById and dbRemoveUser', () => {
@@ -1732,8 +1755,8 @@ describe('user.queries', () => {
       await dbUserUpdateField(bob.id, 'deletedAt', daysAgo(1))
       await userFactory(stephenHawking, homeCom)
       // Two members of another community, one of them deleted: nobody's account here.
-      await dbInsertForeignUser({ communityUuid: PEER, gradidoId: v4(), alias: 'FarOne' })
-      const gone = await dbInsertForeignUser({
+      await dbUpsertForeignUser({ communityUuid: PEER, gradidoId: v4(), alias: 'FarOne' })
+      const gone = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: v4(),
         alias: 'FarTwo',
@@ -1782,7 +1805,7 @@ describe('user.queries', () => {
       // Deleted in 2018, says the seed.
       await userFactory(stephenHawking, homeCom)
       // A member of another community, deleted in the first week: nobody's account here.
-      const gone = await dbInsertForeignUser({
+      const gone = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: v4(),
         alias: 'FarGone',
@@ -1834,7 +1857,7 @@ describe('user.queries', () => {
       const stephen = await userFactory(stephenHawking, homeCom)
       await dbUserUpdateField(stephen.id, 'location', home(0.1218, 52.2053))
       await dbUserUpdateField(stephen.id, 'gmsAllowed', true)
-      const foreign = await dbInsertForeignUser({
+      const foreign = await dbUpsertForeignUser({
         communityUuid: PEER,
         gradidoId: v4(),
         alias: 'FarAway',

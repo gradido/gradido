@@ -44,6 +44,8 @@ jest.mock('database', () => {
     dbInsertTransactionPicture: jest.fn(),
     dbDeleteTransactionPictureWithoutBooking: jest.fn(),
     dbSelectTransactionPictureImageForMember: jest.fn(),
+    // the member here is a stub, not an entity; the translation has its own test in database
+    typeOrmUserToDbLoginUser: jest.fn((user) => user),
   }
 })
 jest.mock('core', () => {

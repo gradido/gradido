@@ -1,7 +1,7 @@
+import { gradidoIdOf } from 'core'
 import { DbUser, User } from 'database'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { gradidoIdOf } from '@/data/UserLogic'
 import { LogError } from '@/server/LogError'
 import { isHumhubUserIdenticalToDbUser } from './compareHumhubUserDbUser'
 import { HumHubClient } from './HumHubClient'

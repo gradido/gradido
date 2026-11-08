@@ -10,12 +10,12 @@ import {
 } from 'shared'
 import { v4 } from 'uuid'
 import { DrizzleTransaction, drizzleDb } from '../../AppDatabase'
+import { DbUser } from '../../data/relations'
 import { ALIAS_ORIGIN_ADOPTED, Community, User } from '../../entity'
 import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { dbSelectHomeCommunity } from '../../queries/communities'
 import {
-  DbUser,
   dbInsertUser,
   dbInsertUsers,
   dbSelectUserWithContactById,

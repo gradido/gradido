@@ -2,22 +2,18 @@
 
 /**
  * How the wallet tells "nobody has that account" from every other failure of a send: by the words
- * the server says it in. There are no codes for it, and the wallet asks in two ways.
+ * the backend says it in. There are no codes for it, and the wallet asks in two ways.
  *
- * recipientNotFound.drift.spec.js holds the three sentences against the server's sources. The
- * line of the send error page that waited for 'recipient not known' never fired again once the
- * server had changed its words, and nothing noticed.
+ * The wallet has no dependency on `shared`, so it keeps its own copy of each sentence;
+ * recipientNotFound.drift.spec.js holds them against shared/src/const/frontendReadable.ts, where
+ * the backend takes them from.
  */
 
-// `user`, the question "Jetzt prüfen" asks (UserResolver).
-const USER_NOT_FOUND = 'User not found'
-// sendCoins to a member of this community (TransactionResolver), and sendEmail.
-const RECIPIENT_NOT_FOUND = 'The recipient user was not found'
-// sendCoins to a member of another community: what that community answers to the vote, before
-// anything is booked on either side. It reaches the wallet wrapped in what the servers between
-// add to it. ⛔ The vote's own words, not the bare "unknown recipientUserIdentifier": the later
-// steps of a transfer say that as well, and by then the recipient had been found.
-const VOTE_RECIPIENT_UNKNOWN = 'voteForSendCoins with unknown recipientUserIdentifier'
+// `user`, the question "Jetzt prüfen" asks.
+export const USER_NOT_FOUND = 'User not found'
+// sendCoins and sendEmail, to a member of this community or of another one, with what was looked
+// for behind a colon.
+export const RECIPIENT_NOT_FOUND = 'The recipient user was not found'
 
 /**
  * Whether the answer to `user` says there is no such member. An error of the line or of the server
@@ -36,5 +32,4 @@ export const isUserNotFoundAnswer = (error) =>
  * @returns {boolean}
  */
 export const isRecipientNotFoundError = (message) =>
-  String(message ?? '').includes(RECIPIENT_NOT_FOUND) ||
-  String(message ?? '').includes(VOTE_RECIPIENT_UNKNOWN)
+  String(message ?? '').includes(RECIPIENT_NOT_FOUND)

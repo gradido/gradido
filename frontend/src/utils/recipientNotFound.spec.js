@@ -21,26 +21,14 @@ describe('isUserNotFoundAnswer', () => {
 })
 
 describe('isRecipientNotFoundError', () => {
-  it('is the sentence of this community, with what was looked for behind it', () => {
+  // The backend's sentence for a member of this community and of another one alike.
+  it('is the sentence of the backend, with what was looked for behind it', () => {
     expect(isRecipientNotFoundError('The recipient user was not found: sarah@example.org')).toBe(
       true,
     )
   })
 
-  // As the hulls of the servers between hand it on (core/.../processXComSendCoins.ts).
-  it('is the answer of another community to the vote, wherever it stands in the message', () => {
-    expect(
-      isRecipientNotFoundError(
-        'Error: voteForSendCoins failed for endpoint=https://x/api/, err=Error: ' +
-          'voteForSendCoins with unknown recipientUserIdentifier in the community=Wien: {"response":{}}{}',
-      ),
-    ).toBe(true)
-  })
-
-  // By then the vote has found the recipient: what those steps say is another matter.
   it.each([
-    'settleSendCoins with unknown recipientUserIdentifier in the community=Wien',
-    'revertSendCoins with unknown recipientUserIdentifier in the community=Wien',
     'X-Community sendCoins disabled per configuration!',
     'The recipient community was not found',
     '',

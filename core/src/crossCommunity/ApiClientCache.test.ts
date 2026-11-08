@@ -58,9 +58,9 @@ describe('ApiClientCache.getByPublicKeyHex', () => {
     expect(await cache().getByPublicKeyHex(keyPair.publicKeyToHex())).toBeUndefined()
   })
 
-  it('hands out nothing for a client of get() whose community is not authenticated', async () => {
+  it('hands out nothing for a client of getByUrl() whose community is not authenticated', async () => {
     const keyPair = Ed25519KeyPair.generate()
-    cache().get('http://peer.example/api/', keyPair)
+    cache().getByUrl('http://peer.example/api/', keyPair)
     find.mockResolvedValue(row(keyPair, { authenticatedAt: null }) as never)
     expect(await cache().getByPublicKeyHex(keyPair.publicKeyToHex())).toBeUndefined()
   })

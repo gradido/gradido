@@ -258,3 +258,16 @@ export async function dbInsertTransactionLinks(
   const inserted = await tx.insert(transactionLinksTable).values(transactionLinks).$returningId()
   return inserted.map(({ id }) => id)
 }
+
+export async function dbTransactionLinkRedeemed(
+  id: number,
+  redeemedBy: number,
+  redeemedAt: Date,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .update(transactionLinksTable)
+    .set({ redeemedBy, redeemedAt })
+    .where(eq(transactionLinksTable.id, id))
+  return rows[0] ? rows[0].affectedRows : 0
+}

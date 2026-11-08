@@ -81,6 +81,37 @@ namespace gradido::crypto {
         }
 
         /**
+         * The equals(other) of a subclass: other is a T, or a public key of 32 bytes. True for
+         * the same public key, with or without private key on either side: a private key a
+         * pair holds always belongs to its public key. Anything else throws a TypeError and
+         * gives null -- also an object that only has the prototype (Object.create), where
+         * Unwrap leaves the exception pending.
+         */
+        template <typename T>
+        Napi::Value Equals(const Napi::CallbackInfo& info, Napi::FunctionReference& constructor) const
+        {
+            Napi::Env env = info.Env();
+            std::string where = std::string(T::NAME) + ".equals";
+            if (info.Length() == 1 && info[0].IsBuffer()) {
+                Napi::Buffer<uint8_t> publicKey;
+                if (!readBytes(env, info[0], where.c_str(), "other", Keys::PUBLIC_KEY_SIZE, publicKey)) {
+                    return env.Null();
+                }
+                return Napi::Boolean::New(env, keys().samePublicKey(publicKey.Data()));
+            }
+            if (info.Length() != 1 || !info[0].IsObject() || !info[0].As<Napi::Object>().InstanceOf(constructor.Value())) {
+                Napi::TypeError::New(env, "[" + where + "] Expected other to be an " + T::NAME + " or a public key of 32 bytes")
+                    .ThrowAsJavaScriptException();
+                return env.Null();
+            }
+            const KeyPair* other = T::Unwrap(info[0].As<Napi::Object>());
+            if (!other) {
+                return env.Null();
+            }
+            return Napi::Boolean::New(env, keys().samePublicKey(other->keys()));
+        }
+
+        /**
          * The whole subclass constructor: reads (publicKey) or (publicKey, privateKey), 32 bytes
          * each, and hands them to SetKeys, which checks the private key against the public key.
          * Does nothing when Generate called it, which fills the keys itself. Wrong arguments

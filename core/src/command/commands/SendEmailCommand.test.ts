@@ -77,7 +77,7 @@ beforeEach(() => {
   senderCommunity = spyOn(database, 'getCommunityByUuid').mockImplementation(async () => {
     throw new Error('not asked about a community in this test')
   })
-  fileSender = spyOn(database, 'dbInsertForeignUser').mockImplementation(async () => {
+  fileSender = spyOn(database, 'dbUpsertForeignUser').mockImplementation(async () => {
     throw new Error('not filing a sender in this test')
   })
   updateAlias = spyOn(database, 'dbUpdateForeignUserAlias').mockImplementation(async () => {
@@ -176,7 +176,7 @@ describe('SendEmailCommand, a message from another community', () => {
     )
     spies.push(ensure)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(
+    expect(run(params({ messageUuid: MESSAGE_UUID }))).resolves.toBe(
       SEND_MAIL_COMMAND_ANSWER.MAILED,
     )
 
@@ -235,7 +235,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   })
 
   it('files the sender with the pair and the alias, then files and mails the message', async () => {
-    await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).resolves.toBe(
+    expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).resolves.toBe(
       SEND_MAIL_COMMAND_ANSWER.MAILED,
     )
 
@@ -254,9 +254,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   // A row without an alias cannot be filed (`users.alias` is NOT NULL), and the sender's
   // community sends one -- a command without it is not from a member there.
   it('files no sender who comes without an alias, and refuses the message', async () => {
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
-      'Sender user not found',
-    )
+    expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow('Sender user not found')
 
     expect(fileSender).not.toHaveBeenCalled()
     expect(senderCommunity).not.toHaveBeenCalled()
@@ -289,7 +287,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
 
   it('takes no alias the column could not hold', async () => {
     for (const senderAlias of ['a'.repeat(21), 42]) {
-      await expect(run({ ...params({ messageUuid: MESSAGE_UUID }), senderAlias })).rejects.toThrow(
+      expect(run({ ...params({ messageUuid: MESSAGE_UUID }), senderAlias })).rejects.toThrow(
         'Sender user not found',
       )
     }
@@ -302,7 +300,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   it('files no sender under an alias another row of that community holds', async () => {
     fileSender.mockResolvedValue({ success: false, error: new Error('DB_INSERT_FAILED') })
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'taken' }))).rejects.toThrow(
+    expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'taken' }))).rejects.toThrow(
       'Sender user not found',
     )
 
@@ -311,7 +309,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   })
 
   it('still refuses the mail about received Gradido from a sender it does not know', async () => {
-    await expect(
+    expect(
       run(params({ mailType: 'sendTransactionReceivedEmail', amount: '10', senderAlias: 'anna' })),
     ).rejects.toThrow('Sender user not found')
 
@@ -328,7 +326,7 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
     ]) {
       senderCommunity.mockResolvedValue(community)
 
-      await expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).rejects.toThrow(
+      expect(run(params({ messageUuid: MESSAGE_UUID, senderAlias: 'anna' }))).rejects.toThrow(
         'Sender user not found',
       )
     }
@@ -339,10 +337,10 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   })
 
   it('files nobody for a pair that is no pair of uuids', async () => {
-    await expect(
-      run(params({ senderGradidoId: 'not-a-uuid', senderAlias: 'anna' })),
-    ).rejects.toThrow('Sender user not found')
-    await expect(run(params({ senderComUuid: 'not-a-uuid', senderAlias: 'anna' }))).rejects.toThrow(
+    expect(run(params({ senderGradidoId: 'not-a-uuid', senderAlias: 'anna' }))).rejects.toThrow(
+      'Sender user not found',
+    )
+    expect(run(params({ senderComUuid: 'not-a-uuid', senderAlias: 'anna' }))).rejects.toThrow(
       'Sender user not found',
     )
 
@@ -352,15 +350,11 @@ describe('SendEmailCommand, a sender this server does not know yet', () => {
   // What cannot be filed leaves the sender unknown: the command fails as it did before.
   it('fails as before where the sender cannot be filed', async () => {
     fileSender.mockResolvedValueOnce({ success: false, error: new Error('DB_INSERT_FAILED') })
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
-      'Sender user not found',
-    )
+    expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow('Sender user not found')
     fileSender.mockRejectedValueOnce(
       Object.assign(new Error('Connection lost'), { code: 'PROTOCOL_CONNECTION_LOST' }),
     )
-    await expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow(
-      'Sender user not found',
-    )
+    expect(run(params({ messageUuid: MESSAGE_UUID }))).rejects.toThrow('Sender user not found')
 
     expect(store).not.toHaveBeenCalled()
     expect(customMail).not.toHaveBeenCalled()
@@ -430,7 +424,7 @@ describe('SendEmailCommand, the wish and the quiet', () => {
   it('files a message to a muted recipient and mails nothing, without an error', async () => {
     recipientHas(MUTED)
 
-    await expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
+    expect(run(params({ messageUuid: MESSAGE_UUID, notify: 'email' }))).resolves.toBe(
       SEND_MAIL_COMMAND_ANSWER.MUTED,
     )
 
@@ -676,7 +670,7 @@ describe('SendEmailCommand, a message with a picture', () => {
   // ⛔ Not the bytes the other server sent, and not the size it gave: the picture as this server
   // encoded it from its pixels, at the size the decoder found.
   it('files the picture encoded again under the message it came with, then the message, then mails that there is one', async () => {
-    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+    expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
 
     expect(happened).toEqual(['picture', 'store', 'mail'])
     expect(storePicture.mock.calls).toEqual([
@@ -758,7 +752,7 @@ describe('SendEmailCommand, a message with a picture', () => {
   // the message and its picture again. A message without a picture still gets a uuid of its own.
   it('refuses a picture whose message comes without a uuid, and files and mails nothing', async () => {
     for (const messageUuid of [undefined, 'not-a-uuid', 42]) {
-      await expect(run(withPicture([arrived()], { messageUuid } as never))).rejects.toThrow(
+      expect(run(withPicture([arrived()], { messageUuid } as never))).rejects.toThrow(
         'CHAT_IMAGE_NOT_ACCEPTED: NO_MESSAGE_UUID',
       )
     }
@@ -779,8 +773,8 @@ describe('SendEmailCommand, a message with a picture', () => {
       .mockResolvedValueOnce({ success: true, value: 'FILED' })
       .mockResolvedValueOnce({ success: true, value: 'FILED_BEFORE' })
 
-    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
-    await expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+    expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
+    expect(run(withPicture())).resolves.toBe(SEND_MAIL_COMMAND_ANSWER.MAILED)
 
     expect(
       storePicture.mock.calls.map(([messageUuid, picture]) => [messageUuid, picture.imageUuid]),
@@ -796,7 +790,7 @@ describe('SendEmailCommand, a message with a picture', () => {
   it('refuses the command where another picture is filed in its place, and files and mails nothing', async () => {
     storePicture.mockResolvedValue({ success: false, error: 'CONTRADICTION' })
 
-    await expect(run(withPicture([arrived({ imageUuid: OTHER_PICTURE_UUID })]))).rejects.toThrow(
+    expect(run(withPicture([arrived({ imageUuid: OTHER_PICTURE_UUID })]))).rejects.toThrow(
       'CHAT_IMAGE_NOT_ACCEPTED: CONTRADICTION',
     )
 
@@ -808,7 +802,7 @@ describe('SendEmailCommand, a message with a picture', () => {
   it('refuses the command where the picture could not be filed, and files and mails nothing', async () => {
     storePicture.mockResolvedValue({ success: false, error: 'NOT_STORED' })
 
-    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+    expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
 
     expect(store).not.toHaveBeenCalled()
     expect(customMail).not.toHaveBeenCalled()
@@ -819,7 +813,7 @@ describe('SendEmailCommand, a message with a picture', () => {
   it('takes the picture back out and refuses the command where the message could not be filed', async () => {
     store.mockImplementation(async () => null)
 
-    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+    expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
 
     expect(removePictures.mock.calls).toEqual([[MESSAGE_UUID]])
     expect(happened).toEqual(['picture', 'picture out'])
@@ -832,7 +826,7 @@ describe('SendEmailCommand, a message with a picture', () => {
     storePicture.mockResolvedValue({ success: true, value: 'FILED_BEFORE' })
     store.mockImplementation(async () => null)
 
-    await expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
+    expect(run(withPicture())).rejects.toThrow('CHAT_MESSAGE_NOT_STORED')
 
     expect(removePictures).not.toHaveBeenCalled()
     expect(customMail).not.toHaveBeenCalled()

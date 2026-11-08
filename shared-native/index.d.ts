@@ -186,8 +186,9 @@ export class Ed25519KeyPair {
   /**
    * The same public key, with or without private key on either side: a private key a pair
    * holds always belongs to its public key.
+   * @param other - an Ed25519KeyPair, or a public key of 32 bytes
    */
-  public equals(other: Ed25519KeyPair): boolean
+  public equals(other: Ed25519KeyPair | Uint8Array): boolean
 
   public toBuffer(): KeyPairBuffers
   public toHex(): KeyPairHex
@@ -234,6 +235,13 @@ export class X25519KeyPair {
 
   public encryptSecret(payload: Uint8Array): Buffer
   public decryptSecret(box: Uint8Array): Result<Buffer, DecryptError>
+
+  /**
+   * The same public key, with or without private key on either side: a private key a pair
+   * holds always belongs to its public key.
+   * @param other - an X25519KeyPair, or a public key of 32 bytes
+   */
+  public equals(other: X25519KeyPair | Uint8Array): boolean
 
   public toBuffer(): KeyPairBuffers
   public toHex(): KeyPairHex

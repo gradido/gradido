@@ -40,6 +40,7 @@ namespace gradido::crypto {
         properties.push_back(InstanceMethod("decrypt", &X25519KeyPair::Decrypt));
         properties.push_back(InstanceMethod("encryptSecret", &X25519KeyPair::EncryptSecret));
         properties.push_back(InstanceMethod("decryptSecret", &X25519KeyPair::DecryptSecret));
+        properties.push_back(InstanceMethod("equals", &X25519KeyPair::Equals));
         Napi::Function func = DefineClass(env, NAME, properties);
         env.GetInstanceData<AddonData>()->x25519KeyPair = Napi::Persistent(func);
         exports.Set(NAME, func);
@@ -155,6 +156,11 @@ namespace gradido::crypto {
             return failureResult(env, "DecryptFailed", "ciphertext was altered, or not encrypted by this key pair");
         }
         return successResult(env, payload);
+    }
+
+    Napi::Value X25519KeyPair::Equals(const Napi::CallbackInfo& info)
+    {
+        return KeyPair::Equals<X25519KeyPair>(info, info.Env().GetInstanceData<AddonData>()->x25519KeyPair);
     }
 
     Napi::Value X25519KeyPair::Encrypt(const Napi::CallbackInfo& info)

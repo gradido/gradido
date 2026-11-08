@@ -13,8 +13,8 @@ import {
   dbEnsureDirectChatConversation,
   dbInsertChatGroup,
   dbInsertEvent,
-  dbInsertForeignUser,
   dbInsertMatchingEntry,
+  dbUpsertForeignUser,
   dbUserUpdateField,
   EventType,
   TransactionTypeId,
@@ -213,7 +213,7 @@ beforeAll(async () => {
   await note(EventType.FIRST_CREATION_TEST, peter.id, 3)
   await note(EventType.FIRST_CREATION_DONE, peter.id, 3, peter.id)
   // A member of another community the federation stored: nobody's account here.
-  await dbInsertForeignUser({
+  await dbUpsertForeignUser({
     communityUuid: '66666666-6666-4666-8666-666666666666',
     gradidoId: '66666666-6666-4666-8666-000000000001',
     alias: 'farAway',

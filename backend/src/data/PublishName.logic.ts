@@ -1,7 +1,7 @@
+import { gradidoIdOf } from 'core'
 import { DbUser, User } from 'database'
 import XRegExp from 'xregexp'
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
-import { gradidoIdOf } from './UserLogic'
 
 export class PublishNameLogic {
   // allowed characters for humhub usernames
