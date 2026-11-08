@@ -130,7 +130,7 @@ export async function processXComCompleteTransaction(
         transactionMemo: memo,
       })
     }
-    logger.info(`cross community tx: ${committingResult.value} finished after ${timer}`)
+    logger.info(`tx id: ${committingResult.value} finished after ${timer}`)
   } catch (err) {
     // the sentence above goes out as decided; anything else is a crash, and the wallet hears no detail of it
     if (err instanceof Error && err.message.startsWith(RECIPIENT_NOT_FOUND)) {

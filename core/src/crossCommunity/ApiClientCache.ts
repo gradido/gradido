@@ -42,7 +42,7 @@ export class ApiClientCache {
   }
 
   public get(foreignCommunity: CommunitiesSelect): ApiClientCompleted {
-    let client = this.apiClients.get(foreignCommunity.publicKey.toHex())
+    let client = this.apiClients.get(foreignCommunity.publicKey.toString('hex'))
     if (!client) {
       client = this.getByUrl(foreignCommunity.url, new Ed25519KeyPair(foreignCommunity.publicKey))
       if (
