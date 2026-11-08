@@ -115,8 +115,7 @@ export const createMatchingEntry = gql`
 `
 
 // The entry an event link offers, made at once for a signed-in member (pages/Matching.vue,
-// `acceptEventEntry`). The variable is named as createUser's: the server's request log masks
-// it by that name (server/plugins.ts) -- what somebody is interested in.
+// `acceptEventEntry`). The variable is named as createUser's.
 export const acceptEventMatchingEntry = gql`
   mutation ($eventMatchingEntry: EventMatchingEntryInput!) {
     acceptEventMatchingEntry(input: $eventMatchingEntry) {
@@ -239,8 +238,7 @@ export const sendEmail = gql`
   }
 `
 
-// `$greeting` makes the link a thank-you greeting; the send form leaves it out. ⚠️ The
-// variable has to be named so: the request log masks `greeting.recipientName` by that name.
+// `$greeting` makes the link a thank-you greeting; the send form leaves it out.
 export const createTransactionLink = gql`
   mutation ($amount: GradidoUnit!, $memo: String!, $greeting: ThankYouGreetingInput) {
     createTransactionLink(amount: $amount, memo: $memo, greeting: $greeting) {
@@ -260,8 +258,7 @@ export const createTransactionLink = gql`
 `
 
 // The large rendition of a greeting's photo, after the link is made: the two renditions do not
-// fit into one request. ⚠️ The variable has to be named `$picture`: the request log masks
-// `picture.data` by that name.
+// fit into one request.
 export const addThankYouGreetingPicture = gql`
   mutation ($linkId: Int!, $picture: ChatImageInput!) {
     addThankYouGreetingPicture(linkId: $linkId, picture: $picture)
@@ -327,6 +324,8 @@ export const login = gql`
       # ES-021: whether this account creates (a person) or receives thanks only (a project
       # account). The "Create" menu item hangs on it.
       creationAllowed
+      # ES-002: where the member's first creation stands (see verifyLogin).
+      firstCreationStatus
       # The transfers in the conversations, the member's own switch (see verifyLogin).
       transfersInChat
       role

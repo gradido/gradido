@@ -26,11 +26,13 @@ export class FirstCreationEntry {
 /**
  * Where the member stands with their first creation — one query for the window, like
  * aliasStatus for the name. ⚠️ No arguments, so the wallet must read it with
- * `cache-and-network` (one cache key for everybody, cleared on logout).
+ * `cache-and-network` (one cache key for everybody, cleared on logout). The wallet asks it
+ * only while the window might still open: the login answer carries the member's state
+ * (User.firstCreationStatus), and a settled state needs no query.
  */
 @ObjectType()
 export class FirstCreationStatus {
-  /** NONE | FORCED | SUBMITTED | IN_REVIEW | DONE | DONE_UNBOOKED */
+  /** NONE | HAS_CREATED | FORCED | FORCED_UNBOOKED | SUBMITTED | IN_REVIEW | DONE | DONE_UNBOOKED */
   @Field()
   state: string
 
@@ -52,6 +54,14 @@ export class FirstCreationStatus {
    */
   @Field()
   skippedBefore: boolean
+
+  /**
+   * Whom to offer thanks to once the bundle is thanked (ZE-007): the alias of the member who
+   * brought this one here, or null. Answered for a settled process only -- the moment the
+   * window shows the button -- so the window asks no second query for it.
+   */
+  @Field(() => String, { nullable: true })
+  referrerAlias: string | null
 
   /** ES-014 — whether this server offers the function-test area at all. */
   @Field()

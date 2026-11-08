@@ -29,6 +29,8 @@ export const createUserContribution = async (
   user: DbUser,
   { amount, memo, contributionDate, creationGroups }: ContributionArgs,
   clientTimezoneOffset: number,
+  /** Part of the member's first creation (ES-002): the window files through here and marks its bundle. */
+  firstCreation = false,
 ): Promise<DbContribution> => {
   const creations = await getUserCreation(user.id, clientTimezoneOffset)
   const logger = createLogger()
@@ -56,6 +58,7 @@ export const createUserContribution = async (
   // or not a group was chosen -- that is what tells "deliberately no group" apart from
   // "never said anything".
   contribution.creationGroupsSetAt = new Date()
+  contribution.firstCreation = firstCreation
 
   logger.trace('contribution to save', contribution)
   await DbContribution.save(contribution)

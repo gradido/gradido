@@ -63,4 +63,8 @@ export class ContributionMessage extends BaseEntity {
 
   @Column({ name: 'is_moderator', type: 'bool', nullable: false, default: false })
   isModerator: boolean
+
+  // The language model whose words this message carries, by name; NULL where a person wrote it.
+  @Column({ name: 'ai_model', type: 'varchar', length: 64, nullable: true, default: null })
+  aiModel: string | null
 }

@@ -168,7 +168,10 @@ describe('EventMatchingLanding', () => {
         'event-matching-register',
         'event-matching-login',
       ])
-      expect(buttons.map((b) => b.text())).toEqual(['Konto anlegen', 'Ich habe schon ein Konto'])
+      expect(buttons.map((b) => b.text())).toEqual([
+        'Konto anlegen',
+        'Ich habe schon ein Gradido-Konto',
+      ])
     })
 
     // The store holds the entry (routes/guards.js). The link's parameters mean something here

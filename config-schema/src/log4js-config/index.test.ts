@@ -23,4 +23,21 @@ describe('createLog4jsConfig', () => {
       },
     })
   })
+
+  it('writes every level of a category to stdout', () => {
+    const config = createLog4jsConfig([defaultCategory('test', 'debug')])
+    expect(config.categories.test.appenders).toEqual(['test', 'out', 'errors'])
+  })
+
+  it('writes a category with a stdout level to stdout only from that level on', () => {
+    const config = createLog4jsConfig([
+      { ...defaultCategory('apollo', 'info'), stdoutLevel: 'warn' },
+    ])
+    expect(config.categories.apollo.appenders).toEqual(['apollo', 'out-warn', 'errors'])
+    expect(config.appenders['out-warn']).toEqual({
+      type: 'logLevelFilter',
+      level: 'warn',
+      appender: 'out',
+    })
+  })
 })

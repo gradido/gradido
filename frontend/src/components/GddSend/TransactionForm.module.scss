@@ -1,0 +1,142 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: tabSwitches.spec.js reads this file and strips those.
+
+   Under the root class: the scoped rules these were had one level more (the scope attribute).
+
+   Gone with the move out of the .vue file: its rules for `span.errors`, `#input-1..3:focus`,
+   `.border-radius`, `label`, `.form-check-*`, `.transaction-form-radio*` and
+   `label.form-check-label`. Scoped, they reached the form's own elements only, and the form has
+   none of those any more; as rules of a module they would reach into every field under it. */
+
+/* What the smiley of the message is placed in (EmojiPicker, `corner`): its upper right corner
+   is the end of the label's line, and the choice hangs from it. */
+.transactionForm .memoWithEmoji {
+  position: relative;
+}
+
+/* The field that leads to the thank-you greeting: a small motif, two lines and a link, in a
+   fine frame of the house's gold. No ground of its own, so it reads in both themes. */
+.transactionForm .greetingEntry {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1.5px solid #c58d38;
+  border-radius: 18px;
+}
+
+/* The motif at its own proportions; its ground is light in both themes. */
+.transactionForm .greetingEntryMotif {
+  flex-shrink: 0;
+  width: 104px;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+}
+
+.transactionForm .greetingEntryText {
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.transactionForm .greetingEntryTitle {
+  font-weight: 700;
+}
+
+.transactionForm .greetingEntryLead {
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1.4;
+}
+
+/* The link with the height a thumb needs: BLink renders the anchor, with the class it is given. */
+.transactionForm .greetingEntry .greetingEntryLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 700;
+}
+
+/* ⛔ The switch between the three tabs, to the end of this file: one style with the switch of
+   the contribution pages (Contributions/NavContributions.vue), held by tabSwitches.spec.js,
+   which reads from the rule of the frame to the end of the file. Nothing goes under it. */
+
+/* The gap between an icon and its word, where this switch has one: 5px beside the coin, 3px
+   beside the letter, as the two icons carried it as a margin of their own before. A phone
+   takes it away again (below), which a margin written on the element would not allow. */
+.transactionForm .navSendBtnWrapper > :global(:first-child) {
+  --tab-icon-gap: 5px;
+}
+
+.transactionForm .navSendBtnWrapper > :global(:last-child) {
+  --tab-icon-gap: 3px;
+}
+
+.transactionForm .navSendBtnWrapper {
+  background-color: #d1d1d1;
+
+  > :global(*) {
+    width: calc(100% / 3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.15;
+    color: black !important;
+    border-radius: 25px;
+
+    /* Where a label needs two lines or more, lines of about the same length ("Link, Scheck, /
+       QR, Gruß", not "Link, Scheck, QR, / Gruß"), as on the other centred texts of the wallet
+       (RedeemThanks.vue). A browser that does not know the value wraps as before. */
+    text-wrap: balance;
+
+    /* 8px at each side, for the active tab as for the others (it was 20px, from .btn and from
+       the active rule below): of a third of a phone, 42px were padding and border. */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  /* An icon keeps its size. Left to shrink, it gave way as soon as the word needed the room:
+     on a phone to a few pixels or to nothing, in every language. The gap to the word is the
+     tab's own (`--tab-icon-gap`), none where it is not set. */
+  :global(.svg-icon) {
+    flex-shrink: 0;
+    margin-right: var(--tab-icon-gap, 0);
+  }
+}
+
+.transactionForm :global(.svg-icon) {
+  filter: brightness(0) invert(0);
+}
+
+.transactionForm :global(.router-link-active) {
+  background-color: rgb(23 141 129);
+  color: white !important;
+  font-weight: bold;
+  padding: 0.625rem 8px;
+  border-radius: 25px;
+}
+
+.transactionForm :global(.router-link-active .svg-icon) {
+  filter: brightness(0) invert(1);
+}
+
+/* On a phone the word stands under the icon in all three tabs, as in the tab bar of the
+   matching page (pages/Matching.vue) -- three tab bars, one form. The font size stays. The
+   icon stands in the middle there, so its gap to the word beside it does not apply. */
+@media (width <= 575.98px) {
+  .transactionForm .navSendBtnWrapper {
+    > :global(*) {
+      flex-direction: column;
+      row-gap: 3px;
+    }
+
+    :global(.svg-icon) {
+      margin-right: 0;
+    }
+  }
+}

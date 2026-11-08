@@ -98,4 +98,9 @@ export class ContributionMessageBuilder {
     this.contributionMessage.isModerator = value
     return this
   }
+
+  public setAiModel(aiModel: string | null): this {
+    this.contributionMessage.aiModel = aiModel
+    return this
+  }
 }

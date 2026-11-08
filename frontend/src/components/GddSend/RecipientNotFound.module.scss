@@ -1,0 +1,32 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Under the root class: the scoped rules these were had one level more (the scope attribute). */
+
+/* A heading is no control: it takes the focus for the screen reader, and shows no frame for it. */
+.recipientNotFound .recipientNotFoundTitle {
+  outline: none;
+}
+
+.recipientNotFound .recipientNotFoundIdentifier {
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* A door: its sentence, and under it its button. */
+.recipientNotFound .recipientNotFoundDoor {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+}
+
+/* As wide as the card on a phone and no wider than the buttons of "Fertig" (ThankYouGreetingDone),
+   in the middle. */
+.recipientNotFound .recipientNotFoundButton {
+  align-self: center;
+  width: min(24rem, 100%);
+}
+
+.recipientNotFound .recipientNotFoundBack {
+  text-align: center;
+}

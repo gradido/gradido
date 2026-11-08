@@ -221,10 +221,9 @@ mutation markTransferSeen($transactionId: Int!) {
 # nothing was sent.
 #
 # `image` (P7): one picture with the message, the JPEG as base64 and its size in whole pixels
-# (utils/chatImage); with it the text may be empty. ⛔ The variable is called `$image` -- the name
-# the backend's request log masks (LOG-071). Refused as CHAT_IMAGE_NOT_ACCEPTED: EMPTY | TOO_LARGE |
-# NOT_JPEG | SIZE, or, to another community, CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER (the
-# text is too long to go with it). `images` on the copy names the picture as it was filed.
+# (utils/chatImage); with it the text may be empty. Refused as CHAT_IMAGE_NOT_ACCEPTED: EMPTY |
+# TOO_LARGE | NOT_JPEG | SIZE, or, to another community, CHAT_MESSAGE_NOT_SENT:
+# TOO_LARGE_ACROSS_BORDER (the text is too long to go with it). `images` on the copy names the picture as it was filed.
 #
 # `replyTo`: the uuid of the message of this conversation the message answers. Refused as
 # CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY where it is none the sender can read there.
@@ -342,9 +341,6 @@ mutation forwardChatMessage(
 # as it stands then -- the shape of every message, so it takes the old one's place in the thread
 # as it is. The subject of a letter and a picture stay; of a message with a picture the caption
 # changes, and may be emptied. No mail goes out.
-#
-# ⛔ The variable is called `$body` -- the name the backend's request log masks, as for a message
-# being sent.
 #
 # Refused as CHAT_MESSAGE_NOT_EDITED, and nothing changes: UNKNOWN_MESSAGE | NOT_OWN | FORWARDED |
 # EMPTY | OTHER_COMMUNITY (a group with members elsewhere) | NOT_STORED. To a member of another

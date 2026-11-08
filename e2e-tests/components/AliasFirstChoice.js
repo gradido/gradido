@@ -3,7 +3,8 @@
 /** @typedef {import('@playwright/test').Page} Page */
 
 // The window a new member gets on the first login, asking them to keep or change the username
-// suggested for them. It covers the page until it is answered.
+// suggested for them. It covers the page until it is answered -- every page but the settings,
+// where the name is changed anyway (NU-025).
 export class AliasFirstChoice {
   /** @param {Page} page */
   constructor(page) {

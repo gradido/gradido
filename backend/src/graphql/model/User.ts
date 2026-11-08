@@ -1,7 +1,7 @@
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
 import { PublishNameType } from '@enum/PublishNameType'
 import { isLegacyUser } from 'core'
-import { DbLoginUser, User as LegacyUser } from 'database'
+import { DbLoginUser, FirstCreationStatus, User as LegacyUser } from 'database'
 import { avatarColorIndex } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
@@ -85,6 +85,7 @@ export class User {
       this.aboutMe = dbUser.aboutMe
       this.avatarVisibleToMembers = dbUser.avatarVisibleToMembers
       this.creationAllowed = dbUser.creationAllowed
+      this.firstCreationStatus = dbUser.firstCreationStatus
       this.transfersInChat = dbUser.transfersInChat
       // Not on the user row either. Whoever assembles a list of members fills it in one
       // batch; null until then, and null for good where there is nothing to show.
@@ -226,6 +227,15 @@ export class User {
   // the user row, never this field.
   @Field(() => Boolean)
   creationAllowed: boolean
+
+  // Where the member's own first creation stands (ES-002): null until they are first asked,
+  // then a FirstCreationStatus. Carried by the login and verifyLogin so the wallet knows
+  // without a query of its own whether the window might still open -- a settled state, or a
+  // member who found the regular path on their own (HAS_CREATED), ends the asking. Own view
+  // only, guarded by a field resolver in UserResolver like the switches above: where
+  // somebody stands with their first creation is nobody else's to read.
+  @Field(() => String, { nullable: true })
+  firstCreationStatus: FirstCreationStatus | null
 
   // Own view only, the next three: guarded with the four settings above.
   @Field(() => PublishNameType, { nullable: true })

@@ -23,7 +23,7 @@ vi.mock('vue', async () => {
 })
 
 vi.mock('@/pages/Send', () => ({
-  default: { name: 'Send' },
+  Send: { name: 'Send' },
 }))
 
 vi.mock('@/pages/Transactions', () => ({

@@ -176,6 +176,7 @@ import ChatBubble from '@/components/Chat/ChatBubble.vue'
 import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
 import ChatImageView from '@/components/Chat/ChatImageView.vue'
 import { openChatImageView, rememberChatImage } from '@/composables/useChatImages'
+import { noteChatMessageSent } from '@/composables/useChatSent'
 import { useChatTransfers } from '@/composables/useChatTransfers'
 import { useOwnTransfers } from '@/composables/useOwnTransfers'
 import { useChatThreadSearch } from '@/composables/useChatThreadSearch'
@@ -1783,9 +1784,7 @@ const noticeFor = (own) => {
  * status says what became of it. Never throws: `{ own, refusal }` -- the server's copy, or null
  * where it gave none, and then what the refusal was about where it was about a picture.
  *
- * A picture (P7) goes as `$image` -- ⛔ the name the backend's request log masks (LOG-071): under
- * any other name some 44,000 characters of it would be written to the log with every message.
- * Without one, no `image` at all, rather than a null nobody asked for. The same for `replyTo`,
+ * A picture (P7) goes as `$image`. Without one, no `image` at all, rather than a null nobody asked for. The same for `replyTo`,
  * the uuid of the message an answer quotes.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
@@ -1809,6 +1808,8 @@ const post = async ({ body, notify, image = null, replyTo = null }) => {
   sentNotice.value = ''
   // Whoever writes wants to see what they wrote: back to the bottom, even from further up.
   followNewest = true
+  // Who writes it: what the overview hears below is said for this member only.
+  const writer = store.gradidoID
   try {
     const answer = await sendToServer(
       {
@@ -1834,6 +1835,14 @@ const post = async ({ body, notify, image = null, replyTo = null }) => {
     )
     const own = answer?.data?.[THREAD.copy] ?? null
     if (own) sentNotice.value = noticeFor(own)
+    // A message to this person that the server took -- a copy that came back not delivered across
+    // the border as well: it is stored, and the server counts it as an answer to a thank-you of
+    // theirs (F E-046). The tile "Dein Dank ist da." under a window over the overview hears it
+    // (useChatSent). Never a group's message: a group is no answer to one person. And only while
+    // the member who wrote it is the one signed in: a device can change hands while a message is
+    // on its way -- signing out reloads nothing --, and the next member's tile would lose a
+    // thank-you from the same person.
+    if (own && !inGroup && store.gradidoID === writer) noteChatMessageSent(memberRef)
     return { own, refusal: null }
   } catch (error) {
     return { own: null, refusal: chatImageRefusal(error) }
@@ -1978,7 +1987,7 @@ const stopEdit = () => {
  * through, else what the problem was (chatEditProblem). The other members get the new text with
  * their beat.
  *
- * ⛔ The text goes as `$body` -- the name the backend's request log masks.
+ * The text goes as `$body`.
  *
  * ⛔ `no-cache`, and the copy into the page by the way every change goes (`takeChatEdits`).
  * Apollo would write the answer into the cache by itself -- the message is known there by its id

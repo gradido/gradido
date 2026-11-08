@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
 import { LINK_VALID_DAYS } from '@/constants'
-import RecipientNotFound from './RecipientNotFound.vue'
+import { RecipientNotFound } from './RecipientNotFound'
 
 const COMMUNITY = 'Gradido-Akademie'
 const ADDRESS = 'sarah@kongress-beispiel.de'
@@ -64,7 +64,7 @@ describe('RecipientNotFound', () => {
       )
       expect(data('choose-community').text()).toBe('Gemeinschaft wählen')
       expect(data('by-email').text()).toBe(
-        `Du kannst Deinen Dank trotzdem schicken, per E-Mail: Gradido legt dafür einen Link an, der ${LINK_VALID_DAYS} Tage wartet. Wer ihn öffnet, nimmt den Dank in sein Konto — oder legt sich gleich dort eines an.`,
+        `Du kannst Deinen Dank auch per E-Mail schicken. Gradido legt dafür einen Link an, der ${LINK_VALID_DAYS} Tage wartet. Wer ihn öffnet, nimmt den Dank in sein Konto — oder legt sich gleich dort eines an.`,
       )
       expect(data('send-by-email').text()).toBe('Dank per E-Mail schicken')
       expect(data('change').text()).toBe('Adresse ändern')

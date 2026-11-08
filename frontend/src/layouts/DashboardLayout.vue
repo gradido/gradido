@@ -219,6 +219,18 @@
             <BCol cols="12">
               <!-- router-view -->
               <div class="main-content" :class="[contentGap, contentLift]">
+                <!-- EM-014: inside the 24 hours the address reminder stands here, at the top of
+                     the page and not over it. Where the page begins, so it takes the page's own
+                     distance above it -- under the balance cards and under the heading alike --
+                     and, on the desk, the calculator's place in the heading's row with it
+                     (`contentLift`): a block of its own above this one would be overlapped by
+                     the lifted page. Outside the fade, so it does not flicker with each route.
+                     ⚠️ The price: on a phone the panel a route puts above its page (the
+                     favourites over the send form, the notes over the contributions and the
+                     matching) stands above the strip. `chromeHidden` as for the header: where a
+                     route takes the whole screen -- the map, the till tools on a phone -- there is
+                     no strip either. -->
+                <email-confirmation-strip :class="chromeHidden" />
                 <transition-fade :duration="200" mode="out-in">
                   <router-view
                     ref="router-view"
@@ -330,6 +342,7 @@ import SessionLogoutTimeout from '@/components/SessionLogoutTimeout'
 import AliasFirstChoice from '@/components/AliasFirstChoice'
 import AvatarZoom from '@/components/Avatar/AvatarZoom.vue'
 import EmailConfirmationReminder from '@/components/EmailConfirmationReminder'
+import EmailConfirmationStrip from '@/components/EmailConfirmationStrip.vue'
 import EventMatchingHomeInvitation from '@/components/EventMatchingHomeInvitation.vue'
 import FirstCreation from '@/components/FirstCreation.vue'
 import ContentFooter from '@/components/ContentFooter'

@@ -75,6 +75,11 @@ fragment transactionFields on Transaction {
   # the recipient's own row alone, and no screen decides it (setTransactionReaction below).
   reaction
   canReact
+  # Whether the member answered this thank-you since it came -- wrote its giver a message in
+  # their conversation, or sent them Gradido, after it (F E-046). True only on a row `canReact`
+  # is true for, false on every other one; the server alone decides it. What the tile "Dein Dank
+  # ist da." on the overview reads to leave an answered thank-you out (utils/thanksNudge).
+  answered
 }
 
 # The booking list itself, one page at a time (Transactions.vue). `counterparty` narrows it

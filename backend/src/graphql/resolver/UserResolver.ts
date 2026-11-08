@@ -72,6 +72,7 @@ import {
   drizzleDb,
   EventType,
   emailContactByUserIdQuery,
+  FirstCreationStatus,
   findUserByIdentifier,
   getCommunityByUuid,
   getHomeCommunity,
@@ -446,12 +447,12 @@ export class UserResolver {
       infos.push(`project=${args.project}`)
     }
     // That a guarantor code came along, never the code itself: for ten minutes it vouches for an
-    // account in a member's name. The request log masks it too (filterVariables).
+    // account in a member's name. The request log writes no variables.
     if (args.guarantorCode) {
       infos.push('guarantorCode')
     }
     // That an event link's entry came along, never its words: an interest named beside an
-    // address says something about the person. The request log masks it too (filterVariables).
+    // address says something about the person. The request log writes no variables.
     if (args.eventMatchingEntry) {
       infos.push('eventMatchingEntry')
     }
@@ -1880,6 +1881,19 @@ export class UserResolver {
       return null
     }
     return user.transfersInChat ?? null
+  }
+
+  /**
+   * Where the member's own first creation stands (ES-002), for the window to know whether it
+   * has to ask at all. Guarded like the two above: null for everybody but the member, and
+   * somebody has to be asking.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  firstCreationStatus(@Root() user: User, @Ctx() context: Context): FirstCreationStatus | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.firstCreationStatus ?? null
   }
 
   /**

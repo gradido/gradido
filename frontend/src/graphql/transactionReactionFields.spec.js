@@ -140,9 +140,7 @@ describe('the reaction to a transfer, as the wallet sends it', () => {
     expect(field.selectionSet).toBeUndefined()
   })
 
-  // ⛔ The server's request log leaves a variable called `emoji` out (filterVariables in the
-  // backend's plugins): under another name the reaction would stand in the log with the booking.
-  it('names the emoji `emoji`, the name the server’s request log leaves out', () => {
+  it('names the emoji `emoji`', () => {
     expect(mutation.variableDefinitions.map((d) => d.variable.name.value)).toContain('emoji')
     expect(code('../composables/useTransactionReactions.js')).toMatch(
       /variables: \{ transactionId, emoji: wanted \}/,

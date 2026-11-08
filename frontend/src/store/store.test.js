@@ -24,6 +24,7 @@ import {
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,
+  holdAccountWindowsForThisSession,
   holdFirstCreationForThisSession,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
@@ -303,9 +304,9 @@ describe('Pinia store', () => {
         darkMode: true,
       }
 
-      it('calls twenty-three setters', () => {
+      it('calls twenty-four setters', () => {
         wallet.login(commitedData)
-        expect(calls).toHaveLength(23)
+        expect(calls).toHaveLength(24)
       })
 
       /**
@@ -354,6 +355,19 @@ describe('Pinia store', () => {
         localCalls.length = 0
         wallet.login(commitedData)
         expect(localCalls).toContainEqual(['setCreationAllowed', null])
+      })
+
+      // ES-002: the first-creation window asks its own status query only while this says it
+      // might still open. An answer without the field lands as null -- "not asked yet", which
+      // is the one state that keeps asking -- never undefined, which would leave the PREVIOUS
+      // member's state in the persisted store.
+      it('stores where the first creation stands, and null where the answer does not say', () => {
+        const localCalls = settersOf(wallet)
+        wallet.login({ ...commitedData, firstCreationStatus: 'DONE' })
+        expect(localCalls).toContainEqual(['setFirstCreationStatus', 'DONE'])
+        localCalls.length = 0
+        wallet.login(commitedData)
+        expect(localCalls).toContainEqual(['setFirstCreationStatus', null])
       })
 
       // The transfers in the conversations (Einstellungen › Nachrichten): the member's own
@@ -465,6 +479,23 @@ describe('Pinia store', () => {
           forgetFirstLoginWindows()
         })
 
+        // E-044: what a thank-you held back -- the name and the first creation -- comes at the
+        // next sign-in, the name first.
+        it('lets the name and the first creation come that waited behind a thank-you', () => {
+          holdAccountWindowsForThisSession()
+          setFirstLoginWindowWanted('alias', true)
+          setFirstLoginWindowWanted('firstCreation', true)
+          // The fixture proves itself: both wait.
+          expect(firstLoginWindow.value).toBeNull()
+
+          wallet.login(commitedData)
+
+          expect(firstLoginWindow.value).toBe('alias')
+          setFirstLoginWindowWanted('alias', false)
+          expect(firstLoginWindow.value).toBe('firstCreation')
+          forgetFirstLoginWindows()
+        })
+
         it('lets go of the event link of the session before, and of its answered invitation', () => {
           eventLinkUnderway(member.value)('Kongress Frequency Healing')
           eventLinkUnderway(member.value)
@@ -527,9 +558,9 @@ describe('Pinia store', () => {
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
-      it('calls twenty-seven setters', () => {
+      it('calls twenty-eight setters', () => {
         wallet.logout()
-        expect(calls).toHaveLength(27)
+        expect(calls).toHaveLength(28)
       })
 
       // What an event link offered goes with whoever signs out, like the publisher's id. (For
@@ -543,6 +574,12 @@ describe('Pinia store', () => {
       it('forgets the switch for the transfers in the conversations', () => {
         wallet.logout()
         expect(calls).toContainEqual(['setTransfersInChat', null])
+      })
+
+      // The next member on this device starts from "not asked yet", not from the last one's state.
+      it('forgets where the first creation stands', () => {
+        wallet.logout()
+        expect(calls).toContainEqual(['setFirstCreationStatus', null])
       })
 
       // ... (other logout action tests remain largely the same)

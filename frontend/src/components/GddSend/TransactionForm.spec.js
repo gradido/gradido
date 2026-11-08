@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import TransactionForm from './TransactionForm'
+import { TransactionForm } from './TransactionForm'
 import { nextTick, reactive, ref } from 'vue'
 import { SEND_TYPES } from '@/utils/sendTypes'
 import {
@@ -15,6 +15,18 @@ import {
 } from 'bootstrap-vue-next'
 import { useRoute } from 'vue-router'
 import { walletStore } from '@test/walletStore'
+
+// The form translates through `useI18n` (no template to reach `$t` in): the same stand-ins as
+// `mocks` below hand to what still reads them there.
+const { mockT, mockN } = vi.hoisted(() => ({
+  mockT: vi.fn((key) => key),
+  mockN: vi.fn((n) => String(n)),
+}))
+vi.mock('vue-i18n', async (importOriginal) => ({
+  // the store the form asks (useLinkDraft) loads the wallet's own i18n, made with `createI18n`
+  ...(await importOriginal()),
+  useI18n: () => ({ t: mockT, n: mockN, locale: 'en' }),
+}))
 
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({
@@ -60,9 +72,6 @@ const PictureFieldStub = {
 
 describe('TransactionForm', () => {
   let wrapper
-
-  const mockT = vi.fn((key) => key)
-  const mockN = vi.fn((n) => String(n))
 
   const createWrapper = (props = {}) => {
     return mount(TransactionForm, {

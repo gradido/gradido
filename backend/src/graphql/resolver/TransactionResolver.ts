@@ -21,6 +21,7 @@ import {
 } from 'core'
 import {
   AppDatabase,
+  ChatMemberRef,
   ChatMessageNotify,
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
@@ -30,6 +31,8 @@ import {
   dbInsertEvent,
   dbInsertTransactionPassOn,
   dbInsertTransactionPicture,
+  dbSelectLastOwnDirectMessageAtByPartner,
+  dbSelectLastSentToByUser,
   dbSelectThankYouCardLabels,
   dbSelectThankYouGreetingsByLinkIds,
   dbSelectTransactionPictureHeads,
@@ -62,6 +65,7 @@ import { In, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { answeredOfBooking, ThanksAnswers, thanksPartnerIdsOf } from '@/data/ThanksAnswer.logic'
 import { greetingLinkIdsOf, greetingOfBooking } from '@/data/Transaction.logic'
 import {
   TRANSACTION_PICTURES_MAX_PER_REQUEST,
@@ -86,7 +90,7 @@ import {
   deliverChatMessageAcrossBorder,
   deliverChatMessageLocally,
 } from './util/chatMessageDelivery'
-import { acceptedPicture } from './util/chatRequest'
+import { acceptedPicture, callerOf } from './util/chatRequest'
 import { getCommunityName, isHomeCommunity } from './util/communities'
 import {
   bookingCounterparty,
@@ -660,11 +664,47 @@ export class TransactionResolver {
     const membersHere: ReadonlySet<number> = new Set(
       involvedUsers.filter((involved) => !involved.foreign).map((involved) => involved.id),
     )
-    const reactions = new Map(
-      (await dbSelectTransactionReactions(reactionKeysOf(userTransactions, membersHere))).map(
-        (found) => [found.transactionId, found] as const,
+    /**
+     * Whether the member answered the thank-yous on this page (F E-046): when they last wrote to
+     * and last sent to each giver, asked for all givers at once -- side by side with the
+     * reactions, as none of the three waits for another (this list is the busiest screen in the
+     * wallet). A page without a thank-you the member may react to asks neither of the two:
+     * thanksPartnerIdsOf is empty, and both queries answer an empty list without a statement.
+     *
+     * The givers are members of this server, so their pairs come off the rows fetched above, and
+     * the messages' answer is matched back to their `users` ids without regard to case, the way
+     * the chat's tables compare a pair. Which booking was answered is the rule of
+     * ThanksAnswer.logic.
+     */
+    const partnerIds = thanksPartnerIdsOf(userTransactions, membersHere)
+    const partners = involvedDbUsers
+      .filter((involved) => partnerIds.includes(involved.id))
+      .map((involved) => ({
+        id: involved.id,
+        pair: { communityUuid: involved.communityUuid, gradidoId: involved.gradidoID },
+      }))
+    const pairKey = (pair: ChatMemberRef) => `${pair.communityUuid}/${pair.gradidoId}`.toLowerCase()
+    const partnerIdByPair = new Map(partners.map(({ id, pair }) => [pairKey(pair), id] as const))
+    const [reactionRows, lastOwnMessages, lastSendings] = await Promise.all([
+      dbSelectTransactionReactions(reactionKeysOf(userTransactions, membersHere)),
+      dbSelectLastOwnDirectMessageAtByPartner(
+        callerOf(context),
+        partners.map(({ pair }) => pair),
       ),
-    )
+      dbSelectLastSentToByUser(user.id, partnerIds),
+    ])
+    const reactions = new Map(reactionRows.map((found) => [found.transactionId, found] as const))
+    const answers: ThanksAnswers = {
+      lastOwnMessageAt: new Map(
+        lastOwnMessages.flatMap(({ partner, lastOwnMessageAt }) => {
+          const id = partnerIdByPair.get(pairKey(partner))
+          return id === undefined ? [] : [[id, lastOwnMessageAt] as const]
+        }),
+      ),
+      lastSentAt: new Map(
+        lastSendings.map(({ linkedUserId, lastSentAt }) => [linkedUserId, lastSentAt] as const),
+      ),
+    }
 
     // transactions
     userTransactions.forEach((userTransaction: dbTransaction) => {
@@ -710,6 +750,7 @@ export class TransactionResolver {
           pictureHead ? new TransactionPicture(pictureHead) : null,
           reactionOfBooking(userTransaction, membersHere, reactions),
           canReactToBooking(userTransaction, membersHere),
+          answeredOfBooking(userTransaction, membersHere, answers),
         ),
       )
     })

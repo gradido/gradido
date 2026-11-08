@@ -7,12 +7,14 @@ export const adminCreateContributionMessage = gql`
     $message: String!
     $messageType: ContributionMessageType
     $resubmissionAt: String
+    $aiModel: String
   ) {
     adminCreateContributionMessage(
       contributionId: $contributionId
       message: $message
       messageType: $messageType
       resubmissionAt: $resubmissionAt
+      aiModel: $aiModel
     ) {
       id
       message
