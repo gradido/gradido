@@ -173,7 +173,7 @@ async function federatedCommunityGetInfoCheckPublicKey(fedComB: FederatedCommuni
   logger.addContext('apiUrl', fedComB.endPoint)
 
   // the announced public key as a key pair, as soon as it is used as a key
-  const peerClient = ApiClientCache.getInstance().get(
+  const peerClient = ApiClientCache.getInstance().getByUrl(
     fedComB.endPoint,
     new Ed25519KeyPair(fedComB.publicKey),
   )

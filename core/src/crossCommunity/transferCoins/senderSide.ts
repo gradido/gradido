@@ -15,7 +15,7 @@ import {
   UserPublicInfo,
   userPublicInfoSchema,
 } from 'shared'
-import { Ed25519KeyPair, MonotonicTimer, X25519KeyPair } from 'shared-native'
+import { MonotonicTimer } from 'shared-native'
 import * as v from 'valibot'
 import { CONFIG as CONFIG_CORE } from '../../config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../config/const'
@@ -80,11 +80,7 @@ export async function processXComCompleteTransaction(
       memo,
       transactionLinkId: transactionLink?.id,
     })
-    const client = ApiClientCache.getInstance().get(
-      recipientCom.url,
-      new Ed25519KeyPair(recipientCom.publicKey),
-      new X25519KeyPair(recipientCom.publicEncryptionKey),
-    )
+    const client = ApiClientCache.getInstance().get(recipientCom)
     const pendingResult = await processXComPendingSendCoins(client, tx, sender.id)
     if (!pendingResult.success) {
       logger.warn(pendingResult.error.message)
@@ -95,11 +91,14 @@ export async function processXComCompleteTransaction(
       throw new Error(genericTransactionFailedMessage)
     }
     const foreignUser = pendingResult.value
-    if (foreignUser.communityUuid !== client.communityUuid || foreignUser.communityUuid !== recipientCom.communityUuid) {
+    if (
+      foreignUser.communityUuid !== client.communityUuid ||
+      foreignUser.communityUuid !== recipientCom.communityUuid
+    ) {
       logger.error(`recipient user community uuid and recipient community uuid not match`, {
         foreignUserComUuid: foreignUser.communityUuid,
         clientComUuid: client.communityUuid,
-        recipientComUuid: recipientCom.communityUuid
+        recipientComUuid: recipientCom.communityUuid,
       })
       throw new Error(genericTransactionFailedMessage)
     }
@@ -206,7 +205,9 @@ async function processXComPendingSendCoins(
     const insertResult = await dbInsertPendingTransaction(
       mapToPendingTx(txData, senderBalance.value, recipientUser, userId, TransactionTypeId.SEND),
     )
-    if (!insertResult.success) { throw insertResult }
+    if (!insertResult.success) {
+      throw insertResult
+    }
   } catch (err) {
     // revert the existing pending transaction on receiver side
     let revertCount = 0
