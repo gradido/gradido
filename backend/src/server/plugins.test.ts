@@ -1,352 +1,114 @@
 // AI-GENERATED — not an architecture reference
-import { inspect } from 'node:util'
+import { parse } from 'graphql'
 import { newRequestBudget } from './context'
 import { logPlugin } from './plugins'
 
-/**
- * Everything the request log hands the logger when a request starts, written out as the log
- * would write it: strings as they are, objects through inspect.
- */
-const logged = (
-  variables: Record<string, unknown>,
-  query = 'mutation ($x: String!) { x(y: $x) }',
-): string => {
-  const logger = { debug: jest.fn(), info: jest.fn() }
-  logPlugin.requestDidStart({
-    logger,
-    request: { query, variables, operationName: null },
+/** What the request log writes at level info for one request, line by line. */
+const summary = async ({
+  document,
+  variables = {},
+  operationName = null,
+  user,
+  errors,
+}: {
+  document?: string
+  variables?: Record<string, unknown>
+  operationName?: string | null
+  user?: { id: number }
+  errors?: unknown[]
+}): Promise<string[]> => {
+  const logger = {
+    info: jest.fn(),
+    trace: jest.fn(),
+    error: jest.fn(),
+    isTraceEnabled: () => false,
+  }
+  const request = { query: document, variables, operationName }
+  const hooks = await logPlugin.requestDidStart({ logger, request })
+  await hooks.willSendResponse({
+    request,
+    operationName,
+    // Apollo sets the operation once the document is parsed and validated.
+    operation: document ? parse(document).definitions[0] : undefined,
+    contextValue: { user },
+    response: {
+      body: { kind: 'single', singleResult: errors ? { errors } : { data: { x: true } } },
+    },
   })
-  return [...logger.debug.mock.calls, ...logger.info.mock.calls]
-    .map((args) =>
-      args
-        .map((arg: unknown) => (typeof arg === 'string' ? arg : inspect(arg, { depth: 5 })))
-        .join(' '),
-    )
-    .join('\n')
+  return logger.info.mock.calls.map((args) => args.join(' '))
 }
 
-const ROOM = 'https://meet.example.org/k7m2x9q4t8wz'
-
 describe('the request log', () => {
-  it('writes no chat message -- the text may hold the address of a video room', () => {
-    const text = logged({
-      ref: { communityUuid: 'c', gradidoID: 'g' },
-      body: `Video call: ${ROOM}`,
-      notify: 'EMAIL',
+  it('writes one line per request: the root fields, the member, the time, the outcome', async () => {
+    const lines = await summary({
+      document:
+        'mutation ($email: String!, $password: String!) { login(email: $email, password: $password) { id } }',
+      variables: { email: 'anna@example.org', password: 'Aa12345_' },
+      user: { id: 101 },
     })
-    expect(text).not.toContain('k7m2x9q4t8wz')
-    expect(text).toContain('"body": "***"')
-    // The rest of the request is still there to read.
-    expect(text).toContain('"notify": "EMAIL"')
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatch(/^mutation login user=101 \d+ms ok$/)
   })
 
-  it("writes no letter's subject", () => {
-    const text = logged({
-      recipientIdentifier: 'g',
-      subject: 'About Saturday',
-      memo: 'Shall we meet at ten?',
+  // Neither the document nor the variables: what members write stays out of the log, whatever
+  // the variable is called.
+  it('writes neither the document nor its variables', async () => {
+    const [line] = await summary({
+      document:
+        'mutation ($anyName: String!) { sendChatMessage(body: $anyName, inline: "Ottilie") { id } }',
+      variables: { anyName: 'Meet me at ten' },
     })
-    expect(text).not.toContain('About Saturday')
-    expect(text).toContain('"subject": "***"')
+    expect(line).not.toContain('Meet me')
+    expect(line).not.toContain('Ottilie')
+    expect(line).not.toContain('$anyName')
   })
 
-  // P5: the name of a group can say who is in it -- and the text of its messages is a `body`.
-  it("writes no chat group's name", () => {
-    const text = logged({
-      title: 'Selbsthilfe Trauer Amstetten',
-      members: [{ communityUuid: 'c', gradidoID: 'g' }],
+  it('names every root field, an alias by the field it stands for', async () => {
+    const [line] = await summary({
+      document: 'query { a: balance { x } b: balance { x } transactionList { x } }',
     })
-    expect(text).not.toContain('Trauer')
-    expect(text).toContain('"title": "***"')
-    expect(text).toContain('"gradidoID": "g"')
+    expect(line).toMatch(/^query balance,balance,transactionList user=- /)
   })
 
-  // A reaction is what one member says to the others of a conversation, as a message's words
-  // are: which message stays readable, and whether a reaction is set or taken back -- which
-  // emoji does not. (Found by the second reader, 11.10.2026: the resolver's own line left the
-  // emoji out, and this one wrote it, with the member's id in the line after.)
-  it('writes no emoji a member reacts with, and still whether one is set or taken back', () => {
-    const set = logged({ messageUuid: '0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e', emoji: '❤️' })
-    expect(set).not.toContain('❤')
-    expect(set).toContain('"emoji": "***"')
-    expect(set).toContain('"messageUuid": "0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e"')
-
-    const takenBack = logged({ messageUuid: '0b6f7a3e-5d0c-4c1b-9d7a-0f6a1c2b3d4e', emoji: null })
-    expect(takenBack).toContain('"emoji": null')
-    expect(takenBack).not.toContain('***')
-  })
-
-  // A member's own note on a person or a group is theirs alone: what it is about stays readable,
-  // the words do not.
-  it("writes no member's own note, and still whom it is about", () => {
-    const text = logged({
-      about: { member: { communityUuid: 'c', gradidoID: 'g' } },
-      note: 'Anna Sonnenberg, Imkerin aus Pankow',
+  it('says where the answer carries errors', async () => {
+    const [line] = await summary({
+      document: 'query { balance { x } }',
+      errors: [{ message: 'x' }],
     })
-    expect(text).not.toContain('Sonnenberg')
-    expect(text).toContain('"note": "***"')
-    expect(text).toContain('"gradidoID": "g"')
+    expect(line).toMatch(/ errors$/)
   })
 
-  // The moderation's remark on a member is for the moderators alone: whom it is about stays
-  // readable, the words do not.
-  it('writes no remark of the moderation, and still whom it is about', () => {
-    const text = logged({ userId: 101, remark: 'Bürgermeisterin von Lieblingsstadt' })
-    expect(text).not.toContain('Lieblingsstadt')
-    expect(text).toContain('"remark": "***"')
-    expect(text).toContain('"userId": 101')
+  // A document that does not parse has no operation; its errors are written at level error.
+  it('writes the name the client gave where there is no operation', async () => {
+    expect(await summary({ operationName: 'broken', errors: [{ message: 'x' }] })).toEqual([
+      expect.stringMatching(/^broken user=- \d+ms errors$/),
+    ])
+    expect(await summary({ errors: [{ message: 'x' }] })).toEqual([
+      expect.stringMatching(/^\(no operation\) user=- /),
+    ])
   })
 
-  // "Jetzt prüfen" asks about somebody who may have no account here and was never asked.
-  it('writes no recipient that is only asked about, and still in which community', () => {
-    const text = logged({
-      identifier: 'sarah@kongress-beispiel.de',
-      communityIdentifier: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-    })
-    expect(text).not.toContain('sarah@kongress-beispiel.de')
-    expect(text).toContain('"identifier": "***"')
-    expect(text).toContain('"communityIdentifier": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"')
-  })
-
-  // P7: one member's picture for another -- and some 80,000 characters in every line that carried
-  // it. What is left of it is its size.
-  it('writes no picture of a chat message, only its size', () => {
-    const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
-    const text = logged({
-      ref: { communityUuid: 'c', gradidoID: 'g' },
-      body: '',
-      notify: 'NONE',
-      image: { data: picture, width: 800, height: 600 },
-    })
-    expect(text).not.toContain(picture)
-    expect(text).toContain('"data": "***"')
-    expect(text).toContain('"width": 800')
-  })
-
-  it('writes no avatar picture either', () => {
-    const small = Buffer.from('the small face of Anna').toString('base64')
-    const full = Buffer.from('the large face of Anna').toString('base64')
-    const text = logged({ avatarSmall: small, avatarFull: full })
-    expect(text).not.toContain(small)
-    expect(text).not.toContain(full)
-    expect(text).toContain('"avatarSmall": "***"')
-    expect(text).toContain('"avatarFull": "***"')
-  })
-
-  // ⛔ The log masks a copy. The request goes on to the resolver with the picture in it -- a mask
-  // on the request itself would hand the resolver three stars for a picture.
-  // A thank-you greeting names whom it is for: somebody who has no account here and was never
-  // asked. The motif and the line stay -- the line is the beginning of the memo anyway.
-  it('writes no name a thank-you greeting is for', () => {
-    const text = logged({
-      amount: '20',
-      memo: 'Einfach so — weil es Dich gibt.',
-      greeting: { motif: 'morning-light', line: 'Einfach so', recipientName: 'Sarah Wintergrün' },
-    })
-    expect(text).not.toContain('Wintergrün')
-    expect(text).toContain('"recipientName": "***"')
-    expect(text).toContain('"motif": "morning-light"')
-    expect(text).toContain('"amount": "20"')
-  })
-
-  // The picture of a greeting that carries a photo of the member's own: the small rendition comes
-  // inside the greeting, the large one in a request of its own.
-  it('writes no picture of a thank-you greeting, in either rendition, only its size', () => {
-    const small = Buffer.from('a private photo of Oma Emma, small').toString('base64')
-    const large = Buffer.from('a private photo of Oma Emma, large').toString('base64')
-    const withTheLink = logged({
-      amount: '20',
-      memo: 'Einfach so',
-      greeting: {
-        picture: { data: small, width: 831, height: 577 },
-        line: 'Einfach so',
-        recipientName: 'Sarah Wintergrün',
-      },
-    })
-    expect(withTheLink).not.toContain(small)
-    expect(withTheLink).not.toContain('Wintergrün')
-    expect(withTheLink).toContain('"data": "***"')
-    expect(withTheLink).toContain('"width": 831')
-    expect(withTheLink).toContain('"height": 577')
-    expect(withTheLink).toContain('"line": "Einfach so"')
-
-    const afterTheLink = logged({ linkId: 7, picture: { data: large, width: 1080, height: 750 } })
-    expect(afterTheLink).not.toContain(large)
-    expect(afterTheLink).toContain('"data": "***"')
-    expect(afterTheLink).toContain('"width": 1080')
-    expect(afterTheLink).toContain('"linkId": 7')
-  })
-
-  it('leaves the picture of a greeting in the request itself', () => {
-    const variables = {
-      greeting: { picture: { data: 'AAAA', width: 1, height: 1 } },
-      picture: { data: 'BBBB', width: 1, height: 1 },
-    }
-    logged(variables)
-    expect(variables.greeting.picture.data).toBe('AAAA')
-    expect(variables.picture.data).toBe('BBBB')
-  })
-
-  it('writes a link without a greeting as before', () => {
-    const text = logged({ amount: '20', memo: 'Danke für alles' })
-    expect(text).toContain('"memo": "Danke für alles"')
-    expect(text).not.toContain('greeting')
-    expect(logged({ amount: '20', memo: 'Danke für alles', greeting: null })).toContain(
-      '"greeting": null',
-    )
-  })
-
-  it('leaves the picture in the request itself', () => {
-    const variables = { image: { data: 'AAAA', width: 1, height: 1 } }
-    logged(variables)
-    expect(variables.image.data).toBe('AAAA')
-  })
-
-  it('writes no password and no guarantor code, as before', () => {
-    const text = logged({
-      password: 'Aa12345_',
-      passwordNew: 'Bb12345_',
-      guarantorCode: '1790000000.c2lnbmF0dXJl',
-    })
-    for (const secret of ['Aa12345_', 'Bb12345_', 'c2lnbmF0dXJl']) {
-      expect(text).not.toContain(secret)
-    }
-  })
-
-  // The place a member pins for the member search (updateUserInfos, `$gmsLocation` in the
-  // wallet's mutations.js): theirs alone, and this line is written at level info.
-  it("writes no member's position, and the rest of the request as before", () => {
-    const text = logged({
-      gmsAllowed: true,
-      gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
-      gmsLocation: { latitude: 49.679437, longitude: 9.573224 },
-    })
-    expect(text).not.toContain('49.679437')
-    expect(text).not.toContain('9.573224')
-    expect(text).toContain('"gmsLocation": "***"')
-    expect(text).toContain('"gmsAllowed": true')
-    expect(text).toContain('"gmsPublishLocation": "GMS_LOCATION_TYPE_EXACT"')
-  })
-
-  it('leaves the position in the request itself', () => {
-    const variables = { gmsLocation: { latitude: 49.679437, longitude: 9.573224 } }
-    logged(variables)
-    expect(variables.gmsLocation).toEqual({ latitude: 49.679437, longitude: 9.573224 })
-  })
-
-  // The entry an event link offered comes with a registration (createUser,
-  // `$eventMatchingEntry` in the wallet's mutations.js): what somebody is interested in, in the
-  // line that carries their name and their address.
-  it('writes no entry an event link sends along with a registration, only that there is one', () => {
-    const registration = {
-      email: 'maren@example.org',
-      firstName: 'Maren',
-      lastName: 'Sommer',
-      language: 'de',
-      eventMatchingEntry: {
-        summary: 'Kongress Frequency Healing',
-        details: 'Selbstheilung, Biohacking',
-        remote: true,
-      },
-    }
-    const text = logged(registration)
-    expect(text).not.toContain('Frequency Healing')
-    expect(text).not.toContain('Biohacking')
-    expect(text).toContain('"eventMatchingEntry": "***"')
-    // The rest of the registration is written as before.
-    expect(text).toContain('"firstName": "Maren"')
-    expect(text).toContain('"language": "de"')
-  })
-
-  it('writes a registration without such an entry as before', () => {
-    for (const eventMatchingEntry of [null, undefined]) {
-      const text = logged({ email: 'maren@example.org', firstName: 'Maren', eventMatchingEntry })
-      expect(text).not.toContain('***')
-      expect(text).toContain('"firstName": "Maren"')
-    }
-  })
-
-  it('leaves the entry in the request itself', () => {
-    const variables = { eventMatchingEntry: { summary: 'Kongress X', details: null, remote: true } }
-    logged(variables)
-    expect(variables.eventMatchingEntry).toEqual({
-      summary: 'Kongress X',
-      details: null,
-      remote: true,
-    })
-  })
-
-  // coderabbit on #4001: a client of its own may write a value into the document itself instead
-  // of into a variable, where filterVariables never sees it.
-  it('writes no string the document itself carries -- a picture, a text, a password', () => {
-    const picture = Buffer.from('a private picture of Anna and Ben').toString('base64')
-    const text = logged(
-      {},
-      `mutation {
-  sendChatMessage(ref: { communityUuid: "c", gradidoID: "g" }, body: "Meet \\"Ottilie\\" Tomorrow", notify: EMAIL, image: { data: "${picture}", width: 800, height: 600 }) { id }
-  sendEmail(recipientIdentifier: "g", subject: """About
-Saturday""", memo: "m")
-  login(email: "anna@example.org", password: "Aa12345_") { id }
-}`,
-    )
-    for (const secret of [
-      picture,
-      'Meet',
-      'Ottilie',
-      'Tomorrow',
-      'Saturday',
-      'anna@example.org',
-      'Aa12345_',
-    ]) {
-      expect(text).not.toContain(secret)
-    }
-    // What the request asked for stays readable.
-    expect(text).toContain('ref: {communityUuid: "***", gradidoID: "***"}')
-    expect(text).toContain('image: {data: "***", width: 800, height: 600}')
-    expect(text).toContain('subject: "***"')
-  })
-
-  // coderabbit on #4001: an escaped triple quote does not end a block string -- what follows it
-  // is still inside.
-  it('writes nothing of a block string past an escaped triple quote', () => {
-    const text = logged(
-      {},
-      'mutation { sendChatMessage(ref: { gradidoID: "g" }, body: """Meet \\""" Ottilie Tomorrow""", notify: EMAIL) { id } }',
-    )
-    for (const secret of ['Meet', 'Ottilie', 'Tomorrow']) {
-      expect(text).not.toContain(secret)
-    }
-    expect(text).toContain('body: "***"')
-  })
-
-  // A document graphql-js cannot read is refused with an error anyway; the log keeps its length.
-  it('writes a document that does not parse as its length only', () => {
-    const broken = 'mutation { login(email: "anna@example.org", password: "Aa12345_) { id } }'
-    const text = logged({}, broken)
-    expect(text).not.toContain('anna@example.org')
-    expect(text).not.toContain('Aa12345_')
-    expect(text).toContain(`(a document that does not parse, ${broken.length} characters)`)
-  })
-
-  it('writes a document without strings in full', () => {
-    const text = logged(
-      {},
-      'query ($ref: MemberAvatarRefInput!) { chatMessagesWithMember(ref: $ref) { hasMore } }',
-    )
-    expect(text).toContain('query ($ref: MemberAvatarRefInput!) {')
-    expect(text).toContain('chatMessagesWithMember(ref: $ref) {')
-    expect(text).toContain('hasMore')
+  it('writes nothing for an introspection query', async () => {
+    expect(
+      await summary({
+        document: 'query IntrospectionQuery { __schema { x } }',
+        operationName: 'IntrospectionQuery',
+      }),
+    ).toEqual([])
   })
 })
 
+const ROOM = 'https://meet.example.org/k7m2x9q4t8wz'
+
 /** What the request log writes at level error when it sends an answer with these errors. */
 const errorsLogged = async (errors: unknown[]): Promise<string> => {
-  const logger = { debug: jest.fn(), info: jest.fn(), trace: jest.fn(), error: jest.fn() }
+  const logger = { info: jest.fn(), trace: jest.fn(), error: jest.fn() }
   const hooks = await logPlugin.requestDidStart({
     logger,
     request: { query: 'mutation { x }', variables: {}, operationName: null },
   })
   await hooks.willSendResponse({
+    request: { operationName: null },
     contextValue: {},
     response: { body: { kind: 'single', singleResult: { errors } } },
   })
@@ -408,23 +170,6 @@ describe('the errors in the request log', () => {
     expect(text).toContain('"message": "Something failed"')
   })
 
-  // The photo sent with a transfer comes as `$picture` too (sendCoins).
-  it('writes no photo sent with a transfer, only its size and the motif', () => {
-    const photo = Buffer.from('a private photo of the bench Dave built').toString('base64')
-    const withPhoto = logged({
-      recipientIdentifier: 'dave',
-      amount: '50',
-      memo: 'Für die Bank.',
-      picture: { data: photo, width: 831, height: 577 },
-    })
-    expect(withPhoto).not.toContain(photo)
-    expect(withPhoto).toContain('"data": "***"')
-    expect(withPhoto).toContain('"width": 831')
-    expect(withPhoto).toContain('"memo": "Für die Bank."')
-
-    const withMotif = logged({ recipientIdentifier: 'dave', amount: '50', motif: 'giving-hands' })
-    expect(withMotif).toContain('"motif": "giving-hands"')
-  })
   it('writes an ordinary error as before', async () => {
     const text = await errorsLogged([{ message: 'CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE' }])
     expect(text).toContain('"message": "CHAT_IMAGE_NOT_ACCEPTED: TOO_LARGE"')
@@ -445,6 +190,7 @@ const answerTraced = async (context: Record<string, unknown>, data: unknown): Pr
     request: { query: 'query { x }', variables: {}, operationName: null },
   })
   await hooks.willSendResponse({
+    request: { operationName: null },
     contextValue: context,
     response: { body: { kind: 'single', singleResult: { data } } },
   })
@@ -596,6 +342,7 @@ describe('the answer in the request log', () => {
     const stringify = jest.spyOn(JSON, 'stringify')
     try {
       await hooks.willSendResponse({
+        request: { operationName: null },
         contextValue: { requestBudget: newRequestBudget() },
         response: {
           body: { kind: 'single', singleResult: { data: { contactList: { contactCount: 3 } } } },
@@ -604,7 +351,7 @@ describe('the answer in the request log', () => {
       expect(stringify).not.toHaveBeenCalled()
       expect(logger.trace).not.toHaveBeenCalled()
       // The rest of the log goes on as before.
-      expect(logger.info).toHaveBeenCalledWith('Response Success!')
+      expect(logger.info).toHaveBeenCalledTimes(1)
     } finally {
       stringify.mockRestore()
     }
