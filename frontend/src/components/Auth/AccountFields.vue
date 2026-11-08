@@ -90,7 +90,7 @@ import {
   BFormInvalidFeedback,
   BRow,
 } from 'bootstrap-vue-next'
-import InputEmail from '@/components/Inputs/InputEmail'
+import { InputEmail } from '@/components/Inputs/InputEmail'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import { shownValidState } from '@/validation-rules'
 

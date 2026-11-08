@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { validate } from 'vee-validate'
@@ -14,11 +14,16 @@ import {
   BRow,
 } from 'bootstrap-vue-next'
 import { loadAllRules, shownValidState } from '@/validation-rules'
-import InputEmail from '@/components/Inputs/InputEmail'
-import InputPassword from '@/components/Inputs/InputPassword'
+import { InputEmail } from '@/components/Inputs/InputEmail'
+import { InputPassword } from '@/components/Inputs/InputPassword'
 import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
+
+// The e-mail field asks the route (useRoute) whether it stands on /send.
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ path: '/login' }),
+}))
 
 /**
  * What a member reads under a field that breaks a rule, built through the real rules:
@@ -116,7 +121,7 @@ describe('the password fields', () => {
   const global = {
     plugins: [i18n],
     components: { BButton, BCol, BFormGroup, BFormInput, BFormInvalidFeedback, BRow },
-    stubs: { IBiEye: true, IBiEyeSlash: true },
+    stubs: { BiEye: true, BiEyeSlash: true },
   }
 
   const mounted = async (component, props) => {
@@ -235,7 +240,6 @@ describe('the e-mail field', () => {
       global: {
         plugins: [i18n],
         components: { BFormGroup, BFormInput, BFormInvalidFeedback },
-        mocks: { $route: { path: '/login' } },
       },
     })
   const mounted = async () => {

@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+import type { LocationQuery } from 'vue-router'
+import type { EntryDraft } from '@/composables/useEntryDraft'
 
 /**
  * The link of project matching: `community-host/project?interest=…&details=…&remote=1&v=1`, or
@@ -30,6 +32,12 @@
  * with every sign-in that has a place of its own to lead to.)
  */
 
+/** What an event link says. */
+export type EventMatchingEntry = { summary: string; details: string | null; remote: boolean }
+
+/** The entry as the store keeps it for a visitor who is not signed in, with the moment it was kept. */
+export type KeptEventMatchingEntry = EventMatchingEntry & { keptAt: number }
+
 /** As long as the sentence of an entry may be (the column, and the field of the form). */
 export const EVENT_MATCHING_SUMMARY_MAX_CHARS = 160
 /** As long as the details of an entry may be (MATCHING_ENTRY_DETAILS_MAX_CHARS in `shared`). */
@@ -44,12 +52,14 @@ export const EVENT_MATCHING_ENTRY_KEPT_MS = 60 * 60 * 1000
 
 // vue-router hands a parameter that stands twice over as a list, and one without a value
 // (`?interest`) as null. The first one counts.
-const first = (value) => (Array.isArray(value) ? value[0] : value)
+const first = <T>(value: T | T[]): T => (Array.isArray(value) ? value[0] : value)
 
 // Cut to `max` places, as the field of the form counts them. Not through the middle of a
 // character that takes two of them (an emoji): the half left over would be no character.
-const cut = (text, max) => {
-  if (text.length <= max) return text
+const cut = (text: string, max: number) => {
+  if (text.length <= max) {
+    return text
+  }
   const last = text.charCodeAt(max - 1)
   const halfACharacter = last >= 0xd800 && last <= 0xdbff
   return text.slice(0, halfACharacter ? max - 1 : max).trimEnd()
@@ -58,10 +68,11 @@ const cut = (text, max) => {
 /**
  * What an event link says, or null where the address is none.
  *
- * @param {Record<string, string | null | (string | null)[]>} query the query of the route
- * @returns {{ summary: string, details: string | null, remote: boolean } | null}
+ * @param query the query of the route
  */
-export const readEventMatchingLink = (query) => {
+export const readEventMatchingLink = (
+  query: LocationQuery | null | undefined,
+): EventMatchingEntry | null => {
   // One line: the sentence stands in a single-line field, and a line break in it would not
   // survive the form.
   const summary = cut(
@@ -70,7 +81,9 @@ export const readEventMatchingLink = (query) => {
       .trim(),
     EVENT_MATCHING_SUMMARY_MAX_CHARS,
   )
-  if (!summary) return null
+  if (!summary) {
+    return null
+  }
   const details = cut(String(first(query?.details) ?? '').trim(), EVENT_MATCHING_DETAILS_MAX_CHARS)
   return { summary, details: details || null, remote: first(query?.remote) !== '0' }
 }
@@ -79,24 +92,34 @@ export const readEventMatchingLink = (query) => {
  * The entry as the store keeps it for a visitor who is not signed in (`eventMatchingEntry`):
  * with the moment it was kept, by this device's clock.
  *
- * @param {{ summary: string, details: string | null, remote: boolean }} entry
- * @param {number} [now] milliseconds, this device's clock
+ * @param now milliseconds, this device's clock
  */
-export const eventMatchingEntryToKeep = (entry, now = Date.now()) => ({ ...entry, keptAt: now })
+export const eventMatchingEntryToKeep = (
+  entry: EventMatchingEntry,
+  now = Date.now(),
+): KeptEventMatchingEntry => ({ ...entry, keptAt: now })
 
 /**
  * What the store has kept, where it still counts: kept less than an hour ago
  * (EVENT_MATCHING_ENTRY_KEPT_MS). Null for nothing, for an older one, and for one kept "after
  * now" -- a clock that was set back says nothing about its age.
  *
- * @param {{ summary: string, details: string | null, remote: boolean, keptAt: number } | null} kept
- * @param {number} [now] milliseconds, this device's clock
- * @returns {{ summary: string, details: string | null, remote: boolean } | null}
+ * The store's blob may hold an entry without its moment (saved before the moment was kept);
+ * such a one says nothing about its age either.
+ *
+ * @param now milliseconds, this device's clock
  */
-export const keptEventMatchingEntry = (kept, now = Date.now()) => {
-  if (!kept || typeof kept.keptAt !== 'number') return null
+export const keptEventMatchingEntry = (
+  kept: (EventMatchingEntry & { keptAt?: unknown }) | null | undefined,
+  now = Date.now(),
+): EventMatchingEntry | null => {
+  if (!kept || typeof kept.keptAt !== 'number') {
+    return null
+  }
   const age = now - kept.keptAt
-  if (age < 0 || age >= EVENT_MATCHING_ENTRY_KEPT_MS) return null
+  if (age < 0 || age >= EVENT_MATCHING_ENTRY_KEPT_MS) {
+    return null
+  }
   return { summary: kept.summary, details: kept.details, remote: kept.remote }
 }
 
@@ -104,10 +127,8 @@ export const keptEventMatchingEntry = (kept, now = Date.now()) => {
  * The entry of an event link as the entries page takes it (useEntryDraft): always an
  * interest -- an offer or a need is the member's own to add -- and `unlessThere`: the entries
  * page makes it at once, without the form, and says nothing where the member has it (KA-014).
- *
- * @param {{ summary: string, details: string | null, remote: boolean }} entry
  */
-export const eventMatchingEntryDraft = (entry) => ({
+export const eventMatchingEntryDraft = (entry: EventMatchingEntry): EntryDraft => ({
   summary: entry.summary,
   details: entry.details ?? '',
   remote: entry.remote,

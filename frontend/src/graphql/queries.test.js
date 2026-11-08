@@ -3,7 +3,7 @@ import { verifyLogin } from './queries'
 import { login } from './mutations'
 import { listAllContributions } from './contributions.graphql'
 
-// Regression guard for BOTH ways into the wallet. The form login (pages/Login.vue) and
+// Regression guard for BOTH ways into the wallet. The form login (pages/Login.tsx) and
 // the token-handoff re-auth (routes/guards.js) feed their result into the same `login`
 // store action, and that action commits every field below. Whichever document omits one
 // makes the action overwrite the value with undefined on the way in -- that is how the

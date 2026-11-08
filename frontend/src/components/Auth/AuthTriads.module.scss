@@ -1,0 +1,90 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Under the root class: the scoped rules these were had one level more (the scope attribute). */
+
+/*
+  The gap between the triads and what follows them is theirs, the same on all five doors:
+  48px, and 24px on a phone. The gap above them is cut to 24px there as well. They come first
+  in the card body, under the card's language row, whose own 24px of padding already stand
+  between them -- the card body's padding on top of that made it 44px (Bernd, 22.09.2026:
+  less space above and below, so that the card gets shorter). The margin is the card's own
+  variable: outside a card it is undefined, and the rule drops out.
+*/
+.authTriads {
+  padding-bottom: 3rem;
+}
+
+@media (width <= 767.98px) {
+  .authTriads {
+    margin-top: calc(-1 * var(--bs-card-spacer-y));
+    padding-bottom: 1.5rem;
+  }
+}
+
+/*
+  The stage reaches 0.75rem into the padding of the surrounding container before it clips: a
+  word longer than the column (Russian on a 320px phone) may stick out a little instead of
+  being cut, and a triad sliding in still appears inside the card, not across its edge.
+*/
+.authTriads .triadStage {
+  display: grid;
+  overflow: hidden;
+  margin-inline: -0.75rem;
+  padding-inline: 0.75rem;
+}
+
+.authTriads .triadStage > * {
+  grid-area: 1 / 1;
+}
+
+/*
+  A triad on one line wherever it fits, on every width (Bernd, 21.09.2026: the card is wider
+  on a phone now). Where it does not, it breaks between two parts, not inside one -- no part
+  is wider than a 320px phone's card in any of the ten languages -- and the stage takes the
+  tallest triad's height: in German two lines on every phone instead of three.
+
+  Measured in the built stylesheet, 16px: "Helfen. Schenken. Danken." is 196px wide and fits
+  every phone in every language (Russian, the widest, 246px). "Für Dich und mich. Für die
+  Gemeinschaft. Für die Natur." is 399px, where a 375px phone gives 315 -- and still 349 at
+  14px, which is why the letters kept their size.
+*/
+.authTriads .triad {
+  display: flex;
+  flex-flow: row wrap;
+  place-content: center;
+  align-items: center;
+  column-gap: 0.3em;
+  text-align: center;
+}
+
+.authTriads .triadSizer {
+  visibility: hidden;
+}
+
+/* The same movement and timing as the picture carousel on the desk. The classes are the ones
+   <Transition name="triad-slide"> puts on the triad, so they stay global. */
+.authTriads :global(.triad-slide-enter-active),
+.authTriads :global(.triad-slide-leave-active) {
+  transition: transform 0.6s ease-in-out;
+}
+
+.authTriads :global(.triad-slide-enter-from) {
+  transform: translateX(100%);
+}
+
+.authTriads :global(.triad-slide-leave-to) {
+  transform: translateX(-100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .authTriads :global(.triad-slide-enter-active),
+  .authTriads :global(.triad-slide-leave-active) {
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  .authTriads :global(.triad-slide-enter-from),
+  .authTriads :global(.triad-slide-leave-to) {
+    transform: none;
+    opacity: 0;
+  }
+}

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import InputEmail from './InputEmail'
+import { InputEmail } from './InputEmail'
 import { nextTick, ref } from 'vue'
 import { BFormGroup, BFormInput, BFormInvalidFeedback } from 'bootstrap-vue-next'
 
@@ -19,6 +19,11 @@ vi.mock('vee-validate', () => ({
   }),
 }))
 
+// The field asks the route (useRoute) whether it stands on /send.
+vi.mock('vue-router', () => ({
+  useRoute: () => ({ path: '/' }),
+}))
+
 describe('InputEmail', () => {
   let wrapper
 
@@ -33,11 +38,6 @@ describe('InputEmail', () => {
       BFormGroup,
       BFormInput,
       BFormInvalidFeedback,
-    },
-    mocks: {
-      $route: {
-        path: '/',
-      },
     },
   }
 

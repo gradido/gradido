@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import Message from './Message'
+import { Message } from './Message'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({

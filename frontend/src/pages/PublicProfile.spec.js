@@ -5,7 +5,7 @@ import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfile from './PublicProfile.vue'
-import AuthTriads from '@/components/Auth/AuthTriads.vue'
+import { AuthTriads } from '@/components/Auth/AuthTriads'
 import en from '@/locales/en.json'
 
 vi.mock('@/config', () => ({

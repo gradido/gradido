@@ -3,7 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import InputPassword from './InputPassword'
+import { ref } from 'vue'
+import { InputPassword } from './InputPassword'
 import {
   BButton,
   BFormGroup,
@@ -12,14 +13,16 @@ import {
   BInputGroup,
 } from 'bootstrap-vue-next'
 
-// Mock vee-validate
+// Mock vee-validate -- with refs, as the real useField hands them over and the component
+// reads them.
 vi.mock('vee-validate', () => ({
   useField: vi.fn(() => ({
-    value: '',
-    errorMessage: '',
+    value: ref(''),
+    errorMessage: ref(''),
     meta: { valid: true },
-    errors: [],
+    errors: ref([]),
     validate: vi.fn(),
+    handleBlur: vi.fn(),
   })),
 }))
 
@@ -51,8 +54,8 @@ describe('InputPassword', () => {
       BFormInvalidFeedback,
     },
     stubs: {
-      IBiEye: true,
-      IBiEyeSlash: true,
+      BiEye: true,
+      BiEyeSlash: true,
     },
     mocks: {
       $t: (key) => key,
@@ -142,21 +145,21 @@ describe('InputPassword', () => {
 
     describe('password visibility icon', () => {
       it('is by default IBiEyeSlash', () => {
-        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(true)
-        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(false)
+        expect(wrapper.find('bi-eye-slash-stub').exists()).toBe(true)
+        expect(wrapper.find('bi-eye-stub').exists()).toBe(false)
       })
 
       it('changes to IBiEye when clicked', async () => {
         await wrapper.find('button').trigger('click')
-        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(true)
-        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(false)
+        expect(wrapper.find('bi-eye-stub').exists()).toBe(true)
+        expect(wrapper.find('bi-eye-slash-stub').exists()).toBe(false)
       })
 
       it('changes back to IBiEyeSlash when clicked twice', async () => {
         await wrapper.find('button').trigger('click')
         await wrapper.find('button').trigger('click')
-        expect(wrapper.find('i-bi-eye-slash-stub').exists()).toBe(true)
-        expect(wrapper.find('i-bi-eye-stub').exists()).toBe(false)
+        expect(wrapper.find('bi-eye-slash-stub').exists()).toBe(true)
+        expect(wrapper.find('bi-eye-stub').exists()).toBe(false)
       })
     })
 
@@ -206,22 +209,23 @@ describe('InputPassword', () => {
 
   // The eye's place, its frame and its focus ring are shared with the PIN and checked in
   // src/revealField.spec.js. What stays here is the password's own: Bootstrap's signs.
+  // The rules are a CSS module (InputPassword.module.scss), each under the root class.
   describe('the stylesheet', () => {
     const source = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), 'InputPassword.vue'),
+      resolve(dirname(fileURLToPath(import.meta.url)), 'InputPassword.module.scss'),
       'utf8',
     )
     // Comments name the same properties; only declarations may count.
-    const css = source
-      .slice(source.indexOf('<style'), source.indexOf('</style>'))
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const css = source.replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) => {
       const at = css.indexOf(`${selector} {`)
       return at < 0 ? '' : css.slice(at, css.indexOf('}', at))
     }
 
     it('keeps the warning and the check sign clear of the eye', () => {
-      const signs = rule('.password-input.is-valid,\n.password-input.is-invalid')
+      const signs = rule(
+        '.inputPassword .passwordInput:global(.is-valid),\n.inputPassword .passwordInput:global(.is-invalid)',
+      )
       expect(signs).toMatch(/padding-right:\s*calc\([^;]*\+ var\(--reveal-eye\)\);/)
       expect(signs).toMatch(
         /background-position:\s*right calc\([^;]*\+ var\(--reveal-eye\)\) center;/,

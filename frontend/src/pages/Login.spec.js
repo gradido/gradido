@@ -1,15 +1,15 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import Login from './Login.vue'
-import AuthTriads from '@/components/Auth/AuthTriads.vue'
+import { Login } from './Login'
+import { AuthTriads } from '@/components/Auth/AuthTriads'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import { BButton, BCol, BContainer, BFormInput, BRow } from 'bootstrap-vue-next'
-import InputEmail from '@/components/Inputs/InputEmail.vue'
-import InputPassword from '@/components/Inputs/InputPassword.vue'
+import { InputEmail } from '@/components/Inputs/InputEmail'
+import { InputPassword } from '@/components/Inputs/InputPassword'
 import { useEntryDraft } from '@/composables/useEntryDraft'
 import { configure, defineRule } from 'vee-validate'
 import { email, min, required } from '@vee-validate/rules'
@@ -81,6 +81,8 @@ describe('Login', () => {
         { path: '/overview', name: 'Overview' },
         { path: '/redeem/:code', name: 'Redeem' },
         { path: '/login/:code?', name: 'Login' },
+        // The page links to the registration; the link resolves its route when it is drawn.
+        { path: '/register/:code?', name: 'Register' },
         { path: '/contacts', name: 'Contacts' },
         { path: '/matching/:tab', name: 'Matching' },
       ],
