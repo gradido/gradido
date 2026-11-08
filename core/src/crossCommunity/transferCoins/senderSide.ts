@@ -162,7 +162,7 @@ async function processXComPendingSendCoins(
   }
 
   // first calculate the sender balance and check if the transaction is allowed
-  const senderBalance = await calculateSenderBalance(userId, amount.negated(), balanceDate)
+  const senderBalance = await calculateSenderBalance(userId, amount, balanceDate)
   if (!senderBalance.success) {
     return xcomError(
       CrossCommunityErrorType.insufficientBalance,
