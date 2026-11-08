@@ -120,8 +120,10 @@ const entry = computed(() => readEventMatchingLink(route.query))
 
 /* The two buttons as on the Gradido address (pages/PublicProfile.vue, .profile-actions), rule
    for rule: one column, as wide as the wider label, both filling it; on a phone the whole
-   width, with the house button's side padding taken back so the label keeps its line. Through
-   `:deep`: BButton renders a router-link, which renders the anchor. */
+   width, with the house button's side padding taken back so the label keeps its line -- from
+   360px on in all ten languages. At 320px "Ich habe schon ein Gradido-Konto" (E-045) takes two
+   lines in seven of them, and nothing leaves the button (measured in the built wallet,
+   08.11.2026). Through `:deep`: BButton renders a router-link, which renders the anchor. */
 .landing-actions {
   display: inline-grid;
   gap: 0.75rem;
