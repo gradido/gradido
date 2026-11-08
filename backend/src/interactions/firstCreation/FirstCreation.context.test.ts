@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
 // Unit tests: the healing of a first creation whose process died after its bundle was booked --
-// a status read of a stale SUBMITTED row whose contributions are all confirmed. Everything the
-// context calls is replaced; the same flow against the database is in FirstCreationResolver.test.ts.
-// Written to run under jest and `bun test --isolate` alike (see validateCommunities.test.ts).
+// a status read of a member left in SUBMITTED whose contributions are all confirmed. Everything
+// the context calls is replaced; the same flow against the database is in
+// FirstCreationResolver.test.ts. Written to run under jest and `bun test --isolate` alike (see
+// validateCommunities.test.ts).
 import type { User as DbUser } from 'database'
 
 const mockLogger = {
@@ -18,9 +19,11 @@ class mockMutex {
   tryAcquire = mockTryAcquire
   release = mockRelease
 }
-// The values of the enums the context reads, as the enums spell them.
+// The values of the enum the context reads, as the enum spells them.
 const mockFirstCreationStatus = {
+  HAS_CREATED: 'HAS_CREATED',
   FORCED: 'FORCED',
+  FORCED_UNBOOKED: 'FORCED_UNBOOKED',
   SUBMITTED: 'SUBMITTED',
   IN_REVIEW: 'IN_REVIEW',
   DONE: 'DONE',
@@ -32,16 +35,15 @@ const mockDatabase = {
     FIRST_CREATION_DONE: 'FIRST_CREATION_DONE',
     FIRST_CREATION_SKIP: 'FIRST_CREATION_SKIP',
   },
-  FirstCreationReviewReason: { PROCESS_ERROR: 'PROCESS_ERROR' },
   FirstCreationStatus: mockFirstCreationStatus,
-  FirstCreationTestMode: {},
   dbFindLatestEventForAffectedUser: jest.fn(),
+  dbFindReferrerAlias: jest.fn(),
   dbGetFirstCreationSignerUserId: jest.fn(),
   dbInsertEvent: jest.fn(),
-  dbInsertFirstCreation: jest.fn(),
-  dbSelectFirstCreationByUserId: jest.fn(),
-  dbSelectFirstCreationEntriesByIds: jest.fn(),
-  dbUpdateFirstCreationOutcome: jest.fn(),
+  dbSelectFirstCreationEntriesByUserId: jest.fn(),
+  dbSelectFirstCreationMessage: jest.fn(),
+  dbUnmarkFirstCreationContributions: jest.fn(),
+  dbUpdateUserFirstCreationStatus: jest.fn(),
 }
 const mockLoadSignerFor = jest.fn()
 const mockCheckEligibility = jest.fn()
@@ -82,18 +84,16 @@ beforeAll(async () => {
   readFirstCreationStatus = (await import('./FirstCreation.context')).readFirstCreationStatus
 })
 
-const MEMBER = { id: 42, creationAllowed: true, userRole: null } as unknown as DbUser
 const SIGNER_ID = 7
 const STALE = new Date(Date.now() - 6 * 60 * 1000)
-// The member's bundle: three contributions, all confirmed by the signer before the process died.
-const SUBMITTED_ROW = {
-  id: 3,
-  userId: 42,
-  status: 'SUBMITTED',
-  contributionIds: [101, 102, 103],
-  message: null,
-  updatedAt: STALE,
-}
+// The member, as the request loaded them: a process left in SUBMITTED.
+const member = () =>
+  ({
+    id: 42,
+    creationAllowed: true,
+    userRole: null,
+    firstCreationStatus: 'SUBMITTED',
+  }) as unknown as DbUser
 // Confirmed one after the other, a minute apart: the last one is the moment the bundle was done.
 const confirmedAt = (id: number) => new Date(STALE.getTime() - (103 - id) * 60 * 1000)
 const confirmed = (id: number) => ({
@@ -109,55 +109,73 @@ beforeEach(() => {
   jest.resetAllMocks()
   mockTryAcquire.mockResolvedValue(true)
   mockRelease.mockResolvedValue(undefined)
-  mockDatabase.dbSelectFirstCreationByUserId.mockResolvedValue(SUBMITTED_ROW)
-  // In another order than confirmed, so that "the last" has to be found.
-  mockDatabase.dbSelectFirstCreationEntriesByIds.mockResolvedValue([103, 101, 102].map(confirmed))
-  mockDatabase.dbUpdateFirstCreationOutcome.mockResolvedValue({ success: true })
+  // The member's bundle: three contributions, all confirmed by the signer before the process
+  // died -- in another order than confirmed, so that "the last" has to be found.
+  mockDatabase.dbSelectFirstCreationEntriesByUserId.mockResolvedValue(
+    [103, 101, 102].map(confirmed),
+  )
+  mockDatabase.dbUpdateUserFirstCreationStatus.mockResolvedValue({ success: true })
   mockDatabase.dbInsertEvent.mockResolvedValue(undefined)
   mockDatabase.dbFindLatestEventForAffectedUser.mockResolvedValue(null)
+  mockDatabase.dbFindReferrerAlias.mockResolvedValue(null)
+  mockDatabase.dbSelectFirstCreationMessage.mockResolvedValue('Liebe Ira, willkommen!')
   mockLoadSignerFor.mockResolvedValue({ success: true, value: { user: { id: SIGNER_ID } } })
   mockCheckEligibility.mockResolvedValue({ success: false })
 })
 
 describe('healing a first creation whose bundle was booked', () => {
-  it('moves the row to DONE and writes the outcome event the process would have written', async () => {
-    const view = await readFirstCreationStatus(MEMBER, 0)
+  it('moves the member to DONE and writes the outcome event the process would have written', async () => {
+    const view = await readFirstCreationStatus(member(), 0)
 
     expect(view.state).toBe('DONE')
-    expect(mockDatabase.dbUpdateFirstCreationOutcome).toHaveBeenCalledWith(3, 'SUBMITTED', {
-      status: 'DONE',
-    })
+    expect(mockDatabase.dbUpdateUserFirstCreationStatus).toHaveBeenCalledWith(
+      42,
+      'SUBMITTED',
+      'DONE',
+    )
     expect(mockDatabase.dbInsertEvent).toHaveBeenCalledTimes(1)
     expect(mockDatabase.dbInsertEvent).toHaveBeenCalledWith({
       type: 'FIRST_CREATION_DONE',
       affectedUserId: 42,
       actingUserId: SIGNER_ID,
-      involvedContributionId: 101,
+      involvedContributionId: 103,
       // When the bundle was done -- its last confirmation -- not when the status read found it.
       createdAt: confirmedAt(103),
     })
+    // The view of a thanked process: the message off the thread, the recipient to thank.
+    expect(view.message).toBe('Liebe Ira, willkommen!')
+    expect(mockDatabase.dbFindReferrerAlias).toHaveBeenCalledWith(42)
   })
 
-  it('keeps the healed row when the event cannot be written', async () => {
+  it('keeps the healed state when the event cannot be written', async () => {
     mockDatabase.dbInsertEvent.mockRejectedValue(new Error('events table away'))
 
-    expect((await readFirstCreationStatus(MEMBER, 0)).state).toBe('DONE')
+    expect((await readFirstCreationStatus(member(), 0)).state).toBe('DONE')
   })
 
   it('writes no event without a signer to name, and heals all the same', async () => {
     mockLoadSignerFor.mockResolvedValue({ success: false, error: new Error('NOT_CONFIGURED') })
 
-    expect((await readFirstCreationStatus(MEMBER, 0)).state).toBe('DONE')
+    expect((await readFirstCreationStatus(member(), 0)).state).toBe('DONE')
     expect(mockDatabase.dbInsertEvent).not.toHaveBeenCalled()
   })
 
-  it('writes no event when somebody else moved the row first', async () => {
-    mockDatabase.dbUpdateFirstCreationOutcome.mockResolvedValue({ success: false })
-    mockDatabase.dbSelectFirstCreationByUserId
-      .mockResolvedValueOnce(SUBMITTED_ROW)
-      .mockResolvedValueOnce({ ...SUBMITTED_ROW, status: 'DONE' })
+  it('writes no event when somebody else moved the state first', async () => {
+    mockDatabase.dbUpdateUserFirstCreationStatus.mockResolvedValue({ success: false })
 
-    expect((await readFirstCreationStatus(MEMBER, 0)).state).toBe('DONE')
+    expect((await readFirstCreationStatus(member(), 0)).state).toBe('SUBMITTED')
     expect(mockDatabase.dbInsertEvent).not.toHaveBeenCalled()
+  })
+
+  it('leaves a process alone while somebody holds the lock', async () => {
+    mockTryAcquire.mockResolvedValue(false)
+
+    const view = await readFirstCreationStatus(member(), 0)
+
+    expect(view.state).toBe('SUBMITTED')
+    expect(mockDatabase.dbUpdateUserFirstCreationStatus).not.toHaveBeenCalled()
+    // Nothing settled yet: no message, nobody to thank.
+    expect(view.message).toBeNull()
+    expect(mockDatabase.dbFindReferrerAlias).not.toHaveBeenCalled()
   })
 })

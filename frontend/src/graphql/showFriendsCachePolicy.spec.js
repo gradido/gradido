@@ -12,18 +12,17 @@ import { describe, expect, it } from 'vitest'
  * previous member's arrival, by name.
  *
  * ⛔ Read as SOURCE rather than behaviour on purpose: a fetch policy is a value handed to
- * a library, and every spec that mounts these two components mocks that library away. The
+ * a library, and every spec that mounts the component mocks that library away. The
  * option can be deleted with the whole suite green -- which is what this file is for.
  *
- * ⚠️ Comments stripped FIRST. Both files explain the policy in prose, so a guard that
+ * ⚠️ Comments stripped FIRST. The file explains the policy in prose, so a guard that
  * searched the raw text would find its own explanation and stay green over a deletion.
  */
 const HERE = dirname(fileURLToPath(import.meta.url))
 
-const CALLERS = [
-  join(HERE, '..', 'components', 'Overview', 'ShowFriendsTile.vue'),
-  join(HERE, '..', 'components', 'FirstCreation.vue'),
-]
+// The one caller. The first-creation window used to be the second; it gets the referrer in
+// its own status answer now and reads this document no more.
+const CALLERS = [join(HERE, '..', 'components', 'Overview', 'ShowFriendsTile.vue')]
 
 const withoutComments = (source) =>
   source

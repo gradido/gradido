@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 import { and, count, eq, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -61,17 +62,16 @@ export interface FirstCreationEntryRow {
 }
 
 /**
- * The contributions of one first creation, in the order the ids are handed over —
- * which is the order the member wrote them. Deleted rows come back too, with their
- * `deletedAt` set, so the caller decides what a tick means for a row moderation removed.
+ * The contributions of one member's first creation -- the rows marked `first_creation` --
+ * in the order they were filed, which is the order the member wrote them. Deleted rows
+ * come back too, with their `deletedAt` set, so the caller decides what a tick means for a
+ * row moderation removed. The index on (user_id, created_at) keeps this to the member's
+ * own rows.
  */
-export async function dbSelectFirstCreationEntriesByIds(
-  ids: number[],
+export async function dbSelectFirstCreationEntriesByUserId(
+  userId: number,
 ): Promise<FirstCreationEntryRow[]> {
-  if (ids.length === 0) {
-    return []
-  }
-  const rows = await drizzleDb()
+  return drizzleDb()
     .select({
       id: contributionsTable.id,
       memo: contributionsTable.memo,
@@ -80,12 +80,21 @@ export async function dbSelectFirstCreationEntriesByIds(
       status: contributionsTable.status,
     })
     .from(contributionsTable)
-    .where(inArray(contributionsTable.id, ids))
-  const byId = new Map(rows.map((row) => [row.id, row]))
-  return ids.flatMap((id) => {
-    const row = byId.get(id)
-    return row ? [row] : []
-  })
+    .where(and(eq(contributionsTable.userId, userId), eq(contributionsTable.firstCreation, true)))
+    .orderBy(contributionsTable.id)
+}
+
+/**
+ * Takes the mark off a member's first-creation bundle: the function test (ES-014) reopens
+ * the window, and the bundle it files next is the one the window shows from then on. The
+ * rows stay what they are -- booked or open contributions; only the window forgets them.
+ * Plain `void`: no mark to take off is a valid outcome, not a failure.
+ */
+export async function dbUnmarkFirstCreationContributions(userId: number): Promise<void> {
+  await drizzleDb()
+    .update(contributionsTable)
+    .set({ firstCreation: false })
+    .where(and(eq(contributionsTable.userId, userId), eq(contributionsTable.firstCreation, true)))
 }
 
 /**

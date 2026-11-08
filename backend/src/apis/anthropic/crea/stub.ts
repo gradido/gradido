@@ -60,6 +60,7 @@ export function buildStubEvaluation(input: CreaContributionInput): CreaEvaluatio
     // Overwritten by applyCreaDeterministics below, which works it out from the name.
     defaultSalutation: '',
     openPoints: [],
+    model: 'stub',
     flags: [CREA_STUB_FLAG],
   }
   return applyCreaDeterministics(input, raw)
@@ -97,7 +98,7 @@ export function buildStubRewrite(input: CreaContributionInput): CreaRewriteResul
         ? 'Approved as a genuine contribution to the common good (preview note).'
         : 'Als echter Gemeinwohl-Beitrag genehmigt (Vorschau-Hinweis).'
       : null
-  return { responseText: text, memoSupplement }
+  return { responseText: text, memoSupplement, model: 'stub' }
 }
 
 /**
@@ -125,6 +126,7 @@ export function buildStubBatch(input: CreaBatchInput): CreaBatchEvaluation {
     defaultSalutation: defaultSalutationFor(input.recipientFirstName),
     openPoints: [],
     flags: uncertain ? [CREA_STUB_FLAG, SALUTATION_UNCERTAIN_FLAG] : [CREA_STUB_FLAG],
+    model: 'stub',
   }
 }
 
@@ -160,7 +162,7 @@ export function buildStubBatchRewrite(input: CreaBatchInput): CreaRewriteResult 
         ? 'Approved as genuine contributions to the common good (preview note).'
         : 'Als echte Gemeinwohl-Beiträge genehmigt (Vorschau-Hinweis).'
       : null
-  return { responseText: text, memoSupplement }
+  return { responseText: text, memoSupplement, model: 'stub' }
 }
 
 /**

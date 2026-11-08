@@ -72,6 +72,7 @@ import {
   drizzleDb,
   EventType,
   emailContactByUserIdQuery,
+  FirstCreationStatus,
   findUserByIdentifier,
   getCommunityByUuid,
   getHomeCommunity,
@@ -1879,6 +1880,19 @@ export class UserResolver {
       return null
     }
     return user.transfersInChat ?? null
+  }
+
+  /**
+   * Where the member's own first creation stands (ES-002), for the window to know whether it
+   * has to ask at all. Guarded like the two above: null for everybody but the member, and
+   * somebody has to be asking.
+   */
+  @FieldResolver(() => String, { nullable: true })
+  firstCreationStatus(@Root() user: User, @Ctx() context: Context): FirstCreationStatus | null {
+    if (!context.user || context.user.id !== user.id) {
+      return null
+    }
+    return user.firstCreationStatus ?? null
   }
 
   /**

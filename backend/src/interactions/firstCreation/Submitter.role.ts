@@ -3,7 +3,7 @@ import {
   Contribution as DbContribution,
   User as DbUser,
   dbCountUserTypedContributionsByUserId,
-  FirstCreationSelect,
+  dbUpdateUserFirstCreationStatus,
   FirstCreationStatus,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -38,19 +38,31 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.interactions.firstCreatio
  * contribution the member ever filed themselves — deleted ones included, because a
  * removed manual creation was still a manual creation. The signer question is not asked
  * here; it is the signer role's.
+ *
+ * The answer is read off `users.first_creation_status`, which the context user carries.
+ * Only a member who has never been asked (NULL) costs a count over their contributions,
+ * and a member found to have created already is written down as HAS_CREATED right here --
+ * on the row and on the object, which mirrors it -- so the count runs once per member and
+ * never again. The fact is monotone: a manual creation stays one, deleted or not.
  */
 export async function checkEligibility(
-  userId: number,
-  row: FirstCreationSelect | null,
+  user: DbUser,
 ): Promise<VoidResult<FirstCreationNotEligible>> {
-  if (row && row.status !== FirstCreationStatus.FORCED) {
-    return { success: false, error: new FirstCreationNotEligible('ALREADY_STARTED') }
-  }
-  if (row?.status === FirstCreationStatus.FORCED) {
+  const status = user.firstCreationStatus
+  if (status === FirstCreationStatus.FORCED || status === FirstCreationStatus.FORCED_UNBOOKED) {
     // The function test opened the window on purpose for an account that has created.
     return { success: true }
   }
-  if ((await dbCountUserTypedContributionsByUserId(userId)) > 0) {
+  if (status === FirstCreationStatus.HAS_CREATED) {
+    return { success: false, error: new FirstCreationNotEligible('HAS_MANUAL_CONTRIBUTION') }
+  }
+  if (status !== null) {
+    return { success: false, error: new FirstCreationNotEligible('ALREADY_STARTED') }
+  }
+  if ((await dbCountUserTypedContributionsByUserId(user.id)) > 0) {
+    // A second reader may have written it in the meantime; the fact is the same either way.
+    await dbUpdateUserFirstCreationStatus(user.id, null, FirstCreationStatus.HAS_CREATED)
+    user.firstCreationStatus = FirstCreationStatus.HAS_CREATED
     return { success: false, error: new FirstCreationNotEligible('HAS_MANUAL_CONTRIBUTION') }
   }
   return { success: true }
@@ -151,11 +163,12 @@ export async function countRemainingTestRuns(
 
 /**
  * Files one USER contribution per entry, dated with the member's calendar day (ES-010: the
- * current month, in the member's frame), through the same core as the wallet's own form.
- * Each one fires CONTRIBUTION_CREATE and counts against the month like any other.
+ * current month, in the member's frame), through the same core as the wallet's own form,
+ * marked as the member's first creation. Each one fires CONTRIBUTION_CREATE and counts
+ * against the month like any other.
  *
- * Writes into `filed` as it goes: a throw at entry k leaves the caller the ids of entries
- * 1..k-1, which exist and must end up on the process row.
+ * Writes into `filed` as it goes: a throw at entry k leaves the caller the entries 1..k-1,
+ * which exist, carry the mark, and have to be settled.
  */
 export async function fileContributions(
   user: DbUser,
@@ -170,6 +183,7 @@ export async function fileContributions(
         user,
         { amount: entry.amount, memo: entry.memo, contributionDate, creationGroups: [] },
         clientTimezoneOffset,
+        true,
       ),
     )
   }

@@ -8,7 +8,8 @@ import {
   dbCountOpenContributionsByUserId,
   dbCountUserTypedContributionsByUserId,
   dbSelectContributionUserId,
-  dbSelectFirstCreationEntriesByIds,
+  dbSelectFirstCreationEntriesByUserId,
+  dbUnmarkFirstCreationContributions,
 } from './contributions'
 
 const appDB = AppDatabase.getInstance()
@@ -25,7 +26,12 @@ const insert = async (
   userId: number,
   memo: string,
   type: ContributionType,
-  extra: { confirmedAt?: Date; deletedAt?: Date; status?: ContributionStatus } = {},
+  extra: {
+    confirmedAt?: Date
+    deletedAt?: Date
+    status?: ContributionStatus
+    firstCreation?: boolean
+  } = {},
 ): Promise<number> => {
   const result = await db.insert(contributionsTable).values({
     userId,
@@ -36,6 +42,7 @@ const insert = async (
     contributionDate: new Date(),
     confirmedAt: extra.confirmedAt ?? null,
     deletedAt: extra.deletedAt ?? null,
+    firstCreation: extra.firstCreation ?? false,
   })
   return result[0].insertId
 }
@@ -44,20 +51,27 @@ beforeAll(async () => {
   await appDB.init()
   db = drizzleDb()
   await db.delete(contributionsTable)
+  // Alice's first creation: three entries, filed in this order; the first one booked, the
+  // last one removed by the moderation.
   ids = [
     await insert(ALICE, 'Ich habe meine Kinder versorgt, indem ich ...', ContributionType.USER, {
       confirmedAt: new Date(),
       status: ContributionStatus.CONFIRMED,
+      firstCreation: true,
     }),
-    await insert(ALICE, 'Ich habe einem alten Menschen geholfen ...', ContributionType.USER),
+    await insert(ALICE, 'Ich habe einem alten Menschen geholfen ...', ContributionType.USER, {
+      firstCreation: true,
+    }),
     await insert(ALICE, 'Ich habe im Verein geholfen ...', ContributionType.USER, {
       deletedAt: new Date(),
       status: ContributionStatus.DELETED,
+      firstCreation: true,
     }),
   ]
-  // An admin-filed one for Alice and a USER one for Bob: neither may count for Alice.
+  // An admin-filed one for Alice and a USER one for Bob: neither may count for Alice, and
+  // neither belongs to her first creation.
   await insert(ALICE, 'Startguthaben', ContributionType.ADMIN)
-  await insert(BOB, 'Ich habe etwas getan', ContributionType.USER)
+  await insert(BOB, 'Ich habe etwas getan', ContributionType.USER, { firstCreation: true })
   // Two more shapes of "open" for Bob: one in progress, one denied (settled, not open).
   await insert(BOB, 'Ich habe noch etwas getan', ContributionType.ADMIN, {
     status: ContributionStatus.IN_PROGRESS,
@@ -88,22 +102,29 @@ describe('contributions query test', () => {
     expect(await dbCountOpenContributionsByUserId(999)).toBe(0)
   })
 
-  it('returns the entries in the order of the ids, with tick and deletion visible', async () => {
+  it('returns the entries of a first creation in the order they were filed, with tick and deletion visible', async () => {
     const [first, second, third] = ids
-    const entries = await dbSelectFirstCreationEntriesByIds([third, first, second])
-    expect(entries.map((entry) => entry.id)).toEqual([third, first, second])
-    expect(entries[1]).toMatchObject({
+    const entries = await dbSelectFirstCreationEntriesByUserId(ALICE)
+    expect(entries.map((entry) => entry.id)).toEqual([first, second, third])
+    expect(entries[0]).toMatchObject({
       memo: 'Ich habe meine Kinder versorgt, indem ich ...',
       status: ContributionStatus.CONFIRMED,
     })
-    expect(entries[1].confirmedAt).toBeInstanceOf(Date)
-    expect(entries[2].confirmedAt).toBeNull()
-    expect(entries[0].deletedAt).toBeInstanceOf(Date)
+    expect(entries[0].confirmedAt).toBeInstanceOf(Date)
+    expect(entries[1].confirmedAt).toBeNull()
+    expect(entries[2].deletedAt).toBeInstanceOf(Date)
   })
 
-  it('leaves out ids that do not exist and answers an empty list without a query', async () => {
-    expect(await dbSelectFirstCreationEntriesByIds([ids[0], 424242])).toHaveLength(1)
-    expect(await dbSelectFirstCreationEntriesByIds([])).toEqual([])
+  it('answers an empty list for a member without a first creation', async () => {
+    expect(await dbSelectFirstCreationEntriesByUserId(999)).toEqual([])
+  })
+
+  it('takes the mark off one member and leaves the other one marked', async () => {
+    await dbUnmarkFirstCreationContributions(ALICE)
+    expect(await dbSelectFirstCreationEntriesByUserId(ALICE)).toEqual([])
+    expect(await dbSelectFirstCreationEntriesByUserId(BOB)).toHaveLength(1)
+    // The rows are still there, unmarked: nothing but the window forgot them.
+    expect(await dbCountUserTypedContributionsByUserId(ALICE)).toBe(3)
   })
 
   it('names the owner of a contribution, and nobody for an id that does not exist', async () => {

@@ -116,6 +116,8 @@ export async function signerComments(
    * them a reply button there leads to a door that does not open (Bernd, 06.09.).
    */
   answerable = true,
+  /** The model whose words these are, where a model wrote them (recorded on the message). */
+  aiModel: string | null = null,
 ): Promise<DbContributionMessage> {
   // A real instance, not a plain object: UpdateUnconfirmedContributionContext picks its
   // role with `instanceof` and would not recognise the shape otherwise.
@@ -123,6 +125,7 @@ export async function signerComments(
     contributionId,
     message,
     messageType,
+    aiModel,
   })
   return addModeratorMessageAs(args, signer.user, signer.role, clientTimezoneOffset, answerable)
 }

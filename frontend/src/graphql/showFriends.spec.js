@@ -6,17 +6,18 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Everything the two readers of this document take off the answer, held against what the
+ * Everything the reader of this document takes off the answer, held against what the
  * document asks for -- the same guard `balanceFields.spec.js` makes over the balance, and
- * for the same failure.
+ * for the same failure. (The first-creation window used to be the second reader; it gets
+ * the referrer in its own status answer now.)
  *
  * A field that is read but not asked for comes back `undefined`, and nothing here says so:
- * both specs hand their component a made-up answer, so the mocked layer always has the
+ * the spec hands its component a made-up answer, so the mocked layer always has the
  * field. Measured on this very delivery: with `gradidoID` taken back out of the document,
  * all fourteen tests over the tile and the overview stayed green -- while at the device the
  * tap on the name would do nothing at all, because `openMember` leaves on a missing one.
  *
- * ⛔ Comments come out first. Both files explain in prose what they read (`gradidoID` is
+ * ⛔ Comments come out first. The file explains in prose what it reads (`gradidoID` is
  * named three times in the tile's own comments), so a search over the raw text would find
  * its own explanation and survive the deletion of the code. The check below that the
  * stripped source still carries the one line this delivery stands on is what says the
@@ -35,7 +36,6 @@ const withoutComments = (source) =>
 describe('showFriends', () => {
   it('asks for every field its readers take off the answer', () => {
     const tile = withoutComments(read('../components/Overview/ShowFriendsTile.vue'))
-    const firstCreation = withoutComments(read('../components/FirstCreation.vue'))
     const document = read('./showFriends.graphql')
 
     // The stripper took the comments, not the file: this is the line the whole delivery
@@ -55,14 +55,5 @@ describe('showFriends', () => {
     )
     expect(readOffTheArrival.length).toBeGreaterThan(0)
     expect(arrivalFields).toEqual(expect.arrayContaining(readOffTheArrival))
-
-    // The other half of the answer, read in the other file.
-    const readOffShowFriends = [
-      ...firstCreation.matchAll(/friendsResult\.value\?\.showFriends\?\.(\w+)/g),
-    ].map((m) => m[1])
-    expect(readOffShowFriends.length).toBeGreaterThan(0)
-    for (const field of readOffShowFriends) {
-      expect(document).toContain(field)
-    }
   })
 })

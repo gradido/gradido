@@ -59,7 +59,7 @@ vi.mock('bootstrap-vue-next', () => ({
 }))
 
 const { focused } = vi.hoisted(() => ({ focused: [] }))
-const storeState = reactive({ firstName: 'Ira', creationAllowed: true })
+const storeState = reactive({ firstName: 'Ira', creationAllowed: true, firstCreationStatus: null })
 // What the component set on the store, as [field, value].
 const committed = []
 vi.mock('@/store/useWalletStore', () => ({
@@ -68,6 +68,10 @@ vi.mock('@/store/useWalletStore', () => ({
       setCreationAllowed: (value) => {
         committed.push(['creationAllowed', value])
         storeState.creationAllowed = value
+      },
+      setFirstCreationStatus: (value) => {
+        committed.push(['firstCreationStatus', value])
+        storeState.firstCreationStatus = value
       },
     }),
 }))
@@ -84,20 +88,21 @@ vi.mock('vue-router', () => ({
 }))
 
 const statusMock = ref(null)
-const friendsMock = ref(null)
+/** The `enabled` option the component hands its query, so a test can see whether it asks at all. */
+let queryEnabled = null
 const refetchMock = vi.fn()
 const submitMock = vi.fn()
 const skipMock = vi.fn()
 const declareMock = vi.fn()
 
-// ⚠️ The document decides which answer comes back. A mock that hands the same `result` to
-// every caller cannot tell whether the component asked the right question -- and this
-// component now asks two.
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: (document) =>
-    document === 'SHOW_FRIENDS'
-      ? { result: friendsMock, refetch: vi.fn() }
-      : { result: statusMock, refetch: refetchMock },
+  useQuery: (document, variables, options) => {
+    if (document !== 'FIRST_CREATION_STATUS') {
+      throw new Error(`unexpected query ${document}`)
+    }
+    queryEnabled = options.enabled
+    return { result: statusMock, refetch: refetchMock }
+  },
   useMutation: (document) => ({
     mutate: (variables) => {
       if (document === 'SUBMIT_FIRST_CREATION') return submitMock(variables)
@@ -111,9 +116,6 @@ vi.mock('@/graphql/firstCreation.graphql', () => ({
   firstCreationStatus: 'FIRST_CREATION_STATUS',
   submitFirstCreation: 'SUBMIT_FIRST_CREATION',
   skipFirstCreation: 'SKIP_FIRST_CREATION',
-}))
-vi.mock('@/graphql/showFriends.graphql', () => ({
-  showFriends: 'SHOW_FRIENDS',
 }))
 vi.mock('@/graphql/user.graphql', () => ({
   declareProjectAccount: 'DECLARE_PROJECT_ACCOUNT',
@@ -137,6 +139,7 @@ const status = (over = {}) => ({
   message: null,
   entries: [],
   skippedBefore: false,
+  referrerAlias: null,
   functionTestsEnabled: false,
   testRunsLeft: null,
   ...over,
@@ -206,13 +209,14 @@ beforeEach(() => {
   focused.length = 0
   pushed.length = 0
   statusMock.value = { firstCreationStatus: status() }
-  friendsMock.value = null
+  queryEnabled = null
   refetchMock.mockReset()
   answerRefetchWith(status())
   submitMock.mockReset().mockResolvedValue(settled('DONE', [entry('eins')], 'Danke.'))
   skipMock.mockReset().mockResolvedValue({})
   declareMock.mockReset().mockResolvedValue({ data: { declareProjectAccount: true } })
   storeState.creationAllowed = true
+  storeState.firstCreationStatus = null
   committed.length = 0
   forgetFirstLoginWindows()
 })
@@ -270,6 +274,28 @@ describe('FirstCreation', () => {
       // And the line under it says the sentences may be reshaped -- since #3857 the box
       // carries the opening, so "vervollständige" was no longer the whole truth.
       expect(form).toContain('Du kannst sie ergänzen, umformen oder ganz eigene schreiben.')
+    })
+
+    /**
+     * ⛔ The one thing this delivery is about. The login says where the member stands, and a
+     * settled state -- or a member who created on their own -- is nothing a query could change:
+     * so none is sent, on this visit or any later one. Read as the option handed to apollo,
+     * because the library is mocked away here and a `useQuery` that always runs looks exactly
+     * like one that is switched off.
+     */
+    it.each([
+      [null, true],
+      ['FORCED', true],
+      ['FORCED_UNBOOKED', true],
+      ['SUBMITTED', true],
+      ['HAS_CREATED', false],
+      ['IN_REVIEW', false],
+      ['DONE', false],
+      ['DONE_UNBOOKED', false],
+    ])('asks the server only while it might still open: %s -> %s', (state, asks) => {
+      storeState.firstCreationStatus = state
+      build()
+      expect(queryEnabled.value).toBe(asks)
     })
 
     it('stays away while the member is not eligible', () => {
@@ -1379,6 +1405,21 @@ describe('FirstCreation', () => {
       expect(wrapper.find('[data-test="first-creation-to-account"]').exists()).toBe(true)
     })
 
+    /**
+     * The store learns the settled state from the window, the way it learns the account kind
+     * from `declareProject`: from here on nothing in this session asks the server about the
+     * window again (see `mightOpen`).
+     */
+    it('tells the store where the member stands once the answer is settled', async () => {
+      const wrapper = build()
+      expect(committed).not.toContainEqual(['firstCreationStatus', 'DONE'])
+      await sendThree(wrapper)
+      expect(committed).toContainEqual(['firstCreationStatus', 'DONE'])
+      // And the switched-off query takes nothing off the screen: the settled answer stands.
+      await vi.runAllTimersAsync()
+      expect(wrapper.find('[data-test="first-creation-result"]').exists()).toBe(true)
+    })
+
     it('sends the member to /send to thank somebody, and closes on the way', async () => {
       const wrapper = build()
       await sendThree(wrapper)
@@ -1394,7 +1435,18 @@ describe('FirstCreation', () => {
      * ignores them, which is why the community travels along.
      */
     it('puts whoever brought them here in the recipient field', async () => {
-      friendsMock.value = { showFriends: { referrerAlias: 'alice', latestArrival: null } }
+      // Named by the settled answer itself (ZE-007), not by a query of the window's own.
+      submitMock.mockResolvedValue({
+        data: {
+          submitFirstCreation: status({
+            state: 'DONE',
+            eligible: false,
+            entries: [entry('eins')],
+            message: 'Danke.',
+            referrerAlias: 'alice',
+          }),
+        },
+      })
       const wrapper = build()
       await sendThree(wrapper)
       await vi.runAllTimersAsync()
