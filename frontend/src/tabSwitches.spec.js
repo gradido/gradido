@@ -24,15 +24,28 @@ const here = dirname(fileURLToPath(import.meta.url))
 const source = (...path) => readFileSync(join(here, ...path), 'utf8')
 const live = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
 
-/** The style of a switch: from the rule of its frame to the end of that style block. */
-const switchStyle = (sfc, frame) => {
-  const start = sfc.indexOf(`.${frame} {`)
+/** The style of a switch: from the rule of its frame to the end of that style block, or file. */
+const switchStyle = (css, frame) => {
+  const start = css.indexOf(`.${frame} {`)
   if (start === -1) return null
-  return live(sfc.slice(start, sfc.indexOf('</style>', start)))
+  const end = css.indexOf('</style>', start)
+  return live(css.slice(start, end === -1 ? undefined : end))
     .replaceAll(frame, 'FRAME')
     .replace(/\s+/g, ' ')
     .trim()
 }
+
+/**
+ * The switch of the send page is a CSS module (TransactionForm.module.scss): its rules stand
+ * under the root class of the form, which gives them the level the scope attribute gave, and say
+ * `:global` where the .vue file said `:deep`. Read as the scoped style it was, so that the two
+ * compare word for word.
+ */
+const asScoped = (module) =>
+  module
+    .replaceAll('.transactionForm ', '')
+    .replaceAll('.navSendBtnWrapper', '.nav-send-btn-wrapper')
+    .replaceAll(':global(', ':deep(')
 
 /** The body of the `@media` block whose condition contains `condition`, or ''. */
 const mediaBody = (css, condition) => {
@@ -50,16 +63,22 @@ const rule = (css, selector) => {
 }
 
 const SWITCHES = [
-  ['the send page', ['components', 'GddSend', 'TransactionForm.vue'], 'nav-send-btn-wrapper'],
+  [
+    'the send page',
+    ['components', 'GddSend', 'TransactionForm.module.scss'],
+    'nav-send-btn-wrapper',
+    asScoped,
+  ],
   [
     'the contribution pages',
     ['components', 'Contributions', 'NavContributions.vue'],
     'nav-contributions-btn-wrapper',
+    (sfc) => sfc,
   ],
 ]
 
 describe('the two tab switches', () => {
-  const styles = SWITCHES.map(([, path, frame]) => switchStyle(source(...path), frame))
+  const styles = SWITCHES.map(([, path, frame, read]) => switchStyle(read(source(...path)), frame))
 
   it('finds the two styles it is about to compare', () => {
     // The fixture proves itself: without it every assertion below would describe nothing.
@@ -111,10 +130,11 @@ describe('the two tab switches', () => {
   })
 
   it('carries the gap beside an icon in the style, not as a margin on the element', () => {
-    const sfc = live(source(...SWITCHES[0][1]))
-    expect(sfc.split('<script')[0]).not.toMatch(/style="margin-right/)
-    expect(rule(sfc, '.nav-send-btn-wrapper > :deep(:first-child)')).toBe('--tab-icon-gap: 5px;')
-    expect(rule(sfc, '.nav-send-btn-wrapper > :deep(:last-child)')).toBe('--tab-icon-gap: 3px;')
+    const form = live(source('components', 'GddSend', 'TransactionForm.tsx'))
+    expect(form).not.toMatch(/margin-?[rR]ight/)
+    const css = asScoped(live(source(...SWITCHES[0][1])))
+    expect(rule(css, '.nav-send-btn-wrapper > :deep(:first-child)')).toBe('--tab-icon-gap: 5px;')
+    expect(rule(css, '.nav-send-btn-wrapper > :deep(:last-child)')).toBe('--tab-icon-gap: 3px;')
     for (const css of styles) {
       const icon = css.match(/FRAME \{.*?[;}] :deep\(\.svg-icon\) \{([^{}]*)\}/)[1]
       expect(icon).toContain('margin-right: var(--tab-icon-gap, 0);')

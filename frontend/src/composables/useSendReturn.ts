@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { useRouter } from 'vue-router'
+import { type RouteLocationRaw, type Router, useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 
 /**
@@ -7,6 +7,14 @@ import { useWalletStore } from '@/store/useWalletStore'
  * that form (usePassOnDraft). Taken later, it is let go.
  */
 export const SEND_RETURN_HOLDS_MS = 10 * 60 * 1000
+
+/**
+ * What a window hands over: `to`, the path about to be opened (`/send/<community>/<member>`);
+ * `back`, the address "Zurück" leads to from there.
+ */
+export type SendReturnHandover = { to: string; back: RouteLocationRaw }
+
+type Held = SendReturnHandover & { owner: string | null; at: number }
 
 /**
  * A one-shot handover from the three windows that open the send form with a member named -- the
@@ -20,7 +28,7 @@ export const SEND_RETURN_HOLDS_MS = 10 * 60 * 1000
  *
  * Bound to the path it was handed over for (`to`, as the router resolves it): the page takes it
  * only on that path. The form beside /send is patched, not rebuilt, when a contact is tapped in the
- * column, so the page takes it again at every change of its address (pages/Send.vue).
+ * column, so the page takes it again at every change of its address (pages/Send.tsx).
  *
  * ⛔ In memory only, and read exactly once (the shape of usePassOnDraft):
  * - never into the address: a `?back=` would stay in the browser's history, through a reload and a
@@ -33,7 +41,7 @@ export const SEND_RETURN_HOLDS_MS = 10 * 60 * 1000
  * (`clearSendReturn`, store), it is handed out to that member only, and only for
  * SEND_RETURN_HOLDS_MS.
  */
-let held = null
+let held: Held | null = null
 
 /** Drops what is held, because the session it belonged to has ended. */
 export function clearSendReturn() {
@@ -44,8 +52,10 @@ export function clearSendReturn() {
  * Whether `to` is the page at `path`, as the router reads both: the path alone, without the query
  * the form is opened with (`?art=send`).
  */
-const samePath = (router, to, path) => {
-  if (!to || !path) return false
+const samePath = (router: Router, to: string, path: string | null | undefined) => {
+  if (!to || !path) {
+    return false
+  }
   try {
     return router.resolve(to).path === router.resolve(path).path
   } catch {
@@ -58,12 +68,8 @@ export function useSendReturn() {
   const router = useRouter()
 
   return {
-    /**
-     * @param {{ to: string, back: object | string }} handover `to`: the path about to be opened
-     *   (`/send/<community>/<member>`); `back`: the address "Zurück" leads to from there
-     * @returns {object} what was handed over, for `drop`
-     */
-    put({ to, back }) {
+    /** @returns what was handed over, for `drop` */
+    put({ to, back }: SendReturnHandover): Held {
       held = { to, back, owner: store.gradidoID, at: Date.now() }
       return held
     },
@@ -73,10 +79,12 @@ export function useSendReturn() {
      * what is held goes to the member it came from, on the path it was handed over for, while it is
      * fresh; anything else is let go. A way back handed over for another path is a stale one.
      */
-    take(path) {
+    take(path: string | null | undefined): RouteLocationRaw | null {
       const was = held
       held = null
-      if (!was) return null
+      if (!was) {
+        return null
+      }
       const mine = Boolean(was.owner) && was.owner === store.gradidoID
       const fresh = Date.now() - was.at <= SEND_RETURN_HOLDS_MS
       return mine && fresh && samePath(router, was.to, path) ? was.back : null
@@ -86,8 +94,10 @@ export function useSendReturn() {
      * Takes back what `put` handed over, where the send form was never reached. Only its own: a
      * second tap may have handed over something newer in the meantime.
      */
-    drop(handed) {
-      if (held === handed) held = null
+    drop(handed: Held) {
+      if (held === handed) {
+        held = null
+      }
     },
   }
 }

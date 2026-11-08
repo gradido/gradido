@@ -16,7 +16,7 @@ import {
 import i18n from '@/i18n'
 import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { amount as amountUpTo } from '@/validationSchemas'
-import TransactionForm from './TransactionForm.vue'
+import { TransactionForm } from './TransactionForm'
 import { walletStore } from '@test/walletStore'
 
 /**

@@ -74,6 +74,8 @@ export const useThankYouCheque = ({ link, amount, memo, validUntil }) => {
    *
    * The pictures the cheque is made of are only loaded at this point, so one that fails
    * to load must not stay silent.
+   *
+   * @param {string | null} [image] the cheque as drawThankYouCheque drew it
    */
   const downloadThankYouCheque = async (image = null) => {
     try {

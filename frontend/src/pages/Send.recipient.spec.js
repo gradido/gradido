@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { ApolloClient, ApolloLink, InMemoryCache, Observable } from '@apollo/client/core'
 import { nextTick } from 'vue'
-import Send from './Send.vue'
+import { Send } from './Send'
 import { useMutation } from '@vue/apollo-composable'
 import { reachableCommunities } from '@/graphql/communities.graphql'
 import {
@@ -23,7 +23,7 @@ import { walletStore } from '@test/walletStore'
  * for a recipient nobody has is the real one, so that what a press leads to is what a member meets.
  */
 vi.mock('@/components/GddSend/TransactionForm', () => ({
-  default: {
+  TransactionForm: {
     name: 'TransactionForm',
     props: {
       checking: { type: Boolean, default: false },
@@ -33,7 +33,7 @@ vi.mock('@/components/GddSend/TransactionForm', () => ({
   },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
-  default: {
+  TransactionConfirmationSend: {
     name: 'TransactionConfirmationSend',
     props: {
       identifier: { type: String, default: '' },
@@ -43,13 +43,13 @@ vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
   },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
-  default: { template: '<div data-test="the-link-check"></div>' },
+  TransactionConfirmationLink: { template: '<div data-test="the-link-check"></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
-  default: { template: '<div data-test="the-error-page"></div>' },
+  TransactionResultSendError: { template: '<div data-test="the-error-page"></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultLink', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultLink: { template: '<div></div>' },
 }))
 vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone.vue', () => ({
   default: {

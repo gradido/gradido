@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
-import TransactionResultSendError from './TransactionResultSendError.vue'
-import SendEmailResultError from './SendEmailResultError.vue'
+import { TransactionResultSendError } from './TransactionResultSendError'
+import { SendEmailResultError } from './SendEmailResultError'
 
 const showing = (component, errorResult) => {
   i18n.global.locale.value = 'de'

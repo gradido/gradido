@@ -1,0 +1,24 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Unscoped, as the <style> of the .vue file was: TransactionConfirmationLink.css carries the
+   first two rules as well. */
+.gray-background {
+  background-color: #ecebe6a3 !important;
+}
+
+.borderbottom {
+  border-bottom: 1px solid rgb(70 65 65);
+  border-bottom-style: double;
+}
+
+/* The picture of the transfer, as small as in the form: 36 : 25 on the card's ground. */
+.transaction-confirm-picture {
+  display: block;
+  width: 132px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+  object-fit: cover;
+}
