@@ -1,5 +1,6 @@
 import { ContributionMessageType } from '@enum/ContributionMessageType'
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsInt, IsOptional, IsString, MaxLength } from 'class-validator'
+import { AI_MODEL_MAX_CHARS } from 'shared'
 import { ArgsType, Field, InputType, Int } from 'type-graphql'
 
 import { isValidDateString } from '@/graphql/validator/DateString'
@@ -32,5 +33,6 @@ export class ContributionMessageArgs {
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()
+  @MaxLength(AI_MODEL_MAX_CHARS)
   aiModel?: string | null
 }

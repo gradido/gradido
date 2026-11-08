@@ -261,8 +261,8 @@ export const contributionMessagesTable = mysqlTable(
     type: varchar({ length: 12 }).default('DIALOG').notNull(),
     isModerator: boolean('is_moderator').default(false).notNull(),
     // The language model whose words this message carries, by name -- NULL where a person
-    // wrote it. The first creation's thank-you and Crea's internal note are the writers
-    // today; the admin's Crea suggestion is meant to follow once that is recorded.
+    // wrote it. The first creation's thank-you, Crea's internal note, and a Crea draft the
+    // admin inserted into its answer are the writers. Length: AI_MODEL_MAX_CHARS (shared).
     aiModel: varchar('ai_model', { length: 64 }).default(sql`NULL`),
   },
   (table) => [index('contribution_id').on(table.contributionId)],

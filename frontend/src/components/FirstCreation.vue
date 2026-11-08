@@ -373,6 +373,9 @@ import CONFIG from '@/config'
  * found the regular path on their own, is a state nothing here can change, so the query
  * stays off for them -- that is every member but the newest, on every visit for the rest
  * of their life here. Not started, armed by the function test, or still running: those ask.
+ * The store learns the state only from the login answer and from `applyStatus` below -- so
+ * an admin who arms the function test meets the window after signing in again, and the test
+ * page says so (settings/FunctionTests.vue).
  */
 
 const props = defineProps({

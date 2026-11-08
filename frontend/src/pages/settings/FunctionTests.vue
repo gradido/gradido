@@ -41,7 +41,23 @@
       <p class="small text-muted mt-3">
         {{ $t('settings.functionTests.firstCreation.unbookedHint') }}
       </p>
+      <!-- Where the member stands reaches the wallet with the login answer, and the window
+           asks the server only while that says it might still open (FirstCreation.vue,
+           `mightOpen`). An admin who has created long since holds a settled state, so the
+           forced one gets through only with the next sign-in. Said BEFORE the press, so
+           nobody waits on the overview for a window that cannot know yet. -->
+      <p class="small text-muted" data-test="function-tests-relogin-hint">
+        {{ $t('settings.functionTests.firstCreation.reloginHint') }}
+      </p>
 
+      <BAlert
+        v-if="started"
+        :model-value="true"
+        variant="success"
+        data-test="function-tests-started"
+      >
+        {{ $t('settings.functionTests.firstCreation.started') }}
+      </BAlert>
       <BAlert v-if="failed" :model-value="true" variant="danger" data-test="function-tests-failed">
         {{ $t('settings.functionTests.firstCreation.failed') }}
       </BAlert>
@@ -113,28 +129,25 @@ const runsLeftText = computed(() =>
 
 const running = ref(false)
 const failed = ref(false)
+/** The press went through; the admin is told how to meet the window. */
+const started = ref(false)
 const canRun = computed(() => !running.value && !isSigner.value && runsLeft.value > 0)
 
 /**
- * ⚠️ `refetchQueries` is not decoration. The window itself hangs in DashboardLayout and has
- * long since had its answer; nothing about a mutation makes it ask again, and this answer
- * carries no id for the cache to match it to. So the status is fetched afresh and awaited,
- * and only then is the overview entered -- otherwise the member arrives there before the
- * window knows it may open.
+ * No `refetchQueries` and no way to the overview: the window would not open there. It asks
+ * the server only while the store's login state says it might, and a tester's state is
+ * settled until the next sign-in (see the hint in the template). So the page stays, and says
+ * what to do -- rather than teaching the store a second writer for a test function.
  */
-const { mutate: startTest } = useMutation(startFirstCreationTest, {
-  refetchQueries: [{ query: firstCreationStatus }],
-  awaitRefetchQueries: true,
-})
+const { mutate: startTest } = useMutation(startFirstCreationTest)
 
 const start = async (withBooking) => {
   running.value = true
   failed.value = false
+  started.value = false
   try {
     await startTest({ withBooking })
-    // Never over the settings: the window keeps away from every /settings route, so it can
-    // only be met somewhere else.
-    await router.push('/overview')
+    started.value = true
   } catch {
     failed.value = true
   } finally {

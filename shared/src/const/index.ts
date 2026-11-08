@@ -64,6 +64,9 @@ export const MATCHING_ENTRY_DETAILS_MAX_CHARS = 2000
 // The one sentence of an entry: the length of its column (`matching_entries.summary`,
 // varchar(160)), and of the field the wallet's form takes it in.
 export const MATCHING_ENTRY_SUMMARY_MAX_CHARS = 160
+// The name of the language model that wrote a message to a contribution: the length of its
+// column (`contribution_messages.ai_model`, varchar(64)). Model ids run some 25 characters today.
+export const AI_MODEL_MAX_CHARS = 64
 
 // matching, the keying of an entry: a language model turns the one sentence a member
 // wrote into the words their entry can be found under, plus seven fields saying what
