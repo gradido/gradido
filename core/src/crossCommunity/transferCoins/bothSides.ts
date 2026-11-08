@@ -119,7 +119,8 @@ export async function findPendingTransaction(
     tx.memo,
   )
 
-  if (!pendingTx || !pendingTx.amount || tx.amount.comparedTo(pendingTx.amount) !== 0n) {
+  const txAmount = transactionTypeId === TransactionTypeId.SEND ? tx.amount.negated() : tx.amount
+  if (!pendingTx || !pendingTx.amount || txAmount.comparedTo(pendingTx.amount) !== 0n) {
     if (logger.isDebugEnabled()) {
       logger.debug(`didn't find a pending Tx with:`, mapTxToLog(tx), recipientUser)
     }

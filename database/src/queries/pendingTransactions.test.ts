@@ -1,6 +1,6 @@
 import { GradidoUnit, PendingTransactionState } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import { User as DbUser } from '..'
+import { User as DbUser, TransactionTypeId } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { pendingTransactionsTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
@@ -11,7 +11,11 @@ import { bobBaumeister } from '../seeds/users/bob-baumeister'
 import { garrickOllivander } from '../seeds/users/garrick-ollivander'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
-import { countOpenPendingTransactions, dbInsertPendingTransaction } from './pendingTransactions'
+import {
+  countOpenPendingTransactions,
+  dbFindPendingTransaction,
+  dbInsertPendingTransaction,
+} from './pendingTransactions'
 
 const db = AppDatabase.getInstance()
 
@@ -141,5 +145,64 @@ describe('dbInsertPendingTransaction', () => {
     const rows = await drizzleDb().select().from(pendingTransactionsTable)
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject(row)
+  })
+})
+
+describe('dbFindPendingTransaction', () => {
+  const bibi = { alias: 'bibi', gradidoId: uuidv4(), communityUuid: uuidv4() }
+  const peter = { alias: 'peter', gradidoId: uuidv4(), communityUuid: uuidv4() }
+  const balanceDate = new Date('2026-11-08T10:00:00.123Z')
+  const memo = 'for the broom'
+  const row = {
+    state: PendingTransactionState.NEW,
+    typeId: TransactionTypeId.SEND,
+    memo,
+    amount: GradidoUnit.fromNumber(-12.5),
+    balanceDate,
+    userId: 1,
+    userGradidoId: bibi.gradidoId,
+    userCommunityUuid: bibi.communityUuid,
+    linkedUserGradidoId: peter.gradidoId,
+    linkedUserCommunityUuid: peter.communityUuid,
+  }
+  let id: number
+
+  beforeAll(async () => {
+    await drizzleDb().delete(pendingTransactionsTable)
+    const inserted = await dbInsertPendingTransaction(row)
+    if (!inserted.success) {
+      throw inserted.error
+    }
+    id = inserted.value
+  })
+
+  it('finds the row by both users, type, state, the date to the millisecond and memo', async () => {
+    const found = await dbFindPendingTransaction(
+      bibi,
+      peter,
+      TransactionTypeId.SEND,
+      PendingTransactionState.NEW,
+      balanceDate,
+      memo,
+    )
+    expect(found).toMatchObject({ id, ...row })
+  })
+
+  it('finds nothing when one of them differs', async () => {
+    const { SEND, RECEIVE } = TransactionTypeId
+    const { NEW, SETTLED } = PendingTransactionState
+    const oneMsLater = new Date(balanceDate.getTime() + 1)
+    const lookups: Parameters<typeof dbFindPendingTransaction>[] = [
+      [peter, bibi, SEND, NEW, balanceDate, memo],
+      [bibi, peter, RECEIVE, NEW, balanceDate, memo],
+      [bibi, peter, SEND, SETTLED, balanceDate, memo],
+      [bibi, peter, SEND, NEW, oneMsLater, memo],
+      [bibi, peter, SEND, NEW, balanceDate, 'for the hat'],
+      [{ ...bibi, communityUuid: uuidv4() }, peter, SEND, NEW, balanceDate, memo],
+      [bibi, { ...peter, gradidoId: uuidv4() }, SEND, NEW, balanceDate, memo],
+    ]
+    for (const args of lookups) {
+      expect(await dbFindPendingTransaction(...args)).toBeNull()
+    }
   })
 })
