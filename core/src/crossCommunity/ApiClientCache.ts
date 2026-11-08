@@ -45,14 +45,18 @@ export class ApiClientCache {
     let client = this.apiClients.get(foreignCommunity.publicKey.toString('hex'))
     if (!client) {
       client = this.getByUrl(foreignCommunity.url, new Ed25519KeyPair(foreignCommunity.publicKey))
-      if (
-        foreignCommunity.publicEncryptionKey &&
-        foreignCommunity.publicEncryptionKey.byteLength > 0
-      ) {
-        client.publicEncryptionKey = new X25519KeyPair(foreignCommunity.publicEncryptionKey)
-      }
+    }
+    if (
+      !client.publicEncryptionKey &&
+      foreignCommunity.publicEncryptionKey &&
+      foreignCommunity.publicEncryptionKey.byteLength > 0
+    ) {
+      client.publicEncryptionKey = new X25519KeyPair(foreignCommunity.publicEncryptionKey)
+    }
+    if (!client.communityUuid) {
       client.communityUuid = foreignCommunity.communityUuid
     }
+
     return client as ApiClientCompleted
   }
 
