@@ -121,7 +121,7 @@ export class ChatReactionResolver {
    * meantime, NOT_STORED for a database that failed.
    *
    * The log gets the message's uuid, never the emoji: with the message it would say what somebody
-   * thought of it. The request log leaves it out as well (`$emoji` in filterVariables).
+   * thought of it. The request log writes no variables at all.
    */
   @Authorized([RIGHTS.SEND_CHAT_MESSAGE])
   @Mutation(() => ChatMessage)

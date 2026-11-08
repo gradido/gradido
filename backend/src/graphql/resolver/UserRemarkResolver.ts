@@ -23,8 +23,8 @@ import { countRemark } from './util/countRemark'
  * one to write wins, as for every field the admin interface saves.
  *
  * Only the moderation reads it: MANAGE_USER_REMARKS is in MODERATOR_RIGHTS and in no lesser set,
- * so the member it is about cannot ask for it. Nothing of it reaches the log (filterVariables, and
- * the answer of a request that read one).
+ * so the member it is about cannot ask for it. Nothing of it reaches the log (the request log
+ * writes no variables, and leaves out the answer of a request that read one).
  *
  * No event per change, unlike the other writes of the moderation: the admin interface saves while
  * the moderator types (after every pause), and an event for each would bury the others. Who wrote

@@ -1784,9 +1784,7 @@ const noticeFor = (own) => {
  * status says what became of it. Never throws: `{ own, refusal }` -- the server's copy, or null
  * where it gave none, and then what the refusal was about where it was about a picture.
  *
- * A picture (P7) goes as `$image` -- ⛔ the name the backend's request log masks (LOG-071): under
- * any other name some 44,000 characters of it would be written to the log with every message.
- * Without one, no `image` at all, rather than a null nobody asked for. The same for `replyTo`,
+ * A picture (P7) goes as `$image`. Without one, no `image` at all, rather than a null nobody asked for. The same for `replyTo`,
  * the uuid of the message an answer quotes.
  *
  * ⛔ Into the query's own answer in the cache, not a list of its own and not by asking the
@@ -1989,7 +1987,7 @@ const stopEdit = () => {
  * through, else what the problem was (chatEditProblem). The other members get the new text with
  * their beat.
  *
- * ⛔ The text goes as `$body` -- the name the backend's request log masks.
+ * The text goes as `$body`.
  *
  * ⛔ `no-cache`, and the copy into the page by the way every change goes (`takeChatEdits`).
  * Apollo would write the answer into the cache by itself -- the message is known there by its id

@@ -6,7 +6,7 @@ import { LogLevel } from './LogLevel'
  *
  * @property {string} name - The name of the category.
  * @property {string} [filename] - The filename for the category, use name if not set.
- * @property {boolean} [stdout] - Whether to log to stdout.
+ * @property {LogLevel} [stdoutLevel] - The lowest level also written to stdout; every level if not set.
  * @property {boolean} [additionalErrorsFile] - Whether to log errors additional to the default error file.
  * @property {LogLevel} level - The logging level.
  * @property {ColoredContextLayoutConfig} [layout] - The layout for the category.
@@ -14,7 +14,7 @@ import { LogLevel } from './LogLevel'
 export type Category = {
   name: string
   filename?: string
-  stdout?: boolean
+  stdoutLevel?: LogLevel
   additionalErrorsFile?: boolean
   level: LogLevel
   layout?: ColoredContextLayoutConfig
@@ -24,7 +24,6 @@ export function defaultCategory(name: string, level: LogLevel): Category {
   return {
     name,
     level,
-    stdout: true,
     additionalErrorsFile: true,
     layout: {
       withStack: 'error',
