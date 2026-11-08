@@ -10,6 +10,8 @@ declare module 'vue' {
     title?: HTMLAttributes['title']
     maxlength?: InputHTMLAttributes['maxlength']
     alt?: ImgHTMLAttributes['alt']
+    inert?: HTMLAttributes['inert']
+    role?: HTMLAttributes['role']
     onClick?: HTMLAttributes['onClick']
     onSubmit?: HTMLAttributes['onSubmit']
     onReset?: HTMLAttributes['onReset']
@@ -17,5 +19,6 @@ declare module 'vue' {
     onChange?: HTMLAttributes['onChange']
     onFocus?: HTMLAttributes['onFocus']
     onInput?: HTMLAttributes['onInput']
+    onMouseover?: HTMLAttributes['onMouseover']
   }
 }

@@ -222,7 +222,7 @@ const routes = [
     // userIdentifier can be username, email or gradidoID
     // communityIdentifier can be community name or community UUID
     path: '/send/:communityIdentifier?/:userIdentifier?',
-    component: () => import('@/pages/Send'),
+    component: () => import('@/pages/Send').then((page) => page.Send),
     name: 'Send',
     props: true,
     meta: {

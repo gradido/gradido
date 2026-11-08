@@ -1,0 +1,116 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only, as in the .vue file this came from.
+
+   Under the root class: the scoped rules these were had one level more (the scope attribute).
+   The two roots themselves (`.sendPicture`, `.sendPictureHomeOnly`) stand alone, one level
+   lighter than before -- nothing else writes to them. */
+.sendPicture {
+  margin-top: 1rem;
+}
+
+/* The label, set as the labels of the fields above it are. */
+.sendPicture .sendPictureLabel {
+  margin-bottom: 0.5rem;
+}
+
+/* "Bild auswählen": one row, in the form of "Foto aufnehmen" of the picture choice. */
+.sendPicture .sendPictureChoose {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 0.5em 1em;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 14px;
+  background: var(--bs-body-bg, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Chosen: the picture small, the two ways on beside it. */
+.sendPicture .sendPictureChosen {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+/* 36 : 25 as the motifs are, on the ground of the card (THANK_YOU_PICTURE_GROUND). */
+.sendPicture .sendPictureThumb {
+  display: block;
+  flex: 0 0 auto;
+  width: 132px;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+  object-fit: cover;
+}
+
+/* On a narrow phone the form leaves 258px: beside a picture of 132 the longer of the ten
+   "Anderes Bild" broke into two lines (measured in the built wallet at 320: it, nl, ru). The
+   picture steps back a little there. */
+@media (width <= 359.98px) {
+  .sendPicture .sendPictureChosen {
+    gap: 12px;
+  }
+
+  .sendPicture .sendPictureThumb {
+    width: 104px;
+  }
+}
+
+.sendPicture .sendPictureActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* "Anderes Bild", "Entfernen", "Ohne Bild": read as links, are buttons. */
+.sendPicture .sendPictureLink {
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: rgba(var(--bs-link-color-rgb), 1);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.sendPicture .sendPictureLink:hover {
+  text-decoration: underline;
+}
+
+.sendPicture .sendPictureNone {
+  margin-top: 8px;
+}
+
+/* Two tiles in a row at every width. On its own the choice asks 130px for a tile, and the form
+   of a narrow phone gives it 258 for two and their gap: one column, 1450px high (measured in
+   the built wallet). On the page of the greeting, which has the room, nothing changes. */
+.sendPicture .sendPictureOpen :global(.tyg-motifs) {
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, calc(50% - 5px)), 1fr));
+}
+
+.sendPicture .sendPictureChoose:focus-visible,
+.sendPicture .sendPictureLink:focus-visible {
+  outline: 2px solid var(--bs-link-color, #047006);
+  outline-offset: 2px;
+}
+
+/* To a member of another community: the sentence in the field's place. */
+.sendPictureHomeOnly {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+}

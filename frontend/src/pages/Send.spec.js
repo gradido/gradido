@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import Send from './Send.vue'
+import { Send } from './Send'
 import { useMutation } from '@vue/apollo-composable'
 import { sendCoins, createTransactionLink } from '@/graphql/mutations.js'
 import { SEND_TYPES } from '@/utils/sendTypes'
@@ -8,22 +8,22 @@ import { walletStore } from '@test/walletStore'
 
 // Mock child components
 vi.mock('@/components/GddSend/TransactionForm', () => ({
-  default: { template: '<div></div>' },
+  TransactionForm: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
-  default: { template: '<div></div>' },
+  TransactionConfirmationSend: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
-  default: { template: '<div></div>' },
+  TransactionConfirmationLink: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultSendSuccess', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultSendSuccess: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultSendError: { template: '<div></div>' },
 }))
 vi.mock('@/components/GddSend/TransactionResultLink', () => ({
-  default: { template: '<div></div>' },
+  TransactionResultLink: { template: '<div></div>' },
 }))
 
 // Mock i18n -- `useI18n` only: the store the page asks (usePassOnDraft) loads the wallet's own

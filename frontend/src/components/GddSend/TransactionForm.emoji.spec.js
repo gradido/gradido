@@ -19,7 +19,7 @@ import {
 import i18n from '@/i18n'
 import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
 import { isComputer } from '@/utils/isComputer'
-import TransactionForm from './TransactionForm.vue'
+import { TransactionForm } from './TransactionForm'
 import { walletStore } from '@test/walletStore'
 
 /**
@@ -181,12 +181,13 @@ describe('TransactionForm, the smiley at the message', () => {
 
   // jsdom lays nothing out: the smiley is placed in the corner of what wraps the field.
   it('is placed in what wraps the message’s field', () => {
-    const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'TransactionForm.vue'),
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'TransactionForm.module.scss'),
       'utf8',
-    )
-    const style = code.slice(code.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
 
-    expect(style.match(/\n\.memo-with-emoji\s*\{([^}]*)\}/)?.[1]).toContain('position: relative')
+    expect(style.match(/\n\.transactionForm \.memoWithEmoji\s*\{([^}]*)\}/)?.[1]).toContain(
+      'position: relative',
+    )
   })
 })

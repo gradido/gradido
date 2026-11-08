@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import i18n from '@/i18n'
 import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
-import TransactionPictureField from './TransactionPictureField.vue'
+import { TransactionPictureField } from './TransactionPictureField'
 
 /** Opening a photo has its own spec (utils/chatImage.spec.js); here it answers as a test says. */
 const opening = vi.hoisted(() => ({ openChatImage: vi.fn() }))

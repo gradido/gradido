@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import TransactionConfirmationSend from './TransactionConfirmationSend'
+import { TransactionConfirmationSend } from './TransactionConfirmationSend'
 import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 
 // Mock the useAppToast composable

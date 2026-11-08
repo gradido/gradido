@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { BButton } from 'bootstrap-vue-next'
-import Send from './Send.vue'
-import RecipientNotFound from '@/components/GddSend/RecipientNotFound.vue'
+import { Send } from './Send'
+import { RecipientNotFound } from '@/components/GddSend/RecipientNotFound'
 import { useMutation } from '@vue/apollo-composable'
 import { createTransactionLink, sendCoins, sendEmail } from '@/graphql/mutations.js'
 import { clearSendReturn, useSendReturn } from '@/composables/useSendReturn'
@@ -23,26 +23,36 @@ import { walletStore } from '@test/walletStore'
  * the form and the views around it are stand-ins that say what they would say.
  */
 vi.mock('@/components/GddSend/TransactionForm', () => ({
-  default: { name: 'TransactionForm', emits: ['back'], template: '<div data-test="the-form" />' },
+  TransactionForm: {
+    name: 'TransactionForm',
+    emits: ['back'],
+    template: '<div data-test="the-form" />',
+  },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationSend', () => ({
-  default: { name: 'TransactionConfirmationSend', template: '<div data-test="the-check" />' },
+  TransactionConfirmationSend: {
+    name: 'TransactionConfirmationSend',
+    template: '<div data-test="the-check" />',
+  },
 }))
 vi.mock('@/components/GddSend/TransactionConfirmationLink', () => ({
-  default: { name: 'TransactionConfirmationLink', template: '<div data-test="the-link-check" />' },
+  TransactionConfirmationLink: {
+    name: 'TransactionConfirmationLink',
+    template: '<div data-test="the-link-check" />',
+  },
 }))
 vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
-  default: {
+  TransactionResultSendError: {
     name: 'TransactionResultSendError',
     emits: ['on-back'],
     template: '<div data-test="the-error-page" />',
   },
 }))
 vi.mock('@/components/GddSend/SendEmailResultError', () => ({
-  default: { name: 'SendEmailResultError', emits: ['on-back'], template: '<div />' },
+  SendEmailResultError: { name: 'SendEmailResultError', emits: ['on-back'], template: '<div />' },
 }))
 vi.mock('@/components/GddSend/TransactionResultLink', () => ({
-  default: {
+  TransactionResultLink: {
     name: 'TransactionResultLink',
     emits: ['on-back'],
     template: '<div data-test="the-link-result" />',
