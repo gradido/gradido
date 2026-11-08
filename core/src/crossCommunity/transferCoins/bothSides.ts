@@ -3,7 +3,7 @@ import {
   countOpenPendingTransactions,
   dbFindPendingTransaction,
   dbGetLastTransactionForUser,
-  dbGetLastTransactionId,
+  dbGetLastTransactionIdForUser,
   dbInsertTransaction,
   dbRemoveTransaction,
   dbUpdatePendingTransactionState,
@@ -155,7 +155,7 @@ export async function settlePendingTransaction(
         return xcomError(CrossCommunityErrorType.previousUserTxNotFinished, m)
       }
       // make sure there wasn't slipped a transaction in between our draft and now
-      const lastTransactionId = await dbGetLastTransactionId(tx)
+      const lastTransactionId = await dbGetLastTransactionIdForUser(pendingTx.userId, tx)
       if (lastTransactionId !== null && lastTransactionId !== pendingTx.previous) {
         const m = `lastTransationId=${lastTransactionId} != pendingTx.previous=${pendingTx.previous}`
         return xcomError(CrossCommunityErrorType.invalidTransactionOrder, m)

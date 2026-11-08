@@ -83,6 +83,19 @@ export async function dbGetLastTransactionForUser(
   return rows[0] ?? null
 }
 
+export async function dbGetLastTransactionIdForUser(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number | null> {
+  const rows = await tx
+    .select({ id: transactionsTable.id })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.userId, userId))
+    .orderBy(desc(transactionsTable.balanceDate))
+    .limit(1)
+  return rows[0]?.id ?? null
+}
+
 export async function dbGetLastTransactionId(
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number | null> {
@@ -91,7 +104,7 @@ export async function dbGetLastTransactionId(
     .from(transactionsTable)
     .orderBy(desc(transactionsTable.balanceDate))
     .limit(1)
-  return rows[0].id ?? null
+  return rows[0]?.id ?? null
 }
 
 export async function dbFindLastTransactionBalance(
