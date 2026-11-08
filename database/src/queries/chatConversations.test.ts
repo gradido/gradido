@@ -1,5 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { spyOn } from 'bun:test'
+// ⛔ All of the runner's functions from here, not only `spyOn`: a file that imports from bun:test
+// gets none of them as globals (CI, 08.11.2026: "beforeAll is not defined").
+import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
 import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { v4 as uuidv4 } from 'uuid'

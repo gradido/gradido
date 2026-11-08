@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
-import { spyOn } from 'bun:test'
+// All of the runner's functions from here: a file that imports from bun:test gets none as globals.
+import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
 import { GradidoUnit } from 'shared'
 import { clearDatabase } from '../../migration/clear'
 import { User as DbUser } from '..'
