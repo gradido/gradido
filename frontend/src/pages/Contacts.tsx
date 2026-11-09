@@ -1,0 +1,689 @@
+// AI-GENERATED — not an architecture reference
+import { useApolloClient, useQuery } from '@vue/apollo-composable'
+import { BFormInput, BPagination, BSpinner } from 'bootstrap-vue-next'
+import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import ChatGroupCreate from '@/components/ChatGroups/ChatGroupCreate.vue'
+import ChatGroupRow from '@/components/ChatGroups/ChatGroupRow.vue'
+import ChatGroupWindow from '@/components/ChatGroups/ChatGroupWindow.vue'
+import { ContactRow } from '@/components/Contacts/ContactRow'
+import { ContactsEmpty } from '@/components/Contacts/ContactsEmpty'
+import { ContactWindow } from '@/components/Contacts/ContactWindow'
+import type { Contact, ContactUser } from '@/components/Contacts/contactDisplay'
+import { provideChatForwardTargets } from '@/composables/useChatForwardTargets'
+import { onContactListRefresh } from '@/composables/useContactsPanel'
+import { useContactWindow } from '@/composables/useContactWindow'
+import { ensureFavorites, isFavorite } from '@/composables/useFavorites'
+import { setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
+import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { usePagerFit } from '@/composables/usePagerFit'
+import { useAppToast } from '@/composables/useToast'
+import { CONTACTS_FETCH_MAX, PAGE_SIZE } from '@/constants'
+import { chatGroupsQuery } from '@/graphql/chatGroups.graphql'
+import { contactListQuery } from '@/graphql/contacts.graphql'
+import { userNotesQuery } from '@/graphql/userNotes.graphql'
+import { useWalletStore } from '@/store/useWalletStore'
+import { chatMemberKey } from '@/utils/chatMemberKey'
+import { memberKey } from '@/utils/gradidoAddress'
+import { noteKeyOfEntry, noteKeyOfGroup, noteKeyOfMember } from '@/utils/userNoteKeys'
+import MdiPlus from '~icons/mdi/plus'
+import classes from './Contacts.module.scss'
+
+/** A chat group as chatGroupsQuery delivers it (P5): what this page reads of it. */
+type ChatGroup = { groupUuid: string; title: string; [field: string]: unknown }
+
+/** One of the member's own notes, as userNotesQuery delivers it. */
+type UserNote = { note: string; [field: string]: unknown }
+
+export const Contacts = defineComponent({
+  name: 'Contacts',
+  setup() {
+    const { t } = useI18n()
+    const { toastError } = useAppToast()
+    // Three numbers at the desk too: this page is 450px wide on every screen (see its style).
+    const { pagerLimit, pagerNoEnds } = usePagerFit(3)
+    const { client: apolloClient } = useApolloClient()
+
+    // The hearts, in case the layout's request at mount did not land (ensureFavorites is a
+    // no-op once they are here).
+    ensureFavorites(apolloClient)
+
+    const contacts = ref<Contact[]>([])
+    const loaded = ref(false)
+    const failed = ref(false)
+    const search = ref('')
+    const currentPage = ref(1)
+
+    /**
+     * The whole list in one answer, then favourites, search and pages on this device.
+     *
+     * The server pages and searches too -- but the favourites are to stand ABOVE the rest,
+     * all of them, and the rest is to be searched as one types; both are one array operation
+     * once the list is here, and a round trip each otherwise. The list is small: a few dozen
+     * people for most members, some hundred for the busiest account measured (713).
+     *
+     * ⚠️ Past the cap (`CONTACTS_FETCH_MAX`) the list is cut, and nothing on this page says so:
+     * the number under "all contacts" counts what arrived, and the server's own `count` is not
+     * read here. The day an account passes a thousand counterparties, this page moves to the
+     * server-side pages, which exist for the compact panel of delivery 2 -- it is not a matter
+     * of one more constant. The cap stands in `constants`: the dialog that forwards a message
+     * asks for the same list where this page is not open.
+     */
+    const LIST_VARIABLES = { currentPage: 1, pageSize: CONTACTS_FETCH_MAX }
+
+    const { onResult, onError } = useQuery(
+      contactListQuery,
+      LIST_VARIABLES,
+      // `network-only`, as the booking list: a cached copy would replay last visit's dates
+      // for the pictures before the fresh list arrives, and the avatar store takes the newest
+      // list it is shown as the truth about who withdrew a picture.
+      { fetchPolicy: 'network-only' },
+    )
+    onResult(({ data }) => {
+      if (!data?.contactList) {
+        return
+      }
+      contacts.value = data.contactList.contacts
+      loaded.value = true
+      failed.value = false
+    })
+    onError((error) => {
+      loaded.value = true
+      failed.value = true
+      toastError(error.message)
+    })
+
+    /**
+     * The member's chat groups (P5), asked with the list. `network-only` for the reason the list
+     * gives, and one more: the query takes no variables, so it has one cache key for whoever
+     * signs in -- the cache is emptied at logout, and every opening of the page asks the server
+     * anyway.
+     *
+     * ⚠️ No toast where it fails: the contacts' request says so already when the server cannot
+     * be reached, and a second toast for the same failure says nothing new. The section says it
+     * in its own line instead, only while there is no list to show.
+     */
+    const groups = ref<ChatGroup[]>([])
+    const groupsLoaded = ref(false)
+    const groupsFailed = ref(false)
+
+    const { onResult: onGroups, onError: onGroupsError } = useQuery(chatGroupsQuery, null, {
+      fetchPolicy: 'network-only',
+    })
+    onGroups(({ data }) => {
+      if (!data?.chatGroups) {
+        return
+      }
+      groups.value = data.chatGroups
+      groupsLoaded.value = true
+      groupsFailed.value = false
+      openAskedGroup()
+    })
+    onGroupsError(() => {
+      groupsLoaded.value = true
+      groupsFailed.value = groups.value.length === 0
+      groupAsked = null
+    })
+
+    /**
+     * The group's window (P5): which group is open, by its uuid, and the newest the list has of
+     * it -- so a name, a part or a mute mark that changed shows in the open window once the list
+     * is asked again. Let go when the window closes, as the contact window lets its contact go.
+     */
+    const groupWindowOpen = ref(false)
+    const openedGroupUuid = ref<string | null>(null)
+    const openedGroup = computed(
+      () => groups.value.find((group) => group.groupUuid === openedGroupUuid.value) ?? null,
+    )
+    const openGroup = (group: ChatGroup) => {
+      openedGroupUuid.value = group.groupUuid
+      groupWindowOpen.value = true
+    }
+    watch(groupWindowOpen, (isOpen) => {
+      if (!isOpen) {
+        openedGroupUuid.value = null
+      }
+    })
+    // A group the list no longer holds -- the member left it, or was taken out -- closes its
+    // window rather than leave it open around nothing.
+    watch(openedGroup, (group) => {
+      if (!group && groupWindowOpen.value) {
+        groupWindowOpen.value = false
+      }
+    })
+
+    /**
+     * A member named in a group -- in its list of members, or over their message (E-053) -- and
+     * a first word to them in one tap (Bernd, 30.09.2026, E-055). Their contact window opens
+     * OVER the group's: closing it leads back into the group.
+     * - A contact: the window as always; where the two have never written, "Hallo …" stands in
+     *   the field.
+     * - Nobody's contact yet: the window in its first form -- only the text, "Hallo …" in the
+     *   field. The first message goes by mail as every first one does (E-024) and makes them a
+     *   contact; the window then becomes the whole one (`contactMade`). No send form any more.
+     *
+     * Who is a contact is this page's list, by the pair without regard to case -- the group's
+     * members are all of this community in P5 (E-026), and a missing community is this one.
+     * Whether a person who is no contact yet belongs to it is the pair's to say too, for the
+     * address line; the server's answer (`homeCommunity`) takes its place with the contact row.
+     */
+    const store = useWalletStore()
+    const openGroupMember = (user: ContactUser | null) => {
+      if (!user?.gradidoID) {
+        return
+      }
+      const home = store.communityUuid as string | null
+      const key = chatMemberKey(user, home)
+      const contact = contacts.value.find((held) => chatMemberKey(held.user, home) === key)
+      if (contact) {
+        open(contact, { fromGroup: true })
+        return
+      }
+      const communityUuid = user.communityUuid ?? home
+      if (!communityUuid) {
+        return
+      }
+      const homeCommunity = !!home && communityUuid.toLowerCase() === home.toLowerCase()
+      open({ user: { ...user, communityUuid }, homeCommunity }, { fromGroup: true, known: false })
+    }
+
+    /**
+     * The first message to a member of a group made them a contact (E-055): the window takes the
+     * server's row -- the meta line, and all its ways --, and the list asks again, so that they
+     * stand in it.
+     */
+    const contactMade = () => {
+      fillIn()
+      reloadList()
+    }
+
+    /**
+     * "Neue Gruppe" (P5): the dialog, and what follows a group opened in it -- it stands in the
+     * list at once, its window opens, and the list is asked again for the server's order.
+     */
+    const createOpen = ref(false)
+    const groupCreated = (group: ChatGroup) => {
+      groups.value = [group, ...groups.value.filter((held) => held.groupUuid !== group.groupUuid)]
+      groupsLoaded.value = true
+      openGroup(group)
+      reloadGroups()
+    }
+
+    /**
+     * The groups asked again, the way the list is (`reloadList` below): a message arrived or was
+     * read, and the dot or the order of a group moved. Quiet, and only the newest answer counts.
+     */
+    let groupReloads = 0
+    const reloadGroups = async () => {
+      const mine = ++groupReloads
+      try {
+        const { data } = await apolloClient.query({
+          query: chatGroupsQuery,
+          fetchPolicy: 'network-only',
+          context: { renewSession: false, queryDeduplication: false },
+        })
+        if (mine !== groupReloads || !data?.chatGroups) {
+          return
+        }
+        groups.value = data.chatGroups
+        groupsLoaded.value = true
+        groupsFailed.value = false
+      } catch {
+        // The groups as they were.
+      }
+    }
+
+    /**
+     * The list asked again, because the right-hand column's is (useContactsPanel): a transfer
+     * went through, or chat messages arrived (useChatUpdates). The server orders the contacts by
+     * the last exchange, so somebody who just wrote comes to the top -- the wallet keeps no book
+     * of its own.
+     *
+     * ⛔ `renewSession: false`: nobody did anything on this page, and a list asked again must not
+     * keep an unattended wallet signed in (plugins/apolloProvider.js). Said nothing on a failure:
+     * the list on screen stays as it was, and the next news asks again.
+     *
+     * Only the newest answer counts: two of these can be on their way at once. ⛔ And each is a
+     * question of its own (`queryDeduplication: false`): Apollo would otherwise hand a second
+     * question the answer of the first one still on its way -- one that left before the news this
+     * question is about, and that would then count as the newest (E-083: a changed message under
+     * a name).
+     */
+    let reloads = 0
+    const reloadList = async () => {
+      const mine = ++reloads
+      try {
+        const { data } = await apolloClient.query({
+          query: contactListQuery,
+          variables: LIST_VARIABLES,
+          fetchPolicy: 'network-only',
+          context: { renewSession: false, queryDeduplication: false },
+        })
+        if (mine !== reloads || !data?.contactList) {
+          return
+        }
+        contacts.value = data.contactList.contacts
+        // What an answer of the page's own query says too: a list that failed at first, or had
+        // not answered yet, stands once a question again succeeds (coderabbit, PR #3980).
+        loaded.value = true
+        failed.value = false
+      } catch {
+        // The list as it was.
+      }
+    }
+    onBeforeUnmount(
+      onContactListRefresh(() => {
+        reloadList()
+        reloadGroups()
+      }),
+    )
+
+    const rowKey = (contact: Contact) => memberKey(contact.user)
+
+    // A tap on a row opens the contact window; the ways on from there live inside it (KF-010).
+    // The state machine is shared with the column and the phone strip, so the release-on-close
+    // rule is written once.
+    const { windowOpen, selected, greet, firstContact, open, openKnownMember, fillIn } =
+      useContactWindow(apolloClient)
+
+    /**
+     * Forwarding a message (E-059) is the windows' own business -- each holds the dialog that
+     * asks where to, since a window is opened from many places besides this page. This page holds
+     * the two lists the dialog chooses from, so it hands them down instead of letting the dialog
+     * ask again: they are on screen here, and stay in step with it -- with what the page knows of
+     * them: still on their way, or not to be read. Once a message went, the chat's beat asks at
+     * once and the lists with it (`onContactListRefresh` above).
+     */
+    provideChatForwardTargets({
+      contacts,
+      groups,
+      loading: computed(() => !loaded.value || !groupsLoaded.value),
+      contactsFailed: failed,
+      groupsFailed,
+    })
+
+    /**
+     * `/contacts?with=<gradidoID>[&community=<uuid>]` opens the conversation with that person --
+     * the address the mail's reply button will point to (P4c); nothing in the wallet links here
+     * yet. A missing community is this one. Read once, when the page is built, and taken out of
+     * the address at once, so a reload shows the list and does not open the window again.
+     *
+     * Opened only for somebody the server knows as a contact (useContactWindow.openKnownMember):
+     * an unknown id, or somebody one never exchanged anything with, opens nothing and says
+     * nothing. Only plain values: `?with=a&with=b` is no person.
+     */
+    const route = useRoute()
+    const router = useRouter()
+    const askedFor = route.query.with
+    const askedCommunity = route.query.community
+    const askedGroup = route.query.group
+    if (askedFor !== undefined || askedCommunity !== undefined || askedGroup !== undefined) {
+      const { with: _with, community: _community, group: _group, ...rest } = route.query
+      router.replace({ query: rest })
+    }
+    if (typeof askedFor === 'string' && askedFor !== '') {
+      // ⛔ Never two windows on top of each other. The conversation an address asks for comes
+      // before the windows of the first logins (useFirstLoginWindow) -- somebody who has just
+      // accepted a thank-you taps "… antworten" and meets the wallet for the first time right
+      // here. Said at once, while the page is built: the lookup below takes a moment, and one of
+      // the three would have the screen by then.
+      setFirstLoginWindowWanted('contact', true)
+      openKnownMember({
+        gradidoID: askedFor,
+        communityUuid:
+          typeof askedCommunity === 'string' && askedCommunity !== '' ? askedCommunity : null,
+      }).finally(() => {
+        // Nobody the server knows as a contact, so no window: the three need not wait.
+        if (!windowOpen.value) {
+          setFirstLoginWindowWanted('contact', false)
+        }
+      })
+    }
+    // The three come in their order once the window is closed -- and when the page is left.
+    watch(windowOpen, (isOpen) => {
+      if (!isOpen) {
+        setFirstLoginWindowWanted('contact', false)
+      }
+    })
+    onBeforeUnmount(() => setFirstLoginWindowWanted('contact', false))
+
+    /**
+     * `/contacts?group=<uuid>` opens that group's window (P5) -- the address the group's mails
+     * point to (E-049), also after the sign-in (the guard keeps the whole address as the way
+     * back), and the one a start comes back to after iOS started the wallet over
+     * (utils/chatReturn). Read once, and taken out of the address with the other two, above.
+     *
+     * Opened only for a group the member is in: it is looked for in the member's own list, once
+     * that has answered. A group the member is not in -- or no longer, or that does not exist --
+     * opens nothing and says nothing, as `?with=` does for somebody who is no contact. Nor over
+     * something the member opened in the meantime.
+     */
+    let groupAsked: string | null =
+      typeof askedGroup === 'string' && askedGroup !== '' ? askedGroup.toLowerCase() : null
+    const openAskedGroup = () => {
+      const wanted = groupAsked
+      groupAsked = null
+      if (!wanted || groupWindowOpen.value || windowOpen.value) {
+        return
+      }
+      const group = groups.value.find((held) => held.groupUuid.toLowerCase() === wanted)
+      if (group) {
+        openGroup(group)
+      }
+    }
+
+    const needle = computed(() => search.value.trim().toLowerCase())
+
+    /**
+     * The member's own notes (useChatWindowNote), in lower case, by person and group: the search
+     * finds them by the words of their note as well -- the full name one wrote down finds the
+     * alias (Bernd, 27.10.2026). Asked for whenever a search begins, and again when a window on
+     * this page closes while a search stands, so that a note written there a moment ago is found
+     * too. Until the answer is here, and where it fails, the search goes by the names alone.
+     */
+    const noteWords = ref(new Map<string, string>())
+    let noteWordsAsked = 0
+    const askNoteWords = async () => {
+      const asked = ++noteWordsAsked
+      try {
+        const { data } = await apolloClient.query({
+          query: userNotesQuery,
+          fetchPolicy: 'no-cache',
+        })
+        if (asked !== noteWordsAsked) {
+          return
+        }
+        noteWords.value = new Map(
+          ((data?.userNotes ?? []) as UserNote[]).map((entry) => [
+            noteKeyOfEntry(entry, store.communityUuid),
+            entry.note.toLowerCase(),
+          ]),
+        )
+      } catch {
+        // The names alone, this time.
+      }
+    }
+    watch(
+      () => needle.value !== '',
+      (searching) => {
+        if (searching) {
+          askNoteWords()
+        }
+      },
+    )
+    watch(
+      () => windowOpen.value || groupWindowOpen.value,
+      (aWindowOpen, before) => {
+        if (before && !aWindowOpen && needle.value) {
+          askNoteWords()
+        }
+      },
+    )
+    const noteHas = (key: string) => Boolean(noteWords.value.get(key)?.includes(needle.value))
+
+    const matches = (contact: Contact) =>
+      !needle.value ||
+      `${contact.user.alias ?? ''} ${contact.user.gradidoID}`
+        .toLowerCase()
+        .includes(needle.value) ||
+      noteHas(noteKeyOfMember(contact.user, store.communityUuid))
+
+    // The groups the search leaves: a word narrows them by their name, as it narrows the
+    // contacts by theirs -- and by the member's own note on them. The section stands while there
+    // is a group to show -- and, with no search, once the server has answered: with "Neue
+    // Gruppe", and a line that says there is none yet or that they could not be loaded.
+    const groupRows = computed(() =>
+      groups.value.filter(
+        (group) =>
+          !needle.value ||
+          group.title.toLowerCase().includes(needle.value) ||
+          noteHas(noteKeyOfGroup(group.groupUuid)),
+      ),
+    )
+    const groupsShown = computed(
+      () => groupRows.value.length > 0 || (groupsLoaded.value && !needle.value),
+    )
+
+    // Read through the composable, not the `favorite` flag the server sent: a heart given on
+    // this page has to move the person up at once, without a refetch.
+    const favoriteRows = computed(() =>
+      contacts.value.filter((contact) => isFavorite(contact.user) && matches(contact)),
+    )
+    const otherRows = computed(() =>
+      contacts.value.filter((contact) => !isFavorite(contact.user) && matches(contact)),
+    )
+    const pageRows = computed(() => {
+      const start = (currentPage.value - 1) * PAGE_SIZE
+      return otherRows.value.slice(start, start + PAGE_SIZE)
+    })
+
+    // A new search starts on page one; a page beyond the end is no page.
+    watch(needle, () => {
+      currentPage.value = 1
+    })
+    watch(otherRows, (rows) => {
+      const last = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+      if (currentPage.value > last) {
+        currentPage.value = last
+      }
+    })
+
+    // Faces for the rows on screen, the way the booking list asks for them. Only the visible
+    // ones: a member with hundreds of contacts must not pay for hundreds of pictures on page one.
+    //
+    // The page rows come FIRST: the store keeps a fixed number of faces and serves the list in
+    // the order it is given, so a member with more favourites than it can hold sees the people
+    // they are looking at, and initials further down.
+    watch(
+      [favoriteRows, pageRows],
+      ([favorites, page]) => {
+        fetchMemberAvatars(
+          apolloClient,
+          [...page, ...favorites].map(({ user }) => user),
+        )
+      },
+      { immediate: true },
+    )
+
+    const rows = (list: Contact[]) =>
+      list.map((contact) => <ContactRow key={rowKey(contact)} contact={contact} onOpen={open} />)
+
+    return () => (
+      <div class={['contacts', classes.contacts]}>
+        <BFormInput
+          modelValue={search.value}
+          type='search'
+          placeholder={t('contacts.search')}
+          class='mb-3'
+          data-test='contacts-search'
+          onUpdate:modelValue={(typed) => {
+            search.value = String(typed ?? '')
+          }}
+        />
+
+        {/* The member's chat groups (P5), in a section of their own above the favourites (E-050
+            F1a) -- as soon as they are in, whether or not the contacts are, and with "Neue
+            Gruppe" also while there is none. A search narrows them by their name, and where it
+            leaves none the section steps aside for the contacts it found. */}
+        {groupsShown.value ? (
+          <section
+            class='mb-4'
+            aria-labelledby='contacts-groups-heading'
+            data-test='contacts-groups'
+          >
+            <div
+              class={['contacts-groups-head', classes['contacts-groups-head'], 'page-text mb-2']}
+            >
+              <h2 id='contacts-groups-heading' class='h6 text-uppercase text-muted mb-0'>
+                {t('chatGroup.heading')}{' '}
+                {groupRows.value.length ? (
+                  <span class='fw-normal ms-2' data-test='contacts-groups-count'>
+                    {t('chatGroup.count', groupRows.value.length)}
+                  </span>
+                ) : null}
+              </h2>
+              <button
+                type='button'
+                class={['contacts-groups-new', classes['contacts-groups-new']]}
+                data-test='contacts-groups-new'
+                onClick={() => {
+                  createOpen.value = true
+                }}
+              >
+                <MdiPlus aria-hidden='true' /> {t('chatGroup.new')}
+              </button>
+            </div>
+            {groupRows.value.length ? (
+              <div
+                class='bg-white gradido-border-radius app-box-shadow px-3'
+                data-test='contacts-groups-list'
+              >
+                {groupRows.value.map((group) => (
+                  <ChatGroupRow key={group.groupUuid} group={group} onOpen={openGroup} />
+                ))}
+              </div>
+            ) : groupsFailed.value ? (
+              // A failed request is not an empty list, here as for the contacts.
+              <div class='text-muted small page-text' data-test='groups-error'>
+                {t('chatGroup.notReachable')}
+              </div>
+            ) : (
+              <div class='text-muted small page-text' data-test='groups-none'>
+                {t('chatGroup.none')}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {!loaded.value ? (
+          <div class='text-center py-3' data-test='contacts-loading'>
+            <BSpinner small />
+          </div>
+        ) : failed.value ? (
+          // A failed request is not an empty list: "no contacts yet" would tell a member with
+          // a hundred of them that they have none.
+          <div class='text-muted page-text' data-test='contacts-error'>
+            {t('contacts.notReachable')}
+          </div>
+        ) : contacts.value.length === 0 ? (
+          // ⚠️ The same sentence stands here for an unmatched SEARCH, which it has always done
+          // and which is a defect of its own. The link is kept out of that case rather than
+          // made part of it: "show it to your friends" is no answer to "nobody called that".
+          <div class='text-muted page-text' data-test='contacts-empty'>
+            <ContactsEmpty withLink={!search.value.trim()} />
+          </div>
+        ) : (
+          <>
+            {/* Favourites first (L §8.14), all of them, whatever page the rest is on. */}
+            {favoriteRows.value.length ? (
+              <section class='mb-4' data-test='contacts-favorites'>
+                <h2 class='h6 text-uppercase text-muted mb-2 page-text'>
+                  {t('contacts.favorites')}
+                </h2>
+                <div class='bg-white gradido-border-radius app-box-shadow px-3'>
+                  {rows(favoriteRows.value)}
+                </div>
+              </section>
+            ) : null}
+
+            <section data-test='contacts-all'>
+              <h2 class='h6 text-uppercase text-muted mb-2 page-text'>
+                {t('contacts.all')}{' '}
+                <span class='fw-normal ms-2' data-test='contacts-count'>
+                  {t('contacts.count', otherRows.value.length)}
+                </span>
+              </h2>
+              {pageRows.value.length ? (
+                <div
+                  class='bg-white gradido-border-radius app-box-shadow px-3'
+                  data-test='contacts-page'
+                >
+                  {rows(pageRows.value)}
+                </div>
+              ) : (
+                <div class='text-muted small page-text' data-test='contacts-none-match'>
+                  {t('contacts.count', 0)}
+                </div>
+              )}
+              {/* ⛔ `noEllipsis` does NOT make this pager narrower, and an earlier note here
+                  claimed it did. Measured properly on the real component, at 290 rows and 25 a
+                  page: with the "..." it is 549 points, without them 540. The component does not
+                  drop the two placeholders, it REPLACES them with two more page numbers --
+                  `« ‹ … 2 3 4 … › »` becomes `« ‹ 1 2 3 4 5 › »`. So the reason to pass it is
+                  not width but worth: two dead placeholders become two buttons one can actually
+                  press. (Bernd, 04.09.2026: the dots had been irritating him for a while.)
+
+                  ⛔ What makes it fit is `limit`, and that is the line the single row depends on:
+                  three page numbers rather than five, `« ‹ 2 3 4 › »`, 421 points against this
+                  page's 450. At a limit of 4 it is 479 and wraps again, so this is not a spare
+                  margin -- do not raise it without measuring. The arrows keep every page
+                  reachable: `«` first, `»` last. On a phone the ends go, as on every pager in
+                  this wallet (`usePagerFit`): `‹ 2 3 4 ›` is one line where the seven took two.
+                  And `flex-wrap`, as on every pager: what is still wider than the page takes a
+                  second line instead of hanging out of it.
+
+                  ⛔⛔ It is `noEllipsis`, NOT `hideEllipsis`. `hide-ellipsis` is BootstrapVue's
+                  Vue-2 name and does not exist in bootstrap-vue-next: the string does not occur
+                  once in the installed 0.26.8 bundle, and passing it renders both "..." exactly
+                  as passing nothing does. Three other pagers in this wallet carried it, all
+                  inert; they were corrected in the same delivery. There is a test at the foot of
+                  `Contacts.spec.js` that reads every component file and fails on the dead name,
+                  so the next copy of it cannot get in. (coderabbit found the first one,
+                  04.09.2026.) */}
+              {otherRows.value.length > PAGE_SIZE ? (
+                <BPagination
+                  modelValue={currentPage.value}
+                  class='mt-3 flex-wrap'
+                  pills
+                  size='lg'
+                  noEllipsis={true}
+                  limit={pagerLimit.value}
+                  noGotoEndButtons={pagerNoEnds.value}
+                  perPage={PAGE_SIZE}
+                  totalRows={otherRows.value.length}
+                  align='center'
+                  data-test='contacts-pagination'
+                  onUpdate:modelValue={(page) => {
+                    currentPage.value = Number(page)
+                  }}
+                />
+              ) : null}
+            </section>
+          </>
+        )}
+
+        {/* One window for the page, not one per row (KF-010). */}
+        <ContactWindow
+          modelValue={windowOpen.value}
+          contact={selected.value}
+          greet={greet.value}
+          firstContact={firstContact.value}
+          onUpdate:modelValue={(isOpen: boolean) => {
+            windowOpen.value = isOpen
+          }}
+          onContactMade={contactMade}
+        />
+        {/* And one for a group (P5), the same way, and the dialog that opens one. */}
+        <ChatGroupWindow
+          modelValue={groupWindowOpen.value}
+          group={openedGroup.value}
+          contacts={contacts.value}
+          onUpdate:modelValue={(isOpen: boolean) => {
+            groupWindowOpen.value = isOpen
+          }}
+          onChanged={reloadGroups}
+          onOpenMember={openGroupMember}
+        />
+        <ChatGroupCreate
+          modelValue={createOpen.value}
+          contacts={contacts.value}
+          onUpdate:modelValue={(isOpen: boolean) => {
+            createOpen.value = isOpen
+          }}
+          onCreated={groupCreated}
+        />
+      </div>
+    )
+  },
+})

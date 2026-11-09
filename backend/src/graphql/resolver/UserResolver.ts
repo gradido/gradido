@@ -28,7 +28,8 @@ import {
   sendAccountActivationEmail,
   sendResetPasswordEmail,
   validateAlias,
-  xcomMemberAvatars,
+  xcomMemberAvatarFull,
+  xcomMemberAvatarsSmall,
 } from 'core'
 import {
   AccountState,
@@ -36,6 +37,7 @@ import {
   AppDatabase,
   ASSIGNABLE_ROLE_NAMES,
   aliasOriginIsSettled,
+  CommunitiesSelect,
   DBNotFoundError,
   DbLoginUser,
   User as DbUser,
@@ -47,6 +49,7 @@ import {
   dbEmailTaken,
   dbFindAdminUsersPage,
   dbFindAliasesByUser,
+  dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
@@ -92,13 +95,13 @@ import {
   isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
-  MemberAvatarPayload,
   PasswordHashPriority,
   parseOrThrowFirstIssue,
   passwordSchema,
   Result,
   USER_NOT_FOUND,
   updateAllDefinedAndChanged,
+  XComRequestError,
 } from 'shared'
 import {
   Arg,
@@ -134,7 +137,6 @@ import {
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
   splitMemberRefsByCommunity,
   USER_AVATARS_ACCEPTED_MAX_PER_REQUEST,
-  XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { createUserSchema } from '@/interactions/registerUser'
@@ -177,43 +179,31 @@ export const activationLink = (verificationCode: string, logger: Logger): string
 }
 
 /**
- * The pictures of another community's members, asked of that community. This server stores
- * none of them (AS-004), and the other side decides with its own rule who may be shown
- * (federation MemberAvatarsResolver, mayBeShownToMembers).
+ * What another community answers about the pictures of its members, asked by `ask`. This
+ * server stores none of them (AS-004), and the other side decides with its own rule who may be
+ * shown (core memberAvatars answeringSide, mayBeShownToMembers).
  *
  * ★ Nothing the other community does becomes an error here: an unknown community, one the
- * handshake has not completed with, no answer within XCOM_MEMBER_AVATARS_TIMEOUT_MS, a
- * refusal, an answer that does not hold up -- the member gets no faces from there this time,
- * and the rest of their request is untouched.
+ * handshake has not completed with, no answer in time, a refusal, an answer that does not hold
+ * up -- null, the member gets no faces from there this time, and the rest of their request is
+ * untouched.
  */
-const relayMemberAvatars = async (
+const relayMemberAvatars = async <T>(
   communityUuid: string,
-  kind: 'small' | 'full',
-  gradidoIDs: string[],
-): Promise<MemberAvatarPayload[]> => {
-  const community = await getCommunityByUuid(communityUuid)
-  // The other side refuses a community that has not completed the handshake with it, so
-  // asking without one would only cost the member the time limit.
-  if (!community?.foreign || !community.authenticatedAt || !community.publicJwtKey) {
-    return []
+  ask: (community: CommunitiesSelect) => Promise<Result<T, XComRequestError>>,
+): Promise<T | null> => {
+  // the other side refuses a community that has not completed the handshake with it
+  const community = await dbFindAuthenticatedForeignCommunityByIdentifier(communityUuid)
+  if (!community) {
+    return null
   }
-  const homeCom = await getHomeCommunity()
-  if (!homeCom) {
-    return []
-  }
-  const answer = await xcomMemberAvatars(
-    homeCom,
-    community,
-    kind,
-    gradidoIDs,
-    XCOM_MEMBER_AVATARS_TIMEOUT_MS,
-  )
+  const answer = await ask(community)
   if (!answer.success) {
     createLogger('relayMemberAvatars').warn(
       'no member pictures from another community',
       answer.error.message,
     )
-    return []
+    return null
   }
   return answer.value
 }
@@ -1140,17 +1130,17 @@ export class UserResolver {
         if (context.requestBudget.memberAvatarsRelayed > MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST) {
           return []
         }
-        return (await relayMemberAvatars(communityUuid, 'small', gradidoIDs)).flatMap((member) => {
-          if (member.avatar === null) {
-            return []
-          }
+        const members = await relayMemberAvatars(communityUuid, (community) =>
+          xcomMemberAvatarsSmall(community, gradidoIDs),
+        )
+        return (members ?? []).map((member) => {
           const avatar = new MemberAvatar()
-          avatar.gradidoID = member.gradidoID
+          avatar.gradidoID = member.gradidoId
           // ⛔ The community that was asked: the wallet keys a face by the pair it asked about.
           avatar.communityUuid = communityUuid
           avatar.avatar = member.avatar
-          avatar.avatarUpdatedAt = new Date(member.avatarUpdatedAt)
-          return [avatar]
+          avatar.avatarUpdatedAt = member.avatarUpdatedAt
+          return avatar
         })
       }),
     )
@@ -1213,8 +1203,9 @@ export class UserResolver {
     // Another community's member: that community holds the picture (AS-020). Counted in the
     // budget above before anything is asked, like a picture of this community.
     if (communityUuid !== (await resolveCommunityUuid(null))) {
-      const [member] = await relayMemberAvatars(communityUuid, 'full', [ref.gradidoID])
-      return member?.avatar ?? null
+      return relayMemberAvatars(communityUuid, (community) =>
+        xcomMemberAvatarFull(community, ref.gradidoID),
+      )
     }
 
     const avatar = await dbFindMemberAvatarFull(ref.gradidoID, communityUuid)

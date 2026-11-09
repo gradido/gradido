@@ -91,7 +91,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useForm } from 'vee-validate'
 import { BButton, BForm } from 'bootstrap-vue-next'
-import AccountFields from '@/components/Auth/AccountFields'
+import { AccountFields } from '@/components/Auth/AccountFields'
 import { memberAlias } from '@/utils/gradidoAddress'
 import {
   THANK_YOU_MOTIF_HEIGHT,

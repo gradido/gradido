@@ -19,7 +19,7 @@ import {
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
-  CONFIG as CORE_CONFIG,
+  ApiClient,
   objectValuesToArray,
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
@@ -35,7 +35,6 @@ import {
   contributionLinkFactory,
   Community as DbCommunity,
   Event as DbEvent,
-  FederatedCommunity as DbFederatedCommunity,
   dbInsertMatchingEntry,
   dbInsertUserAlias,
   transactionLinkFactory as dbTransactionLinkFactory,
@@ -50,18 +49,8 @@ import {
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { GraphQLClient } from 'graphql-request'
 import { gql } from 'graphql-tag'
-import {
-  AVATAR_FULL_MAX_BYTES,
-  AVATAR_SMALL_MAX_BYTES,
-  createKeyPair,
-  encryptAndSign,
-  MemberAvatarPayload,
-  MemberAvatarsJwtPayloadType,
-  MemberAvatarsResponseJwtPayloadType,
-  verifyAndDecrypt,
-} from 'shared'
+import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES } from 'shared'
 import { reencodeImage } from 'shared-native'
 import { QueryRunner } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
@@ -5159,16 +5148,11 @@ describe('UserResolver', () => {
 
       /**
        * AS-004 / AS-020: members of ANOTHER community. Their pictures live over there, and
-       * this server asks for them the way it asks for anything across the border -- the
-       * question encrypted for that community's JWT key and signed with this one's -- and
-       * stores none of them.
+       * this server asks for them over the peer api, and stores none of them.
        *
-       * ⛔ The stand-in for the other community opens the question with ITS key and seals a
-       * REAL answer for this community's. Anything less would leave verifyAndDecrypt and the
-       * tokentype check out of these cases: a made-up peer only confirms itself.
-       *
-       * No fake timers (drizzle is on the path); the time limit is proven in core,
-       * xcomMemberAvatars.test.ts.
+       * The stand-in for the other community is a stub on the client's request (ApiClient):
+       * what it answers goes through the checks of the answer (core memberAvatars askingSide)
+       * as between two servers; the envelope is apiRoutes' own test.
        *
        * State on arrival: bob is logged in and bibi's switch is OFF (turned off above). It is
        * turned on for these cases and off again afterwards, so the block below finds the
@@ -5179,7 +5163,7 @@ describe('UserResolver', () => {
         const peerMember = uuidv4()
         // Pictures that decode, and others than the member's own two: what another community
         // answers with is held to the bounds of an avatar, header included
-        // (xcomMemberAvatars in core).
+        // (memberAvatars askingSide in core).
         const PEER_SMALL = TEST_AVATAR_FULL_BASE64
         const PEER_FULL = TEST_AVATAR_200_PIXELS_BASE64
         const PICTURE_DATE = '2026-09-14T10:00:00.000Z'
@@ -5189,12 +5173,10 @@ describe('UserResolver', () => {
           { gradidoID: peerMember, communityUuid: peerUuid },
         ]
 
-        let homeKeys: { publicKey: string; privateKey: string }
-        let peerKeys: { publicKey: string; privateKey: string }
         let peer: DbCommunity
-        let peerEntry: DbFederatedCommunity
-        let questions: MemberAvatarsJwtPayloadType[] = []
-        let rawRequest: jest.SpyInstance | undefined
+        // each question as [route, body]
+        let questions: [string, unknown][] = []
+        let requests: jest.SpyInstance[] = []
 
         const setSwitch = async (avatarVisibleToMembers: boolean) => {
           await mutate({
@@ -5216,42 +5198,25 @@ describe('UserResolver', () => {
           })
         }
 
-        /** The other community: opens the question with its key, answers sealed for ours. */
-        const peerAnswers = (
-          answer: (question: MemberAvatarsJwtPayloadType) => MemberAvatarPayload[],
-        ) => {
-          rawRequest = jest
-            .spyOn(GraphQLClient.prototype, 'rawRequest')
-            .mockImplementation((async (options: {
-              variables: { args: { handshakeID: string; jwt: string } }
-            }) => {
-              const { args } = options.variables
-              const question = (await verifyAndDecrypt(
-                args.handshakeID,
-                args.jwt,
-                peerKeys.privateKey,
-                homeKeys.publicKey,
-              )) as MemberAvatarsJwtPayloadType | null
-              if (!question) {
-                throw new Error('the question does not verify with the key of this community')
-              }
-              questions.push(question)
-              const token = await encryptAndSign(
-                new MemberAvatarsResponseJwtPayloadType(args.handshakeID, answer(question)),
-                peerKeys.privateKey,
-                homeKeys.publicKey,
-              )
-              return { data: { memberAvatars: token }, status: 200 }
-            }) as any)
+        /**
+         * The other community: answers the list and the zoom as `answer` says, and does not
+         * answer at all -- what Eden hands back for a fetch that failed -- where it says null.
+         */
+        const peerAnswers = (answer: (question: any) => unknown) => {
+          const answering = (route: 'memberAvatarsSmall' | 'memberAvatarFull') =>
+            jest.spyOn(ApiClient.prototype, route).mockImplementation((async (
+              question: unknown,
+            ) => {
+              questions.push([route, question])
+              const data = answer(question)
+              return data === null
+                ? { data: null, error: { status: 503, value: 'connect ECONNREFUSED' } }
+                : { data, error: null }
+            }) as never)
+          requests = [answering('memberAvatarsSmall'), answering('memberAvatarFull')]
         }
 
         beforeAll(async () => {
-          homeKeys = await createKeyPair()
-          peerKeys = await createKeyPair()
-          await DbCommunity.update(
-            { foreign: false },
-            { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
-          )
           peer = await DbCommunity.create({
             foreign: true,
             url: 'http://peer.invalid/api/',
@@ -5262,13 +5227,6 @@ describe('UserResolver', () => {
             name: 'Peer community',
             description: 'the other side of the border',
             creationDate: new Date(),
-            publicJwtKey: peerKeys.publicKey,
-          }).save()
-          peerEntry = await DbFederatedCommunity.create({
-            foreign: true,
-            publicKey: peer.publicKey,
-            apiVersion: CORE_CONFIG.FEDERATION_BACKEND_SEND_ON_API,
-            endPoint: 'http://peer.invalid/api/',
           }).save()
           await setSwitch(true)
         })
@@ -5279,21 +5237,21 @@ describe('UserResolver', () => {
         })
 
         afterEach(() => {
-          rawRequest?.mockRestore()
-          rawRequest = undefined
+          for (const request of requests) {
+            request.mockRestore()
+          }
+          requests = []
         })
 
         afterAll(async () => {
           await setSwitch(false)
-          await DbFederatedCommunity.delete({ id: peerEntry.id })
           await DbCommunity.delete({ id: peer.id })
-          await DbCommunity.update({ foreign: false }, { publicJwtKey: null, privateJwtKey: null })
         })
 
         it("hands back another community's faces under that community's uuid", async () => {
           peerAnswers((question) =>
-            question.gradidoIDs.map((gradidoID) => ({
-              gradidoID,
+            question.gradidoIds.map((gradidoId: string) => ({
+              gradidoId,
               avatarUpdatedAt: PICTURE_DATE,
               avatar: PEER_SMALL,
             })),
@@ -5318,15 +5276,11 @@ describe('UserResolver', () => {
           )
           // ⛔ Only the other community's member was asked about over there: bibi's id never
           // left this server.
-          expect(questions).toEqual([
-            expect.objectContaining({ kind: 'small', gradidoIDs: [peerMember] }),
-          ])
+          expect(questions).toEqual([['memberAvatarsSmall', { gradidoIds: [peerMember] }]])
         })
 
         it('still hands out its own faces when the other community does not answer', async () => {
-          rawRequest = jest
-            .spyOn(GraphQLClient.prototype, 'rawRequest')
-            .mockRejectedValue(new Error('connect ECONNREFUSED 192.0.2.1:443'))
+          peerAnswers(() => null)
 
           const res: any = await query({ query: memberAvatars, variables: { refs: refs() } })
 
@@ -5347,13 +5301,7 @@ describe('UserResolver', () => {
 
         // AS-020: the zoom crosses the border too, counted in the same budget as at home.
         it("passes the zoom on to the member's own community", async () => {
-          peerAnswers((question) =>
-            question.gradidoIDs.map((gradidoID) => ({
-              gradidoID,
-              avatarUpdatedAt: PICTURE_DATE,
-              avatar: PEER_FULL,
-            })),
-          )
+          peerAnswers(() => PEER_FULL)
 
           const res: any = await query({
             query: memberAvatarFull,
@@ -5362,9 +5310,7 @@ describe('UserResolver', () => {
 
           expect(res.errors).toBeUndefined()
           expect(res.data.memberAvatarFull).toBe(PEER_FULL)
-          expect(questions).toEqual([
-            expect.objectContaining({ kind: 'full', gradidoIDs: [peerMember] }),
-          ])
+          expect(questions).toEqual([['memberAvatarFull', { gradidoId: peerMember }]])
         })
 
         /**

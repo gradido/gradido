@@ -25,19 +25,6 @@ export const MEMBER_AVATARS_FULL_MAX_PER_REQUEST = 10
 export const USER_AVATARS_ACCEPTED_MAX_PER_REQUEST = 1
 
 /**
- * How long a member's own request waits for another community to answer about the pictures
- * of its members (the relay in UserResolver.memberAvatars and memberAvatarFull).
- *
- * The member is waiting, so this is short. Handed to the request as its signal
- * (core MemberAvatarsClient); a community that answers later simply shows no faces this time.
- *
- * ⛔ A constant, not an environment name: a new NAME=$NAME line in a .env.template breaks the
- * deploy hard (deployment/bare_metal/start.sh). Making it adjustable per server takes the
- * two-deploy route described there.
- */
-export const XCOM_MEMBER_AVATARS_TIMEOUT_MS = 5000
-
-/**
  * How many times one HTTP request may make memberAvatars ask another community.
  *
  * ⛔ Counted per HTTP REQUEST (RequestBudget in backend/src/server/context.ts), for the same
@@ -54,18 +41,13 @@ export const XCOM_MEMBER_AVATARS_TIMEOUT_MS = 5000
 export const MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST = 10
 
 /**
- * How long the refresh of picture dates (AS-019, refreshForeignMemberAvatarDates) waits for
- * one block of answers from another community. Nobody waits on that run, so it may wait longer
- * than a member's request. A constant for the same reason as the one above.
- */
-export const XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS = 10000
-
-/**
  * How often the picture dates of other communities' members are asked again (AS-019,
  * refreshForeignMemberAvatarDates). This is how long a changed or withdrawn picture over there
  * takes, at most, to reach the lists here -- and, after a deploy, how long until the first run.
  *
- * ⛔ A constant, not an environment name, for the reason XCOM_MEMBER_AVATARS_TIMEOUT_MS gives.
+ * ⛔ A constant, not an environment name: a new NAME=$NAME line in a .env.template breaks the
+ * deploy hard (deployment/bare_metal/start.sh). Making it adjustable per server takes the
+ * two-deploy route described there.
  */
 export const FOREIGN_AVATAR_DATES_REFRESH_MS = 10 * 60 * 1000
 

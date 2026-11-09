@@ -20,7 +20,7 @@ export const TRANSFER_AVATAR_DATE_MAX_AHEAD_MS = 24 * 60 * 60 * 1000
 /**
  * A picture date as another server wrote it. It arrives as parsed JSON, so this checks what
  * came: a string exactly as `toISOString()` writes it (`2026-09-15T06:00:00.000Z`, the form both
- * senders use -- MemberAvatarsResolver and memberAvatarDateForTransfer), not before
+ * senders use -- memberAvatars answeringSide and memberAvatarDateForTransfer), not before
  * TRANSFER_AVATAR_DATE_EARLIEST and at most TRANSFER_AVATAR_DATE_MAX_AHEAD_MS after `now`.
  * Anything else is null -- a missing field, null, a number, an object, text that is no date, the
  * year 1 or 9999.
@@ -31,7 +31,7 @@ export const TRANSFER_AVATAR_DATE_MAX_AHEAD_MS = 24 * 60 * 60 * 1000
  *
  * The window exists because a stored date goes out again: the booking list and the contact list
  * hand it to every wallet that shows the member (`avatarUpdatedAt`). The dates in an answer to
- * `memberAvatars` are read with the same function (xcomMemberAvatars), so both ways a picture
+ * the member-avatar routes are read with the same function (memberAvatars askingSide), so both ways a picture
  * date arrives from another community -- with a transfer and with that answer -- share one rule.
  */
 export const readTransferAvatarDate = (value: unknown, now = new Date()): Date | null => {

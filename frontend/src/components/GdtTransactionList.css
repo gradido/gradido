@@ -1,0 +1,16 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Unscoped, as the style block of GdtTransactionList.vue was. */
+.el-table .cell {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  background-color: #f8f9fe38;
+}
+
+.gdt-transaction-list-item {
+  outline: none !important;
+}

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach, beforeAll, afterAll } from 'vitest'
-import Register from './Register.vue'
+import { Register } from './Register'
 import { AuthTriads } from '@/components/Auth/AuthTriads'
 import flushPromises from 'flush-promises'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -67,7 +67,10 @@ describe('Register', () => {
   beforeEach(() => {
     router = createRouter({
       history: createWebHistory(),
-      routes: [{ path: '/register', name: 'Register' }],
+      routes: [
+        { path: '/register', name: 'Register' },
+        { path: '/login/:code?', name: 'Login' },
+      ],
     })
     store = createWalletStore()
     i18n = createI18n({
@@ -242,7 +245,7 @@ describe('Register', () => {
         })
 
         it('shows no error message on the page', () => {
-          expect(wrapper.vm.showPageMessage).toBe(false)
+          expect(wrapper.find('message-stub').exists()).toBe(false)
           expect(wrapper.find('.test-message-headline').exists()).toBe(false)
           expect(wrapper.find('.test-message-subtitle').exists()).toBe(false)
           expect(wrapper.find('.test-message-button').exists()).toBe(false)
@@ -279,7 +282,7 @@ describe('Register', () => {
       })
 
       it('shows success title, subtitle', () => {
-        expect(wrapper.vm.showPageMessage).toBe(true)
+        expect(wrapper.find('form').exists()).toBe(false)
         expect(wrapper.find('message-stub').attributes('headline')).toBe('Message Title')
         expect(wrapper.find('message-stub').attributes('subtitle')).toBe('Register Message')
       })
@@ -288,8 +291,12 @@ describe('Register', () => {
 
   describe('redeem code', () => {
     describe('no redeem code', () => {
-      it('has no redeem code', () => {
-        expect(wrapper.vm.redeemCode).toBe(undefined)
+      it('sends none', async () => {
+        mockMutate.mockResolvedValue({ data: { createUser: true } })
+        await wrapper.find('form').trigger('submit')
+        await flushPromises()
+
+        expect(mockMutate.mock.calls[0][0]).toHaveProperty('redeemCode', undefined)
       })
     })
 
@@ -347,6 +354,7 @@ describe('Register', () => {
         history: createWebHistory(),
         routes: [
           { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
+          { path: '/login/:code?', name: 'Login', component: { template: '<div />' } },
         ],
       })
       await addressRouter.push({ name: 'Register', query })
@@ -477,6 +485,7 @@ describe('Register', () => {
         history: createWebHistory(),
         routes: [
           { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
+          { path: '/login/:code?', name: 'Login', component: { template: '<div />' } },
         ],
       })
       await guarantorRouter.push(
@@ -503,8 +512,8 @@ describe('Register', () => {
             InputEmail,
             Message: true,
             AuthTriads: true,
-            IBiEye: true,
-            IBiEyeSlash: true,
+            BiEye: true,
+            BiEyeSlash: true,
           },
         },
       })
@@ -774,6 +783,7 @@ describe('Register', () => {
         history: createWebHistory(),
         routes: [
           { path: '/register/:code?', name: 'Register', component: { template: '<div />' } },
+          { path: '/login/:code?', name: 'Login', component: { template: '<div />' } },
         ],
       })
       await entryRouter.push({ name: 'Register', query })

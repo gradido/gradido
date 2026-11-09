@@ -20,8 +20,8 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 describe('contributionMessageFields', () => {
   it('asks for every field the thread reads off a message', () => {
     const readers =
-      read('../components/ContributionMessages/ContributionMessagesListItem.vue') +
-      read('../components/Contributions/ContributionList.vue')
+      read('../components/ContributionMessages/ContributionMessagesListItem.tsx') +
+      read('../components/Contributions/ContributionList.tsx')
     const fragment = read('./contributions.graphql').match(
       /fragment contributionMessageFields on ContributionMessage \{([^}]*)\}/,
     )[1]

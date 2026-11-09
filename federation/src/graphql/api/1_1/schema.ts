@@ -1,7 +1,7 @@
 import { NonEmptyArray } from 'type-graphql'
+import { AliveResolver } from '../1_0/resolver/AliveResolver'
 import { CommandResolver } from '../1_0/resolver/CommandResolver'
-import { MemberAvatarsResolver } from '../1_0/resolver/MemberAvatarsResolver'
 
 export const getApiResolvers = (): NonEmptyArray<Function> => {
-  return [CommandResolver, MemberAvatarsResolver]
+  return [AliveResolver, CommandResolver]
 }

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContributionMessagesListItem from './ContributionMessagesListItem.vue'
+import { ContributionMessagesListItem } from './ContributionMessagesListItem'
 import AppAvatar from '@/components/AppAvatar.vue'
 import { Message as message } from '../Message/Message'
 import { defineComponent, nextTick } from 'vue'
@@ -45,7 +45,7 @@ vi.mock('vue-avatar', () => ({
 }))
 
 vi.mock('@/components/ContributionMessages/ParseMessage', () => ({
-  default: {
+  ParseMessage: {
     name: 'ParseMessage',
     template: '<div class="parse-message-mock">{{ message }}</div>',
     props: ['message'],
