@@ -1,4 +1,3 @@
-// AI-GENERATED — not an architecture reference
 import { compareConfirmedTransaction } from 'core'
 import {
   dbUpdateConfirmedDltTransaction,
