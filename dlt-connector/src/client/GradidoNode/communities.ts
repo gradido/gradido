@@ -20,7 +20,7 @@ type CommunityForDltNodeServer = {
   folder: string
   blockchainConfirmedTxUrl?: string | null
   blockchainRejectedTxUrl?: string | null
-  blockchainUriType: 'graphql' | 'json'
+  blockchainUriType: 'json'
 }
 
 export async function ensureCommunitiesAvailable(communityTopicIds: HieroId[]): Promise<void> {
@@ -45,14 +45,8 @@ export async function exportCommunities(homeFolder: string, client: BackendClien
   const communitiesPath = path.join(homeFolder, 'communities.json')
   checkPathExist(path.dirname(communitiesPath), true)
   const communitiesForDltNodeServer: CommunityForDltNodeServer[] = []
-  const federationUrl =
-    CONFIG.FEDERATION_COMMUNITY_URL ||
-    `${CONFIG.COMMUNITY_URL}/api/${CONFIG.DLT_BLOCK_UPDATE_FEDERATION_API_VERSION}`
-  if (!federationUrl) {
-    throw new Error(
-      'No FEDERATION_COMMUNITY_URL or COMMUNITY_URL set, federation will not receive blockchain updates',
-    )
-  }
+  // the federation service on this host: nginx does not hand these paths on
+  const notificationUrl = `${CONFIG.FEDERATION_COMMUNITY_URL}/blockchain-notification/v1`
 
   for (const com of communities) {
     if (!com.uuid) {
@@ -64,9 +58,9 @@ export async function exportCommunities(homeFolder: string, client: BackendClien
       alias: com.name,
       // use only alpha-numeric chars for folder name
       folder: toFolderName(com.uuid),
-      blockchainConfirmedTxUrl: federationUrl,
-      blockchainRejectedTxUrl: federationUrl,
-      blockchainUriType: 'graphql',
+      blockchainConfirmedTxUrl: `${notificationUrl}/confirmedTransaction/${com.uuid}`,
+      blockchainRejectedTxUrl: `${notificationUrl}/rejectedTransaction`,
+      blockchainUriType: 'json',
     })
   }
   fs.writeFileSync(communitiesPath, JSON.stringify(communitiesForDltNodeServer, null, 2))
