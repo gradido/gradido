@@ -199,7 +199,7 @@ export const searchContactsPanel = (apolloClient, search) => {
  * saw them in it.
  */
 export const refreshContactsPanel = (apolloClient) => {
-  // The contacts page keeps a list of its own (pages/Contacts.vue); it asks again as well.
+  // The contacts page keeps a list of its own (pages/Contacts.tsx); it asks again as well.
   for (const listener of [...refreshListeners]) listener()
   // ⛔ The mark comes FIRST, before any reason not to fetch. Standing behind a
   // `!state.page.loaded` gate lost the very case this exists for: a member completes a

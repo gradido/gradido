@@ -348,10 +348,10 @@ const routes = [
   {
     // Everyone this member has exchanged Gradido or messages with -- "contacts & chat" in the
     // menu, beside matching (E-031); the conversations live in the window a row opens.
-    // `?with=<gradidoID>[&community=<uuid>]` opens one from outside (pages/Contacts.vue). No
+    // `?with=<gradidoID>[&community=<uuid>]` opens one from outside (pages/Contacts.tsx). No
     // right-hand column: the list is the page.
     path: '/contacts',
-    component: () => import('@/pages/Contacts'),
+    component: () => import('@/pages/Contacts').then((page) => page.Contacts),
     meta: {
       requiresAuth: true,
       pageTitle: 'contacts',

@@ -16,13 +16,13 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 /** Everything that draws a contact from contactListQuery or contactByMemberQuery. */
 const READERS = [
-  '../components/Contacts/ContactRow.vue',
-  '../components/Contacts/ContactTiles.vue',
-  '../components/Contacts/contactDisplay.js',
-  '../components/Contacts/ContactWindow.vue',
+  '../components/Contacts/ContactRow.tsx',
+  '../components/Contacts/ContactTiles.tsx',
+  '../components/Contacts/contactDisplay.ts',
+  '../components/Contacts/ContactWindow.tsx',
   '../components/Template/RightSide/ContactsPanel.vue',
   '../components/Template/RightSide/ContactsStrip.vue',
-  '../pages/Contacts.vue',
+  '../pages/Contacts.tsx',
 ]
 
 describe('contactFields', () => {
