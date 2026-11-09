@@ -1,10 +1,10 @@
 import {
   countOpenPendingTransactions,
-  TransactionLink as DbTransactionLink,
   DbUser,
   dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindMemberAvatarTimestamp,
   dbInsertPendingTransaction,
+  TransactionLinksSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import {
@@ -45,7 +45,7 @@ export async function processXComCompleteTransaction(
   recipientIdentifier: string,
   amount: GradidoUnit,
   memo: string,
-  transactionLink?: DbTransactionLink,
+  transactionLink?: TransactionLinksSelect,
 ): Promise<boolean> {
   const timer = new MonotonicTimer()
   const logger = createLogger(`processXComCompleteTransaction`)
@@ -81,7 +81,7 @@ export async function processXComCompleteTransaction(
       transactionLinkId: transactionLink?.id,
     })
     const client = ApiClientCache.getInstance().get(recipientCom)
-    const pendingResult = await processXComPendingSendCoins(client, tx, sender.id)
+    const pendingResult = await processXComPendingSendCoins(client, tx, sender.id, transactionLink)
     if (!pendingResult.success) {
       logger.warn(pendingResult.error.message)
       // the other community has no such member: the wallet's sentence, as for a member of this one
@@ -148,6 +148,8 @@ async function processXComPendingSendCoins(
   client: ApiClient,
   txData: CrossGroupTransaction,
   userId: number,
+  // the link paid out: what it holds of the balance is set free by the payment
+  transactionLink?: TransactionLinksSelect,
 ): Promise<Result<UserPublicInfo, CrossCommunityError>> {
   const { sender, recipient, balanceDate, amount } = txData
   // TODO: add timeout to be not blocked by started and never stopped cross group transactions
@@ -162,7 +164,7 @@ async function processXComPendingSendCoins(
   }
 
   // first calculate the sender balance and check if the transaction is allowed
-  const senderBalance = await calculateSenderBalance(userId, amount, balanceDate)
+  const senderBalance = await calculateSenderBalance(userId, amount, balanceDate, transactionLink)
   if (!senderBalance.success) {
     return xcomError(
       CrossCommunityErrorType.insufficientBalance,

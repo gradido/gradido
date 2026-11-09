@@ -1523,9 +1523,11 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       await flushPromises()
 
       expect(apollo.disburse).toHaveBeenCalledTimes(1)
-      expect(apollo.disburse).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'jwt.from.elsewhere', recipientGradidoId: ME }),
-      )
+      // who accepts is the member signed in, the backend knows them: only the link goes out
+      expect(apollo.disburse).toHaveBeenCalledWith({
+        senderCommunityUuid: ELSEWHERE.uuid,
+        code: 'jwt.from.elsewhere',
+      })
       expect(apollo.redeem).not.toHaveBeenCalled()
       expect(toasts.toastSuccess).toHaveBeenCalledTimes(1)
       expect(toasts.toastSuccess.mock.calls[0][0]).toContain('20 GDD')

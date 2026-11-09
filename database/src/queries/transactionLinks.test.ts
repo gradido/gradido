@@ -6,6 +6,7 @@ import {
   TransactionLink as DbTransactionLink,
   User as DbUser,
   UserContact as DbUserContact,
+  dbFindOpenTransactionLinkWithCreatorByCode,
   dbFindTransactionLinkByCode,
   dbFindTransactionLinkForPreview,
   dbFindTransactionLinkWithOwner,
@@ -227,6 +228,46 @@ describe('dbFindTransactionLinkByCode', () => {
 
 // What decides whether a redeem link vouches for an account, read with the link: the link's
 // own columns, and where the account of the member who made it stands.
+// What paying a link out to another community needs: the open link, its maker with the address.
+describe('dbFindOpenTransactionLinkWithCreatorByCode', () => {
+  let bibi: DbUser
+  let link: Awaited<ReturnType<typeof transactionLinkFactory>>
+
+  beforeEach(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    bibi = await userFactory(bibiBloxberg)
+    link = await transactionLinkFactory(
+      { email: bibi.emailContact.email, amount: 10, memo: 'for a newcomer' },
+      bibi.id,
+    )
+  })
+
+  it('finds the link with the member who made it and their address', async () => {
+    const found = await dbFindOpenTransactionLinkWithCreatorByCode(link.code)
+    expect(found?.link).toMatchObject({ id: link.id, code: link.code, memo: 'for a newcomer' })
+    expect(found?.creator).toMatchObject({
+      id: bibi.id,
+      gradidoId: bibi.gradidoID,
+      emailContact: { email: bibi.emailContact.email },
+    })
+  })
+
+  it('finds nothing for an unknown code', async () => {
+    expect(await dbFindOpenTransactionLinkWithCreatorByCode('a'.repeat(24))).toBeNull()
+  })
+
+  it('finds no deleted link', async () => {
+    await DbTransactionLink.update(link.id, { deletedAt: new Date() })
+    expect(await dbFindOpenTransactionLinkWithCreatorByCode(link.code)).toBeNull()
+  })
+
+  it('finds no redeemed link', async () => {
+    await DbTransactionLink.update(link.id, { redeemedAt: new Date(), redeemedBy: bibi.id })
+    expect(await dbFindOpenTransactionLinkWithCreatorByCode(link.code)).toBeNull()
+  })
+})
+
 describe('dbFindTransactionLinkWithOwner', () => {
   let bibi: DbUser
   let link: Awaited<ReturnType<typeof transactionLinkFactory>>
