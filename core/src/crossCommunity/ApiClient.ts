@@ -18,6 +18,10 @@ import {
   CrossGroupTransactionWireInput,
   crossGroupTransactionWireSchema,
   DisburseTransactionLinkWire,
+  MemberAvatarFullQuestion,
+  MemberAvatarsQuestion,
+  memberAvatarFullQuestionSchema,
+  memberAvatarsQuestionSchema,
 } from './schema'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
@@ -287,6 +291,24 @@ export class ApiClient {
 
   public disburseTransactionLink(body: DisburseTransactionLinkWire) {
     return this.encryptSignVerifyClient['peer-api'].v1.disburseTransactionLink.post(body)
+  }
+
+  public memberAvatarsSmall(question: MemberAvatarsQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarsSmall.post(
+      v.parse(memberAvatarsQuestionSchema, question),
+    )
+  }
+
+  public memberAvatarDates(question: MemberAvatarsQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarDates.post(
+      v.parse(memberAvatarsQuestionSchema, question),
+    )
+  }
+
+  public memberAvatarFull(question: MemberAvatarFullQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarFull.post(
+      v.parse(memberAvatarFullQuestionSchema, question),
+    )
   }
 
   public toString(): string {

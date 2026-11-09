@@ -267,30 +267,20 @@ describe('community.queries', () => {
     })
   })
   describe('dbSelectAuthenticatedForeignCommunities', () => {
-    const withJwtKey = async (community: DbCommunity): Promise<DbCommunity> => {
-      community.publicJwtKey = 'a public jwt key'
-      return await community.save()
-    }
-
-    // a community without uuid cannot exist any more: community_uuid is NOT NULL since 0162
-    it('finds the foreign communities through the handshake with a key, and no other', async () => {
-      // `createCommunity(true)` is already authenticated and has a uuid; each of the others
-      // lacks exactly one part.
-      const first = await withJwtKey(await createCommunity(true))
-      await createCommunity(true) // no JWT key: nothing to seal a question with
+    it('finds the foreign communities through the handshake, and no other', async () => {
+      // `createCommunity(true)` is already authenticated; each of the others lacks one part.
+      const first = await createCommunity(true)
       const notAuthenticated = await createCommunity(true)
       notAuthenticated.authenticatedAt = null
-      await withJwtKey(notAuthenticated)
+      await notAuthenticated.save()
       const home = await createCommunity(false)
       home.authenticatedAt = new Date()
-      await withJwtKey(home)
-      const second = await withJwtKey(await createCommunity(true))
+      await home.save()
+      const second = await createCommunity(true)
 
       const found = await dbSelectAuthenticatedForeignCommunities()
 
       expect(found.map((community) => community.id)).toEqual([first.id, second.id])
-      // The entity itself, with what the question needs.
-      expect(found[0].publicJwtKey).toBe('a public jwt key')
       expect(found[0].communityUuid).toBe(first.communityUuid)
     })
 

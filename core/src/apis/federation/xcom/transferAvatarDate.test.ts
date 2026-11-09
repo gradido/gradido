@@ -13,7 +13,7 @@ import {
 } from './transferAvatarDate'
 
 // ⛔ No mock.module('database') here: Bun cannot restore a module mock, and two test files of
-// this package already replace that module (validation/user.test.ts, xcomMemberAvatars.test.ts).
+// this package already replace that module (validation/user.test.ts).
 // The functions take their queries as a last parameter instead. The real queries behind the
 // defaults run against a database in the federation tests (SendCoinsResolver.test.ts).
 
