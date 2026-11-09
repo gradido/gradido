@@ -141,8 +141,8 @@ describe('usePagerFit', () => {
     // The four known ones at least, or an empty search would pass as "all of them".
     expect(pagers.map(({ file }) => file.slice(srcRoot.length + 1)).sort()).toEqual(
       expect.arrayContaining([
-        'components/GddTransactionList.vue',
-        'components/GdtTransactionList.vue',
+        'components/GddTransactionList.tsx',
+        'components/GdtTransactionList.tsx',
         'components/PaginatorRouteParamsPage.vue',
         'pages/Contacts.tsx',
       ]),

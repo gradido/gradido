@@ -27,7 +27,7 @@ vi.mock('@/pages/Send', () => ({
 }))
 
 vi.mock('@/pages/Transactions', () => ({
-  default: { name: 'Transactions' },
+  Transactions: { name: 'Transactions' },
 }))
 
 const getComponentName = (component) => {
