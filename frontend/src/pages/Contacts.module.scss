@@ -1,0 +1,50 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* ⛔ A contact row is a name and a heart, and nothing between them that grows. Given the
+   whole content column it stretched to whatever the window allowed, and the heart ended up
+   a hand's width from the person it belongs to -- the very complaint that does NOT arise on
+   a phone, where the column is simply narrow. So the page keeps a phone's measure on a
+   desktop too, rather than each row being taught to hold its heart closer. (Bernd,
+   04.09.2026.)
+
+   450 and not 390: it is a little wider than the widest common phone (430 points), so this
+   page is never TIGHTER on a desktop than on the device it already works on -- and it is
+   what the pager needs on one line once the page numbers reach two digits (442 points,
+   measured). It sits on the page root, so the search box, the headings, the two boxes and
+   the pager all share the one measure -- the search box above the list has to be the same
+   width, or the narrowing reads as a mistake.
+
+   Left, not centred: everything else on this page starts at the content column's left edge,
+   and a block that alone floats to the middle looks misplaced rather than deliberate. */
+.contacts {
+  max-width: 450px;
+}
+
+/* The groups' heading with "Neue Gruppe" at the right end of its line (the mockup). */
+.contacts-groups-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+/* A quiet outlined pill in the house's gold, as "+ Mitglieder hinzufügen" in the group's
+   members; at least a finger's height. */
+.contacts-groups-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.25rem;
+  padding: 0.2rem 0.85rem;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.85rem;
+}
+
+.contacts-groups-new:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}

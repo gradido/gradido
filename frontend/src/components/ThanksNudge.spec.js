@@ -101,7 +101,7 @@ describe('ThanksNudge', () => {
     // words -- the same value, so the two do not drift apart.
     it('draws the way there in the gold of "Gradido senden", with white words', () => {
       const own = rule(code, '\\.thanks-nudge-yes')
-      const window = rule(source('Contacts/ContactWindow.vue'), '\\.send-gradido')
+      const window = rule(source('Contacts/ContactWindow.module.scss'), '\\.send-gradido')
       const gold = window.match(/background:\s*(#[0-9a-f]{6})/i)[1]
 
       expect(gold).toBe('#c08935')

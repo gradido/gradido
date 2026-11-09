@@ -7,7 +7,7 @@ import { walletStore } from '@test/walletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ShowFriendsTile from './ShowFriendsTile.vue'
-import ContactWindow from '@/components/Contacts/ContactWindow.vue'
+import { ContactWindow } from '@/components/Contacts/ContactWindow'
 import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
 import {
   fetchMemberAvatars,

@@ -1,4 +1,3 @@
-// AI-GENERATED — not an architecture reference
 import { dbFindOpenTransactionLinkWithCreatorByCode, getHomeCommunityDrizzle } from 'database'
 import { status } from 'elysia'
 import { getLogger } from 'log4js'

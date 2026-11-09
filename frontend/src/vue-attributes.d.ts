@@ -7,6 +7,8 @@ import type { HTMLAttributes, ImgHTMLAttributes, InputHTMLAttributes } from 'vue
 // and only those: an attribute that is not in the list is no prop and no HTML attribute either.
 declare module 'vue' {
   interface ComponentCustomProps {
+    // A number too: Vue writes it as the attribute's text, and a row's `id` is its number.
+    id?: HTMLAttributes['id'] | number
     title?: HTMLAttributes['title']
     maxlength?: InputHTMLAttributes['maxlength']
     alt?: ImgHTMLAttributes['alt']

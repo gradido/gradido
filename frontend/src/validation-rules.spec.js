@@ -16,7 +16,7 @@ import {
 import { loadAllRules, shownValidState } from '@/validation-rules'
 import { InputEmail } from '@/components/Inputs/InputEmail'
 import { InputPassword } from '@/components/Inputs/InputPassword'
-import InputPasswordConfirmation from '@/components/Inputs/InputPasswordConfirmation'
+import { InputPasswordConfirmation } from '@/components/Inputs/InputPasswordConfirmation'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 

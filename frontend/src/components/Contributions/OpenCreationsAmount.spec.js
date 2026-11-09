@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import OpenCreationsAmount from './OpenCreationsAmount'
+import { OpenCreationsAmount } from './OpenCreationsAmount'
 import { BCol, BRow } from 'bootstrap-vue-next'
 
 const mockT = vi.fn((key) => key)
