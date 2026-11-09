@@ -123,7 +123,7 @@ describe('the line under a name, as the lists ask for it (E-083)', () => {
   )
 
   it('asks for what the rows read of the preview themselves', () => {
-    const contactRow = read('../components/Contacts/ContactRow.vue')
+    const contactRow = read('../components/Contacts/ContactRow.tsx')
     const groupRow = read('../components/ChatGroups/ChatGroupRow.vue')
     expect(readOff(contactRow, 'chatPreview').sort()).toEqual(['unread'])
     expect(readOff(groupRow, 'chatPreview').sort()).toEqual(['mine'])

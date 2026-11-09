@@ -13,7 +13,8 @@
  *
  * @param member `{ communityUuid, gradidoID }`, as a contact row, a message's sender or a
  *   window's person carries it
- * @param ownCommunityUuid the signed-in member's community, for a member who names none
+ * @param {string | null} [ownCommunityUuid] the signed-in member's community, for a member who
+ *   names none
  */
 export const chatMemberKey = (member, ownCommunityUuid = null) =>
   `${(member?.communityUuid ?? ownCommunityUuid ?? '').toLowerCase()}/${(member?.gradidoID ?? '').toLowerCase()}`

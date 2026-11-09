@@ -1,0 +1,7 @@
+/* Lines of about the same length: in Open Sans "Ich stimme der Datenschutzerklärung zu." breaks
+   after "Datenschutzerklärung" on the usual iPhones, and "zu." stands alone. A browser that
+   does not know the value wraps as before.
+   The component has no root of its own (several rows), so the class stands on the checkbox. */
+.agree :global(label[for='registerCheckbox']) {
+  text-wrap: balance;
+}

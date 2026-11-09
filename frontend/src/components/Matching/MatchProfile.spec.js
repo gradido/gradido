@@ -1491,9 +1491,10 @@ describe('MatchProfile', () => {
 
       // A plain button has no focus ring of its own; the browser's took the place of the gold rim.
       it('rings the buttons as the contact window rings its button, where the keyboard is', () => {
-        const window = readFileSync(join(here, '../Contacts/ContactWindow.vue'), 'utf8')
-          .split('<style')[1]
-          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const window = readFileSync(
+          join(here, '../Contacts/ContactWindow.module.scss'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
         const there = window
           .match(/\n\.send-btn:focus-visible\s*\{([^}]*)\}/)?.[1]
           ?.replace(/\s+/g, ' ')
@@ -1502,9 +1503,10 @@ describe('MatchProfile', () => {
       })
 
       it("sets the buttons in the contact window's measure", () => {
-        const window = readFileSync(join(here, '../Contacts/ContactWindow.vue'), 'utf8')
-          .split('<style')[1]
-          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const window = readFileSync(
+          join(here, '../Contacts/ContactWindow.module.scss'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
         const of = (selector) =>
           window.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
         const value = (body, property) =>

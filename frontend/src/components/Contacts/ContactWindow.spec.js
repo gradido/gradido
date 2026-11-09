@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import ContactWindow from './ContactWindow.vue'
+import { ContactWindow } from './ContactWindow'
 import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
@@ -14,6 +14,8 @@ const pushSpy = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: pushSpy }),
+  // Imported by the window; the stub in `mountWindow` takes its place by name.
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a><slot /></a>' },
 }))
 // The way back the window hands to the send form (E-043; useSendReturn has a spec of its own):
 // what is put, and what is taken back.
@@ -201,16 +203,18 @@ describe('ContactWindow', () => {
             template:
               '<a :data-to="JSON.stringify(to)" @click="$event.metaKey || $event.preventDefault()"><slot /></a>',
           },
-          IMdiBellOutline: true,
-          IMdiBellOffOutline: true,
-          IMdiVideoOutline: true,
-          IMdiMapMarkerOutline: true,
+          MdiBellOutline: true,
+          MdiBellOffOutline: true,
+          MdiVideoOutline: true,
+          MdiMapMarkerOutline: true,
           IMdiCogOutline: true,
           IMdiLinkVariant: true,
           IMdiCheck: true,
           IMdiServerOutline: true,
           IMdiCalendarPlusOutline: true,
-          IMdiMagnify: true,
+          MdiMagnify: true,
+          MdiNoteText: true,
+          MdiNoteTextOutline: true,
           IMdiChevronUp: true,
           IMdiChevronDown: true,
           // The switch for the window's size (ChatWindowSizeToggle); its own spec is about it.
@@ -436,14 +440,14 @@ describe('ContactWindow', () => {
     it('is drawn filled where there is a note, as an outline where there is none', async () => {
       mountWindow()
       await flushPromises()
-      expect(noteButton().find('i-mdi-note-text-outline').exists()).toBe(true)
+      expect(noteButton().find('mdi-note-text-outline-stub').exists()).toBe(true)
       wrapper.unmount()
 
       serverNote.mockResolvedValueOnce({ data: { userNote: 'Carla Sonnenschein' } })
       mountWindow()
       await flushPromises()
-      expect(noteButton().find('i-mdi-note-text').exists()).toBe(true)
-      expect(noteButton().find('i-mdi-note-text-outline').exists()).toBe(false)
+      expect(noteButton().find('mdi-note-text-stub').exists()).toBe(true)
+      expect(noteButton().find('mdi-note-text-outline-stub').exists()).toBe(false)
     })
 
     it('is not there in the window`s first form, as the magnifier is not', async () => {
@@ -942,7 +946,7 @@ describe('ContactWindow', () => {
    */
   it('reserves the height of the meta line in the stylesheet', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.module.scss'),
       'utf8',
     )
     const code = source.replace(/\/\*[\s\S]*?\*\//g, '')
@@ -1074,7 +1078,7 @@ describe('ContactWindow', () => {
     mountWindow()
     expect(wrapper.find('[data-test="contact-window-email"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="contact-window-send-ways"]').exists()).toBe(false)
-    expect(styleOf('ContactWindow.vue')).not.toContain('contacts.sendEmail')
+    expect(styleOf('ContactWindow.tsx')).not.toContain('contacts.sendEmail')
   })
 
   /**
@@ -4259,7 +4263,7 @@ describe('ContactWindow', () => {
    * beside the rule cannot stand in for it.
    */
   it('gives the bell and the send button a visible focus ring, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const mark = code.match(/\.contact-window-mark:focus-visible\s*\{[^}]*\}/)
     const send = code.match(/\.send-btn:focus-visible\s*\{[^}]*\}/)
 
@@ -4316,7 +4320,7 @@ describe('ContactWindow', () => {
    * its whole line still gives way. jsdom lays nothing out, so only the stylesheet can say it.
    */
   it('puts the marks at the right end and never squeezes them, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
     expect(rule('\\.contact-window-marks')).toMatch(/margin-left:\s*auto/)
@@ -4339,7 +4343,7 @@ describe('ContactWindow', () => {
    * was set smaller than the map's (29.09.2026). Above and below it keeps that measure.
    */
   it('sets the tight row closer than its own measure, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const body = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
     const px = (selector, property) =>
       Number(body(selector).match(new RegExp(`(?:^|;|\\s)${property}:\\s*([\\d.]+)(px|rem)?`))?.[1])
@@ -4383,7 +4387,7 @@ describe('ContactWindow', () => {
    * message at the bottom under a gap the height of the screen (Bernd, 24.09.2026).
    */
   it('makes the window one column over the whole screen on a phone, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const sheet = code.match(/@media \(width <= 575\.98px\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
 
     expect(sheet, 'the sheet lost its rules').not.toBe('')
@@ -4489,7 +4493,7 @@ describe('ContactWindow', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     // In the flow, so the head needs no room kept free at its right -- jsdom lays nothing out,
     // so the stylesheet says it.
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
     expect(rule('\\.contact-window-close')).not.toMatch(/position:\s*absolute/)
     expect(rule('\\.contact-window-head')).not.toMatch(/padding-right/)
@@ -4521,11 +4525,11 @@ describe('ContactWindow', () => {
     for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
       const there = rule('../Matching/MatchProfile.vue', name)
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
-      expect(rule('ContactWindow.vue', name), `.${name}`).toBe(there)
+      expect(rule('ContactWindow.module.scss', name), `.${name}`).toBe(there)
     }
     // The gold is the compose bar's, in both windows; the map's teal is gone from the button.
-    expect(rule('ContactWindow.vue', 'send-btn')).toContain(`border: 1.5px solid ${gold};`)
-    expect(rule('ContactWindow.vue', 'send-gradido')).toContain(`background: ${gold};`)
+    expect(rule('ContactWindow.module.scss', 'send-btn')).toContain(`border: 1.5px solid ${gold};`)
+    expect(rule('ContactWindow.module.scss', 'send-gradido')).toContain(`background: ${gold};`)
     expect(rule('../Matching/MatchProfile.vue', 'send-gradido')).not.toContain('#178d81')
   })
 
@@ -4537,7 +4541,7 @@ describe('ContactWindow', () => {
    * smaller measure in rules of its own, E-070; MatchProfile.spec holds those against these.)
    */
   it("sets the button smaller than the map's, in the stylesheet", () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const body = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
     const own = body('\\.contact-window-send \\.send-btn')
     const coin = body('\\.contact-window-send \\.send-coin')
@@ -4558,7 +4562,7 @@ describe('ContactWindow', () => {
   // takes a second line instead of the button hanging out of the window (coderabbit, #3987) --
   // in the window's own rule; the map's rule keeps `nowrap` (held against MatchProfile above).
   it('keeps the button as wide as its word, and lets the word break only past the row, in the stylesheet', () => {
-    const code = styleOf('ContactWindow.vue')
+    const code = styleOf('ContactWindow.module.scss')
     const rule = code.match(/\n\.contact-window-send \.send-btn\s*\{([^}]*)\}/)?.[1]
     const map = code.match(/\n\.send-btn\s*\{([^}]*)\}/)?.[1]
 
@@ -4798,7 +4802,10 @@ describe('ContactWindow', () => {
         sizesChanged()
         await nextFrame()
 
-        expect([...rowElement.classList]).toEqual(['contact-window-send'])
+        // Without the style module's own spelling of the row's class, which is always worn.
+        expect([...rowElement.classList].filter((name) => !name.startsWith('_'))).toEqual([
+          'contact-window-send',
+        ])
       })
     })
 

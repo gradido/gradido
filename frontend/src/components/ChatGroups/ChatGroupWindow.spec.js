@@ -1011,10 +1011,14 @@ describe('ChatGroupWindow', () => {
      * nothing.
      */
     const rulesOf = (file) => {
-      const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
-        .split('<style')[1]
-        .replace(/^[^>]*>/, '')
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const text = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+      // A style module is the block alone, and reaches a child's class with `:global(` where
+      // the scoped block wrote `:deep(`.
+      const code = (
+        file.endsWith('.scss')
+          ? text.replace(/:global\(/g, ':deep(')
+          : text.split('<style')[1].replace(/^[^>]*>/, '')
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
       const rules = new Map()
       const take = (where, css) => {
         for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -1035,7 +1039,7 @@ describe('ChatGroupWindow', () => {
       return rules
     }
     const group = rulesOf('ChatGroupWindow.vue')
-    const contact = rulesOf('../Contacts/ContactWindow.vue')
+    const contact = rulesOf('../Contacts/ContactWindow.module.scss')
 
     // The reader reads what it should: a rule of the first kind, one of each query, and the first
     // rule of the stylesheet under its own selector.

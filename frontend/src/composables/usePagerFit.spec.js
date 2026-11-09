@@ -123,7 +123,7 @@ describe('usePagerFit', () => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name)
         if (entry.isDirectory()) walk(full)
-        else if (entry.name.endsWith('.vue')) vueFiles.push(full)
+        else if (/\.(vue|tsx)$/.test(entry.name)) vueFiles.push(full)
       }
     }
     walk(srcRoot)
@@ -144,15 +144,16 @@ describe('usePagerFit', () => {
         'components/GddTransactionList.vue',
         'components/GdtTransactionList.vue',
         'components/PaginatorRouteParamsPage.vue',
-        'pages/Contacts.vue',
+        'pages/Contacts.tsx',
       ]),
     )
 
     const unfit = pagers.filter(
       ({ file, tag }) =>
-        !tag.includes(':limit="pagerLimit"') ||
-        !tag.includes(':no-goto-end-buttons="pagerNoEnds"') ||
-        !/class="[^"]*\bflex-wrap\b/.test(tag) ||
+        // As a template writes it, or as a TSX render function does.
+        !/:limit="pagerLimit"|limit=\{pagerLimit\.value\}/.test(tag) ||
+        !/:no-goto-end-buttons="pagerNoEnds"|noGotoEndButtons=\{pagerNoEnds\.value\}/.test(tag) ||
+        !/class=["'][^"']*\bflex-wrap\b/.test(tag) ||
         !/usePagerFit\(/.test(code(file)),
     )
     expect(unfit.map(({ file }) => file.slice(srcRoot.length + 1))).toEqual([])

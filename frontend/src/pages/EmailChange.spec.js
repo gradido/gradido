@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
-import EmailChange from './EmailChange.vue'
+import { EmailChange } from './EmailChange'
 import { confirmEmailChange, revokeEmailChange } from '@/graphql/mutations'
 
 vi.mock('bootstrap-vue-next', () => ({
