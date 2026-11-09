@@ -45,8 +45,6 @@ const answersFor = (
   ...thread,
 })
 
-test.use({ timezoneId: 'Europe/Berlin' })
-
 test.beforeEach(async ({ graphql }) => {
   graphql.answer(
     answersFor([listedContribution(1, 1, { resubmissionAt: RESUBMISSION }), listedContribution(2)]),

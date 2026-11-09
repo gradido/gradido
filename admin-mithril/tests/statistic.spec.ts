@@ -6,8 +6,6 @@ import { signedInAnswers, signIn } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
 // Berlin: the first moment of a day there lies on the evening before in UTC
-test.use({ timezoneId: 'Europe/Berlin' })
-
 const NOW = new Date('2026-11-09T12:00:00.000Z')
 
 // the answers as the server gives them: each for the moment it was asked

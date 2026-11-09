@@ -35,8 +35,6 @@ const answersFor = (list: Listed[], more: Record<string, Answer> = {}): Record<s
   ...more,
 })
 
-test.use({ timezoneId: 'Europe/Berlin' })
-
 test.beforeEach(async ({ graphql }) => {
   graphql.answer(answersFor([listedContribution(1), listedContribution(2)]))
 })

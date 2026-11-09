@@ -98,14 +98,24 @@ jobs:
         working-directory: admin-mithril
         run: bunx playwright install-deps chromium
 
-      - name: Admin Mithril | Playwright against both admins
-        id: compare
+      # A test that passes only on its retry fails the run: the retry is there for the trace.
+      - name: Admin Mithril | Playwright against the Mithril admin
+        id: new
         working-directory: admin-mithril
-        run: bun run test:compare
+        run: bunx playwright test --project=new --fail-on-flaky-tests
 
-      # traces of the failed tests (trace: retain-on-failure in CI)
+      # The old admin is the reference, on its way out. It runs on its dev server, and under the
+      # load of a runner it now and then shows no toast after a form is sent (about 1 run in 1400
+      # locally, not caught in a trace yet): the retry is allowed to pass there.
+      - name: Admin Mithril | Playwright against the old admin
+        id: old
+        if: ${{ !cancelled() }}
+        working-directory: admin-mithril
+        run: bunx playwright test --project=old
+
+      # traces of the failed tests (trace: on-first-retry in CI)
       - name: upload traces of failed tests
-        if: ${{ failure() && steps.compare.conclusion == 'failure' }}
+        if: ${{ failure() && (steps.new.conclusion == 'failure' || steps.old.conclusion == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
           name: admin-mithril-test-results

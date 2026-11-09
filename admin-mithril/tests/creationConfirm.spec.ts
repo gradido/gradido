@@ -106,7 +106,7 @@ test('lists the open contributions, asking once', async ({ page, graphql }) => {
 })
 
 test.describe('in a browser of another language', () => {
-  test.use({ locale: 'en-US', timezoneId: 'Europe/Berlin' })
+  test.use({ locale: 'en-US' })
 
   test('writes the dates in the language of the admin', async ({ page }, info) => {
     test.skip(info.project.name === 'old', "the old admin writes them in the browser's language")

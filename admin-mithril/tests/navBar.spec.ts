@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import type { Page } from '@playwright/test'
+import adminPackage from '../../admin/package.json' with { type: 'json' }
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
 import en from '../../admin/src/locales/en.json' with { type: 'json' }
 import { listContributionLinks } from './fixtures/contributionLinks'
@@ -136,6 +137,8 @@ test('gives a moderator the starting balances in the bar, and no settings', asyn
 test('counts the open creations', async ({ page }) => {
   const creation = page.locator('nav.navbar').getByRole('link', { name: de.creation })
   await signIn(page, '/contribution-links')
+  // signed in: the sign-in saves the state itself, and would overwrite what is written below
+  await expect(creation).toBeVisible()
   await expect(creation.locator('.badge')).toBeHidden()
 
   // as the admin keeps them from the last time
@@ -247,6 +250,9 @@ test('names the year, the community site and the version below the page', async 
     'https://gradido.net/de',
   )
   await expect(
-    footer.getByRole('link', { name: de.footer.app_version.replace('{version}', '3.1.5') }),
+    // the version of the old admin's package, which both show (CONFIG.APP_VERSION)
+    footer.getByRole('link', {
+      name: de.footer.app_version.replace('{version}', adminPackage.version),
+    }),
   ).toHaveAttribute('href', /^https:\/\/github\.com\/gradido\/gradido\/commit\/[0-9a-f]{40}$/)
 })

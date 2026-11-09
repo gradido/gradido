@@ -21,8 +21,6 @@ const GROUPS = [
   group(3, { hashtagsAdoptedAt: '2026-10-02T10:00:00.000Z', hashtagsAdoptedCount: 0 }),
 ]
 
-test.use({ timezoneId: 'Europe/Berlin' })
-
 test.beforeEach(async ({ graphql }) => {
   graphql.answer({ ...signedInAnswers(), creationGroups: GROUPS })
 })

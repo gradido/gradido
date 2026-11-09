@@ -50,10 +50,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   // In CI a failed test runs once more, recording a trace -- recording one for every test would
-  // cost each three times its time. Passing on that second run still fails the run: the retry is
-  // there for the trace, not to let a flaky test through.
+  // cost each three times its time. For the Mithril admin, passing on that second run still fails
+  // the run (--fail-on-flaky-tests in test_admin_mithril.yml): the retry is there for the trace.
   retries: process.env.CI ? 1 : 0,
-  failOnFlakyTests: !!process.env.CI,
   // every core of the runner: with half of them, as Playwright takes by default, the browsers wait
   workers: process.env.CI ? '100%' : undefined,
   reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
@@ -61,6 +60,10 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
     // the attribute the admin marks its elements with for tests
     testIdAttribute: 'data-test',
+    // The expectations are written for a German browser in Berlin. Set here, not taken from the
+    // machine: a CI runner is English and on UTC, and showed every time an hour or two early.
+    locale: 'de-DE',
+    timezoneId: 'Europe/Berlin',
     // Locally a failing test is run again with `--trace on`.
     trace: process.env.CI ? 'on-first-retry' : 'off',
   },
