@@ -96,7 +96,7 @@ RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < backend/.env.template >
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < frontend/.env.template > frontend/.env
 
 # Configure admin
-RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < admin/.env.template > admin/.env
+RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < admin-mithril/.env.template > admin-mithril/.env
 
 # Configure dht-node
 RUN envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < dht-node/.env.template > dht-node/.env
