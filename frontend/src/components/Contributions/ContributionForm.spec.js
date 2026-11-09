@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { suggestedCreationGroup } from '@/graphql/contributions.graphql'
-import ContributionForm from './ContributionForm.vue'
+import { ContributionForm } from './ContributionForm'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({

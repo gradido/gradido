@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ContributionListItem from './ContributionListItem'
+import { ContributionListItem } from './ContributionListItem'
 import { BRow, BCol, BCollapse, BButton, BForm, BTextArea, BFormTextarea } from 'bootstrap-vue-next'
 import VariantIcon from '@/components/VariantIcon.vue'
 
@@ -89,15 +89,15 @@ describe('ContributionListItem', () => {
         plugins: [i18n],
         mocks,
         stubs: [
-          'IBiPencil',
-          'IBiTrash',
-          'IBiChatDots',
+          'BiPencil',
+          'BiTrash',
+          'BiChatDots',
           'BAvatar',
           'VariantIcon',
           'BButton',
           'IBiArrowDownCircle',
           'IBiArrowUpCircle',
-          'IBiArrowUpShort',
+          'BiArrowUpShort',
           'ContributionMessagesListItem',
         ],
         components: {

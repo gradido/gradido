@@ -1,7 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import ParseMessage from './ParseMessage.vue'
+import { describe, it, expect, vi } from 'vitest'
+import { ParseMessage } from './ParseMessage'
+
+// The component formats dates through useI18n, where the template read $d.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    d: (date) => String(date),
+  }),
+}))
 
 // What a moderator writes has to arrive as they wrote it. The bold markers are the
 // only markup the member's side renders, so this is also the seam where a message --
