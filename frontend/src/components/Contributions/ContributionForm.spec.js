@@ -146,6 +146,18 @@ describe('ContributionForm', () => {
     expect(wrapper.vm.disabled).toBe(false)
   })
 
+  // A failed submission used to leave the button locked: nothing set `submitted` back.
+  it('frees the button again when the parent says the submission failed', () => {
+    wrapper = createWrapperWithDate(thisMonth)
+    wrapper.vm.form.amount = 100
+
+    wrapper.vm.submit()
+    expect(wrapper.vm.disabled).toBe(true)
+
+    wrapper.vm.reset()
+    expect(wrapper.vm.disabled).toBe(false)
+  })
+
   it('updates amount when hours change', async () => {
     wrapper = mount(ContributionForm, {
       props: defaultProps,

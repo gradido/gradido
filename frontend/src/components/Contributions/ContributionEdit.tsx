@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { computed, defineComponent, type PropType } from 'vue'
+import { computed, defineComponent, type PropType, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   ContributionForm,
+  type ContributionFormHandle,
   type ContributionFormModel,
 } from '@/components/Contributions/ContributionForm'
 import { useAppToast } from '@/composables/useToast'
@@ -30,6 +31,7 @@ export const ContributionEdit = defineComponent({
 
     const { result: openCreationsResult } = useQuery(openCreations, {}, { fetchPolicy: 'no-cache' })
     const { mutate: updateContributionMutation } = useMutation(updateContribution)
+    const formHandle = ref<ContributionFormHandle | null>(null)
 
     const maxForMonths = computed<number[]>(() => {
       const originalDate = new Date(props.modelValue.contributionDate)
@@ -56,17 +58,22 @@ export const ContributionEdit = defineComponent({
         emit('contribution-updated')
       } catch (err) {
         toastError((err as Error).message)
+        formHandle.value?.reset()
       }
     }
 
-    return () => (
-      <ContributionForm
-        modelValue={props.modelValue}
-        maxGddLastMonth={maxForMonths.value[0]}
-        maxGddThisMonth={maxForMonths.value[1]}
-        onUpsert-contribution={handleUpdateContribution}
-        onAbort={() => emit('contribution-updated')}
-      />
-    )
+    // Not before the limits are known, as ContributionCreate does it: with both at 0 the form
+    // would say "nothing open to create in either month" until the answer lands.
+    return () =>
+      openCreationsResult.value ? (
+        <ContributionForm
+          ref={formHandle}
+          modelValue={props.modelValue}
+          maxGddLastMonth={maxForMonths.value[0]}
+          maxGddThisMonth={maxForMonths.value[1]}
+          onUpsert-contribution={handleUpdateContribution}
+          onAbort={() => emit('contribution-updated')}
+        />
+      ) : null
   },
 })

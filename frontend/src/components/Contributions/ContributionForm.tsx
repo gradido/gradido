@@ -31,6 +31,9 @@ import './ContributionForm.css'
  * What the form is handed and what it hands back: a new contribution without `id`, one to
  * edit with it. The index signature is for the inputs, which hand their value up by name.
  */
+/** What a parent reaches through a `ref` on the form: the way to free the button after a failure. */
+export type ContributionFormHandle = { reset: () => void }
+
 export type ContributionFormModel = {
   id?: number | string
   contributionDate?: string
@@ -242,6 +245,11 @@ export const ContributionForm = defineComponent({
       form.creationGroups = selectedCreationGroup.value ? [selectedCreationGroup.value] : []
       emit('upsert-contribution', toRaw(form))
     }
+    // The parent sends what `submit` handed up; when that fails, the button is freed again for a
+    // second try. Without it a failed submission left the form locked.
+    const reset = () => {
+      submitted.value = false
+    }
 
     expose({
       form,
@@ -251,6 +259,7 @@ export const ContributionForm = defineComponent({
       selectedCreationGroup,
       updateField,
       submit,
+      reset,
     })
 
     // `block` is no prop of BButton: it lands on the button as the empty attribute it was.

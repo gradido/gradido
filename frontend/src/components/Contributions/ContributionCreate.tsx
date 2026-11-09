@@ -4,6 +4,7 @@ import { computed, defineComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   ContributionForm,
+  type ContributionFormHandle,
   type ContributionFormModel,
 } from '@/components/Contributions/ContributionForm'
 import { OpenCreationsAmount } from '@/components/Contributions/OpenCreationsAmount'
@@ -36,6 +37,7 @@ export const ContributionCreate = defineComponent({
 
     const form = ref(emptyForm())
     const showForm = ref(true)
+    const formHandle = ref<ContributionFormHandle | null>(null)
 
     const maxGddLastMonth = computed(() => parseFloat(maxForMonths.value?.openCreations[1].amount))
     const maxGddThisMonth = computed(() => parseFloat(maxForMonths.value?.openCreations[2].amount))
@@ -49,6 +51,7 @@ export const ContributionCreate = defineComponent({
         showForm.value = false
       } catch (err) {
         toastError((err as Error).message)
+        formHandle.value?.reset()
       }
     }
 
@@ -58,6 +61,7 @@ export const ContributionCreate = defineComponent({
           <div>
             {maxForMonths.value ? (
               <ContributionForm
+                ref={formHandle}
                 modelValue={form.value}
                 maxGddLastMonth={maxGddLastMonth.value}
                 maxGddThisMonth={maxGddThisMonth.value}
