@@ -1,6 +1,7 @@
 export * from './ApiClient'
 export * from './ApiClientCache'
 export * from './apiRoutes'
+export * from './chatMessages'
 export * from './errorTypes'
 export * from './memberAvatars'
 export * from './schema'

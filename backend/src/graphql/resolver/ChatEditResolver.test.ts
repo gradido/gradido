@@ -8,20 +8,24 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
+import {
+  ApiClient,
+  CONFIG as CORE_CONFIG,
+  EditChatMessageWire,
+  sendCustomEmail,
+  storeChatMessage,
+} from 'core'
 import {
   AppDatabase,
   chatMessagesTable,
   Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   UserContact as DbUserContact,
   User,
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
-import { GraphQLClient } from 'graphql-request'
-import { CommandJwtPayloadType, createKeyPair, MESSAGE_MAX_CHARS, verifyAndDecrypt } from 'shared'
+import { MESSAGE_MAX_CHARS } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactory } from '@/seeds/factory/user'
@@ -423,74 +427,56 @@ describe('editChatMessage refused', () => {
 
 /**
  * To a member of another community (E-060): their server holds a copy of its own. The change
- * goes there first, as a command of its own, and this server's copy is changed only once the
- * other server has answered that its own is. The stand-in for the other community opens each
- * command with ITS key, as the real one would, and answers as it is told -- as in the
- * sendChatMessage cases of ChatResolver.test.ts.
+ * goes there first, over its own route, and this server's copy is changed only once the other
+ * server has answered that its own is. The stand-in for the other community is its route:
+ * ApiClient answers as Eden hands on what the other server said -- as in the sendChatMessage
+ * cases of ChatResolver.test.ts.
  */
 describe('editChatMessage to a member of another community', () => {
   const peerUuid = uuidv4()
   const peerMember = uuidv4()
   const peerRef = { communityUuid: peerUuid, gradidoID: peerMember }
 
-  type Answer = { success: boolean; data?: string | null; error?: string }
-  let homeKeys: { publicKey: string; privateKey: string }
-  let peerKeys: { publicKey: string; privateKey: string }
-  let homePublicKey: string
+  type Answer = { data?: unknown; error?: { status: number; value: string } }
   let peer: DbCommunity
-  let peerEntry: DbFederatedCommunity
-  let rawRequest: jest.SpyInstance | undefined
-  // Each command the other server got: its name, the key on its envelope, its arguments.
-  let commands: { name: string; publicKey: string; args: Record<string, unknown> }[] = []
-  // What this server had filed as the text of the message while each command was on its way.
+  let sendSpy: jest.SpyInstance | undefined
+  let editSpy: jest.SpyInstance | undefined
+  // Each change the other server got.
+  let edits: EditChatMessageWire[] = []
+  // What this server had filed as the text of the message while each change was on its way.
   let inFlight: (string | undefined)[] = []
 
-  /** The other server answers each command by its name. */
-  const peerAnswers = (answerTo: (commandName: string) => Answer) => {
-    rawRequest = jest
-      .spyOn(GraphQLClient.prototype, 'rawRequest')
-      // CommandClient.sendCommandForAnswer calls rawRequest(document, variables).
-      .mockImplementation((async (
-        _document: unknown,
-        variables: { args: { handshakeID: string; jwt: string; publicKey: string } },
-      ) => {
-        const { args } = variables
-        const command = (await verifyAndDecrypt(
-          args.handshakeID,
-          args.jwt,
-          peerKeys.privateKey,
-          homeKeys.publicKey,
-        )) as CommandJwtPayloadType | null
-        if (!command) {
-          throw new Error('the command does not verify with the key of this community')
-        }
-        const sent = JSON.parse(command.commandArgs[0])
-        commands.push({ name: command.commandName, publicKey: args.publicKey, args: sent })
-        inFlight.push((await rowOf(sent.messageUuid))?.body)
-        return { data: { sendCommand: answerTo(command.commandName) }, status: 200 }
-      }) as any)
+  const answering = ({ data, error }: Answer) => ({ data: data ?? null, error: error ?? null })
+  /** The other server answers each message with `toMessage`, each change with `toEdit`. */
+  const peerAnswers = (toEdit: Answer, toMessage: Answer = { data: { mailState: null } }) => {
+    sendSpy = jest
+      .spyOn(ApiClient.prototype, 'chatMessage')
+      .mockImplementation((async () => answering(toMessage)) as any)
+    editSpy = jest.spyOn(ApiClient.prototype, 'editChatMessage').mockImplementation((async (
+      edit: EditChatMessageWire,
+    ) => {
+      edits.push(edit)
+      inFlight.push((await rowOf(edit.messageUuid))?.body)
+      return answering(toEdit)
+    }) as any)
+  }
+  const restore = () => {
+    sendSpy?.mockRestore()
+    editSpy?.mockRestore()
+    sendSpy = editSpy = undefined
   }
 
   /** A message of bob's that reached the other server. */
   const delivered = async (body: string) => {
-    peerAnswers(() => ({ success: true, data: 'received' }))
+    peerAnswers({ error: { status: 500, value: 'not expected here' } })
     const copy = await said(peerRef, body)
-    rawRequest?.mockRestore()
-    commands = []
+    restore()
+    edits = []
     inFlight = []
     return copy as { id: number; messageUuid: string }
   }
 
   beforeAll(async () => {
-    homeKeys = await createKeyPair()
-    peerKeys = await createKeyPair()
-    await DbCommunity.update(
-      { foreign: false },
-      { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
-    )
-    homePublicKey = (
-      await DbCommunity.findOneOrFail({ where: { foreign: false } })
-    ).publicKey.toString('hex')
     peer = await DbCommunity.create({
       foreign: true,
       url: 'http://chat-peer.invalid/api/',
@@ -501,57 +487,36 @@ describe('editChatMessage to a member of another community', () => {
       name: 'Chat peer',
       description: 'the other side of the border',
       creationDate: new Date(),
-      publicJwtKey: peerKeys.publicKey,
-    }).save()
-    peerEntry = await DbFederatedCommunity.create({
-      foreign: true,
-      publicKey: peer.publicKey,
-      apiVersion: '1_0',
-      endPoint: 'http://chat-peer.invalid/api/',
     }).save()
     await loginAs('bob@baumeister.de')
   })
 
   beforeEach(() => {
-    commands = []
+    edits = []
     inFlight = []
   })
 
-  afterEach(() => {
-    rawRequest?.mockRestore()
-    rawRequest = undefined
-  })
+  afterEach(restore)
 
   afterAll(async () => {
-    await DbFederatedCommunity.delete({ id: peerEntry.id })
     await DbCommunity.delete({ id: peer.id })
     resetToken()
   })
 
-  it('sends the change as a command of its own, and changes its own copy once the other server has', async () => {
+  it('sends the change over its own route, and changes its own copy once the other server has', async () => {
     const sent = await delivered('Across the border.')
-    peerAnswers((name) =>
-      name === 'EDIT_CHAT_MESSAGE_COMMAND'
-        ? { success: true, data: 'edited' }
-        : { success: false, error: `not expected here: ${name}` },
-    )
+    peerAnswers({ data: true })
 
     const copy = await edited(sent.messageUuid, 'Across the border, changed.')
 
-    expect(commands).toEqual([
+    expect(edits).toEqual([
       {
-        name: 'EDIT_CHAT_MESSAGE_COMMAND',
-        // The key the other server finds this community by, and checks the writer against.
-        publicKey: homePublicKey,
-        args: {
-          senderComUuid: bob.communityUuid,
-          senderGradidoId: bob.gradidoID,
-          messageUuid: sent.messageUuid,
-          body: 'Across the border, changed.',
-        },
+        writer: { communityUuid: bob.communityUuid, gradidoId: bob.gradidoID },
+        messageUuid: sent.messageUuid,
+        body: 'Across the border, changed.',
       },
     ])
-    // ⛔ First there, then here: while the command was on its way, this server's copy still
+    // ⛔ First there, then here: while the change was on its way, this server's copy still
     // had the words it had.
     expect(inFlight).toEqual(['Across the border.'])
     expect(copy).toMatchObject({ id: sent.id, mine: true, body: 'Across the border, changed.' })
@@ -574,37 +539,21 @@ describe('editChatMessage to a member of another community', () => {
       sent = await delivered('To stay as it is.')
     })
 
-    // A server from before the command: it knows no such name.
-    it('where the other server does not know the command yet', async () => {
-      peerAnswers(() => ({
-        success: false,
-        error: 'Command EDIT_CHAT_MESSAGE_COMMAND not found',
-      }))
+    // A server from before the route: it answers 404.
+    it('where the other server does not know the route yet', async () => {
+      peerAnswers({ error: { status: 404, value: 'NOT_FOUND' } })
       await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
-      expect(commands.map((command) => command.name)).toEqual(['EDIT_CHAT_MESSAGE_COMMAND'])
+      expect(edits).toHaveLength(1)
     })
 
     it('where the other server refuses', async () => {
-      peerAnswers(() => ({
-        success: false,
-        error: 'CHAT_MESSAGE_NOT_EDITED: UNKNOWN_MESSAGE',
-      }))
+      peerAnswers({ error: { status: 404, value: 'CHAT_MESSAGE_NOT_EDITED: UNKNOWN_MESSAGE' } })
       await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
     })
 
-    // ⛔ "No error" is not "changed": only the one word counts.
-    it('where the other server answers anything but the word of the command', async () => {
-      for (const data of ['received', 'mailed', null]) {
-        peerAnswers(() => ({ success: true, data }))
-        await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
-        rawRequest?.mockRestore()
-      }
-    })
-
+    // Eden hands a fetch that fails on as a 503.
     it('where the other server cannot be reached', async () => {
-      rawRequest = jest
-        .spyOn(GraphQLClient.prototype, 'rawRequest')
-        .mockRejectedValue(new Error('connect ECONNREFUSED'))
+      peerAnswers({ error: { status: 503, value: 'connect ECONNREFUSED' } })
       await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: NOT_CONFIRMED')
     })
 
@@ -614,10 +563,10 @@ describe('editChatMessage to a member of another community', () => {
         .update(chatMessagesTable)
         .set({ deliveryState: 'pending' })
         .where(eq(chatMessagesTable.messageUuid, sent.messageUuid))
-      peerAnswers(() => ({ success: true, data: 'edited' }))
+      peerAnswers({ data: true })
 
       await refusedUnchanged('CHAT_MESSAGE_NOT_EDITED: PENDING')
-      expect(commands).toEqual([])
+      expect(edits).toEqual([])
     })
 
     it('and writes none of the texts into the log', () => {
@@ -631,14 +580,13 @@ describe('editChatMessage to a member of another community', () => {
 
   // E-019: a message that never reached the other server has no copy over there.
   it('changes a message that never reached the other server here alone, and sends nothing', async () => {
-    peerAnswers(() => ({ success: false, error: 'the other side is down' }))
+    peerAnswers({ data: true }, { error: { status: 503, value: 'the other side is down' } })
     const failed = await said(peerRef, 'Never arrived.')
     expect(failed.deliveryState).toBe('FAILED')
-    commands = []
 
     const copy = await edited(failed.messageUuid, 'Never arrived, and changed.')
 
-    expect(commands).toEqual([])
+    expect(edits).toEqual([])
     expect(copy.body).toBe('Never arrived, and changed.')
     expect((await rowOf(failed.messageUuid)).deliveryState).toBe('failed')
   })

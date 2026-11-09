@@ -27,7 +27,7 @@ const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ChatMes
  * with its message. The sending server uses it for a message within its community
  * (deliverChatMessageLocally) and for its own copy of one to another community
  * (deliverChatMessageAcrossBorder); the receiving server for a picture from another community
- * (SendEmailCommand, P7b) -- one check for both sides, and both encode the picture again.
+ * (receiveChatMessage, P7b) -- one check for both sides, and both encode the picture again.
  *
  * ⛔ What this writes to the log names messages and pictures by their uuids, never a picture's
  * bytes -- and never a database error's message: a failed Drizzle query carries the parameters
@@ -222,7 +222,7 @@ export async function storeChatMessageImages(
  * Why the pictures a chat message brought from another community are refused (P7b): what
  * acceptAndReencodeChatMessageImage refuses a picture for, or what is wrong with the list
  * itself -- more than one picture (TOO_MANY), a picture without a uuid to be filed under
- * (NO_UUID), something that is no picture as a command carries one (MALFORMED).
+ * (NO_UUID), something that is no picture as a request carries one (MALFORMED).
  */
 export type IncomingChatMessageImageRefusal =
   | ChatMessageImageRefusal
@@ -234,7 +234,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 /**
- * The pictures a chat message brought from another community (SendEmailCommandParams.images,
+ * The pictures a chat message brought from another community (ChatMessageWire.images,
  * P7b), checked and encoded again as this server does it for a picture of its own members
  * (acceptAndReencodeChatMessageImage), each with the name the sending server gave it and filed
  * its own copy under -- or why they are refused. Nothing, null or an empty list: no picture, as
@@ -294,7 +294,7 @@ export type IncomingChatMessageImageFiled = 'FILED' | 'FILED_BEFORE'
  * Files the picture of a chat message from another community under the message's uuid (P7b) --
  * BEFORE the message, as the sending server filed its copy -- and says what became of it.
  *
- * ⛔ A command may come twice, and the second time its picture is there already: the same name in
+ * ⛔ A message may come twice, and the second time its picture is there already: the same name in
  * the same place is FILED_BEFORE, not an error. Another picture in its place, or its name under
  * another message, is a CONTRADICTION -- and nothing is taken out: what is there came with
  * another delivery. NOT_STORED where the database refused otherwise.
@@ -339,17 +339,3 @@ export async function storeIncomingChatMessageImage(
   }
   return { success: false, error: 'NOT_STORED' }
 }
-
-/**
- * The pictures of a chat message as a log may write them (P7b): name and size, and of the bytes
- * only how many characters of base64 they came as -- some 48,000 for a picture, one member's for
- * another. Anything that is no picture list is handed back as it is.
- */
-export const chatMessageImagesForLog = (images: unknown): unknown =>
-  Array.isArray(images)
-    ? images.map((picture) =>
-        isRecord(picture) && typeof picture.data === 'string'
-          ? { ...picture, data: `*** ${picture.data.length} characters` }
-          : picture,
-      )
-    : images

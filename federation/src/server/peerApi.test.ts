@@ -6,8 +6,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { cleanDB } from '@test/helpers'
 import { ApiClient } from 'core'
 import { AppDatabase, dbInsertHomeCommunity, getHomeCommunityDrizzle } from 'database'
-import type { AnyElysia } from 'elysia'
-import { getLogger } from 'log4js'
 import { AppContext, createKeyPair, InvalidResponseSignatureError } from 'shared'
 import { Ed25519KeyPair, X25519KeyPair } from 'shared-native'
 import { createServer } from './createServer'
@@ -27,12 +25,12 @@ const home = {
   creationDate: new Date('2024-05-06T07:08:09.123Z'),
 }
 
-let app: AnyElysia
+let app: Awaited<ReturnType<typeof createServer>>
 let publicJwtKey: string
 let url: string
 
 beforeAll(async () => {
-  app = (await createServer(getLogger('apollo'))).app
+  app = await createServer()
   await cleanDB()
   const jwtKeys = await createKeyPair()
   publicJwtKey = jwtKeys.publicKey

@@ -1,7 +1,6 @@
 import 'source-map-support/register'
 
 import { defaultCategory, initLogger } from 'config-schema'
-import { initializeCommands } from 'core'
 import { getHomeCommunityDrizzle } from 'database'
 import { getLogger } from 'log4js'
 import { AppContext, onShutdown, printServerCrashAsciiArt, ShutdownReason } from 'shared'
@@ -15,17 +14,13 @@ async function main() {
   // init logger
   const log4jsConfigFileName = CONFIG.LOG4JS_CONFIG_PLACEHOLDER.replace('%v', CONFIG.FEDERATION_API)
   initLogger(
-    [
-      defaultCategory('federation', CONFIG.LOG_LEVEL),
-      // A line for every request: in apollo.log, and only what went wrong on stdout.
-      { ...defaultCategory('apollo', CONFIG.LOG_LEVEL), stdoutLevel: 'warn' },
-    ],
+    [defaultCategory('federation', CONFIG.LOG_LEVEL)],
     `${CONFIG.LOG_FILES_BASE_PATH}_${CONFIG.FEDERATION_API}`,
     log4jsConfigFileName,
   )
 
   // init server
-  const { app } = await createServer(getLogger('apollo'))
+  const app = await createServer()
 
   // the keys the peer api signs with; will throw if a home community is missing
   AppContext.getInstance().setHomeCommunity(await getHomeCommunityDrizzle())
@@ -48,8 +43,6 @@ async function main() {
       }
     })
   })
-
-  initializeCommands()
 }
 
 main().catch((e) => {
