@@ -4,6 +4,7 @@ import {
   dateStringSchema,
   gddAmountSchema,
   gddAmountStringSchema,
+  MEMBER_AVATARS_MAX_REFS,
   memoSchema,
   positiveIntegerSchema,
   userIdentifierSchema,
@@ -69,3 +70,13 @@ export const disburseTransactionLinkWireSchema = v.object({
 })
 
 export type DisburseTransactionLinkWire = v.InferOutput<typeof disburseTransactionLinkWireSchema>
+
+// What one community asks another about the pictures of that other's members: the ids of a
+// list, at most as many as the wallet shows at once, or the one member a zoom is for (AS-020).
+export const memberAvatarsQuestionSchema = v.object({
+  gradidoIds: v.pipe(v.array(uuidv4Schema), v.minLength(1), v.maxLength(MEMBER_AVATARS_MAX_REFS)),
+})
+export type MemberAvatarsQuestion = v.InferOutput<typeof memberAvatarsQuestionSchema>
+
+export const memberAvatarFullQuestionSchema = v.object({ gradidoId: uuidv4Schema })
+export type MemberAvatarFullQuestion = v.InferOutput<typeof memberAvatarFullQuestionSchema>

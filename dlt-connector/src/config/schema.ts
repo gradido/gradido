@@ -83,7 +83,6 @@ export const configSchema = v.object({
     ),
     '8340',
   ),
-  DLT_BLOCK_UPDATE_FEDERATION_API_VERSION: v.optional(v.picklist(['1_0', '1_1']), '1_0'),
   DLT_GRADIDO_NODE_SERVER_VERSION: v.optional(
     v.pipe(
       v.string('The version of the DLT node server, for example: 0.9.0'),
@@ -102,11 +101,12 @@ export const configSchema = v.object({
     ),
     'false',
   ),
-  FEDERATION_COMMUNITY_URL: v.nullish(
+  FEDERATION_COMMUNITY_URL: v.optional(
     v.pipe(
-      v.string('The url of the federation community'),
+      v.string('The local url of the federation service, the GradidoNode notifies it there'),
       v.url('Need a http/https url for requests to federation module.'),
     ),
+    'http://127.0.0.1:5010',
   ),
   BACKEND_PORT: v.optional(
     v.pipe(

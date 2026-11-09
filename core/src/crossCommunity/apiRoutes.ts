@@ -15,9 +15,12 @@ import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { ApiClientCompleted } from './ApiClient'
 import { ApiClientCache } from './ApiClientCache'
+import { memberAvatarDates, memberAvatarFull, memberAvatarsSmall } from './memberAvatars'
 import {
   crossGroupTransactionWireSchema,
   disburseTransactionLinkWireSchema,
+  memberAvatarFullQuestionSchema,
+  memberAvatarsQuestionSchema,
   userPublicInfoWireSchema,
 } from './schema'
 import {
@@ -148,6 +151,19 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
       404: v.string(),
       500: v.string(),
     },
+  })
+  // the pictures of this community's members, sealed for the community that asks
+  .post('memberAvatarsSmall', memberAvatarsSmall, {
+    body: memberAvatarsQuestionSchema,
+    mapResponse: signedEncryptedJsonResponse,
+  })
+  .post('memberAvatarDates', memberAvatarDates, {
+    body: memberAvatarsQuestionSchema,
+    mapResponse: signedEncryptedJsonResponse,
+  })
+  .post('memberAvatarFull', memberAvatarFull, {
+    body: memberAvatarFullQuestionSchema,
+    mapResponse: signedEncryptedJsonResponse,
   })
 
 // The part of the Elysia context signedJsonResponse needs, so it can stand in as mapResponse of any
