@@ -37,6 +37,15 @@ Migrating queries proceeds in four separate steps, never merged into one:
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 
+## The admin exists twice
+
+The admin interface is in the middle of a rewrite: `admin/` (Vue) and `admin-mithril/` (Mithril) coexist. The bare-metal deployment serves `admin-mithril/build`. The Docker Compose setup still serves `admin/`. Until `admin/` is removed, **every change to the admin's behaviour is made in both**, in the same change: a fix, a new field, a new page. Otherwise the two drift apart, and the specs that compare them stop telling the truth.
+
+- **Shared files:** `admin-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `admin/src` through the `@admin` alias. Change them once, in `admin/`; both admins pick them up.
+- **Specs:** the Playwright specs in `admin-mithril/tests` run against both admins (projects `old` and `new`). Extend the spec first, then change both admins until it passes on both.
+- **Deliberate deviations:** where the admins are meant to differ (a bug fixed only in the Mithril admin), the test says so with `test.skip(info.project.name === 'old', '<reason>')`, and the Mithril code carries a `Fixed:` comment.
+- **Running the specs:** `cd admin-mithril && bun run test:compare`. The old admin's own Vitest suite (`bunx turbo test --filter=admin`) keeps running as well.
+
 # Running builds, tests and checks
 
 Always use **Turbo** from the repository root for the **first** build or test run after making changes. This ensures all declared task dependencies are executed.
