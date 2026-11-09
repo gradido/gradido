@@ -20,6 +20,7 @@ import { ApiClient } from './ApiClient'
 import { apiRoutes } from './apiRoutes'
 import { CrossGroupTransaction, crossGroupTransactionWireSchema } from './schema'
 import { processXComCompleteTransaction } from './transferCoins'
+import * as senderSide from './transferCoins/senderSide'
 
 // The routes as they are, only the database and the mail server faked.
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock and core runs without --isolate.
@@ -552,5 +553,43 @@ describe('POST peer-api/v1/prepareSendCoins', () => {
         tx.memo,
       ),
     ).rejects.toThrow(`${RECIPIENT_NOT_FOUND}: ${tx.recipient.identifier}`)
+  })
+})
+
+describe('POST peer-api/v1/disburseTransactionLink', () => {
+  const link = { id: 3, code: 'a1f9c2d41b7e19981fa0d001', amount: tx.amount, memo: tx.memo }
+  const creator = { id: 7, gradidoId: tx.sender.gradidoId }
+
+  it('pays a link of this community out to the member the calling community names', async () => {
+    const complete = spyOn(senderSide, 'processXComCompleteTransaction').mockResolvedValue(true)
+    spies.push(
+      complete,
+      spyOn(database, 'dbFindOpenTransactionLinkWithCreatorByCode').mockResolvedValue({
+        link,
+        creator,
+      } as never),
+    )
+    const client = new ApiClient(
+      `${baseUrl}/`,
+      new Ed25519KeyPair(home.publicKey),
+      new X25519KeyPair(home.publicEncryptionKey),
+    )
+    // client and server share this process, each of them is its own home community while it works
+    fetchSpy.mockImplementation((async (request: Request) => {
+      AppContext.getInstance().setHomeCommunity(home)
+      const response = await app.handle(request)
+      AppContext.getInstance().setHomeCommunity(sender)
+      return response
+    }) as never)
+    AppContext.getInstance().setHomeCommunity(sender)
+
+    const { data, error } = await client.disburseTransactionLink({
+      link: { code: link.code, communityUuid: home.communityUuid },
+      recipient: { communityUuid: sender.communityUuid, identifier: 'peter' },
+    })
+    expect(error).toBeNull()
+    expect(data).toBe(true)
+    expect(complete).toHaveBeenCalledTimes(1)
+    expect(complete.mock.calls[0].slice(0, 3)).toEqual([creator, sender.communityUuid, 'peter'])
   })
 })
