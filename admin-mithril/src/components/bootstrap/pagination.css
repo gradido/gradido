@@ -1,0 +1,18 @@
+/* AI-GENERATED — not an architecture reference */
+/* What bootstrap-vue-next's stylesheet gave its pagination: the pills, and the page beside an
+   ellipsis giving way on a small screen. */
+.b-pagination-pills .page-item .page-link {
+  border-radius: 50rem !important;
+  margin-left: 0.25rem !important;
+  line-height: 1;
+}
+
+.b-pagination-pills .page-item:first-child .page-link {
+  margin-left: 0 !important;
+}
+
+@media (width <= 575.98px) {
+  .bv-d-sm-down-none {
+    display: none !important;
+  }
+}
