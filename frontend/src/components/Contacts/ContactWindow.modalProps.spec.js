@@ -23,7 +23,7 @@ import { BModal } from 'bootstrap-vue-next'
  * an instance of it as coming from another realm.
  */
 const source = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.vue'),
+  join(dirname(fileURLToPath(import.meta.url)), 'ContactWindow.tsx'),
   'utf8',
 )
 
@@ -64,13 +64,17 @@ const videoSource = readFileSync(
 
 /**
  * Every `<BModal …>` opening tag of the window and of its questions before a video call, in this
- * order -- the comments taken out first, so a tag named in prose is not read as one.
+ * order -- the comments taken out first (the template's and the TSX's), so a tag named in prose
+ * is not read as one.
  */
 const allModalTags = () =>
   [source, videoSource].flatMap((text) =>
-    [...text.replace(/<!--[\s\S]*?-->/g, '').matchAll(/<BModal\b([\s\S]*?)>/g)].map((m) =>
-      namesOn(m[1]),
-    ),
+    [
+      ...text
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .matchAll(/<BModal\b([\s\S]*?)>/g),
+    ].map((m) => namesOn(m[1])),
   )
 
 const camel = (name) => name.replace(/-([a-z])/g, (unused, letter) => letter.toUpperCase())
@@ -126,7 +130,7 @@ describe('ContactWindow and the modal it opens', () => {
    */
   it('is a sheet below sm', () => {
     expect(modalAttributes()).toContain('fullscreen')
-    expect(source.match(/<BModal\b[\s\S]*?>/)[0]).toMatch(/\sfullscreen="sm"/)
+    expect(source.match(/<BModal\b[\s\S]*?>/)[0]).toMatch(/\sfullscreen=["']sm["']/)
   })
 
   /**

@@ -54,7 +54,7 @@ import { computed, reactive } from 'vue'
  * community at the next start.
  *
  * Before all of them comes a window that is none of them: the conversation an address opens
- * (`/contacts?with=…`, pages/Contacts.vue). Somebody who has just accepted a thank-you and
+ * (`/contacts?with=…`, pages/Contacts.tsx). Somebody who has just accepted a thank-you and
  * taps "Antworten" on the overview's tile, or the reply button of a mail, arrives in the
  * conversation through that address, and what they came for is the conversation -- the others
  * wait, and come in their order once it is closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one

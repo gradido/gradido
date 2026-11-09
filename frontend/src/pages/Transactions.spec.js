@@ -104,8 +104,8 @@ vi.mock('@/components/GddTransactionList', () => ({
   },
 }))
 
-vi.mock('@/components/Contacts/ContactWindow.vue', () => ({
-  default: {
+vi.mock('@/components/Contacts/ContactWindow', () => ({
+  ContactWindow: {
     name: 'ContactWindow',
     props: ['modelValue', 'contact'],
     template:

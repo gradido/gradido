@@ -1,8 +1,38 @@
 // AI-GENERATED — not an architecture reference
 
+import type { Composer } from 'vue-i18n'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
 import { memberAlias, memberKey } from '@/utils/gradidoAddress'
+
+/** The member a contact row names, as contactListQuery delivers it (the booking row's shape). */
+export type ContactUser = {
+  gradidoID: string
+  alias?: string
+  communityUuid?: string | null
+  communityName?: string | null
+  [field: string]: unknown
+}
+
+/**
+ * One row of contactListQuery. Handed off a booking row, a contact carries its `user` alone until
+ * the lookup answers (useContactWindow.openMember): the window asks (`counted`) before it reads
+ * the three figures.
+ */
+export type Contact = {
+  user: ContactUser
+  firstAt: string
+  lastAt: string
+  bookings: number
+  origin?: string | null
+  unreadChatMessages?: number
+  chatPreview?: { unread?: boolean; [field: string]: unknown } | null
+  homeCommunity?: boolean
+  [field: string]: unknown
+}
+
+/** The two the builders below say things with: the caller's `useI18n()`. */
+type Words = Pick<Composer, 't' | 'd'>
 
 /**
  * One contact ready to draw: its key, the name the wallet gives it, and the face.
@@ -20,11 +50,8 @@ import { memberAlias, memberKey } from '@/utils/gradidoAddress'
  * portrait, which would make one circle behave two ways. Switch it on only where the
  * avatar stands OUTSIDE the tap target (the list row, the window), the way `ContactRow`
  * has it.
- *
- * @param {{user: object}} contact one row of contactListQuery
- * @param {{zoomable?: boolean}} options
  */
-export const contactDisplay = (contact, { zoomable = false } = {}) => {
+export const contactDisplay = (contact: Contact, { zoomable = false } = {}) => {
   const base = memberAvatarProps(contact.user)
   return {
     contact,
@@ -33,6 +60,9 @@ export const contactDisplay = (contact, { zoomable = false } = {}) => {
     avatar: zoomable ? { ...base, ...avatarZoomBindings(contact.user, base) } : base,
   }
 }
+
+/** What `contactDisplay` makes of a contact: the shape `ContactTiles` is handed. */
+export type ContactDisplayRow = ReturnType<typeof contactDisplay>
 
 /** Between the parts of a contact's meta line, carrying its own spaces on both sides. */
 export const CONTACT_META_SEPARATOR = ' · '
@@ -44,7 +74,7 @@ export const CONTACT_META_SEPARATOR = ' · '
  *
  * `t` and `d` come from the caller's `useI18n()`: this file is not a setup scope.
  */
-export const contactBookingsMeta = (contact, { t, d }) =>
+export const contactBookingsMeta = (contact: Contact, { t, d }: Words) =>
   [
     t('contacts.bookings', contact.bookings),
     t('contacts.last', { date: d(new Date(contact.lastAt), 'short') }),
@@ -62,7 +92,7 @@ export const contactBookingsMeta = (contact, { t, d }) =>
  * The values are the GraphQL enum `ContactOrigin` as it arrives over the wire. The wallet
  * does not import `shared`, so they are strings here, pinned by the specs on both sides.
  */
-export const contactOriginLine = (contact, { t }) => {
+export const contactOriginLine = (contact: Contact, { t }: Pick<Words, 't'>) => {
   switch (contact.origin) {
     case 'REFERRER':
       return t('contacts.origin.referrer')
@@ -84,7 +114,7 @@ export const contactOriginLine = (contact, { t }) => {
  * wrong thing to say to somebody who has just arrived.
  *
  * Where there are bookings the line is exactly what it always was, origin or no origin.
- * The window under the name shows both (ContactWindow.vue); a row has one line.
+ * The window under the name shows both (ContactWindow); a row has one line.
  */
-export const contactMeta = (contact, { t, d }) =>
+export const contactMeta = (contact: Contact, { t, d }: Words) =>
   contact.bookings > 0 ? contactBookingsMeta(contact, { t, d }) : contactOriginLine(contact, { t })
