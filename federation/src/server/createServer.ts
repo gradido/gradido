@@ -14,6 +14,7 @@ import { CONFIG } from '@/config'
 // graphql
 import { schema } from '@/graphql/schema'
 // server
+import { blockchainNotificationRoutes } from './blockchainNotification'
 import { cors } from './cors'
 // import serverContext from './context'
 import { plugins } from './plugins'
@@ -67,6 +68,7 @@ export const createServer = async (
     // Cross-Origin-Resource-Policy instead (tobias-kaerst-software/elysia-helmet#12).
     .use(helmet({ originAgentCluster: false }))
     .use(apiRoutes)
+    .use(blockchainNotificationRoutes)
     // starts apollo and answers a POST with it
     .use(await apollo.createHandler({ path: apiPath, enablePlayground: false }))
     // The plugin answers a GET with a landing page of its own, whatever the plugins above say.

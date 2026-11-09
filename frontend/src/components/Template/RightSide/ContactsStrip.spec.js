@@ -10,6 +10,15 @@ import {
 } from '@/composables/useContactsPanel'
 import { forgetFavorites, rememberFavorites } from '@/composables/useFavorites'
 
+// The tiles and the empty state read their words through useI18n (TSX): as `$t` below.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
+// useAvatarZoom imports the wallet's i18n instance, which the mock above cannot create.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key) => key } },
+}))
+
 const apolloQuery = vi.fn()
 
 vi.mock('@/graphql/contacts.graphql', () => ({

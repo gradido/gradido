@@ -13,6 +13,7 @@ import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
 import { QueryLinkResult } from '@union/QueryLinkResult'
 import {
+  ApiClientCache,
   acceptLargeThankYouGreetingPicture,
   acceptSmallThankYouGreetingPicture,
   ChatMessageImageAccepted,
@@ -31,11 +32,11 @@ import {
   Contribution as DbContribution,
   ContributionLink as DbContributionLink,
   DltTransaction as DbDltTransaction,
-  FederatedCommunity as DbFederatedCommunity,
   Transaction as DbTransaction,
   TransactionLink as DbTransactionLink,
   User as DbUser,
   dbDeleteThankYouGreetingByLinkCode,
+  dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindMemberAvatarsSmall,
   dbInsertEvent,
   dbInsertThankYouGreeting,
@@ -55,7 +56,6 @@ import {
   CODE_VALID_DAYS_DURATION,
   Decay,
   DecayCalculationType,
-  DisburseJwtPayloadType,
   Duration,
   decode,
   encode,
@@ -83,8 +83,6 @@ import {
   THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST,
   THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
 } from '@/data/ThankYouGreetingPicture.logic'
-import { DisbursementClient as V1_0_DisbursementClient } from '@/federation/client/1_0/DisbursementClient'
-import { DisbursementClientFactory } from '@/federation/client/DisbursementClientFactory'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { calculateBalance } from '@/util/validate'
@@ -809,162 +807,31 @@ export class TransactionLinkResolver {
     }
   }
 
+  /**
+   * Accepts a link of another community for the signed-in member: the link's community pays it
+   * out, as a transfer from the member who made it (peer-api disburseTransactionLink). Only the
+   * code goes there, with whom it is for; amount, memo and maker the other community has itself.
+   */
   @Authorized([RIGHTS.DISBURSE_TRANSACTION_LINK])
   @Mutation(() => Boolean)
   async disburseTransactionLink(
-    @Ctx() _context: Context,
+    @Ctx() context: Context,
     @Arg('senderCommunityUuid') senderCommunityUuid: string,
-    @Arg('senderGradidoId') senderGradidoId: string,
-    @Arg('recipientCommunityUuid') recipientCommunityUuid: string,
-    @Arg('recipientCommunityName') recipientCommunityName: string,
-    @Arg('recipientGradidoId') recipientGradidoId: string,
-    @Arg('recipientFirstName') recipientFirstName: string,
     @Arg('code') code: string,
-    @Arg('amount') amount: string,
-    @Arg('memo') memo: string,
-    @Arg('validUntil', { nullable: true }) validUntil?: string,
-    @Arg('recipientAlias', { nullable: true }) recipientAlias?: string,
   ): Promise<boolean> {
-    const handshakeID = randomInt(2 ** 32).toString()
-    const methodLogger = createLogger(`disburseTransactionLink`)
-    methodLogger.addContext('handshakeID', handshakeID)
-    if (methodLogger.isDebugEnabled()) {
-      methodLogger.debug('args=', {
-        senderGradidoId,
-        senderCommunityUuid,
-        recipientCommunityUuid,
-        recipientCommunityName,
-        recipientGradidoId,
-        recipientFirstName,
-        code,
-        amount,
-        memo,
-        validUntil,
-        recipientAlias,
-      })
-    }
-    const senderCom = await getCommunityByUuid(senderCommunityUuid)
+    const user = getUser(context)
+    const senderCom = await dbFindAuthenticatedForeignCommunityByIdentifier(senderCommunityUuid)
     if (!senderCom) {
-      const errmsg = `Sender community not found with uuid=${senderCommunityUuid}`
-      methodLogger.error(errmsg)
-      throw new Error(errmsg)
+      throw new LogError('Sender community not found', senderCommunityUuid)
     }
-    const senderFedCom = await DbFederatedCommunity.findOneBy({ publicKey: senderCom.publicKey })
-    if (!senderFedCom) {
-      const errmsg = `Sender federated community not found with publicKey=${senderCom.publicKey}`
-      methodLogger.error(errmsg)
-      throw new Error(errmsg)
-    }
-    const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
-    if (!recipientCom) {
-      const errmsg = `Recipient community not found with uuid=${recipientCommunityUuid}`
-      methodLogger.error(errmsg)
-      throw new Error(errmsg)
-    }
-    const client = DisbursementClientFactory.getInstance(senderFedCom)
-    if (client instanceof V1_0_DisbursementClient) {
-      const disburseJwtPayload = new DisburseJwtPayloadType(
-        handshakeID,
-        senderCommunityUuid,
-        senderGradidoId,
-        recipientCommunityUuid,
-        recipientCommunityName,
-        recipientGradidoId,
-        recipientFirstName,
-        code,
-        amount,
-        memo,
-        validUntil!,
-        recipientAlias!,
-      )
-      if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug('disburseJwtPayload=', disburseJwtPayload)
-      }
-      const jws = await encryptAndSign(
-        disburseJwtPayload,
-        recipientCom.privateJwtKey!,
-        senderCom.publicJwtKey!,
-      )
-      if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug('jws=', jws)
-      }
-      const args = new EncryptedTransferArgs()
-      args.publicKey = recipientCom.publicKey.toString('hex')
-      args.jwt = jws
-      args.handshakeID = handshakeID
-      try {
-        // now send the disburseJwt to the sender community to invoke a x-community-tx to disbures the redeemLink
-        const result = await client.sendDisburseJwtToSenderCommunity(args)
-        if (methodLogger.isDebugEnabled()) {
-          methodLogger.debug('Disburse JWT was sent successfully with result=', result)
-        }
-        /* don't send email here, because it is sent by the sender community
-        const senderUser = await findUserByIdentifier(senderGradidoId, senderCommunityUuid)
-        if (!senderUser) {
-          const errmsg = `Sender user not found with identifier=${senderGradidoId}`
-          methodLogger.error(errmsg)
-          throw new Error(errmsg)
-        }
-        const recipientUser = await findUserByIdentifier(recipientGradidoId, recipientCommunityUuid)
-        if (!recipientUser) {
-          const errmsg = `Recipient user not found with identifier=${recipientGradidoId}`
-          methodLogger.error(errmsg)
-          throw new Error(errmsg)
-        }
-        if (recipientUser.emailContact?.email !== null) {
-          if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug(
-              'Sending TransactionLinkRedeem Email to recipient=' +
-                recipientUser.firstName +
-                ' ' +
-                recipientUser.lastName +
-                'sender=' +
-                senderUser.firstName +
-                ' ' +
-                senderUser.lastName,
-            )
-          }
-          try {
-            await sendTransactionLinkRedeemedEmail({
-              firstName: recipientUser.firstName,
-              lastName: recipientUser.lastName,
-              email: recipientUser.emailContact.email,
-              language: recipientUser.language,
-              senderAlias: senderUser.alias,
-              // ⛔ A COMMUNITY name, and never an address: this sentence is read by a THIRD
-              //    PARTY, which is the whole reason the alias replaced the real name here.
-              //    The live callers pass `getCommunityName(...)`; see TransactionResolver.
-              //    Left unfillable on purpose -- reviving this block must not be a matter of
-              //    deleting the comment markers.
-              senderCommunity: <community name>,
-              transactionMemo: memo,
-              transactionAmount: new Decimal(amount),
-            })
-          } catch (e) {
-            const errmsg = `Send TransactionLinkRedeem Email to recipient failed with error=${e}`
-            methodLogger.error(errmsg)
-            throw new Error(errmsg)
-          }
-        } else {
-          if (methodLogger.isDebugEnabled()) {
-            methodLogger.debug(
-              'Sender or Recipient are foreign users with no email contact, not sending Transaction Received Email: recipient=' +
-                recipientUser.firstName +
-                ' ' +
-                recipientUser.lastName +
-                'sender=' +
-                senderUser.firstName +
-                ' ' +
-                senderUser.lastName,
-            )
-          }
-        }
-        */
-      } catch (e) {
-        const errmsg = `Disburse JWT was not sent successfully with error=${e}`
-        methodLogger.error(errmsg)
-        throw new Error(errmsg)
-      }
+    const { error } = await ApiClientCache.getInstance()
+      .get(senderCom)
+      .disburseTransactionLink({
+        link: { code, communityUuid: senderCom.communityUuid },
+        recipient: { communityUuid: user.communityUuid, identifier: user.gradidoID },
+      })
+    if (error) {
+      throw new LogError(`Disbursement of the link failed: ${error.value}`, error.status)
     }
     return true
   }

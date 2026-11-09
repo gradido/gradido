@@ -14,7 +14,15 @@ import {
 import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
-import { CrossGroupTransactionWireInput, crossGroupTransactionWireSchema } from './schema'
+import {
+  CrossGroupTransactionWireInput,
+  crossGroupTransactionWireSchema,
+  DisburseTransactionLinkWire,
+  MemberAvatarFullQuestion,
+  MemberAvatarsQuestion,
+  memberAvatarFullQuestionSchema,
+  memberAvatarsQuestionSchema,
+} from './schema'
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 type FetchOptions = {
@@ -278,6 +286,28 @@ export class ApiClient {
   public emailTransactionReceived(tx: CrossGroupTransactionWireInput) {
     return this.encryptSignVerifyClient['peer-api'].v1.emailTransactionReceived.post(
       v.parse(crossGroupTransactionWireSchema, tx),
+    )
+  }
+
+  public disburseTransactionLink(body: DisburseTransactionLinkWire) {
+    return this.encryptSignVerifyClient['peer-api'].v1.disburseTransactionLink.post(body)
+  }
+
+  public memberAvatarsSmall(question: MemberAvatarsQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarsSmall.post(
+      v.parse(memberAvatarsQuestionSchema, question),
+    )
+  }
+
+  public memberAvatarDates(question: MemberAvatarsQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarDates.post(
+      v.parse(memberAvatarsQuestionSchema, question),
+    )
+  }
+
+  public memberAvatarFull(question: MemberAvatarFullQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarFull.post(
+      v.parse(memberAvatarFullQuestionSchema, question),
     )
   }
 

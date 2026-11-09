@@ -2,35 +2,24 @@
 import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG } from 'core'
+import { ApiClient, MemberAvatarsQuestion } from 'core'
 import {
   AppDatabase,
   Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   dbUpsertForeignMemberAvatarDates,
   foreignMemberAvatarDatesTable,
 } from 'database'
-import { GraphQLClient } from 'graphql-request'
-import {
-  createKeyPair,
-  encryptAndSign,
-  MEMBER_AVATARS_MAX_REFS,
-  MemberAvatarPayload,
-  MemberAvatarsJwtPayloadType,
-  MemberAvatarsResponseJwtPayloadType,
-  verifyAndDecrypt,
-} from 'shared'
+import { MEMBER_AVATARS_MAX_REFS } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { refreshForeignMemberAvatarDates } from './refreshForeignMemberAvatarDates'
 
 /**
  * The run is called directly: no loop, no fake timers (drizzle is on the path, and jest's fake
- * timers would hang it -- AGENTS.md). The other community is a stub on `rawRequest` that opens
- * the question with its own key and seals a real answer for ours, so the envelope, the
- * tokentype and the checks of the answer (core xcomMemberAvatars) all run as they do between
- * two servers.
+ * timers would hang it -- AGENTS.md). The other community is a stub on the client's request
+ * (ApiClient.memberAvatarDates): what it answers goes through the checks of the answer (core
+ * memberAvatars askingSide) as between two servers; the envelope is apiRoutes' own test.
  */
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.refreshForeignMemberAvatarDates`)
@@ -44,12 +33,9 @@ let testEnv: {
   query: ApolloServerTestClient['query']
   db: AppDatabase
 }
-let homeKeys: { publicKey: string; privateKey: string }
-let peerKeys: { publicKey: string; privateKey: string }
-let peer: DbCommunity
 let peerUuid: string
-let questions: MemberAvatarsJwtPayloadType[] = []
-let rawRequest: jest.SpyInstance | undefined
+let questions: MemberAvatarsQuestion[] = []
+let request: jest.SpyInstance | undefined
 
 /** A `users` row the way the federation stores the counterparty of a transfer. */
 const storedMember = async (communityUuid: string): Promise<string> => {
@@ -85,44 +71,26 @@ const clearDates = async () => {
   await AppDatabase.getInstance().getDrizzleDataSource().delete(foreignMemberAvatarDatesTable)
 }
 
-/** The other community: opens the question with its key, answers sealed for ours. */
-const peerAnswers = (answer: (question: MemberAvatarsJwtPayloadType) => MemberAvatarPayload[]) => {
-  rawRequest = jest
-    .spyOn(GraphQLClient.prototype, 'rawRequest')
-    .mockImplementation((async (options: {
-      variables: { args: { handshakeID: string; jwt: string } }
-    }) => {
-      const { args } = options.variables
-      const question = (await verifyAndDecrypt(
-        args.handshakeID,
-        args.jwt,
-        peerKeys.privateKey,
-        homeKeys.publicKey,
-      )) as MemberAvatarsJwtPayloadType | null
-      if (!question) {
-        throw new Error('the question does not verify with the key of the community asked')
-      }
-      questions.push(question)
-      const token = await encryptAndSign(
-        new MemberAvatarsResponseJwtPayloadType(args.handshakeID, answer(question)),
-        peerKeys.privateKey,
-        homeKeys.publicKey,
-      )
-      return { data: { memberAvatars: token }, status: 200 }
-    }) as any)
+type DateAnswer = { gradidoId: string; avatarUpdatedAt: string }[] | null
+// what Eden hands back for a community that does not answer: a fetch that failed
+const NO_ANSWER = { data: null, error: { status: 503, value: 'connect ECONNREFUSED' } }
+
+/** The other community: answers each question as `answer` says, null for no answer at all. */
+const peerAnswers = (answer: (question: MemberAvatarsQuestion) => DateAnswer) => {
+  request = jest.spyOn(ApiClient.prototype, 'memberAvatarDates').mockImplementation((async (
+    question: MemberAvatarsQuestion,
+  ) => {
+    questions.push(question)
+    const data = answer(question)
+    return data ? { data, error: null } : NO_ANSWER
+  }) as never)
 }
 
-const peerDoesNotAnswer = () => {
-  rawRequest = jest
-    .spyOn(GraphQLClient.prototype, 'rawRequest')
-    .mockRejectedValue(new Error('connect ECONNREFUSED 192.0.2.1:443'))
-}
+const peerDoesNotAnswer = () => peerAnswers(() => null)
 
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   await cleanDB()
-  homeKeys = await createKeyPair()
-  peerKeys = await createKeyPair()
   await DbCommunity.create({
     foreign: false,
     url: 'http://home.invalid/api/',
@@ -132,11 +100,9 @@ beforeAll(async () => {
     name: 'Home community',
     description: 'this side of the border',
     creationDate: new Date(),
-    publicJwtKey: homeKeys.publicKey,
-    privateJwtKey: homeKeys.privateKey,
   }).save()
   peerUuid = uuidv4()
-  peer = await DbCommunity.create({
+  await DbCommunity.create({
     foreign: true,
     url: 'http://peer.invalid/api/',
     publicEncryptionKey: randomBytes(32),
@@ -146,13 +112,6 @@ beforeAll(async () => {
     name: 'Peer community',
     description: 'the other side of the border',
     creationDate: new Date(),
-    publicJwtKey: peerKeys.publicKey,
-  }).save()
-  await DbFederatedCommunity.create({
-    foreign: true,
-    publicKey: peer.publicKey,
-    apiVersion: CORE_CONFIG.FEDERATION_BACKEND_SEND_ON_API,
-    endPoint: 'http://peer.invalid/api/',
   }).save()
 })
 
@@ -162,8 +121,8 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  rawRequest?.mockRestore()
-  rawRequest = undefined
+  request?.mockRestore()
+  request = undefined
 })
 
 afterAll(async () => {
@@ -184,14 +143,12 @@ describe('refreshForeignMemberAvatarDates', () => {
     })
 
     it('stores the date the other community names, and null for the member it does not name', async () => {
-      peerAnswers(() => [{ gradidoID: anna, avatarUpdatedAt: PICTURE, avatar: null }])
+      peerAnswers(() => [{ gradidoId: anna, avatarUpdatedAt: PICTURE }])
 
       await refreshForeignMemberAvatarDates()
 
-      // Asked for the dates only, and about exactly the members stored for that community.
-      expect(questions).toEqual([
-        expect.objectContaining({ kind: 'dates', gradidoIDs: [anna, otto] }),
-      ])
+      // Asked for the dates, about exactly the members stored for that community.
+      expect(questions).toEqual([{ gradidoIds: [anna, otto] }])
       const stored = await storedDates()
       expect(Object.keys(stored).sort()).toEqual(
         [pair(peerUuid, anna), pair(peerUuid, otto)].sort(),
@@ -221,7 +178,7 @@ describe('refreshForeignMemberAvatarDates', () => {
           checkedAt: LONG_AGO,
         },
       ])
-      peerAnswers(() => [{ gradidoID: anna, avatarUpdatedAt: NEWER, avatar: null }])
+      peerAnswers(() => [{ gradidoId: anna, avatarUpdatedAt: NEWER }])
 
       await refreshForeignMemberAvatarDates()
 
@@ -284,16 +241,12 @@ describe('refreshForeignMemberAvatarDates', () => {
 
     it('asks in blocks no larger than one request may be, and stores every answer', async () => {
       peerAnswers((question) =>
-        question.gradidoIDs.map((gradidoID) => ({
-          gradidoID,
-          avatarUpdatedAt: PICTURE,
-          avatar: null,
-        })),
+        question.gradidoIds.map((gradidoId) => ({ gradidoId, avatarUpdatedAt: PICTURE })),
       )
 
       await refreshForeignMemberAvatarDates()
 
-      expect(questions.map((question) => question.gradidoIDs.length)).toEqual([
+      expect(questions.map((question) => question.gradidoIds.length)).toEqual([
         MEMBER_AVATARS_MAX_REFS,
         1,
       ])
@@ -307,7 +260,7 @@ describe('refreshForeignMemberAvatarDates', () => {
 
       await refreshForeignMemberAvatarDates()
 
-      expect(rawRequest).toHaveBeenCalledTimes(1)
+      expect(request).toHaveBeenCalledTimes(1)
       expect(await storedDates()).toEqual({})
     })
 
@@ -335,19 +288,14 @@ describe('refreshForeignMemberAvatarDates', () => {
       let asked = 0
       peerAnswers((question) => {
         asked += 1
-        if (asked > 1) {
-          throw new Error('connect ECONNREFUSED 192.0.2.1:443')
-        }
-        return question.gradidoIDs.map((gradidoID) => ({
-          gradidoID,
-          avatarUpdatedAt: NEWER,
-          avatar: null,
-        }))
+        return asked > 1
+          ? null
+          : question.gradidoIds.map((gradidoId) => ({ gradidoId, avatarUpdatedAt: NEWER }))
       })
 
       await refreshForeignMemberAvatarDates()
 
-      expect(questions.map((question) => question.gradidoIDs.length)).toEqual([
+      expect(questions.map((question) => question.gradidoIds.length)).toEqual([
         MEMBER_AVATARS_MAX_REFS,
         1,
       ])
@@ -365,16 +313,12 @@ describe('refreshForeignMemberAvatarDates', () => {
 
   describe('whom it does not ask', () => {
     let stranger: DbCommunity
-    let strangerEntry: DbFederatedCommunity
 
     beforeAll(async () => {
       await clearDates()
       await DbUser.delete({ foreign: true })
-      // Everything the question needs -- a key, a uuid, a federation entry, members stored of
-      // it -- except the completed handshake. The other side would refuse; asking would only
-      // cost the time limit. ⚠️ The entry and the key the stub opens questions with are part of
-      // the fixture on purpose: without them a question to this community would fail before it
-      // is sent, and the check below would hold even if the handshake were not asked about.
+      // Everything the question needs -- keys, a uuid, members stored of it -- except the
+      // completed handshake. The other side would refuse; asking would only cost the time limit.
       stranger = await DbCommunity.create({
         foreign: true,
         url: 'http://stranger.invalid/api/',
@@ -385,20 +329,12 @@ describe('refreshForeignMemberAvatarDates', () => {
         name: 'Stranger community',
         description: 'never shook hands',
         creationDate: new Date(),
-        publicJwtKey: peerKeys.publicKey,
-      }).save()
-      strangerEntry = await DbFederatedCommunity.create({
-        foreign: true,
-        publicKey: stranger.publicKey,
-        apiVersion: CORE_CONFIG.FEDERATION_BACKEND_SEND_ON_API,
-        endPoint: 'http://stranger.invalid/api/',
       }).save()
       await storedMember(stranger.communityUuid as string)
     })
 
     afterAll(async () => {
       await DbUser.delete({ foreign: true })
-      await DbFederatedCommunity.delete({ id: strangerEntry.id })
       await DbCommunity.delete({ id: stranger.id })
     })
 
@@ -407,7 +343,7 @@ describe('refreshForeignMemberAvatarDates', () => {
 
       await refreshForeignMemberAvatarDates()
 
-      expect(rawRequest).not.toHaveBeenCalled()
+      expect(request).not.toHaveBeenCalled()
       expect(await storedDates()).toEqual({})
     })
   })

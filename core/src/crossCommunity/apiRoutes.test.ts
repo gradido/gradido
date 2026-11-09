@@ -20,6 +20,7 @@ import { ApiClient } from './ApiClient'
 import { apiRoutes } from './apiRoutes'
 import { CrossGroupTransaction, crossGroupTransactionWireSchema } from './schema'
 import { processXComCompleteTransaction } from './transferCoins'
+import * as senderSide from './transferCoins/senderSide'
 
 // The routes as they are, only the database and the mail server faked.
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock and core runs without --isolate.
@@ -552,5 +553,127 @@ describe('POST peer-api/v1/prepareSendCoins', () => {
         tx.memo,
       ),
     ).rejects.toThrow(`${RECIPIENT_NOT_FOUND}: ${tx.recipient.identifier}`)
+  })
+})
+
+describe('POST peer-api/v1/disburseTransactionLink', () => {
+  const link = { id: 3, code: 'a1f9c2d41b7e19981fa0d001', amount: tx.amount, memo: tx.memo }
+  const creator = { id: 7, gradidoId: tx.sender.gradidoId }
+
+  it('pays a link of this community out to the member the calling community names', async () => {
+    const complete = spyOn(senderSide, 'processXComCompleteTransaction').mockResolvedValue(true)
+    spies.push(
+      complete,
+      spyOn(database, 'dbFindOpenTransactionLinkWithCreatorByCode').mockResolvedValue({
+        link,
+        creator,
+      } as never),
+    )
+    const client = new ApiClient(
+      `${baseUrl}/`,
+      new Ed25519KeyPair(home.publicKey),
+      new X25519KeyPair(home.publicEncryptionKey),
+    )
+    // client and server share this process, each of them is its own home community while it works
+    fetchSpy.mockImplementation((async (request: Request) => {
+      AppContext.getInstance().setHomeCommunity(home)
+      const response = await app.handle(request)
+      AppContext.getInstance().setHomeCommunity(sender)
+      return response
+    }) as never)
+    AppContext.getInstance().setHomeCommunity(sender)
+
+    const { data, error } = await client.disburseTransactionLink({
+      link: { code: link.code, communityUuid: home.communityUuid },
+      recipient: { communityUuid: sender.communityUuid, identifier: 'peter' },
+    })
+    expect(error).toBeNull()
+    expect(data).toBe(true)
+    expect(complete).toHaveBeenCalledTimes(1)
+    expect(complete.mock.calls[0].slice(0, 3)).toEqual([creator, sender.communityUuid, 'peter'])
+  })
+})
+
+describe('the member picture routes', () => {
+  const ANNA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const updatedAt = new Date('2026-09-14T10:00:00.000Z')
+  const client = () =>
+    new ApiClient(
+      `${baseUrl}/`,
+      new Ed25519KeyPair(home.publicKey),
+      new X25519KeyPair(home.publicEncryptionKey),
+    )
+
+  beforeEach(() => {
+    // client and server share this process, each of them is its own home community while it works
+    fetchSpy.mockImplementation((async (request: Request) => {
+      AppContext.getInstance().setHomeCommunity(home)
+      const response = await app.handle(request)
+      AppContext.getInstance().setHomeCommunity(sender)
+      return response
+    }) as never)
+    AppContext.getInstance().setHomeCommunity(sender)
+  })
+
+  it('answers the small pictures of the members asked about, sealed for the community asking', async () => {
+    const rows = spyOn(database, 'dbFindMemberAvatarsSmall').mockResolvedValue([
+      {
+        gradidoId: ANNA,
+        communityUuid: home.communityUuid,
+        avatarSmall: Buffer.from('face'),
+        updatedAt,
+      },
+    ])
+    spies.push(rows)
+
+    const { data, error } = await client().memberAvatarsSmall({ gradidoIds: [ANNA] })
+
+    expect(error).toBeNull()
+    expect(rows).toHaveBeenCalledWith([ANNA])
+    expect(data).toEqual([
+      // Eden reads an ISO date string as Date
+      {
+        gradidoId: ANNA,
+        avatarUpdatedAt: updatedAt,
+        avatar: Buffer.from('face').toString('base64'),
+      } as never,
+    ])
+  })
+
+  it('answers the full picture by the pair with this community, and null for none', async () => {
+    const full = spyOn(database, 'dbFindMemberAvatarFull').mockResolvedValue(Buffer.from('zoom'))
+    spies.push(full)
+
+    expect((await client().memberAvatarFull({ gradidoId: ANNA })).data).toBe(
+      Buffer.from('zoom').toString('base64'),
+    )
+    expect(full).toHaveBeenCalledWith(ANNA, home.communityUuid)
+
+    full.mockResolvedValue(null)
+    const none = await client().memberAvatarFull({ gradidoId: ANNA })
+    expect(none.error).toBeNull()
+    expect(none.data).toBeNull()
+  })
+
+  it('answers only the dates', async () => {
+    spies.push(
+      spyOn(database, 'dbFindMemberAvatarTimestampsByGradidoIds').mockResolvedValue(
+        new Map([[ANNA, updatedAt]]),
+      ),
+    )
+    const { data } = await client().memberAvatarDates({ gradidoIds: [ANNA] })
+    expect(data).toEqual([{ gradidoId: ANNA, avatarUpdatedAt: updatedAt } as never])
+  })
+
+  it('refuses a question about more members than one list shows', async () => {
+    const tooMany = Array.from({ length: 101 }, () => ANNA)
+    const response = await app.handle(
+      await sendSealed(
+        sender,
+        JSON.stringify({ gradidoIds: tooMany }),
+        `${baseUrl}/peer-api/v1/memberAvatarsSmall`,
+      ),
+    )
+    expect(response.status).toBe(422)
   })
 })
