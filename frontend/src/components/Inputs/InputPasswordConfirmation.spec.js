@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import InputPasswordConfirmation from './InputPasswordConfirmation'
+import { InputPasswordConfirmation } from './InputPasswordConfirmation'
 import { BCol, BRow } from 'bootstrap-vue-next'
 
 // Mock vue-i18n
