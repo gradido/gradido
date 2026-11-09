@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import ContactRow from './ContactRow.vue'
+import { ContactRow } from './ContactRow'
 import { forgetAllMemberAvatars } from '@/composables/useMemberAvatars'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
@@ -241,9 +241,10 @@ describe('ContactRow', () => {
     // What keeps the dot at the end: the button is a row of two, and the text gives way
     // (min-width 0) rather than pushing the dot out of it.
     it('keeps the dot at the end by a row of two in the button', () => {
-      const styles = readFileSync(resolve(here, './ContactRow.vue'), 'utf8')
-        .split('<style scoped>')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const styles = readFileSync(resolve(here, './ContactRow.module.scss'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
       const rule = (selector) => styles.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))[1]
       expect(rule('\\.contact-row-open')).toMatch(/display:\s*flex/)
       expect(rule('\\.contact-row-text')).toMatch(/flex:\s*1/)
@@ -256,9 +257,10 @@ describe('ContactRow', () => {
     it('stands beside the last line, at the foot of the text', () => {
       mountWith({ ...CONTACT, unreadChatMessages: 2 })
       expect(dot().classes()).toContain('contact-row-dot')
-      const styles = readFileSync(resolve(here, './ContactRow.vue'), 'utf8')
-        .split('<style scoped>')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const styles = readFileSync(resolve(here, './ContactRow.module.scss'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
       const rule = styles.match(/\.contact-row-dot\s*\{([^}]*)\}/)[1]
       expect(rule).toMatch(/align-self:\s*flex-end/)
       expect(rule).toMatch(/margin-bottom:\s*calc\(\(1\.2em - 9px\) \/ 2\)/)

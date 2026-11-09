@@ -26,7 +26,7 @@ import { computed, reactive } from 'vue'
  * ⛔ For the same reason, what waits for the next start waits in this module and not in the
  * store (`held`, below): a hold written there would outlive the session it was said in and
  * keep a window away for good. Here a reload ends it, a sign-in ends it (store.js, `login`), the
- * page "Schöpfen" ends it (pages/Contributions.vue, E-045), and the logout forgets it.
+ * page "Schöpfen" ends it (pages/Contributions.tsx, E-045), and the logout forgets it.
  *
  * ★ And the order lives HERE, in one line, rather than in the order the layout happens to
  * render the three components in. Their order in that template is arbitrary today -- the
@@ -54,7 +54,7 @@ import { computed, reactive } from 'vue'
  * community at the next start.
  *
  * Before all of them comes a window that is none of them: the conversation an address opens
- * (`/contacts?with=…`, pages/Contacts.vue). Somebody who has just accepted a thank-you and
+ * (`/contacts?with=…`, pages/Contacts.tsx). Somebody who has just accepted a thank-you and
  * taps "Antworten" on the overview's tile, or the reply button of a mail, arrives in the
  * conversation through that address, and what they came for is the conversation -- the others
  * wait, and come in their order once it is closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one
@@ -165,7 +165,7 @@ export const holdAccountWindowsForThisSession = () => {
  * themselves, mounted with the layout, and resetting it from outside would leave a mounted one
  * believing what is no longer written here.
  *
- * And the page "Schöpfen" (pages/Contributions.vue, E-045), when it is built: whoever opens it
+ * And the page "Schöpfen" (pages/Contributions.tsx, E-045), when it is built: whoever opens it
  * wants to create, so what waited comes now, in its order -- the name before the first creation
  * (ES-003). Every hold, as the sign-in: one rule, not one per hold.
  */

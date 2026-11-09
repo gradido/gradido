@@ -1,11 +1,18 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import ContactTiles from './ContactTiles.vue'
+import { ContactTiles } from './ContactTiles'
 import { LIST_AVATAR_SIZE } from '@/constants'
+
+// The tiles read their words through useI18n (TSX): the same words as `$t` below.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+  }),
+}))
 
 const LINK_STUB = { props: ['to'], template: '<a :href="to"><slot /></a>' }
 
@@ -147,9 +154,10 @@ describe('ContactTiles', () => {
    */
   describe('the dot for unread messages', () => {
     const tileStyles = () =>
-      readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ContactTiles.vue'), 'utf8')
-        .split('<style lang="scss" scoped>')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ContactTiles.module.scss'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
 
     it('marks the tile of somebody who wrote, and no other', () => {
       const wrapper = mountTiles({ rows: [row(1, {}, 2), row(2, {}, 0), row(3)] })

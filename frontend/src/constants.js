@@ -65,7 +65,7 @@ export const CONTACTS_PANEL_ROWS = 5
 /**
  * The whole contact list in one answer: what the contacts page asks for, and the dialog that
  * forwards a message where no page holds the list for it (useChatForwardTargets). Favourites,
- * search and pages happen on this device then. `pages/Contacts.vue` says why, and what happens
+ * search and pages happen on this device then. `pages/Contacts.tsx` says why, and what happens
  * past this cap.
  */
 export const CONTACTS_FETCH_MAX = 1000

@@ -37,7 +37,8 @@ export const lookUpContactRow = async (apolloClient, member) => {
  * life of the page -- and a person who may no longer be in the list at all after a search
  * or a refresh.
  *
- * @param apolloClient only for `openMember` and `openKnownMember`; a list that hands whole
+ * @param {import('@apollo/client/core').ApolloClient<unknown> | null} apolloClient only for
+ *   `openMember` and `openKnownMember`; a list that hands whole
  *   contacts needs none.
  */
 export const useContactWindow = (apolloClient = null) => {

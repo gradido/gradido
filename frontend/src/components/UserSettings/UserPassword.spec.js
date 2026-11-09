@@ -26,7 +26,7 @@ vi.mock('@/components/Inputs/InputPassword', () => ({
 }))
 
 vi.mock('@/components/Inputs/InputPasswordConfirmation', () => ({
-  default: {
+  InputPasswordConfirmation: {
     name: 'InputPasswordConfirmation',
     template: `
       <div>

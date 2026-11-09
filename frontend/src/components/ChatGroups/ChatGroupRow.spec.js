@@ -50,10 +50,11 @@ const mountRow = (group = {}) =>
 
 // The rules of a component's style block, by selector, with the comments taken out.
 const rulesOf = (file) => {
-  const code = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
-    .split('<style')[1]
-    .replace(/^[^>]*>/, '')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
+  const text = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+  // A style module is the block alone.
+  const code = (
+    file.endsWith('.scss') ? text : text.split('<style')[1].replace(/^[^>]*>/, '')
+  ).replace(/\/\*[\s\S]*?\*\//g, '')
   const rules = new Map()
   for (const [, selectors, body] of code.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const declarations = Object.fromEntries(
@@ -191,7 +192,7 @@ describe('ChatGroupRow', () => {
     })
 
     it("is the contact row's rule", () => {
-      const contact = rulesOf('../Contacts/ContactRow.vue').get('.contact-row-dot')
+      const contact = rulesOf('../Contacts/ContactRow.module.scss').get('.contact-row-dot')
       expect(contact).toBeDefined()
       expect(contact).toEqual(dot)
     })

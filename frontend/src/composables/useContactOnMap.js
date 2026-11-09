@@ -58,6 +58,7 @@ export const useContactOnMap = () => {
   const { profile } = useMatches()
 
   /** The pair to show on the map, once the GMS has said the person stands there; else null. */
+  /** @type {import('vue').Ref<{ gradidoID: string, communityUuid: string } | null>} */
   const onMap = ref(null)
 
   /** Counts the persons asked about: an answer for an earlier one is let go. */

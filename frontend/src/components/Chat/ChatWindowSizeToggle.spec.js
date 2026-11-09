@@ -93,7 +93,11 @@ describe('ChatWindowSizeToggle', () => {
      * rule's selector would begin with the tag's attributes.
      */
     const stylesOf = (file) =>
-      readFileSync(join(here, file), 'utf8')
+      (file.endsWith('.scss')
+        ? // A style module: one block, as a scoped one.
+          `<style scoped>${readFileSync(join(here, file), 'utf8')}`
+        : readFileSync(join(here, file), 'utf8')
+      )
         .split('<style')
         .slice(1)
         .map((block) => {
@@ -144,7 +148,7 @@ describe('ChatWindowSizeToggle', () => {
     // The magnifier stands beside it: the two are drawn alike, or the line of three looks patched.
     it('draws the button as the magnifier beside it is drawn', () => {
       const own = rulesOf(outsideMedia(scoped))
-      const [contact] = stylesOf('../Contacts/ContactWindow.vue')
+      const [contact] = stylesOf('../Contacts/ContactWindow.module.scss')
       const theirs = rulesOf(outsideMedia(contact.css))
       expect(theirs.get('.contact-window-search-toggle')).toBeTruthy()
       expect(own.get('.chat-window-size-toggle')).toBe(theirs.get('.contact-window-search-toggle'))

@@ -6,7 +6,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { BPagination } from 'bootstrap-vue-next'
-import Contacts from './Contacts.vue'
+import { Contacts } from './Contacts'
 import { forgetFavorites, markFavorite, rememberFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import {
@@ -43,8 +43,21 @@ const { route, routerReplace, routerPush, toastError, storeState } = vi.hoisted(
 vi.mock('vue-router', () => ({
   useRoute: () => route,
   useRouter: () => ({ replace: routerReplace, push: routerPush }),
+  // Imported by ContactsEmpty; the stub below takes its place by name.
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a><slot /></a>' },
+}))
+// The page and its rows read their words through useI18n (TSX): the same words as `$t` below.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key, values) => (typeof values === 'number' ? `${key}:${values}` : key),
+    d: (date) => String(date),
+  }),
 }))
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
+// useAvatarZoom imports the wallet's i18n instance, which the mock above cannot create.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key) => key } },
+}))
 
 vi.mock('@/graphql/contacts.graphql', () => ({
   contactListQuery: 'contactListQuery',
@@ -1515,7 +1528,7 @@ describe('Contacts page', () => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name)
         if (entry.isDirectory()) walk(full)
-        else if (entry.name.endsWith('.vue')) vueFiles.push(full)
+        else if (/\.(vue|tsx)$/.test(entry.name)) vueFiles.push(full)
       }
     }
     walk(srcRoot)
@@ -1533,9 +1546,9 @@ describe('Contacts page', () => {
         .replace(/^\s*\/\/.*$/gm, '')
 
     // The stripping has to leave something behind, or every file would look clean.
-    expect(code(join(srcRoot, 'pages/Contacts.vue'))).toContain('no-ellipsis')
+    expect(code(join(srcRoot, 'pages/Contacts.tsx'))).toContain('noEllipsis')
 
-    const offenders = vueFiles.filter((file) => /hide-ellipsis/.test(code(file)))
+    const offenders = vueFiles.filter((file) => /hide-ellipsis|hideEllipsis/.test(code(file)))
     expect(offenders).toEqual([])
   })
 })

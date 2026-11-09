@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import { BRow, BCol } from 'bootstrap-vue-next'
-import ContributionListAllItem from './ContributionListAllItem'
+import { ContributionListAllItem } from './ContributionListAllItem'
 
 // This file used to be a byte-identical copy of ContributionListItem.spec.js and mounted
 // that component instead — the community row had no coverage at all. It has now, and the

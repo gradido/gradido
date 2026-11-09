@@ -1,0 +1,382 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the window had, by the same flat selectors: a dozen specs read
+   them by name, here and in the neighbouring windows. Without the scope attribute each has one
+   level less; the state classes (`is-on`, `is-large`, …) are set in the module's spelling too. */
+
+/* The cross's own line, at the top right. ⚠️ In the flow, not absolutely positioned: out of
+   the flow the name beside it laid out straight through the space the cross took, and the
+   head had to reserve that space at its right (2.8rem at the end, more than a phone could
+   spare). Pulled up and right into the body's padding, so it sits near the corner and the
+   line costs little height. */
+.contact-window-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin: -0.5rem -0.5rem 0.25rem 0;
+}
+
+/* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
+   pressed, in the link's colour -- the same button closes the search again. */
+.contact-window-search-toggle,
+.contact-window-note-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.contact-window-search-toggle:hover,
+.contact-window-search-toggle:focus-visible,
+.contact-window-note-toggle:hover,
+.contact-window-note-toggle:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.contact-window-search-toggle.is-on,
+.contact-window-note-toggle.is-on {
+  color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* While the note lies over the conversation, the conversation's box is at least this high: a
+   short thread would leave the note a sliver. */
+.contact-window-thread.is-covered {
+  min-height: 17rem;
+}
+
+/* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */
+.contact-window-search {
+  margin-bottom: 0.75rem;
+}
+
+.contact-window-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.contact-window-close:hover,
+.contact-window-close:focus-visible {
+  color: var(--bs-body-color);
+}
+
+/* To the right edge: the cross stands on the line above. */
+.contact-window-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.contact-window-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.contact-window-name {
+  min-width: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-window-community,
+.contact-window-address {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ⚠️ `min-height`, and it is not decoration: the line is empty while the figures behind it
+   are still being fetched (see the template). Without a reserved line everything under it
+   sat a line higher and jumped down the moment the answer arrived -- past a finger already
+   reaching for it (the two send buttons, when they stood there; the thread and its compose
+   bar now). One line of this element's own line-height. */
+.contact-window-meta {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+  margin: 0.75rem 0 1rem;
+  min-height: 1.5em;
+}
+
+/* A line of its own under the figures. ⚠️ The container keeps its `min-height` above, which
+   is what stops the block collapsing while the figures are still on their way and moving
+   what is under it. What it cannot promise is one line: a contact with bookings AND an
+   origin has two, and both arrive together. */
+.contact-window-origin {
+  margin-top: 0.15rem;
+}
+
+/* The link sits inside the muted meta line, so it takes that line's size and colour rather
+   than the theme's link blue; the underline is what says it leads somewhere. */
+.contact-window-bookings {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* The marks at the right end of the send row, the empty stretch before them taken by the
+   margin (Bernd, 26.09.2026). Between them the measure of the booking row (`gap-2` there, the
+   same 0.5rem), as when they stood behind the name. They never shrink: where the row is too
+   narrow, it is set closer first (`is-tight`, below), and only past that do the marks go to
+   a line of their own, at the right. */
+.contact-window-marks {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.contact-window-heart {
+  flex: 0 0 auto;
+}
+
+/* The bell: round, the heart's glyph size inside (1.35em, as FavoriteHeart draws it). A
+   plain button, so it carries its own focus ring. */
+.contact-window-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  line-height: 1;
+}
+
+.contact-window-mark:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.contact-window-bell-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* Muted: struck through AND set on a ground, so the state shows without a word -- the light
+   gold of one's own messages with its gold rim; the glyph in the body colour, which is what
+   reads on that ground in both modes. */
+.contact-window-bell.is-muted {
+  border-color: var(--gold, #c58d38);
+  background: rgb(197 141 56 / 18%);
+  color: var(--bs-body-color);
+}
+
+/* The camera: in the bell's round and at the heart's glyph size. */
+.contact-window-video-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The pin: the same round, the same glyph size. */
+.contact-window-map-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The one way out, under the figures and above the line where the thread begins, with the
+   marks at the right end of its row. Centred on the button's middle; `wrap` is the last
+   resort, for a row too narrow even when set closer (see `.contact-window-marks`). */
+.contact-window-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ⛔ From here to the focus rule: the map profile's button (MatchProfile.vue), rule for rule,
+   in the compose bar's gold (Bernd, 24.09.2026). The gold was the one difference from the
+   map's teal until 09.10.2026; since then the map's profile wears it too (E-070), and the
+   rules are the same in both. ContactWindow.spec holds both: the rules against MatchProfile,
+   the colour against ChatComposeBar's send button. */
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 26px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1.5px solid #c08935;
+  white-space: nowrap;
+}
+
+/* Flat, in the gold of the compose bar's send button, the gold of its own border (Bernd,
+   29.09.2026: "wieder das etwas dunklere Gold ohne Verlauf ... so wie auch unten der Kreis bei
+   dem Absende-Button"). The gradient of the house's golden buttons, worn from 27.09., made it
+   look raised and heavy, as if it had to be pressed -- where it is one way out of several. */
+.send-gradido {
+  background: #c08935;
+  color: #fff;
+}
+
+.send-coin {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Without Bootstrap's `.btn` a plain button has no focus ring of its own, and this is the
+   window's one way out. */
+.send-btn:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* ⚠️ The second difference from the map, and the reason it stands outside the map's rules:
+   the button keeps the width of its word instead of filling the row (Bernd, 24.09.2026,
+   "schmal"), so the marks can stand beside it (Bernd, 26.09.2026).
+
+   And where even set closer the word is wider than the whole row, it goes onto a second line
+   rather than the button hanging out of the window (coderabbit, #3987). Measured: that is
+   below 240px only -- a phone zoomed in far; from 240px up the word stands on one line in
+   every language, and the map's own rule keeps `nowrap`.
+
+   And it is set smaller than the map's (Bernd, 29.09.2026: "nur eine von vielen Optionen, wenn
+   auch eine der wichtigsten"): 14px instead of 15, 7px above and below instead of 10, the coin
+   18px instead of 20 -- 37px high instead of 44.5. On the map the button is one of the profile
+   window's two ways and keeps its measure. */
+.contact-window-send .send-btn {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 14px;
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.contact-window-send .send-coin {
+  width: 18px;
+  height: 18px;
+}
+
+/* The third: where a language's word makes the button too wide for the marks to fit beside
+   it, the row is set closer -- there only, `fitSendRow` measures it (Bernd, 26.09.2026): a
+   smaller font, less room inside the button, and the marks closer together. Measured in the
+   wallet with three marks: at 320px French, Dutch, Russian and Greek did not fit with the
+   smaller font alone; set closer, all ten languages stand on one line down to 320px. Above and
+   below it keeps the 7px of its own measure; only the sides are set closer. */
+.contact-window-send.is-tight {
+  gap: 6px;
+}
+
+.contact-window-send.is-tight .send-btn {
+  gap: 5px;
+  padding: 7px 8px;
+  font-size: 13px;
+}
+
+.contact-window-send.is-tight .contact-window-marks {
+  gap: 4px;
+}
+
+/* The fourth: where even set closer the marks do not fit beside the button -- measured in the
+   wallet with FOUR marks (the pin, 09.10.2026): at 320px French, Dutch, Russian and Greek --,
+   the button gives up its coin and the marks stand 2px apart (Bernd, 09.10.2026, "ohne Münze").
+   The word is what makes it a button; the coin is its emblem. So set, all ten languages keep
+   the marks beside the button at 320px. Narrower than about 316px in French, the marks go to a
+   line of their own as before (`wrap` on the row). Worn together with `is-tight`. */
+.contact-window-send.is-tighter .send-coin {
+  display: none;
+}
+
+.contact-window-send.is-tighter .contact-window-marks {
+  gap: 2px;
+}
+
+/* ⛔ The sheet (below `sm`, where BModal makes the window fullscreen -- the same 575.98px as
+   Bootstrap's `.modal-fullscreen-sm-down`): the window's inside becomes one column over the
+   whole height -- head, figures, then the thread -- so nothing hangs below the screen and the
+   page behind never scrolls. `height: 100%` resolves against the modal body, which is a flexed
+   item of a column of definite height.
+
+   ⛔ The thread is as high as its content and no higher than what is left, as at the desk: a
+   thread of one message sits right under the figures with the compose bar under it, and what
+   the sheet has to spare stays empty below the bar. It took what was left before, grew
+   upwards from the bar, and one message stood at the bottom under a gap the height of the
+   screen (Bernd, 24.09.2026, at the device). A long thread shrinks to what is left and scrolls
+   inside, the bar at the bottom. */
+@media (width <= 575.98px) {
+  .contact-window-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* ⚠️ Only the thread gives way. The blocks above it keep their height: with a long thread
+     the figures' line shrank to the one line it reserves (`min-height`, above) and its
+     second line ran under the button (measured at 390 px, two lines of figures). */
+  .contact-window-top,
+  .contact-window-head,
+  .contact-window-meta,
+  .contact-window-send {
+    flex-shrink: 0;
+  }
+
+  .contact-window-thread {
+    flex: 0 1 auto;
+  }
+
+  .contact-window-thread :global(.chat-thread-scroll) {
+    max-height: none;
+  }
+}
+
+/* The large window (E-077, ChatWindowSizeToggle), as high as the screen lets it be: the same
+   column as the sheet's, in which only the thread gives way -- but as high as what it holds and
+   no higher, so a short thread leaves a short window. The dialog's own measure (how wide, how
+   high) stands with the switch, for both windows; where the screen is too low for it, the large
+   window is wide only and the thread keeps its cap. */
+@media (width >= 576px) and (height >= 704px) {
+  .contact-window-inner.is-large {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .is-large > .contact-window-top,
+  .is-large > .contact-window-head,
+  .is-large > .contact-window-meta,
+  .is-large > .contact-window-send {
+    flex-shrink: 0;
+  }
+
+  .is-large > .contact-window-thread {
+    flex: 0 1 auto;
+  }
+
+  /* ⛔ A floor under the thread. It is the one part that gives way, and with the search bar
+     open, an answer's strip over the field, five lines typed and a picture chosen, it gave way
+     to nothing: head and bar with no conversation between them. Below the floor the bar does
+     not push the thread any further -- the window's body scrolls instead, as the usual window
+     does. Under the height of the shortest thread there is (one message of one line, some
+     110px), so a short thread is not stretched to it. */
+  .is-large > .contact-window-thread :global(.chat-thread-scroll) {
+    min-height: 6rem;
+    max-height: none;
+  }
+}
