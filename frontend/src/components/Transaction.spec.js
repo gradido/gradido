@@ -1,9 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import Transaction from './Transaction'
+import { Transaction } from './Transaction'
 import { nextTick } from 'vue'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
-import TransactionCollapse from '@/components/TransactionCollapse.vue'
+import { TransactionCollapse } from '@/components/TransactionCollapse'
 import { GdtEntryType } from '@/graphql/enums'
 import VariantIcon from '@/components/VariantIcon.vue'
 // The store is a fake: the real one pulls in the language and the queries this spec mocks away.

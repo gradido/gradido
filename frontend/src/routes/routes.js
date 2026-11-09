@@ -322,7 +322,7 @@ const routes = [
   {
     name: 'Transactions',
     path: '/transactions',
-    component: () => import('@/pages/Transactions'),
+    component: () => import('@/pages/Transactions').then((page) => page.Transactions),
     props: { gdt: false },
     meta: {
       requiresAuth: true,
@@ -338,7 +338,7 @@ const routes = [
   },
   {
     path: '/gdt',
-    component: () => import('@/pages/Transactions'),
+    component: () => import('@/pages/Transactions').then((page) => page.Transactions),
     props: { gdt: true },
     meta: {
       requiresAuth: true,

@@ -1,10 +1,19 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import GdtTransactionList from './GdtTransactionList'
+import { GdtTransactionList } from './GdtTransactionList'
 import { GdtEntryType } from '@/graphql/enums'
 import { walletStore } from '@test/walletStore'
 import { nextTick } from 'vue'
 import { BButton, BPagination } from 'bootstrap-vue-next'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
+// The store the rows reach is built on `@/i18n`, which the mock above has left without
+// `createI18n`; the module is stood in for as well.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key) => key, locale: { value: 'en' } } },
+}))
 
 const mockStore = walletStore({
   language: 'en',

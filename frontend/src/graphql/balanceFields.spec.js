@@ -20,7 +20,7 @@ const read = (relativePath) => readFileSync(resolve(here, relativePath), 'utf8')
 
 describe('balanceFields', () => {
   it('asks for every field the dashboard reads off the balance', () => {
-    const layout = read('../layouts/DashboardLayout.vue') + read('../pages/Transactions.vue')
+    const layout = read('../layouts/DashboardLayout.vue') + read('../pages/Transactions.tsx')
     const fragment = read('./transactions.graphql').match(
       /fragment balanceFields on Balance \{([^}]*)\}/,
     )[1]

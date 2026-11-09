@@ -1,0 +1,51 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* ⛔ This sheet is GLOBAL, as the style block of Transactions.vue was, so every selector here
+   must be unmistakably this page's. A generic name would style whatever else in the wallet
+   happened to wear it -- which is how an overlay's class name put an invisible sheet over the
+   whole application on 03.09.2026. */
+.transactions-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 999px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.transactions-filter-label {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.transactions-filter-clear {
+  display: flex;
+  align-items: center;
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1;
+  flex: none;
+}
+
+.transactions-filter-clear:hover,
+.transactions-filter-clear:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.nav-tabs > li > a {
+  padding-top: 14px;
+  margin-bottom: 14px;
+}
+
+.nav-tabs .nav-link {
+  background-color: rgb(204 204 204 / 18.5%);
+}
+
+.nav-tabs .nav-link.active {
+  background-color: rgb(248 249 254);
+}
