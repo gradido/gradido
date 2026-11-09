@@ -1009,7 +1009,7 @@ type Mutation {
   deleteTransactionLink(id: Int!): Boolean!
   redeemTransactionLink(code: String!): Boolean!
   createRedeemJwt(validUntil: String, alias: String, firstName: String, memo: String!, amount: String!, code: String!, recipientCommunityUuid: String!, senderCommunityName: String!, senderCommunityUuid: String!, gradidoId: String!): String!
-  disburseTransactionLink(recipientAlias: String, validUntil: String, memo: String!, amount: String!, code: String!, recipientFirstName: String!, recipientGradidoId: String!, recipientCommunityName: String!, recipientCommunityUuid: String!, senderGradidoId: String!, senderCommunityUuid: String!): Boolean!
+  disburseTransactionLink(code: String!, senderCommunityUuid: String!): Boolean!
   addThankYouGreetingPicture(picture: ChatImageInput!, linkId: Int!): Boolean!
   createContributionLink(amount: GradidoUnit!, name: String!, memo: String!, cycle: String!, validFrom: String, validTo: String, maxAmountPerMonth: GradidoUnit, maxPerCycle: Int!): ContributionLink!
   deleteContributionLink(id: Int!): Boolean!
