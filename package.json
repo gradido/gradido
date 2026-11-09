@@ -10,6 +10,7 @@
   "packageManager": "bun@1.4.3",
   "workspaces": [
     "admin",
+    "admin-mithril",
     "backend",
     "config-schema",
     "core",
