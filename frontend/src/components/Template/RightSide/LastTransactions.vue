@@ -150,7 +150,7 @@ import MemoText from '@/components/TransactionRows/MemoText'
 // has to be the real one that the test mounts.
 import { BAvatar } from 'bootstrap-vue-next'
 import VariantIcon from '@/components/VariantIcon.vue'
-import ContactWindow from '@/components/Contacts/ContactWindow.vue'
+import { ContactWindow } from '@/components/Contacts/ContactWindow'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
