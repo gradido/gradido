@@ -481,19 +481,19 @@ const routes = [
   {
     name: 'EmailChangeRevoke',
     path: '/email-change/revoke/:changeCode',
-    component: () => import('@/pages/EmailChange'),
+    component: () => import('@/pages/EmailChange').then((page) => page.EmailChange),
   },
   {
     name: 'EmailChangeConfirm',
     path: '/email-change/:changeCode',
-    component: () => import('@/pages/EmailChange'),
+    component: () => import('@/pages/EmailChange').then((page) => page.EmailChange),
   },
   // EM-013, the guest's confirm-only link. Own parameter name on purpose — never :code, which
   // /login/:code? reads as a redeem code (the collision that bit PR #3798).
   {
     name: 'ConfirmEmail',
     path: '/confirm-email/:confirmationCode',
-    component: () => import('@/pages/ConfirmEmail'),
+    component: () => import('@/pages/ConfirmEmail').then((page) => page.ConfirmEmail),
   },
   // hideGreeting: the layout's "Welcome to the community ..." is left out here. Whoever opens
   // a redeem link came for what the link holds; on a phone the greeting took 114px above it,

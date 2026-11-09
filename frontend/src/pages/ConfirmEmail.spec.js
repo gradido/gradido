@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ConfirmEmail from './ConfirmEmail.vue'
+import { ConfirmEmail } from './ConfirmEmail'
 
 vi.mock('bootstrap-vue-next', () => ({
   BButton: {
