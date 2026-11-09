@@ -3,6 +3,7 @@ import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Order } from 'shared'
 import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { DbUser } from '../data'
 import { TransactionLink as DbTransactionLink } from '../entity'
 import {
   ThankYouGreetingSelect,
@@ -33,6 +34,37 @@ export async function dbFindTransactionLinkByCode(
     .from(transactionLinksTable)
     .where(and(eq(transactionLinksTable.code, redeemCode), isNull(transactionLinksTable.deletedAt)))
   return rows[0] ? rows[0] : null
+}
+
+/**
+ * The open link with this code and the member who made it, with the address in force for them --
+ * what paying the link out to a member of another community needs, in one round trip. Null for a
+ * code without such a link: none, deleted, or already redeemed. Whether it ran out is the caller's
+ * to decide, it knows the moment.
+ */
+export async function dbFindOpenTransactionLinkWithCreatorByCode(
+  code: string,
+): Promise<{ link: TransactionLinksSelect; creator: DbUser } | null> {
+  const rows = await drizzleDb()
+    .select({
+      link: transactionLinksTable,
+      creator: usersTable,
+      emailContact: userContactsTable,
+    })
+    .from(transactionLinksTable)
+    .innerJoin(usersTable, eq(usersTable.id, transactionLinksTable.userId))
+    .innerJoin(userContactsTable, eq(userContactsTable.id, usersTable.emailId))
+    .where(
+      and(
+        eq(transactionLinksTable.code, code),
+        isNull(transactionLinksTable.deletedAt),
+        isNull(transactionLinksTable.redeemedAt),
+      ),
+    )
+  const row = rows[0]
+  return row
+    ? { link: row.link, creator: { ...row.creator, emailContact: row.emailContact } }
+    : null
 }
 
 /**

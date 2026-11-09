@@ -15,9 +15,14 @@ import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { ApiClientCompleted } from './ApiClient'
 import { ApiClientCache } from './ApiClientCache'
-import { crossGroupTransactionWireSchema, userPublicInfoWireSchema } from './schema'
+import {
+  crossGroupTransactionWireSchema,
+  disburseTransactionLinkWireSchema,
+  userPublicInfoWireSchema,
+} from './schema'
 import {
   auth,
+  disburseTransactionLink,
   emailTransactionReceived,
   prepareSendCoins,
   revertSendCoins,
@@ -133,6 +138,17 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
           mapResponse: signedJsonResponse,
         }),
   )
+  // a link of this community, accepted by a member of the calling one: paid out from here
+  .post('disburseTransactionLink', disburseTransactionLink, {
+    body: disburseTransactionLinkWireSchema,
+    mapResponse: signedJsonResponse,
+    response: {
+      200: v.boolean(),
+      401: v.string(),
+      404: v.string(),
+      500: v.string(),
+    },
+  })
 
 // The part of the Elysia context signedJsonResponse needs, so it can stand in as mapResponse of any
 // route: Context has no responseValue, that is only added for this hook.

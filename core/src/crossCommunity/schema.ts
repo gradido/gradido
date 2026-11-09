@@ -56,3 +56,16 @@ export const crossGroupTransactionWireSchema = v.object({
 
 export type CrossGroupTransactionWireInput = v.InferInput<typeof crossGroupTransactionWireSchema>
 export type CrossGroupTransactionWire = v.InferOutput<typeof crossGroupTransactionWireSchema>
+
+// A link of another community, accepted by a member of the calling one: no more than what finds
+// the link and the member. Who made it, the amount and the memo the link's community has itself.
+export const disburseTransactionLinkWireSchema = v.object({
+  link: v.object({
+    // as createTransactionLink makes it: 24 hex characters
+    code: v.pipe(v.string(), v.regex(/^[0-9a-f]{24}$/i)),
+    communityUuid: uuidv4Schema,
+  }),
+  recipient: involvedParties.entries.recipient,
+})
+
+export type DisburseTransactionLinkWire = v.InferOutput<typeof disburseTransactionLinkWireSchema>
