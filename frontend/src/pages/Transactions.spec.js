@@ -1,7 +1,7 @@
 import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, reactive, ref } from 'vue'
-import Transactions from './Transactions.vue'
+import { Transactions } from './Transactions'
 import { GdtEntryType } from '@/graphql/enums'
 import { transactionsQuery } from '@/graphql/transactions.graphql'
 import { PAGE_SIZE } from '@/constants'
@@ -20,6 +20,8 @@ const mockRouter = {
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => mockRoute),
   useRouter: vi.fn(() => mockRouter),
+  // The page imports it by name; the stub below takes its place by that name.
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a><slot /></a>' },
 }))
 
 vi.mock('vue-i18n', () => ({
@@ -87,7 +89,7 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 vi.mock('@/components/GddTransactionList', () => ({
-  default: {
+  GddTransactionList: {
     name: 'GddTransactionList',
     // Declared so the tests can read them as props rather than as fallthrough attributes.
     props: [
@@ -114,7 +116,7 @@ vi.mock('@/components/Contacts/ContactWindow', () => ({
 }))
 
 vi.mock('@/components/GdtTransactionList', () => ({
-  default: {
+  GdtTransactionList: {
     name: 'GdtTransactionList',
     template: '<div class="mock-gdt-transaction-list"></div>',
   },

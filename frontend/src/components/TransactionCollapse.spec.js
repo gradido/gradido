@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import TransactionCollapse from './TransactionCollapse.vue'
+import { TransactionCollapse } from './TransactionCollapse'
 import { GdtEntryType } from '@/graphql/enums'
 
 const mockToastError = vi.fn()

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import TransactionDecay from './TransactionDecay'
+import { TransactionDecay } from './TransactionDecay'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
 import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'

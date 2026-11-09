@@ -65,7 +65,7 @@ export const communityHost = (url) => {
  * characters (`aliasSchema` in `shared`), so anything shorter is no name and the identifier
  * stands in -- the same address every mail about the member carries.
  *
- * @param {string} username
+ * @param {string|null|undefined} username
  * @param {string} gradidoID
  * @returns {string} never null or undefined
  */
