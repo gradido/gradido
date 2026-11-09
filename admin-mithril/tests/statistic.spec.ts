@@ -106,7 +106,7 @@ test('shows the weeks below, the running one marked', async ({ page }) => {
     de.figures.row.activeAccountsWeekly,
     '4',
     '5',
-    '–',
+    '6',
   ])
   await expect(weeks.locator('.figures-group th')).toHaveText([
     de.figures.group.accounts,
@@ -188,7 +188,7 @@ const REVIEW = [
   '',
   'Konten',
   'Neue Konten: 1 · 0 · 2',
-  'Konten mit Anmeldung je Woche: 4 · 5 · –',
+  'Konten mit Anmeldung je Woche: 4 · 5 · 6',
   '',
   'Danken',
   'GDD gesendet: 10 · 20 · 1.500',

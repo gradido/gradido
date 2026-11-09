@@ -8,7 +8,7 @@ export type FigureRow = {
   total: number | null
 }
 export type Figures = { since: string; rows: FigureRow[] }
-export type FigureSeries = { weeks: string[]; rows: { key: string; counts: (number | null)[] }[] }
+export type FigureSeries = { weeks: string[]; rows: { key: string; counts: number[] }[] }
 export type Totals = Record<string, unknown>
 
 /** A row as a table shows it: its label and its cells, written out. */

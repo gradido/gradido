@@ -1,6 +1,16 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
 import { test as base, expect, type Page } from '@playwright/test'
-import { Kind, type OperationDefinitionNode, parse, valueFromASTUntyped } from 'graphql'
+import {
+  buildSchema,
+  execute,
+  type GraphQLFieldResolver,
+  Kind,
+  type OperationDefinitionNode,
+  parse,
+  validate,
+  valueFromASTUntyped,
+} from 'graphql'
 
 type Variables = Record<string, unknown>
 
@@ -38,6 +48,52 @@ const asTheServerReads = (operation: OperationDefinitionNode | undefined, sent: 
     }),
   )
 
+// The server's schema as the backend writes it: every request the app sends and every answer a
+// test makes up is held against it, so that a mock cannot promise what the server does not have.
+const SCHEMA = buildSchema(
+  readFileSync(new URL('../../../backend/schema.graphql', import.meta.url), 'utf8'),
+)
+
+// A field the app asks for and the answer leaves out is a mistake of the test, not a null.
+const fieldOfTheAnswer: GraphQLFieldResolver<Record<string, unknown>, unknown> = (
+  source,
+  _args,
+  _context,
+  { path, parentType, fieldName },
+) => {
+  if (!(path.key in source)) {
+    throw new Error(`the answer has no ${parentType.name}.${fieldName}`)
+  }
+  return source[path.key]
+}
+
+/**
+ * What the server's schema says against a request and the answers made up for it: its own
+ * validation of the document and the variables, and the answers run through the schema as the
+ * server would send them -- a missing field, a null where none may be, an unknown enum value.
+ * Root fields without data (failures, unanswered ones) are not its business.
+ */
+const schemaObjections = async (
+  document: ReturnType<typeof parse>,
+  variables: Variables,
+  data: Record<string, unknown>,
+) => {
+  const invalid = validate(SCHEMA, document)
+  if (invalid.length > 0) {
+    return invalid.map(({ message }) => `request: ${message}`)
+  }
+  const { errors = [] } = await execute({
+    schema: SCHEMA,
+    document,
+    rootValue: data,
+    variableValues: variables,
+    fieldResolver: fieldOfTheAnswer,
+  })
+  return errors
+    .filter(({ path }) => !path || String(path[0]) in data)
+    .map(({ path, message }) => `${path ? path.join('.') : 'variables'}: ${message}`)
+}
+
 /** What the app asked for: one entry per root field, in the order sent. */
 export type SentRequest = { field: string; variables: Variables }
 
@@ -50,10 +106,12 @@ const mockGraphql = async (page: Page) => {
   const answers: Record<string, Answer> = {}
   const sent: SentRequest[] = []
   const unanswered: string[] = []
+  const objections: string[] = []
 
   await page.route('**/graphql', async (route) => {
     const { query, variables: sentVariables = {} } = route.request().postDataJSON()
-    const operation = parse(query).definitions.find(
+    const document = parse(query)
+    const operation = document.definitions.find(
       (definition): definition is OperationDefinitionNode =>
         definition.kind === Kind.OPERATION_DEFINITION,
     )
@@ -83,6 +141,7 @@ const mockGraphql = async (page: Page) => {
         data[field] = value
       }
     }
+    objections.push(...(await schemaObjections(document, sentVariables, data)))
     if (errors.some(({ extensions }) => extensions?.code === VALIDATION_FAILED)) {
       await route.fulfill({ status: 400, json: { errors } })
     } else {
@@ -98,6 +157,7 @@ const mockGraphql = async (page: Page) => {
     /** The requests sent so far for `field`. */
     sentFor: (field: string) => sent.filter((request) => request.field === field),
     unanswered,
+    objections,
   }
 }
 
@@ -106,6 +166,7 @@ export const test = base.extend<{ graphql: Awaited<ReturnType<typeof mockGraphql
     const graphql = await mockGraphql(page)
     await use(graphql)
     expect(graphql.unanswered, 'requests without a mocked answer').toEqual([])
+    expect(graphql.objections, "what the server's schema does not take").toEqual([])
   },
 })
 

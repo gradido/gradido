@@ -48,10 +48,10 @@ describe('weekGroups', () => {
   it('names the active accounts by week as those with a sign-in that week', () => {
     const [accounts] = weekGroups({
       weeks: [],
-      rows: [{ key: 'activeAccounts', counts: [4, null] }],
+      rows: [{ key: 'activeAccounts', counts: [4, 1500] }],
     })
     expect(accounts.rows).toEqual([
-      { key: 'activeAccounts', label: 'Konten mit Anmeldung je Woche', cells: ['4', '–'] },
+      { key: 'activeAccounts', label: 'Konten mit Anmeldung je Woche', cells: ['4', '1.500'] },
     ])
   })
 })

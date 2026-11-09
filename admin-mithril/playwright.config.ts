@@ -33,29 +33,36 @@ const NEW_PORT = 18081
 // The GraphQL endpoint on the app's own origin: page.route answers it (tests/fixtures/graphql.ts),
 // and a request to the own origin needs no CORS preflight. The wallet stays on another origin
 // (0.0.0.0, the default host), so the token is handed over in the address, as in development.
-const server = (cwd: string, port: number) => ({
-  command: 'bun run dev',
-  cwd,
-  url: `http://localhost:${port}/admin/`,
-  reuseExistingServer: !process.env.CI,
-  env: {
-    ADMIN_MODULE_PORT: String(port),
-    GRAPHQL_URL: `http://localhost:${port}/graphql`,
-    // Crea's chat is shown only with Claude switched on; the backend is answered by the tests
-    ANTHROPIC_ACTIVE: 'true',
-  },
+const environment = (port: number) => ({
+  ADMIN_MODULE_PORT: String(port),
+  GRAPHQL_URL: `http://localhost:${port}/graphql`,
+  // Crea's chat is shown only with Claude switched on; the backend is answered by the tests
+  ANTHROPIC_ACTIVE: 'true',
 })
+
+// The Mithril admin is tested as it ships: built, and served as files. Twice as fast as the dev
+// server, which hands every page its modules one by one -- and the tests see the real bundle,
+// with its chunks. Built anew for every run, so that no run tests an older state.
+const BUILT = 'test-build'
 
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // In CI a failed test runs once more, recording a trace -- recording one for every test would
+  // cost each three times its time. Passing on that second run still fails the run: the retry is
+  // there for the trace, not to let a flaky test through.
+  retries: process.env.CI ? 1 : 0,
+  failOnFlakyTests: !!process.env.CI,
+  // every core of the runner: with half of them, as Playwright takes by default, the browsers wait
+  workers: process.env.CI ? '100%' : undefined,
   reporter: process.env.CI ? 'list' : [['list'], ['html', { open: 'never' }]],
   use: {
     ...devices['Desktop Chrome'],
     // the attribute the admin marks its elements with for tests
     testIdAttribute: 'data-test',
-    trace: 'retain-on-failure',
+    // Locally a failing test is run again with `--trace on`.
+    trace: process.env.CI ? 'on-first-retry' : 'off',
   },
   projects: [
     { name: 'old', use: { baseURL: `http://localhost:${OLD_PORT}/admin/` } },
@@ -65,5 +72,24 @@ export default defineConfig({
       testMatch: PORTED_TO_MITHRIL.length > 0 ? PORTED_TO_MITHRIL : /^$/,
     },
   ],
-  webServer: [server('../admin', OLD_PORT), server('.', NEW_PORT)],
+  webServer: [
+    {
+      command: 'bun run dev',
+      cwd: '../admin',
+      url: `http://localhost:${OLD_PORT}/admin/`,
+      reuseExistingServer: !process.env.CI,
+      env: environment(OLD_PORT),
+    },
+    {
+      command: `bunx vite build --outDir ${BUILT} --emptyOutDir && bunx vite preview --outDir ${BUILT} --port ${NEW_PORT} --strictPort`,
+      url: `http://localhost:${NEW_PORT}/admin/`,
+      reuseExistingServer: false,
+      env: {
+        ...environment(NEW_PORT),
+        // a build reckons with nginx in front, where the wallet has no port of its own; the
+        // address the dev server would give it
+        WALLET_URL: `http://0.0.0.0:${NEW_PORT}`,
+      },
+    },
+  ],
 })

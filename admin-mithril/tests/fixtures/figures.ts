@@ -31,7 +31,7 @@ export const communityFigureSeries = (since: string) => ({
   weeks: ['2026-10-26T00:00:00.000Z', '2026-11-02T00:00:00.000Z', '2026-11-09T00:00:00.000Z'],
   rows: [
     { key: 'accountsNew', counts: [1, 0, 2] },
-    { key: 'activeAccounts', counts: [4, 5, null] },
+    { key: 'activeAccounts', counts: [4, 5, 6] },
     { key: 'gddSent', counts: [10, 20, 1500] },
   ],
 })

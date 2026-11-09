@@ -33,7 +33,8 @@ test.beforeEach(async ({ page, graphql }) => {
 
 test('stays English where the words of the language cannot be fetched', async ({ page }, info) => {
   test.skip(info.project.name === 'old', 'the old admin carries every language in its bundle')
-  await page.route('**/locales/de.json*', (route) => route.abort())
+  // the German words: a module of the dev server, a chunk of the build
+  await page.route(/\/(locales\/de\.json|assets\/de-[\w-]+\.js)(\?|$)/, (route) => route.abort())
   await signIn(page, '/contribution-links')
 
   // signed in all the same, on the page asked for

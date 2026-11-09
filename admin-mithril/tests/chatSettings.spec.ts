@@ -307,11 +307,13 @@ test.describe('editing a server', () => {
     await page.getByTestId('edit-save').click()
     await expect.poll(() => held.length).toBe(1)
     await page.getByTestId('edit-3').click()
-    await field(page, 'note').fill('typed meanwhile')
+    // in its row: until the page has drawn anew, the field of row 1 is the one there
+    const note = row(page, 3).getByTestId('edit-note')
+    await note.fill('typed meanwhile')
     held[0](server(1))
 
     await expect(toast(page)).toContainText(words.updated)
-    await expect(field(page, 'note')).toHaveValue('typed meanwhile')
+    await expect(note).toHaveValue('typed meanwhile')
   })
 })
 

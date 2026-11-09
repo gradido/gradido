@@ -11,13 +11,14 @@ export const creationGroups = [
  */
 export const memberDetailsAnswers = {
   adminOpenCreations: [],
-  adminEmailStatus: {
-    gdtEmail: null,
+  // the GDT server knows the member by the address they have: nothing to say about it
+  adminEmailStatus: ({ userId }: { userId: number }) => ({
+    gdtEmail: `member${userId}@example.org`,
     currentConfirmed: true,
     elopageBuysOnCurrent: false,
     pendingEmail: null,
     pendingSince: null,
-  },
+  }),
   adminListContributions: { contributionCount: 0, contributionList: [] },
   listTransactionLinksAdmin: { count: 0, links: [] },
   creationGroups,
