@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import type { Page } from '@playwright/test'
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
+import en from '../../admin/src/locales/en.json' with { type: 'json' }
 import { listContributionLinks } from './fixtures/contributionLinks'
 import { expect, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn, tokenFor } from './fixtures/signIn'
@@ -28,6 +29,18 @@ test.beforeEach(async ({ page, graphql }) => {
   graphql.answer({ ...signedInAnswers(), listContributionLinks: listContributionLinks([]) })
   await serveWalletAssets(page)
   await page.setViewportSize(desk)
+})
+
+test('stays English where the words of the language cannot be fetched', async ({ page }, info) => {
+  test.skip(info.project.name === 'old', 'the old admin carries every language in its bundle')
+  await page.route('**/locales/de.json*', (route) => route.abort())
+  await signIn(page, '/contribution-links')
+
+  // signed in all the same, on the page asked for
+  await expect(page).toHaveURL(/\/admin\/contribution-links$/)
+  await expect(
+    page.locator('nav.navbar').getByRole('link', { name: en.navbar.user_search }),
+  ).toBeVisible()
 })
 
 test('leads an administrator to every page', async ({ page }) => {

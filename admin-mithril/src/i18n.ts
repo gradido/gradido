@@ -1,36 +1,41 @@
 // AI-GENERATED — not an architecture reference
 
-import de from '@admin/locales/de.json'
-import el from '@admin/locales/el.json'
 import en from '@admin/locales/en.json'
-import es from '@admin/locales/es.json'
-import fr from '@admin/locales/fr.json'
-import it from '@admin/locales/it.json'
-import nl from '@admin/locales/nl.json'
-import pt from '@admin/locales/pt.json'
-import ru from '@admin/locales/ru.json'
-import tr from '@admin/locales/tr.json'
-import { formatDistanceToNow, type Locale } from 'date-fns'
-import {
-  de as deDates,
-  enUS as enDates,
-  es as esDates,
-  fr as frDates,
-  nl as nlDates,
-} from 'date-fns/locale'
+import { timeAgo } from '@/data/RelativeTime.logic'
 
 type Messages = { [key: string]: string | Messages }
 
-const messages: Record<string, Messages> = { de, el, en, es, fr, it, nl, pt, ru, tr }
+// English is always here: it stands in for whatever another language lacks. Every other language
+// is fetched once it is chosen -- a session reads one, not all ten.
+const LANGUAGES: Record<string, () => Promise<{ default: Messages }>> = {
+  de: () => import('@admin/locales/de.json'),
+  el: () => import('@admin/locales/el.json'),
+  en: async () => ({ default: en }),
+  es: () => import('@admin/locales/es.json'),
+  fr: () => import('@admin/locales/fr.json'),
+  it: () => import('@admin/locales/it.json'),
+  nl: () => import('@admin/locales/nl.json'),
+  pt: () => import('@admin/locales/pt.json'),
+  ru: () => import('@admin/locales/ru.json'),
+  tr: () => import('@admin/locales/tr.json'),
+}
 
+const messages: Record<string, Messages> = { en }
 let locale = 'en'
 
 /** The language shown. */
 export const currentLocale = () => locale
 
-/** Switches the language; one the admin has no messages for stays English, as before. */
-export const setLocale = (language: string) => {
-  locale = language in messages ? language : 'en'
+/**
+ * Switches the language, once its messages are fetched; one the admin has no messages for stays
+ * English, as before -- and so does one that could not be fetched.
+ */
+export const setLocale = async (language: string) => {
+  const words = await LANGUAGES[language]?.().catch(() => undefined)
+  if (words) {
+    messages[language] = words.default
+  }
+  locale = words ? language : 'en'
 }
 
 const lookup = (language: string, key: string) => {
@@ -106,15 +111,10 @@ export const n = (value: number, format?: 'decimal') =>
     format === 'decimal' ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {},
   ).format(value)
 
-// the languages date-fns words a distance in; the others read it in English, as before
-const DATE_LOCALES: Record<string, Locale> = {
-  de: deDates,
-  en: enDates,
-  es: esDates,
-  fr: frDates,
-  nl: nlDates,
-}
-
-/** How long ago `date` was, in words of the current language: "vor 2 Tagen". */
+/**
+ * How long ago `date` was, in words of the current language: "vor 2 Tagen". Intl knows all ten
+ * languages; date-fns, which the old admin took, only five, and it said "etwa" and "fast" around
+ * the number.
+ */
 export const distanceToNow = (date: Date) =>
-  formatDistanceToNow(date, { addSuffix: true, locale: DATE_LOCALES[locale] ?? enDates })
+  new Intl.RelativeTimeFormat(locale, { numeric: 'always' }).format(...timeAgo(date, new Date()))

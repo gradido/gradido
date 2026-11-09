@@ -1,5 +1,4 @@
 // AI-GENERATED — not an architecture reference
-import { tenureBucket } from '@admin/utils/tenure'
 import type { ListedContribution } from './Contribution.schema'
 
 const SALUTATION = '[ANREDE]'
@@ -26,17 +25,70 @@ export const contributionMeta = (
   ].join(' · ')
 }
 
-/** The key and count of "member for how long", or null without a readable date. */
+// Whole days, months and years from `start` to a later `now`, counted on the local calendar as
+// date-fns' differenceInDays, differenceInMonths and differenceInYears counted them for the old
+// admin's tenure -- a frozen copy of their rules, end-of-month and February included.
+const timeOfDay = (date: Date) =>
+  ((date.getHours() * 60 + date.getMinutes()) * 60 + date.getSeconds()) * 1000 +
+  date.getMilliseconds()
+
+const fullDays = (start: Date, now: Date) => {
+  const calendar = Math.round(
+    (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+      Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
+      86_400_000,
+  )
+  // now's hour on start's day -- moved as the clock is, where that hour is skipped in spring
+  const back = new Date(now)
+  back.setDate(back.getDate() - calendar)
+  return calendar - Number(timeOfDay(back) < timeOfDay(start))
+}
+
+const fullMonths = (start: Date, now: Date) => {
+  const calendar =
+    (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth()
+  const back = new Date(now)
+  if (back.getMonth() === 1 && back.getDate() > 27) {
+    back.setDate(30)
+  }
+  back.setMonth(back.getMonth() - calendar)
+  const lastDayOfMonth =
+    new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() === now.getDate()
+  return calendar - Number(back < start && !(lastDayOfMonth && calendar === 1))
+}
+
+const fullYears = (start: Date, now: Date) => {
+  // both in one leap year, so that only month, day and time decide
+  const [startInYear, nowInYear] = [new Date(start), new Date(now)]
+  startInYear.setFullYear(1584)
+  nowInYear.setFullYear(1584)
+  return now.getFullYear() - start.getFullYear() - Number(nowInYear < startInYear)
+}
+
+/**
+ * The key and count of "member for how long" -- "seit drei Wochen" is easier to grasp than a
+ * date --, or null without a readable date.
+ */
 export const tenureKey = (created: string, now = new Date()) => {
-  const bucket = tenureBucket(created, now)
-  if (!bucket) {
+  const start = new Date(created)
+  if (Number.isNaN(start.getTime())) {
     return null
   }
-  const { unit, count } = bucket
-  if (unit === 'today') {
-    return { key: 'crea.tenure.today', count }
+  const days = fullDays(start, now)
+  if (days <= 0) {
+    return { key: 'crea.tenure.today', count: 0 }
   }
-  const singular = { days: 'day', weeks: 'week', months: 'month', years: 'year' }[unit]
+  const months = fullMonths(start, now)
+  const [unit, singular, count] =
+    days < 7
+      ? ['days', 'day', days]
+      : months < 1
+        ? ['weeks', 'week', Math.round(days / 7)]
+        : months < 12
+          ? ['months', 'month', months]
+          : // Fixed: at least one -- from a 29 February the months are full a day before the
+            // year is, and the old admin said "for 0 years" on 28 February.
+            ['years', 'year', Math.max(1, fullYears(start, now))]
   return { key: `crea.tenure.${count === 1 ? singular : unit}`, count }
 }
 

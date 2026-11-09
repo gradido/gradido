@@ -36,6 +36,20 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   expect(graphql.sentFor('allCommunities')).toEqual([{ field: 'allCommunities', variables: {} }])
 })
 
+test('says how long ago without "about", in the words of the browser', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', 'the old admin took date-fns: "vor etwa 3 Stunden"')
+  graphql.answer({
+    allCommunities: [{ ...homeCommunity, createdAt: '2026-11-09T09:00:00.000Z' }, foreignCommunity],
+  })
+  await signIn(page, '/federation')
+
+  await expect(rows(page).nth(0)).toContainText('vor 3 Stunden')
+  await expect(rows(page).nth(0)).not.toContainText('etwa')
+})
+
 test('tells the description of a community on its name', async ({ page }) => {
   await signIn(page, '/federation')
   await rows(page).nth(1).getByText('Elsewhere', { exact: true }).hover()

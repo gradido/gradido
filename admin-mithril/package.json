@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "uname | grep -q Linux && find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} + || echo 'Skip precompress on non-Linux'",
     "start": "vite preview",
     "test": "bun test src",
     "test:compare": "playwright test",
@@ -19,7 +20,6 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
-    "date-fns": "^2.29.3",
     "graphql": "16.14.2",
     "graphql-tag": "^2.12.6",
     "mithril": "^2.2.15",

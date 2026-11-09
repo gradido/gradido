@@ -4,8 +4,8 @@ import { setLocale } from '@/i18n'
 import { figureGroups, figuresAsText, isDay, weekColumns, weekGroups } from './Figures.logic'
 
 beforeEach(() => setLocale('de'))
-afterEach(() => {
-  setLocale('en')
+afterEach(async () => {
+  await setLocale('en')
   setSystemTime()
 })
 

@@ -28,24 +28,6 @@ export const refusalWords = (message: string): [string, Record<string, string>?]
   return null
 }
 
-/**
- * How long before `now` a check was, in the largest unit that fits. At least a second: the
- * server's clock may run a little ahead.
- */
-export const checkedAgo = (checkedAt: Date, now: Date): [number, Intl.RelativeTimeFormatUnit] => {
-  const seconds = Math.min(-1, Math.round((checkedAt.getTime() - now.getTime()) / 1000))
-  if (seconds > -60) {
-    return [seconds, 'second']
-  }
-  if (seconds > -3600) {
-    return [Math.round(seconds / 60), 'minute']
-  }
-  if (seconds > -86400) {
-    return [Math.round(seconds / 3600), 'hour']
-  }
-  return [Math.round(seconds / 86400), 'day']
-}
-
 /** The fields as the server takes them: trimmed, empty is none. */
 export const serverInput = ({ baseUrl, operator, roomPrefix, note }: ServerValues) => ({
   baseUrl: baseUrl.trim(),

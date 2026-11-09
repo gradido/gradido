@@ -37,7 +37,7 @@ export const authenticate = async (
     goTo('/not-found')
     return
   }
-  setLocale(moderator.output.language)
+  await setLocale(moderator.output.language)
   setModerator(moderator.output)
   goTo(pageAfterSignIn(redirect, knownPaths) ?? '/')
 }

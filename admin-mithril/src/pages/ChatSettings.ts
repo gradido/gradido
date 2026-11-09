@@ -11,14 +11,14 @@ import m, { type Children, type ClassComponent } from 'mithril'
 import * as v from 'valibot'
 import { Modal } from '@/components/bootstrap/Modal'
 import { toastError, toastSuccess } from '@/components/Toasts'
-import { checkedAgo, checkReasonKey, refusalWords, serverInput } from '@/data/ChatVideoServer.logic'
+import { checkReasonKey, refusalWords, serverInput } from '@/data/ChatVideoServer.logic'
 import {
   type ChatVideoServer,
   chatVideoServerSchema,
   type ServerValues,
 } from '@/data/ChatVideoServer.schema'
 import { graphqlRequest } from '@/graphql/client'
-import { currentLocale, t } from '@/i18n'
+import { distanceToNow, t } from '@/i18n'
 
 // `max`: the columns of chat_video_servers -- the fields cannot take more, the server refuses more.
 const FIELDS = {
@@ -54,12 +54,6 @@ const state = ({ check }: ChatVideoServer): [string, string] => {
   const key = checkReasonKey(reason)
   return ['text-danger', t('chatAdmin.state.failed', { reason: key ? t(key) : reason })]
 }
-
-// in the admin's language: Intl knows all of them
-const checkedWhen = (checkedAt: Date) =>
-  new Intl.RelativeTimeFormat(currentLocale(), { numeric: 'always' }).format(
-    ...checkedAgo(checkedAt, new Date()),
-  )
 
 /**
  * The Jitsi servers the chat's video calls take a room from, for administrators: listed with how
@@ -299,7 +293,7 @@ export class ChatSettings implements ClassComponent {
           ? [
               m(
                 'small.d-block.text-muted',
-                t('chatAdmin.state.checkedAt', { when: checkedWhen(check.checkedAt) }),
+                t('chatAdmin.state.checkedAt', { when: distanceToNow(check.checkedAt) }),
               ),
               m('small.d-block.text-muted', t('chatAdmin.servers.picks', { count: check.picks })),
             ]

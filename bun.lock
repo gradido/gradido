@@ -74,7 +74,6 @@
       "dependencies": {
         "@popperjs/core": "^2.11.8",
         "bootstrap": "^5.3.3",
-        "date-fns": "^2.29.3",
         "graphql": "16.14.2",
         "graphql-tag": "^2.12.6",
         "mithril": "^2.2.15",
