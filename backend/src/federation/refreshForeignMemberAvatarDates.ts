@@ -1,16 +1,14 @@
 // AI-GENERATED — not an architecture reference
 
-import { xcomMemberAvatars } from 'core'
+import { xcomMemberAvatarDates } from 'core'
 import {
   dbSelectAuthenticatedForeignCommunities,
   dbSelectForeignMemberGradidoIds,
   dbUpsertForeignMemberAvatarDates,
-  getHomeCommunity,
 } from 'database'
 import { getLogger } from 'log4js'
 import { MEMBER_AVATARS_MAX_REFS } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS } from '@/data/MemberAvatars.logic'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.refreshForeignMemberAvatarDates`)
 
@@ -23,7 +21,7 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.refreshForeign
  * longer than the interval does not overlap the next.
  *
  * ⛔ A run that throws is logged and the next one still comes. Nothing the other communities
- * answer throws (xcomMemberAvatars returns every failure of theirs), but a failing database
+ * answer throws (xcomMemberAvatarDates returns every failure of theirs), but a failing database
  * read does -- and without the catch the refresh would stop until the next restart, and with
  * it every withdrawal over there.
  */
@@ -66,30 +64,18 @@ export function startRefreshForeignMemberAvatarDates(intervalMs: number): void {
  * members in it: ⌈stored members / MEMBER_AVATARS_MAX_REFS⌉ requests per community per run.
  */
 export async function refreshForeignMemberAvatarDates(): Promise<void> {
-  const homeCom = await getHomeCommunity()
-  // Without its own key this community cannot seal a question, so every one would fail.
-  if (!homeCom?.privateJwtKey) {
-    return
-  }
   for (const community of await dbSelectAuthenticatedForeignCommunities()) {
-    // Not null: the query only hands out communities with a uuid.
-    const communityUuid = community.communityUuid as string
+    const { communityUuid } = community
     const gradidoIDs = await dbSelectForeignMemberGradidoIds(communityUuid)
     for (let start = 0; start < gradidoIDs.length; start += MEMBER_AVATARS_MAX_REFS) {
       const block = gradidoIDs.slice(start, start + MEMBER_AVATARS_MAX_REFS)
-      const answer = await xcomMemberAvatars(
-        homeCom,
-        community,
-        'dates',
-        block,
-        XCOM_MEMBER_AVATAR_DATES_TIMEOUT_MS,
-      )
+      const answer = await xcomMemberAvatarDates(community, block)
       if (!answer.success) {
         logger.warn('no picture dates from another community', answer.error.message)
         break
       }
       const dated = new Map(
-        answer.value.map((member) => [member.gradidoID, new Date(member.avatarUpdatedAt)]),
+        answer.value.map((member) => [member.gradidoId, member.avatarUpdatedAt]),
       )
       const checkedAt = new Date()
       await dbUpsertForeignMemberAvatarDates(
