@@ -172,12 +172,12 @@ describe('the name a validation message gives a field', () => {
     // One of each way a name is found, so that an empty result cannot pass as a clean one:
     // written at the tag, a prop default, a string handed to useField.
     expect(fields.get('newPassword') ?? []).toContain(
-      'components/Inputs/InputPasswordConfirmation.vue',
+      'components/Inputs/InputPasswordConfirmation.tsx',
     )
     expect(fields.get('password') ?? []).toContain('pages/Login.tsx')
     // The fields an account is opened with, shared by the registration form and the page a
     // thank-you is accepted on.
-    expect(fields.get('firstname') ?? []).toContain('components/Auth/AccountFields.vue')
+    expect(fields.get('firstname') ?? []).toContain('components/Auth/AccountFields.tsx')
   })
 
   it('can read every name', () => {

@@ -444,7 +444,7 @@ const routes = [
   {
     name: 'Register',
     path: '/register/:code?',
-    component: () => import('@/pages/Register'),
+    component: () => import('@/pages/Register').then((page) => page.Register),
   },
   {
     name: 'ForgotPassword',
