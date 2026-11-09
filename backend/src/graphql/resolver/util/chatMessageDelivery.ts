@@ -7,6 +7,7 @@ import {
   chatMailWentOut,
   chatMessageAnswerSchema,
   chatMessageMailState,
+  chatMessageWireSchema,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
@@ -263,7 +264,8 @@ export async function deliverChatMessageAcrossBorder({
     imageUuid: uuidv4(),
     position,
   }))
-  const message: ChatMessageWireInput = {
+  // Parsed here, not first in the client: a message the request would refuse is not filed as sent.
+  const message = v.parse(chatMessageWireSchema, {
     sender: {
       communityUuid: senderUser.communityUuid,
       gradidoId: senderUser.gradidoID,
@@ -282,7 +284,7 @@ export async function deliverChatMessageAcrossBorder({
       height,
       data: image.toString('base64'),
     })),
-  }
+  } satisfies ChatMessageWireInput)
   if (!sealedRequestFits(message)) {
     throw new LogError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER', messageUuid)
   }

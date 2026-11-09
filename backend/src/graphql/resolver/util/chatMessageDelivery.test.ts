@@ -513,6 +513,24 @@ describe('deliverChatMessageAcrossBorder', () => {
     expect(mockChatMessage).not.toHaveBeenCalled()
   })
 
+  // ⛔ Not filed as pending and left there: what the request would refuse throws before.
+  it('throws for a message the request would refuse, and files and sends nothing', async () => {
+    await expect(
+      deliverChatMessageAcrossBorder({
+        letter: true,
+        senderUser: { ...anna, alias: 'ù' } as DbUser,
+        receiverCom,
+        recipientGradidoId: BEN,
+        subject: null,
+        body: 'Hello',
+        notify: 'email',
+        requireStored: false,
+      }),
+    ).rejects.toThrow()
+    expect(store).not.toHaveBeenCalled()
+    expect(mockChatMessage).not.toHaveBeenCalled()
+  })
+
   /**
    * An answer to a member of another community: this server's own copy is filed with the message
    * it answers. ⚠️ The request does not carry it yet -- the other server files an ordinary
