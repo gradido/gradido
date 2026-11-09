@@ -384,7 +384,7 @@ const routes = [
   },
   {
     path: '/contributions',
-    component: () => import('@/pages/Contributions'),
+    component: () => import('@/pages/Contributions').then((page) => page.Contributions),
     meta: {
       requiresAuth: true,
       pageTitle: 'contributions',
@@ -395,7 +395,7 @@ const routes = [
   },
   {
     path: '/contributions/:tab/:page?',
-    component: () => import('@/pages/Contributions.vue'),
+    component: () => import('@/pages/Contributions').then((page) => page.Contributions),
     meta: {
       requiresAuth: true,
       pageTitle: 'contributions',

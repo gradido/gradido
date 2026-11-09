@@ -3,7 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ContributionListAll from './ContributionListAll.vue'
+import { ContributionListAll } from './ContributionListAll'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ref } from 'vue'
 
@@ -33,8 +33,8 @@ const router = createRouter({
   ],
 })
 
-vi.mock('@/components/Contributions/ContributionListAllItem.vue', () => ({
-  default: {
+vi.mock('@/components/Contributions/ContributionListAllItem', () => ({
+  ContributionListAllItem: {
     name: 'ContributionListAllItem',
     template: '<div></div>',
   },

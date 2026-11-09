@@ -1,0 +1,71 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Under the root class: the scoped rules these were had one level more (the scope attribute). */
+.nav-contributions .nav-contributions-btn-wrapper {
+  background-color: #d1d1d1;
+
+  > :global(*) {
+    width: calc(100% / 3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 14px;
+
+    /* As the switch of the send page (TransactionForm): a label that does not fit wraps
+       inside its third, rather than running across its neighbours or widening the column. */
+    text-align: center;
+    line-height: 1.15;
+    color: black !important;
+    border-radius: 25px;
+
+    /* As on the send page: where a label needs two lines or more, lines of about the same
+       length. A browser that does not know the value wraps as before. */
+    text-wrap: balance;
+
+    /* 8px at each side, for the active tab as for the others (it was 20px, from .btn and from
+       the active rule below): of a third of a phone, 42px were padding and border. */
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  /* An icon keeps its size. Left to shrink, it gave way as soon as the word needed the room:
+     on a phone to a few pixels or to nothing, in every language. The gap to the word is the
+     tab's own (`--tab-icon-gap`), none where it is not set. */
+  :global(.svg-icon) {
+    flex-shrink: 0;
+    margin-right: var(--tab-icon-gap, 0);
+  }
+}
+
+.nav-contributions :global(.svg-icon) {
+  filter: brightness(0) invert(0);
+}
+
+.nav-contributions :global(.router-link-active) {
+  background-color: rgb(23 141 129);
+  color: white !important;
+  font-weight: bold;
+  padding: 0.625rem 8px;
+  border-radius: 25px;
+}
+
+.nav-contributions :global(.router-link-active .svg-icon) {
+  filter: brightness(0) invert(1);
+}
+
+/* On a phone the word stands under the icon in all three tabs, as in the tab bar of the
+   matching page (pages/Matching.vue) -- three tab bars, one form. The font size stays. The
+   icon stands in the middle there, so its gap to the word beside it does not apply. */
+@media (width <= 575.98px) {
+  .nav-contributions .nav-contributions-btn-wrapper {
+    > :global(*) {
+      flex-direction: column;
+      row-gap: 3px;
+    }
+
+    :global(.svg-icon) {
+      margin-right: 0;
+    }
+  }
+}

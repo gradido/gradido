@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import ContributionMessagesFormular from './ContributionMessagesFormular.vue'
+import { ContributionMessagesFormular } from './ContributionMessagesFormular'
 import { nextTick } from 'vue'
 import { BButton, BCol, BForm, BFormTextarea, BRow } from 'bootstrap-vue-next'
 

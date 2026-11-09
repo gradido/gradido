@@ -26,7 +26,7 @@ import { computed, reactive } from 'vue'
  * ⛔ For the same reason, what waits for the next start waits in this module and not in the
  * store (`held`, below): a hold written there would outlive the session it was said in and
  * keep a window away for good. Here a reload ends it, a sign-in ends it (store.js, `login`), the
- * page "Schöpfen" ends it (pages/Contributions.vue, E-045), and the logout forgets it.
+ * page "Schöpfen" ends it (pages/Contributions.tsx, E-045), and the logout forgets it.
  *
  * ★ And the order lives HERE, in one line, rather than in the order the layout happens to
  * render the three components in. Their order in that template is arbitrary today -- the
@@ -165,7 +165,7 @@ export const holdAccountWindowsForThisSession = () => {
  * themselves, mounted with the layout, and resetting it from outside would leave a mounted one
  * believing what is no longer written here.
  *
- * And the page "Schöpfen" (pages/Contributions.vue, E-045), when it is built: whoever opens it
+ * And the page "Schöpfen" (pages/Contributions.tsx, E-045), when it is built: whoever opens it
  * wants to create, so what waited comes now, in its order -- the name before the first creation
  * (ES-003). Every hold, as the sign-in: one rule, not one per hold.
  */

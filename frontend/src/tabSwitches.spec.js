@@ -36,16 +36,18 @@ const switchStyle = (css, frame) => {
 }
 
 /**
- * The switch of the send page is a CSS module (TransactionForm.module.scss): its rules stand
- * under the root class of the form, which gives them the level the scope attribute gave, and say
- * `:global` where the .vue file said `:deep`. Read as the scoped style it was, so that the two
- * compare word for word.
+ * Both switches are CSS modules now (TransactionForm.module.scss, NavContributions.module.scss):
+ * their rules stand under the root class of the form or the switch, which gives them the level
+ * the scope attribute gave, and say `:global` where the .vue file said `:deep`. Read as the
+ * scoped styles they were, so that the two compare word for word.
  */
 const asScoped = (module) =>
   module
     .replaceAll('.transactionForm ', '')
     .replaceAll('.navSendBtnWrapper', '.nav-send-btn-wrapper')
     .replaceAll(':global(', ':deep(')
+const asScopedSwitch = (module) =>
+  module.replaceAll('.nav-contributions ', '').replaceAll(':global(', ':deep(')
 
 /** The body of the `@media` block whose condition contains `condition`, or ''. */
 const mediaBody = (css, condition) => {
@@ -71,9 +73,9 @@ const SWITCHES = [
   ],
   [
     'the contribution pages',
-    ['components', 'Contributions', 'NavContributions.vue'],
+    ['components', 'Contributions', 'NavContributions.module.scss'],
     'nav-contributions-btn-wrapper',
-    (sfc) => sfc,
+    asScopedSwitch,
   ],
 ]
 
