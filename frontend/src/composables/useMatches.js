@@ -107,6 +107,22 @@ import { isPlace } from '@/utils/matchingPosition'
  * seeker's own ring stays - the pair could tell it now, and nothing here asks it to.
  */
 
+/**
+ * The shapes above, for the TypeScript pages that read them (the .vue pages took them on trust).
+ *
+ * @typedef {{ lat: number, lng: number }} MapPoint
+ * @typedef {{ uuid: string, name: string }} MapCommunity
+ * @typedef {{ uuid: string, matchedEntryUuid: ?string, matchedSubject: ?string, summary: string,
+ *   details: ?string, remote: boolean, strength: ?number, score: ?number, coreWord: ?string,
+ *   mine?: string[] }} MapEntry
+ * @typedef {{ strength: number, entry: ?string, subject: ?string }} MapScore
+ * @typedef {{ uuid: string, name: string, position: MapPoint, community: MapCommunity,
+ *   aboutMe: ?string, precision: string, channels: Record<string, MapEntry[]>,
+ *   scores: Record<string, MapScore[]> }} MapMatch
+ * @typedef {{ id: number, uuid: ?string, name: string, community: ?MapCommunity,
+ *   hasEntries: boolean, position: MapPoint, precision: string }} MapPresence
+ */
+
 /** Great-circle distance in km — the sphere the backend measures on. */
 export function distanceKm(a, b) {
   const R = 6371.0088
@@ -513,9 +529,12 @@ async function gmsAccess(client) {
 
 export function useMatches() {
   const { client } = useApolloClient()
+  /** @type {import('vue').Ref<MapMatch[]>} */
   const matches = ref([])
+  /** @type {import('vue').Ref<MapPresence[]>} */
   const presence = ref([])
   const loading = ref(false)
+  /** @type {import('vue').Ref<?(Error & { code?: string })>} */
   const error = ref(null)
   // The access the suggestions and the profiles reuse, and when it was fetched. Only
   // they reuse it: `load` below still fetches per search, on purpose.

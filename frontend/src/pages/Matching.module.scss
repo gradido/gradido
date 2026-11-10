@@ -1,0 +1,319 @@
+/* AI-GENERATED — not an architecture reference */
+
+/*
+  Only Matching-specific additions here — everything else comes from the design
+  system (buttons: variant="gradido"/"secondary"; cards: app-box-shadow +
+  gradido-border-radius; inputs: .form-control/.form-select; spacing/colors:
+  Bootstrap utilities).
+
+  The rules stand FLAT, each under the class the page writes on its element, and not under
+  the page's root: four of the page's windows teleport out of it (BModal), and a rule under
+  the root would not reach what stands in them. The scoped rules these were had one level
+  more (the scope attribute). Where a rule competes with one of Bootstrap's on the same
+  element, it takes that level back from a class the element carries anyway (`:global(.btn)`,
+  `:global(.form-control)`); the state classes (`is-active`, `is-sel`, `invisible`) are the
+  plain ones the specs read.
+*/
+.matching-page {
+  /* The text colour of the page's mode (_design-tokens.scss): #383838 in light, as it was,
+     and the light one in dark. It stood here as the light value alone, so every text that
+     stands on the page without a colour of its own was dark on the dark ground -- each
+     one patched where it showed (gradido-template-dark.scss), and the next one not. */
+  color: var(--text);
+}
+
+/* The two buttons of a window whose second one names a step: behind the find button, and
+   where coming onto the map or leaving it is confirmed. "Show me on the map" is longer than
+   the "to my home" it replaced, and on a phone the two no longer fit on one row (measured at
+   390px: buttons of 92 and 317px in a window of 374). A footer that wraps the ordinary way then puts "later" on a row
+   of its own ABOVE the way on. wrap-reverse stacks the rows from the bottom instead, so the
+   second button -- the way on -- stands on top, and where both fit nothing changes.
+
+   An element of this page and not a class on the footer: the window teleports, and the
+   footer is the library's own element, which a scoped rule does not reach. */
+.window-buttons {
+  display: flex;
+  flex: 1 1 0%;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* The house button stands 50px in from each side. Beside "cancel" in a window 500px wide
+   that is 17px more than a row holds for the longest pair, German "Abbrechen" and "Mich von
+   der Karte nehmen" (126 + 8 + 335 in 452, measured) - so in the language most members read,
+   the two stood in two rows on a desk as well. With 2rem at each side they share the row
+   from 500px of screen upwards in all ten languages; a phone stacks them. */
+.window-buttons :global(.btn-gradido) {
+  padding-right: 2rem !important;
+  padding-left: 2rem !important;
+}
+
+/* On a row of its own the long label still breaks in two on a narrow phone. Below 400px the
+   button gets the 1rem the tile on the overview gives the same button
+   (MatchingTile.vue). */
+@media (width < 400px) {
+  .window-buttons :global(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
+}
+
+/* Find-map jump-off button (header, top-right of the content column) */
+.find-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #178d81;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 11px 20px;
+  cursor: pointer;
+}
+
+.find-btn:hover {
+  background: #0f6e56;
+}
+
+.find-btn-icon {
+  font-size: 26px;
+}
+
+.find-btn-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.find-btn-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.find-btn-sub {
+  font-size: 12.5px;
+  color: rgb(255 255 255 / 85%);
+}
+
+/* Tab bar — same look as NavContributions (grey, active = teal) */
+.matching-nav {
+  background-color: #d1d1d1;
+  padding: 4px;
+}
+
+.matching-nav-btn:global(.btn) {
+  flex: 1;
+  color: #000 !important;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 25px;
+}
+
+.matching-nav-btn:global(.btn.is-active) {
+  background-color: #178d81;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+/* keep a multi-word tab label together; it wraps below the icon as a unit */
+.matching-nav-label {
+  white-space: nowrap;
+}
+
+/* ⛔ On a phone the word goes under the icon in all three tabs, not only where it happens
+   not to fit. Left to wrap on its own, each tab decided alone: at 375px "Zuhause" stood
+   beside its icon while "Einträge" and "Über mich" stood under theirs, and before the page
+   edge moved to 6px (App.vue) the same happened at 430px. Another language only moves the
+   width where it happens, so the rule is not a width at which words fit. From sm up each
+   tab is 185px or wider, and there the longest labels -- French and Greek, fifteen
+   letters -- were measured beside their icons. */
+@media (width <= 575.98px) {
+  .matching-nav-label {
+    display: block;
+  }
+}
+
+/* "New entry" — the house's outlined button, so it reads as a button on the empty page
+   too. Only the layout of icon and word is set here; colours come with the variant. */
+.btn-add:global(.btn) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+/* Entry-type colours — the three channel colours, kept in sync with LABEL_COLORS
+   in components/Matching/displayCore.js (interesse #ff0000 · angebot emerald
+   #10b981 · gesuch #4658ff). Red and blue vibrant; the green is emerald so it
+   parts from the red for red-green colour vision. Where a white icon or label
+   sits ON the green (the avatar, the selected button), the green is one step
+   darker (#059669) so the white keeps its contrast — the dots stay #10b981. */
+.entry-avatar {
+  width: 64px;
+  height: 64px;
+  color: #fff;
+  font-size: 28px;
+}
+
+/* The big avatar icon already carries the type, so the type word is a small
+   label and the entry itself (the summary) is the heading that stands out. */
+.entry-type {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.entry-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+/* Inline sentence in the new-entry modal: a neutral prefix ("Ich suche") sits
+   directly before the input. The prefix inherits var(--text) so it flips with
+   light/dark — the modal teleports onto <body>, which carries the dark tokens. */
+.entry-prefix {
+  color: var(--text);
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.entry-sentence :global(.form-control) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.type-interesse {
+  background: #f00;
+}
+
+.type-angebot {
+  background: #059669;
+}
+
+.type-gesuch {
+  background: #4658ff;
+}
+
+/* Type-choice buttons: unselected = pale tint with black text/icon;
+   selected = full color with white text/icon and a ring */
+.type-choice-btn {
+  /* Each takes what its word needs and an equal share of the rest; the sentence start
+     below the word wraps and never widens its button. The longest word decides here, and
+     in some languages it is long ("Предложение"): an equal third cannot hold it on a
+     phone, measured at 320 to 390 px in all ten. */
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  border-radius: 22px;
+  color: #383838 !important;
+  font-size: 15px;
+  padding: 12px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-choice-btn.type-interesse {
+  background: #ffd6d6;
+}
+
+.type-choice-btn.type-angebot {
+  background: #d1f0e5;
+}
+
+.type-choice-btn.type-gesuch {
+  background: #dce0ff;
+}
+
+.type-choice-btn svg {
+  font-size: 22px;
+}
+
+/* The sentence this kind starts, under its name. Wraps inside its third. */
+.type-choice-starts {
+  /* Takes the width the word gave the button, and asks for none of its own. */
+  width: 0;
+  min-width: 100%;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+/* The last resort on a screen too narrow for the three words side by side: the word
+   breaks inside its button instead of running into its neighbour. */
+.type-choice-word {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (width <= 575.98px) {
+  .type-choice-btn {
+    padding-inline: 4px;
+  }
+}
+
+@media (width <= 359.98px) {
+  .type-choice-btn {
+    font-size: 13px;
+  }
+}
+
+.type-choice-btn:global(.is-sel) {
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 18%);
+  font-weight: 600;
+}
+
+.type-choice-btn:global(.is-sel).type-interesse {
+  background: #f00;
+}
+
+.type-choice-btn:global(.is-sel).type-angebot {
+  background: #059669;
+}
+
+.type-choice-btn:global(.is-sel).type-gesuch {
+  background: #4658ff;
+}
+
+/* small status badges on an entry */
+.badge-soft {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: #f0f1ee;
+  color: #5f5f5a;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.details-box {
+  background: #f7f8f6;
+  font-size: 14px;
+  color: #55554f;
+  white-space: pre-wrap;
+}
+
+/* placeholder so the action row keeps 4 fixed columns when an entry has no details */
+.no-details {
+  color: #a8a8a2;
+  font-style: italic;
+}
+
+/* let textareas grow to their rows — the design system forces .form-control to 50px */
+.matching-textarea:global(.form-control) {
+  height: auto;
+}
+
+.min-w-0 {
+  min-width: 0;
+}

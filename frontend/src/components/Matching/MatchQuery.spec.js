@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import MatchQuery from './MatchQuery.vue'
+import { MatchQuery } from './MatchQuery'
 import { LABEL_COLORS } from './displayCore'
 
 const i18n = createI18n({
@@ -60,7 +60,7 @@ const mountQuery = (selection = { kind: 'all' }) => {
     props: { entries, selection },
     global: {
       plugins: [i18n],
-      stubs: ['i-bi-search', 'i-bi-chevron-down', 'i-bi-check', 'i-bi-pencil', 'i-bi-x-lg'],
+      stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
     },
   })
   standing.push(wrapper)
@@ -266,7 +266,7 @@ describe('MatchQuery', () => {
         attachTo: document.body,
         global: {
           plugins: [i18n],
-          stubs: ['i-bi-search', 'i-bi-chevron-down', 'i-bi-check', 'i-bi-pencil', 'i-bi-x-lg'],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
         },
       })
       await wrapper.find('.query-bar').trigger('click')

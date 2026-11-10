@@ -4,8 +4,8 @@ import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vite
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import UserLocationMap from './UserLocationMap.vue'
-import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
+import { UserLocationMap } from './UserLocationMap'
+import { GeoSearchField } from '@/components/Matching/GeoSearchField'
 import { created } from '@test/maplibreMock'
 
 vi.mock('vue-i18n', () => ({
@@ -239,21 +239,21 @@ describe('UserLocationMap', () => {
       expect(maps()).toHaveLength(0)
     })
 
-    // jsdom applies no scoped styles, so these rules are read in the source, comments first. The
-    // first keeps the field out of sight until the engine has taken it - it marks that with
-    // `gk-placed`; the other two give MapLibre's zoom buttons the lens's measure.
+    // jsdom applies no styles, so these rules are read in the module stylesheet, comments
+    // first. The first keeps the field out of sight until the engine has taken it - it marks
+    // that with `gk-placed`; the other two give MapLibre's zoom buttons the lens's measure.
     it('hides the search field until the map takes it, and sizes the zoom buttons like the lens', () => {
       const source = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'UserLocationMap.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'UserLocationMap.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
 
-      expect(source).toMatch(/\n\.gk-search:not\(\.gk-placed\) \{[^}]*display: none;/)
-      const group = source.match(/\n\.map-container :deep\(\.maplibregl-ctrl-group\) \{([^}]*)\}/)
+      expect(source).toMatch(/\n\.gk-search:not\(:global\(\.gk-placed\)\) \{[^}]*display: none;/)
+      const group = source.match(/\n\.map-container :global\(\.maplibregl-ctrl-group\) \{([^}]*)\}/)
       expect(group?.[1]).toMatch(/border: 2px solid rgb\(0 0 0 \/ 20%\);/)
       expect(group?.[1]).toMatch(/box-shadow: none;/)
       const buttons = source.match(
-        /\n\.map-container :deep\(\.maplibregl-ctrl-group button\) \{([^}]*)\}/,
+        /\n\.map-container :global\(\.maplibregl-ctrl-group button\) \{([^}]*)\}/,
       )
       expect(buttons?.[1]).toMatch(/width: 30px;/)
       expect(buttons?.[1]).toMatch(/height: 30px;/)

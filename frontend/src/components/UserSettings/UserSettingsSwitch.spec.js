@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
-import UserSettingsSwitch from './UserSettingsSwitch'
+import { UserSettingsSwitch } from './UserSettingsSwitch'
 
 const mockToastError = vi.fn()
 const mockToastSuccess = vi.fn()

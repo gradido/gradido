@@ -10,7 +10,7 @@ import { ref } from 'vue'
  */
 export type EntryDraft = {
   summary: string
-  details: string
+  details?: string
   matchingType: string
   remote?: boolean
   unlessThere?: boolean

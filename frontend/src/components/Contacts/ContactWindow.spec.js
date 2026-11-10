@@ -4501,7 +4501,7 @@ describe('ContactWindow', () => {
 
   /**
    * ⛔ "Im Prinzip genauso wie im Matching, nur … in diesem dunkleren Goldton" (Bernd,
-   * 24.09.2026). The map's profile window (MatchProfile.vue) and this one each carry the rules,
+   * 24.09.2026). The map's profile window (MatchProfile) and this one each carry the rules,
    * so the spec holds them against each other -- and the gold against the compose bar's send
    * button, so the window's two gold buttons cannot drift apart either. Flat again since
    * 29.09.2026 ("wieder das etwas dunklere Gold ohne Verlauf … so wie auch unten der Kreis bei
@@ -4523,14 +4523,14 @@ describe('ContactWindow', () => {
 
     expect(gold, 'the send button lost its gold').toBeDefined()
     for (const name of ['send-btn', 'send-gradido', 'send-coin']) {
-      const there = rule('../Matching/MatchProfile.vue', name)
+      const there = rule('../Matching/MatchProfile.module.scss', name)
       expect(there, `MatchProfile lost .${name}`).toBeDefined()
       expect(rule('ContactWindow.module.scss', name), `.${name}`).toBe(there)
     }
     // The gold is the compose bar's, in both windows; the map's teal is gone from the button.
     expect(rule('ContactWindow.module.scss', 'send-btn')).toContain(`border: 1.5px solid ${gold};`)
     expect(rule('ContactWindow.module.scss', 'send-gradido')).toContain(`background: ${gold};`)
-    expect(rule('../Matching/MatchProfile.vue', 'send-gradido')).not.toContain('#178d81')
+    expect(rule('../Matching/MatchProfile.module.scss', 'send-gradido')).not.toContain('#178d81')
   })
 
   /**

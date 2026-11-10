@@ -9,11 +9,22 @@ import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
-import MatchingMap from './MatchingMap.vue'
-import GeoSearchField from '@/components/Matching/GeoSearchField.vue'
+import { MatchingMap } from './MatchingMap'
+import { GeoSearchField } from '@/components/Matching/GeoSearchField'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { GMS_REJECTED, GMS_UNAVAILABLE, toProfile } from '@/composables/useMatches'
 import { created } from '@test/maplibreMock'
+
+// The page's rules, as the .vue once held them in one block: the module (the scoped block) and
+// the global sheet of the markers, in one text. Comments first where a test says so: they name
+// the values, and a guard that reads its own explanation proves nothing.
+const here = dirname(fileURLToPath(import.meta.url))
+const pageStyles = ({ comments = true } = {}) => {
+  const text = ['MatchingMap.module.scss', 'MatchingMap.css']
+    .map((file) => readFileSync(join(here, file), 'utf8'))
+    .join('\n')
+  return comments ? text : text.replace(/\/\*[\s\S]*?\*\//g, '')
+}
 
 // jsdom has no WebGL. MapLibre asks the canvas for a WebGL 2 context and for nothing else, and
 // its stand-in builds a map wherever it gets one - so every canvas in this file hands one out,
@@ -168,11 +179,16 @@ const entry = (uuid) => ({
 
 let wrapper = null
 
+// The radius dialog is bootstrap-vue-next's, which teleports and renders nothing while closed.
+// The page's field and hint stay in the page here, as they did while the .vue left the dialog
+// unresolved; the dialog's own `shown` and `ok` reach the stub's element as native listeners.
+const BModalStub = { name: 'BModal', template: '<div class="modal-stub"><slot /></div>' }
+
 const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => {
   wrapper = mount(MatchingMap, {
     global: {
       plugins: [store, i18n],
-      stubs: { MatchQuery: true, MatchProfile: true, MatchList: true },
+      stubs: { MatchQuery: true, MatchProfile: true, MatchList: true, BModal: BModalStub },
     },
   })
   return wrapper
@@ -246,9 +262,7 @@ describe('MatchingMap', () => {
   // Measured in a browser on 11.09.2026: without it, a long entry chosen, the page dropped
   // under the menu between 1070 and 1025px (Bernd's screenshots).
   it('keeps a long question from widening the page', () => {
-    const here = dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8')
-    const rule = source.match(/\n\.query-field \{([^}]*)\}/)
+    const rule = pageStyles().match(/\n\.query-field \{([^}]*)\}/)
 
     expect(rule, 'no .query-field rule in the page').not.toBeNull()
     expect(rule[1]).toMatch(/contain: inline-size;/)
@@ -259,13 +273,7 @@ describe('MatchingMap', () => {
   // dark map's, whose face the switch takes there: the same ground, rim and letters, with the
   // dark map's variables resolved.
   it('gives the switch over the dark list the face it has over the dark map', () => {
-    const here = dirname(fileURLToPath(import.meta.url))
-    // Comments first: they name the values, and a guard that reads its own explanation proves
-    // nothing.
-    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-      /\/\*[\s\S]*?\*\//g,
-      '',
-    )
+    const source = pageStyles({ comments: false })
     const ruleOf = (selector) =>
       source.match(new RegExp(`\\n${selector.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1]
     const value = (body, property) => body?.match(new RegExp(`(?:^|\\s)${property}: ([^;]+);`))?.[1]
@@ -274,8 +282,8 @@ describe('MatchingMap', () => {
 
     const mapSwitch = ruleOf('.map-shell.look-dunkel:not(.is-list) .look-switch')
     const mapWord = ruleOf('.map-shell.look-dunkel:not(.is-list) .look-btn:not(.is-on)')
-    const listSwitch = ruleOf('.dark-mode .map-shell.is-list .look-switch')
-    const listWord = ruleOf('.dark-mode .map-shell.is-list .look-btn:not(.is-on)')
+    const listSwitch = ruleOf(':global(.dark-mode) .map-shell.is-list .look-switch')
+    const listWord = ruleOf(':global(.dark-mode) .map-shell.is-list .look-btn:not(.is-on)')
 
     expect(listSwitch, 'no rule for the switch over the dark list').toBeDefined()
     expect(listWord, 'no rule for its word').toBeDefined()
@@ -502,17 +510,17 @@ describe('MatchingMap', () => {
       const page = await settle(mountMap())
       // The binding first, before it is replaced below: without `ref` on the field
       // there would be nothing to select, and handing one in would hide that.
-      expect(page.vm.radiusInput?.id).toBe('map-radius-input')
+      expect(page.vm.radiusInput?.element?.id).toBe('map-radius-input')
 
       const select = vi.fn()
-      // BFormInput hands out { blur, element, focus } (measured in the installed
-      // package); this spec does not resolve it, so what it would expose is handed in.
+      // BFormInput hands out { blur, element, focus }; what it would expose is handed in, so
+      // the call is the page's and not jsdom's.
       page.vm.radiusInput = { element: { select } }
 
-      // The wiring itself: the dialog's own `shown`, dispatched on the element the
-      // unresolved BModal leaves behind. `shown` fires on every opening and after the
-      // transition - the first moment the field can take focus.
-      page.element.querySelector('bmodal').dispatchEvent(new CustomEvent('shown'))
+      // The wiring itself: the dialog's own `shown`, dispatched on the stub's element. `shown`
+      // fires on every opening and after the transition - the first moment the field can take
+      // focus.
+      page.element.querySelector('.modal-stub').dispatchEvent(new CustomEvent('shown'))
       await page.vm.$nextTick()
 
       expect(select).toHaveBeenCalled()
@@ -559,11 +567,7 @@ describe('MatchingMap', () => {
     // nothing. vitest applies no scoped component CSS, so the rules are read in the
     // source; all three of them, because the finding is the RELATION between them.
     it('leaves the standing reach as the only bold one', () => {
-      const here = dirname(fileURLToPath(import.meta.url))
-      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-        /\/\*[\s\S]*?\*\//g,
-        '',
-      )
+      const source = pageStyles({ comments: false })
       const ruleOf = (name) => source.match(new RegExp(`\\n\\${name} \\{([^}]*)\\}`))?.[1]
 
       // Why the reset is needed at all - if this ever stops being bold, the reset may go.
@@ -583,14 +587,7 @@ describe('MatchingMap', () => {
     // allows it is read in the source instead. Before the switch stood in front of
     // it the row was `nowrap`, which on a 375 px phone would now run off the card.
     it('lets the radius row break rather than run off a phone', () => {
-      const here = dirname(fileURLToPath(import.meta.url))
-      // Comments first: one of them names flex-wrap, and a guard that reads its own
-      // explanation proves nothing.
-      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-        /\/\*[\s\S]*?\*\//g,
-        '',
-      )
-      const rule = source.match(/\n\.radius-row \{([^}]*)\}/)
+      const rule = pageStyles({ comments: false }).match(/\n\.radius-row \{([^}]*)\}/)
 
       expect(rule, 'no .radius-row rule in the page').not.toBeNull()
       expect(rule[1]).toMatch(/flex-wrap: wrap;/)
@@ -615,13 +612,7 @@ describe('MatchingMap', () => {
     })
 
     it('keeps that piece from breaking inside itself', () => {
-      const here = dirname(fileURLToPath(import.meta.url))
-      // Comments first: the one above the rule names `nowrap`.
-      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-        /\/\*[\s\S]*?\*\//g,
-        '',
-      )
-      const rule = source.match(/\n\.radius-group \{([^}]*)\}/)
+      const rule = pageStyles({ comments: false }).match(/\n\.radius-group \{([^}]*)\}/)
 
       expect(rule, 'no .radius-group rule in the page').not.toBeNull()
       expect(rule[1]).toMatch(/display: inline-flex;/)
@@ -634,16 +625,10 @@ describe('MatchingMap', () => {
     // good; without the other two the field would follow the wallet's theme and turn up dark
     // among the white zoom buttons, or white on the dark map.
     it('keeps the search field out of sight until the map takes it, and paints it map chrome', () => {
-      const here = dirname(fileURLToPath(import.meta.url))
-      // Comments first: they name all three, and a guard that reads its own explanation
-      // proves nothing.
-      const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-        /\/\*[\s\S]*?\*\//g,
-        '',
-      )
+      const source = pageStyles({ comments: false })
 
       // `gk-placed`: the engine sets it on what it takes.
-      expect(source).toMatch(/\n\.gk-search:not\(\.gk-placed\) \{[^}]*display: none;/)
+      expect(source).toMatch(/\n\.gk-search:not\(:global\(\.gk-placed\)\) \{[^}]*display: none;/)
 
       const chrome = source.match(/\n\.gk-search \{([^}]*)\}/)
       expect(chrome, 'no .gk-search rule in the page').not.toBeNull()
@@ -2121,11 +2106,7 @@ describe('MatchingMap', () => {
     // the list cover and over the crosshair, the centre disc over the zoom buttons, the crosshair
     // over the search field's list of places, and a tap on the glow beside a match went to the
     // match; with them none of that happened.
-    const sourceRules = () =>
-      readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'MatchingMap.vue'),
-        'utf8',
-      ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const sourceRules = () => pageStyles({ comments: false })
     const ruleOf = (source, selectors) =>
       source.match(
         new RegExp(`\\n${selectors.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{([^}]*)\\}`),
@@ -2134,10 +2115,10 @@ describe('MatchingMap', () => {
     it("keeps MapLibre's markers and controls in their layers", () => {
       const source = sourceRules()
 
-      expect(ruleOf(source, '.map-shell :deep(.maplibregl-canvas-container)')).toMatch(
+      expect(ruleOf(source, '.map-shell :global(.maplibregl-canvas-container)')).toMatch(
         /isolation: isolate;/,
       )
-      expect(ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-top-left)')).toMatch(
+      expect(ruleOf(source, '.map-shell :global(.maplibregl-ctrl-top-left)')).toMatch(
         /z-index: 1000;/,
       )
       expect(ruleOf(source, '.maplibregl-marker.gk-marker.gk-clickable')).toMatch(
@@ -2145,7 +2126,7 @@ describe('MatchingMap', () => {
       )
       for (const mode of ['is-list', 'is-cluster']) {
         expect(
-          ruleOf(source, `.map-shell.${mode} :deep(.maplibregl-control-container)`),
+          ruleOf(source, `.map-shell.${mode} :global(.maplibregl-control-container)`),
           `the map's controls stay over the ${mode} cover`,
         ).toMatch(/display: none;/)
       }
@@ -2158,23 +2139,23 @@ describe('MatchingMap', () => {
     it("gives MapLibre's corner its touch measure, on the light map and on the dark one", () => {
       const source = sourceRules()
 
-      const group = ruleOf(source, '.map-shell :deep(.maplibregl-ctrl-group)')
+      const group = ruleOf(source, '.map-shell :global(.maplibregl-ctrl.maplibregl-ctrl-group)')
       expect(group).toMatch(/border: 2px solid rgb\(0 0 0 \/ 20%\);/)
       expect(group).toMatch(/box-shadow: none;/)
       const buttons = ruleOf(
         source,
-        '.map-shell :deep(.maplibregl-ctrl-group button),\n.map-shell :deep(.maplibregl-ctrl-group a)',
+        '.map-shell :global(.maplibregl-ctrl-group button),\n.map-shell :global(.maplibregl-ctrl-group a)',
       )
       expect(buttons).toMatch(/width: 30px;/)
       expect(buttons).toMatch(/height: 30px;/)
 
-      const darkGroup = ruleOf(source, '  :deep(.maplibregl-ctrl-group)')
+      const darkGroup = ruleOf(source, '  :global(.maplibregl-ctrl-group)')
       expect(darkGroup).toMatch(/border-color: var\(--dark-rim\);/)
       expect(darkGroup).toMatch(/background-color: var\(--dark-chrome\);/)
-      expect(ruleOf(source, '  :deep(.maplibregl-ctrl-group .maplibregl-ctrl-icon)')).toMatch(
+      expect(ruleOf(source, '  :global(.maplibregl-ctrl-group .maplibregl-ctrl-icon)')).toMatch(
         /filter: invert\(1\) brightness\(1\.14\);/,
       )
-      expect(ruleOf(source, '  :deep(.maplibregl-ctrl-attrib)')).toMatch(
+      expect(ruleOf(source, '  :global(.maplibregl-ctrl-attrib)')).toMatch(
         /background-color: rgb\(22 24 29 \/ 80%\);/,
       )
     })
@@ -3934,13 +3915,7 @@ describe('MatchingMap, asked to show somebody', () => {
   // source: the ring lets taps through to the core, the name takes them, and the name's face
   // follows the look -- light letters on the dark map, dark ones on the two light maps.
   describe('the rules it is drawn with', () => {
-    const here = dirname(fileURLToPath(import.meta.url))
-    // Comments first: they name the values, and a guard that reads its own explanation proves
-    // nothing.
-    const source = readFileSync(join(here, 'MatchingMap.vue'), 'utf8').replace(
-      /\/\*[\s\S]*?\*\//g,
-      '',
-    )
+    const source = pageStyles({ comments: false })
     const ruleOf = (selector) =>
       source.match(new RegExp(`\\n${selector.replace(/[.()]/g, '\\$&')} \\{([^}]*)\\}`))?.[1]
 

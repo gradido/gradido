@@ -59,6 +59,10 @@ export function entryType(type) {
  * that has to be provable: a page can be looked at, a fallback for a shape nobody
  * writes on purpose cannot.
  */
+/**
+ * @returns {{ kind: 'all' } | { kind: 'entry', uuid: string }
+ *   | { kind: 'typed', text: string, matchingType: string }}
+ */
 export function sanitizeSelection(stored) {
   if (stored?.kind === 'entry' && typeof stored.uuid === 'string' && stored.uuid) {
     return { kind: 'entry', uuid: stored.uuid }
@@ -248,6 +252,7 @@ export function scoresOf(channels) {
   return scores
 }
 
+/** @param {?Record<string, boolean>} [visible] the channel boxes under the map */
 export function stagesOf(match, cfg = DEFAULTS, breiteOn = false, visible = null) {
   const stages = {}
   for (const channel of CHANNELS) {
@@ -312,7 +317,11 @@ export function describeDistance(km, tiers = {}) {
  * by, but with breadth counted only when the list is sorted by breadth, so picking
  * a list sort never quietly flips the map's amplifier.
  */
-export function listPeak(match, sortMode = 'passung', visible = null) {
+export function listPeak(
+  match,
+  sortMode = 'passung',
+  /** @type {?Record<string, boolean>} */ visible = null,
+) {
   return peakStage(stagesOf(match, DEFAULTS, sortMode === 'breite', visible))
 }
 
@@ -320,7 +329,7 @@ export function listPeak(match, sortMode = 'passung', visible = null) {
  * The strongest continuous score across the visible channels — a tiebreaker,
  * since the peak is only 0..5 and would otherwise leave many people level.
  */
-export function topScore(match, visible = null) {
+export function topScore(match, /** @type {?Record<string, boolean>} */ visible = null) {
   let top = 0
   for (const channel of CHANNELS) {
     if (visible && !visible[channel]) continue

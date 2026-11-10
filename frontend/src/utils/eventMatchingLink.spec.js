@@ -271,8 +271,8 @@ describe('the lengths an entry holds, here and where they are set', () => {
   const here = dirname(fileURLToPath(import.meta.url))
 
   it('is the length of the sentence the form takes', () => {
-    const form = readFileSync(join(here, '..', 'pages', 'Matching.vue'), 'utf8')
-    const [, field] = form.match(/v-model="newSummary"[^>]*?maxlength="(\d+)"/s) ?? []
+    const form = readFileSync(join(here, '..', 'pages', 'Matching.tsx'), 'utf8')
+    const [, field] = form.match(/v-model=\{newSummary\.value\}[^>]*?maxlength='(\d+)'/s) ?? []
 
     // The fixture has to prove itself: no match would compare a number with nothing.
     expect(field).toBeDefined()

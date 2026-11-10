@@ -8,7 +8,7 @@
  * 300 KB gzipped - along with them, map or no map. Measured on the build on 16.09.2026: 321 KB
  * gzipped for the matching page beyond the index that way, 22 KB loaded like this.
  *
- * @returns {Promise<{ createMap: Function }>} the engine module (utils/mapEngine/maplibre)
+ * @returns {Promise<typeof import('./maplibre.js')>} the engine module (utils/mapEngine/maplibre)
  */
 export function loadMapEngine() {
   return import('./maplibre.js')
