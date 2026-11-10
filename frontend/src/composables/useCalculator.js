@@ -173,6 +173,14 @@ export const evaluate = (expression) => {
 export const useCalculator = ({ percent, factor, locale }) => {
   const expression = ref('')
   const justCalculated = ref(false)
+  /**
+   * The sums under the display, or null while there are none.
+   *
+   * @typedef {{ dankBarToGdd: number, gddToDankBar: number }} DailyRate
+   * @typedef {{ kind: 'payment', fiat: number, gdd: number, dankBar: number, rate: DailyRate }} PaymentResult
+   * @typedef {{ kind: 'dankbar', dankBar: number, gdd: number, rate: DailyRate }} DankBarResult
+   * @type {import('vue').Ref<PaymentResult | DankBarResult | null>}
+   */
   const subResult = ref(null)
   /**
    * The only way the expression is written: moving the calculation on takes the sums under

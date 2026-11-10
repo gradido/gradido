@@ -16,6 +16,7 @@ import { thankYouMotif } from '@/utils/thankYouMotifs'
  *
  * @param {{ motif: string | null, hasPicture: boolean } | null | undefined} picture
  * @param {(key: string) => string} t the page's translate function
+ * @returns {{ photo: true, motif?: undefined } | { motif: { key: string, src: string, name: string }, photo?: undefined } | null}
  */
 export const transactionPictureShown = (picture, t) => {
   if (!picture) return null

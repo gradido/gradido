@@ -5,7 +5,7 @@ import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import MyGradidoCard from './MyGradidoCard.vue'
+import { MyGradidoCard } from './MyGradidoCard'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
 /**

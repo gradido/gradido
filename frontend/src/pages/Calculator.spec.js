@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import Calculator from './Calculator.vue'
+import { Calculator } from './Calculator'
 // fileURLToPath is handed the string import.meta.url, never a URL object built here: the
 // test environment brings its own URL class, and node rejects an instance of it as coming
 // from the wrong realm -- which passes locally and fails in CI.
@@ -108,7 +108,8 @@ const mountCalculator = (locale = 'de') => {
           numberFormats: { de: DECIMAL, en: DECIMAL },
         }),
       ],
-      stubs: ['IMdiSettings'],
+      // The icon is imported (`~icons/mdi/settings`) and carries the icon's own name.
+      stubs: ['MdiSettings'],
     },
   })
   mounted.push(wrapper)
@@ -610,8 +611,10 @@ describe('Calculator page', () => {
  * it would come back the first time somebody adds a colour in a hurry.
  */
 describe('Calculator colours', () => {
+  // The page's style module. Every rule but the two palettes stands under the root's class
+  // (`.calculator :global(.key) {`), as the scoped block's scope attribute did.
   const source = readFileSync(
-    resolve(dirname(fileURLToPath(import.meta.url)), './Calculator.vue'),
+    resolve(dirname(fileURLToPath(import.meta.url)), './Calculator.module.scss'),
     'utf8',
   )
 
@@ -623,7 +626,7 @@ describe('Calculator colours', () => {
   const rolesIn = (selector) => [...block(selector).matchAll(/(--calc-[\w-]+):\s*([^;]+);/g)]
 
   const light = new Map(rolesIn('.calculator').map((m) => [m[1], m[2].trim()]))
-  const dark = new Map(rolesIn('.dark-mode .calculator').map((m) => [m[1], m[2].trim()]))
+  const dark = new Map(rolesIn(':global(.dark-mode) .calculator').map((m) => [m[1], m[2].trim()]))
 
   it('defines every role in both palettes', () => {
     expect(light.size).toBeGreaterThan(10)
@@ -704,9 +707,9 @@ describe('Calculator colours', () => {
    * too, or `.key:hover` decides for it.
    */
   it('lets no key lose its own ink on hover', () => {
-    const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
+    const styles = source
     const inkOf = (selector) => {
-      const start = styles.indexOf(`\n${selector} {`)
+      const start = styles.indexOf(`\n.calculator :global(${selector}) {`)
       expect(start, `${selector} not found`).toBeGreaterThan(-1)
       // ⚠️ Anchored on `{` or `;`, NOT on a word boundary: `\bcolor:` also matches inside
       // `background-color:`, so the first version of this guard found the hover BACKGROUND,
@@ -717,7 +720,7 @@ describe('Calculator colours', () => {
 
     // ⚠️ The exact role, not "some colour". `color: var(--calc-ink)` in a hover rule is a
     // declaration too, and it is precisely the value that caused the defect.
-    const genericHover = styles.indexOf('\n.key:hover {')
+    const genericHover = styles.indexOf('\n.calculator :global(.key:hover) {')
     expect(genericHover).toBeGreaterThan(-1)
 
     for (const key of ['.key-result', '.key-operator', '.key-delete']) {
@@ -735,14 +738,14 @@ describe('Calculator colours', () => {
         tried REMOVING the ink, never reordering the rules.)
       */
       expect(
-        styles.indexOf(`\n${key}:hover {`),
+        styles.indexOf(`\n.calculator :global(${key}:hover) {`),
         `${key}:hover must come after .key:hover, or the generic rule wins the cascade`,
       ).toBeGreaterThan(genericHover)
     }
   })
 
   it('paints from roles only, never from a value of its own', () => {
-    const styles = source.slice(source.indexOf('<style lang="scss" scoped>'))
+    const styles = source
     const painted = [...styles.matchAll(COLOUR_PROPERTIES)].map((m) => m[2].trim())
 
     expect(painted.length).toBeGreaterThan(15)
@@ -757,19 +760,15 @@ describe('Calculator colours', () => {
    * the gear keeps its corner (Bernd, 08.10.2026). Read off the source, comments stripped.
    */
   describe('the head on the desk', () => {
-    const source = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), 'Calculator.vue'),
-      'utf8',
-    )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
     const desk = style.match(/@media\s*\(width >= 1025px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
 
     it('takes the arrow away with a selector that beats the key rule', () => {
-      expect(desk).toMatch(/\.calculator-head-key\.calculator-head-back\s*\{[^}]*display:\s*none/)
+      expect(desk).toMatch(/\.calculator-head-key\.calculator-head-back\)\s*\{[^}]*display:\s*none/)
     })
 
     it('keeps the gear on the right', () => {
-      expect(desk).toMatch(/\.calculator-head\s*\{[^}]*justify-content:\s*flex-end/)
+      expect(desk).toMatch(/\.calculator-head\)\s*\{[^}]*justify-content:\s*flex-end/)
     })
 
     it('marks the arrow, and only the arrow', () => {

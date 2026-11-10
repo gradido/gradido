@@ -84,6 +84,8 @@ vi.mock('vue-i18n', () => ({
     d: (value) => value,
     n: (value) => value,
   }),
+  // ShowFriendsTile imports the component for its sentence with a slot in it.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 /**

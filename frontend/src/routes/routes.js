@@ -1,4 +1,4 @@
-import NotFound from '@/pages/NotFoundPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 import CONFIG from '@/config'
 
 // The new matching ships dark. Without MATCHING_ACTIVE its routes are never
@@ -196,7 +196,7 @@ const routes = [
   },
   {
     path: '/overview',
-    component: () => import('@/pages/Overview'),
+    component: () => import('@/pages/Overview').then((page) => page.Overview),
     meta: {
       requiresAuth: true,
       pageTitle: 'overview',
@@ -260,7 +260,7 @@ const routes = [
     // with for minutes at a time, the keypad wants the whole width, and the back button then
     // does what somebody expects without any handling of ours.
     path: '/calculator',
-    component: () => import('@/pages/Calculator'),
+    component: () => import('@/pages/Calculator').then((page) => page.Calculator),
     meta: {
       requiresAuth: true,
       // On a phone the page brings its own head (back arrow, gear), the wallet chrome goes
@@ -299,7 +299,7 @@ const routes = [
     // rather than one page with a switch, because the two are reached by two symbols --
     // and a symbol that leads to a chooser is not a shortcut any more.
     path: '/my-gradido-card',
-    component: () => import('@/pages/MyGradidoCard'),
+    component: () => import('@/pages/MyGradidoCard').then((page) => page.MyGradidoCard),
     meta: {
       requiresAuth: true,
       pageTitle: 'my-gradido-card',
@@ -312,7 +312,7 @@ const routes = [
   },
   {
     path: '/my-thank-you-card',
-    component: () => import('@/pages/MyThankYouCard'),
+    component: () => import('@/pages/MyThankYouCard').then((page) => page.MyThankYouCard),
     meta: {
       requiresAuth: true,
       pageTitle: 'my-thank-you-card',
@@ -405,7 +405,7 @@ const routes = [
   ...matchingRoutes,
   {
     path: '/information',
-    component: () => import('@/pages/InfoStatistic'),
+    component: () => import('@/pages/InfoStatistic').then((page) => page.InfoStatistic),
     meta: {
       requiresAuth: true,
       pageTitle: 'information',
@@ -449,12 +449,12 @@ const routes = [
   {
     name: 'ForgotPassword',
     path: '/forgot-password',
-    component: () => import('@/pages/ForgotPassword'),
+    component: () => import('@/pages/ForgotPassword').then((page) => page.ForgotPassword),
   },
   {
     name: 'ForgotPasswordComingFrom',
     path: '/forgot-password/:comingFrom',
-    component: () => import('@/pages/ForgotPassword'),
+    component: () => import('@/pages/ForgotPassword').then((page) => page.ForgotPassword),
   },
   {
     path: '/register-community',
@@ -539,7 +539,7 @@ const routes = [
   {
     path: '/:catchAll(.*)',
     name: 'NotFound',
-    component: NotFound,
+    component: NotFoundPage,
   },
 ]
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import router from './router'
 import routes from './routes'
-import NotFound from '@/pages/NotFoundPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 
 // This file checks the full route table, matching included, so it needs the flag
 // on — routes.js reads it when the module loads, which is why this has to be a
@@ -341,7 +341,7 @@ describe('router', () => {
           (r) => r.path === '/:pathMatch(.*)*' || r.path === '/:catchAll(.*)' || r.path === '*',
         )
         expect(notFoundRoute).toBeDefined()
-        expect(notFoundRoute.component).toEqual(NotFound)
+        expect(notFoundRoute.component).toEqual(NotFoundPage)
       })
     })
   })

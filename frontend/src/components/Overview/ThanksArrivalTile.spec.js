@@ -8,7 +8,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
-import ThanksArrivalTile from './ThanksArrivalTile.vue'
+import { ThanksArrivalTile } from './ThanksArrivalTile'
 import AppAvatar from '@/components/AppAvatar.vue'
 import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
 import {
@@ -166,8 +166,10 @@ const mountTile = (list) => {
       stubs: {
         AppAvatar: true,
         ThankYouGreetingPhoto: true,
-        IIonLayersSharp: true,
-        IMdiEmoticonHappyOutline: true,
+        // The tile imports its icons (`~icons/…`), whose components carry the icon's own
+        // name; the one in ChatReactionChoice.vue is still resolved by name.
+        IonLayersSharp: true,
+        MdiEmoticonHappyOutline: true,
         IMdiPlus: true,
       },
     },
@@ -394,11 +396,11 @@ describe('ThanksArrivalTile', () => {
      */
     it('clamps the message to one line, without letting its length widen the page', () => {
       const here = dirname(fileURLToPath(import.meta.url))
-      const source = readFileSync(resolve(here, 'ThanksArrivalTile.vue'), 'utf8').replace(
+      const source = readFileSync(resolve(here, 'ThanksArrivalTile.module.scss'), 'utf8').replace(
         /\/\*[\s\S]*?\*\//g,
         '',
       )
-      const rule = source.match(/\.thanks-arrival-memo\s*\{([^}]*)\}/)?.[1] ?? ''
+      const rule = source.match(/\.thanks-arrival-memo\)\s*\{([^}]*)\}/)?.[1] ?? ''
       expect(rule).toMatch(/white-space:\s*nowrap/)
       expect(rule).toMatch(/text-overflow:\s*ellipsis/)
       expect(rule).toMatch(/overflow:\s*hidden/)
