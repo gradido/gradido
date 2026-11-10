@@ -7,7 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { parseQuery } from 'vue-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import EventMatchingBuilder from './EventMatchingBuilder.vue'
+import { EventMatchingBuilder } from './EventMatchingBuilder'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
@@ -1051,7 +1051,7 @@ describe('EventMatchingBuilder', () => {
 
   describe('what is typed stays in this browser', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'EventMatchingBuilder.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'EventMatchingBuilder.tsx'),
       'utf8',
     )
       // The comments say what the page does not do, in the very words looked for below.

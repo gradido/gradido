@@ -92,7 +92,8 @@ const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
   ? [
       {
         path: '/project-matching',
-        component: () => import('@/pages/EventMatchingBuilder'),
+        component: () =>
+          import('@/pages/EventMatchingBuilder').then((page) => page.EventMatchingBuilder),
       },
       {
         path: '/event-matching',
@@ -106,7 +107,8 @@ const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
         name: 'EventMatchingLanding',
         path: '/project',
         alias: '/event',
-        component: () => import('@/pages/EventMatchingLanding'),
+        component: () =>
+          import('@/pages/EventMatchingLanding').then((page) => page.EventMatchingLanding),
         meta: { queryStaysBehind: true },
       },
     ]

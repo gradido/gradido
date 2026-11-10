@@ -1,0 +1,29 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The footer of the window behind "find on the map" (pages/Matching.module.scss,
+   `.window-buttons`), rule for rule -- the same two buttons, so the same row;
+   EventMatchingHomeInvitation.spec.js holds the two copies together. "Mich auf der Karte
+   zeigen" does not fit beside "Später" on a phone (buttons of 92 and 317px in a window of 374,
+   measured there at 390px), and a footer that wraps the ordinary way would put "later" on a
+   row of its own above the way on. wrap-reverse stacks the rows from the bottom, so the way on
+   stands on top. */
+.window-buttons {
+  display: flex;
+  flex: 1 1 0%;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.window-buttons :global(.btn-gradido) {
+  padding-right: 2rem !important;
+  padding-left: 2rem !important;
+}
+
+@media (width < 400px) {
+  .window-buttons :global(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
+}
