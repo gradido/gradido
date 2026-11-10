@@ -71,6 +71,10 @@ export interface RequestBudget {
   // KEPT_PICTURES_MAX_PER_REQUEST; the list counts as KEPT_PICTURE_LIST_COUNTS. The answer of a
   // request that read one stays out of the log.
   keptPicturesServed: number
+  // Profile pictures handed out: the member's own (avatar, avatarFull) and those of other
+  // members (memberAvatars). Not a cap -- memberAvatars caps its members, memberAvatarFull counts
+  // in memberAvatarsFullServed. The answer of a request that was handed one stays out of the log.
+  profilePicturesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -94,6 +98,7 @@ export const newRequestBudget = (): RequestBudget => ({
   userNotesServed: 0,
   userRemarksServed: 0,
   keptPicturesServed: 0,
+  profilePicturesServed: 0,
 })
 
 export interface Context {

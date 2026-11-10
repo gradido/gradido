@@ -1008,6 +1008,8 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => String, { nullable: true })
   async avatarFull(@Ctx() context: Context): Promise<string | null> {
+    // Its answer stays out of the request log (plugins.ts) -- counted before anything is read.
+    context.requestBudget.profilePicturesServed += 1
     const user = getUser(context)
     const avatar = await dbFindUserAvatarFull(user.id)
     return avatar.success ? avatar.value.toString('base64') : null
@@ -1043,6 +1045,8 @@ export class UserResolver {
     if (refs.length > MEMBER_AVATARS_MAX_REFS) {
       throw new LogError('Too many members requested at once', refs.length)
     }
+    // Its answer stays out of the request log (plugins.ts).
+    context.requestBudget.profilePicturesServed += 1
 
     const { home, foreign } = splitMemberRefsByCommunity(refs, await resolveCommunityUuid(null))
 
@@ -1773,7 +1777,12 @@ export class UserResolver {
     if (!context.user || context.user.id !== user.id) {
       return null
     }
-    return user.avatar ?? null
+    const avatar = user.avatar ?? null
+    // An answer that carries it stays out of the request log (plugins.ts).
+    if (avatar) {
+      context.requestBudget.profilePicturesServed += 1
+    }
+    return avatar
   }
 
   /**

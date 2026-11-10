@@ -294,6 +294,29 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a picture')
   })
 
+  // A profile picture is a face, whoever's it is: the member's own (avatar, avatarFull) and those
+  // of other members (memberAvatars), counted in their own budget entry.
+  it('is left out where the request was handed a profile picture', async () => {
+    const picture = Buffer.from('the face of Anna, as she chose it').toString('base64')
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), profilePicturesServed: 1 } },
+      { memberAvatars: [{ gradidoID: 'aaaaaaaa-anna-gradido-id', avatar: picture }] },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
+  // memberAvatarFull counts in the budget that caps it.
+  it('is left out where the request was handed the full size of a member picture', async () => {
+    const picture = Buffer.from('the face of Anna, at its full size').toString('base64')
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), memberAvatarsFullServed: 1 } },
+      { memberAvatarFull: picture },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
   it("is left out where the request read or wrote the moderation's remark on a member", async () => {
     const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), userRemarksServed: 1 } },
