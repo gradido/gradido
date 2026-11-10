@@ -1,0 +1,64 @@
+/* AI-GENERATED — not an architecture reference */
+
+.builder-prefix {
+  white-space: nowrap;
+}
+
+/* The field takes what the sentence start leaves, and may become narrower than its text. */
+.builder-sentence :global(.form-control) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The line between what the host fills in and what comes out of it: the text colour at a
+   quarter of its strength, in both themes. Said here, and with !important, because the dark
+   theme gives every rule its border colour that way -- and a quarter of that colour is
+   nothing to see on the dark card. */
+.builder-rule {
+  border-color: currentcolor !important;
+  opacity: 0.25;
+}
+
+/* As many lines as `rows` says: every form field of the wallet is given the height of a
+   single-line one, and a field of several lines has to take that back. */
+.builder-area {
+  height: auto;
+}
+
+/* A title may hold a word longer than a phone is wide. */
+.builder-preview {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+/* A square from the first moment, and white whatever the theme: it is the code's own ground,
+   and the picture brings its margin with it. */
+.builder-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 18rem);
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.builder-code-picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.15s;
+}
+
+/* The code of the link before, while the one of the link above is not drawn yet. The state
+   class is the plain one the page writes (and the specs read). */
+.builder-code-picture:global(.is-waiting) {
+  opacity: 0.3;
+}
+
+.builder-code-note {
+  padding: 1rem;
+  color: #383838;
+  text-align: center;
+}

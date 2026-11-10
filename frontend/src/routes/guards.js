@@ -163,7 +163,7 @@ const addNavigationGuards = (router, store, apollo) => {
   //   form (pages/Matching.vue takes it, once; KA-014) -- or nothing happens, where the member
   //   has it already.
   // - Nobody signed in: the store keeps the entry for an hour, and the page says what the link
-  //   offers and leads on to the registration and the sign-in (pages/EventMatchingLanding.vue).
+  //   offers and leads on to the registration and the sign-in (pages/EventMatchingLanding.tsx).
   //   A sign-in on the sign-in page within that hour makes the entry the same way (Login.vue).
   //
   // A session that has run out counts as nobody, and is put away first, as before a page that
