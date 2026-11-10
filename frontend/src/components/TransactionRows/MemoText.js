@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { h } from 'vue'
+import { defineComponent, h } from 'vue'
 import { memoParts } from '@/utils/memoParts'
 import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSearchMarks'
 
@@ -19,7 +19,7 @@ const keepClick = (event) => event.stopPropagation()
  * In a chat thread a transfer's memo is searched with the messages (E-057), and its hits are
  * marked; in the booking list nothing is searched, and nothing changes there.
  */
-export default {
+export default defineComponent({
   name: 'MemoText',
   props: {
     memo: { type: String, default: '' },
@@ -56,4 +56,4 @@ export default {
       )
     }
   },
-}
+})

@@ -7,7 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import OwnCodeView from './OwnCodeView.vue'
+import { OwnCodeView } from './OwnCodeView'
 import { renderQrCodeCanvas } from '@/utils/qrCode'
 
 vi.mock('@/utils/qrCode', () => ({ renderQrCodeCanvas: vi.fn() }))
@@ -157,13 +157,13 @@ describe('OwnCodeView', () => {
    * source -- comments stripped first, because this file explains them in prose.
    */
   describe('the head in the stylesheet', () => {
-    const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'OwnCodeView.vue'),
+    // The style module: every rule stands under the root's class (`:global(.own-code-head)`).
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'OwnCodeView.module.scss'),
       'utf8',
-    )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector, from = style) =>
-      from.match(new RegExp(`${selector.replace('.', '\\.')}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+      from.match(new RegExp(`${selector.replace('.', '\\.')}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
     it('gives the arrow a line of its own: the head is not a flex row any more', () => {
       expect(rule('.own-code-head')).not.toMatch(/display:\s*flex/)

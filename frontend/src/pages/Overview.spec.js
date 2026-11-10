@@ -2,10 +2,10 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { walletStore } from '@test/walletStore'
-import Overview from './Overview.vue'
-import MatchingTile from '@/components/Overview/MatchingTile'
-import ShowFriendsTile from '@/components/Overview/ShowFriendsTile'
-import ThanksArrivalTile from '@/components/Overview/ThanksArrivalTile'
+import { Overview } from './Overview'
+import { MatchingTile } from '@/components/Overview/MatchingTile'
+import { ShowFriendsTile } from '@/components/Overview/ShowFriendsTile'
+import { ThanksArrivalTile } from '@/components/Overview/ThanksArrivalTile'
 import {
   FIRST_ANSWER_PATIENCE_MS,
   MAP_MEMBER_COUNT_STORAGE_KEY,
@@ -73,7 +73,7 @@ vi.mock('@/composables/useToast', () => ({
 }))
 
 vi.mock('@/components/Overview/CardCircles', () => ({
-  default: {
+  CardCircles: {
     name: 'CardCircles',
     template: '<div class="card-circles"></div>',
   },
@@ -91,10 +91,12 @@ describe('Overview', () => {
         plugins: [router, i18n, store],
         stubs: {
           RouterLink: true,
-          IMdiChevronRight: true,
-          ITablerHeartHandshake: true,
-          IIonLayersSharp: true,
-          IMdiEmoticonHappyOutline: true,
+          // The tiles import their icons (`~icons/…`), whose components carry the icon's own
+          // name; the one in ChatReactionChoice.vue is still resolved by name.
+          MdiChevronRight: true,
+          TablerHeartHandshake: true,
+          IonLayersSharp: true,
+          MdiEmoticonHappyOutline: true,
           IMdiPlus: true,
           // The window the tile opens is its own component with its own spec; this file
           // is about which tiles the page shows and in what order.

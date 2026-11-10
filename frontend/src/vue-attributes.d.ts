@@ -23,5 +23,6 @@ declare module 'vue' {
     onBlur?: HTMLAttributes['onBlur']
     onInput?: HTMLAttributes['onInput']
     onMouseover?: HTMLAttributes['onMouseover']
+    inputmode?: InputHTMLAttributes['inputmode']
   }
 }

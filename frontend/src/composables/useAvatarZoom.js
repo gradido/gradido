@@ -145,7 +145,7 @@ export const closeAvatarZoom = () => {
  * keep the plain, unclickable circle they always had. The alternative is a `v-if` in every
  * template, which is where the answer eventually comes to differ between them.
  *
- * @param {{gradidoID?: string|null, alias?: string, communityUuid?: string|null}|null} member
+ * @param {{gradidoID?: string|null, alias?: string|null, communityUuid?: string|null}|null} member
  * @param {{src?: string}} avatarProps what memberAvatarProps worked out for this member
  */
 export const avatarZoomBindings = (member, avatarProps) => {

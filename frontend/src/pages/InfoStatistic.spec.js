@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { ref } from 'vue'
-import InfoStatistic from './InfoStatistic.vue'
+import { InfoStatistic } from './InfoStatistic'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 import { listContributionLinks, searchAdminUsers } from '@/graphql/queries'

@@ -40,7 +40,7 @@ export default defineConfig(async () => {
         ['**/ChatVideoCall.edit.spec.js', 'forks'],
         ['**/ContactWindow.spec.js', 'forks'],
       ],
-      // setupFiles: ['./test/vitest.setup.js'],
+      setupFiles: ['./test/vitest.setup.js'],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],

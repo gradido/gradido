@@ -184,14 +184,15 @@ describe('the overview tiles', () => {
   // gives it back as the padding of whatever stands in it. A horizontal padding of the
   // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
   // cards above it on every width.
-  const tiles = ['ThanksArrivalTile.vue', 'ShowFriendsTile.vue', 'CardCircles.vue']
+  const tiles = ['ThanksArrivalTile.tsx', 'ShowFriendsTile.tsx', 'CardCircles.tsx']
 
   it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
-    const template = live(source('components', 'Overview', file))
-    // The root's class, wherever it stands among the root's attributes (a `v-if` may come first).
-    const root = template.match(/<template>\s*<div\b[^>]*?\sclass="([^"]*)"/)
+    const render = live(source('components', 'Overview', file))
+    // The root is the first element the render function returns: its class is a plain string,
+    // or the plain classes beside the module's own (`class={['mb-3 …', classes['…']]}`).
+    const root = render.match(/<div\b[^>]*?\sclass=(?:'([^']*)'|\{\['([^']*)')/)
     expect(root).not.toBeNull()
-    const classes = root[1].split(/\s+/)
+    const classes = (root[1] ?? root[2]).split(/\s+/)
     expect(classes).toContain('py-3')
     expect(classes.filter((name) => /^(p|px|ps|pe)-\d$/.test(name))).toEqual([])
   })

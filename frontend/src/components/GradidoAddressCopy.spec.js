@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import GradidoAddressCopy from './GradidoAddressCopy.vue'
+import { GradidoAddressCopy } from './GradidoAddressCopy'
 
 vi.mock('@/config', () => ({
   default: { COMMUNITY_URL: 'https://ki-playground.gradido.net' },
@@ -89,7 +89,8 @@ describe('GradidoAddressCopy', () => {
   it('puts the copy icon behind the address', () => {
     const html = wrapperFor().html()
 
-    expect(html.indexOf('ki-playground')).toBeLessThan(html.indexOf('ibicopy'))
+    // The imported icon renders as an svg.
+    expect(html.indexOf('ki-playground')).toBeLessThan(html.indexOf('<svg'))
   })
 
   /**
@@ -113,18 +114,19 @@ describe('GradidoAddressCopy', () => {
     it('keeps the copy icon inside the last part', () => {
       const wrapper = wrapperFor()
 
-      expect(wrapper.find('[data-test="gradido-address-path"]').html()).toContain('ibicopy')
-      expect(wrapper.find('[data-test="gradido-address-host"]').html()).not.toContain('ibicopy')
+      expect(wrapper.find('[data-test="gradido-address-path"]').html()).toContain('<svg')
+      expect(wrapper.find('[data-test="gradido-address-host"]').html()).not.toContain('<svg')
     })
 
     // jsdom lays nothing out, so the stylesheet says it -- read without its comments.
     it('moves each part as a whole and breaks inside one only as the last resort, in the stylesheet', () => {
+      // The style module: the part's rule stands under the button's class (`:global(.address-part)`).
       const style = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'GradidoAddressCopy.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'GradidoAddressCopy.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       const rule = (selector) =>
-        style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+        style.match(new RegExp(`(?:\\n|:global\\()${selector}\\)?\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
       expect(rule('\\.address-part')).toMatch(/display:\s*inline-block/)
       expect(rule('\\.address-part')).toMatch(/max-width:\s*100%/)
