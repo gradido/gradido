@@ -50,6 +50,9 @@ type Query {
   adminEmailStatus(userId: Int!): AdminEmailStatus!
   firstCreationStatus: FirstCreationStatus!
   guarantorCode: GuarantorCode
+  keptPicturePairs: [KeptPicturePair!]!
+  keptPictures: [KeptPicture!]!
+  keptPictureFull(ref: MemberAvatarRefInput!): String
   listMatchingEntries: [MatchingEntry!]!
   eventMatchingArrival: String
   projectBrandings: [ProjectBranding!]!
@@ -788,6 +791,17 @@ type UnconfirmedGuest {
   createdAt: DateTime!
 }
 
+type KeptPicturePair {
+  gradidoID: String!
+  communityUuid: String!
+}
+
+type KeptPicture {
+  gradidoID: String!
+  communityUuid: String!
+  picture: String!
+}
+
 type MatchingEntry {
   uuid: String!
   matchingType: String!
@@ -1048,6 +1062,8 @@ type Mutation {
   submitFirstCreation(entries: [FirstCreationEntryInput!]!): FirstCreationStatus!
   skipFirstCreation: Boolean!
   startFirstCreationTest(withBooking: Boolean!): Boolean!
+  setKeptPicture(pictureFull: String!, pictureSmall: String!, ref: MemberAvatarRefInput!): Boolean!
+  removeKeptPicture(ref: MemberAvatarRefInput!): Boolean!
   unsubscribeNewsletter: Boolean!
   subscribeNewsletter: Boolean!
   createMatchingEntry(input: MatchingEntryInput!): MatchingEntry!

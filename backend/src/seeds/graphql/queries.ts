@@ -1306,6 +1306,31 @@ export const userRemark = gql`
   }
 `
 
+export const keptPictures = gql`
+  query {
+    keptPictures {
+      communityUuid
+      gradidoID
+      picture
+    }
+  }
+`
+
+export const keptPicturePairs = gql`
+  query {
+    keptPicturePairs {
+      communityUuid
+      gradidoID
+    }
+  }
+`
+
+export const keptPictureFull = gql`
+  query ($ref: MemberAvatarRefInput!) {
+    keptPictureFull(ref: $ref)
+  }
+`
+
 export const userNotes = gql`
   query {
     userNotes {

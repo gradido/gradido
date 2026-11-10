@@ -10,6 +10,7 @@ import {
   closeAvatarZoom,
   openAvatarZoom,
 } from './useAvatarZoom'
+import { forgetKeptPictures, setKeptPicture, startKeptPictures } from './useKeptPictures'
 
 // ⚠️ Carries an alias. The labels are built from it, and a fixture without one exercises
 // only the name-free fallback -- which is a real case, and gets its own test below, but is
@@ -31,6 +32,7 @@ describe('useAvatarZoom', () => {
         member: { gradidoID: 'g-napoli', communityUuid: 'c-home' },
         src: SRC,
         label: 'Napoli',
+        kept: false,
         origin: ORIGIN,
       })
     })
@@ -137,6 +139,51 @@ describe('useAvatarZoom', () => {
 
     closeAvatarZoom()
     expect(avatarZoomState.value).toBeNull()
+  })
+
+  // AS-023: where the circle shows the signed-in member's own picture of this person, the
+  // overlay has to know -- it fetches that picture at full size, calls it by its name, and does
+  // not close when the person withdraws their own.
+  describe("the member's own picture of a person", () => {
+    const keep = async () => {
+      startKeptPictures('g-me', 'c-home')
+      await setKeptPicture({ mutate: () => Promise.resolve({ data: {} }) }, MEMBER, {
+        small: 'S',
+        full: 'F',
+      })
+    }
+
+    afterEach(() => {
+      forgetKeptPictures()
+    })
+
+    it('says so, on the button and on the opened picture', async () => {
+      const theirs = avatarZoomBindings(MEMBER, { src: SRC })
+      theirs.onZoom(ORIGIN)
+      const theirLabel = avatarZoomState.value.label
+      expect(avatarZoomState.value.kept).toBe(false)
+      closeAvatarZoom()
+
+      await keep()
+      const mine = avatarZoomBindings(MEMBER, { src: SRC })
+      mine.onZoom(ORIGIN)
+
+      expect(avatarZoomState.value.kept).toBe(true)
+      expect(avatarZoomState.value.label).toContain('napoli')
+      expect(avatarZoomState.value.label).not.toBe(theirLabel)
+      expect(mine.zoomLabel).toContain('napoli')
+      expect(mine.zoomLabel).not.toBe(theirs.zoomLabel)
+      expect(mine.zoomLabel).not.toBe(avatarZoomState.value.label)
+    })
+
+    it('opens again for the same person where the circle changed whose picture it shows', () => {
+      openAvatarZoom({ member: MEMBER, src: SRC, origin: ORIGIN })
+      const epoch = avatarZoomEpoch()
+      openAvatarZoom({ member: MEMBER, src: SRC, origin: ORIGIN, kept: true })
+
+      expect(avatarZoomState.value.kept).toBe(true)
+      expect(avatarZoomEpoch()).not.toBe(epoch)
+    })
   })
 
   describe('what a call site binds', () => {

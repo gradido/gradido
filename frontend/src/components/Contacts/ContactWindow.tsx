@@ -25,11 +25,14 @@ import {
   contactDisplay,
   contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
+import { KeptPictureWindow } from '@/components/Contacts/KeptPictureWindow'
 import FavoriteHeart from '@/components/FavoriteHeart.vue'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
+import { hasKeptPicture } from '@/composables/useKeptPictures'
+import { memberOwnAvatarSource } from '@/composables/useMemberAvatars'
 import { useSendReturn } from '@/composables/useSendReturn'
 import { useAppToast } from '@/composables/useToast'
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
@@ -40,6 +43,7 @@ import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 import { noteChatVideoJoined } from '@/utils/chatVideoJoined'
 import { gradidoAddress } from '@/utils/gradidoAddress'
 import { SEND_TYPES } from '@/utils/sendTypes'
+import IBiPencil from '~icons/bi/pencil'
 import IBiX from '~icons/bi/x'
 import MdiBellOffOutline from '~icons/mdi/bell-off-outline'
 import MdiBellOutline from '~icons/mdi/bell-outline'
@@ -106,6 +110,33 @@ export const ContactWindow = defineComponent({
     )
     const alias = computed(() => display.value?.alias ?? '')
     const avatar = computed(() => display.value?.avatar ?? {})
+    /** The picture the circle shows; '' where it shows letters. */
+    const shownSource = computed(() => {
+      const shown: { src?: string } = avatar.value
+      return shown.src ?? ''
+    })
+
+    /**
+     * The member's own picture of this contact (AS-023), and its ways in at the circle.
+     *
+     * The circle shows what memberAvatarSource gives -- the member's picture first. Where it
+     * covers a picture the contact chose themselves, the contact's own stands small at the
+     * circle's lower right (the sign, rule 3): the one place in the wallet that says an original
+     * exists. Lists show no sign.
+     */
+    const pictureWindowOpen = ref(false)
+    const openPictureWindow = () => {
+      pictureWindowOpen.value = true
+    }
+    const hasMine = computed(() => Boolean(props.contact && hasKeptPicture(props.contact.user)))
+    const coveredOriginal = computed(() =>
+      props.contact && hasMine.value ? memberOwnAvatarSource(props.contact.user) : '',
+    )
+    const pictureLabel = computed(() =>
+      hasMine.value
+        ? t('keptPicture.change', { name: alias.value })
+        : t('keptPicture.choose', { name: alias.value }),
+    )
 
     /**
      * Which person the thread belongs to -- the pair (KF-004), in lower case, as the server
@@ -765,7 +796,59 @@ export const ContactWindow = defineComponent({
             ) : null}
 
             <div class={['contact-window-head', classes['contact-window-head']]}>
-              <AppAvatar size={64} color='#fff' {...avatar.value} />
+              <div class={['contact-window-face', classes['contact-window-face']]}>
+                {shownSource.value ? (
+                  // A face: a tap enlarges it, as it always did -- now also the member's own
+                  // picture of this contact (useAvatarZoom, `kept`).
+                  <AppAvatar size={64} color='#fff' {...avatar.value} />
+                ) : (
+                  // Letters: the circle itself opens the window of a picture of one's own. One
+                  // button with the pencil in it -- not two tab stops for one thing.
+                  <button
+                    type='button'
+                    class={['contact-window-letters', classes['contact-window-letters']]}
+                    aria-label={pictureLabel.value}
+                    title={pictureLabel.value}
+                    data-test='contact-window-letters'
+                    onClick={openPictureWindow}
+                  >
+                    <AppAvatar size={64} color='#fff' {...avatar.value} />
+                    <span
+                      class={['contact-window-picture', classes['contact-window-picture']]}
+                      aria-hidden='true'
+                    >
+                      <IBiPencil />
+                    </span>
+                  </button>
+                )}
+                {shownSource.value && coveredOriginal.value ? (
+                  <button
+                    type='button'
+                    class={['contact-window-sign', classes['contact-window-sign']]}
+                    aria-label={t('keptPicture.both', { name: alias.value })}
+                    title={t('keptPicture.both', { name: alias.value })}
+                    data-test='contact-window-sign'
+                    onClick={openPictureWindow}
+                  >
+                    <img src={coveredOriginal.value} alt='' />
+                  </button>
+                ) : null}
+                {shownSource.value && !coveredOriginal.value ? (
+                  // Beside a face, the way to a picture of one's own is a pencil at the corner
+                  // (Bernd, 10.11.2026: rather than a line in the enlargement) -- where the sign
+                  // stands, the sign is the way.
+                  <button
+                    type='button'
+                    class={['contact-window-picture', classes['contact-window-picture']]}
+                    aria-label={pictureLabel.value}
+                    title={pictureLabel.value}
+                    data-test='contact-window-picture'
+                    onClick={openPictureWindow}
+                  >
+                    <IBiPencil aria-hidden='true' />
+                  </button>
+                ) : null}
+              </div>
               <div class={['contact-window-who', classes['contact-window-who']]}>
                 {/* The name has its line to itself (Bernd, 26.09.2026): the marks that stood
                     behind it went down beside the send button, where they no longer take the room
@@ -1110,6 +1193,15 @@ export const ContactWindow = defineComponent({
               writer={alias.value}
               onUpdate:modelValue={(open: boolean) => {
                 forwardOpen.value = open
+              }}
+            />
+
+            <KeptPictureWindow
+              modelValue={pictureWindowOpen.value}
+              member={props.contact.user}
+              name={alias.value}
+              onUpdate:modelValue={(open: boolean) => {
+                pictureWindowOpen.value = open
               }}
             />
           </div>
