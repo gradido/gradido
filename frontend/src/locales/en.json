@@ -964,6 +964,7 @@
   "h": "h",
   "info": "Information",
   "keptPicture": {
+    "both": "Show both pictures of {name}",
     "change": "Change your picture of {name}",
     "choose": "Choose your own picture for {name}",
     "failed": "That did not work. Please try again.",

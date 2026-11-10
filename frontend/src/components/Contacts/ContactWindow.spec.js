@@ -731,6 +731,21 @@ describe('ContactWindow', () => {
       expect(pictureWindow().attributes('data-open')).toBe('true')
     })
 
+    it('shows her own picture small at the circle where mine covers it', async () => {
+      await keepCarla()
+      faces.shown[CARLA] = 'data:image/jpeg;base64,MINE'
+      faces.own[CARLA] = 'data:image/jpeg;base64,HERS'
+      mountWindow()
+      const sign = wrapper.find('[data-test="contact-window-sign"]')
+      expect(sign.find('img').attributes('src')).toBe('data:image/jpeg;base64,HERS')
+      expect(sign.attributes('aria-label')).toBe('keptPicture.both {"name":"Carla-Sonne"}')
+      expect(wrapper.find('[data-test="contact-window-picture"]').exists()).toBe(false)
+
+      await sign.trigger('click')
+
+      expect(pictureWindow().attributes('data-open')).toBe('true')
+    })
+
     it('offers to change my picture where she has none of her own', async () => {
       await keepCarla()
       faces.shown[CARLA] = 'data:image/jpeg;base64,MINE'

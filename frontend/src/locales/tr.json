@@ -964,6 +964,7 @@
   "h": "sa",
   "info": "Bilgi",
   "keptPicture": {
+    "both": "{name} için iki resmi de göster",
     "change": "{name} için resmini değiştir",
     "choose": "{name} için kendi resmini seç",
     "failed": "Olmadı. Lütfen tekrar dene.",

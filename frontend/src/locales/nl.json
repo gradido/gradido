@@ -964,6 +964,7 @@
   "h": "h",
   "info": "Informatie",
   "keptPicture": {
+    "both": "Beide foto's van {name} tonen",
     "change": "Jouw foto van {name} wijzigen",
     "choose": "Eigen foto voor {name} kiezen",
     "failed": "Dat is niet gelukt. Probeer het nog eens.",

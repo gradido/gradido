@@ -964,6 +964,7 @@
   "h": "h",
   "info": "Information",
   "keptPicture": {
+    "both": "Afficher les deux photos de {name}",
     "change": "Changer ta photo de {name}",
     "choose": "Choisir ta propre photo pour {name}",
     "failed": "Cela n'a pas fonctionné. Réessaie, s'il te plaît.",

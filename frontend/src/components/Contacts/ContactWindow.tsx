@@ -32,6 +32,7 @@ import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { useContactOnMap } from '@/composables/useContactOnMap'
 import { hasKeptPicture } from '@/composables/useKeptPictures'
+import { memberOwnAvatarSource } from '@/composables/useMemberAvatars'
 import { useSendReturn } from '@/composables/useSendReturn'
 import { useAppToast } from '@/composables/useToast'
 import { setChatConversationMuted } from '@/graphql/chat.graphql'
@@ -118,13 +119,19 @@ export const ContactWindow = defineComponent({
     /**
      * The member's own picture of this contact (AS-023), and its ways in at the circle.
      *
-     * The circle shows what memberAvatarSource gives -- the member's picture first.
+     * The circle shows what memberAvatarSource gives -- the member's picture first. Where it
+     * covers a picture the contact chose themselves, the contact's own stands small at the
+     * circle's lower right (the sign, rule 3): the one place in the wallet that says an original
+     * exists. Lists show no sign.
      */
     const pictureWindowOpen = ref(false)
     const openPictureWindow = () => {
       pictureWindowOpen.value = true
     }
     const hasMine = computed(() => Boolean(props.contact && hasKeptPicture(props.contact.user)))
+    const coveredOriginal = computed(() =>
+      props.contact && hasMine.value ? memberOwnAvatarSource(props.contact.user) : '',
+    )
     const pictureLabel = computed(() =>
       hasMine.value
         ? t('keptPicture.change', { name: alias.value })
@@ -814,9 +821,22 @@ export const ContactWindow = defineComponent({
                     </span>
                   </button>
                 )}
-                {shownSource.value ? (
+                {shownSource.value && coveredOriginal.value ? (
+                  <button
+                    type='button'
+                    class={['contact-window-sign', classes['contact-window-sign']]}
+                    aria-label={t('keptPicture.both', { name: alias.value })}
+                    title={t('keptPicture.both', { name: alias.value })}
+                    data-test='contact-window-sign'
+                    onClick={openPictureWindow}
+                  >
+                    <img src={coveredOriginal.value} alt='' />
+                  </button>
+                ) : null}
+                {shownSource.value && !coveredOriginal.value ? (
                   // Beside a face, the way to a picture of one's own is a pencil at the corner
-                  // (Bernd, 10.11.2026: rather than a line in the enlargement).
+                  // (Bernd, 10.11.2026: rather than a line in the enlargement) -- where the sign
+                  // stands, the sign is the way.
                   <button
                     type='button'
                     class={['contact-window-picture', classes['contact-window-picture']]}

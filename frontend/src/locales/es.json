@@ -964,6 +964,7 @@
   "h": "h",
   "info": "Información",
   "keptPicture": {
+    "both": "Mostrar las dos imágenes de {name}",
     "change": "Cambiar tu imagen de {name}",
     "choose": "Elegir tu propia imagen para {name}",
     "failed": "No ha funcionado. Inténtalo de nuevo.",
