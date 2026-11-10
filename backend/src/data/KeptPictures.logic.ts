@@ -2,14 +2,6 @@
 import type { UserKeptPictureSubject } from 'database'
 
 /**
- * How many people a member may keep a picture of (AS-024, set by Claude and named to Bernd): the
- * table must not grow without end, and every list of the wallet carries all of them in the small
- * rendition -- a hundred of those are about 1.3 MB. Replacing a picture already kept is not
- * counted against it.
- */
-export const KEPT_PICTURES_MAX_PER_MEMBER = 100
-
-/**
  * How much of a member's own pictures one HTTP request may be served -- a full one counts one,
  * the list of all small ones counts as the whole of it: a document may repeat a field under any
  * number of aliases (RequestBudget), and the list is up to a hundred pictures. The wallet asks for

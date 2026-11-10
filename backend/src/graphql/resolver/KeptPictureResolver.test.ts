@@ -11,11 +11,9 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, dbUpsertUserKeptPicture, User } from 'database'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
+import { KEPT_PICTURES_MAX_PER_MEMBER } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  KEPT_PICTURES_MAX_PER_MEMBER,
-  KEPT_PICTURES_MAX_PER_REQUEST,
-} from '@/data/KeptPictures.logic'
+import { KEPT_PICTURES_MAX_PER_REQUEST } from '@/data/KeptPictures.logic'
 import { userFactory } from '@/seeds/factory/user'
 import { login, removeKeptPicture, setKeptPicture } from '@/seeds/graphql/mutations'
 import { keptPictureFull, keptPictures } from '@/seeds/graphql/queries'

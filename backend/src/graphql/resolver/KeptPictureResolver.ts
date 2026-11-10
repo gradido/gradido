@@ -10,11 +10,11 @@ import {
   dbUpsertUserKeptPicture,
   UserKeptPictureSubject,
 } from 'database'
+import { KEPT_PICTURES_MAX_PER_MEMBER } from 'shared'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   KEPT_PICTURE_LIST_COUNTS,
-  KEPT_PICTURES_MAX_PER_MEMBER,
   KEPT_PICTURES_MAX_PER_REQUEST,
   keptPictureSubjectOf,
 } from '@/data/KeptPictures.logic'
