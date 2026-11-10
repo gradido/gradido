@@ -6,6 +6,7 @@ import {
   dbCountUserKeptPicturesBesides,
   dbDeleteUserKeptPicture,
   dbSelectUserKeptPictureFull,
+  dbSelectUserKeptPicturePairs,
   dbSelectUserKeptPicturesSmall,
   dbUpsertUserKeptPicture,
   UserKeptPictureSubject,
@@ -83,6 +84,17 @@ describe('userKeptPictures query test', () => {
     expect(rows[0].pictureSmall).toEqual(Buffer.from('second small'))
     expect(rows[0].pictureFull).toEqual(Buffer.from('second full'))
     expect(rows[0].updatedAt.getTime()).toBeGreaterThan(first.updatedAt.getTime())
+  })
+
+  it("names whom the member keeps a picture of, without the pictures, and nobody else's", async () => {
+    await keep(ME, BERT, 'bert small', 'bert full')
+    await keep(ME, ANNA, 'anna small', 'anna full')
+    await keep(SOMEBODY_ELSE, ANNA, 'theirs small', 'theirs full')
+    expect(await dbSelectUserKeptPicturePairs(ME)).toEqual([
+      { subjectCommunityUuid: COMMUNITY, subjectGradidoId: ANNA.gradidoId },
+      { subjectCommunityUuid: COMMUNITY, subjectGradidoId: BERT.gradidoId },
+    ])
+    expect(await dbSelectUserKeptPicturePairs(3)).toEqual([])
   })
 
   it("gives nobody else's picture -- each member keeps their own of the same person", async () => {

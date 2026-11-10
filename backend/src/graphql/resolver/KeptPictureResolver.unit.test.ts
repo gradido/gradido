@@ -7,6 +7,7 @@
 // out its own fakes, and the module under test is imported in `beforeAll`. LogError is one of the
 // fakes: what the resolver hands it is what would reach the log -- the resolver writes nothing to
 // a log itself.
+import { KEPT_PICTURES_MAX_PER_REQUEST } from '@/data/KeptPictures.logic'
 import type { Context } from '@/server/context'
 
 /** Stands in for LogError and keeps what it was handed: that is what would reach the log. */
@@ -21,6 +22,7 @@ const mockDatabase = {
   dbCountUserKeptPicturesBesides: jest.fn(),
   dbDeleteUserKeptPicture: jest.fn(),
   dbSelectUserKeptPictureFull: jest.fn(),
+  dbSelectUserKeptPicturePairs: jest.fn(),
   dbSelectUserKeptPicturesSmall: jest.fn(),
   dbUpsertUserKeptPicture: jest.fn(),
 }
@@ -177,5 +179,45 @@ describe('KeptPictureResolver', () => {
       pictureFull: Buffer.from(PICTURE),
       mimeType: 'image/jpeg',
     })
+  })
+
+  // WHOM the member keeps a picture of: the signed-in member's, counted like a picture, and a
+  // failing read leaves with the driver's code only.
+  it("names the signed-in member's own people, counted in the request's budget", async () => {
+    mockDatabase.dbSelectUserKeptPicturePairs.mockResolvedValue([
+      { subjectCommunityUuid: HOME, subjectGradidoId: ANNA.toLowerCase() },
+    ])
+    const context = lenasRequest()
+    expect(await new KeptPictureResolver().keptPicturePairs(context)).toEqual([
+      expect.objectContaining({ communityUuid: HOME, gradidoID: ANNA.toLowerCase() }),
+    ])
+    expect(mockDatabase.dbSelectUserKeptPicturePairs).toHaveBeenCalledWith(1)
+    expect(context.requestBudget.keptPicturesServed).toBe(1)
+
+    mockDatabase.dbSelectUserKeptPicturePairs.mockRejectedValue(
+      new Error(`Failed query: select ... params: 1,${ANNA}`),
+    )
+    const failed = (await new KeptPictureResolver()
+      .keptPicturePairs(lenasRequest())
+      .catch((error: unknown) => error)) as mockLogError
+    expect(failed.message).toBe('KEPT_PICTURE_NOT_STORED')
+    expect(failed.details).toEqual(['ER_LOCK_WAIT_TIMEOUT'])
+  })
+
+  // A document may repeat the removal under any number of aliases, each a delete: the request's
+  // budget counts them as it counts reads.
+  it('removes as many in one request as the budget allows, and not one more', async () => {
+    const resolver = new KeptPictureResolver()
+    const context = lenasRequest()
+    for (let n = 0; n < KEPT_PICTURES_MAX_PER_REQUEST; n++) {
+      await resolver.removeKeptPicture(annasRef, context)
+    }
+    const refused = (await resolver
+      .removeKeptPicture(annasRef, context)
+      .catch((error: unknown) => error)) as mockLogError
+    expect(refused.message).toBe('Too many kept pictures asked for at once')
+    expect(mockDatabase.dbDeleteUserKeptPicture).toHaveBeenCalledTimes(
+      KEPT_PICTURES_MAX_PER_REQUEST,
+    )
   })
 })

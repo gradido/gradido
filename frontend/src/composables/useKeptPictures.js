@@ -56,6 +56,23 @@ let inFlight = null
 // member's pictures into the next one's session.
 let epoch = 0
 
+// Pictures set or taken away before a list has come: the server may have read that list before
+// them, so they are laid over its answer again. Laid over, not waited for -- an answer thrown away
+// would leave every other picture out until the next request. Doing it twice changes nothing, so
+// a list read after them is no harm.
+let changedSince = []
+const replayChanges = () => {
+  for (const { key, small } of changedSince) {
+    if (small) {
+      kept.add(key)
+      pictures.set(key, small)
+    } else {
+      kept.delete(key)
+      pictures.delete(key)
+    }
+  }
+}
+
 // Read by every reader, bumped by every change: a list asking for a face inside a computed draws
 // again when a picture is set, taken away or arrives. The faces of other members have a counter of
 // their own (useMemberAvatars); this one is read in memberAvatarSource as well.
@@ -93,6 +110,10 @@ export const startKeptPictures = (member, community) => {
         const stored = JSON.parse(localStorage.getItem(DEVICE_KEY) ?? 'null')
         if (stored?.owner === owner && Array.isArray(stored.keys)) {
           kept = new Set(stored.keys.filter((key) => typeof key === 'string'))
+        } else if (stored) {
+          // Another member's, left where nobody signed out -- a session that ran out with the tab
+          // closed, a sign-in over an open session: gone now, not once this member's list comes.
+          localStorage.removeItem(DEVICE_KEY)
         }
       } catch {
         // Unreadable storage: the list from the server fills it in.
@@ -123,12 +144,15 @@ export const ensureKeptPictures = (apolloClient) => {
   if (loaded || !owner) return Promise.resolve()
   if (!inFlight) {
     const at = epoch
+    // What the server reads from here on includes every change made before.
+    changedSince = []
     apolloClient
       .query({ query: keptPicturePairsQuery, fetchPolicy: 'no-cache' })
       .then(({ data }) => {
         // The pictures may have come first: they carry the pairs as well.
         if (at !== epoch || loaded) return
-        kept = new Set((data?.keptPictures ?? []).map(keyOf))
+        kept = new Set((data?.keptPicturePairs ?? []).map(keyOf))
+        replayChanges()
         remember()
         announce()
       })
@@ -142,6 +166,8 @@ export const ensureKeptPictures = (apolloClient) => {
         const answered = data?.keptPictures ?? []
         kept = new Set(answered.map(keyOf))
         pictures = new Map(answered.map((entry) => [keyOf(entry), entry.picture]))
+        replayChanges()
+        changedSince = []
         loaded = true
         remember()
         announce()
@@ -201,6 +227,7 @@ export const setKeptPicture = async (apolloClient, member, { small, full }) => {
   const key = keyOf(member)
   kept = new Set(kept).add(key)
   pictures = new Map(pictures).set(key, small)
+  if (!loaded) changedSince.push({ key, small })
   remember()
   announce()
 }
@@ -221,6 +248,7 @@ export const removeKeptPicture = async (apolloClient, member) => {
   kept.delete(key)
   pictures = new Map(pictures)
   pictures.delete(key)
+  if (!loaded) changedSince.push({ key, small: null })
   remember()
   announce()
 }
@@ -251,6 +279,7 @@ function forgetInMemory() {
   home = null
   kept = new Set()
   pictures = new Map()
+  changedSince = []
   loaded = false
   inFlight = null
   epoch++

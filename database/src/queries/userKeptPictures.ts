@@ -25,6 +25,29 @@ const isPictureOf = (subject: UserKeptPictureSubject) =>
   )
 
 /**
+ * WHO the member keeps a picture of, without the pictures: the two key columns only, so that the
+ * wallet can know whom to wait for before the pictures come -- a list of a picture table names the
+ * columns beside the picture and never the picture.
+ *
+ * Ordered by the key, as the pictures are.
+ */
+export async function dbSelectUserKeptPicturePairs(
+  userId: number,
+): Promise<{ subjectCommunityUuid: string; subjectGradidoId: string }[]> {
+  return drizzleDb()
+    .select({
+      subjectCommunityUuid: userKeptPicturesTable.subjectCommunityUuid,
+      subjectGradidoId: userKeptPicturesTable.subjectGradidoId,
+    })
+    .from(userKeptPicturesTable)
+    .where(eq(userKeptPicturesTable.userId, userId))
+    .orderBy(
+      asc(userKeptPicturesTable.subjectCommunityUuid),
+      asc(userKeptPicturesTable.subjectGradidoId),
+    )
+}
+
+/**
  * Every picture the member keeps, in the small rendition, for the lists of their wallet. One query
  * over the member's rows -- the primary key begins with `user_id` -- and without the full
  * rendition, which is about ten times the size and is asked for one at a time.

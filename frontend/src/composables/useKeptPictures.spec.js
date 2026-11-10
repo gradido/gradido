@@ -26,7 +26,13 @@ const BEN = { communityUuid: HOME, gradidoID: 'bbbb-ben' }
 const DEVICE_KEY = 'gradido-kept-pictures'
 const MONDAY = '2026-08-17T10:00:00.000Z'
 
-const listAnswer = (...rows) => ({ data: { keptPictures: rows } })
+// What the server answers to the pairs and to the pictures; a mock answering both alike gives both.
+const listAnswer = (...rows) => ({
+  data: {
+    keptPictures: rows,
+    keptPicturePairs: rows.map(({ communityUuid, gradidoID }) => ({ communityUuid, gradidoID })),
+  },
+})
 const row = (member, picture) => ({ ...member, picture })
 
 const client = (overrides = {}) => ({
@@ -207,6 +213,8 @@ describe('useKeptPictures', () => {
       )
       startKeptPictures(ME, HOME)
       expect(hasKeptPicture(ANNA)).toBe(false)
+      // ...and takes them off the device at once, not when this member's list comes.
+      expect(localStorage.getItem(DEVICE_KEY)).toBeNull()
     })
 
     it('reads past a broken entry', () => {
@@ -302,6 +310,57 @@ describe('useKeptPictures', () => {
       await ensureKeptPictures(apollo)
       await expect(removeKeptPicture(apollo, ANNA)).rejects.toThrow('offline')
       expect(hasKeptPicture(ANNA)).toBe(true)
+    })
+  })
+
+  // A list the server read before a picture was set or taken away must not undo it (coderabbit,
+  // #4274) -- and must not be thrown away either: it carries every other picture.
+  describe('a change while the list is on its way', () => {
+    const answeringSlowly = (pairs, pictures) =>
+      client({
+        query: vi.fn(({ query }) =>
+          query.definitions[0].name.value === 'keptPicturePairsQuery'
+            ? pairs.promise
+            : pictures.promise,
+        ),
+      })
+
+    it('keeps a picture set meanwhile, and the others the list brings', async () => {
+      const pairs = deferred()
+      const pictures = deferred()
+      const apollo = answeringSlowly(pairs, pictures)
+      startKeptPictures(ME, HOME)
+      const asked = ensureKeptPictures(apollo)
+      await setKeptPicture(apollo, ANNA, { small: 'anna-mine', full: 'f' })
+
+      pairs.resolve(listAnswer(BEN))
+      await pairs.promise
+      await Promise.resolve()
+      expect(hasKeptPicture(ANNA)).toBe(true)
+
+      pictures.resolve(listAnswer(row(BEN, 'ben-mine')))
+      await asked
+      expect(keptPictureSource(ANNA)).toBe('data:image/jpeg;base64,anna-mine')
+      expect(keptPictureSource(BEN)).toBe('data:image/jpeg;base64,ben-mine')
+      expect(JSON.parse(localStorage.getItem(DEVICE_KEY)).keys.sort()).toEqual(
+        [`${HOME}/${ANNA.gradidoID}`, `${HOME}/${BEN.gradidoID}`].sort(),
+      )
+    })
+
+    it('keeps a picture taken away meanwhile away', async () => {
+      const pairs = deferred()
+      const pictures = deferred()
+      const apollo = answeringSlowly(pairs, pictures)
+      startKeptPictures(ME, HOME)
+      const asked = ensureKeptPictures(apollo)
+      await removeKeptPicture(apollo, ANNA)
+
+      pairs.resolve(listAnswer(ANNA, BEN))
+      pictures.resolve(listAnswer(row(ANNA, 'anna-mine'), row(BEN, 'ben-mine')))
+      await asked
+
+      expect(hasKeptPicture(ANNA)).toBe(false)
+      expect(keptPictureSource(BEN)).toBe('data:image/jpeg;base64,ben-mine')
     })
   })
 

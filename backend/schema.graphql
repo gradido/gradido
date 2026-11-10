@@ -50,6 +50,7 @@ type Query {
   adminEmailStatus(userId: Int!): AdminEmailStatus!
   firstCreationStatus: FirstCreationStatus!
   guarantorCode: GuarantorCode
+  keptPicturePairs: [KeptPicturePair!]!
   keptPictures: [KeptPicture!]!
   keptPictureFull(ref: MemberAvatarRefInput!): String
   listMatchingEntries: [MatchingEntry!]!
@@ -788,6 +789,11 @@ type UnconfirmedGuest {
   lastName: String
   alias: String
   createdAt: DateTime!
+}
+
+type KeptPicturePair {
+  gradidoID: String!
+  communityUuid: String!
 }
 
 type KeptPicture {

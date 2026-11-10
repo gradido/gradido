@@ -1,11 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { MemberAvatarRefInput } from '@input/MemberAvatarRefInput'
 import { KeptPicture } from '@model/KeptPicture'
+import { KeptPicturePair } from '@model/KeptPicturePair'
 import { databaseErrorCode } from 'core'
 import {
   dbCountUserKeptPicturesBesides,
   dbDeleteUserKeptPicture,
   dbSelectUserKeptPictureFull,
+  dbSelectUserKeptPicturePairs,
   dbSelectUserKeptPicturesSmall,
   dbUpsertUserKeptPicture,
   UserKeptPictureSubject,
@@ -38,6 +40,25 @@ import { resolveCommunityUuid } from './util/communities'
  */
 @Resolver()
 export class KeptPictureResolver {
+  /**
+   * WHOM the member keeps a picture of, without the pictures: a few bytes the wallet asks for beside
+   * the pictures, so that a circle knows to wait with letters before the person's own face can come.
+   * Private as the pictures are -- counted, and its answer left out of the log.
+   */
+  @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
+  @Query(() => [KeptPicturePair])
+  async keptPicturePairs(@Ctx() context: Context): Promise<KeptPicturePair[]> {
+    const user = getUser(context)
+    countServed(context, 1)
+    const rows = await fromDatabase(() => dbSelectUserKeptPicturePairs(user.id))
+    return rows.map((row) => {
+      const pair = new KeptPicturePair()
+      pair.gradidoID = row.subjectGradidoId
+      pair.communityUuid = row.subjectCommunityUuid
+      return pair
+    })
+  }
+
   /** Every picture the member keeps, small, for the lists of the wallet. */
   @Authorized([RIGHTS.MANAGE_OWN_CONTACTS])
   @Query(() => [KeptPicture])
@@ -88,8 +109,10 @@ export class KeptPictureResolver {
     }
     const user = getUser(context)
     const subject = await subjectOf(ref)
-    // Counted before the pictures are worked on. Two requests at the very same moment may both
-    // pass at the last free place; the limit is there against endless growth, not to the picture.
+    // Counted before the pictures are worked on. Requests running at the same moment may each pass
+    // at the last free place -- the count and the write are two steps, the encoding between them --
+    // so a burst can go past the limit by about as many requests as it holds; after it, every new
+    // person is refused. The limit is there against endless growth, not to the picture.
     const others = await fromDatabase(() => dbCountUserKeptPicturesBesides(user.id, subject))
     if (others >= KEPT_PICTURES_MAX_PER_MEMBER) {
       throw new LogError('KEPT_PICTURES_FULL')
@@ -115,6 +138,9 @@ export class KeptPictureResolver {
     @Arg('ref', () => MemberAvatarRefInput) ref: MemberAvatarRefInput,
     @Ctx() context: Context,
   ): Promise<boolean> {
+    // Counted like a read: a document may repeat the field under any number of aliases, and each
+    // would cost a delete (RequestBudget).
+    countServed(context, 1)
     const user = getUser(context)
     const subject = await subjectOf(ref)
     await fromDatabase(() => dbDeleteUserKeptPicture(user.id, subject))

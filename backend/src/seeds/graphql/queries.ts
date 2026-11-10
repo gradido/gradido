@@ -1316,6 +1316,15 @@ export const keptPictures = gql`
   }
 `
 
+export const keptPicturePairs = gql`
+  query {
+    keptPicturePairs {
+      communityUuid
+      gradidoID
+    }
+  }
+`
+
 export const keptPictureFull = gql`
   query ($ref: MemberAvatarRefInput!) {
     keptPictureFull(ref: $ref)

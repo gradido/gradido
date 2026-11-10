@@ -16,7 +16,7 @@ import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { KEPT_PICTURES_MAX_PER_REQUEST } from '@/data/KeptPictures.logic'
 import { userFactory } from '@/seeds/factory/user'
 import { login, removeKeptPicture, setKeptPicture } from '@/seeds/graphql/mutations'
-import { keptPictureFull, keptPictures } from '@/seeds/graphql/queries'
+import { keptPictureFull, keptPicturePairs, keptPictures } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
@@ -71,6 +71,12 @@ const list = async (): Promise<any[]> => {
   return res.data.keptPictures
 }
 
+const pairs = async (): Promise<any[]> => {
+  const res: any = await query({ query: keptPicturePairs })
+  expect(res.errors).toBeUndefined()
+  return res.data.keptPicturePairs
+}
+
 const full = async (user: User): Promise<string | null> => {
   const res: any = await query({ query: keptPictureFull, variables: { ref: refOf(user) } })
   expect(res.errors).toBeUndefined()
@@ -106,6 +112,7 @@ describe('KeptPictureResolver', () => {
         errors: [new GraphQLError('401 Unauthorized')],
       })
       expect(await query({ query: keptPictures })).toEqual(unauthorized)
+      expect(await query({ query: keptPicturePairs })).toEqual(unauthorized)
       expect(await query({ query: keptPictureFull, variables: { ref: refOf(bob) } })).toEqual(
         unauthorized,
       )
@@ -142,6 +149,10 @@ describe('KeptPictureResolver', () => {
         },
       ])
       expect(await full(bob)).toBe(TEST_AVATAR_FULL_BASE64)
+      // WHOM, without the picture.
+      expect(await pairs()).toEqual([
+        { communityUuid: bob.communityUuid, gradidoID: bob.gradidoID },
+      ])
     })
 
     it('finds the same picture where the wallet sends the person without a community, or in capitals', async () => {
@@ -262,6 +273,7 @@ describe('KeptPictureResolver', () => {
     // names whose pictures to read.
     it("gets no picture of the first member's, on any way", async () => {
       expect(await list()).toEqual([])
+      expect(await pairs()).toEqual([])
       expect(await full(peter)).toBeNull()
 
       const aliased: any = await query({
