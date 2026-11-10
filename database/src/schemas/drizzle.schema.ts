@@ -1068,6 +1068,34 @@ export const userNotesTable = mysqlTable(
 export type UserNoteSelect = typeof userNotesTable.$inferSelect
 export type UserNoteInsert = typeof userNotesTable.$inferInsert
 
+// A member's own picture of a contact (migration 0171), in the two renditions of a profile
+// picture. Only the member reads it. The primary key IS the rule "one picture per member and
+// person": setting it again replaces it.
+export const userKeptPicturesTable = mysqlTable(
+  'user_kept_pictures',
+  {
+    userId: int('user_id', { unsigned: true }).notNull(),
+    subjectCommunityUuid: varchar('subject_community_uuid', { length: 36 }).notNull(),
+    subjectGradidoId: varchar('subject_gradido_id', { length: 36 }).notNull(),
+    pictureSmall: customMediumBlob('picture_small').notNull(),
+    pictureFull: customMediumBlob('picture_full').notNull(),
+    mimeType: varchar('mime_type', { length: 32 }).notNull(),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.subjectCommunityUuid, table.subjectGradidoId],
+    }),
+  ],
+)
+
+export type UserKeptPictureInsert = typeof userKeptPicturesTable.$inferInsert
+
 // The moderation's remark on a member (migration 0168). The primary key IS the rule "one remark
 // per member": every moderator writes on the same row, and writing it again replaces it.
 export const userRemarksTable = mysqlTable('user_remarks', {

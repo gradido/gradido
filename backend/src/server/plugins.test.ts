@@ -277,6 +277,23 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a note')
   })
 
+  // WHO a member keeps a picture of is theirs alone as well, not only the picture: the list names
+  // the people next to their pictures.
+  it("is left out where the request read a member's own pictures of their contacts", async () => {
+    const picture = Buffer.from("Lena's picture of Anna, taken at the market").toString('base64')
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), keptPicturesServed: 10 } },
+      {
+        keptPictures: [
+          { communityUuid: 'home-uuid', gradidoID: 'aaaaaaaa-anna-gradido-id', picture },
+        ],
+      },
+    )
+    expect(traced).not.toContain(picture)
+    expect(traced).not.toContain('aaaaaaaa-anna-gradido-id')
+    expect(traced).toBe('Response-Data: left out, it holds a picture')
+  })
+
   it("is left out where the request read or wrote the moderation's remark on a member", async () => {
     const traced = await answerTraced(
       { requestBudget: { ...newRequestBudget(), userRemarksServed: 1 } },

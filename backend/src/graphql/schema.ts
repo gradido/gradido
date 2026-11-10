@@ -25,6 +25,7 @@ import { EmailChangeResolver } from './resolver/EmailChangeResolver'
 import { FirstCreationResolver } from './resolver/FirstCreationResolver'
 import { GdtResolver } from './resolver/GdtResolver'
 import { GuarantorCodeResolver } from './resolver/GuarantorCodeResolver'
+import { KeptPictureResolver } from './resolver/KeptPictureResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
 import { ProjectAccountResolver } from './resolver/ProjectAccountResolver'
@@ -76,6 +77,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       MatchingEntryResolver,
       KlicktippResolver,
       GuarantorCodeResolver,
+      KeptPictureResolver,
       ProjectAccountResolver,
       ProjectBrandingResolver,
       ShowFriendsResolver,
