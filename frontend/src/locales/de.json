@@ -68,7 +68,7 @@
     "error-too-large": "Dieses Bild ist zu groß. Bitte wähle eines unter {limit} MB.",
     "measure": "Ausgangsdatei {source} KB, gesendet werden {result} KB",
     "mirror": "Spiegeln",
-    "pick-hint": "Bild hierher ziehen oder unten auswählen",
+    "pick-hint": "Bild hierher ziehen, einfügen oder unten auswählen",
     "remove": "Bild entfernen",
     "remove-confirm": "Ja, entfernen",
     "remove-question": "Dein Konto zeigt dann wieder Deine Anfangsbuchstaben. Du kannst jederzeit ein neues Bild setzen.",

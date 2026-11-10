@@ -68,7 +68,7 @@
     "error-too-large": "Esta imagem é demasiado grande. Escolhe uma com menos de {limit} MB.",
     "measure": "Ficheiro original {source} KB, serão enviados {result} KB",
     "mirror": "Espelhar",
-    "pick-hint": "Arrasta uma imagem para aqui ou escolhe uma abaixo",
+    "pick-hint": "Arrasta uma imagem para aqui, cola-a ou escolhe uma abaixo",
     "remove": "Remover foto",
     "remove-confirm": "Sim, remover",
     "remove-question": "A tua conta voltará a mostrar as tuas iniciais. Podes definir uma nova foto a qualquer momento.",

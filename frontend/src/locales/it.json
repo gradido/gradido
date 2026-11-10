@@ -68,7 +68,7 @@
     "error-too-large": "Questa immagine è troppo grande. Scegline una sotto i {limit} MB.",
     "measure": "File di partenza {source} KB, verranno inviati {result} KB",
     "mirror": "Rifletti",
-    "pick-hint": "Trascina qui un'immagine oppure scegline una qui sotto",
+    "pick-hint": "Trascina qui un'immagine, incollala oppure scegline una qui sotto",
     "remove": "Rimuovi immagine",
     "remove-confirm": "Sì, rimuovi",
     "remove-question": "Il tuo conto mostrerà di nuovo le tue iniziali. Puoi impostare una nuova immagine in qualsiasi momento.",

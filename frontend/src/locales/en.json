@@ -68,7 +68,7 @@
     "error-too-large": "This image is too large. Please choose one under {limit} MB.",
     "measure": "Source file {source} KB, {result} KB will be sent",
     "mirror": "Mirror",
-    "pick-hint": "Drag an image here or choose one below",
+    "pick-hint": "Drag an image here, paste it or choose one below",
     "remove": "Remove picture",
     "remove-confirm": "Yes, remove",
     "remove-question": "Your account will show your initials again. You can set a new picture at any time.",

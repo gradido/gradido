@@ -68,7 +68,7 @@
     "error-too-large": "Bu görsel çok büyük. Lütfen {limit} MB'tan küçük bir görsel seç.",
     "measure": "Kaynak dosya {source} KB, {result} KB gönderilecek",
     "mirror": "Aynala",
-    "pick-hint": "Bir görseli buraya sürükle veya aşağıdan seç",
+    "pick-hint": "Bir görseli buraya sürükle, yapıştır veya aşağıdan seç",
     "remove": "Resmi kaldır",
     "remove-confirm": "Evet, kaldır",
     "remove-question": "Hesabın yeniden baş harflerini gösterecek. İstediğin zaman yeni bir resim ayarlayabilirsin.",
