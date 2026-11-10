@@ -965,10 +965,10 @@
   "info": "Informação",
   "keptPicture": {
     "both": "Mostrar as duas imagens de {name}",
-    "change": "Mudar a tua imagem de {name}",
+    "change": "Alterar a tua imagem de {name}",
     "choose": "Escolher a tua própria imagem para {name}",
     "failed": "Não funcionou. Tenta novamente.",
-    "full": "Já tens a tua própria imagem de {max} pessoas. Remove uma para definir uma nova.",
+    "full": "Já escolheste a tua própria imagem para {max} pessoas. Remove uma para definir uma nova.",
     "mine": "A tua imagem",
     "private": "Só tu a vês.",
     "remove": "Remover a minha imagem",

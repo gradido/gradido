@@ -968,7 +968,7 @@
     "change": "Cambiar tu imagen de {name}",
     "choose": "Elegir tu propia imagen para {name}",
     "failed": "No ha funcionado. Inténtalo de nuevo.",
-    "full": "Ya tienes tu propia imagen de {max} personas. Quita una para poner una nueva.",
+    "full": "Ya has elegido tu propia imagen para {max} personas. Quita una para poner una nueva.",
     "mine": "Tu imagen",
     "private": "Solo tú la ves.",
     "remove": "Quitar mi imagen",
