@@ -6,7 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
-import MatchProfile from './MatchProfile.vue'
+import { MatchProfile } from './MatchProfile'
 import { distanceKm } from '@/composables/useMatches'
 import { contactByMemberQuery } from '@/graphql/contacts.graphql'
 import { sendChatMessage } from '@/graphql/chat.graphql'
@@ -83,8 +83,8 @@ const stubs = {
     template: '<div class="collapse-stub" :data-open="String(modelValue)"><slot /></div>',
   },
   CollapseIcon: true,
-  IMdiCheck: true,
-  IMdiChatOutline: true,
+  MdiCheck: true,
+  MdiChatOutline: true,
   ChatComposeBar: ComposeBarStub,
 }
 
@@ -416,9 +416,10 @@ describe('MatchProfile', () => {
    */
   describe('the entry as a sub-point, in the stylesheet', () => {
     const here = dirname(fileURLToPath(import.meta.url))
-    const code = readFileSync(join(here, 'MatchProfile.vue'), 'utf8')
-      .split('<style')[1]
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const code = readFileSync(join(here, 'MatchProfile.module.scss'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
     const rule = (selector) =>
       code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ?? ''
     const px = (body, property) => Number(body.match(new RegExp(`${property}: (-?[\\d.]+)px;`))[1])
@@ -452,9 +453,9 @@ describe('MatchProfile', () => {
       expect(rule('\\.entry\\.has-thread')).toContain('position: relative;')
       const share = (body) =>
         Number(body.match(/opacity: calc\(var\(--dot-opacity\) \* ([\d.]+)\);/)[1])
-      expect(share(rule('\\.dark-mode \\.entry\\.has-thread::before'))).toBeGreaterThan(
-        share(thread),
-      )
+      expect(
+        share(rule(':global\\(\\.dark-mode\\) \\.entry\\.has-thread::before')),
+      ).toBeGreaterThan(share(thread))
     })
   })
 
@@ -1380,9 +1381,10 @@ describe('MatchProfile', () => {
      */
     describe('in the stylesheet', () => {
       const here = dirname(fileURLToPath(import.meta.url))
-      const code = readFileSync(join(here, 'MatchProfile.vue'), 'utf8')
-        .split('<style')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const code = readFileSync(join(here, 'MatchProfile.module.scss'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
       const rule = (selector) =>
         code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ?? ''
 
@@ -1392,10 +1394,12 @@ describe('MatchProfile', () => {
       })
 
       // The bar draws a line over itself and keeps its distance from the thread above it. Here
-      // the window's own foot draws that line. With one class the rule would weigh the same as
-      // the bar's own, and the order of two stylesheets in the bundle would decide.
+      // the window's own foot draws that line. With the module's two classes alone the rule
+      // would weigh the same as the bar's own (scoped: two), and the order of two stylesheets
+      // in the bundle would decide; the bar's root class, named global, adds the level back.
       it("takes the bar's own line and distance away, with a rule that outweighs the bar's", () => {
-        const own = rule('\\.profile-foot \\.profile-hello')
+        const own = rule('\\.profile-foot \\.profile-hello:global\\(\\.chat-compose\\)')
+        expect(rule('\\.profile-foot \\.profile-hello')).toBe('')
         expect(own).toMatch(/margin-top: 0;/)
         expect(own).toMatch(/padding-top: 0;/)
         expect(own).toMatch(/border-top: 0;/)
@@ -1426,7 +1430,10 @@ describe('MatchProfile', () => {
           body.match(new RegExp(`(?:^|;|\\s)${property}:\\s*([^;]+);`))?.[1]?.trim()
         const every = of(bubbles, '\\.chat-bubble')
         const mine = of(bubbles, '\\.chat-bubble-mine \\.chat-bubble')
-        const field = of(code, '\\.profile-foot \\.profile-hello :deep\\(\\.chat-compose-field\\)')
+        const field = of(
+          code,
+          '\\.profile-foot \\.profile-hello :global\\(\\.chat-compose-field\\)',
+        )
 
         // What the bubble says of itself, so a change there is noticed here.
         expect(value(mine, 'background')).toBe('rgb(197 141 56 / 12%)')
@@ -1451,7 +1458,7 @@ describe('MatchProfile', () => {
       // The rule above outweighs the bar's own focus rule: the green rim is said again.
       it("keeps the field's green rim while the keyboard is in it", () => {
         const focused = rule(
-          '\\.profile-foot \\.profile-hello :deep\\(\\.chat-compose-field:focus-visible\\)',
+          '\\.profile-foot \\.profile-hello :global\\(\\.chat-compose-field:focus-visible\\)',
         )
         expect(focused).toBe(' border-color: var(--success, #047006); ')
         const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
@@ -1540,7 +1547,7 @@ describe('MatchProfile', () => {
       it('lets the hello stand a line higher than the bar does elsewhere, on a screen with the height for it', () => {
         const block = code.match(/@media \(height >= 640px\) \{([\s\S]*?)\n\}/)?.[1] ?? ''
         expect(block.replace(/\s+/g, ' ')).toBe(
-          ' .profile-foot .profile-hello :deep(.chat-compose-field) { max-height: calc(8.4em + 0.9rem + 2px); }',
+          ' .profile-foot .profile-hello :global(.chat-compose-field) { max-height: calc(8.4em + 0.9rem + 2px); }',
         )
         const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
         expect(bar).toMatch(

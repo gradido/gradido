@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import UserGMSLocationFormat from './UserGMSLocationFormat.vue'
+import { UserGMSLocationFormat } from './UserGMSLocationFormat'
 import { useI18n } from 'vue-i18n'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useMutation } from '@vue/apollo-composable'

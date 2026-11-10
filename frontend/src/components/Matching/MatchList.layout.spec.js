@@ -21,8 +21,11 @@ import { readFileSync } from 'node:fs'
  * line, so on a visit that shows somebody two lines are kept free up to 575.98 px.
  */
 const here = dirname(fileURLToPath(import.meta.url))
-const source = readFileSync(resolve(here, './MatchList.vue'), 'utf8')
-const styles = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+const source = readFileSync(resolve(here, './MatchList.tsx'), 'utf8')
+const styles = readFileSync(resolve(here, './MatchList.module.scss'), 'utf8').replace(
+  /\/\*[\s\S]*?\*\//g,
+  '',
+)
 
 /** The declarations of the rule for exactly this selector. */
 const ruleOf = (selector) =>
@@ -69,6 +72,6 @@ describe('MatchList, what only a browser lays out', () => {
     expect(phone).not.toBeNull()
     expect(valueOf(phone[1].trim(), 'min-height')).toBe(`${2 * valueOf(line, 'line-height')}em`)
     // The line carries that class exactly where somebody is shown.
-    expect(source).toContain(`:class="{ 'center-label-visit': !!contact }"`)
+    expect(source).toContain(`contact ? ['center-label-visit', classes['center-label-visit']] : ''`)
   })
 })

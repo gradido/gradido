@@ -47,11 +47,11 @@ vi.mock('../i18n', () => ({
 const here = dirname(fileURLToPath(import.meta.url))
 const srcDir = resolve(here, '..')
 
-const vueFilesIn = (directory) =>
+const pageFilesIn = (directory) =>
   readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const full = join(directory, entry.name)
-    if (entry.isDirectory()) return vueFilesIn(full)
-    return entry.name.endsWith('.vue') ? [full] : []
+    if (entry.isDirectory()) return pageFilesIn(full)
+    return entry.name.endsWith('.vue') || entry.name.endsWith('.tsx') ? [full] : []
   })
 
 // The leading colon is the whole difference, and it is easy to read past: with it the
@@ -65,22 +65,37 @@ const ATTR_NAME = /(:?)attr-name="([^"]*)"/g
 // than passed over. Vue accepts the camelCase prop name just as happily.
 const ANY_ATTR_NAME = /:?attr-?[Nn]ame\s*=/g
 
+// In a .tsx file the prop is `attrName='gmsAllowed'`; an expression (`attrName={…}`) is a
+// name this guard cannot follow, and is counted like a bound attribute above.
+const TSX_ATTR_NAME = /attrName=(?:'([^']*)'|\{([^}]*)\})/g
+const ANY_TSX_ATTR_NAME = /attrName=/g
+
 const nameFrom = (colon, raw) =>
   colon ? /^'([A-Za-z]\w*)'$/.exec(raw)?.[1] : /^[A-Za-z]\w*$/.exec(raw)?.[0]
+
+/** Every `attr-name` of a file as `[colon, raw]`, in the spelling of its template or JSX. */
+const attrNamesOf = (file, source) =>
+  file.endsWith('.tsx')
+    ? [...source.matchAll(TSX_ATTR_NAME)].map(([, quoted, expression]) =>
+        quoted === undefined ? [':', `{${expression}}`] : ['', quoted],
+      )
+    : [...source.matchAll(ATTR_NAME)].map(([, colon, raw]) => [colon, raw])
 
 const collectAttrNames = () => {
   const literal = []
   const unreadable = []
-  for (const file of vueFilesIn(srcDir)) {
+  for (const file of pageFilesIn(srcDir)) {
     const source = readFileSync(file, 'utf8')
     const where = file.slice(srcDir.length + 1)
-    const parsed = [...source.matchAll(ATTR_NAME)]
-    for (const [, colon, raw] of parsed) {
+    const parsed = attrNamesOf(file, source)
+    for (const [colon, raw] of parsed) {
       const name = nameFrom(colon, raw)
       if (name) literal.push(name)
       else unreadable.push(`${where}: attr-name="${raw}" is not a literal name`)
     }
-    const spellings = [...source.matchAll(ANY_ATTR_NAME)].length
+    const spellings = [
+      ...source.matchAll(file.endsWith('.tsx') ? ANY_TSX_ATTR_NAME : ANY_ATTR_NAME),
+    ].length
     if (parsed.length < spellings) {
       unreadable.push(
         `${where}: ${spellings - parsed.length} attr-name(s) in a form this guard cannot read`,

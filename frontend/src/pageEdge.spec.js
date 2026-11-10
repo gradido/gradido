@@ -119,7 +119,7 @@ describe('the page edge on a phone', () => {
   it('lets the map stand on it rather than break out past it', () => {
     // The map used to reach a gutter past the page to get to 6px. On a 6px edge the same
     // break-out would put it 18px beyond the screen, cut off by the clip above.
-    const map = styles(source('pages', 'MatchingMap.vue'))
+    const map = live(source('pages', 'MatchingMap.module.scss'))
     expect(map).toContain('.map-shell')
     expect(map).not.toMatch(/margin-(?:left|right)\s*:\s*calc\([^;]*\*\s*-1\)/)
   })
@@ -202,7 +202,7 @@ describe('what the wider page changed around it', () => {
   it('puts the word under the icon in all three matching tabs on a phone', () => {
     // 24px more tab bar let "Zuhause" fit beside its icon at 375px while the other two words
     // still wrapped under theirs. On a phone all three go under, whatever the language.
-    const narrow = mediaBodies(styles(source('pages', 'Matching.vue')), '575.98px').join('\n')
+    const narrow = mediaBodies(live(source('pages', 'Matching.module.scss')), '575.98px').join('\n')
     expect(rule(narrow, '.matching-nav-label')).toContain('display: block')
   })
 })

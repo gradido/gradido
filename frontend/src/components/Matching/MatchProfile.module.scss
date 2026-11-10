@@ -1,0 +1,409 @@
+/* AI-GENERATED — not an architecture reference */
+.profile-head {
+  min-width: 0;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.profile-community {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.profile-about {
+  margin-bottom: 18px;
+}
+
+.about-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.about-text {
+  font-size: 15px;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.profile-area {
+  border-top: 1px solid var(--border);
+  padding: 4px 0;
+}
+
+.area-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--text);
+}
+
+.area-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.area-stem {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Pushed to the right edge, before the collapse chevron — a tally, not a score. */
+.area-count {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The chevron is a shared house icon carrying bootstrap's .h1, whose 0.5rem
+   margin-bottom lifts it a few pixels above the row centre — just out of line
+   with the count beside it. Zero it here (not in the shared component) so the
+   arrow and the number sit on one centre line. */
+.area-head :global(.collapse-icon) {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.area-head :global(.collapse-icon svg) {
+  margin: 0;
+}
+
+.entry-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 6px 22px;
+}
+
+.entry {
+  padding: 6px 0;
+}
+
+/* More room between two entries (24 px) than between the parts of one (4 to 6 px): what
+   belongs to an entry stands together, and the next one stands apart (Bernd, 14.10.2026,
+   GMS-229). */
+.entry + .entry {
+  margin-top: 12px;
+}
+
+/* The thread (GMS-229): what belongs to a matched entry -- its details, the lines "passt zu"
+   -- hangs from its dot. A line in the dot's column and colour, quieter than the dot, from
+   just under the dot down to the entry's last line, and only where something stands under the
+   sentence (hasThread). The middle of the dot's column is 16 px left of the sentence (see the
+   dot below), so a 2 px line starts at -17 px. The dot stands in the middle of the first line
+   (6 px of padding and half a line of 22.5 px); the thread begins about 4 px under it and ends
+   4 px above the entry's padding. */
+.entry.has-thread {
+  position: relative;
+}
+
+.entry.has-thread::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: calc(21px + var(--dot-size) / 2);
+  bottom: 10px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--dot-color);
+  opacity: calc(var(--dot-opacity) * 0.45);
+}
+
+/* The same share of a colour reads weaker on the dark window: the red thread of the strongest
+   step stood at 1.4 : 1 there against 2.0 : 1 on the light one. A little more of it brings it to
+   2.0 : 1 as well. */
+:global(.dark-mode) .entry.has-thread::before {
+  opacity: calc(var(--dot-opacity) * 0.75);
+}
+
+.entry-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entry-summary {
+  font-size: 15px;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* A match reads a shade heavier than the rest of the list. */
+.entry-summary.is-match {
+  font-weight: 600;
+}
+
+/* The dot of a match sits in the list's indent, centred under the area's own dot: a
+   12 px column 22 px left of the sentence (the head's 12 px dot and its 10 px gap, which
+   is the indent of .entry-list). Its margins and its width add up to nothing, so the
+   sentence stays where it is. Drawn before the first letter, so it stays on the first
+   line of a long sentence; `middle` centres it on the letters.
+   Hollow (Bernd, 14.10.2026, GMS-229): filled, it looked like the area's own dot, though
+   the entry is a sub-point of the area. It keeps its step's size and brightness. */
+.entry-summary.has-dot::before {
+  content: '';
+  display: inline-block;
+  box-sizing: border-box;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  margin-right: calc(16px - var(--dot-size) / 2);
+  margin-left: calc((12px - var(--dot-size)) / 2 - 22px);
+  border: 2px solid var(--dot-color);
+  border-radius: 50%;
+  background: transparent;
+  opacity: var(--dot-opacity);
+  vertical-align: middle;
+}
+
+/* Why it matches: my own entry, in the voice of a note - muted, the sentence in
+   italics - so the person's own words stay the loudest thing in the window. One step in,
+   to where the text of the details box begins (its 10 px padding): the lines belong under
+   the entry (GMS-229). */
+.entry-mine {
+  margin-top: 4px;
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  word-break: break-word;
+}
+
+.mine-sentence {
+  font-weight: 400;
+}
+
+.remote-badge {
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.entry-details {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  font-size: 14px;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* "X more" stands about as far from the last entry as the entries stand from each other (26 px
+   with the list's own padding, against 24): it belongs to the list, not to the entry above it
+   (GMS-229). */
+.more-btn {
+  margin: 14px 0 8px 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  color: var(--info);
+  font-weight: 600;
+}
+
+/* The foot, top to bottom: the first word (or what became of it), then the ways out of this
+   window. */
+.profile-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* The chat's compose bar, here with no thread above it: the foot of the window already draws
+   the line the bar would draw over itself. ⛔ Three classes on purpose: the bar's own rule
+   (`.chat-compose`, scoped) weighs two, and so would the two module classes alone -- which of
+   the two wins would then be decided by where the two stylesheets land in the bundle. The
+   bar's root class, named global, adds the level back. */
+.profile-foot .profile-hello:global(.chat-compose) {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* While the server is asked whether the two are contacts: the place is held, nothing is shown --
+   "Hallo sagen:" with the bar, or it would stand alone over an empty place. `visibility` takes
+   both from the keyboard and from a screen reader as well. */
+.profile-hello-box.is-asking {
+  visibility: hidden;
+}
+
+/* "Hallo sagen:" over the words (Bernd, 09.10.2026, E-070): the window's own small heading, as
+   "Über mich" is drawn. */
+.profile-hello-label {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ⛔ The words stand in the field as the member's own message stands in a conversation (Bernd,
+   E-070: "identisch ... so wie die Bubble, die ich selber schicke ... mit dem entsprechenden
+   Rand und der Hintergrundfarbe"): the bubble's rim, ground and corners, value for value from
+   ChatBubble.vue -- MatchProfile.spec holds the two against each other. The gold thinly over
+   whatever lies below, so it is light on light and dark on dark, as there.
+
+   Not the bubble's 0.9rem: a field under 16 px makes a phone zoom into the page when it is
+   touched (the bar's own rule).
+
+   The focus keeps the bar's green rim: this rule would outweigh it otherwise. */
+.profile-foot .profile-hello :global(.chat-compose-field) {
+  border-color: var(--gold, #c58d38);
+  border-radius: 1rem;
+  border-bottom-right-radius: 0.3rem;
+  background: rgb(197 141 56 / 12%);
+}
+
+.profile-foot .profile-hello :global(.chat-compose-field:focus-visible) {
+  border-color: var(--success, #047006);
+}
+
+/* The hello is words the member sends in their own name: they should be seen whole. At 360 px,
+   the commonest width of a phone, they take six lines in five of the ten languages -- one more
+   than the bar shows before it scrolls inside. So here the field may be six lines high, where
+   the screen has the height for it (the bar's own rule: five lines of 1.4em, the padding, the
+   border). */
+@media (height >= 640px) {
+  .profile-foot .profile-hello :global(.chat-compose-field) {
+    max-height: calc(8.4em + 0.9rem + 2px);
+  }
+}
+
+/* What became of the hello: a line in the place where the bar stood. */
+.profile-hello-sent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.profile-hello-sent-icon {
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: 1.25em;
+  margin-top: 0.05em;
+  color: #178d81;
+}
+
+/* ⚠️ `flex-wrap`: the two buttons keep their words on one line, and two long words do not fit
+   side by side in every language. Where they do not fit, each takes a row of its own, as under
+   421 px. (Measured in ten languages with the larger measure this row had until E-070: "Ouvrir
+   la conversation" beside "Envoyer des Gradido" needed a window of 514 px, and between 421 px
+   and there the second button stood out of the window.) */
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+/* ⛔ From here to the coin: the contact window's button (ContactWindow.vue), rule for rule and
+   in its gold -- "Gradido senden" looks here as it does in the chat (Bernd, 09.10.2026, E-070:
+   "das gleiche Gold ... im Prinzip genau so aussehen wie im Chat"). It began the other way
+   round: the contact window took this button and swapped the map's teal for the compose bar's
+   gold (Bernd, 24.09.2026). ContactWindow.spec holds the three rules against each other. */
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 26px;
+  font-size: 15px;
+  font-weight: 700;
+  border: 1.5px solid #c08935;
+  white-space: nowrap;
+}
+
+.send-gradido {
+  background: #c08935;
+  color: #fff;
+}
+
+/* The coin ships as a dark monochrome glyph; on the gold button it turns white —
+   exactly how the send form flips it on its active tab. */
+.send-coin {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Without Bootstrap's `.btn` a plain button has no focus ring of its own: the contact window's
+   ring, for both buttons of this row. After a hello sent with the keyboard the focus stands on
+   the way into the conversation, and the browser's own ring took the place of the gold rim
+   there (seen in the built wallet). */
+.send-btn:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* The way into the conversation beside it: the gold rim of the button's own border, the word
+   and its glyph in the window's text colour -- as the chat draws its outlined gold marks
+   ("Ankündigung", "In den Kalender"). A word in the gold itself would stand at 3.05 : 1 on the
+   light window. */
+.to-conversation {
+  background: transparent;
+  color: var(--text);
+}
+
+.to-conversation-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+/* And in the contact window's measure, which is smaller than the rules above (Bernd,
+   29.09.2026, there: "nur eine von vielen Optionen"): 14px instead of 15, 7px above and below
+   instead of 10, the glyph 18px instead of 20 -- 37px high. MatchProfile.spec holds the numbers
+   against ContactWindow.vue. */
+.profile-actions .send-btn {
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.profile-actions .send-coin,
+.profile-actions .to-conversation-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* One way out alone -- "send Gradido" under the first word -- keeps the width of its word and
+   stands at the left: over the whole width it would be the loudest thing in the foot, louder
+   than the hello above it. Two ways share the row as they always did. */
+.profile-actions.is-single .send-btn {
+  flex: 0 1 auto;
+  align-self: flex-start;
+}
+
+@media (width <= 420px) {
+  .profile-actions {
+    flex-direction: column;
+  }
+}
