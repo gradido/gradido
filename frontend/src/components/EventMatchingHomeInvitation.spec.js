@@ -18,8 +18,7 @@ import {
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
 import { SHOW_ME_ON_THE_MAP } from '@/utils/showMeOnTheMap'
-import EventMatchingHomeInvitation from './EventMatchingHomeInvitation.vue'
-import ownSource from './EventMatchingHomeInvitation.vue?raw'
+import { EventMatchingHomeInvitation } from './EventMatchingHomeInvitation'
 
 // Mutable, so a case can switch matching off. `invitedOntoTheMap` reads the same module.
 const config = vi.hoisted(() => ({ MATCHING_ACTIVE: true }))
@@ -615,17 +614,22 @@ describe('EventMatchingHomeInvitation', () => {
       )
       return [...plain, ...inMedia]
     }
+    // Both are CSS modules now, with `:global(` where the scoped blocks had `:deep(`. Read off
+    // the disk: under vitest `?raw` of a module stylesheet answers with the class map.
+    const here = dirname(fileURLToPath(import.meta.url))
     const own = rules(
-      ownSource.slice(ownSource.indexOf('<style scoped>') + '<style scoped>'.length),
+      readFileSync(join(here, 'EventMatchingHomeInvitation.module.scss'), 'utf8').replaceAll(
+        ':global(',
+        ':deep(',
+      ),
     )
 
     // The fixture proves itself: two rules outside, one inside the phone's @media.
     expect(own).toHaveLength(3)
     expect(own[2]).toMatch(/^@media \(width < 400px\)/)
-    // The matching page's rules are a CSS module now: `:global(` there is `:deep(` here.
     // ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class.
     const matchingPageStyle = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '..', 'pages', 'Matching.module.scss'),
+      join(here, '..', 'pages', 'Matching.module.scss'),
       'utf8',
     )
     expect(own).toEqual(rules(matchingPageStyle.replaceAll(':global(', ':deep(')))

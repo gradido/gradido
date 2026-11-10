@@ -1,0 +1,45 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The sentence is what the page is about: size and weight of an entry's title in the member's
+   list (pages/Matching.tsx, .entry-title: 18px at the usual size), in `em` so it follows the
+   text size chosen in the card's corner. Long words break rather than widen the card -- a
+   link may carry a title without a single blank. */
+.event-entry-sentence {
+  font-size: 1.125em;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* Line breaks of the link stay, as in the member's list (.details-box). */
+.event-entry-details {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The two buttons as on the Gradido address (pages/PublicProfile.vue, .profile-actions), rule
+   for rule: one column, as wide as the wider label, both filling it; on a phone the whole
+   width, with the house button's side padding taken back so the label keeps its line -- from
+   360px on in all ten languages. At 320px "Ich habe schon ein Gradido-Konto" (E-045) takes two
+   lines in seven of them, and nothing leaves the button (measured in the built wallet,
+   08.11.2026). Through `:global`: BButton renders a router-link, which renders the anchor, and
+   the class on it is the plain one the page writes. */
+.landing-actions {
+  display: inline-grid;
+  gap: 0.75rem;
+}
+
+.landing-actions :global(.landing-action) {
+  width: 100%;
+}
+
+@media screen and (width <= 767px) {
+  .landing-actions {
+    display: grid;
+  }
+
+  .landing-actions :global(.landing-action) {
+    padding-right: 1.25rem !important;
+    padding-left: 1.25rem !important;
+  }
+}

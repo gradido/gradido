@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import EventMatchingLanding from './EventMatchingLanding.vue'
+import { EventMatchingLanding } from './EventMatchingLanding'
 import { AuthTriads } from '@/components/Auth/AuthTriads'
 import de from '@/locales/de.json'
 import el from '@/locales/el.json'
@@ -47,7 +47,7 @@ const wrapperFor = async (query = LINK, locale = 'de') => {
   await router.push({ path: '/project', query })
   await router.isReady()
   return mount(EventMatchingLanding, {
-    global: { plugins: [i18nIn(locale), router], stubs: { AuthTriads: true, IBiGlobe2: true } },
+    global: { plugins: [i18nIn(locale), router], stubs: { AuthTriads: true, BiGlobe2: true } },
   })
 }
 const part = (wrapper, name) => wrapper.find(`[data-test="event-matching-${name}"]`)
@@ -257,7 +257,11 @@ describe('the two buttons, laid out as on the Gradido address', () => {
   const here = dirname(fileURLToPath(import.meta.url))
   const rulesOf = (file, names) => {
     const source = readFileSync(join(here, file), 'utf8')
-    const [, style] = source.match(/<style[^>]*>([\s\S]*?)<\/style>/) ?? []
+    // The address keeps its rules in the style block of its page; the landing's stand in a
+    // module of their own, where `:global(` reaches what `:deep(` reached in the block.
+    const style = file.endsWith('.vue')
+      ? source.match(/<style[^>]*>([\s\S]*?)<\/style>/)?.[1]
+      : source.replace(/:global\(/g, ':deep(')
     // The fixture has to prove itself: no style block would compare nothing with nothing.
     expect(style).toBeDefined()
     return (
@@ -272,7 +276,7 @@ describe('the two buttons, laid out as on the Gradido address', () => {
 
   it('carries the same rules for them', () => {
     const address = rulesOf('PublicProfile.vue', { from: /profile-action/g, to: 'landing-action' })
-    const landing = rulesOf('EventMatchingLanding.vue', { from: /^$/, to: '' })
+    const landing = rulesOf('EventMatchingLanding.module.scss', { from: /^$/, to: '' })
 
     expect(address).toContain('.landing-actions {')
     // Everything the address says about its two buttons, in the same order, is said here.
@@ -285,7 +289,7 @@ describe('the two buttons, laid out as on the Gradido address', () => {
    * cannot see -- measured in the built wallet, and held here against being cleared away.
    */
   describe('the link’s words inside the card', () => {
-    const landing = rulesOf('EventMatchingLanding.vue', { from: /^$/, to: '' })
+    const landing = rulesOf('EventMatchingLanding.module.scss', { from: /^$/, to: '' })
     const ruleOf = (selector) => {
       const [, body] = landing.match(new RegExp(`\\${selector} \\{([^}]*)\\}`)) ?? []
       // The fixture has to prove itself.
