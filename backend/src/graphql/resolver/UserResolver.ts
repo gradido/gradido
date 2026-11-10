@@ -22,9 +22,7 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
-  decodeJpegImage,
   ensureUrlEndsWithSlash,
-  reencodeJpegImage,
   sendAccountActivationEmail,
   sendResetPasswordEmail,
   validateAlias,
@@ -88,10 +86,6 @@ import random from 'random-bigint'
 import {
   ALIAS_QUOTA_PER_WINDOW,
   ALIAS_QUOTA_WINDOW_MS,
-  AVATAR_FULL_MAX_BYTES,
-  AVATAR_FULL_MAX_SIDE,
-  AVATAR_SMALL_MAX_BYTES,
-  AVATAR_SMALL_MAX_SIDE,
   isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
@@ -146,6 +140,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { acceptAvatarRenditions } from './util/acceptAvatarRenditions'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
@@ -962,8 +957,8 @@ export class UserResolver {
    *
    * ⛔ Neither rendition is stored as it came. The small one goes to every member who sees
    * this one in a list or a chat, and to other communities that ask for it, so both are
-   * decoded and encoded again (acceptAvatar): what is stored was written by this server from
-   * pixels alone. Once in an HTTP request, counted before any of that work is done.
+   * decoded and encoded again (acceptAvatarRenditions): what is stored was written by this
+   * server from pixels alone. Once in an HTTP request, counted before any of that work is done.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
@@ -983,20 +978,7 @@ export class UserResolver {
     const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
-    // One after the other, the cheap one first: where the small one is refused, no work is
-    // done on the full one.
-    const small = await this.acceptAvatar(
-      avatarSmall,
-      'small',
-      AVATAR_SMALL_MAX_BYTES,
-      AVATAR_SMALL_MAX_SIDE,
-    )
-    const full = await this.acceptAvatar(
-      avatarFull,
-      'full',
-      AVATAR_FULL_MAX_BYTES,
-      AVATAR_FULL_MAX_SIDE,
-    )
+    const { small, full } = await acceptAvatarRenditions(avatarSmall, avatarFull)
     logger.info(`setUserAvatar... ${small.length} + ${full.length} bytes`)
 
     const stored = await dbUpsertUserAvatar({
@@ -1014,51 +996,6 @@ export class UserResolver {
   }
 
   /**
-   * One rendition as it is stored: checked, then decoded and encoded again within `maxBytes`
-   * and `maxSide` on each side. Named in the error so a member over budget learns WHICH
-   * picture was refused — with two of them in one request, "too large" on its own sends
-   * whoever reads it looking in the wrong place.
-   *
-   * The checks are decodeJpegImage and reencodeJpegImage in `core`, the ones the picture of a
-   * thank-you greeting goes through as well: one picture module, the seam at which Gradido 2
-   * is to move every kind of picture at once (E-041). The words stay the avatar's own.
-   */
-  private async acceptAvatar(
-    image: string,
-    which: string,
-    maxBytes: number,
-    maxSide: number,
-  ): Promise<Buffer> {
-    const decoded = decodeJpegImage(image, maxBytes)
-    if (!decoded.success) {
-      const { reason, bytes } = decoded.error
-      if (reason === 'EMPTY') {
-        throw new LogError(`Avatar image (${which}) is empty`)
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    const reencoded = await reencodeJpegImage(decoded.value, {
-      maxBytes,
-      maxSide,
-      maxPixels: maxSide * maxSide,
-    })
-    if (!reencoded.success) {
-      const { reason, bytes } = reencoded.error
-      if (reason === 'SIZE') {
-        throw new LogError(`Avatar image (${which}) has too many pixels`, { maxSide })
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    return reencoded.value.image
-  }
-
-  /**
    * The member's own full-size picture, on demand. Kept out of verifyLogin deliberately:
    * it is roughly ten times the everyday rendition and is wanted at two moments only —
    * printing the member card, and looking at one's own picture — so the common paths
@@ -1071,6 +1008,8 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => String, { nullable: true })
   async avatarFull(@Ctx() context: Context): Promise<string | null> {
+    // Its answer stays out of the request log (plugins.ts) -- counted before anything is read.
+    context.requestBudget.profilePicturesServed += 1
     const user = getUser(context)
     const avatar = await dbFindUserAvatarFull(user.id)
     return avatar.success ? avatar.value.toString('base64') : null
@@ -1106,6 +1045,8 @@ export class UserResolver {
     if (refs.length > MEMBER_AVATARS_MAX_REFS) {
       throw new LogError('Too many members requested at once', refs.length)
     }
+    // Its answer stays out of the request log (plugins.ts).
+    context.requestBudget.profilePicturesServed += 1
 
     const { home, foreign } = splitMemberRefsByCommunity(refs, await resolveCommunityUuid(null))
 
@@ -1836,7 +1777,12 @@ export class UserResolver {
     if (!context.user || context.user.id !== user.id) {
       return null
     }
-    return user.avatar ?? null
+    const avatar = user.avatar ?? null
+    // An answer that carries it stays out of the request log (plugins.ts).
+    if (avatar) {
+      context.requestBudget.profilePicturesServed += 1
+    }
+    return avatar
   }
 
   /**

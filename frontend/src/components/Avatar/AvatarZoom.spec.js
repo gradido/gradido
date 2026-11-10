@@ -221,6 +221,36 @@ describe('AvatarZoom', () => {
     })
   })
 
+  // AS-023: the circle that was tapped showed the signed-in member's own picture of this person.
+  describe("the member's own picture of a person", () => {
+    it("lays THAT picture over the small one, never the person's own", async () => {
+      mockQuery.mockResolvedValue({
+        data: { keptPictureFull: 'KEPTFULL', memberAvatarFull: FULL_BASE64 },
+      })
+      await openWith({ kept: true })
+      await vi.waitFor(() =>
+        expect(fullImage()?.getAttribute('src')).toBe('data:image/jpeg;base64,KEPTFULL'),
+      )
+      expect(mockQuery).toHaveBeenCalledTimes(1)
+      const [options] = mockQuery.mock.calls[0]
+      expect(options.query.definitions[0].name.value).toBe('keptPictureFullQuery')
+      expect(options.variables).toEqual({ ref: { gradidoID: 'g-napoli', communityUuid: 'c-home' } })
+      expect(options.fetchPolicy).toBe('no-cache')
+    })
+
+    it('stays open when the person withdraws their own picture', async () => {
+      mockQuery.mockResolvedValue({ data: { keptPictureFull: 'KEPTFULL' } })
+      await openGrown({ kept: true })
+
+      forgetWithdrawnMemberAvatars([
+        { gradidoID: MEMBER.gradidoID, communityUuid: MEMBER.communityUuid, avatarUpdatedAt: null },
+      ])
+      await nextTick()
+
+      expect(overlay()).not.toBeNull()
+    })
+  })
+
   describe('letting go', () => {
     it('shrinks back into the circle and then leaves the screen', async () => {
       await openGrown()

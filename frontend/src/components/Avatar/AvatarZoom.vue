@@ -91,6 +91,7 @@ import { useRoute } from 'vue-router'
 import { useApolloClient } from '@vue/apollo-composable'
 import VariantIcon from '@/components/VariantIcon.vue'
 import { avatarZoomEpoch, avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
+import { fetchKeptPictureFull } from '@/composables/useKeptPictures'
 import { memberAvatarStoreEpoch, memberAvatarWithdrawn } from '@/composables/useMemberAvatars'
 import { memberKey as memberKeyOf } from '@/utils/gradidoAddress'
 import { memberAvatarFull } from '@/graphql/queries'
@@ -224,9 +225,17 @@ const readViewport = () => {
  * catch here can undo it; it is written down so the next reader does not take the quiet
  * catch for a guarantee.
  */
-const fetchFull = async (member) => {
+const fetchFull = async (member, kept) => {
   const zoomEpoch = avatarZoomEpoch()
   const storeEpoch = memberAvatarStoreEpoch()
+  // ⛔ The circle that was tapped showed the signed-in member's own picture of this person
+  // (AS-023): it is THAT one at full size, never the person's own laid over it.
+  if (kept) {
+    const picture = await fetchKeptPictureFull(client, member)
+    if (zoomEpoch !== avatarZoomEpoch() || !picture) return
+    fullSource.value = `data:image/jpeg;base64,${picture}`
+    return
+  }
   try {
     const { data } = await client.query({
       query: memberAvatarFull,
@@ -285,7 +294,7 @@ const open = (value) => {
   // still-live button re-opened the overlay and paid for the picture a second time.
   requestAnimationFrame(() => closeButton.value?.focus?.())
 
-  fetchFull(value.member)
+  fetchFull(value.member, value.kept)
 }
 
 // Hands focus back, but only where that is an improvement. A node the router has since
@@ -399,9 +408,10 @@ watch(
 
 // The withdrawal has to reach a picture that is already open, not only the ones lying in
 // storage. A member who switches their picture off while somebody is looking at it would
-// otherwise stay on that screen until the viewer happened to tap it away.
+// otherwise stay on that screen until the viewer happened to tap it away. Not the viewer's own
+// picture of them (AS-023): that stays when they withdraw theirs.
 watch(
-  () => Boolean(shown.value) && memberAvatarWithdrawn(shown.value.member),
+  () => Boolean(shown.value) && !shown.value.kept && memberAvatarWithdrawn(shown.value.member),
   (withdrawn) => {
     if (withdrawn) requestClose({ immediate: true })
   },

@@ -356,6 +356,7 @@ import PanelSwitch from '@/components/Template/RightSide/PanelSwitch.vue'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { logout } from '@/graphql/mutations'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
+import { ensureKeptPictures, startKeptPictures } from '@/composables/useKeptPictures'
 import { ensureFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
@@ -371,6 +372,19 @@ const store = useWalletStore()
 const route = useRoute()
 const { t } = useI18n()
 const { client: apolloClient } = useApolloClient()
+
+// The member's own pictures of their contacts (AS-023): WHO they are of is read from the device
+// here, in setup, before anything is drawn -- so that the first paint already shows letters where
+// the member's picture is still to come, and never the contact's own face first. The pictures
+// themselves come with one request, asked for here as well, and anew for another member.
+watch(
+  () => [store.gradidoID, store.communityUuid],
+  ([member, community]) => {
+    startKeptPictures(member, community)
+    ensureKeptPictures(apolloClient)
+  },
+  { immediate: true },
+)
 
 // A route may bring its own head — the map does. Then the navbar, the page
 // heading and the content header are just distance between you and what you came

@@ -83,6 +83,65 @@
   min-width: 0;
 }
 
+/* The circle and, at its lower right, the way to the member's own picture of this contact
+   (AS-023): the pencil, or the contact's own picture small where the member's covers it (the
+   sign). Placed over the circle's corner, so it moves nothing that stands. */
+.contact-window-face {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+/* Letters: the circle itself is the button. */
+.contact-window-letters {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.contact-window-picture,
+.contact-window-sign {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--bs-body-bg, #fff);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.contact-window-picture {
+  background: var(--bs-secondary-bg, #e9ecef);
+  color: var(--bs-body-color, #212529);
+  font-size: 12px;
+}
+
+.contact-window-sign {
+  background: var(--bs-secondary-bg, #e9ecef);
+}
+
+.contact-window-sign img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.contact-window-letters:focus-visible,
+.contact-window-picture:focus-visible,
+.contact-window-sign:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
 .contact-window-name {
   min-width: 0;
   font-weight: 700;

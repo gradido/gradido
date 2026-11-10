@@ -7,6 +7,11 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { ContactWindow } from './ContactWindow'
 import { chatVideoRoom, chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
+import {
+  forgetKeptPictures,
+  setKeptPicture,
+  startKeptPictures,
+} from '@/composables/useKeptPictures'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 
@@ -49,8 +54,15 @@ vi.mock('vue-i18n', () => ({
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key) => key } },
 }))
+// The faces a test gives a person, by gradido id: what the circle shows, and the person's own
+// picture (AS-023, the sign at the circle). Letters everywhere else.
+const faces = vi.hoisted(() => ({ shown: {}, own: {} }))
 vi.mock('@/composables/useMemberAvatars', () => ({
-  memberAvatarProps: (user) => ({ initials: (user?.alias ?? '').slice(0, 2).toUpperCase() }),
+  memberAvatarProps: (user) => ({
+    initials: (user?.alias ?? '').slice(0, 2).toUpperCase(),
+    ...(faces.shown[user?.gradidoID] ? { src: faces.shown[user.gradidoID] } : {}),
+  }),
+  memberOwnAvatarSource: (user) => faces.own[user?.gradidoID] ?? '',
 }))
 // The instance's switches. Without `MATCHING_ACTIVE`, as an instance without the find map has
 // it; the tests of the pin switch it on.
@@ -280,6 +292,13 @@ describe('ContactWindow', () => {
           AppAvatar: {
             props: ['initials'],
             template: '<i data-test="avatar" :data-initials="initials" />',
+          },
+          // The window of the member's own picture of this person; its own spec is about it.
+          KeptPictureWindow: {
+            name: 'KeptPictureWindow',
+            props: { modelValue: Boolean, member: Object, name: String },
+            template:
+              '<i data-test="kept-picture-window" :data-open="String(modelValue)" :data-name="name" />',
           },
           FavoriteHeart: {
             props: { member: Object },
@@ -665,6 +684,77 @@ describe('ContactWindow', () => {
 
       expect(thread().attributes('data-greeting')).toBe('')
       expect(thread().attributes('data-text-only')).toBe('false')
+    })
+  })
+
+  // AS-023: the member's own picture of this person, and the ways to it at the circle.
+  describe("the member's own picture of this person", () => {
+    const CARLA = CONTACT.user.gradidoID
+    const keepCarla = async () => {
+      startKeptPictures('me-id', 'home-uuid')
+      await setKeptPicture({ mutate: () => Promise.resolve({ data: {} }) }, CONTACT.user, {
+        small: 'MINE',
+        full: 'MINE-FULL',
+      })
+    }
+    const pictureWindow = () => wrapper.find('[data-test="kept-picture-window"]')
+
+    afterEach(() => {
+      faces.shown = {}
+      faces.own = {}
+      forgetKeptPictures()
+    })
+
+    it('opens the picture window from the circle itself where it shows letters', async () => {
+      mountWindow()
+      const letters = wrapper.find('[data-test="contact-window-letters"]')
+      expect(letters.attributes('aria-label')).toBe('keptPicture.choose {"name":"Carla-Sonne"}')
+      expect(pictureWindow().attributes('data-open')).toBe('false')
+
+      await letters.trigger('click')
+
+      expect(pictureWindow().attributes('data-open')).toBe('true')
+      expect(pictureWindow().attributes('data-name')).toBe('Carla-Sonne')
+      expect(wrapper.find('[data-test="contact-window-sign"]').exists()).toBe(false)
+    })
+
+    it('offers a pencil beside her face, for a picture of my own', async () => {
+      faces.shown[CARLA] = 'data:image/jpeg;base64,HERS'
+      faces.own[CARLA] = 'data:image/jpeg;base64,HERS'
+      mountWindow()
+      expect(wrapper.find('[data-test="contact-window-letters"]').exists()).toBe(false)
+      const pencil = wrapper.find('[data-test="contact-window-picture"]')
+      expect(pencil.attributes('aria-label')).toBe('keptPicture.choose {"name":"Carla-Sonne"}')
+
+      await pencil.trigger('click')
+
+      expect(pictureWindow().attributes('data-open')).toBe('true')
+    })
+
+    it('shows her own picture small at the circle where mine covers it', async () => {
+      await keepCarla()
+      faces.shown[CARLA] = 'data:image/jpeg;base64,MINE'
+      faces.own[CARLA] = 'data:image/jpeg;base64,HERS'
+      mountWindow()
+      const sign = wrapper.find('[data-test="contact-window-sign"]')
+      expect(sign.find('img').attributes('src')).toBe('data:image/jpeg;base64,HERS')
+      expect(sign.attributes('aria-label')).toBe('keptPicture.both {"name":"Carla-Sonne"}')
+      expect(wrapper.find('[data-test="contact-window-picture"]').exists()).toBe(false)
+
+      await sign.trigger('click')
+
+      expect(pictureWindow().attributes('data-open')).toBe('true')
+    })
+
+    it('offers to change my picture where she has none of her own', async () => {
+      await keepCarla()
+      faces.shown[CARLA] = 'data:image/jpeg;base64,MINE'
+      mountWindow()
+
+      expect(wrapper.find('[data-test="contact-window-sign"]').exists()).toBe(false)
+      expect(wrapper.find('[data-test="contact-window-picture"]').attributes('aria-label')).toBe(
+        'keptPicture.change {"name":"Carla-Sonne"}',
+      )
     })
   })
 
