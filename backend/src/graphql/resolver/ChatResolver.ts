@@ -15,11 +15,12 @@ import { ChatMessagePage } from '@model/ChatMessagePage'
 import { ChatUpdate } from '@model/ChatUpdate'
 import { ChatVideoRoom } from '@model/ChatVideoRoom'
 import { ChatVideoServerChoice } from '@model/ChatVideoServerChoice'
-import { ApiVersionType, CommandClientFactory, chatMessageNotify, V1_0_CommandClient } from 'core'
+import { chatMessageNotify } from 'core'
 import {
   ChatConversationSelect,
   ChatMemberRef,
   ChatMessageSelect,
+  dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindDirectChatConversation,
   dbInsertEvent,
   dbMarkReceivedTransferSeen,
@@ -36,8 +37,6 @@ import {
   dbUpdateChatConversationMemberMuted,
   EventType,
   findUserByUuids,
-  getCommunityByUuid,
-  getCommunityWithFederatedCommunityByIdentifier,
 } from 'database'
 import { getLogger } from 'log4js'
 import { uuidv4Schema } from 'shared'
@@ -379,15 +378,14 @@ export class ChatResolver {
   /**
    * Writes a message to one member (P3a) and hands back the sender's own copy, as the sender
    * reads it. For a member of this community the copy is the one row both of them read; for a
-   * member of another community it goes out as a command, and the copy says how that went.
+   * member of another community it goes out over the peer api, and the copy says how that went.
    *
    * A message may carry a picture (P7), checked before anything else happens -- the way the
    * avatar is checked -- and refused as CHAT_IMAGE_NOT_ACCEPTED with the reason, nothing filed.
-   * To a member of another community the picture travels in the command, and the recipient's
-   * server checks and files it the same way (P7b). Where the sealed command would be larger than
-   * the other server takes -- a picture with a long text whose characters weigh three bytes or
-   * more, Chinese or emoji (CHAT_IMAGE_MAX_BYTES in shared says how long) --, the message is
-   * refused, TOO_LARGE_ACROSS_BORDER, before anything is filed or sent.
+   * To a member of another community the picture travels with the message, and the recipient's
+   * server checks and files it the same way (P7b). Where the request would be larger than the
+   * other server takes, the message is refused, TOO_LARGE_ACROSS_BORDER, before anything is filed
+   * or sent (a backstop, see deliverChatMessageAcrossBorder).
    *
    * Whether it goes out as a mail as well: the first message between the two always does
    * (E-024, decided here against this server's own table, before anything is filed); after it,
@@ -400,13 +398,12 @@ export class ChatResolver {
    *
    * A delivery to another community that failed is not an error for the sender: the copy comes
    * back FAILED (E-019: written first, then delivered), and the wallet says so under it. An error
-   * is that there is no way to deliver at all -- no V1_0 entry, no client for it, no keys
-   * exchanged to seal the command with, no uuid to name the recipient by -- and then nothing is
-   * filed. No silent true (D V03, section 1).
+   * is that there is no way to deliver at all -- no community authenticated through the
+   * handshake, no uuid to name the recipient by -- and then nothing is filed. No silent true (D V03, section 1).
    *
    * `replyTo`: the message of their conversation this one answers (checkedReplyTo); anything
    * else is refused, CHAT_MESSAGE_NOT_SENT: UNKNOWN_REPLY, before anything is filed. The copy
-   * carries the quotation (`replyTo`). ⚠️ To a member of another community the command does not
+   * carries the quotation (`replyTo`). ⚠️ To a member of another community the request does not
    * carry it yet: the sender's copy quotes, the other server files an ordinary message.
    *
    * `origin` MAP: sent from the map profile's "say hello". Where the message is the first of the
@@ -465,29 +462,13 @@ export class ChatResolver {
       return copy
     }
 
-    const senderCom = await getCommunityByUuid(caller.communityUuid)
-    const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(other.communityUuid)
-    const receiverFCom = receiverCom?.federatedCommunities?.find(
-      (fcom) => fcom.apiVersion === ApiVersionType.V1_0,
-    )
-    const cmdClient = receiverFCom ? CommandClientFactory.getInstance(receiverFCom) : null
-    if (
-      !senderCom ||
-      !senderCom.privateJwtKey ||
-      !receiverCom?.communityUuid ||
-      !receiverCom.publicJwtKey ||
-      !v.safeParse(uuidv4Schema, receiverCom.communityUuid).success ||
-      !v.safeParse(uuidv4Schema, other.gradidoId).success ||
-      !(cmdClient instanceof V1_0_CommandClient)
-    ) {
+    const receiverCom = await dbFindAuthenticatedForeignCommunityByIdentifier(other.communityUuid)
+    if (!receiverCom || !v.safeParse(uuidv4Schema, other.gradidoId).success) {
       throw new LogError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER', other.communityUuid)
     }
     const { stored, error } = await deliverChatMessageAcrossBorder({
       senderUser,
-      senderCom,
       receiverCom,
-      receiverComIdentifier: other.communityUuid,
-      cmdClient,
       recipientGradidoId: other.gradidoId,
       subject: null,
       body,

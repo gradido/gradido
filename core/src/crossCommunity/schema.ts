@@ -1,3 +1,4 @@
+import { ChatMessageMailState, ChatMessageNotify } from 'database'
 import {
   aliasSchema,
   dateSchema,
@@ -5,6 +6,7 @@ import {
   gddAmountSchema,
   gddAmountStringSchema,
   MEMBER_AVATARS_MAX_REFS,
+  MESSAGE_MAX_CHARS,
   memoSchema,
   positiveIntegerSchema,
   userIdentifierSchema,
@@ -80,3 +82,52 @@ export type MemberAvatarsQuestion = v.InferOutput<typeof memberAvatarsQuestionSc
 
 export const memberAvatarFullQuestionSchema = v.object({ gradidoId: uuidv4Schema })
 export type MemberAvatarFullQuestion = v.InferOutput<typeof memberAvatarFullQuestionSchema>
+
+// A member of the calling community writes to a member of this one (E-007). The sender comes with
+// the alias this community files them with where it does not know them yet (E-034).
+const chatMemberSchema = v.object({ communityUuid: uuidv4Schema, gradidoId: uuidv4Schema })
+
+// counted by code points, as the sending server counts: a pair of surrogates is one character
+const chatMessageBodySchema = v.pipe(
+  v.string(),
+  v.check((body) => Array.from(body).length <= MESSAGE_MAX_CHARS, 'message too long'),
+)
+
+export const chatMessageWireSchema = v.object({
+  sender: v.object({ ...chatMemberSchema.entries, alias: aliasSchema }),
+  recipient: chatMemberSchema,
+  // the uuid both copies are filed under, the sender's and this one
+  messageUuid: uuidv4Schema,
+  subject: v.nullable(v.string()),
+  body: chatMessageBodySchema,
+  // 'letter' from the form "send an e-mail": mailed whatever the recipient's quiet (E-034)
+  notify: v.picklist([ChatMessageNotify.EMAIL, ChatMessageNotify.NONE, 'letter']),
+  // P7b: the picture travels with the message; the receiving side checks and encodes it again
+  images: v.optional(
+    v.array(
+      v.object({
+        imageUuid: uuidv4Schema,
+        width: v.number(),
+        height: v.number(),
+        data: v.string(),
+      }),
+    ),
+    [],
+  ),
+})
+export type ChatMessageWireInput = v.InferInput<typeof chatMessageWireSchema>
+export type ChatMessageWire = v.InferOutput<typeof chatMessageWireSchema>
+
+// What the receiving server answers became of the mail about the message (E-034): MAILED, MUTED,
+// or null -- none asked for, or none went out.
+export const chatMessageAnswerSchema = v.object({
+  mailState: v.nullable(v.picklist([ChatMessageMailState.MAILED, ChatMessageMailState.MUTED])),
+})
+
+// A member of the calling community changed a message they wrote to a member of this one (E-060).
+export const editChatMessageWireSchema = v.object({
+  writer: chatMemberSchema,
+  messageUuid: uuidv4Schema,
+  body: chatMessageBodySchema,
+})
+export type EditChatMessageWire = v.InferOutput<typeof editChatMessageWireSchema>

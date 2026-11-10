@@ -15,7 +15,9 @@ import * as v from 'valibot'
 import * as apis from '../apis'
 import { CONFIG } from '../config'
 import * as emails from '../emails'
+import * as mails from '../emails/sendEmailVariants'
 import * as logic from '../logic'
+import * as chatMessageLogic from '../logic/ChatMessage.logic'
 import { ApiClient } from './ApiClient'
 import { apiRoutes } from './apiRoutes'
 import { CrossGroupTransaction, crossGroupTransactionWireSchema } from './schema'
@@ -675,5 +677,85 @@ describe('the member picture routes', () => {
       ),
     )
     expect(response.status).toBe(422)
+  })
+})
+
+describe('the chat message routes', () => {
+  const ANNA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const BEN = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+  const MESSAGE_UUID = '10000000-0000-4000-8000-000000000001'
+  const writer = { communityUuid: sender.communityUuid, gradidoId: ANNA }
+  const client = () =>
+    new ApiClient(
+      `${baseUrl}/`,
+      new Ed25519KeyPair(home.publicKey),
+      new X25519KeyPair(home.publicEncryptionKey),
+    )
+
+  beforeEach(() => {
+    // client and server share this process, each of them is its own home community while it works
+    fetchSpy.mockImplementation((async (request: Request) => {
+      AppContext.getInstance().setHomeCommunity(home)
+      const response = await app.handle(request)
+      AppContext.getInstance().setHomeCommunity(sender)
+      return response
+    }) as never)
+    AppContext.getInstance().setHomeCommunity(sender)
+  })
+
+  it('files a message of a member of the calling community and answers what became of the mail', async () => {
+    const store = spyOn(chatMessageLogic, 'storeChatMessage').mockResolvedValue({
+      conversationId: 3,
+    } as never)
+    spies.push(
+      store,
+      spyOn(database, 'findUserByUuids').mockImplementation((async (
+        _c: string,
+        gradidoId: string,
+      ) =>
+        gradidoId === ANNA
+          ? { gradidoID: ANNA, communityUuid: sender.communityUuid, alias: 'anna' }
+          : { gradidoID: BEN, communityUuid: home.communityUuid, emailContact: {} }) as never),
+      spyOn(chatMessageLogic, 'readChatMemberMutedAt').mockResolvedValue(null),
+      spyOn(mails, 'sendCustomEmail').mockResolvedValue(true as never),
+    )
+
+    const { data, error } = await client().chatMessage({
+      sender: { ...writer, alias: 'anna' },
+      recipient: { communityUuid: home.communityUuid, gradidoId: BEN },
+      messageUuid: MESSAGE_UUID,
+      subject: null,
+      body: 'Shall we meet at ten?',
+      notify: database.ChatMessageNotify.EMAIL,
+    })
+    expect(error).toBeNull()
+    expect(data).toEqual({ mailState: database.ChatMessageMailState.MAILED })
+    expect(store).toHaveBeenCalledTimes(1)
+  })
+
+  it('files the new text of a message and answers true', async () => {
+    const update = spyOn(database, 'dbUpdateChatMessageBody').mockResolvedValue({
+      success: true,
+    } as never)
+    spies.push(update, spyOn(database, 'dbSelectChatMessageImageInfos').mockResolvedValue([]))
+
+    const { data, error } = await client().editChatMessage({
+      writer,
+      messageUuid: MESSAGE_UUID,
+      body: 'Ab 10 Uhr.',
+    })
+    expect(error).toBeNull()
+    expect(data).toBe(true)
+    expect(update).toHaveBeenCalledWith(MESSAGE_UUID, writer, 'Ab 10 Uhr.')
+  })
+
+  it('hands a refusal to the client with its status and reason', async () => {
+    const { error } = await client().editChatMessage({
+      writer: { ...writer, communityUuid: home.communityUuid },
+      messageUuid: MESSAGE_UUID,
+      body: 'Ab 10 Uhr.',
+    })
+    expect(error?.status).toBe(401)
+    expect(String(error?.value)).toBe('CHAT_MESSAGE_NOT_EDITED: NOT_THE_WRITERS_COMMUNITY')
   })
 })

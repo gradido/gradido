@@ -145,26 +145,12 @@ export const JPEG_MAGIC_BYTES = [0xff, 0xd8]
 export const JPEG_END_BYTES = [0xff, 0xd9]
 
 // chat: a picture in a chat message (P7). One size for every picture, within this community and
-// across its border (E-046). To a member of another community the picture travels inside the
-// command that carries its message, and the federation module takes a request of 100 KB at most
-// (express.json() without a limit, federation/src/server/createServer.ts). The command is
-// encrypted and signed on its way (shared/src/jwt/JWT.ts), which costs some 2.5 KB, 2.37 bytes
-// for every byte of the picture and 1.78 for every byte of the text -- of the text as JSON has
-// written it twice by then: a quotation mark is four bytes, a line break three (measured
-// 27.09.2026 and 12.10.2026). The wallet's 32 KB come to some 80 KB, and what a text may weigh
-// beside them is some 11,800 bytes. (What travels is this server's copy of the picture, encoded
-// again: of six pictures from the wallet it was 1.5 to 8.6 % smaller than what the wallet sent.)
-//
-// A text of MESSAGE_MAX_CHARS characters is that light where a letter is one or two bytes --
-// Latin, Cyrillic, Greek, Arabic: every language the wallet speaks. Where a character is three
-// bytes or more it is not, at its full length: beside the picture go some 3,900 characters of
-// Chinese or Japanese, 4,500 of Hindi, 2,900 emoji. And beside the largest picture this server
-// takes, three kilobytes more than the wallet's, a full text goes where a letter is one byte;
-// of Russian, some 4,300 characters. Without a picture every text goes, the heaviest MaxLength
-// lets through included (a control character with a variation selector, which it counts as
-// one). The sending server measures the finished request and refuses it before anything is
-// filed (commandRequestBytes in core; its test holds these numbers), and the wallet says that
-// the text is too long to go with the picture.
+// across its border (E-046). To a member of another community the picture travels as base64 in
+// the request that carries its message (peer-api chatMessage), and the federation service takes
+// FEDERATION_REQUEST_MAX_BYTES at most. Sealing adds 41 bytes to the JSON, whatever its length
+// (SEAL_OVERHEAD_BYTES in core), so what fits within this community, below, fits across its
+// border as well. The sending server still measures the finished request and refuses it before
+// anything is filed (sealedRequestFits in core): a backstop, should one of the limits grow.
 //
 // Within this community the picture travels as base64 in the same mutation as the text, under
 // express's 100 KB as well (backend/src/server/createServer.ts), as the two avatar renditions do,
@@ -230,6 +216,9 @@ export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10
 // fetch's own limit, and one that does not accept it for the 10 s of the connect timeout
 export const FEDERATION_REQUEST_TIMEOUT_MS = 5000
 export const FEDERATION_REQUEST_TIMEOUT_S = 5
+// The largest request body the federation service takes (its Elysia server refuses a longer one
+// with 413), and what a community sending to another measures a sealed chat message against.
+export const FEDERATION_REQUEST_MAX_BYTES = 100 * 1024
 export const REDEEM_JWT_TOKEN_EXPIRATION = '10m'
 export const GRADIDO_REALM = 'gradido'
 

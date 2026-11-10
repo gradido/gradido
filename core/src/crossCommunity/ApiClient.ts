@@ -4,6 +4,7 @@ import { treaty } from '@elysia/eden'
 import { appendSignature, FieldOccurrence } from 'http-message-sig'
 import {
   AppContext,
+  FEDERATION_REQUEST_MAX_BYTES,
   FEDERATION_REQUEST_TIMEOUT_MS,
   InvalidResponseSignatureError,
   SignatureNonce,
@@ -15,14 +16,31 @@ import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
 import {
+  ChatMessageWireInput,
   CrossGroupTransactionWireInput,
+  chatMessageWireSchema,
   crossGroupTransactionWireSchema,
   DisburseTransactionLinkWire,
+  EditChatMessageWire,
+  editChatMessageWireSchema,
   MemberAvatarFullQuestion,
   MemberAvatarsQuestion,
   memberAvatarFullQuestionSchema,
   memberAvatarsQuestionSchema,
 } from './schema'
+
+// What sealing adds to a body (encryptAndHash), the same for every length.
+export const SEAL_OVERHEAD_BYTES = 41
+
+/**
+ * Whether a request with this body, sealed, fits what the federation service takes
+ * (FEDERATION_REQUEST_MAX_BYTES). Eden writes the body with JSON.stringify, so this counts what
+ * goes over the wire, byte for byte. A chat message with a picture comes close to the limit
+ * (P7b); beyond it the other server answers a bare 413.
+ */
+export const sealedRequestFits = (body: unknown): boolean =>
+  Buffer.byteLength(JSON.stringify(body), 'utf8') + SEAL_OVERHEAD_BYTES <=
+  FEDERATION_REQUEST_MAX_BYTES
 
 export type ElysiaApiRoutesClientType = ReturnType<typeof treaty<typeof apiRoutes>>
 type FetchOptions = {
@@ -308,6 +326,18 @@ export class ApiClient {
   public memberAvatarFull(question: MemberAvatarFullQuestion) {
     return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarFull.post(
       v.parse(memberAvatarFullQuestionSchema, question),
+    )
+  }
+
+  public chatMessage(message: ChatMessageWireInput) {
+    return this.encryptSignVerifyClient['peer-api'].v1.chatMessage.post(
+      v.parse(chatMessageWireSchema, message),
+    )
+  }
+
+  public editChatMessage(edit: EditChatMessageWire) {
+    return this.encryptSignVerifyClient['peer-api'].v1.editChatMessage.post(
+      v.parse(editChatMessageWireSchema, edit),
     )
   }
 

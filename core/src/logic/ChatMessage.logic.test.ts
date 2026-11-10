@@ -5,12 +5,10 @@ import * as database from 'database'
 import { getLogger } from '../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import {
-  CHAT_MESSAGE_NOTIFY_LETTER,
   ChatMessageToStore,
   chatMailWentOut,
   chatMessageMailState,
   chatMessageNotify,
-  parseChatMessageNotify,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
@@ -404,30 +402,6 @@ describe('chatMailWentOut', () => {
   it('takes nothing, null, false and an Error as no mail', () => {
     for (const result of [undefined, null, false, new Error('Connection timeout')]) {
       expect(chatMailWentOut(result)).toBe(false)
-    }
-  })
-})
-
-// The receiving server takes only 'none' at its word: anything else is a mail.
-describe('parseChatMessageNotify', () => {
-  it("takes 'none' as none, and 'email' as a mail", () => {
-    expect(parseChatMessageNotify('none')).toBe('none')
-    expect(parseChatMessageNotify('email')).toBe('email')
-  })
-
-  // A letter wishes a mail: it is filed as 'email', the column holds nothing else.
-  it('reads a letter as a mail', () => {
-    expect(parseChatMessageNotify(CHAT_MESSAGE_NOTIFY_LETTER)).toBe('email')
-  })
-
-  it('reads a missing wish -- a server from before the chat -- as a mail', () => {
-    expect(parseChatMessageNotify(undefined)).toBe('email')
-    expect(parseChatMessageNotify(null)).toBe('email')
-  })
-
-  it('reads anything it does not know as a mail, the GraphQL name included', () => {
-    for (const value of ['NONE', 'nothing', '', 0, false, {}, ['none']]) {
-      expect(parseChatMessageNotify(value)).toBe('email')
     }
   })
 })

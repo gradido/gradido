@@ -1,6 +1,1 @@
-export { CommandClient as V1_0_CommandClient } from './client/1_0/CommandClient'
-export * from './client/1_0/commandRequestBytes'
-export { CommandClient as V1_1_CommandClient } from './client/1_1/CommandClient'
-export * from './client/CommandClientFactory'
-export * from './enum/apiVersionType'
 export * from './xcom/transferAvatarDate'

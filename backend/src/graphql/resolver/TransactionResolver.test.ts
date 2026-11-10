@@ -8,7 +8,13 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { CONFIG as CORE_CONFIG, sendCustomEmail, sendTransactionReceivedEmail } from 'core'
+import {
+  ApiClient,
+  ChatMessageWireInput,
+  CONFIG as CORE_CONFIG,
+  sendCustomEmail,
+  sendTransactionReceivedEmail,
+} from 'core'
 import {
   AppDatabase,
   chatConversationMembersTable,
@@ -16,7 +22,6 @@ import {
   chatMessagesTable,
   Community as DbCommunity,
   Event as DbEvent,
-  FederatedCommunity as DbFederatedCommunity,
   dbUpsertForeignMemberAvatarDates,
   EventType,
   foreignReceive,
@@ -24,8 +29,7 @@ import {
   User,
 } from 'database'
 import { GraphQLError } from 'graphql'
-import { GraphQLClient } from 'graphql-request'
-import { CommandJwtPayloadType, createKeyPair, uuidv4Schema, verifyAndDecrypt } from 'shared'
+import { uuidv4Schema } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import { CONFIG } from '@/config'
@@ -1241,50 +1245,29 @@ describe('sendEmail', () => {
   })
 
   /**
-   * ⛔ The stand-in for the other community opens the command with ITS key, as the real one
-   * would: the messageUuid is read out of the sealed payload, not taken from a spy on this
-   * server's side of the seal.
+   * The stand-in for the other community is its route: ApiClient.chatMessage answers as Eden
+   * hands on what the other server said.
    */
   describe('to a member of another community', () => {
     const peerUuid = uuidv4()
     const peerMember = uuidv4()
 
-    let homeKeys: { publicKey: string; privateKey: string }
-    let peerKeys: { publicKey: string; privateKey: string }
     let peer: DbCommunity
-    let peerEntry: DbFederatedCommunity
-    let rawRequest: jest.SpyInstance | undefined
-    let commands: Record<string, unknown>[] = []
-    // What this server had filed for each command while it was on its way.
+    let sendSpy: jest.SpyInstance | undefined
+    let sent: ChatMessageWireInput[] = []
+    // What this server had filed for each message while it was on its way.
     let inFlight: (string | undefined)[] = []
 
-    /** The other community: opens each command with its key and answers as it is told. */
-    const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
-      rawRequest = jest
-        .spyOn(GraphQLClient.prototype, 'rawRequest')
-        // CommandClient.sendCommand calls rawRequest(document, variables) -- two arguments,
-        // not the options object the member-avatar client hands over.
-        .mockImplementation((async (
-          _document: unknown,
-          variables: { args: { handshakeID: string; jwt: string } },
-        ) => {
-          const { args } = variables
-          const command = (await verifyAndDecrypt(
-            args.handshakeID,
-            args.jwt,
-            peerKeys.privateKey,
-            homeKeys.publicKey,
-          )) as CommandJwtPayloadType | null
-          if (!command) {
-            throw new Error('the command does not verify with the key of this community')
-          }
-          const sent = JSON.parse(command.commandArgs[0])
-          commands.push(sent)
-          inFlight.push(
-            (await messages()).find((m) => m.messageUuid === sent.messageUuid)?.deliveryState,
-          )
-          return { data: { sendCommand: answer }, status: 200 }
-        }) as any)
+    const peerAnswers = (answer: { data?: unknown; error?: { status: number; value: string } }) => {
+      sendSpy = jest.spyOn(ApiClient.prototype, 'chatMessage').mockImplementation((async (
+        message: ChatMessageWireInput,
+      ) => {
+        sent.push(message)
+        inFlight.push(
+          (await messages()).find((m) => m.messageUuid === message.messageUuid)?.deliveryState,
+        )
+        return { data: answer.data ?? null, error: answer.error ?? null }
+      }) as any)
     }
 
     const sendToPeer = (recipientIdentifier: string, memo: string) =>
@@ -1301,12 +1284,6 @@ describe('sendEmail', () => {
     const filedWithBody = async (body: string) => (await messages()).filter((m) => m.body === body)
 
     beforeAll(async () => {
-      homeKeys = await createKeyPair()
-      peerKeys = await createKeyPair()
-      await DbCommunity.update(
-        { foreign: false },
-        { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
-      )
       peer = await DbCommunity.create({
         foreign: true,
         url: 'http://chat-peer.invalid/api/',
@@ -1317,60 +1294,53 @@ describe('sendEmail', () => {
         name: 'Chat peer',
         description: 'the other side of the border',
         creationDate: new Date(),
-        publicJwtKey: peerKeys.publicKey,
-      }).save()
-      peerEntry = await DbFederatedCommunity.create({
-        foreign: true,
-        publicKey: peer.publicKey,
-        apiVersion: '1_0',
-        endPoint: 'http://chat-peer.invalid/api/',
       }).save()
       await loginAs('bob@baumeister.de')
     })
 
     beforeEach(() => {
-      commands = []
+      sent = []
       inFlight = []
     })
 
     afterEach(() => {
-      rawRequest?.mockRestore()
-      rawRequest = undefined
+      sendSpy?.mockRestore()
+      sendSpy = undefined
     })
 
     afterAll(async () => {
-      await DbFederatedCommunity.delete({ id: peerEntry.id })
       await DbCommunity.delete({ id: peer.id })
     })
 
-    it('files its own copy under the uuid the command carries, and marks it delivered', async () => {
-      peerAnswers({ success: true, data: 'mailed' })
+    it('files its own copy under the uuid the message carries, and marks it delivered', async () => {
+      peerAnswers({ data: { mailState: 'mailed' } })
 
       await expect(sendToPeer(peerMember, 'Across the border')).resolves.toMatchObject({
         data: { sendEmail: true },
         errors: undefined,
       })
 
-      expect(commands).toEqual([
+      expect(sent).toEqual([
         {
-          mailType: 'sendCustomEmail',
-          senderComUuid: bobMember.communityUuid,
-          senderGradidoId: bobMember.gradidoID,
-          receiverComUuid: peerUuid,
-          receiverGradidoId: peerMember,
-          subject: SUBJECT,
-          memo: 'Across the border',
-          messageUuid: expect.any(String),
           // E-034: what the other server files bob with, if it does not know him yet.
-          senderAlias: bobMember.alias,
+          sender: {
+            communityUuid: bobMember.communityUuid,
+            gradidoId: bobMember.gradidoID,
+            alias: bobMember.alias,
+          },
+          recipient: { communityUuid: peerUuid, gradidoId: peerMember },
+          messageUuid: expect.any(String),
+          subject: SUBJECT,
+          body: 'Across the border',
           // E-034, A3: the form writes a letter, which the other server mails whatever the quiet.
           notify: 'letter',
+          images: [],
         },
       ])
       const [ownCopy, ...more] = await filedWithBody('Across the border')
       expect(more).toEqual([])
       expect(ownCopy).toMatchObject({
-        messageUuid: commands[0].messageUuid,
+        messageUuid: sent[0].messageUuid,
         senderCommunityUuid: bobMember.communityUuid,
         senderGradidoId: bobMember.gradidoID,
         subject: SUBJECT,
@@ -1386,48 +1356,29 @@ describe('sendEmail', () => {
       expect(conversation.directPairKey).toContain(`${peerUuid}/${peerMember}`)
     })
 
-    it('marks its own copy failed when the other community refuses it, and throws as before', async () => {
-      peerAnswers({ success: false, error: 'Recipient user not found' })
+    it('marks its own copy failed when the other community refuses it, and throws', async () => {
+      peerAnswers({ error: { status: 404, value: 'Recipient user not found' } })
 
       const result = await sendToPeer(peerMember, 'Refused over there')
 
-      expect(result.errors).toEqual([
-        new GraphQLError('sendCommand failed with response error: Recipient user not found'),
-      ])
+      expect(result.errors).toEqual([new GraphQLError('404: Recipient user not found')])
       const [ownCopy] = await filedWithBody('Refused over there')
-      expect(ownCopy.messageUuid).toBe(commands[0].messageUuid)
+      expect(ownCopy.messageUuid).toBe(sent[0].messageUuid)
       expect(ownCopy.deliveryState).toBe('failed')
       expect(ownCopy.lastAttemptAt).toBeInstanceOf(Date)
       expect(inFlight).toEqual(['pending'])
     })
 
     // The other server looks a recipient up by gradido id and nothing else.
-    it('files nothing for a recipient named otherwise, and still sends the command', async () => {
-      peerAnswers({ success: false, error: 'Recipient user not found' })
+    it('files and sends nothing for a recipient named otherwise', async () => {
+      peerAnswers({ data: { mailState: 'mailed' } })
       const before = await messages()
 
       const result = await sendToPeer('raeuber', 'Named by user name')
 
-      expect(result.errors).toHaveLength(1)
-      expect(commands).toHaveLength(1)
-      expect(inFlight).toEqual([undefined])
+      expect(result.errors).toEqual([new GraphQLError('Recipient user not found')])
+      expect(sendSpy).not.toHaveBeenCalled()
       expect(await messages()).toEqual(before)
-    })
-
-    it('files nothing when the command cannot be sealed for the other community', async () => {
-      await DbCommunity.update({ id: peer.id }, { publicJwtKey: null })
-      try {
-        peerAnswers({ success: true })
-        const before = await messages()
-
-        const result = await sendToPeer(peerMember, 'Never sealed')
-
-        expect(result.errors).toHaveLength(1)
-        expect(rawRequest).not.toHaveBeenCalled()
-        expect(await messages()).toEqual(before)
-      } finally {
-        await DbCommunity.update({ id: peer.id }, { publicJwtKey: peerKeys.publicKey })
-      }
     })
   })
 })

@@ -8,8 +8,6 @@ import { TransactionList } from '@model/TransactionList'
 import { TransactionPicture } from '@model/TransactionPicture'
 import { User } from '@model/User'
 import {
-  ApiVersionType,
-  CommandClientFactory,
   processXComCompleteTransaction,
   redeemDeferredTransferTransaction,
   sendTransactionLinkRedeemedEmail,
@@ -17,7 +15,6 @@ import {
   TransactionTypeId,
   transactionLinksDecayed,
   transferTransaction,
-  V1_0_CommandClient,
 } from 'core'
 import {
   AppDatabase,
@@ -26,6 +23,7 @@ import {
   countOpenPendingTransactions,
   DltTransaction as DbDltTransaction,
   dbDeleteTransactionPictureWithoutBooking,
+  dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindMemberAvatarTimestamps,
   dbHasRegisterRedeemEvent,
   dbInsertEvent,
@@ -45,8 +43,6 @@ import {
   driverCodeOfFailedQuery,
   EventType,
   findUserByIdentifier,
-  getCommunityByUuid,
-  getCommunityWithFederatedCommunityByIdentifier,
   getLastTransaction,
   typeOrmUserToDbLoginUser,
   UserLoggingView,
@@ -1066,61 +1062,30 @@ export class TransactionResolver {
       })
     } else {
       // sendEmail for foreign communities
-      const senderCom = await getCommunityByUuid(senderUser.communityUuid)
-      if (senderCom === null) {
-        const errmsg = 'The sender community was not found' + senderUser.communityUuid
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      }
-
-      const receiverCom = await getCommunityWithFederatedCommunityByIdentifier(
+      const receiverCom = await dbFindAuthenticatedForeignCommunityByIdentifier(
         recipientCommunityIdentifier,
       )
-      if (receiverCom === null) {
+      if (!receiverCom) {
         const errmsg = 'The recipient community was not found' + recipientCommunityIdentifier
         logger.error(errmsg)
         throw new Error(errmsg)
       }
-      if (!receiverCom.federatedCommunities || receiverCom.federatedCommunities.length === 0) {
-        const errmsg =
-          'The recipient community has no federated communities' + recipientCommunityIdentifier
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      }
-      const receiverFCom = receiverCom.federatedCommunities.find(
-        (fcom) => fcom.apiVersion === ApiVersionType.V1_0,
-      )
-      if (!receiverFCom) {
-        const errmsg =
-          'The federated community of the recipient community was not found ' +
-          recipientCommunityIdentifier
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      }
-      const cmdClient = CommandClientFactory.getInstance(receiverFCom)
-
-      if (cmdClient instanceof V1_0_CommandClient) {
-        // The own copy is filed as not yet delivered right before the command goes out, and
-        // marked with the answer; the recipient's server sends the mail, for a letter whatever
-        // the quiet (E-034).
-        const { error } = await deliverChatMessageAcrossBorder({
-          senderUser,
-          senderCom,
-          receiverCom,
-          receiverComIdentifier: recipientCommunityIdentifier,
-          cmdClient,
-          recipientGradidoId: recipientIdentifier,
-          subject: subject || null,
-          body: memo,
-          notify: ChatMessageNotify.EMAIL,
-          requireStored: false,
-          letter: true,
-        })
-        if (error !== null) {
-          const errmsg = 'Failed to send command to federated community with error: ' + error
-          logger.error(errmsg)
-          throw new Error(error)
-        }
+      // The own copy is filed as not yet delivered right before the request goes out, and
+      // marked with the answer; the recipient's server sends the mail, for a letter whatever
+      // the quiet (E-034).
+      const { error } = await deliverChatMessageAcrossBorder({
+        senderUser,
+        receiverCom,
+        recipientGradidoId: recipientIdentifier,
+        subject: subject || null,
+        body: memo,
+        notify: ChatMessageNotify.EMAIL,
+        requireStored: false,
+        letter: true,
+      })
+      if (error !== null) {
+        logger.error('Failed to send the message to the federated community with error: ' + error)
+        throw new Error(error)
       }
     }
     return true

@@ -15,10 +15,13 @@ import * as v from 'valibot'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../config/const'
 import { ApiClientCompleted } from './ApiClient'
 import { ApiClientCache } from './ApiClientCache'
+import { editChatMessage, receiveChatMessage } from './chatMessages'
 import { memberAvatarDates, memberAvatarFull, memberAvatarsSmall } from './memberAvatars'
 import {
+  chatMessageWireSchema,
   crossGroupTransactionWireSchema,
   disburseTransactionLinkWireSchema,
+  editChatMessageWireSchema,
   memberAvatarFullQuestionSchema,
   memberAvatarsQuestionSchema,
   userPublicInfoWireSchema,
@@ -151,6 +154,15 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
       404: v.string(),
       500: v.string(),
     },
+  })
+  // a message of a member of the calling community to a member of this one, and a change of it
+  .post('chatMessage', receiveChatMessage, {
+    body: chatMessageWireSchema,
+    mapResponse: signedJsonResponse,
+  })
+  .post('editChatMessage', editChatMessage, {
+    body: editChatMessageWireSchema,
+    mapResponse: signedJsonResponse,
   })
   // the pictures of this community's members, sealed for the community that asks
   .post('memberAvatarsSmall', memberAvatarsSmall, {

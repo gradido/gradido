@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import {
+  ChatMessageWireInput,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
@@ -7,15 +8,17 @@ import {
   sendCustomEmail,
   storeChatMessage,
   storeChatMessageImages,
-  V1_0_CommandClient,
 } from 'core'
-import { ChatMessageSelect, Community as DbCommunity, User as DbUser } from 'database'
-import { CommandJwtPayloadType, createKeyPair, MESSAGE_MAX_CHARS, verifyAndDecrypt } from 'shared'
+import { ChatMessageSelect, CommunitiesSelect, User as DbUser } from 'database'
+import { CHAT_IMAGE_MAX_BYTES, FEDERATION_REQUEST_MAX_BYTES, MESSAGE_MAX_CHARS } from 'shared'
 import { deliverChatMessageAcrossBorder, deliverChatMessageLocally } from './chatMessageDelivery'
 
 // What the database would do is mocked here: the helper's own decisions are the subject --
 // above all the one no database test can bring about, a row that could not be filed.
 // ChatResolver.test.ts and TransactionResolver.test.ts run the same ways against a database.
+// The other community is a client whose answer each test says.
+const mockChatMessage = jest.fn()
+const mockGetClient = jest.fn()
 jest.mock('core', () => {
   const originalModule = jest.requireActual('core')
   return {
@@ -28,6 +31,7 @@ jest.mock('core', () => {
     sendCustomEmail: jest.fn(),
     storeChatMessageImages: jest.fn(),
     removeChatMessageImages: jest.fn(),
+    ApiClientCache: { getInstance: () => ({ get: mockGetClient }) },
   }
 })
 
@@ -395,67 +399,47 @@ describe('deliverChatMessageLocally with a picture', () => {
 })
 
 describe('deliverChatMessageAcrossBorder', () => {
-  const sendCommandForAnswer = jest.fn()
-  const cmdClient = { sendCommandForAnswer } as unknown as V1_0_CommandClient
-  let homeKeys: { publicKey: string; privateKey: string }
-  let peerKeys: { publicKey: string; privateKey: string }
-  let senderCom: DbCommunity
-  let receiverCom: DbCommunity
-
-  beforeAll(async () => {
-    homeKeys = await createKeyPair()
-    peerKeys = await createKeyPair()
-    senderCom = {
-      privateJwtKey: homeKeys.privateKey,
-      publicKey: Buffer.from('home'),
-    } as unknown as DbCommunity
-    receiverCom = {
-      communityUuid: PEER,
-      publicJwtKey: peerKeys.publicKey,
-    } as unknown as DbCommunity
-  })
+  const receiverCom = { communityUuid: PEER } as CommunitiesSelect
+  const answers = (data: unknown) => mockChatMessage.mockResolvedValue({ data, error: null })
+  const refuses = (status: number, value: string) =>
+    mockChatMessage.mockResolvedValue({ data: null, error: { status, value } })
 
   const across = (
     requireStored: boolean,
     notify: 'email' | 'none' = 'email',
-    senderUser: DbUser = anna,
     letter = false,
+    replyToMessageUuid: string | null = null,
   ) =>
     deliverChatMessageAcrossBorder({
       letter,
-      senderUser,
-      senderCom,
+      senderUser: anna,
       receiverCom,
-      receiverComIdentifier: PEER,
-      cmdClient,
       recipientGradidoId: BEN,
       subject: null,
       body: 'Shall we meet at ten?',
       notify,
       requireStored,
+      replyToMessageUuid,
     })
 
-  /** What the last command carried, opened with the other community's key as it would be. */
-  const payload = async () => {
-    const [args] = sendCommandForAnswer.mock.calls[sendCommandForAnswer.mock.calls.length - 1]
-    const command = (await verifyAndDecrypt(
-      args.handshakeID,
-      args.jwt,
-      peerKeys.privateKey,
-      homeKeys.publicKey,
-    )) as CommandJwtPayloadType
-    return JSON.parse(command.commandArgs[0])
-  }
+  /** What the last request carried. */
+  const sent = (): ChatMessageWireInput =>
+    mockChatMessage.mock.calls[mockChatMessage.mock.calls.length - 1][0]
+
+  beforeEach(() => {
+    mockGetClient.mockReturnValue({ chatMessage: mockChatMessage })
+  })
 
   it('files the own copy as pending, sends, and hands back the copy as delivered', async () => {
     const moment = new Date('2026-09-24T12:00:01.000Z')
     store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    answers({ mailState: null })
     record.mockResolvedValue(moment)
 
     const { stored, error } = await across(true)
 
     expect(store.mock.calls[0][0]).toMatchObject({ deliveryState: 'pending', notify: 'email' })
+    expect(mockGetClient).toHaveBeenCalledWith(receiverCom)
     expect(record).toHaveBeenCalledWith(5, 'delivered', null)
     expect(stored).toEqual({
       ...row('pending'),
@@ -464,27 +448,34 @@ describe('deliverChatMessageAcrossBorder', () => {
       mailState: null,
     })
     expect(error).toBeNull()
-    expect((await payload()).messageUuid).toBe(store.mock.calls[0][0].messageUuid)
+    expect(sent()).toEqual({
+      sender: { communityUuid: HOME, gradidoId: ANNA, alias: 'anna' },
+      recipient: { communityUuid: PEER, gradidoId: BEN },
+      messageUuid: store.mock.calls[0][0].messageUuid,
+      subject: null,
+      body: 'Shall we meet at ten?',
+      notify: 'email',
+      images: [],
+    })
   })
 
-  it('hands back the copy as failed, with the answer of the other side, and throws nothing', async () => {
+  // An older server answers 404 for a route it does not know: the copy says FAILED.
+  it('hands back the copy as failed, with the status and answer of the other side, and throws nothing', async () => {
     store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({
-      success: false,
-      error: 'sendCommand failed with response error: nope',
-    })
+    refuses(404, 'NOT_FOUND')
     record.mockResolvedValue(new Date())
 
     const { stored, error } = await across(true)
 
-    expect(stored?.deliveryState).toBe('failed')
-    expect(error).toBe('sendCommand failed with response error: nope')
+    expect(record.mock.calls).toEqual([[5, 'failed', null]])
+    expect(stored).toMatchObject({ deliveryState: 'failed', mailState: null })
+    expect(error).toBe('404: NOT_FOUND')
   })
 
   // What the row says: where the state could not be recorded, the copy stays as it was filed.
   it('hands back the copy as filed where its state could not be recorded', async () => {
     store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    answers({ mailState: null })
     record.mockResolvedValue(null)
 
     expect((await across(true)).stored).toEqual(row('pending'))
@@ -495,121 +486,92 @@ describe('deliverChatMessageAcrossBorder', () => {
     store.mockResolvedValue(null)
 
     expect(await across(true)).toEqual({ stored: null, error: null })
-
-    expect(sendCommandForAnswer).not.toHaveBeenCalled()
+    expect(mockChatMessage).not.toHaveBeenCalled()
   })
 
   it('sends the form message whether its copy could be filed or not', async () => {
     store.mockResolvedValue(null)
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    answers({ mailState: 'mailed' })
 
-    expect(await across(false, 'email', anna, true)).toEqual({ stored: null, error: null })
+    expect(await across(false, 'email', true)).toEqual({ stored: null, error: null })
+    expect(mockChatMessage).toHaveBeenCalledTimes(1)
+  })
 
-    expect(sendCommandForAnswer).toHaveBeenCalledTimes(1)
+  it('sends nothing to a recipient that is named by no gradido id', async () => {
+    const result = await deliverChatMessageAcrossBorder({
+      letter: true,
+      senderUser: anna,
+      receiverCom,
+      recipientGradidoId: 'raeuber',
+      subject: null,
+      body: 'Hello',
+      notify: 'email',
+      requireStored: false,
+    })
+    expect(result).toEqual({ stored: null, error: 'Recipient user not found' })
+    expect(store).not.toHaveBeenCalled()
+    expect(mockChatMessage).not.toHaveBeenCalled()
+  })
+
+  // ⛔ Not filed as pending and left there: what the request would refuse throws before.
+  it('throws for a message the request would refuse, and files and sends nothing', async () => {
+    await expect(
+      deliverChatMessageAcrossBorder({
+        letter: true,
+        senderUser: { ...anna, alias: 'ù' } as DbUser,
+        receiverCom,
+        recipientGradidoId: BEN,
+        subject: null,
+        body: 'Hello',
+        notify: 'email',
+        requireStored: false,
+      }),
+    ).rejects.toThrow()
+    expect(store).not.toHaveBeenCalled()
+    expect(mockChatMessage).not.toHaveBeenCalled()
   })
 
   /**
    * An answer to a member of another community: this server's own copy is filed with the message
-   * it answers. ⚠️ The command does not carry it yet -- the other server files an ordinary
-   * message, as every server from before the answers would. The step across the border adds the
-   * field; this test then changes with it.
+   * it answers. ⚠️ The request does not carry it yet -- the other server files an ordinary
+   * message. The step across the border adds the field; this test then changes with it.
    */
-  it('files the own copy with the message it answers, and sends the command without it', async () => {
+  it('files the own copy with the message it answers, and sends the request without it', async () => {
     store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    answers({ mailState: null })
     const ANSWERED = 'abcdef00-0000-4000-8000-00000000aa01'
 
-    await deliverChatMessageAcrossBorder({
-      letter: false,
-      senderUser: anna,
-      senderCom,
-      receiverCom,
-      receiverComIdentifier: PEER,
-      cmdClient,
-      recipientGradidoId: BEN,
-      subject: null,
-      body: 'At ten, then.',
-      notify: 'none',
-      requireStored: true,
-      replyToMessageUuid: ANSWERED,
-    })
+    await across(true, 'none', false, ANSWERED)
 
     expect(store.mock.calls[0][0].replyToMessageUuid).toBe(ANSWERED)
-    const sent = await payload()
-    expect(JSON.stringify(sent)).not.toContain(ANSWERED)
-    expect(Object.keys(sent).filter((key) => /reply/i.test(key))).toEqual([])
-
-    await across(true, 'none')
-    expect(store.mock.calls[1][0].replyToMessageUuid).toBeNull()
-  })
-
-  // Only a wish for no mail travels: without the field every server mails, the old ones too.
-  it("carries notify in the command only where it is 'none'", async () => {
-    store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
-
-    await across(true, 'email')
-    expect(await payload()).not.toHaveProperty('notify')
-
-    await across(true, 'none')
-    expect((await payload()).notify).toBe('none')
+    expect(JSON.stringify(sent())).not.toContain(ANSWERED)
   })
 
   // E-034, A3: the receiving server mails a letter whatever the quiet -- it has to know it is one.
-  it("carries notify 'letter' in the command of the form, and files the copy as a wish for a mail", async () => {
+  it("sends notify 'letter' for the form, and files the copy as a wish for a mail", async () => {
     store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+    answers({ mailState: 'mailed' })
 
-    await across(false, 'email', anna, true)
+    await across(false, 'email', true)
 
-    expect((await payload()).notify).toBe('letter')
+    expect(sent().notify).toBe('letter')
     expect(store.mock.calls[0][0]).toMatchObject({ notify: 'email' })
   })
 
-  // E-034: the receiving server files a sender it does not know with the alias -- and with
-  // nothing more, as the receiving side of a transfer does. No first or last name travels.
-  it('carries the sender alias in the command, no field without one, and no names', async () => {
-    store.mockResolvedValue(row('pending'))
-    sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
-    const fields = [
-      'mailType',
-      'memo',
-      'messageUuid',
-      'receiverComUuid',
-      'receiverGradidoId',
-      'senderComUuid',
-      'senderGradidoId',
-      'subject',
-    ]
-
-    await across(true)
-    const withAlias = await payload()
-    expect(withAlias.senderAlias).toBe('anna')
-    expect(Object.keys(withAlias).sort()).toEqual([...fields, 'senderAlias'].sort())
-
-    await across(true, 'email', { ...anna, alias: null } as unknown as DbUser)
-    expect(Object.keys(await payload()).sort()).toEqual(fields)
-  })
-
-  /**
-   * E-034, A2: the recipient's server answers what became of the mail, and the own copy notes
-   * it with the delivery. RECEIVED -- no mail asked for, or a server from before P3c, which
-   * answers it to every message -- and anything unknown note nothing.
-   */
+  /** E-034, A2: the recipient's server answers what became of the mail; anything else notes nothing. */
   it('notes the answer of the other server on the own copy', async () => {
-    const moment = new Date('2026-09-24T12:00:01.000Z')
     store.mockResolvedValue(row('pending'))
-    record.mockResolvedValue(moment)
+    record.mockResolvedValue(new Date())
 
     for (const [answer, noted] of [
-      ['mailed', 'mailed'],
-      ['muted', 'muted'],
-      ['received', null],
-      ['something new', null],
-      [null, null],
-    ] as [string | null, string | null][]) {
+      [{ mailState: 'mailed' }, 'mailed'],
+      [{ mailState: 'muted' }, 'muted'],
+      [{ mailState: null }, null],
+      [{ mailState: 'something new' }, null],
+      [true, null],
+    ] as [unknown, string | null][]) {
       record.mockClear()
-      sendCommandForAnswer.mockResolvedValue({ success: true, value: answer })
+      answers(answer)
 
       const { stored, error } = await across(true)
 
@@ -619,21 +581,10 @@ describe('deliverChatMessageAcrossBorder', () => {
     }
   })
 
-  it('notes nothing of a mail where the delivery failed', async () => {
-    store.mockResolvedValue(row('pending'))
-    record.mockResolvedValue(new Date())
-    sendCommandForAnswer.mockResolvedValue({ success: false, error: 'Recipient user not found' })
-
-    const { stored } = await across(true)
-
-    expect(record.mock.calls).toEqual([[5, 'failed', null]])
-    expect(stored).toMatchObject({ deliveryState: 'failed', mailState: null })
-  })
-
   /**
-   * P7b: the picture travels in the command. The command is sealed and measured first; then the
-   * picture is filed, under the names the command gives it, then the own copy, then the command
-   * goes out. Neither the order nor a copy that could not be filed can be brought about on purpose
+   * P7b: the picture travels with the message. The request is measured first; then the picture
+   * is filed, under the names the request gives it, then the own copy, then the request goes
+   * out. Neither the order nor a copy that could not be filed can be brought about on purpose
    * against a database -- ChatResolver.test.ts runs the way through there.
    */
   describe('with a picture', () => {
@@ -648,10 +599,7 @@ describe('deliverChatMessageAcrossBorder', () => {
     const withPicture = (image: Buffer, body = 'Look at this') =>
       deliverChatMessageAcrossBorder({
         senderUser: anna,
-        senderCom,
         receiverCom,
-        receiverComIdentifier: PEER,
-        cmdClient,
         recipientGradidoId: BEN,
         subject: null,
         body,
@@ -661,7 +609,7 @@ describe('deliverChatMessageAcrossBorder', () => {
         images: [{ image, width: 924, height: 520 }],
       })
 
-    it('files the picture, then the own copy, then sends -- the picture under the names the command gives it', async () => {
+    it('files the picture, then the own copy, then sends -- the picture under the names the request gives it', async () => {
       const steps: string[] = []
       storePictures.mockImplementation(async () => {
         steps.push('picture')
@@ -671,15 +619,15 @@ describe('deliverChatMessageAcrossBorder', () => {
         steps.push('copy')
         return row('pending')
       })
-      sendCommandForAnswer.mockImplementation(async () => {
-        steps.push('command')
-        return { success: true, value: 'mailed' }
+      mockChatMessage.mockImplementation(async () => {
+        steps.push('request')
+        return { data: { mailState: 'mailed' }, error: null }
       })
       record.mockResolvedValue(new Date())
 
       const { stored, error } = await withPicture(JPEG)
 
-      expect(steps).toEqual(['picture', 'copy', 'command'])
+      expect(steps).toEqual(['picture', 'copy', 'request'])
       expect(error).toBeNull()
       expect(stored?.deliveryState).toBe('delivered')
       const [messageUuid, pictures] = storePictures.mock.calls[0]
@@ -693,9 +641,8 @@ describe('deliverChatMessageAcrossBorder', () => {
           position: 0,
         },
       ])
-      const sent = await payload()
-      expect(sent.messageUuid).toBe(messageUuid)
-      expect(sent.images).toEqual([
+      expect(sent().messageUuid).toBe(messageUuid)
+      expect(sent().images).toEqual([
         {
           imageUuid: pictures[0].imageUuid,
           width: 924,
@@ -709,7 +656,7 @@ describe('deliverChatMessageAcrossBorder', () => {
     // Cyrillic letters are two bytes each: the heaviest of the languages the wallet speaks.
     it("sends the wallet's picture with a text of full length in Cyrillic letters", async () => {
       store.mockResolvedValue(row('pending'))
-      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+      answers({ mailState: null })
       record.mockResolvedValue(new Date())
       const russian = 'Привет из Москвы, до встречи завтра утром! '
         .repeat(MESSAGE_MAX_CHARS)
@@ -717,40 +664,46 @@ describe('deliverChatMessageAcrossBorder', () => {
 
       await withPicture(WALLET_PICTURE, russian)
 
-      expect(sendCommandForAnswer).toHaveBeenCalledTimes(1)
-      expect((await payload()).images[0].data).toBe(WALLET_PICTURE.toString('base64'))
+      expect(mockChatMessage).toHaveBeenCalledTimes(1)
+      expect(sent().images?.[0].data).toBe(WALLET_PICTURE.toString('base64'))
     })
 
-    // ⛔ What MaxLength counts and what the envelope weighs are two things: a message's full
-    // length in Chinese is 15 KB, and some 27 KB once it is sealed -- beside the wallet's picture
-    // too large for the other server. Refused before anything is filed or sent.
-    it('refuses a command too large for the other server, and files and sends nothing', async () => {
+    // The heaviest text beside the largest picture fits (shared CHAT_IMAGE_MAX_BYTES): before the
+    // peer api the sealed command did not.
+    it('sends a text of full length in Chinese beside the largest picture', async () => {
       store.mockResolvedValue(row('pending'))
-      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
+      answers({ mailState: null })
+      record.mockResolvedValue(new Date())
 
-      await expect(withPicture(WALLET_PICTURE, '你'.repeat(MESSAGE_MAX_CHARS))).rejects.toThrow(
+      await withPicture(Buffer.alloc(CHAT_IMAGE_MAX_BYTES, 1), '你'.repeat(MESSAGE_MAX_CHARS))
+
+      expect(mockChatMessage).toHaveBeenCalledTimes(1)
+    })
+
+    // ⛔ A backstop: no picture this server accepts is this large. Refused before anything is
+    // filed or sent, rather than answered by the other server with a bare 413.
+    it('refuses a request too large for the other server, and files and sends nothing', async () => {
+      store.mockResolvedValue(row('pending'))
+
+      await expect(withPicture(Buffer.alloc(FEDERATION_REQUEST_MAX_BYTES, 1))).rejects.toThrow(
         'CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER',
       )
 
       expect(storePictures).not.toHaveBeenCalled()
       expect(store).not.toHaveBeenCalled()
-      expect(sendCommandForAnswer).not.toHaveBeenCalled()
+      expect(mockChatMessage).not.toHaveBeenCalled()
     })
 
     // E-019: a failed delivery is the copy's state, not an error -- the copy keeps its picture.
     it('hands back the copy FAILED where the other side refuses it, and keeps its picture', async () => {
       store.mockResolvedValue(row('pending'))
       record.mockResolvedValue(new Date())
-      sendCommandForAnswer.mockResolvedValue({
-        success: false,
-        error: 'sendCommand failed with response error: CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG',
-      })
+      refuses(400, 'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG')
 
       const { stored, error } = await withPicture(JPEG)
 
       expect(stored?.deliveryState).toBe('failed')
       expect(error).toContain('NOT_JPEG')
-      expect(storePictures).toHaveBeenCalledTimes(1)
       expect(removePictures).not.toHaveBeenCalled()
     })
 
@@ -761,7 +714,7 @@ describe('deliverChatMessageAcrossBorder', () => {
       expect(await withPicture(JPEG)).toEqual({ stored: null, error: null })
 
       expect(store).not.toHaveBeenCalled()
-      expect(sendCommandForAnswer).not.toHaveBeenCalled()
+      expect(mockChatMessage).not.toHaveBeenCalled()
     })
 
     it('takes the picture back out and sends nothing where the own copy could not be filed', async () => {
@@ -770,19 +723,7 @@ describe('deliverChatMessageAcrossBorder', () => {
       expect(await withPicture(JPEG)).toEqual({ stored: null, error: null })
 
       expect(removePictures.mock.calls).toEqual([[storePictures.mock.calls[0][0]]])
-      expect(sendCommandForAnswer).not.toHaveBeenCalled()
-    })
-
-    it('sends no images field for a message without a picture, and files none', async () => {
-      store.mockResolvedValue(row('pending'))
-      sendCommandForAnswer.mockResolvedValue({ success: true, value: null })
-      record.mockResolvedValue(new Date())
-
-      await across(true)
-
-      expect(await payload()).not.toHaveProperty('images')
-      expect(storePictures).not.toHaveBeenCalled()
-      expect(removePictures).not.toHaveBeenCalled()
+      expect(mockChatMessage).not.toHaveBeenCalled()
     })
   })
 })
