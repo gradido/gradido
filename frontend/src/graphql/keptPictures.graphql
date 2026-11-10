@@ -1,0 +1,36 @@
+# AI-GENERATED — not an architecture reference
+# A member's own picture of a contact (AS-023): only the member reads it. `$ref` names the person by
+# the pair the contact window holds. The server writes no variables to its log, and leaves out the
+# answer of a request that read a picture.
+# Who the pictures are of, without them: a few bytes, asked for beside the pictures so that a circle
+# knows to wait with letters before any face can arrive (useKeptPictures).
+query keptPicturePairsQuery {
+  keptPictures {
+    communityUuid
+    gradidoID
+  }
+}
+
+query keptPicturesQuery {
+  keptPictures {
+    communityUuid
+    gradidoID
+    picture
+  }
+}
+
+query keptPictureFullQuery($ref: MemberAvatarRefInput!) {
+  keptPictureFull(ref: $ref)
+}
+
+mutation setKeptPictureMutation(
+  $ref: MemberAvatarRefInput!
+  $pictureSmall: String!
+  $pictureFull: String!
+) {
+  setKeptPicture(ref: $ref, pictureSmall: $pictureSmall, pictureFull: $pictureFull)
+}
+
+mutation removeKeptPictureMutation($ref: MemberAvatarRefInput!) {
+  removeKeptPicture(ref: $ref)
+}
