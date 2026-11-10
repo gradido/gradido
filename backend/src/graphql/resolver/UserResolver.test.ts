@@ -131,7 +131,7 @@ import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
-import { Context } from '@/server/context'
+import { Context, newRequestBudget } from '@/server/context'
 import { createServer } from '@/server/createServer'
 import { printTimeDuration } from '@/util/time'
 import { UserResolver } from './UserResolver'
@@ -191,9 +191,13 @@ const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
 
-// The context of a field resolver that is asked directly: the member asking, or nobody.
+// The context of a field resolver that is asked directly: the member asking, or nobody -- with the
+// request's budget, as context() gives every request (the own picture counts in it).
 const callerWithId = (id: number | undefined): Context =>
-  ({ user: id === undefined ? undefined : { id } }) as unknown as Context
+  ({
+    user: id === undefined ? undefined : { id },
+    requestBudget: newRequestBudget(),
+  }) as unknown as Context
 
 let admin: User
 let user: User
