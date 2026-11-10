@@ -23,10 +23,8 @@ import {
   dbFindPendingEmailChangeByCode,
   dbFindPendingEmailChangeByVetoCode,
   dbFindRegisterUserContactByCodeOrFail,
-  dbFindUserContactByCodeExceptChangeOrFail,
   dbFindUserContactByCodeOrFail,
   dbFindUserContactByEmail,
-  dbFindUserContactWithUserByEmail,
   dbInsertPendingEmailChange,
   dbMarkUserContactPending,
   dbReleasePendingEmailChange,
@@ -372,7 +370,6 @@ describe('userContacts.typeorm.queries', () => {
       const code = current.emailVerificationCode
       for (const row of [
         await dbFindUserContactByCodeOrFail(code),
-        await dbFindUserContactByCodeExceptChangeOrFail(code),
         await dbFindRegisterUserContactByCodeOrFail(code),
       ]) {
         expect(row.id).toBe(current.id)
@@ -384,7 +381,6 @@ describe('userContacts.typeorm.queries', () => {
     it('find a former address by its code too, but without its member', async () => {
       for (const row of [
         await dbFindUserContactByCodeOrFail(formerCode),
-        await dbFindUserContactByCodeExceptChangeOrFail(formerCode),
         await dbFindRegisterUserContactByCodeOrFail(formerCode),
       ]) {
         expect(row.userId).toBe(bibi.id)
@@ -394,9 +390,6 @@ describe('userContacts.typeorm.queries', () => {
 
     it('reach a change code only through the lookup that takes any type', async () => {
       expect((await dbFindUserContactByCodeOrFail('9201')).id).toBe(change.id)
-      await expect(dbFindUserContactByCodeExceptChangeOrFail('9201')).rejects.toBeInstanceOf(
-        EntityNotFoundError,
-      )
       await expect(dbFindRegisterUserContactByCodeOrFail('9201')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       )
@@ -406,37 +399,9 @@ describe('userContacts.typeorm.queries', () => {
       await expect(dbFindUserContactByCodeOrFail('9999')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       )
-      await expect(dbFindUserContactByCodeExceptChangeOrFail('9999')).rejects.toBeInstanceOf(
-        EntityNotFoundError,
-      )
       await expect(dbFindRegisterUserContactByCodeOrFail('9999')).rejects.toBeInstanceOf(
         EntityNotFoundError,
       )
-    })
-
-    it('find an address with its member, deleted rows included', async () => {
-      const found = await dbFindUserContactWithUserByEmail('peter@lustig.de')
-      expect(found?.id).toBe(current.id)
-      expect(found?.user?.id).toBe(peter.id)
-
-      expect((await dbFindUserContactWithUserByEmail('bibi-earlier@bloxberg.de'))?.user).toBeNull()
-
-      const gone = await DbUserContact.save(
-        DbUserContact.create({
-          userId: bibi.id,
-          email: 'bibi-gone@bloxberg.de',
-          type: UserContactType.USER_CONTACT_EMAIL,
-          emailChecked: true,
-          emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER,
-          emailVerificationCode: '9203',
-        }),
-      )
-      await DbUserContact.softRemove(gone)
-      const deleted = await dbFindUserContactWithUserByEmail('bibi-gone@bloxberg.de')
-      expect(deleted?.id).toBe(gone.id)
-      expect(deleted?.deletedAt).not.toBeNull()
-
-      expect(await dbFindUserContactWithUserByEmail('nobody@example.org')).toBeNull()
     })
 
     it('build the address in force, under the alias the field selection reads', async () => {

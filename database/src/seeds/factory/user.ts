@@ -16,9 +16,9 @@ import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { dbSelectHomeCommunity } from '../../queries/communities'
 import {
+  dbFindUserWithContactById,
   dbInsertUser,
   dbInsertUsers,
-  dbSelectUserWithContactById,
   dbUpdateUserEmailId,
 } from '../../queries/user'
 import { dbInsertUserAlias, dbInsertUserAliases } from '../../queries/userAliases'
@@ -59,7 +59,7 @@ export async function userFactoryDrizzle(
     if (role) {
       await dbInsertUserRoles([{ userId, role }], tx)
     }
-    const written = await dbSelectUserWithContactById(userId, tx)
+    const written = await dbFindUserWithContactById(userId, true, tx)
     if (!written) {
       throw new Error(`user ${userId} was just written and cannot be read`)
     }
@@ -90,6 +90,11 @@ function valueOrThrow<T>(result: Result<T, Error>): T {
 }
 
 function userRowOf(user: UserInterface, communityUuid: string): UserInsert & { gradidoId: string } {
+  const defaultAccountState = user.deletedAt
+    ? AccountState.DELETED
+    : user.emailChecked
+      ? AccountState.ACTIVATED
+      : AccountState.REGISTERED
   const row: UserInsert & { gradidoId: string } = {
     gradidoId: user.gradidoId ?? v4(),
     communityUuid,
@@ -98,16 +103,13 @@ function userRowOf(user: UserInterface, communityUuid: string): UserInsert & { g
     language: user.language ?? 'en',
     createdAt: user.createdAt ?? new Date(),
     deletedAt: user.deletedAt ?? null,
-    accountState: user.deletedAt
-      ? AccountState.DELETED
-      : user.emailChecked
-        ? AccountState.ACTIVATED
-        : AccountState.REGISTERED,
+    accountState: user.accountState ? user.accountState : defaultAccountState,
     publisherId: user.publisherId ?? 0,
     humhubAllowed: true,
     alias: user.alias,
+    referrerId: user.referrerId,
   }
-  if (user.emailChecked) {
+  if (user.emailChecked || user.password) {
     row.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
   }
   return row

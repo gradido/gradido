@@ -1,3 +1,5 @@
+import { AccountState } from '../../enum'
+
 export interface UserInterface {
   // Every member holds a name (migration 0164 refuses a local row without one), so a seed
   // brings its own; the random users of the seeding loop derive theirs from the generated
@@ -17,4 +19,7 @@ export interface UserInterface {
   deletedAt?: Date
   publisherId?: number
   role?: string
+  accountState?: AccountState
+  referrerId?: number
+  password?: boolean
 }

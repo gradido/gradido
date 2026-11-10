@@ -58,6 +58,7 @@ export async function auth(context: {
   const recipientUser = await dbFindUserByIdentifier(
     tx.recipient.identifier,
     tx.recipient.communityUuid,
+    false,
   )
   if (!recipientUser) {
     createLogger('auth').debug(`User with identifier ${tx.recipient.identifier} not found`)

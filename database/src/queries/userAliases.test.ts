@@ -3,6 +3,7 @@ import {
   ALIAS_ORIGIN_ASSIGNED,
   ALIAS_ORIGIN_CHOSEN,
   User as DbUser,
+  dbInsertUser,
 } from '..'
 import { AppDatabase } from '../AppDatabase'
 import { DBDuplicateEntryError } from '../errorTypes'
@@ -164,15 +165,19 @@ describe('userAliases.queries', () => {
     })
 
     it('finds no cached member of another community', async () => {
-      const stranger = DbUser.create()
-      stranger.foreign = true
-      stranger.alias = 'far-away'
-      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
-      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
-      stranger.firstName = 'Far'
-      stranger.lastName = 'Away'
-      await DbUser.save(stranger)
-      await insertAlias(stranger.id, 'far-away', ALIAS_ORIGIN_CHOSEN)
+      const strangerInsertResult = await dbInsertUser({
+        foreign: true,
+        alias: 'far-away',
+        gradidoId: '11111111-2222-4333-8444-555555555555',
+        communityUuid: '99999999-2222-4333-8444-555555555555',
+        firstName: 'Far',
+        lastName: 'Away',
+      })
+      // Thrown, not skipped: without the stranger's alias the null below would prove nothing.
+      if (!strangerInsertResult.success) {
+        throw strangerInsertResult.error
+      }
+      await insertAlias(strangerInsertResult.value, 'far-away', ALIAS_ORIGIN_CHOSEN)
 
       expect(await dbFindLocalUserByAlias('far-away')).toBeNull()
     })

@@ -92,11 +92,8 @@ export async function dbHasRegisterRedeemEvent(
 // with what that transaction stores, and a later reader under the same lock finds it.
 export async function dbInsertEvent(
   event: EventInsert,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<void> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   await tx.insert(eventsTable).values(event)
 }
 

@@ -12,6 +12,7 @@ import {
   dbIsMatchingKeyingActive,
   dbSetFirstCreationSignerUserId,
   dbUpdateHomeCommunity,
+  dbUserUpdateField,
   EventType,
 } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
@@ -166,15 +167,13 @@ export class CreaResolver {
     if (value && value.length > SALUTATION_MAX_LENGTH) {
       throw new LogError('Salutation exceeds the maximum length', value.length)
     }
-    const user = await DbUser.findOneBy({ id: userId })
-    if (!user) {
+    const affectedRows = await dbUserUpdateField(userId, 'salutation', value)
+    if (!affectedRows) {
       throw new LogError('Could not find user with given ID', userId)
     }
-    user.salutation = value
-    await DbUser.save(user)
     await dbInsertEvent({
       type: EventType.ADMIN_USER_SALUTATION_SET,
-      affectedUserId: user.id,
+      affectedUserId: userId,
       actingUserId: getUser(context).id,
     })
     return true

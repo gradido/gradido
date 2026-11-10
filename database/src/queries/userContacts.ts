@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, getColumns, inArray, isNull, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { OptInType, Result } from 'shared'
+import { Email, OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
+import { DbUserContact } from '../data'
 import { AccountState } from '../enum'
 import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
 import {
@@ -52,15 +53,106 @@ export async function dbInsertUserContact(
   }
 }
 
+export async function dbUserContactUpdateField<K extends keyof UserContactInsert>(
+  userContactId: number,
+  field: K,
+  value: UserContactInsert[K],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .update(userContactsTable)
+    .set({
+      [field]: value,
+    })
+    .where(eq(userContactsTable.id, userContactId))
+  return rows[0] ? rows[0].affectedRows : 0
+}
+
+export async function dbUserContactUpdate(
+  userContactId: number,
+  values: Partial<UserContactInsert>,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
+    .update(userContactsTable)
+    .set(values)
+    .where(eq(userContactsTable.id, userContactId))
+  return rows[0] ? rows[0].affectedRows : 0
+}
+
 export async function dbFindUserContact(
   userContactId: number,
+  withDeleted = false,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<UserContactSelect | null> {
   const rows = await tx
     .select()
     .from(userContactsTable)
-    .where(eq(userContactsTable.id, userContactId))
+    .where(
+      withDeleted
+        ? eq(userContactsTable.id, userContactId)
+        : and(eq(userContactsTable.id, userContactId), isNull(userContactsTable.deletedAt)),
+    )
   return rows[0] ?? null
+}
+
+/**
+ * The live row behind a code, if it is of one of `optInTypes`, with the member whose
+ * address it is. setPassword asks for REGISTER and RESET_PASSWORD only: a pending e-mail
+ * change carries a code of the same kind, but that code confirms an address and must not
+ * set a password.
+ *
+ * ⚠️ `user` is joined over `users.email_id`, so it is null for every row that is not the
+ * member's current address - a row keeps its code when the member moves on to another
+ * one. The caller has to check it.
+ *
+ * A deleted contact finds nothing, and so does a deleted member. The TypeORM lookup this
+ * replaces handed out the row without its member in the second case; setPassword answers
+ * both the same way.
+ */
+export async function dbFindUserContactByCodeAndTypes(
+  code: bigint,
+  optInTypes: OptInType[],
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<DbUserContact | undefined> {
+  const rows = await tx
+    .select({ ...getColumns(userContactsTable), user: usersTable })
+    .from(userContactsTable)
+    .leftJoin(usersTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(
+      and(
+        eq(userContactsTable.emailVerificationCode, code),
+        inArray(userContactsTable.emailOptInTypeId, optInTypes),
+        isNull(userContactsTable.deletedAt),
+        isNull(usersTable.deletedAt),
+      ),
+    )
+  return rows[0]
+}
+
+/**
+ * The row of an address, with the member whose current address it is (`user` is null
+ * otherwise, as in dbFindUserContactByCodeAndTypes). A deleted contact or member finds
+ * nothing, unless `withDeleted` - then the row comes whatever its state, which is the
+ * visibility `dbEmailTaken` and the change-back in requestEmailChange ask with.
+ */
+export async function dbFindUserContactWithUserByEmail(
+  email: Email,
+  withDeleted = false,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<DbUserContact | undefined> {
+  const whereWithoutDeleted = and(
+    eq(userContactsTable.email, email),
+    isNull(userContactsTable.deletedAt),
+    isNull(usersTable.deletedAt),
+  )
+  const whereWithDeleted = eq(userContactsTable.email, email)
+  const rows = await tx
+    .select({ ...getColumns(userContactsTable), user: usersTable })
+    .from(userContactsTable)
+    .leftJoin(usersTable, eq(usersTable.emailId, userContactsTable.id))
+    .where(withDeleted ? whereWithDeleted : whereWithoutDeleted)
+  return rows[0]
 }
 
 /**

@@ -11,7 +11,7 @@ export async function transactionLinkFactory(
   userId?: number,
 ): Promise<TransactionLinksInsert & { id: number }> {
   if (!userId) {
-    const user = await dbFindUserByEmail(transactionLinkData.email)
+    const user = await dbFindUserByEmail(transactionLinkData.email, true)
     if (!user) {
       throw new Error(`User ${transactionLinkData.email} not found`)
     }

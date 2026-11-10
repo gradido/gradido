@@ -41,6 +41,7 @@ import {
   transactionLinkFactory as dbTransactionLinkFactory,
   dbUpdateHomeCommunity,
   userFactory as dbUserFactory,
+  dbUserUpdatePassword,
   drizzleDb,
   EventType,
   TransactionLinkInterface,
@@ -60,6 +61,7 @@ import {
   MemberAvatarPayload,
   MemberAvatarsJwtPayloadType,
   MemberAvatarsResponseJwtPayloadType,
+  OptInType,
   verifyAndDecrypt,
 } from 'shared'
 import { reencodeImage } from 'shared-native'
@@ -86,7 +88,7 @@ import {
 import { PublishNameType } from '@/graphql/enum/PublishNameType'
 import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
-import { userFactory } from '@/seeds/factory/user'
+import { userFactory, userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   adoptAlias,
   createUser,
@@ -192,12 +194,10 @@ jest.mock('@/apis/KlicktippController', () => {
 // assertion has to reach for the logger of the method that actually writes the message.
 const resolverLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
-const setPasswordLogger = resolverLogger('setPassword')
 const loginLogger = resolverLogger('login')
 const forgotPasswordLogger = resolverLogger('forgotPassword')
 const updateUserInfosLogger = resolverLogger('updateUserInfos')
 const sendActivationEmailLogger = resolverLogger('sendActivationEmail')
-const findUserByEmailLogger = resolverLogger('findUserByEmail')
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
 CONFIG.EMAIL_CODE_REQUEST_TIME = 10
@@ -296,6 +296,19 @@ describe('UserResolver', () => {
             actingUserId: user[0].id,
           }),
         )
+      })
+
+      // A new password on an account that is active already activates nothing.
+      it('stores no second USER_ACTIVATE_ACCOUNT event when the password is set anew', async () => {
+        const answer = await mutate({
+          mutation: setPassword,
+          variables: { code: emailVerificationCode, password: 'Bb12345_' },
+        })
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
+        await expect(
+          DbEvent.countBy({ type: EventType.USER_ACTIVATE_ACCOUNT, affectedUserId: user[0].id }),
+        ).resolves.toBe(1)
       })
     })
 
@@ -1340,11 +1353,18 @@ describe('UserResolver', () => {
             .getDataSource()
             .query('SELECT uuid FROM matching_entries WHERE user_id = ?', [userId])
         ).map((row: { uuid: string }) => row.uuid)
-      const setThePassword = () =>
-        mutate({
+      // The password in force. setPassword answers false to the one already set, without
+      // making anything -- so a later confirmation in these tests sets a new one.
+      let password = 'Aa12345_'
+      const setThePassword = (newPassword = password) => {
+        password = newPassword
+        return mutate({
           mutation: setPassword,
-          variables: { code: emailVerificationCode, password: 'Aa12345_' },
+          variables: { code: emailVerificationCode, password: newPassword },
         })
+      }
+      const signIn = () =>
+        mutate({ mutation: login, variables: { email: createUserVariables.email, password } })
 
       beforeAll(async () => {
         jest.clearAllMocks()
@@ -1454,7 +1474,7 @@ describe('UserResolver', () => {
       })
 
       it('makes the entry with the next confirmation: an interest, live, found from afar', async () => {
-        const answer = await setThePassword()
+        const answer = await setThePassword('Bb12345_')
 
         expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
         expect(await entries()).toEqual([
@@ -1473,10 +1493,7 @@ describe('UserResolver', () => {
       })
 
       it('lists it for the member like an entry they saved themselves', async () => {
-        await mutate({
-          mutation: login,
-          variables: { email: createUserVariables.email, password: 'Aa12345_' },
-        })
+        await signIn()
         const listed = await query({ query: listMatchingEntries })
         resetToken()
 
@@ -1495,10 +1512,7 @@ describe('UserResolver', () => {
 
       // Whichever device the member signs in on: the account says how they came.
       it('tells the wallet after the sign-in that the invitation onto the map is due, with the sentence', async () => {
-        await mutate({
-          mutation: login,
-          variables: { email: createUserVariables.email, password: 'Aa12345_' },
-        })
+        await signIn()
         const asked = await query({ query: eventMatchingArrival })
         resetToken()
 
@@ -1506,10 +1520,20 @@ describe('UserResolver', () => {
         expect(asked.data.eventMatchingArrival).toBe('Kongress Frequency Healing')
       })
 
-      // The link of the mail opened once more.
-      it('makes no second entry when the password is set again', async () => {
+      // The link of the mail opened once more, and the same password given.
+      it('answers false to the password already set, and makes nothing', async () => {
         const before = await arrivals()
         const answer = await setThePassword()
+
+        expect(answer).toEqual(expect.objectContaining({ data: { setPassword: false } }))
+        expect(await entries()).toHaveLength(1)
+        expect(await arrivals()).toEqual(before)
+      })
+
+      // The link of the mail opened once more, and a new password given.
+      it('makes no second entry when a new password is set', async () => {
+        const before = await arrivals()
+        const answer = await setThePassword('Cc12345_')
 
         expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
         expect(await entries()).toHaveLength(1)
@@ -1522,7 +1546,7 @@ describe('UserResolver', () => {
       it('does not bring back an entry the member has deleted', async () => {
         await db.getDataSource().query('DELETE FROM matching_entries WHERE user_id = ?', [userId])
 
-        await setThePassword()
+        await setThePassword('Dd12345_')
 
         expect(await entries()).toEqual([])
       })
@@ -1537,7 +1561,7 @@ describe('UserResolver', () => {
             [userId, 'Kongress von damals', new Date(Date.now() - 31 * 24 * 60 * 60 * 1000)],
           )
 
-        const answer = await setThePassword()
+        const answer = await setThePassword('Ee12345_')
 
         expect(answer).toEqual(expect.objectContaining({ data: { setPassword: true } }))
         expect(await entries()).toEqual([])
@@ -1607,9 +1631,18 @@ describe('UserResolver', () => {
         )
       })
 
-      it('logs the error found', () => {
-        expect(setPasswordLogger.warn).toHaveBeenCalledWith(
-          'invalid emailVerificationCode=not valid',
+      // A code of the right shape nobody has: past the schema, into the lookup, and out
+      // with the same answer.
+      it('answers an unknown code the same way', async () => {
+        expect(
+          await mutate({
+            mutation: setPassword,
+            variables: { code: '4711', password: 'Aa12345_' },
+          }),
+        ).toEqual(
+          expect.objectContaining({
+            errors: [new GraphQLError('Could not login with emailVerificationCode')],
+          }),
         )
       })
     })
@@ -1803,13 +1836,13 @@ describe('UserResolver', () => {
       })
     })
 
-    describe.skip('user is in database but password is not set', () => {
+    describe('user is in database but password is not set', () => {
       beforeAll(async () => {
         jest.clearAllMocks()
-        // TODO: we need an user without password set
-        const user = await userFactory(testEnv, bibiBloxberg)
-        user.password = BigInt(0)
-        await user.save()
+        // Confirmed address, no password: login tells "no password" by the encryption type,
+        // not by `password === 0n` (see there).
+        const user = await userFactoryDrizzle(bibiBloxberg)
+        await dbUserUpdatePassword(user.id, PasswordEncryptionType.NO_PASSWORD, 0n)
         result = await mutate({ mutation: login, variables })
       })
 
@@ -1988,6 +2021,25 @@ describe('UserResolver', () => {
       })
     })
 
+    // Answered like an unknown address: the answer must not tell a deleted account apart.
+    describe('user is deleted', () => {
+      beforeAll(async () => {
+        jest.clearAllMocks()
+        await userFactory(testEnv, stephenHawking)
+      })
+
+      afterAll(async () => {
+        await cleanDB()
+      })
+
+      it('returns true and sends no mail', async () => {
+        await expect(
+          mutate({ mutation: forgotPassword, variables: { email: 'stephen@hawking.uk' } }),
+        ).resolves.toMatchObject({ data: { forgotPassword: true } })
+        expect(sendResetPasswordEmail).not.toHaveBeenCalled()
+      })
+    })
+
     describe('user exists in DB', () => {
       beforeAll(async () => {
         await userFactory(testEnv, bobBaumeister)
@@ -2042,6 +2094,14 @@ describe('UserResolver', () => {
               minutes: expect.any(Number),
             }),
           })
+        })
+
+        it('stores the code it mails, as a reset, and counts the mail', async () => {
+          const contact = await UserContact.findOneOrFail({ where: { email: 'bob@baumeister.de' } })
+          const { resetLink } = jest.mocked(sendResetPasswordEmail).mock.lastCall![0]
+          expect(resetLink).toContain(contact.emailVerificationCode)
+          expect(contact.emailOptInTypeId).toBe(OptInType.EMAIL_OPT_IN_RESET_PASSWORD)
+          expect(contact.emailResendCount).toBe(1)
         })
 
         it('stores the EMAIL_FORGOT_PASSWORD event in the database', async () => {
@@ -3340,8 +3400,8 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(findUserByEmailLogger.warn).toHaveBeenCalledWith(
-              'findUserByEmail failed, user with email=invalid not found',
+            expect(sendActivationEmailLogger.warn).toHaveBeenCalledWith(
+              'user with email=invalid not found',
             )
           })
         })
@@ -3354,14 +3414,16 @@ describe('UserResolver', () => {
               mutate({ mutation: sendActivationEmail, variables: { email: 'stephen@hawking.uk' } }),
             ).resolves.toEqual(
               expect.objectContaining({
-                errors: [new GraphQLError('User with given email contact is deleted')],
+                errors: [new GraphQLError('No user with this credentials')],
               }),
             )
+            expect(sendAccountActivationEmail).not.toHaveBeenCalled()
           })
 
+          // The answer is the one for an unknown address; only the log tells the two apart.
           it('log warning', () => {
             expect(sendActivationEmailLogger.warn).toHaveBeenCalledWith(
-              'call for activation of deleted user',
+              expect.stringContaining('call for activation of deleted user'),
             )
           })
         })
