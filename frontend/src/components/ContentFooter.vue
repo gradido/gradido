@@ -79,10 +79,10 @@ const supportEmail = CONFIG.COMMUNITY_SUPPORT_MAIL
   color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
 }
 
-/* Where even a line of its own is too narrow for the version (measured 10.11.2026: Russian at
-   360px and below, French below 300px, Greek and Turkish at 260px), its words go over two lines
-   of about the same length, so that the number does not stand alone on the second one. A
-   browser that does not know the value wraps as before. */
+/* Where even a line of its own is too narrow for the version (measured 10.11.2026: French below
+   300px, Greek, Russian and Turkish at 260px), its words go over two lines of about the same
+   length, so that the number does not stand alone on the second one. A browser that does not
+   know the value wraps as before. */
 .copyright-version {
   text-wrap: balance;
 }
