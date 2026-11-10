@@ -24,6 +24,7 @@
 // face here for the life of the tab. See store.js, next to `forgetAllMemberAvatars`.
 
 import { computed, ref } from 'vue'
+import { hasKeptPicture } from '@/composables/useKeptPictures'
 import i18n from '@/i18n'
 import { memberAlias } from '@/utils/gradidoAddress'
 
@@ -75,9 +76,16 @@ const spokenName = (member) => {
  * `i18n.global.t` rather than `useI18n()`, because this is not a setup scope. That is the
  * established way out of a composable in this repo (store.js, filters/amount.js).
  */
-const zoomLabels = (member) => {
+const zoomLabels = (member, kept) => {
   const name = spokenName(member)
   const t = i18n.global.t
+  if (kept) {
+    // The member's own picture of this person (AS-023): it says so, as its window does.
+    return {
+      button: name ? t('keptPicture.zoom-open', { name }) : t('keptPicture.zoom-open-plain'),
+      picture: name ? t('keptPicture.title', { name }) : t('keptPicture.mine'),
+    }
+  }
   return {
     button: name ? t('avatar.zoom-open', { name }) : t('avatar.zoom-open-plain'),
     picture: name ? t('avatar.zoom-picture', { name }) : t('avatar.zoom-picture-plain'),
@@ -92,8 +100,11 @@ const zoomLabels = (member) => {
  * @param {string} options.src the small rendition already held, as an <img> source
  * @param {DOMRect|{top,left,width,height}} options.origin where the picture is right now
  * @param {string} [options.label] what to call the opened picture, for screen readers
+ * @param {boolean} [options.kept] the circle shows the signed-in member's own picture of this
+ *   person (AS-023), not the person's own: the overlay fetches THAT at full size, and the person
+ *   withdrawing their own picture does not close it
  */
-export const openAvatarZoom = ({ member, src, origin, label = '' }) => {
+export const openAvatarZoom = ({ member, src, origin, label = '', kept = false }) => {
   // ⛔ Both halves are required, and neither is a formality. Without `src` there is no
   // picture on this device, so there is nothing to grow -- the member has letters, and a
   // zoom of letters is not a thing anybody asked for. Without `origin` the animation has
@@ -110,7 +121,8 @@ export const openAvatarZoom = ({ member, src, origin, label = '' }) => {
   if (
     state.value &&
     state.value.member.gradidoID === member.gradidoID &&
-    state.value.member.communityUuid === communityUuid
+    state.value.member.communityUuid === communityUuid &&
+    state.value.kept === kept
   ) {
     return
   }
@@ -120,6 +132,7 @@ export const openAvatarZoom = ({ member, src, origin, label = '' }) => {
     member: { gradidoID: member.gradidoID, communityUuid },
     src,
     label,
+    kept,
     origin: {
       top: origin.top,
       left: origin.left,
@@ -145,16 +158,19 @@ export const closeAvatarZoom = () => {
  * keep the plain, unclickable circle they always had. The alternative is a `v-if` in every
  * template, which is where the answer eventually comes to differ between them.
  *
- * @param {{gradidoID?: string, alias?: string, communityUuid?: string|null}|null} member
+ * @param {{gradidoID?: string|null, alias?: string|null, communityUuid?: string|null}|null} member
  * @param {{src?: string}} avatarProps what memberAvatarProps worked out for this member
  */
 export const avatarZoomBindings = (member, avatarProps) => {
   if (!member?.gradidoID || !avatarProps?.src) return {}
-  const labels = zoomLabels(member)
+  // Whose picture the circle shows: the src came from memberAvatarSource, which gives the
+  // member's own picture of this person first wherever there is one.
+  const kept = hasKeptPicture(member)
+  const labels = zoomLabels(member, kept)
   return {
     zoomable: true,
     zoomLabel: labels.button,
     onZoom: (origin) =>
-      openAvatarZoom({ member, src: avatarProps.src, origin, label: labels.picture }),
+      openAvatarZoom({ member, src: avatarProps.src, origin, label: labels.picture, kept }),
   }
 }

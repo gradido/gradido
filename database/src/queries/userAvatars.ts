@@ -176,7 +176,7 @@ export async function dbFindMemberAvatarTimestamp(userId: number): Promise<Date 
 
 /**
  * The same dates, keyed by gradidoId: the form in which ANOTHER community asks about this
- * community's members (federation MemberAvatarsResolver, kind `dates`). The internal user id
+ * community's members (core memberAvatars answeringSide, route `memberAvatarDates`). The internal user id
  * means nothing on another server; the gradidoId is what it has.
  *
  * Same guard, same answer shape: a member with nothing to show is missing from the map, and
@@ -216,9 +216,9 @@ export async function dbFindMemberAvatarTimestampsByGradidoIds(
  * so that nothing has to. ⚠️ The cap that makes that hold is NOT here and cannot be --
  * GraphQL aliasing puts any number of these in one request, so it is counted per HTTP
  * request at the API layer (MEMBER_AVATARS_FULL_MAX_PER_REQUEST, kept in a budget that
- * every operation of a batched request shares). The second caller, the
- * federation MemberAvatarsResolver, takes exactly one id per field and counts nothing per
- * request; MEMBER_AVATARS_MAX_REFS in shared says what bounds one there.
+ * every operation of a batched request shares). The second caller, the peer api route
+ * `memberAvatarFull` (core memberAvatars answeringSide), takes exactly one id per request.
+ * Asking is counted on the asking side: MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
  *
  * ⛔ Takes the PAIR, and both halves are used. The batched reader above matches on the id
  * alone and hands the pair back so the caller can sort the answer out; that is right for a
@@ -228,7 +228,7 @@ export async function dbFindMemberAvatarTimestampsByGradidoIds(
  * makes this reader answer about the member that was asked about rather than about whoever
  * the database reached first. `foreign = 0` hides the difference, and it stays: a member of
  * another community is asked about at THEIR home community, which reads its own members
- * with this same function (federation MemberAvatarsResolver). The way across the border
+ * with this same function (core memberAvatars answeringSide). The way across the border
  * opens in front of the query, not inside it.
  *
  * Null for a member who has no picture, keeps it to themselves, is deleted, or does not

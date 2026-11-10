@@ -445,7 +445,8 @@ describe('Navbar', () => {
     // Bernd's decision on the mockup: the icon sits behind the address, not in front of it.
     it('puts the copy icon behind the address', () => {
       const html = addressLine().html()
-      expect(html.indexOf('username')).toBeLessThan(html.indexOf('ibicopy'))
+      // The copy control imports its icon, which renders as an svg.
+      expect(html.indexOf('username')).toBeLessThan(html.indexOf('<svg'))
     })
   })
   /**

@@ -4,7 +4,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import ContributionList from './ContributionList'
+import { ContributionList } from './ContributionList'
 import { createRouter, createWebHistory } from 'vue-router'
 import { ref } from 'vue'
 
@@ -39,8 +39,8 @@ const router = createRouter({
   ],
 })
 
-vi.mock('@/components/Contributions/ContributionListItem.vue', () => ({
-  default: {
+vi.mock('@/components/Contributions/ContributionListItem', () => ({
+  ContributionListItem: {
     name: 'ContributionListItem',
     // ⚠️ The stub declares the group prop and prints it. That is what lets a test see the
     // seam: the item is handed the whole row with v-bind="item", so a field of the query

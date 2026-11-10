@@ -214,7 +214,7 @@ server {
         limit_req zone=frontend burst=30 nodelay;
         limit_conn addr 20;
         rewrite ^/admin/(.*)$ /$1 break;
-        root $PROJECT_ROOT/admin/build/;
+        root $PROJECT_ROOT/admin-mithril/build/;
         index index.html;
 
         # caching rules for assets

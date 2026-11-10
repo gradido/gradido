@@ -1,0 +1,1327 @@
+# Generated from the resolvers by `bun run schema` in backend -- do not edit.
+
+type Query {
+  listGDTEntries(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): GdtEntryList!
+  gdtBalance: Float
+  existPid(pid: Int!): Int!
+  balance: Balance!
+  chatGroups: [ChatGroup!]!
+  chatGroupMembers(groupUuid: String!): [ChatGroupMember!]!
+  chatGroupMessages(groupUuid: String!, before: Int, limit: Int = 50): ChatMessagePage!
+  chatMessagesWithMember(ref: MemberAvatarRefInput!, before: Int, limit: Int = 50): ChatMessagePage!
+  newChatMessagesSince(afterId: Int, limit: Int = 50, editedCursor: String, reactedCursor: String): ChatUpdate!
+  chatMessageImage(imageUuid: String!): String
+  chatVideoRoom(serverId: Int): ChatVideoRoom!
+  chatVideoServerChoices: [ChatVideoServerChoice!]!
+  chatVideoServers: [ChatVideoServerRow!]!
+  communityFigures(since: DateTime!): CommunityFigures!
+  communityFigureSeries(since: DateTime!): CommunityFigureSeries!
+  allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): [AdminCommunityView!]!
+  reachableCommunities: [Community!]!
+  authorizedCommunities: [Community!]!
+  communityByIdentifier(communityIdentifier: String!): Community!
+  homeCommunity: Community!
+  contactList(ref: MemberAvatarRefInput, search: String, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): ContactList!
+  contactRefs: [MemberRef!]!
+  favoriteList: [MemberRef!]!
+  transactionList(counterparty: MemberAvatarRefInput, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionList!
+  transactionPicture(transactionId: Int!): String
+  queryTransactionLink(code: String!): QueryLinkResult!
+  thankYouGreetingPicture(large: Boolean = false, linkId: Int!): String
+  listTransactionLinks(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionLinkResult!
+  listTransactionLinksAdmin(userId: Int!, filters: TransactionLinkFilters, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionLinkResult!
+  listContributionLinks(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): ContributionLinkList!
+  listContributionMessages(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC, contributionId: Int!): ContributionMessageListResult!
+  adminListContributionMessages(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC, contributionId: Int!): ContributionMessageListResult!
+  contribution(id: Int!): Contribution!
+  listContributions(filter: ContributionFilterArgs, pagination: Paginated!): ContributionListResult!
+  countContributionsInProgress: Int!
+  listAllContributions(filter: ContributionFilterArgs, pagination: Paginated!): CommunityContributionListResult!
+  adminListContributions(paginated: Paginated! = {currentPage: 1, pageSize: 3, order: DESC}, filter: SearchContributionsFilterArgs! = {}): ContributionListResult!
+  openCreations: [OpenCreation!]!
+  adminOpenCreations(userId: Int!): [OpenCreation!]!
+  resumeChat: [CreaChatMessage!]!
+  creaSettings: CreaSettings!
+  creationGroups: [CreationGroup!]!
+  communityCreationGroups: [CreationGroup!]!
+  myContributionCreationGroups: [CreationGroup!]!
+  legacyHashtagCounts(id: Int!): LegacyHashtagCounts!
+  pendingEmailChange: PendingEmailChange
+  adminEmailStatus(userId: Int!): AdminEmailStatus!
+  firstCreationStatus: FirstCreationStatus!
+  guarantorCode: GuarantorCode
+  keptPicturePairs: [KeptPicturePair!]!
+  keptPictures: [KeptPicture!]!
+  keptPictureFull(ref: MemberAvatarRefInput!): String
+  listMatchingEntries: [MatchingEntry!]!
+  eventMatchingArrival: String
+  projectBrandings: [ProjectBranding!]!
+  projectBranding(id: Int!): ProjectBranding!
+  projectBrandingBanner(alias: String!): String
+  space(id: ID!): Space!
+  spaces(limit: Int! = 20, page: Int! = 1): SpaceList!
+  showFriends: ShowFriends!
+  communityStatistics: CommunityStatistics!
+  thankYouCardPaymentTarget(code: String!): ThankYouCardPaymentTarget!
+  thankYouCardSettings: ThankYouCardSettings
+  thankYouCards: [ThankYouCard!]!
+  myCreationGroups: [CreationGroup!]!
+  suggestedCreationGroup: CreationGroup
+  userCreationGroups(userId: Int!): [CreationGroup!]!
+  moderatorCreationGroupScope(userId: Int!): [String!]!
+  userNote(about: UserNoteSubjectInput!): String
+  userNotes: [UserNote!]!
+  userRemark(userId: Int!): UserRemark
+  verifyLogin: User!
+  queryOptIn(optIn: String!): Boolean!
+  checkUsername(username: String!): Boolean!
+  avatarFull: String
+  memberAvatars(refs: [MemberAvatarRefInput!]!): [MemberAvatar!]!
+  memberAvatarFull(ref: MemberAvatarRefInput!): String
+  hasElopage: Boolean!
+  aliasStatus: AliasStatus!
+  authenticateGmsUserSearch: GmsUserAuthenticationResult!
+  gmsDashboardUrl: String
+  mapMemberCount: Int
+  userLocation: UserLocationResult!
+  searchAdminUsers(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): SearchAdminUsersResult!
+  searchUsers(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC, filters: SearchUsersFilters, query: String!): SearchUsersResult!
+  user(identifier: String!, communityIdentifier: String): User!
+}
+
+type GdtEntryList {
+  status: String!
+  count: Int!
+  gdtEntries: [GdtEntry!]
+  gdtSum: Float!
+  timeUsed: Float!
+}
+
+type GdtEntry {
+  id: Int!
+  amount: Float!
+  date: String!
+  email: String!
+  comment: String!
+  couponCode: String!
+  gdtEntryType: GdtEntryType!
+  factor: Float!
+  amount2: Float!
+  factor2: Float!
+  gdt: Float!
+}
+
+"""Gdt Entry Source Type"""
+enum GdtEntryType {
+  FORM
+  CVS
+  ELOPAGE
+  ELOPAGE_PUBLISHER
+  DIGISTORE
+  CVS2
+  GLOBAL_MODIFICATOR
+}
+
+"""Order direction - ascending or descending"""
+enum Order {
+  ASC
+  DESC
+}
+
+type Balance {
+  balance: GradidoUnit!
+  balanceGDT: Float
+  count: Int!
+  linkCount: Int!
+  openLinkCount: Int!
+}
+
+"""The `GradidoUnit` scalar type to represent currency values"""
+scalar GradidoUnit
+
+type ChatGroup {
+  groupUuid: String!
+  conversationId: Int!
+  title: String!
+  communityName: String
+  createdBy: User
+  createdAt: DateTime!
+  role: ChatGroupRole!
+  joinedAt: DateTime!
+  mutedByMe: Boolean!
+  memberCount: Int!
+  unreadMessages: Int!
+  lastMessageAt: DateTime
+  chatPreview: ChatPreview
+}
+
+type User {
+  id: Int!
+  foreign: Boolean!
+  communityUuid: String!
+  communityName: String
+  gradidoID: String!
+  alias: String
+  publicName: String
+  userIdentifier: String
+  firstName: String
+  lastName: String
+  avatarColorIndex: Int
+  salutation: String
+  deletedAt: DateTime
+  createdAt: DateTime!
+  emailChecked: Boolean!
+  language: String!
+  hideAmountGDD: Boolean
+  hideAmountGDT: Boolean
+  humhubAllowed: Boolean
+  gmsAllowed: Boolean
+  avatarVisibleToMembers: Boolean
+  transfersInChat: Boolean
+  creationAllowed: Boolean!
+  firstCreationStatus: String
+  gmsPublishName: PublishNameType
+  humhubPublishName: PublishNameType
+  gmsPublishLocation: GmsPublishLocationType
+  aboutMe: String
+  avatar: String
+  avatarUpdatedAt: DateTime
+  publisherId: Int
+  klickTipp: KlickTipp
+  hasElopage: Boolean
+  role: String
+  visibleCreationGroups: [String!]!
+  seesAllCreationGroups: Boolean!
+  seesUntagged: Boolean!
+  emailContact: UserContact
+  userLocation: Location
+  findableOnMap: Boolean
+}
+
+"""
+The javascript `Date` as string. Type represents date and time as the ISO Date string.
+"""
+scalar DateTime
+
+"""Type of name publishing"""
+enum PublishNameType {
+  PUBLISH_NAME_ALIAS_OR_INITALS
+  PUBLISH_NAME_INITIALS
+  PUBLISH_NAME_FIRST
+  PUBLISH_NAME_FIRST_INITIAL
+  PUBLISH_NAME_FULL
+}
+
+"""Type of location treatment in GMS"""
+enum GmsPublishLocationType {
+  GMS_LOCATION_TYPE_EXACT
+  GMS_LOCATION_TYPE_APPROXIMATE
+}
+
+type KlickTipp {
+  newsletterState: Boolean!
+}
+
+type UserContact {
+  id: Int!
+  userId: Int!
+  email: String!
+  gmsPublishEmail: Boolean!
+  emailChecked: Boolean!
+  countryCode: String
+  phone: String
+  gmsPublishPhone: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  deletedAt: DateTime
+}
+
+"""
+The `Location` scalar type to represent longitude and latitude values of a geo location
+"""
+scalar Location
+
+"""
+A member's part in a chat group: its owner, one of its moderators, or a member
+"""
+enum ChatGroupRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+type ChatPreview {
+  mine: Boolean!
+  excerpt: String!
+  hasImage: Boolean!
+  amount: GradidoUnit
+  senderUser: User
+  unread: Boolean!
+}
+
+type ChatGroupMember {
+  user: User!
+  role: ChatGroupRole!
+  joinedAt: DateTime!
+}
+
+type ChatMessagePage {
+  messages: [ChatMessage!]!
+  hasMore: Boolean!
+  mutedByMe: Boolean!
+}
+
+type ChatMessage {
+  id: Int!
+  messageUuid: String!
+  conversationId: Int!
+  groupUuid: String
+  sender: MemberRef!
+  senderUser: User
+  announcement: Boolean!
+  mine: Boolean!
+  subject: String
+  body: String!
+  createdAt: DateTime!
+  editedAt: DateTime
+  deliveryState: ChatMessageDeliveryState
+  notify: ChatMessageNotify
+  mailState: ChatMessageMailState
+  images: [ChatMessageImage!]!
+  forwarded: Boolean!
+  forwardedFrom: User
+  replyTo: ChatMessageQuote
+  reactions: [ChatMessageReaction!]!
+  reactedAt: DateTime
+}
+
+type MemberRef {
+  communityUuid: String!
+  gradidoID: String!
+}
+
+"""Whether the caller's own copy of a message reached the other server"""
+enum ChatMessageDeliveryState {
+  DELIVERED
+  PENDING
+  FAILED
+}
+
+"""Whether the sender asked for the message to go out as a mail as well"""
+enum ChatMessageNotify {
+  EMAIL
+  NONE
+}
+
+"""
+What became of the mail about the caller's own message: mailed, or asked for and muted by the recipient
+"""
+enum ChatMessageMailState {
+  MAILED
+  MUTED
+}
+
+type ChatMessageImage {
+  imageUuid: String!
+  width: Int!
+  height: Int!
+}
+
+type ChatMessageQuote {
+  id: Int!
+  messageUuid: String!
+  sender: MemberRef!
+  senderUser: User
+  mine: Boolean!
+  excerpt: String!
+  hasImage: Boolean!
+}
+
+type ChatMessageReaction {
+  emoji: String!
+  count: Int!
+  mine: Boolean!
+}
+
+input MemberAvatarRefInput {
+  gradidoID: String!
+  communityUuid: String
+}
+
+type ChatUpdate {
+  latestId: Int!
+  unreadConversations: Int!
+  messages: [ChatMessage!]!
+  hasMore: Boolean!
+  edited: [ChatMessage!]!
+  editedCursor: String!
+  reacted: [ChatMessage!]!
+  reactedCursor: String!
+  unreadTransfers: Int!
+  latestUnreadTransferId: Int
+}
+
+type ChatVideoRoom {
+  url: String!
+  host: String!
+  operator: String
+}
+
+type ChatVideoServerChoice {
+  id: Int!
+  host: String!
+  operator: String
+}
+
+type ChatVideoServerRow {
+  id: Int!
+  baseUrl: String!
+  host: String!
+  operator: String
+  roomPrefix: String
+  note: String
+  active: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  check: ChatVideoServerCheck
+}
+
+type ChatVideoServerCheck {
+  ok: Boolean!
+  reason: String
+  checkedAt: DateTime!
+  latencyMs: Int
+  picks: Int!
+}
+
+type CommunityFigures {
+  since: DateTime!
+  rows: [CommunityFigure!]!
+}
+
+type CommunityFigure {
+  key: String!
+  since: Int
+  week: Int
+  total: Int
+}
+
+type CommunityFigureSeries {
+  since: DateTime!
+  weeks: [DateTime!]!
+  rows: [CommunityFigureSeriesRow!]!
+}
+
+type CommunityFigureSeriesRow {
+  key: String!
+  counts: [Int!]!
+}
+
+type AdminCommunityView {
+  foreign: Boolean!
+  url: String!
+  publicKey: String!
+  uuid: String
+  authenticatedAt: DateTime
+  name: String
+  description: String
+  gmsApiKey: String
+  location: Location
+  hieroTopicId: String
+  creationDate: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+  federatedCommunities: [FederatedCommunity!]
+}
+
+type FederatedCommunity {
+  id: Int!
+  foreign: Boolean!
+  publicKey: String!
+  apiVersion: String!
+  endPoint: String!
+  lastAnnouncedAt: DateTime
+  verifiedAt: DateTime
+  lastErrorAt: DateTime
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type Community {
+  id: Int!
+  foreign: Boolean!
+  name: String
+  description: String
+  url: String!
+  creationDate: DateTime
+  uuid: String
+  authenticatedAt: DateTime
+  hieroTopicId: String
+}
+
+type ContactList {
+  contacts: [Contact!]!
+  count: Int!
+}
+
+type Contact {
+  user: User!
+  firstAt: DateTime!
+  lastAt: DateTime!
+  bookings: Int!
+  favorite: Boolean!
+  homeCommunity: Boolean!
+  origin: ContactOrigin
+  unreadChatMessages: Int!
+  lastChatMessageAt: DateTime
+  chatPreview: ChatPreview
+}
+
+"""What made two members contacts, where it was not a booking"""
+enum ContactOrigin {
+  REFERRER
+  ARRIVAL
+}
+
+type TransactionList {
+  balance: Balance!
+  transactions: [Transaction!]!
+}
+
+type Transaction {
+  id: Int!
+  user: User!
+  previous: Int
+  typeId: TransactionTypeId!
+  amount: GradidoUnit!
+  balance: GradidoUnit!
+  balanceDate: DateTime!
+  previousBalance: GradidoUnit!
+  decay: Decay!
+  memo: String!
+  creationDate: DateTime
+  linkedUser: User
+  linkedTransactionId: Int
+  linkId: Int
+  viaThankYouCard: Boolean!
+  thankYouCardLabel: String
+  greeting: ThankYouGreeting
+  picture: TransactionPicture
+  reaction: String
+  canReact: Boolean!
+  answered: Boolean!
+}
+
+"""Type of the transaction"""
+enum TransactionTypeId {
+  CREATION
+  SEND
+  RECEIVE
+  DECAY
+  LINK_SUMMARY
+}
+
+type Decay {
+  balance: GradidoUnit!
+  decay: GradidoUnit!
+  start: DateTime
+  end: DateTime
+  duration: Duration
+}
+
+"""The `Duration` scalar type to represent time durations"""
+scalar Duration
+
+type ThankYouGreeting {
+  motif: String
+  hasPicture: Boolean!
+  line: String
+  recipientName: String
+}
+
+type TransactionPicture {
+  motif: String
+  hasPicture: Boolean!
+}
+
+union QueryLinkResult = TransactionLink | RedeemJwtLink | ContributionLink
+
+type TransactionLink {
+  id: Int!
+  senderUser: User!
+  amount: GradidoUnit!
+  holdAvailableAmount: GradidoUnit!
+  memo: String!
+  code: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  validUntil: DateTime!
+  redeemedAt: DateTime
+  redeemedBy: User
+  link: String!
+  communityName: String!
+  communities: [Community!]!
+  greeting: ThankYouGreeting
+  senderAvatar: String
+}
+
+type RedeemJwtLink {
+  senderCommunity: Community!
+  senderUser: User!
+  recipientCommunity: Community!
+  recipientUser: User
+  amount: GradidoUnit!
+  memo: String!
+  code: String!
+  validUntil: DateTime!
+}
+
+type ContributionLink {
+  id: Int!
+  amount: GradidoUnit!
+  name: String!
+  memo: String!
+  code: String!
+  link: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  validFrom: DateTime
+  validTo: DateTime
+  maxAmountPerMonth: GradidoUnit
+  cycle: String!
+  maxPerCycle: Int!
+}
+
+type TransactionLinkResult {
+  count: Int!
+  links: [TransactionLink!]!
+}
+
+input TransactionLinkFilters {
+  withDeleted: Boolean
+  withExpired: Boolean
+  withRedeemed: Boolean
+}
+
+type ContributionLinkList {
+  links: [ContributionLink!]!
+  count: Int!
+}
+
+type ContributionMessageListResult {
+  count: Int!
+  messages: [ContributionMessage!]!
+}
+
+type ContributionMessage {
+  id: Int!
+  message: String!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: String!
+  userAlias: String
+  userAvatarColorIndex: Int
+  userId: Int
+  userGradidoID: String
+  userCommunityUuid: String
+  userAvatarUpdatedAt: DateTime
+  isModerator: Boolean!
+}
+
+type Contribution {
+  id: Int!
+  userId: Int
+  user: User
+  contributionDate: DateTime!
+  memo: String!
+  amount: GradidoUnit!
+  moderatorId: Int
+  contributionStatus: String!
+  messagesCount: Int!
+  lastMessageType: String
+  lastMessageByModerator: Boolean
+  colleagueNoteOnQuestion: Boolean
+  messages: [ContributionMessage!]
+  closedAt: DateTime
+  closedBy: Int
+  closedByUserName: String
+  createdAt: DateTime!
+  moderatorUserName: String
+  confirmedAt: DateTime
+  confirmedBy: Int
+  deniedAt: DateTime
+  deniedBy: Int
+  deletedAt: DateTime
+  deletedBy: Int
+  updatedAt: DateTime
+  updatedBy: Int
+  updatedByUserName: String
+  resubmissionAt: DateTime
+  creationGroups: [CreationGroup!]!
+}
+
+type CreationGroup {
+  id: Int!
+  tag: String!
+  name: String
+  hashtagsAdoptedAt: DateTime
+  hashtagsAdoptedCount: Int
+}
+
+type ContributionListResult {
+  contributionCount: Int!
+  contributionList: [Contribution!]!
+}
+
+input ContributionFilterArgs {
+  query: String = null
+  creationGroup: String = null
+}
+
+input Paginated {
+  currentPage: Int! = 1
+  pageSize: Int! = 3
+  order: Order! = DESC
+}
+
+type CommunityContributionListResult {
+  contributionCount: Int!
+  contributionList: [Contribution!]!
+  windowMonths: Int!
+}
+
+input SearchContributionsFilterArgs {
+  statusFilter: [ContributionStatus!] = null
+  userId: Int
+  query: String = ""
+  hideResubmission: Boolean
+  creationGroup: String = null
+}
+
+"""Name of the Type of the Contribution Status"""
+enum ContributionStatus {
+  PENDING
+  DELETED
+  IN_PROGRESS
+  DENIED
+  CONFIRMED
+}
+
+type OpenCreation {
+  month: Int!
+  year: Int!
+  amount: GradidoUnit!
+}
+
+type CreaChatMessage {
+  content: String!
+  role: String!
+  threadId: String
+  errorCode: String
+}
+
+type CreaSettings {
+  model: String
+  effort: String!
+  defaultModel: String!
+  fastMode: Boolean!
+  matchingKeyingActive: Boolean!
+  firstCreationSigner: FirstCreationSigner
+}
+
+type FirstCreationSigner {
+  userId: Int!
+  firstName: String
+  lastName: String
+  alias: String
+  role: String
+  eligible: Boolean!
+  reason: String!
+}
+
+type LegacyHashtagCounts {
+  exact: Int!
+  loose: Int!
+}
+
+type PendingEmailChange {
+  email: String!
+  requestedAt: DateTime!
+  resendAllowedAt: DateTime!
+}
+
+type AdminEmailStatus {
+  gdtEmail: String!
+  currentConfirmed: Boolean!
+  elopageBuysOnCurrent: Boolean!
+  pendingEmail: String
+  pendingSince: DateTime
+}
+
+type FirstCreationStatus {
+  state: String!
+  eligible: Boolean!
+  message: String
+  entries: [FirstCreationEntry!]!
+  skippedBefore: Boolean!
+  referrerAlias: String
+  functionTestsEnabled: Boolean!
+  testRunsLeft: Int
+  isFirstCreationSigner: Boolean
+}
+
+type FirstCreationEntry {
+  memo: String!
+  confirmed: Boolean!
+  status: String!
+}
+
+type GuarantorCode {
+  code: String
+  alias: String!
+  expiresAt: DateTime
+  remainingMs: Int!
+  unconfirmedGuests: [UnconfirmedGuest!]!
+}
+
+type UnconfirmedGuest {
+  firstName: String
+  lastName: String
+  alias: String
+  createdAt: DateTime!
+}
+
+type KeptPicturePair {
+  gradidoID: String!
+  communityUuid: String!
+}
+
+type KeptPicture {
+  gradidoID: String!
+  communityUuid: String!
+  picture: String!
+}
+
+type MatchingEntry {
+  uuid: String!
+  matchingType: String!
+  summary: String!
+  details: String
+  remote: Boolean!
+  active: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  keyed: Boolean!
+}
+
+type ProjectBranding {
+  id: Int!
+  name: String!
+  alias: String!
+  description: String
+  spaceId: Int
+  spaceUrl: String
+  newUserToSpace: Boolean!
+  logoUrl: String
+}
+
+type Space {
+  id: Int!
+  guid: String!
+  name: String!
+  description: String!
+  url: String!
+}
+
+type SpaceList {
+  pagination: Pagination!
+  results: [Space!]!
+}
+
+type Pagination {
+  total: Int!
+  page: Int!
+  pages: Int!
+}
+
+type ShowFriends {
+  referrerAlias: String
+  latestArrival: ShowFriendsArrival
+}
+
+type ShowFriendsArrival {
+  gradidoID: String!
+  alias: String!
+  avatarColorIndex: Int
+  avatarUpdatedAt: DateTime
+  createdAt: DateTime!
+  first: Boolean!
+}
+
+type CommunityStatistics {
+  allUsers: Int!
+  totalUsers: Int!
+  deletedUsers: Int!
+  totalGradidoCreated: GradidoUnit!
+  totalGradidoDecayed: GradidoUnit!
+  dynamicStatisticsFields: DynamicStatisticsFields!
+}
+
+type DynamicStatisticsFields {
+  activeUsers: Int!
+  totalGradidoAvailable: GradidoUnit!
+  totalGradidoUnbookedDecayed: GradidoUnit!
+}
+
+type ThankYouCardPaymentTarget {
+  status: ThankYouCardPaymentStatus!
+  cardLabel: String
+}
+
+"""How a payment with a printed thank you card ended"""
+enum ThankYouCardPaymentStatus {
+  SUCCESS
+  CARD_UNKNOWN
+  CARD_BLOCKED
+  CARD_NOT_SET_UP
+  OWN_CARD
+  WRONG_PIN
+  BLOCKED_NOW
+  LIMIT_PER_PAYMENT_EXCEEDED
+  LIMIT_PER_DAY_EXCEEDED
+  NOT_ENOUGH_GDD
+  REQUEST_GONE
+}
+
+type ThankYouCardSettings {
+  maxPerPayment: GradidoUnit!
+  maxPerDay: GradidoUnit!
+  updatedAt: DateTime!
+}
+
+type ThankYouCard {
+  id: Int!
+  code: String!
+  label: String!
+  blockedAt: DateTime
+  createdAt: DateTime!
+}
+
+input UserNoteSubjectInput {
+  member: MemberAvatarRefInput
+  groupUuid: String
+}
+
+type UserNote {
+  communityUuid: String
+  gradidoID: String
+  groupUuid: String
+  note: String!
+}
+
+type UserRemark {
+  remark: String!
+  updatedAt: DateTime!
+  updatedByName: String
+}
+
+type MemberAvatar {
+  gradidoID: String!
+  communityUuid: String
+  avatar: String!
+  avatarUpdatedAt: DateTime!
+}
+
+type AliasStatus {
+  changesLeft: Int!
+  nextChangeAt: DateTime
+  ownAliases: [String!]!
+  aliasSettled: Boolean!
+}
+
+type GmsUserAuthenticationResult {
+  url: String!
+  token: String!
+}
+
+type UserLocationResult {
+  userLocation: Location
+  communityLocation: Location
+}
+
+type SearchAdminUsersResult {
+  userCount: Int!
+  userList: [AdminUser!]!
+}
+
+type AdminUser {
+  alias: String!
+  role: String!
+  visibleCreationGroups: [String!]!
+  seesAllCreationGroups: Boolean!
+  seesUntagged: Boolean!
+}
+
+type SearchUsersResult {
+  userCount: Int!
+  userList: [UserAdmin!]!
+}
+
+type UserAdmin {
+  userId: Int!
+  email: String
+  firstName: String!
+  lastName: String!
+  alias: String
+  creation: [GradidoUnit!]!
+  emailChecked: Boolean
+  deletedAt: DateTime
+  createdAt: DateTime!
+  emailConfirmationSend: String
+  role: String
+  creationAllowed: Boolean!
+  gradidoID: String!
+  communityUuid: String!
+  findableOnMap: Boolean!
+}
+
+input SearchUsersFilters {
+  byActivated: Boolean = null
+  byDeleted: Boolean = null
+}
+
+type Mutation {
+  confirmEmail(code: String!): Boolean!
+  resendConfirmationEmail: Boolean!
+  editChatMessage(messageUuid: String!, body: String!): ChatMessage!
+  forwardChatMessage(messageUuid: String!, groupUuids: [String!]!, members: [MemberAvatarRefInput!]!, words: String, alsoByEmail: Boolean!): [ChatMessage!]!
+  createChatGroup(title: String!, members: [MemberAvatarRefInput!]!): ChatGroup!
+  sendChatGroupMessage(groupUuid: String!, body: String!, announce: Boolean!, image: ChatImageInput, replyTo: String): ChatMessage!
+  addChatGroupMembers(groupUuid: String!, members: [MemberAvatarRefInput!]!): ChatGroup!
+  removeChatGroupMember(groupUuid: String!, member: MemberAvatarRefInput!): Boolean!
+  leaveChatGroup(groupUuid: String!): Boolean!
+  setChatGroupModerator(groupUuid: String!, member: MemberAvatarRefInput!, moderator: Boolean!): Boolean!
+  renameChatGroup(groupUuid: String!, title: String!): ChatGroup!
+  markChatGroupRead(groupUuid: String!, upToMessageId: Int!): Boolean!
+  setChatGroupMuted(groupUuid: String!, muted: Boolean!): Boolean!
+  setChatMessageReaction(messageUuid: String!, emoji: String): ChatMessage!
+  markChatConversationRead(ref: MemberAvatarRefInput!, upToMessageId: Int!): Boolean!
+  markChatTransfersSeen(ref: MemberAvatarRefInput!, upToTransactionId: Int!): Int!
+  markTransferSeen(transactionId: Int!): Boolean!
+  sendChatMessage(ref: MemberAvatarRefInput!, body: String!, notify: ChatMessageNotify!, image: ChatImageInput, replyTo: String, origin: ChatMessageOrigin): ChatMessage!
+  setChatConversationMuted(ref: MemberAvatarRefInput!, muted: Boolean!): Boolean!
+  createChatVideoServer(input: ChatVideoServerInput!): ChatVideoServerRow!
+  updateChatVideoServer(input: ChatVideoServerInput!, id: Int!): ChatVideoServerRow!
+  deleteChatVideoServer(id: Int!): Boolean!
+  checkChatVideoServersNow: [ChatVideoServerRow!]!
+  updateHomeCommunity(uuid: String!, gmsApiKey: String, location: Location, hieroTopicId: String): AdminCommunityView!
+  addFavorite(ref: MemberAvatarRefInput!): Boolean!
+  removeFavorite(ref: MemberAvatarRefInput!): Boolean!
+  sendCoins(recipientCommunityIdentifier: String!, recipientIdentifier: String!, amount: GradidoUnit!, memo: String!, motif: String, picture: ChatImageInput, passOnOf: Int): Boolean!
+  sendEmail(recipientCommunityIdentifier: String!, recipientIdentifier: String!, subject: String!, memo: String!): Boolean!
+  createTransactionLink(amount: GradidoUnit!, memo: String!, greeting: ThankYouGreetingInput): TransactionLink!
+  deleteTransactionLink(id: Int!): Boolean!
+  redeemTransactionLink(code: String!): Boolean!
+  createRedeemJwt(validUntil: String, alias: String, firstName: String, memo: String!, amount: String!, code: String!, recipientCommunityUuid: String!, senderCommunityName: String!, senderCommunityUuid: String!, gradidoId: String!): String!
+  disburseTransactionLink(code: String!, senderCommunityUuid: String!): Boolean!
+  addThankYouGreetingPicture(picture: ChatImageInput!, linkId: Int!): Boolean!
+  createContributionLink(amount: GradidoUnit!, name: String!, memo: String!, cycle: String!, validFrom: String, validTo: String, maxAmountPerMonth: GradidoUnit, maxPerCycle: Int!): ContributionLink!
+  deleteContributionLink(id: Int!): Boolean!
+  updateContributionLink(id: Int!, amount: GradidoUnit!, name: String!, memo: String!, cycle: String!, validFrom: String, validTo: String, maxAmountPerMonth: GradidoUnit, maxPerCycle: Int!): ContributionLink!
+  createContributionMessage(contributionId: Int!, message: String!, messageType: ContributionMessageType! = DIALOG, resubmissionAt: String, aiModel: String): ContributionMessage!
+  adminCreateContributionMessage(contributionId: Int!, message: String!, messageType: ContributionMessageType! = DIALOG, resubmissionAt: String, aiModel: String): ContributionMessage!
+  createContribution(amount: GradidoUnit!, memo: String!, contributionDate: String!, creationGroups: [String!] = []): UnconfirmedContribution!
+  assignContributionCreationGroups(tags: [String!]!, contributionId: Int!): Boolean!
+  deleteContribution(id: Int!): Boolean!
+  updateContribution(amount: GradidoUnit!, memo: String!, contributionDate: String!, creationGroups: [String!] = [], contributionId: Int!): UnconfirmedContribution!
+  adminCreateContribution(email: String!, amount: GradidoUnit!, memo: String!, creationDate: String!): [GradidoUnit!]!
+  adminUpdateContribution(id: Int!, amount: GradidoUnit, memo: String, creationDate: String, resubmissionAt: String): AdminUpdateContribution!
+  adminDeleteContribution(id: Int!): Boolean!
+  confirmContribution(id: Int!): Boolean!
+  denyContribution(id: Int!): Boolean!
+  deleteThread(threadId: String!): Boolean!
+  sendMessage(input: CreaChatInput!): CreaChatMessage!
+  creaEvaluateContribution(input: CreaContributionInput!): CreaEvaluation!
+  creaRewriteResponse(input: CreaContributionInput!): CreaRewriteResult!
+  creaEvaluateBatch(input: CreaBatchInput!): CreaBatchEvaluation!
+  creaRewriteBatch(input: CreaBatchInput!): CreaRewriteResult!
+  setCreaSalutation(salutation: String, userId: Int!): Boolean!
+  setCreaSettings(input: CreaSettingsInput!): CreaSettings!
+  setFirstCreationSigner(userId: Int): FirstCreationSigner
+  setCreaMatchingKeying(active: Boolean!): Boolean!
+  testCreaModel(input: CreaSettingsInput!): CreaModelTestResult!
+  addCreationGroup(name: String, tag: String!): CreationGroup!
+  editCreationGroup(name: String, tag: String, id: Int!): CreationGroup!
+  adoptLegacyHashtags(includeLoose: Boolean!, id: Int!): CreationGroup!
+  requestEmailChange(password: String!, email: String!): PendingEmailChange!
+  resendEmailChange: PendingEmailChange!
+  confirmEmailChange(code: String!): String!
+  revokeEmailChange(vetoCode: String!): Boolean!
+  cancelEmailChange: Boolean!
+  adminReplaceUnconfirmedEmail(email: String!, userId: Int!): String!
+  submitFirstCreation(entries: [FirstCreationEntryInput!]!): FirstCreationStatus!
+  skipFirstCreation: Boolean!
+  startFirstCreationTest(withBooking: Boolean!): Boolean!
+  setKeptPicture(pictureFull: String!, pictureSmall: String!, ref: MemberAvatarRefInput!): Boolean!
+  removeKeptPicture(ref: MemberAvatarRefInput!): Boolean!
+  unsubscribeNewsletter: Boolean!
+  subscribeNewsletter: Boolean!
+  createMatchingEntry(input: MatchingEntryInput!): MatchingEntry!
+  acceptEventMatchingEntry(input: EventMatchingEntryInput!): EventMatchingEntryAccepted!
+  settleEventMatchingArrival: Boolean!
+  updateMatchingEntry(input: MatchingEntryInput!, uuid: String!): MatchingEntry!
+  setMatchingEntryActive(active: Boolean!, uuid: String!): MatchingEntry!
+  deleteMatchingEntry(uuid: String!): Boolean!
+  declareProjectAccount: Boolean!
+  requestCreationRight: Boolean!
+  setCreationAllowed(allowed: Boolean!, userId: Int!): Boolean!
+  upsertProjectBranding(input: ProjectBrandingInput!): ProjectBranding
+  deleteProjectBranding(id: ID!): Boolean!
+  createThankYouCardPayment(code: String!, amount: GradidoUnit!, memo: String!): ThankYouCardPayment!
+  confirmThankYouCardPayment(pin: String!, paymentId: Int!): ThankYouCardPaymentResult!
+  setThankYouCardSettings(pin: String!, maxPerPayment: GradidoUnit!, maxPerDay: GradidoUnit!): ThankYouCardSettings!
+  setThankYouCardLimits(maxPerPayment: GradidoUnit!, maxPerDay: GradidoUnit!): ThankYouCardSettings!
+  deleteThankYouCardSettings: Boolean!
+  createThankYouCard(label: String!): ThankYouCard!
+  blockThankYouCard(cardId: Int!): ThankYouCard!
+  unblockThankYouCard(cardId: Int!): ThankYouCard!
+  setTransactionReaction(transactionId: Int!, emoji: String): String
+  setMyCreationGroups(tags: [String!]!): [CreationGroup!]!
+  setUserCreationGroups(tags: [String!]!, userId: Int!): [CreationGroup!]!
+  setModeratorCreationGroupScope(scope: [String!]!, userId: Int!): [String!]!
+  setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
+  setUserRemark(userId: Int!, remark: String!): UserRemark
+  login(email: String!, password: String!, publisherId: Int, project: String): User!
+  logout: Boolean!
+  createUser(alias: String, email: String!, firstName: String!, lastName: String!, language: String, publisherId: Int, redeemCode: String, project: String, referrerAlias: String, guarantorCode: String, password: String, eventMatchingEntry: EventMatchingEntryInput): Boolean!
+  forgotPassword(email: String!): Boolean!
+  setPassword(password: String!, code: String!): Boolean!
+  updateUserInfos(firstName: String, lastName: String, alias: String, language: String, publisherId: Int, password: String, passwordNew: String, hideAmountGDD: Boolean, hideAmountGDT: Boolean, humhubAllowed: Boolean, gmsAllowed: Boolean, avatarVisibleToMembers: Boolean, transfersInChat: Boolean, gmsPublishName: PublishNameType, humhubPublishName: PublishNameType, gmsLocation: Location, gmsPublishLocation: GmsPublishLocationType, aboutMe: String): Boolean!
+  setUserAvatar(avatarFull: String!, avatarSmall: String!): Boolean!
+  removeUserAvatar: Boolean!
+  adoptAlias: Boolean!
+  authenticateHumhubAutoLogin(project: String): String!
+  setUserRole(userId: Int!, role: RoleNames): String
+  deleteUser(userId: Int!): DateTime
+  unDeleteUser(userId: Int!): DateTime
+  sendActivationEmail(email: String!): Boolean!
+}
+
+input ChatImageInput {
+  data: String!
+  width: Int!
+  height: Int!
+}
+
+"""Where a chat message was written: set by the map profile only"""
+enum ChatMessageOrigin {
+  MAP
+}
+
+input ChatVideoServerInput {
+  baseUrl: String!
+  operator: String
+  roomPrefix: String
+  note: String
+  active: Boolean
+}
+
+input ThankYouGreetingInput {
+  motif: String
+  picture: ChatImageInput
+  line: String
+  recipientName: String
+}
+
+"""Name of the Type of the ContributionMessage"""
+enum ContributionMessageType {
+  HISTORY
+  DIALOG
+  MODERATOR
+}
+
+type UnconfirmedContribution {
+  id: Int!
+  userId: Int
+  user: User
+  contributionDate: DateTime!
+  memo: String!
+  amount: GradidoUnit!
+  moderatorId: Int
+  contributionStatus: String!
+  messagesCount: Int!
+  lastMessageType: String
+  lastMessageByModerator: Boolean
+  colleagueNoteOnQuestion: Boolean
+  messages: [ContributionMessage!]
+}
+
+type AdminUpdateContribution {
+  date: DateTime!
+  memo: String!
+  amount: GradidoUnit!
+  creation: [GradidoUnit!]!
+}
+
+input CreaChatInput {
+  message: String!
+  threadId: String
+}
+
+type CreaEvaluation {
+  beitragRef: String!
+  activities: [CreaActivity!]!
+  overallVerdict: String!
+  discrepancy: String!
+  appliedRule: String!
+  confidence: String!
+  reasoning: String!
+  responseText: String!
+  defaultSalutation: String!
+  openPoints: [CreaOpenPoint!]!
+  flags: [String!]!
+  model: String!
+}
+
+type CreaActivity {
+  activity: String!
+  categoryKey: String!
+  outputType: String!
+  hours: Float!
+  hoursEstimated: Boolean!
+  verdict: String!
+  confidence: String!
+}
+
+type CreaOpenPoint {
+  question: String!
+  options: [String!]!
+  relatesTo: String!
+}
+
+input CreaContributionInput {
+  text: String!
+  enteredHours: Float
+  enteredGdd: Float
+  monthlyHours: Float
+  memberStatus: String
+  recipientFirstName: String
+  salutation: String
+  moderatorName: String
+  moderatorSignature: String
+  userId: Int
+  contributionRef: String
+  communityUuid: String
+  personPseudonym: String
+  date: String
+  isNewMember: Boolean
+  uiLanguage: String
+  moderatorDecision: String
+  moderatorContext: String
+}
+
+type CreaRewriteResult {
+  responseText: String!
+  memoSupplement: String
+  model: String!
+}
+
+type CreaBatchEvaluation {
+  overallVerdict: String!
+  confidence: String!
+  reasoning: String!
+  responseText: String!
+  defaultSalutation: String!
+  openPoints: [CreaOpenPoint!]!
+  flags: [String!]!
+  model: String!
+}
+
+input CreaBatchInput {
+  contributions: [CreaBatchContribution!]!
+  recipientFirstName: String
+  salutation: String
+  uiLanguage: String
+  userId: Int
+  moderatorDecision: String
+  moderatorContext: String
+}
+
+input CreaBatchContribution {
+  text: String!
+  enteredGdd: Float
+  date: String
+}
+
+input CreaSettingsInput {
+  model: String
+  effort: String!
+  fastMode: Boolean
+  matchingKeyingActive: Boolean
+}
+
+type CreaModelTestResult {
+  ok: Boolean!
+  code: String!
+  message: String!
+  fastMode: String!
+  fastModeDetail: String!
+}
+
+input FirstCreationEntryInput {
+  catalogKey: String!
+  text: String
+}
+
+input MatchingEntryInput {
+  matchingType: String!
+  summary: String!
+  details: String
+  remote: Boolean
+}
+
+type EventMatchingEntryAccepted {
+  created: Boolean!
+  entry: MatchingEntry!
+}
+
+input EventMatchingEntryInput {
+  summary: String!
+  details: String
+  remote: Boolean!
+}
+
+input ProjectBrandingInput {
+  id: Int
+  name: String!
+  alias: String!
+  description: String
+  spaceId: Int
+  spaceUrl: String
+  newUserToSpace: Boolean!
+  logoUrl: String
+}
+
+type ThankYouCardPayment {
+  id: Int!
+  amount: GradidoUnit!
+  memo: String!
+  validUntil: DateTime!
+}
+
+type ThankYouCardPaymentResult {
+  status: ThankYouCardPaymentStatus!
+  attemptsLeft: Int
+  payerName: String
+  amount: GradidoUnit
+}
+
+"""Possible role names"""
+enum RoleNames {
+  UNAUTHORIZED
+  USER
+  MODERATOR
+  MODERATOR_AI
+  ADMIN
+  DLT_CONNECTOR
+}

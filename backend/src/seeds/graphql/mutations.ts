@@ -893,6 +893,18 @@ export const setUserNote = gql`
   }
 `
 
+export const setKeptPicture = gql`
+  mutation ($ref: MemberAvatarRefInput!, $pictureSmall: String!, $pictureFull: String!) {
+    setKeptPicture(ref: $ref, pictureSmall: $pictureSmall, pictureFull: $pictureFull)
+  }
+`
+
+export const removeKeptPicture = gql`
+  mutation ($ref: MemberAvatarRefInput!) {
+    removeKeptPicture(ref: $ref)
+  }
+`
+
 export const setUserRemark = gql`
   mutation ($userId: Int!, $remark: String!) {
     setUserRemark(userId: $userId, remark: $remark) {

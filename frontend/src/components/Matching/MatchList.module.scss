@@ -1,0 +1,251 @@
+/* AI-GENERATED — not an architecture reference */
+.match-list {
+  height: 100%;
+  overflow-y: auto;
+
+  /* The round back button (top-left) and the Karte switch (top-right) are pinned
+     over this scrolling list, so the first line starts below them. This was a phone
+     rule while the back button was a phone thing; it belongs to both widths now that
+     the heading row is gone and the way back rides the map everywhere. Clearing them
+     from above is also why no lane is kept free beside the switch. */
+  padding: 56px 16px 24px;
+
+  /* The semantic tokens, not --bs-body-*: these are what the wallet's dark mode
+     flips (.dark-mode on #app/body), the same ones the detail window rides. */
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Present for a screen reader, absent from the page — the roof and search headings
+   ride here so heading navigation has structure without a visible change. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 20px;
+  margin-bottom: 16px;
+}
+
+/* One order on every width — search, the confirmation, then the sort and the lens —
+   so a wide screen reads the same as a phone: the confirmation sits under the search,
+   never under the sort. */
+.list-search {
+  order: 1;
+}
+
+/* The sort and lens rows each hold a themed dropdown that fills its box; give them a
+   sensible width so the toggle sizes like the search field, not the whole control bar. */
+.list-sort {
+  order: 3;
+  min-width: 200px;
+}
+
+/* The dropdowns sit beside a plain search field but inherited the wallet's default
+   button size (16px, semibold, tall). Bring them down to the search field's weight --
+   smaller, lighter, less height -- so they read as controls, not calls to action. Only
+   here: the shared ThemedSelect keeps its size in the six other places it is used. */
+.list-sort :global(.themed-select-toggle) {
+  --bs-btn-font-size: 14px;
+  --bs-btn-font-weight: 500;
+  --bs-btn-padding-y: 6px;
+  --bs-btn-padding-x: 12px;
+}
+
+.center-label {
+  flex: 0 0 100%;
+  order: 2;
+  margin: 0;
+
+  /* Where the list looks is the most important line above it, and it was the smallest: 13 px
+     under a search field that looked far bigger (Bernd, 13.10.2026). So it is set like a name
+     in the rows below, a step larger. In the colour of the text, as it always was: the quiet
+     colour this rule used to name (`--text-secondary`) is no token of the wallet. */
+  font-size: 16px;
+  font-weight: 700;
+
+  /* One line, also while it is empty (under a shown contact, until the place is read): the
+     height of a line of its own text, said in em -- `lh` is unknown to the older phones. */
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+
+/* On a visit that shows somebody, the place is read a moment after the list stands -- and at
+   this size it needs a second line on a phone ("Umkreis um Amrichshausen, Künzelsau" from
+   360 px down, the wide reach from 430 px; measured in the built wallet). So two lines are
+   kept free there, and the sort under it stays where it is when the name arrives. */
+@media (width <= 575.98px) {
+  .center-label-visit {
+    min-height: 3em;
+  }
+}
+
+.control-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-bottom: 3px;
+}
+
+.section-head {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: none;
+  opacity: 0.7;
+  margin: 18px 0 6px;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+}
+
+.row-match {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: rgb(23 141 129 / 8%);
+    outline: none;
+  }
+}
+
+.row-silent {
+  color: inherit;
+  opacity: 0.85;
+
+  &:not(:disabled) {
+    cursor: pointer;
+  }
+
+  &:not(:disabled):hover,
+  &:not(:disabled):focus-visible {
+    background: rgb(23 141 129 / 8%);
+    outline: none;
+  }
+}
+
+.row-dots {
+  display: flex;
+  gap: 3px;
+  padding-top: 4px;
+  flex: 0 0 auto;
+}
+
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row-head {
+  font-size: 15px;
+}
+
+.row-name {
+  font-weight: 700;
+}
+
+/* Decoration, not text — in CSS so it is not read as something to translate. */
+.row-sep::before {
+  content: '·';
+}
+
+.row-sep {
+  margin: 0 6px;
+  opacity: 0.4;
+}
+
+.row-community {
+  opacity: 0.8;
+}
+
+.row-where {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.place {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.row-line {
+  font-size: 14px;
+}
+
+.row-breadth {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+/* The shown contact stands apart from the people around them: heading, name, community and
+   place in the gold of the ring the map draws around them (Bernd, 10.10.2026). At full
+   strength -- the quieter parts of a line are thinned by opacity, and thinned gold would fall
+   under 4.5 : 1. What answers the member's entries keeps its own signs: the dots their colours,
+   the breadth its green.
+
+   Two golds, because the list follows the wallet's theme and the map does not: the ring's own
+   on the dark surface (5.0 : 1, and 4.6 : 1 on the line under the pointer); on the white one
+   the ring's gold comes to 2.8 : 1, so it is the dark gold of the greeting line in the chat
+   (5.5 : 1, and 5.0 : 1 under the pointer). Held by matchListContactGold.spec.js. */
+.list-section-contact {
+  color: #8a6124;
+
+  /* A heading takes its colour from the wallet's rule for headings and inherits none: without
+     this "Dein Kontakt" stayed in the text colour (measured in the built wallet). */
+  .section-head {
+    color: inherit;
+  }
+
+  .section-head,
+  .row-sep,
+  .row-community,
+  .row-where {
+    opacity: 1;
+  }
+}
+
+:global(.dark-mode) .list-section-contact {
+  color: #c69130;
+}
+
+.list-empty {
+  padding: 40px 8px;
+  text-align: center;
+  opacity: 0.7;
+}

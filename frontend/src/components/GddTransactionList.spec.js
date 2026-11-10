@@ -1,6 +1,15 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import GddTransactionList from './GddTransactionList'
+import { GddTransactionList } from './GddTransactionList'
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
+// The store the rows reach is built on `@/i18n`, which the mock above has left without
+// `createI18n`; the module is stood in for as well.
+vi.mock('@/i18n', () => ({
+  default: { global: { t: (key) => key, locale: { value: 'en' } } },
+}))
 
 const scrollToMock = vi.fn()
 global.scrollTo = scrollToMock
@@ -340,7 +349,7 @@ describe('GddTransactionList', () => {
 
           it('leaves the highlight where the layout put it', () => {
             const paginator = wrapper.findComponent({ name: 'BPagination' })
-            expect(paginator.attributes('model-value')).toBe('3')
+            expect(paginator.attributes('modelvalue')).toBe('3')
           })
         })
 
@@ -366,8 +375,9 @@ describe('GddTransactionList', () => {
         await wrapper.setProps({ currentPage: 3 })
 
         // ⚠️ An ATTRIBUTE, and a string: the auto-stub declares no props of its own, so
-        // `props('modelValue')` comes back undefined and would pass against any page.
-        expect(wrapper.findComponent({ name: 'BPagination' }).attributes('model-value')).toBe('3')
+        // `props('modelValue')` comes back undefined and would pass against any page. The
+        // render function hands the prop over as `modelValue`, and HTML lowercases the name.
+        expect(wrapper.findComponent({ name: 'BPagination' }).attributes('modelvalue')).toBe('3')
       })
 
       /**

@@ -6,7 +6,7 @@ import { createI18n } from 'vue-i18n'
 import { walletStore } from '@test/walletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import ShowFriendsTile from './ShowFriendsTile.vue'
+import { ShowFriendsTile } from './ShowFriendsTile'
 import { ContactWindow } from '@/components/Contacts/ContactWindow'
 import { avatarZoomState, closeAvatarZoom } from '@/composables/useAvatarZoom'
 import {
@@ -97,7 +97,7 @@ const mountTile = () =>
   mount(ShowFriendsTile, {
     global: {
       plugins: [i18n, router, store],
-      stubs: { IMdiChevronRight: true, ContactWindow: true },
+      stubs: { MdiChevronRight: true, ContactWindow: true },
     },
   })
 
@@ -339,7 +339,8 @@ describe('ShowFriendsTile', () => {
    */
   describe('the spacing settled at the mockup', () => {
     const here = dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(resolve(here, 'ShowFriendsTile.vue'), 'utf8')
+    // The style module: every rule stands under the root's class (`:global(.show-friends-mirror)`).
+    const source = readFileSync(resolve(here, 'ShowFriendsTile.module.scss'), 'utf8')
     const code = source
       .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -349,7 +350,7 @@ describe('ShowFriendsTile', () => {
     it('reads code, not the notes beside it', () => {
       expect(source).toContain('klebt das so aneinander')
       expect(code).not.toContain('klebt das so aneinander')
-      expect(code).toContain('.show-friends-mirror {')
+      expect(code).toContain(':global(.show-friends-mirror) {')
     })
 
     /**
@@ -369,7 +370,7 @@ describe('ShowFriendsTile', () => {
     // A user name may be twenty characters, and a flex item's default minimum is its
     // content: without this the heading widens the row instead of wrapping inside the card.
     it('lets the heading wrap rather than widen the row', () => {
-      expect(code).toMatch(/\.show-friends-mirror-text \{[^}]*min-width: 0/)
+      expect(code).toMatch(/\.show-friends-mirror-text\) \{[^}]*min-width: 0/)
     })
   })
 })

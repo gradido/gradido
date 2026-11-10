@@ -1,25 +1,21 @@
 // AI-GENERATED — not an architecture reference
 
-import { randomInt } from 'node:crypto'
 import {
-  CHAT_MESSAGE_NOTIFY_LETTER,
+  ApiClientCache,
   ChatMessageImageAccepted,
+  ChatMessageWireInput,
   chatMailWentOut,
+  chatMessageAnswerSchema,
   chatMessageMailState,
-  chatMessageMailStateOfAnswer,
-  commandRequestBytes,
-  commandRequestFits,
-  EncryptedTransferArgs,
+  chatMessageWireSchema,
   readChatMemberMutedAt,
   recordChatMessageDelivery,
   recordChatMessageMailState,
   removeChatMessageImages,
-  SendEmailCommand,
-  SendEmailCommandParams,
+  sealedRequestFits,
   sendCustomEmail,
   storeChatMessage,
   storeChatMessageImages,
-  V1_0_CommandClient,
 } from 'core'
 import {
   ChatMemberRef,
@@ -27,10 +23,10 @@ import {
   ChatMessageMailState,
   ChatMessageNotify,
   ChatMessageSelect,
-  Community as DbCommunity,
+  CommunitiesSelect,
   User as DbUser,
 } from 'database'
-import { CommandJwtPayloadType, encryptAndSign, uuidv4Schema } from 'shared'
+import { uuidv4Schema } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
 import { LogError } from '@/server/LogError'
@@ -38,14 +34,14 @@ import { LogError } from '@/server/LogError'
 /*
  * The two ways a message between two members leaves this server, shared by the form "send an
  * e-mail" (TransactionResolver.sendEmail) and the chat (ChatResolver.sendChatMessage), so that
- * both file it, mail it and build its command the same way. The wish comes in decided -- the
+ * both file it, mail it and send it the same way. The wish comes in decided -- the
  * wake-up rule (chatMessageNotify) is the caller's. Whether it becomes a mail is decided here
  * for a recipient of this community, and by the recipient's server for one of another
- * (SendEmailCommand).
+ * (core receiveChatMessage).
  *
  * What differs between the two callers is what the message IS, and `requireStored` says which:
  * - for the form it is the mail -- all there was before the chat; the row is an extra (P1), and
- *   a row that could not be filed changes nothing about the mail or the command;
+ *   a row that could not be filed changes nothing about the mail or the request;
  * - for the chat it is the row: what could not be filed was not sent, and no mail goes out.
  *
  * And whether the recipient's quiet applies, which `letter` says: the form writes letters, and a
@@ -194,13 +190,8 @@ export async function deliverChatMessageLocally({
 
 export interface ChatMessageBorderDelivery {
   senderUser: DbUser
-  /** This community: its keys seal the command. */
-  senderCom: DbCommunity
-  /** The recipient's community: its key opens the command, and its uuid files the own copy. */
-  receiverCom: DbCommunity
-  /** What the command names the recipient's community by -- as the caller was given it. */
-  receiverComIdentifier: string
-  cmdClient: V1_0_CommandClient
+  /** The recipient's community, authenticated: the request goes there, and its uuid files the copy. */
+  receiverCom: CommunitiesSelect
   recipientGradidoId: string
   subject: string | null
   body: string
@@ -212,55 +203,45 @@ export interface ChatMessageBorderDelivery {
   letter: boolean
   /**
    * The pictures of a chat message (P7b), checked already (acceptChatMessageImage) -- one at most
-   * today. They travel in the command, and the recipient's server checks and files them as this
+   * today. They travel with the message, and the recipient's server checks and files them as this
    * one does. Only with `requireStored`: a picture is part of the row that is the message. None
    * for the form.
    */
   images?: ChatMessageImageAccepted[]
   /**
    * The message of their conversation the message answers, checked by the caller. Filed with
-   * this server's own copy only: the command does not carry it yet, and the other server files
+   * this server's own copy only: the request does not carry it yet, and the other server files
    * an ordinary message.
    */
   replyToMessageUuid?: string | null
 }
 
 /**
- * Sends a message to a member of another community as a command, and files this server's own
- * copy of it: as not yet delivered right before the command goes out (E-019: written first,
- * then delivered), and as delivered or failed with the answer. The recipient's server decides
- * about the mail, with its own mute mark (SendEmailCommand).
+ * Sends a message to a member of another community over the peer api (chatMessage), and files
+ * this server's own copy of it: as not yet delivered right before the request goes out (E-019:
+ * written first, then delivered), and as delivered or failed with the answer. The recipient's
+ * server decides about the mail, with its own mute mark (core receiveChatMessage).
  *
- * The own copy is filed after the command is sealed -- a missing key leaves no row waiting for
- * a delivery that never starts -- and only for a recipient named by gradido id in a community
- * with a uuid: the receiving server looks the recipient up by nothing else.
- *
- * ⛔ The sealed command is measured before anything is filed or sent. The federation module takes
- * a request of 100 KB at most, and a picture comes close to it: the wallet's picture with a text
- * of full length fits where a letter is one or two bytes; in Chinese, Hindi or emoji a text of
- * full length does not (CHAT_IMAGE_MAX_BYTES in shared says how much does) -- MaxLength counts
- * characters, the envelope weighs bytes. Such a message is refused, TOO_LARGE_ACROSS_BORDER,
- * rather than filed as sent and then refused by the other server with a bare 413.
+ * ⛔ The request is measured before anything is filed or sent, against what the federation
+ * service takes (FEDERATION_REQUEST_MAX_BYTES). Every text fits beside the largest picture
+ * (CHAT_IMAGE_MAX_BYTES in shared), so this is a backstop should a limit grow: such a message is
+ * refused, TOO_LARGE_ACROSS_BORDER, rather than filed as sent and answered with a bare 413.
  *
  * A message with pictures (P7b): the pictures first, under the message's uuid and under the
- * names the command gives them, then the own copy -- as deliverChatMessageLocally does. Where the
+ * names the request gives them, then the own copy -- as deliverChatMessageLocally does. Where the
  * pictures could not be filed, nothing is filed and nothing sent; where the own copy could not
  * be, its pictures are taken back out. A delivery that fails leaves the copy with its pictures,
  * FAILED, as any other message (E-019).
  *
  * Hands back the own copy with the state it has now, or null where none was filed, and the
  * error the other community answered with, or null. The copy says what the other server answered
- * became of the mail (E-034, `mail_state`): MAILED or MUTED, nothing where it answered neither --
- * no mail asked for, a server from before P3c, a failed delivery. A failed delivery is not
- * thrown: what to make of it is the caller's. Throws only where the command cannot be sealed, or
- * would be too large -- before anything is filed or sent.
+ * became of the mail (E-034, `mail_state`): MAILED or MUTED, nothing where it answered neither.
+ * A failed delivery is not thrown: what to make of it is the caller's. Throws only where the
+ * message would be too large -- before anything is filed or sent.
  */
 export async function deliverChatMessageAcrossBorder({
   senderUser,
-  senderCom,
   receiverCom,
-  receiverComIdentifier,
-  cmdClient,
   recipientGradidoId,
   subject,
   body,
@@ -270,117 +251,81 @@ export async function deliverChatMessageAcrossBorder({
   images = [],
   replyToMessageUuid = null,
 }: ChatMessageBorderDelivery): Promise<{ stored: ChatMessageSelect | null; error: string | null }> {
-  // The id both copies are filed under: this server's below, the receiving server's from the
-  // payload. The same for the pictures: named before the command is sealed.
+  // The other server finds its member by the gradido id alone, as it always did.
+  if (!v.safeParse(uuidv4Schema, recipientGradidoId).success) {
+    return { stored: null, error: 'Recipient user not found' }
+  }
+  const recipient = { communityUuid: receiverCom.communityUuid, gradidoId: recipientGradidoId }
+  // The id both copies are filed under, and the names of the pictures: chosen before anything is
+  // measured, filed or sent.
   const messageUuid = uuidv4()
   const pictures = images.map((picture, position) => ({
     ...picture,
     imageUuid: uuidv4(),
     position,
   }))
-  const handshakeID = randomInt(2 ** 32).toString()
-  const params: SendEmailCommandParams = {
-    mailType: 'sendCustomEmail',
-    senderComUuid: senderUser.communityUuid,
-    senderGradidoId: senderUser.gradidoID,
-    receiverComUuid: receiverComIdentifier,
-    receiverGradidoId: recipientGradidoId,
-    subject: subject ?? '',
-    memo: body,
+  // Parsed here, not first in the client: a message the request would refuse is not filed as sent.
+  const message = v.parse(chatMessageWireSchema, {
+    sender: {
+      communityUuid: senderUser.communityUuid,
+      gradidoId: senderUser.gradidoID,
+      // what the receiving server files a sender it does not know yet with (E-034)
+      alias: senderUser.alias,
+    },
+    recipient,
     messageUuid,
-    // What the receiving server files a sender it does not know yet with (E-034): the alias,
-    // no names -- a transfer files its sender with no more than that (SendEmailCommandParams).
-    // Without an alias, no field.
-    ...(senderUser.alias ? { senderAlias: senderUser.alias } : {}),
-    // A letter says so, and a chat message only a wish for no mail. A command without
-    // `notify` is mailed by every server, one from before the chat included
-    // (parseChatMessageNotify), so 'email' needs no field. A server from before P3c reads
-    // 'letter' as 'email' and asks the quiet, as it did for the form until now (accepted,
-    // E-034).
-    ...(letter
-      ? { notify: CHAT_MESSAGE_NOTIFY_LETTER }
-      : notify === ChatMessageNotify.NONE
-        ? { notify }
-        : {}),
-    // P7b: the pictures travel with the message, as base64 -- as the wallet uploads them. Without
-    // a picture, no field.
-    ...(pictures.length > 0
-      ? {
-          images: pictures.map(({ imageUuid, width, height, image }) => ({
-            imageUuid,
-            width,
-            height,
-            data: image.toString('base64'),
-          })),
-        }
-      : {}),
-  }
-  const payload = new CommandJwtPayloadType(
-    handshakeID,
-    SendEmailCommand.SEND_MAIL_COMMAND,
-    SendEmailCommand.name,
-    [JSON.stringify(params)],
-  )
-  const jws = await encryptAndSign(payload, senderCom.privateJwtKey!, receiverCom.publicJwtKey!)
-  const args = new EncryptedTransferArgs()
-  args.publicKey = senderCom.publicKey.toString('hex')
-  args.jwt = jws
-  args.handshakeID = handshakeID
-  // ⛔ Measured sealed, as it will go out, before anything is filed or sent.
-  if (!commandRequestFits(args)) {
-    throw new LogError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER', commandRequestBytes(args))
+    subject,
+    body,
+    notify: letter ? 'letter' : notify,
+    // P7b: as base64 -- as the wallet uploads them
+    images: pictures.map(({ imageUuid, width, height, image }) => ({
+      imageUuid,
+      width,
+      height,
+      data: image.toString('base64'),
+    })),
+  } satisfies ChatMessageWireInput)
+  if (!sealedRequestFits(message)) {
+    throw new LogError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER', messageUuid)
   }
 
-  // The own copy only for a recipient the receiving server can look up (see above).
-  const recipient =
-    receiverCom.communityUuid &&
-    v.safeParse(uuidv4Schema, receiverCom.communityUuid).success &&
-    v.safeParse(uuidv4Schema, recipientGradidoId).success
-      ? { communityUuid: receiverCom.communityUuid, gradidoId: recipientGradidoId }
-      : null
-  if (
-    pictures.length > 0 &&
-    !(recipient && (await storeChatMessageImages(messageUuid, pictures)))
-  ) {
+  if (pictures.length > 0 && !(await storeChatMessageImages(messageUuid, pictures))) {
     return { stored: null, error: null }
   }
-  const ownCopy = recipient
-    ? await storeChatMessage(
-        {
-          messageUuid,
-          sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
-          recipient,
-          subject,
-          body,
-          notify,
-          deliveryState: ChatMessageDeliveryState.PENDING,
-          replyToMessageUuid,
-        },
-        'outgoing',
-      )
-    : null
+  const ownCopy = await storeChatMessage(
+    {
+      messageUuid,
+      sender: { communityUuid: senderUser.communityUuid, gradidoId: senderUser.gradidoID },
+      recipient,
+      subject,
+      body,
+      notify,
+      deliveryState: ChatMessageDeliveryState.PENDING,
+      replyToMessageUuid,
+    },
+    'outgoing',
+  )
   if (!ownCopy && pictures.length > 0) {
     await removeChatMessageImages(messageUuid)
   }
   if (!ownCopy && requireStored) {
     return { stored: null, error: null }
   }
-  // The answer, not only whether there was one: sendCommand would read every answer as an error.
-  const answer = await cmdClient.sendCommandForAnswer(args)
-  const error = answer.success ? null : answer.error
+  const { data, error } = await ApiClientCache.getInstance().get(receiverCom).chatMessage(message)
+  const failure = error ? `${error.status}: ${String(error.value)}` : null
   if (!ownCopy) {
-    return { stored: null, error }
+    return { stored: null, error: failure }
   }
-  const deliveryState = answer.success
-    ? ChatMessageDeliveryState.DELIVERED
-    : ChatMessageDeliveryState.FAILED
-  const mailState = answer.success ? chatMessageMailStateOfAnswer(answer.value) : null
+  const deliveryState = error ? ChatMessageDeliveryState.FAILED : ChatMessageDeliveryState.DELIVERED
+  // what the other server answered became of the mail: nothing where the answer says neither
+  const answer = v.safeParse(chatMessageAnswerSchema, data)
+  const mailState = answer.success ? answer.output.mailState : null
   const recordedAt = await recordChatMessageDelivery(ownCopy.id, deliveryState, mailState)
   // What the row says now: the new state where it was recorded, the copy as filed where not.
   return {
     stored: recordedAt
       ? { ...ownCopy, deliveryState, lastAttemptAt: recordedAt, mailState }
       : ownCopy,
-    error,
+    error: failure,
   }
 }

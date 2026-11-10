@@ -1,0 +1,123 @@
+# AI-GENERATED — not an architecture reference
+# The Mithril admin: its unit tests, lint and types, and the Playwright specs run against both the
+# old admin and the new one. No *_skipped.yml companion: no check of this workflow is required for
+# a merge yet. Once one is, it needs one (see test_admin_interface_skipped.yml).
+
+name: Gradido Admin Mithril Test CI
+
+on:
+  push:
+    paths:
+      - 'admin-mithril/**'
+      # its GraphQL documents, locales, styles and config come from there, and the specs run there too
+      - 'admin/**'
+      # the answers the specs make up are held against it (tests/fixtures/graphql.ts)
+      - 'backend/schema.graphql'
+      - 'config-schema/**'
+      - 'shared/**'
+      - '.bun-version'
+      - '.nvmrc'
+      - '.github/workflows/test_admin_mithril.yml'
+
+jobs:
+  unit_test_lint:
+    name: Unit Tests & Lint & Typecheck - Admin Mithril
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: install bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter admin-mithril --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      # Only config-schema: of shared it takes a type alone (Result), and turbo's ^build would
+      # build shared-native, a Zig addon, for it.
+      - name: build what the admin imports
+        run: turbo build --filter=config-schema
+
+      - name: Admin Mithril | Unit tests, lint, typecheck
+        working-directory: admin-mithril
+        run: |
+          bun run test
+          bun run lint
+          bun run typecheck
+
+  compare:
+    name: Playwright - Admin Mithril against the old admin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: install bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter admin-mithril --filter admin --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      # what both admins import at runtime (see the job above for why not ^build)
+      - name: build what the admins import
+        run: turbo build --filter=config-schema
+
+      # The browser moves with the Playwright version, and so does the key.
+      - name: Cache Playwright's Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('admin-mithril/package.json') }}
+
+      - name: install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        working-directory: admin-mithril
+        run: bunx playwright install --with-deps chromium
+
+      - name: install Chromium's system libraries
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        working-directory: admin-mithril
+        run: bunx playwright install-deps chromium
+
+      # A test that passes only on its retry fails the run: the retry is there for the trace.
+      - name: Admin Mithril | Playwright against the Mithril admin
+        id: new
+        working-directory: admin-mithril
+        run: bunx playwright test --project=new --fail-on-flaky-tests
+
+      # The old admin is the reference, on its way out. It runs on its dev server, and under the
+      # load of a runner it now and then shows no toast after a form is sent (about 1 run in 1400
+      # locally, not caught in a trace yet): the retry is allowed to pass there.
+      - name: Admin Mithril | Playwright against the old admin
+        id: old
+        if: ${{ !cancelled() }}
+        working-directory: admin-mithril
+        run: bunx playwright test --project=old
+
+      # traces of the failed tests (trace: on-first-retry in CI)
+      - name: upload traces of failed tests
+        if: ${{ failure() && (steps.new.conclusion == 'failure' || steps.old.conclusion == 'failure') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-mithril-test-results
+          path: admin-mithril/test-results
+          retention-days: 7

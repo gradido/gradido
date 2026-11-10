@@ -1,0 +1,230 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the root class gives it back. */
+.match-query {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.match-query :global(.query-bar) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.match-query :global(.query-icon) {
+  flex: none;
+  opacity: 0.65;
+}
+
+.match-query :global(.query-value) {
+  flex: 1;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-query :global(.query-caret) {
+  flex: none;
+  opacity: 0.5;
+}
+
+.match-query :global(.query-menu) {
+  position: absolute;
+  z-index: 1200;
+  right: 0;
+  left: 0;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
+  border-radius: 0.5rem;
+  background: var(--surface);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 15%);
+  list-style: none;
+}
+
+.match-query :global(.query-option) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--surface-muted);
+  cursor: pointer;
+}
+
+.match-query :global(.query-option:first-child) {
+  border-top: 0;
+}
+
+.match-query :global(.query-option:hover),
+.match-query :global(.query-option.is-current) {
+  background: var(--surface-muted);
+}
+
+.match-query :global(.query-option.is-other) {
+  font-weight: 600;
+}
+
+.match-query :global(.option-check) {
+  flex: none;
+  opacity: 0.7;
+}
+
+.match-query :global(.option-dot) {
+  flex: none;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+}
+
+.match-query :global(.option-text) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-query :global(.typed-row) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.match-query :global(.typed-input) {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.match-query :global(.typed-input:focus) {
+  outline: none;
+}
+
+.match-query :global(.typed-clear) {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+/* The offers sit between the field and the stances, in reading order: what could
+   finish the sentence, then what the sentence means. Chips rather than a dropdown -
+   they push the stances down instead of covering them, so nothing the member is
+   about to press moves out from under their finger. */
+.match-query :global(.typed-suggestions) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Deliberately not the gold of the stances. Gold is MY word on this page - the home
+   marker, the chosen stance - and a suggestion is the vocabulary's word, not mine. */
+.match-query :global(.suggestion) {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border-subtle, rgb(0 0 0 / 15%));
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.match-query :global(.suggestion:hover) {
+  border-color: var(--text-muted);
+  background: var(--surface-muted);
+}
+
+/* Room for the chosen one's ring to stand free of its neighbours. */
+.match-query :global(.typed-stances) {
+  display: flex;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
+}
+
+/* Not a channel colour. On the map red/green/blue already mean "what the other
+   person said"; the stance is MY word, and the house already has a colour for that
+   — the gold of the home marker.
+
+   The weight of the outline carries the state, and it runs the right way round: the
+   ones still on offer wear a hairline, the one actually chosen wears the thick ring.
+   The first try had it backwards — a fat ring on the two open choices and none at
+   all on the chosen one, which made the answer look like the leftover.
+
+   The thick ring is a shadow, not a border, so the three chips never shift as the
+   choice moves between them. */
+.match-query :global(.stance) {
+  padding: 0.3rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+/* Nothing to complete yet: no outline at all, and the words step back. */
+.match-query :global(.stance:disabled) {
+  border-color: transparent;
+  color: var(--text-muted);
+  font-weight: 400;
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* On offer: a hairline. Enough to say "pressable", not enough to compete with the
+   one that was pressed. */
+.match-query :global(.stance:not(:disabled)) {
+  border-color: color-mix(in srgb, #c69130 70%, transparent);
+  background: var(--surface);
+}
+
+.match-query :global(.stance.is-chosen) {
+  border-color: transparent;
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: 0 0 0 3px #c69130;
+}
+
+.match-query :global(.stance:not(:disabled, .is-chosen):hover) {
+  background: color-mix(in srgb, #c69130 12%, var(--surface));
+}
+
+.match-query :global(.typed-hint) {
+  margin: 0.375rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  transition: opacity 0.18s ease;
+}
+
+/* The hint dims with the buttons, so "not yet" and "your turn" are one signal
+   instead of two half-signals. */
+.match-query:not(:global(.can-ask)) :global(.typed-hint) {
+  opacity: 0.55;
+}

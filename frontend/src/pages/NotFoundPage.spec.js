@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import NotFoundPage from './NotFoundPage.vue'
+import { NotFoundPage } from './NotFoundPage'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createI18n } from 'vue-i18n'
 import { BContainer } from 'bootstrap-vue-next'

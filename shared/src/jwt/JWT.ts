@@ -115,15 +115,6 @@ export const encode = async (payload: JwtPayloadType, privatekey: string): Promi
   }
 }
 
-export const verifyJwtType = async (
-  handshakeID: string,
-  token: string,
-  publicKey: string,
-): Promise<string> => {
-  const payload = await verify(handshakeID, token, publicKey)
-  return payload ? payload.tokentype : 'unknown token type'
-}
-
 export const decode = (token: string): JwtPayloadType => {
   const { payload } = decodeJwt(token)
   return payload as JwtPayloadType

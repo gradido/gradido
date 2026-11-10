@@ -1,0 +1,670 @@
+/* AI-GENERATED — not an architecture reference */
+.map-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+/* In list mode the map stays mounted underneath (kept sized), but its controls — the
+   zoom buttons, the search button, the way home — are raised above the map below, and
+   would poke through the list cover and sit on its text. The list has its own address
+   search up top, so hide the map's controls while it is showing. */
+.map-shell.is-list :global(.maplibregl-control-container) {
+  display: none;
+}
+
+/* MapLibre hangs its markers straight into the container that holds its canvas, and nothing
+   there makes a layer of its own, so the z-index a marker carries (the house 500, the centre
+   400) would count against the page: the house would stand on the list cover and over the
+   crosshair, and both would cover the zoom buttons. Isolated, the container is one layer, with
+   the markers ordered inside it. */
+.map-shell :global(.maplibregl-canvas-container) {
+  isolation: isolate;
+}
+
+/* ...and the controls go above everything on the map, at 1000. MapLibre's corners stand at 2,
+   where the crosshair (450) would cover the search field's list of places wherever the two
+   meet - on a phone they do. The bottom corners stay at 2: the map's small print there
+   belongs under the keep offer (900), which is put there deliberately. */
+.map-shell :global(.maplibregl-ctrl-top-left) {
+  z-index: 1000;
+}
+
+/* The home button rides the engine's rounded control chrome (white, or dark on the dark
+   map); only the gold house inside needs centring and a marker-ish size. */
+:global(.gk-home a) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:global(.gk-home a svg) {
+  width: 18px;
+  height: 18px;
+}
+
+/* MapLibre's button chrome, held to a touch measure - 30 px buttons in a 2 px rim, 34 px in
+   all - which is the measure the lens between them is built to (GeoSearchField), so the corner
+   reads as one. The way home is a link, and MapLibre gives a size to buttons only.
+   `.maplibregl-ctrl` as well, or MapLibre's own `.maplibregl-ctrl-group:not(:empty)` shadow
+   (the same weight, loaded later) would win. */
+.map-shell :global(.maplibregl-ctrl.maplibregl-ctrl-group) {
+  border: 2px solid rgb(0 0 0 / 20%);
+  background-clip: padding-box;
+  box-shadow: none;
+}
+
+.map-shell :global(.maplibregl-ctrl-group button),
+.map-shell :global(.maplibregl-ctrl-group a) {
+  width: 30px;
+  height: 30px;
+}
+
+.map-shell :global(.maplibregl-ctrl-group a:hover) {
+  background-color: rgb(0 0 0 / 5%);
+}
+
+/* The field rides the map, so it wears the map's chrome and not the wallet's theme: white
+   with a translucent rim and black marks, like the zoom buttons beside it, whichever theme
+   the wallet is in. It paints itself out of --surface and --border (GeoSearchField), and
+   both are inherited, so the lens, the field and its result list all follow. The dark map
+   hands it other values at the end of this file. */
+.gk-search {
+  --surface: #fff;
+  --border: rgb(0 0 0 / 20%);
+
+  color: #212529;
+}
+
+/* The search field belongs in the map's control corner, and initMap moves it there —
+   the engine marks what it has taken with `gk-placed`. Until then the element is
+   still standing in the page flow under the canvas, where a lens would only push the
+   shell taller for a quarter second; and where no map is ever built, it stays away. */
+.gk-search:not(:global(.gk-placed)) {
+  display: none;
+}
+
+.map-canvas {
+  height: 65vh;
+  min-height: 380px;
+  width: 100%;
+}
+
+/* The page takes back the air the row above gives the menu.
+ *
+ * DashboardLayout puts `pt-lg-4` on the row that holds the sidebar AND the content,
+ * so both start at the same line - which is right for a page with a heading and
+ * wrong for this one, where every pixel above the map is pixels the band at the
+ * bottom takes from the controls. Measured on the deployed page: the frame ended 39px
+ * above the fold and the band stood 107px tall. The menu keeps its line; only the
+ * page moves.
+ *
+ * ⛔ Every switch on this page sits at the wallet's own boundary, 1025px
+ * (`LG_BREAKPOINT_PX`, where `pt-lg-4` and the menu come and go), not at Bootstrap's
+ * 992. At 992 the page was a desk page in a band with no menu and no `pt-lg-4`: this
+ * margin pulled the search line off the top of the screen (Bernd, 11.09.2026; an iPad
+ * held sideways is 1024px wide). `useViewport.drift.spec.js` refuses a 992 here. */
+@media (width >= 1025px) {
+  .matching-map-page {
+    margin-top: -1.5rem;
+  }
+}
+
+/* The list sits over the map (which stays mounted and sized beneath it), under
+   the look switch so it stays reachable to switch away. */
+.list-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+}
+
+/* On a phone the page IS the map: it fills the screen, the controls sit right
+   under it, and neither needs a scroll. dvh rather than vh, so the browser's own
+   collapsing address bar cannot cut the controls off the bottom. */
+@media (width <= 1024.98px) {
+  .matching-map-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    margin-top: 0 !important;
+  }
+
+  .map-frame {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* No break-out of its own any more. The map used to reach 24px past the page, to 6px
+     from the edge, and that measure is now the page edge of the whole wallet (App.vue),
+     so the search line, the map and the controls simply stand on it -- still in one
+     column, still edge to edge (Bernd, 11.09. and 21.09.2026). */
+  .map-shell {
+    flex: 0 1 55dvh;
+    min-height: 0;
+  }
+
+  /* Held to a share of the screen rather than to whatever is left over. Portrait,
+     and the search runs in a circle around the middle, so height past the circle
+     shows countryside nobody asked about while the controls below are cramped.
+     `0 1` and not `0 0`: where the controls need more than the rest, the map gives
+     way rather than pushing them off the screen. */
+  .map-canvas {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* A few pixels of air under the map, the same as its distance from the edge: enough
+     to read as an element of its own, little enough to cost a small phone nothing. */
+  .map-controls {
+    margin-top: 6px !important;
+  }
+}
+
+/* The air above belongs to the layout, not here: this page sits in the content
+   column, and padding here would leave the menu column glued to the top on its
+   own. See bareChrome in DashboardLayout. */
+
+/* The way back and the question share a line. Aligned to its top, not its middle: the
+   question grows downwards while a sentence is typed (the stances come in under it),
+   and the arrow belongs to its first line. */
+.query-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+/* The question must not decide how wide the page may be. Its bar keeps a chosen
+   sentence on one line and cuts it with an ellipsis - but uncontained, the whole
+   sentence still counted as the narrowest the page could get, and the layout's content
+   column, which never shrinks below its content, dropped under the menu instead (Bernd,
+   11.09.2026: a long entry chosen, the window between about 990 and 1070 px). With its
+   width contained the bar takes the width it is given and cuts the sentence there. */
+.query-field {
+  flex: 1;
+  min-width: 0;
+  contain: inline-size;
+}
+
+/* A bare arrow in the page's own text colour - light on the dark wallet, dark on the
+   light one - and as tall as the closed search bar, so it stands centred beside it. */
+.map-back {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.625rem;
+  padding: 0;
+  font-size: 1.5rem;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+}
+
+.look-switch {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 500;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: rgb(255 255 255 / 90%);
+  border-radius: 26px;
+  box-shadow: 0 1px 5px rgb(0 0 0 / 40%);
+}
+
+.look-group {
+  display: flex;
+  gap: 2px;
+}
+
+.look-divide {
+  align-self: stretch;
+  width: 1px;
+  margin: 3px 1px;
+  background: rgb(0 0 0 / 22%);
+}
+
+.look-btn {
+  border: 0;
+  background: transparent;
+  border-radius: 24px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: #383838;
+  line-height: 1.2;
+
+  &.is-on {
+    background: #178d81;
+    color: #fff;
+    font-weight: 700;
+  }
+}
+
+/* Sits under the look switch (z-index 500), because that is a control and this
+   belongs to the map underneath it. */
+.map-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 450;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 0;
+  color: rgb(255 255 255 / 50%);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.28s ease;
+}
+
+.map-shell.look-hell .map-crosshair,
+.map-shell.look-normal .map-crosshair {
+  color: rgb(0 0 0 / 50%);
+}
+
+/* The offer to keep a typed search — a band riding the bottom of the SCREEN.
+
+   Half-see-through on purpose (same recipe as the cluster overlay, a little lighter):
+   whatever it covers has to stay sensed underneath, or the band reads as a page of
+   its own rather than as something said about what is on screen. The small blur
+   keeps the words legible over whatever happens to lie beneath.
+
+   Under the gold trim (z-index 1000, App.vue) which frames the whole app, and under
+   the query menu and any modal, which are answers to a deliberate act. Above
+   everything on the page, because it belongs to the screen rather than to the map. */
+.keep-offer {
+  position: fixed;
+  z-index: 900;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+
+  /* The gold trim is 13px of fixed decoration along the bottom edge (.goldrand in
+     App.vue). The band passes behind it, so its own content needs that much room
+     plus air, or the buttons would sit on the trim.
+
+     One line, and the padding is what makes it one: measured on the deployed page
+     the band stood 107px tall while only 39px were free under the map frame, so it
+     covered the controls it was meant to sit beside. */
+  padding: 0.4rem 1.25rem calc(13px + 0.35rem);
+  border-top: 1px solid color-mix(in srgb, #c69130 45%, transparent);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  backdrop-filter: blur(3px);
+  color: var(--text);
+  animation: keep-rise 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) 0.25s both;
+}
+
+/* On a desktop it stops where the content column starts. Across the whole width it
+   ran under the menu as well and read as an application-wide bar, which it is not —
+   it belongs to this page. The sidebar is a 2-of-12 column in DashboardLayout, so
+   that is where the band begins - from 1025px, where that column exists. Below it
+   there is no sidebar and the band spans the screen, which is right: there the whole
+   width IS the page. */
+@media (width >= 1025px) {
+  .keep-offer {
+    left: 16.6667%;
+    border-top-left-radius: 0.5rem;
+  }
+}
+
+/* The question is the only part that may give way, so it takes the free width and
+   loses its end rather than its line. Everything else keeps its size: an answer that
+   is half-visible is not an answer. */
+.keep-ask {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On a phone the question goes altogether. There is no width for a sentence AND two
+   answers, and the sentence is the part that repeats what the search field says two
+   fingers above it.
+
+   ⛔ And what is left still does not fit one line, which is why the band may wrap
+   here and only here. Measured off the type and the padding: bell 16 + keep button
+   176 + no 99 + box 126 + gaps 36 = 453px of content, against 280 free on a 320px
+   screen and 350 on a 390px one. With `nowrap` the last control simply leaves the
+   screen — unreachable, not merely ugly. Wrapping lets the browser decide per width:
+   one line where it fits, the box on a short second line where it does not.
+
+   The band is one line on the desktop, where it was asked for and where 968px of
+   frame make it true. */
+@media (width <= 1024.98px) {
+  .keep-ask {
+    display: none;
+  }
+
+  .keep-offer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  /* The landing-page padding on the house button is what pushes the row over on the
+     narrowest screens; here the button is one of three things sharing a phone. */
+  .keep-btn {
+    padding-right: 0.75rem !important;
+    padding-left: 0.75rem !important;
+  }
+}
+
+/* Not a second answer - it says what the next one means. Small, last, and out of the
+   way of the two buttons. */
+.keep-never {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+/* Arriving unbidden, it is the movement that is noticed — not the presence. The
+   short wait lets the results settle first, so the rise happens against a still
+   picture instead of disappearing into the redraw. */
+@keyframes keep-rise {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Whoever asked the system for less movement gets the band without the ride. */
+@media (prefers-reduced-motion: reduce) {
+  .keep-offer {
+    animation: none;
+  }
+}
+
+.keep-icon {
+  flex: none;
+  color: #c69130;
+  font-size: 1.15rem;
+}
+
+/* The house button carries 50px of side padding, which is the width of a landing
+   page, not of a band on a phone. */
+.keep-btn {
+  padding-right: 1.25rem !important;
+  padding-left: 1.25rem !important;
+  white-space: nowrap;
+}
+
+/* A labelled way out, not a cross: the band was never opened, it arrived, and a
+   named answer is easier to find than a symbol. It stays quiet next to the gold
+   one — this is an offer with two answers, not two buttons of equal weight. */
+.keep-no {
+  flex: none;
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.keep-no:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.controls-heading {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.radius-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  /* It must be allowed to break: with the reach switch in front of it the row no
+     longer fits a 375 px phone on one line. Switch and radius stay together where
+     they fit, the count moves underneath. */
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+/* ⛔ "Radius", the number and "km" break as one piece, never inside it. As three items
+   of the row above, each wrapped wherever the room ran out: already on master "km"
+   stood alone under the number at 320-340px in English, French, Spanish, Italian and
+   Dutch (Italian up to 360px), and "Радиус" alone in front of it up to 390px. Since the
+   page is no longer held at 330px on a 320px screen (App.vue), German joined them. */
+.radius-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+/* The two reaches, in the form language of the radius field and the look switch:
+   one pill holding both, the standing one filled. */
+.reach-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 26px;
+  background: rgb(23 141 129 / 12%);
+}
+
+.reach-btn {
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: #178d81;
+
+  /* `font: inherit` for the page's own family - and then the weight back down by
+     hand. The shorthand inherits EVERYTHING, and this switch sits inside
+     .controls-heading, which is bold: without the line below both buttons come out
+     at 700 and the is-on rule underneath changes nothing at all. `.look-btn`, the
+     switch this one is modelled on, avoids the trap by not using the shorthand. */
+  font: inherit;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.reach-btn.is-on {
+  background: #178d81;
+  color: #fff;
+  font-weight: 700;
+}
+
+.radius-field {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 23px;
+  padding: 0 6px;
+  border: 1.5px solid #178d81;
+  border-radius: 5px;
+  background: rgb(23 141 129 / 7%);
+  color: #178d81;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Decoration, not text — so it lives here rather than in the markup, where it
+   would look like something to translate. Same separator the entry count uses. */
+.radius-dot::before {
+  content: '·';
+  font-weight: 400;
+  opacity: 0.35;
+}
+
+.map-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .box {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    border: 1.5px solid #7a7a7a;
+    position: relative;
+    flex: 0 0 auto;
+  }
+
+  input:checked + .box {
+    background: #178d81;
+    border-color: #178d81;
+  }
+
+  input:checked + .box::after {
+    content: '';
+    position: absolute;
+    left: 4.5px;
+    top: 1px;
+    width: 4px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  input:focus-visible + .box {
+    outline: 2px solid #178d81;
+    outline-offset: 2px;
+  }
+
+  .swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+}
+
+/* The cluster overlay covers the map while the mode is still "karte", so is-list
+   does not apply — hide the map controls while it shows, so nothing sits over the
+   overlay or its close cross. Placed last, after the plain control selectors, to
+   keep specificity ascending. */
+.map-shell.is-cluster .look-switch,
+.map-shell.is-cluster .map-crosshair {
+  display: none;
+}
+
+.map-shell.is-cluster :global(.maplibregl-control-container) {
+  display: none;
+}
+
+/* The dark map, and only the dark map (Bernd, 11.09.2026): its white buttons were the
+   loudest thing on it. The controls go dark with light marks, and where the other looks
+   draw a dark rim round them this one draws a light rim; the gold house keeps its gold.
+   The field the lens opens and the map's small print go dark with them, or they would
+   be the last white patches left. The list covers the map, so over it the switch follows
+   the list, which follows the wallet theme: its usual face in the light wallet, this one
+   in the dark (Bernd, 29.09.2026; the last rules below). Last in the file, after the plain
+   control rules and the cluster rule, to keep specificity ascending. */
+.map-shell.look-dunkel {
+  --dark-chrome: #16181d;
+  --dark-hover: #262a31;
+  --dark-mark: #e8eaed;
+  --dark-rim: rgb(255 255 255 / 35%);
+  --dark-line: rgb(255 255 255 / 20%);
+
+  /* On the dark map the field takes the chrome the other controls take there. */
+  .gk-search {
+    --surface: var(--dark-chrome);
+    --border: var(--dark-rim);
+
+    color: var(--dark-mark);
+  }
+
+  /* MapLibre's zoom marks and the sign that opens its small print are pictures, not letters,
+     so they are turned light instead of coloured: the marks are #333, inverted #ccc, and
+     brightened by 1.14 they come to the light of --dark-mark (compared side by side in a
+     browser, 16.09.2026). */
+  :global(.maplibregl-ctrl-group) {
+    border-color: var(--dark-rim);
+    background-color: var(--dark-chrome);
+  }
+
+  :global(.maplibregl-ctrl-group button + button) {
+    border-top-color: var(--dark-line);
+  }
+
+  :global(.maplibregl-ctrl-group .maplibregl-ctrl-icon) {
+    filter: invert(1) brightness(1.14);
+  }
+
+  :global(.maplibregl-ctrl-group button:not(:disabled):hover),
+  :global(.maplibregl-ctrl-group button:focus),
+  :global(.maplibregl-ctrl-group a:hover),
+  :global(.maplibregl-ctrl-group a:focus) {
+    background-color: var(--dark-hover);
+  }
+
+  :global(.maplibregl-ctrl-attrib) {
+    color: rgb(255 255 255 / 60%);
+    background-color: rgb(22 24 29 / 80%);
+  }
+
+  :global(.maplibregl-ctrl-attrib a) {
+    color: rgb(255 255 255 / 80%);
+  }
+
+  :global(.maplibregl-ctrl-attrib-button) {
+    filter: invert(1);
+  }
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-switch {
+  background: rgb(22 24 29 / 92%);
+  box-shadow: 0 0 0 2px var(--dark-rim);
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-btn:not(.is-on) {
+  color: var(--dark-mark);
+}
+
+.map-shell.look-dunkel:not(.is-list) .look-divide {
+  background: var(--dark-line);
+}
+
+/* Over the list in the dark wallet the switch -- there only "Karte", the way back to the map --
+   takes the face it has over the dark map: it stood white on the dark list (Bernd, 29.09.2026,
+   "im dunklen Modus noch hell"). The same values as above, spelled out, because the variables
+   live on the dark map only; the spec holds them together. The list follows the wallet theme
+   whatever the map's look, and so does the switch over it. */
+:global(.dark-mode) .map-shell.is-list .look-switch {
+  background: rgb(22 24 29 / 92%);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 35%);
+}
+
+:global(.dark-mode) .map-shell.is-list .look-btn:not(.is-on) {
+  color: #e8eaed;
+}

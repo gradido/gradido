@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { useQuery } from '@vue/apollo-composable'
 import { suggestedCreationGroup } from '@/graphql/contributions.graphql'
-import ContributionForm from './ContributionForm.vue'
+import { ContributionForm } from './ContributionForm'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -143,6 +143,18 @@ describe('ContributionForm', () => {
 
     wrapper.vm.form.amount = 100
 
+    expect(wrapper.vm.disabled).toBe(false)
+  })
+
+  // A failed submission used to leave the button locked: nothing set `submitted` back.
+  it('frees the button again when the parent says the submission failed', () => {
+    wrapper = createWrapperWithDate(thisMonth)
+    wrapper.vm.form.amount = 100
+
+    wrapper.vm.submit()
+    expect(wrapper.vm.disabled).toBe(true)
+
+    wrapper.vm.reset()
     expect(wrapper.vm.disabled).toBe(false)
   })
 

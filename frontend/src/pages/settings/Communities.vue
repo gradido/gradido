@@ -33,7 +33,7 @@
 import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
 import { computed, ref } from 'vue'
 import { useWalletStore } from '@/store/useWalletStore'
-import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch.vue'
+import { UserSettingsSwitch } from '@/components/UserSettings/UserSettingsSwitch'
 import { BRow, BCol } from 'bootstrap-vue-next'
 
 const store = useWalletStore()

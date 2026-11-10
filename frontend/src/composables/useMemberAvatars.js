@@ -21,6 +21,7 @@
 // leave the face on screen until the browser storage happened to be cleared.
 
 import { ref } from 'vue'
+import { keptPictureSource } from '@/composables/useKeptPictures'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { memberKey } from '@/utils/gradidoAddress'
 import { memberAvatars } from '@/graphql/queries'
@@ -192,14 +193,29 @@ export const storedMemberAvatar = (member, avatarUpdatedAt) => {
 }
 
 /**
- * The stored picture as an `<img>` source, or '' when there is none -- which is what
- * AppAvatar reads as "draw the letters instead".
+ * The face this member shows, as an `<img>` source, or '' when there is none -- which is what
+ * AppAvatar reads as "draw the letters instead". The signed-in member's own picture of them
+ * comes first, wherever there is one (AS-023): it is what every list draws.
+ *
+ * ⛔ The member's picture is asked for first, and through its own counter (useKeptPictures):
+ * this store's counter knows nothing of it, so a picture set or taken away would otherwise
+ * leave every list on the face it drew before.
+ */
+export const memberAvatarSource = (member) => {
+  const kept = keptPictureSource(member)
+  return kept === null ? memberOwnAvatarSource(member) : kept
+}
+
+/**
+ * The stored picture this member chose themselves, as an `<img>` source, or '' when there is
+ * none -- whether or not the signed-in member keeps one of their own of them. The contact
+ * window shows it beside the member's own (AS-023); everything else draws memberAvatarSource.
  *
  * The format is spelled out once here rather than at each call site. The encoder writes
  * JPEG and the backend accepts nothing else (it checks the ff d8 / ff d9 markers), so the
  * type is not a guess.
  */
-export const memberAvatarSource = (member) => {
+export const memberOwnAvatarSource = (member) => {
   trackChanges()
   const entry = currentEntry(member, member?.avatarUpdatedAt)
   if (!entry) return ''

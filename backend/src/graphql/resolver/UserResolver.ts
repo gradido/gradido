@@ -22,19 +22,19 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
-  decodeJpegImage,
   ensureUrlEndsWithSlash,
-  reencodeJpegImage,
   sendAccountActivationEmail,
   sendResetPasswordEmail,
   validateAlias,
-  xcomMemberAvatars,
+  xcomMemberAvatarFull,
+  xcomMemberAvatarsSmall,
 } from 'core'
 import {
   AccountState,
   ALIAS_ORIGIN_CHOSEN,
   ASSIGNABLE_ROLE_NAMES,
   aliasOriginIsSettled,
+  CommunitiesSelect,
   DBNotFoundError,
   DbLoginUser,
   UserContact as DbUserContact,
@@ -46,6 +46,7 @@ import {
   dbEmailTaken,
   dbFindAdminUsersPage,
   dbFindAliasesByUser,
+  dbFindAuthenticatedForeignCommunityByIdentifier,
   dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
@@ -86,14 +87,9 @@ import random from 'random-bigint'
 import {
   ALIAS_QUOTA_PER_WINDOW,
   ALIAS_QUOTA_WINDOW_MS,
-  AVATAR_FULL_MAX_BYTES,
-  AVATAR_FULL_MAX_SIDE,
-  AVATAR_SMALL_MAX_BYTES,
-  AVATAR_SMALL_MAX_SIDE,
   isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
-  MemberAvatarPayload,
   PasswordHashPriority,
   parseOrThrowFirstIssue,
   passwordSchema,
@@ -101,6 +97,7 @@ import {
   USER_NOT_FOUND,
   uint64StringSchema,
   updateAllDefinedAndChanged,
+  XComRequestError,
 } from 'shared'
 import {
   Arg,
@@ -136,7 +133,6 @@ import {
   MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST,
   splitMemberRefsByCommunity,
   USER_AVATARS_ACCEPTED_MAX_PER_REQUEST,
-  XCOM_MEMBER_AVATARS_TIMEOUT_MS,
 } from '@/data/MemberAvatars.logic'
 import { PublishNameLogic } from '@/data/PublishName.logic'
 import { createUserSchema } from '@/interactions/registerUser'
@@ -146,6 +142,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { acceptAvatarRenditions } from './util/acceptAvatarRenditions'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
@@ -178,43 +175,31 @@ export const activationLink = (verificationCode: string, logger: Logger): string
 }
 
 /**
- * The pictures of another community's members, asked of that community. This server stores
- * none of them (AS-004), and the other side decides with its own rule who may be shown
- * (federation MemberAvatarsResolver, mayBeShownToMembers).
+ * What another community answers about the pictures of its members, asked by `ask`. This
+ * server stores none of them (AS-004), and the other side decides with its own rule who may be
+ * shown (core memberAvatars answeringSide, mayBeShownToMembers).
  *
  * ★ Nothing the other community does becomes an error here: an unknown community, one the
- * handshake has not completed with, no answer within XCOM_MEMBER_AVATARS_TIMEOUT_MS, a
- * refusal, an answer that does not hold up -- the member gets no faces from there this time,
- * and the rest of their request is untouched.
+ * handshake has not completed with, no answer in time, a refusal, an answer that does not hold
+ * up -- null, the member gets no faces from there this time, and the rest of their request is
+ * untouched.
  */
-const relayMemberAvatars = async (
+const relayMemberAvatars = async <T>(
   communityUuid: string,
-  kind: 'small' | 'full',
-  gradidoIDs: string[],
-): Promise<MemberAvatarPayload[]> => {
-  const community = await getCommunityByUuid(communityUuid)
-  // The other side refuses a community that has not completed the handshake with it, so
-  // asking without one would only cost the member the time limit.
-  if (!community?.foreign || !community.authenticatedAt || !community.publicJwtKey) {
-    return []
+  ask: (community: CommunitiesSelect) => Promise<Result<T, XComRequestError>>,
+): Promise<T | null> => {
+  // the other side refuses a community that has not completed the handshake with it
+  const community = await dbFindAuthenticatedForeignCommunityByIdentifier(communityUuid)
+  if (!community) {
+    return null
   }
-  const homeCom = await getHomeCommunity()
-  if (!homeCom) {
-    return []
-  }
-  const answer = await xcomMemberAvatars(
-    homeCom,
-    community,
-    kind,
-    gradidoIDs,
-    XCOM_MEMBER_AVATARS_TIMEOUT_MS,
-  )
+  const answer = await ask(community)
   if (!answer.success) {
     createLogger('relayMemberAvatars').warn(
       'no member pictures from another community',
       answer.error.message,
     )
-    return []
+    return null
   }
   return answer.value
 }
@@ -1015,8 +1000,8 @@ export class UserResolver {
    *
    * ⛔ Neither rendition is stored as it came. The small one goes to every member who sees
    * this one in a list or a chat, and to other communities that ask for it, so both are
-   * decoded and encoded again (acceptAvatar): what is stored was written by this server from
-   * pixels alone. Once in an HTTP request, counted before any of that work is done.
+   * decoded and encoded again (acceptAvatarRenditions): what is stored was written by this
+   * server from pixels alone. Once in an HTTP request, counted before any of that work is done.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
@@ -1036,20 +1021,7 @@ export class UserResolver {
     const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
-    // One after the other, the cheap one first: where the small one is refused, no work is
-    // done on the full one.
-    const small = await this.acceptAvatar(
-      avatarSmall,
-      'small',
-      AVATAR_SMALL_MAX_BYTES,
-      AVATAR_SMALL_MAX_SIDE,
-    )
-    const full = await this.acceptAvatar(
-      avatarFull,
-      'full',
-      AVATAR_FULL_MAX_BYTES,
-      AVATAR_FULL_MAX_SIDE,
-    )
+    const { small, full } = await acceptAvatarRenditions(avatarSmall, avatarFull)
     logger.info(`setUserAvatar... ${small.length} + ${full.length} bytes`)
 
     const stored = await dbUpsertUserAvatar({
@@ -1067,51 +1039,6 @@ export class UserResolver {
   }
 
   /**
-   * One rendition as it is stored: checked, then decoded and encoded again within `maxBytes`
-   * and `maxSide` on each side. Named in the error so a member over budget learns WHICH
-   * picture was refused — with two of them in one request, "too large" on its own sends
-   * whoever reads it looking in the wrong place.
-   *
-   * The checks are decodeJpegImage and reencodeJpegImage in `core`, the ones the picture of a
-   * thank-you greeting goes through as well: one picture module, the seam at which Gradido 2
-   * is to move every kind of picture at once (E-041). The words stay the avatar's own.
-   */
-  private async acceptAvatar(
-    image: string,
-    which: string,
-    maxBytes: number,
-    maxSide: number,
-  ): Promise<Buffer> {
-    const decoded = decodeJpegImage(image, maxBytes)
-    if (!decoded.success) {
-      const { reason, bytes } = decoded.error
-      if (reason === 'EMPTY') {
-        throw new LogError(`Avatar image (${which}) is empty`)
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    const reencoded = await reencodeJpegImage(decoded.value, {
-      maxBytes,
-      maxSide,
-      maxPixels: maxSide * maxSide,
-    })
-    if (!reencoded.success) {
-      const { reason, bytes } = reencoded.error
-      if (reason === 'SIZE') {
-        throw new LogError(`Avatar image (${which}) has too many pixels`, { maxSide })
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    return reencoded.value.image
-  }
-
-  /**
    * The member's own full-size picture, on demand. Kept out of verifyLogin deliberately:
    * it is roughly ten times the everyday rendition and is wanted at two moments only —
    * printing the member card, and looking at one's own picture — so the common paths
@@ -1124,6 +1051,8 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => String, { nullable: true })
   async avatarFull(@Ctx() context: Context): Promise<string | null> {
+    // Its answer stays out of the request log (plugins.ts) -- counted before anything is read.
+    context.requestBudget.profilePicturesServed += 1
     const user = getUser(context)
     const avatar = await dbFindUserAvatarFull(user.id)
     return avatar.success ? avatar.value.toString('base64') : null
@@ -1159,6 +1088,8 @@ export class UserResolver {
     if (refs.length > MEMBER_AVATARS_MAX_REFS) {
       throw new LogError('Too many members requested at once', refs.length)
     }
+    // Its answer stays out of the request log (plugins.ts).
+    context.requestBudget.profilePicturesServed += 1
 
     const { home, foreign } = splitMemberRefsByCommunity(refs, await resolveCommunityUuid(null))
 
@@ -1183,17 +1114,17 @@ export class UserResolver {
         if (context.requestBudget.memberAvatarsRelayed > MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST) {
           return []
         }
-        return (await relayMemberAvatars(communityUuid, 'small', gradidoIDs)).flatMap((member) => {
-          if (member.avatar === null) {
-            return []
-          }
+        const members = await relayMemberAvatars(communityUuid, (community) =>
+          xcomMemberAvatarsSmall(community, gradidoIDs),
+        )
+        return (members ?? []).map((member) => {
           const avatar = new MemberAvatar()
-          avatar.gradidoID = member.gradidoID
+          avatar.gradidoID = member.gradidoId
           // ⛔ The community that was asked: the wallet keys a face by the pair it asked about.
           avatar.communityUuid = communityUuid
           avatar.avatar = member.avatar
-          avatar.avatarUpdatedAt = new Date(member.avatarUpdatedAt)
-          return [avatar]
+          avatar.avatarUpdatedAt = member.avatarUpdatedAt
+          return avatar
         })
       }),
     )
@@ -1256,8 +1187,9 @@ export class UserResolver {
     // Another community's member: that community holds the picture (AS-020). Counted in the
     // budget above before anything is asked, like a picture of this community.
     if (communityUuid !== (await resolveCommunityUuid(null))) {
-      const [member] = await relayMemberAvatars(communityUuid, 'full', [ref.gradidoID])
-      return member?.avatar ?? null
+      return relayMemberAvatars(communityUuid, (community) =>
+        xcomMemberAvatarFull(community, ref.gradidoID),
+      )
     }
 
     const avatar = await dbFindMemberAvatarFull(ref.gradidoID, communityUuid)
@@ -1898,7 +1830,12 @@ export class UserResolver {
     if (!context.user || context.user.id !== user.id) {
       return null
     }
-    return user.avatar ?? null
+    const avatar = user.avatar ?? null
+    // An answer that carries it stays out of the request log (plugins.ts).
+    if (avatar) {
+      context.requestBudget.profilePicturesServed += 1
+    }
+    return avatar
   }
 
   /**

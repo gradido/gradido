@@ -109,7 +109,7 @@ export async function storeChatMessage(
  * the moment it recorded, or null when nothing was recorded -- so the caller can tell what the
  * row says now.
  *
- * ⛔ Never throws, like storeChatMessage. It runs after the command has gone out: a throw here
+ * ⛔ Never throws, like storeChatMessage. It runs after the request has gone out: a throw here
  * would turn a delivered message into an error for the person who sent it, or replace the
  * error of a failed delivery with one about this table.
  */
@@ -245,20 +245,3 @@ export const chatMessageMailState = (
  */
 export const chatMailWentOut = (result: unknown): boolean =>
   Boolean(result) && !(result instanceof Error)
-
-/**
- * What a command from the form "send an e-mail" carries as its `notify` (E-034, A3): the
- * message is a letter, mailed whatever the recipient's quiet. Only the command carries it. The
- * message is filed with the wish 'email' -- a letter wishes a mail, and the column holds
- * 'email' or 'none' -- which is also what a server from before P3c makes of it
- * (parseChatMessageNotify): a mail, unless the recipient muted the conversation.
- */
-export const CHAT_MESSAGE_NOTIFY_LETTER = 'letter'
-
-/**
- * The sender's wish as a command from another server carries it. Only 'none' is taken at its
- * word; anything else -- missing, unknown, from a server that predates the chat, a letter --
- * means a mail, as every message meant before: a mail too many is better than silence.
- */
-export const parseChatMessageNotify = (value: unknown): ChatMessageNotify =>
-  value === ChatMessageNotify.NONE ? ChatMessageNotify.NONE : ChatMessageNotify.EMAIL

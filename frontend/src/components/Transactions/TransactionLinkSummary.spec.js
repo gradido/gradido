@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import TransactionLinkSummary from './TransactionLinkSummary'
+import { TransactionLinkSummary } from './TransactionLinkSummary'
 import CollapseIcon from '../TransactionRows/CollapseIcon'
 import CollapseLinksList from '../DecayInformations/CollapseLinksList'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
@@ -22,7 +22,8 @@ vi.mock('../DecayInformations/CollapseLinksList', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key) => key,
+    // values are kept in the string so a test can see the number that went in
+    t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `Mocked ${format} date for ${date}`,
   }),
 }))

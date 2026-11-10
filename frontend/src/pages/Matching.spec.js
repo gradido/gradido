@@ -13,8 +13,8 @@ import { createI18n } from 'vue-i18n'
 import { BButton, BCol, BRow } from 'bootstrap-vue-next'
 import de from '@/locales/de.json'
 import es from '@/locales/es.json'
-import Matching from './Matching.vue'
-import UserSettingsSwitch from '@/components/UserSettings/UserSettingsSwitch'
+import { Matching } from './Matching'
+import { UserSettingsSwitch } from '@/components/UserSettings/UserSettingsSwitch'
 import { listMatchingEntries, userLocationQuery, verifyLogin } from '@/graphql/queries'
 import {
   eventLinkAnswerUnderway,
@@ -2226,9 +2226,8 @@ describe('Matching', () => {
 describe('the text colour of the matching page', () => {
   const here = dirname(fileURLToPath(import.meta.url))
   const rule = (() => {
-    const source = readFileSync(join(here, 'Matching.vue'), 'utf8')
-    const [, style] = source.match(/<style[^>]*>([\s\S]*?)<\/style>/) ?? []
-    const [, body] = (style ?? '').match(/\.matching-page \{([^}]*)\}/) ?? []
+    const style = readFileSync(join(here, 'Matching.module.scss'), 'utf8')
+    const [, body] = style.match(/\.matching-page \{([^}]*)\}/) ?? []
     // The comment says why, and names the colour it replaced.
     return body?.replace(/\/\*[\s\S]*?\*\//g, '')
   })()

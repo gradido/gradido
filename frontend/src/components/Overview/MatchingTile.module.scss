@@ -1,0 +1,64 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule but the root's stands under the root's class: the scoped rules these were had one
+   level more (the scope attribute).
+
+   The label stands on the tile's top edge, like "community" on the card above. With the icon
+   at the size it has in the menu (Bernd's choice among four, 11.10.2026) it is 34px high, and
+   the cards above stand only 16px away: 16px of it above the edge would touch them. So the
+   tile stands 12px lower than it did, and its first line 12px further in. */
+.matching-tile {
+  position: relative;
+  margin-top: 0.75rem;
+}
+
+.matching-tile :global(.matching-tile-label) {
+  position: absolute;
+  top: -1rem;
+  left: 50%;
+  z-index: 1;
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.3rem 1.1rem 0.3rem 0.9rem;
+  border-radius: 1rem;
+  transform: translateX(-50%);
+}
+
+.matching-tile :global(.matching-tile-label svg) {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.matching-tile :global(.matching-tile-box) {
+  padding-top: 2.25rem !important;
+}
+
+/* With the number the heading is long enough to wrap on a phone. Balanced, it breaks into
+   lines of like length instead of a full line and one word left over - "12,345 people on the
+   Gradido / map" at 320px, measured in the built wallet. A browser that does not know the
+   property wraps as before.
+
+   The same for a button whose label takes two lines on a narrow phone (see below): "Meinen
+   ersten / Eintrag machen" at 320px, and not "Meinen ersten Eintrag / machen". */
+.matching-tile :global(.matching-tile-heading),
+.matching-tile :global(.btn-gradido) {
+  text-wrap: balance;
+}
+
+/* The house button stands 50px in from each side, and the two buttons of this tile carry long
+   labels: "show me on the map" is 217px of text in German and "make my first entry" 259px,
+   so they want 317px and 359px. The tile has less than that on a phone, and the label broke
+   in two, one word alone on the second line - at 360px, a common phone width. With 1rem at
+   each side both stay on one line down to 360px in all ten languages (measured in the built
+   wallet; the Dutch and the Greek label for the first entry were shortened to get there). At
+   320px four languages take two lines for each of the two, at 270px nearly all do - balanced
+   then (above), and inside the tile either way.
+
+   On the root of this component and :global, because the button is the library's element. */
+@media (width < 400px) {
+  .matching-tile :global(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
+}

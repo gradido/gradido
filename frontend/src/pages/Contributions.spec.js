@@ -11,7 +11,7 @@ import {
   holdFirstCreationForThisSession,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
-import Contributions from './Contributions'
+import { Contributions } from './Contributions'
 
 // Mock external dependencies
 vi.mock('vue-router', () => ({
@@ -36,35 +36,35 @@ vi.mock('vue-i18n', () => ({
 }))
 
 vi.mock('@/components/Contributions/ContributionEdit', () => ({
-  default: {
+  ContributionEdit: {
     name: 'ContributionEdit',
     template: '<div></div>',
   },
 }))
 
 vi.mock('@/components/Contributions/ContributionCreate', () => ({
-  default: {
+  ContributionCreate: {
     name: 'ContributionCreate',
     template: '<div></div>',
   },
 }))
 
 vi.mock('@/components/Contributions/ContributionList', () => ({
-  default: {
+  ContributionList: {
     name: 'ContributionList',
     template: '<div></div>',
   },
 }))
 
 vi.mock('@/components/Contributions/ContributionListAll', () => ({
-  default: {
+  ContributionListAll: {
     name: 'ContributionListAll',
     template: '<div></div>',
   },
 }))
 
 vi.mock('@/components/Contributions/NavContributions', () => ({
-  default: {
+  NavContributions: {
     name: 'NavContributions',
     template: '<div></div>',
   },

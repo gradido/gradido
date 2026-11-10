@@ -10,14 +10,20 @@ import {
   testNoiseJpeg,
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import { ChatMessageToStore, CONFIG as CORE_CONFIG, sendCustomEmail, storeChatMessage } from 'core'
+import {
+  ApiClient,
+  ChatMessageToStore,
+  ChatMessageWireInput,
+  CONFIG as CORE_CONFIG,
+  sendCustomEmail,
+  storeChatMessage,
+} from 'core'
 import {
   AppDatabase,
   chatMessageImagesTable,
   chatMessagesTable,
   Community as DbCommunity,
   Event as DbEvent,
-  FederatedCommunity as DbFederatedCommunity,
   User as DbUser,
   UserContact as DbUserContact,
   dbEnsureDirectChatConversation,
@@ -28,15 +34,8 @@ import {
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
-import { GraphQLClient } from 'graphql-request'
 import { gql } from 'graphql-tag'
-import {
-  CHAT_IMAGE_MAX_BYTES,
-  CommandJwtPayloadType,
-  createKeyPair,
-  MESSAGE_MAX_CHARS,
-  verifyAndDecrypt,
-} from 'shared'
+import { CHAT_IMAGE_MAX_BYTES, MESSAGE_MAX_CHARS } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import { chatVideoServerPool } from '@/apis/jitsi/chatVideoServerPool'
 import { probeJitsiServer } from '@/apis/jitsi/jitsiProbe'
@@ -1123,61 +1122,36 @@ describe('an unconfirmed account past its grace period', () => {
 })
 
 /**
- * The stand-in for the other community opens each command with ITS key, as the real one would,
- * and answers as it is told -- as in the sendEmail cases of TransactionResolver.test.ts.
+ * The stand-in for the other community is its route: ApiClient.chatMessage answers as Eden hands
+ * on what the other server said -- as in the sendEmail cases of TransactionResolver.test.ts.
  */
 describe('sendChatMessage to a member of another community', () => {
   const peerUuid = uuidv4()
   const peerMember = uuidv4()
   const peerRef = { communityUuid: peerUuid, gradidoID: peerMember }
-  // A community that offers no V1_0 entry: there is no way to deliver to it.
-  const laterUuid = uuidv4()
+  // A community this server knows, before the two have authenticated each other.
+  const strangerUuid = uuidv4()
 
-  let homeKeys: { publicKey: string; privateKey: string }
-  let peerKeys: { publicKey: string; privateKey: string }
   let peer: DbCommunity
-  let peerEntry: DbFederatedCommunity
-  let later: DbCommunity
-  let laterEntry: DbFederatedCommunity
-  let rawRequest: jest.SpyInstance | undefined
-  let commands: Record<string, unknown>[] = []
-  // What this server had filed for each command while it was on its way.
+  let stranger: DbCommunity
+  let sendSpy: jest.SpyInstance | undefined
+  let sent: ChatMessageWireInput[] = []
+  // What this server had filed for each message while it was on its way.
   let inFlight: (string | undefined)[] = []
 
-  const peerAnswers = (answer: { success: boolean; data?: string | null; error?: string }) => {
-    rawRequest = jest
-      .spyOn(GraphQLClient.prototype, 'rawRequest')
-      // CommandClient.sendCommand calls rawRequest(document, variables).
-      .mockImplementation((async (
-        _document: unknown,
-        variables: { args: { handshakeID: string; jwt: string } },
-      ) => {
-        const { args } = variables
-        const command = (await verifyAndDecrypt(
-          args.handshakeID,
-          args.jwt,
-          peerKeys.privateKey,
-          homeKeys.publicKey,
-        )) as CommandJwtPayloadType | null
-        if (!command) {
-          throw new Error('the command does not verify with the key of this community')
-        }
-        const sent = JSON.parse(command.commandArgs[0])
-        commands.push(sent)
-        inFlight.push(
-          (await allMessages()).find((m) => m.messageUuid === sent.messageUuid)?.deliveryState,
-        )
-        return { data: { sendCommand: answer }, status: 200 }
-      }) as any)
+  const peerAnswers = (answer: { data?: unknown; error?: { status: number; value: string } }) => {
+    sendSpy = jest.spyOn(ApiClient.prototype, 'chatMessage').mockImplementation((async (
+      message: ChatMessageWireInput,
+    ) => {
+      sent.push(message)
+      inFlight.push(
+        (await allMessages()).find((m) => m.messageUuid === message.messageUuid)?.deliveryState,
+      )
+      return { data: answer.data ?? null, error: answer.error ?? null }
+    }) as any)
   }
 
   beforeAll(async () => {
-    homeKeys = await createKeyPair()
-    peerKeys = await createKeyPair()
-    await DbCommunity.update(
-      { foreign: false },
-      { publicJwtKey: homeKeys.publicKey, privateJwtKey: homeKeys.privateKey },
-    )
     peer = await DbCommunity.create({
       foreign: true,
       url: 'http://chat-peer.invalid/api/',
@@ -1188,55 +1162,39 @@ describe('sendChatMessage to a member of another community', () => {
       name: 'Chat peer',
       description: 'the other side of the border',
       creationDate: new Date(),
-      publicJwtKey: peerKeys.publicKey,
     }).save()
-    peerEntry = await DbFederatedCommunity.create({
+    stranger = await DbCommunity.create({
       foreign: true,
-      publicKey: peer.publicKey,
-      apiVersion: '1_0',
-      endPoint: 'http://chat-peer.invalid/api/',
-    }).save()
-    later = await DbCommunity.create({
-      foreign: true,
-      url: 'http://chat-later.invalid/api/',
+      url: 'http://chat-stranger.invalid/api/',
       publicEncryptionKey: randomBytes(32),
       publicKey: randomBytes(32),
-      communityUuid: laterUuid,
-      authenticatedAt: new Date(),
-      name: 'Chat later',
-      description: 'speaks a newer api only',
+      communityUuid: strangerUuid,
+      authenticatedAt: null,
+      name: 'Chat stranger',
+      description: 'not authenticated yet',
       creationDate: new Date(),
-      publicJwtKey: peerKeys.publicKey,
-    }).save()
-    laterEntry = await DbFederatedCommunity.create({
-      foreign: true,
-      publicKey: later.publicKey,
-      apiVersion: '2_0',
-      endPoint: 'http://chat-later.invalid/api/',
     }).save()
     await loginAs('bob@baumeister.de')
   })
 
   beforeEach(() => {
-    commands = []
+    sent = []
     inFlight = []
   })
 
   afterEach(() => {
-    rawRequest?.mockRestore()
-    rawRequest = undefined
+    sendSpy?.mockRestore()
+    sendSpy = undefined
   })
 
   afterAll(async () => {
-    await DbFederatedCommunity.delete({ id: peerEntry.id })
-    await DbFederatedCommunity.delete({ id: laterEntry.id })
     await DbCommunity.delete({ id: peer.id })
-    await DbCommunity.delete({ id: later.id })
+    await DbCommunity.delete({ id: stranger.id })
     resetToken()
   })
 
-  it('sends the first message as a command that asks for nothing less than a mail, and hands back the copy DELIVERED', async () => {
-    peerAnswers({ success: true, data: 'mailed' })
+  it('sends the first message as one that asks for nothing less than a mail, and hands back the copy DELIVERED', async () => {
+    peerAnswers({ data: { mailState: 'mailed' } })
 
     const copy = await said(peerRef, 'Across the border', 'NONE')
 
@@ -1247,19 +1205,17 @@ describe('sendChatMessage to a member of another community', () => {
       // E-034: what the other server answered became of the mail.
       mailState: 'MAILED',
     })
-    // The first message is mailed over there: the command carries no wish at all.
-    expect(commands).toEqual([
+    expect(sent).toEqual([
       {
-        mailType: 'sendCustomEmail',
-        senderComUuid: bob.communityUuid,
-        senderGradidoId: bob.gradidoID,
-        receiverComUuid: peerUuid,
-        receiverGradidoId: peerMember,
-        subject: '',
-        memo: 'Across the border',
-        messageUuid: copy.messageUuid,
         // E-034: what the other server files bob with, if it does not know him yet.
-        senderAlias: bob.alias,
+        sender: { communityUuid: bob.communityUuid, gradidoId: bob.gradidoID, alias: bob.alias },
+        recipient: { communityUuid: peerUuid, gradidoId: peerMember },
+        messageUuid: copy.messageUuid,
+        subject: null,
+        body: 'Across the border',
+        // the first message is mailed over there
+        notify: 'email',
+        images: [],
       },
     ])
     // Written first, then delivered (E-019).
@@ -1269,11 +1225,11 @@ describe('sendChatMessage to a member of another community', () => {
   // The community figures: a hello from the map across the border is noted as well -- with no
   // recipient named, as the other member belongs to another community.
   it('notes a first message from the map with no recipient named', async () => {
-    peerAnswers({ success: true, data: 'mailed' })
-    const stranger = { communityUuid: peerUuid, gradidoID: uuidv4() }
+    peerAnswers({ data: { mailState: 'mailed' } })
+    const someone = { communityUuid: peerUuid, gradidoID: uuidv4() }
     const before = await hellosOf(bob)
 
-    const res = await sayFromMap(stranger, 'Hallo von der Karte')
+    const res = await sayFromMap(someone, 'Hallo von der Karte')
     expect(res.errors).toBeUndefined()
 
     expect(await hellosOf(bob)).toEqual([
@@ -1286,20 +1242,20 @@ describe('sendChatMessage to a member of another community', () => {
     ])
   })
 
-  it('carries a wish for no mail in the command', async () => {
-    peerAnswers({ success: true })
+  it('carries a wish for no mail', async () => {
+    peerAnswers({ data: { mailState: null } })
 
     const copy = await said(peerRef, 'No mail needed', 'NONE')
 
-    expect(copy.notify).toBe('NONE')
-    expect(commands).toHaveLength(1)
-    expect(commands[0].notify).toBe('none')
-    expect(commands[0].messageUuid).toBe(copy.messageUuid)
+    expect(copy).toMatchObject({ notify: 'NONE', mailState: null })
+    expect(sent).toHaveLength(1)
+    expect(sent[0].notify).toBe('none')
+    expect(sent[0].messageUuid).toBe(copy.messageUuid)
   })
 
   // E-034, A2: the other server's quiet held the mail back, and says so.
   it('notes MUTED where the other server answers that the quiet held the mail back', async () => {
-    peerAnswers({ success: true, data: 'muted' })
+    peerAnswers({ data: { mailState: 'muted' } })
 
     const copy = await said(peerRef, 'Are you there?', 'EMAIL')
 
@@ -1308,18 +1264,9 @@ describe('sendChatMessage to a member of another community', () => {
     expect(filed.mailState).toBe('MUTED')
   })
 
-  // A server from before P3c answers RECEIVED to every message: nothing known of the mail.
-  it('notes nothing of the mail where the other server answers RECEIVED', async () => {
-    peerAnswers({ success: true, data: 'received' })
-
-    const copy = await said(peerRef, 'From an older server', 'EMAIL')
-
-    expect(copy).toMatchObject({ deliveryState: 'DELIVERED', notify: 'EMAIL', mailState: null })
-  })
-
   // E-019: a failed delivery is no error for the sender -- the copy says it, under the bubble.
   it('hands back the copy FAILED when the other community refuses it, without an error', async () => {
-    peerAnswers({ success: false, error: 'Recipient user not found' })
+    peerAnswers({ error: { status: 404, value: 'Recipient user not found' } })
 
     const res = await say(peerRef, 'Refused over there', 'EMAIL')
 
@@ -1338,9 +1285,9 @@ describe('sendChatMessage to a member of another community', () => {
   })
 
   /**
-   * P7b: the picture travels in the command, under the name the own copy files it with, and the
-   * other server checks and files it as this one does. The order -- the sealed command measured,
-   * then the picture, then the copy, then the command -- is held in
+   * P7b: the picture travels with the message, under the name the own copy files it with, and
+   * the other server checks and files it as this one does. The order -- the sealed request
+   * measured, then the picture, then the copy, then the request -- is held in
    * util/chatMessageDelivery.test.ts, where each step can be made to fail.
    */
   describe('with a picture', () => {
@@ -1348,7 +1295,7 @@ describe('sendChatMessage to a member of another community', () => {
       (await allPictures()).filter((picture) => picture.messageUuid === messageUuid)
 
     it('sends the picture with the message, under the name of its copy, and hands back the copy DELIVERED with it', async () => {
-      peerAnswers({ success: true, data: 'mailed' })
+      peerAnswers({ data: { mailState: 'mailed' } })
 
       const copy = await said(peerRef, 'Across the border', 'EMAIL', pictureOf(JPEG, 924, 520))
 
@@ -1357,10 +1304,10 @@ describe('sendChatMessage to a member of another community', () => {
         deliveryState: 'DELIVERED',
         images: [{ imageUuid: expect.any(String), ...TEST_PICTURE_SIZE }],
       })
-      expect(commands).toHaveLength(1)
-      expect(commands[0]).toMatchObject({
+      expect(sent).toHaveLength(1)
+      expect(sent[0]).toMatchObject({
         messageUuid: copy.messageUuid,
-        memo: 'Across the border',
+        body: 'Across the border',
         images: [
           {
             imageUuid: copy.images[0].imageUuid,
@@ -1378,32 +1325,29 @@ describe('sendChatMessage to a member of another community', () => {
       expect(pictures[0].image.equals(JPEG)).toBe(true)
     })
 
-    // A message's full length in Chinese is 15 KB, and some 27 KB once the envelope is sealed:
-    // with the wallet's picture, more than the other server takes.
-    it('refuses a text too heavy to cross with a picture, and files and sends nothing', async () => {
-      peerAnswers({ success: true })
+    // A message's full length in Chinese is 15 KB: beside the wallet's largest picture it goes.
+    it('sends a text of full length in Chinese with a picture', async () => {
+      peerAnswers({ data: { mailState: null } })
       // A picture with the weight of the wallet's largest, and still that heavy once the server
       // has encoded it again: bytes behind a picture's end no longer count.
       const walletPicture = await testNoiseJpeg(212, 212)
       expect(walletPicture.length).toBeGreaterThan(32 * 1024)
       expect(walletPicture.length).toBeLessThanOrEqual(CHAT_IMAGE_MAX_BYTES)
-      const heavy = '你'.repeat(MESSAGE_MAX_CHARS)
-      const messagesBefore = await allMessages()
-      const picturesBefore = await allPictures()
 
-      const res = await say(peerRef, heavy, 'EMAIL', pictureOf(walletPicture))
+      const copy = await said(
+        peerRef,
+        '你'.repeat(MESSAGE_MAX_CHARS),
+        'EMAIL',
+        pictureOf(walletPicture),
+      )
 
-      expect(res.errors).toEqual([
-        new GraphQLError('CHAT_MESSAGE_NOT_SENT: TOO_LARGE_ACROSS_BORDER'),
-      ])
-      expect(rawRequest).not.toHaveBeenCalled()
-      expect(await allMessages()).toEqual(messagesBefore)
-      expect(await allPictures()).toEqual(picturesBefore)
+      expect(copy.deliveryState).toBe('DELIVERED')
+      expect(sent).toHaveLength(1)
     })
 
     // E-019: a failed delivery is the copy's state -- it keeps its picture, FAILED.
     it('hands back the copy FAILED with its picture where the other community refuses it', async () => {
-      peerAnswers({ success: false, error: 'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG' })
+      peerAnswers({ error: { status: 400, value: 'CHAT_IMAGE_NOT_ACCEPTED: NOT_JPEG' } })
 
       const res = await say(peerRef, 'Refused over there', 'EMAIL', pictureOf(JPEG))
 
@@ -1418,43 +1362,25 @@ describe('sendChatMessage to a member of another community', () => {
   })
 
   // No silent true (D V03, section 1): no way to deliver is an error, and nothing is filed.
-  it('refuses a community that offers no V1_0 entry, and files and sends nothing', async () => {
-    peerAnswers({ success: true })
+  it('refuses a community not authenticated yet, and files and sends nothing', async () => {
+    peerAnswers({ data: { mailState: null } })
     const before = await allMessages()
 
-    const res = await say({ communityUuid: laterUuid, gradidoID: uuidv4() }, 'Hello?', 'EMAIL')
+    const res = await say({ communityUuid: strangerUuid, gradidoID: uuidv4() }, 'Hello?', 'EMAIL')
 
     expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER')])
-    expect(rawRequest).not.toHaveBeenCalled()
+    expect(sendSpy).not.toHaveBeenCalled()
     expect(await allMessages()).toEqual(before)
   })
 
-  // A community this server knows, before the two have exchanged keys: the command could not be
-  // sealed, and that is the same refusal as any other missing way.
-  it('refuses a community whose keys are not exchanged yet, and files and sends nothing', async () => {
-    await DbCommunity.update({ id: peer.id }, { publicJwtKey: null })
-    try {
-      peerAnswers({ success: true })
-      const before = await allMessages()
-
-      const res = await say(peerRef, 'Before the keys', 'EMAIL')
-
-      expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER')])
-      expect(rawRequest).not.toHaveBeenCalled()
-      expect(await allMessages()).toEqual(before)
-    } finally {
-      await DbCommunity.update({ id: peer.id }, { publicJwtKey: peerKeys.publicKey })
-    }
-  })
-
   it('refuses a community it does not know, and files and sends nothing', async () => {
-    peerAnswers({ success: true })
+    peerAnswers({ data: { mailState: null } })
     const before = await allMessages()
 
     const res = await say({ communityUuid: uuidv4(), gradidoID: uuidv4() }, 'Hello?', 'EMAIL')
 
     expect(res.errors).toEqual([new GraphQLError('CHAT_MESSAGE_NOT_SENT: NO_WAY_TO_DELIVER')])
-    expect(rawRequest).not.toHaveBeenCalled()
+    expect(sendSpy).not.toHaveBeenCalled()
     expect(await allMessages()).toEqual(before)
   })
 })

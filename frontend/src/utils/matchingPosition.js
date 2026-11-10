@@ -50,7 +50,12 @@ export function hasPosition(userLocation) {
   return Number.isFinite(userLocation?.latitude) && Number.isFinite(userLocation?.longitude)
 }
 
-/** The map's shape: `{ lat, lng }`. A point that is not two numbers is not a place. */
+/**
+ * The map's shape: `{ lat, lng }`. A point that is not two numbers is not a place.
+ *
+ * @param {unknown} point
+ * @returns {point is { lat: number, lng: number }}
+ */
 export function isPlace(point) {
   return Number.isFinite(point?.lat) && Number.isFinite(point?.lng)
 }

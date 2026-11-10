@@ -35,7 +35,7 @@ const withoutComments = (source) =>
 
 describe('showFriends', () => {
   it('asks for every field its readers take off the answer', () => {
-    const tile = withoutComments(read('../components/Overview/ShowFriendsTile.vue'))
+    const tile = withoutComments(read('../components/Overview/ShowFriendsTile.tsx'))
     const document = read('./showFriends.graphql')
 
     // The stripper took the comments, not the file: this is the line the whole delivery

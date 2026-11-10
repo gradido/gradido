@@ -555,16 +555,7 @@ async function mutationLink(amount) {
     try {
       await disburseMutate({
         senderCommunityUuid: linkData.value.senderCommunity.uuid,
-        senderGradidoId: linkData.value.senderUser.gradidoID,
-        recipientCommunityUuid: linkData.value.recipientCommunity.uuid,
-        recipientCommunityName: linkData.value.recipientCommunity.name,
-        recipientGradidoId: linkData.value.recipientUser.gradidoID,
-        recipientFirstName: linkData.value.recipientUser.firstName,
         code: linkData.value.code,
-        amount: linkData.value.amount,
-        memo: linkData.value.memo,
-        validUntil: linkData.value.validUntil,
-        recipientAlias: linkData.value.recipientUser.alias,
       })
       toastSuccess(t('gdd_per_link.disbured', { n: amount }))
       await router.push('/overview')

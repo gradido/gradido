@@ -1,11 +1,18 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContributionMessagesList from './ContributionMessagesList.vue'
+import { ContributionMessagesList } from './ContributionMessagesList'
 import { BButton } from 'bootstrap-vue-next'
+
+// The thread translates through useI18n, where the template read $t.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key) => key,
+  }),
+}))
 
 // Mock child components
 vi.mock('@/components/ContributionMessages/ContributionMessagesListItem', () => ({
-  default: {
+  ContributionMessagesListItem: {
     name: 'ContributionMessagesListItem',
     template: '<div class="contribution-messages-list-item-mock"></div>',
     props: ['message'],
@@ -13,7 +20,7 @@ vi.mock('@/components/ContributionMessages/ContributionMessagesListItem', () => 
 }))
 
 vi.mock('@/components/ContributionMessages/ContributionMessagesFormular', () => ({
-  default: {
+  ContributionMessagesFormular: {
     name: 'ContributionMessagesFormular',
     template: '<div class="contribution-messages-formular-mock"></div>',
     props: ['contributionId'],

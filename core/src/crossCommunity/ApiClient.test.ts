@@ -13,7 +13,7 @@ import {
 } from 'shared'
 import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
-import { ApiClient } from './ApiClient'
+import { ApiClient, SEAL_OVERHEAD_BYTES } from './ApiClient'
 import { CrossGroupTransaction } from './schema'
 
 // What the client decides, against peers that answer as the routes in apiRoutes.ts are to answer.
@@ -387,5 +387,17 @@ describe('ApiClient.postprocessResponse', () => {
     const empty = new Uint8Array(3)
     const answer = await signedAnswer(empty, 'application/octet-stream', nonce, request)
     await expect(client().post(answer, request, nonce, true)).rejects.toBeInstanceOf(Error)
+  })
+})
+
+describe('SEAL_OVERHEAD_BYTES', () => {
+  // sealedRequestFits counts on it: a chat message is refused or sent by this number
+  it('is what sealing adds to a body of any length', () => {
+    const recipient = new X25519KeyPair(X25519KeyPair.generate().toBuffer().publicKey)
+    for (const length of [0, 1, 1000, 100 * 1024]) {
+      const body = 'x'.repeat(length)
+      const { box } = AppContext.getInstance().getHomeCommunity().encryptAndHash(body, recipient)
+      expect(box.length - length).toBe(SEAL_OVERHEAD_BYTES)
+    }
   })
 })

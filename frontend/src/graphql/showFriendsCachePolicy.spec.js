@@ -22,7 +22,7 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 
 // The one caller. The first-creation window used to be the second; it gets the referrer in
 // its own status answer now and reads this document no more.
-const CALLERS = [join(HERE, '..', 'components', 'Overview', 'ShowFriendsTile.vue')]
+const CALLERS = [join(HERE, '..', 'components', 'Overview', 'ShowFriendsTile.tsx')]
 
 const withoutComments = (source) =>
   source

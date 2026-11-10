@@ -73,7 +73,7 @@ const NAMED_DETAIL_MAX_LENGTH = 200
  *   there a moment later with the words it had. The state lasts as long as the delivery does;
  *   only a delivery whose outcome could not be written down -- the server stopped in the middle
  *   of it -- leaves the message PENDING for good, and it cannot be changed then.
- * - A delivered message: the command (carryChatMessageEditAcrossBorder). NO_WAY_TO_DELIVER or
+ * - A delivered message: the request (carryChatMessageEditAcrossBorder). NO_WAY_TO_DELIVER or
  *   NOT_CONFIRMED where the other server did not change its copy -- the reason for the wallet,
  *   what the other server said for the log.
  */
@@ -143,7 +143,7 @@ export class ChatEditResolver {
    * server holds a copy of its own, so the change goes there first, and this server's copy is
    * changed only once the other server has said that its own is. Otherwise nothing changes, on
    * either side: NO_WAY_TO_DELIVER, NOT_CONFIRMED (the other server refused, does not know the
-   * command yet, or did not answer), or PENDING for a message still on its way. A message
+   * route yet, or did not answer), or PENDING for a message still on its way. A message
    * recorded as not delivered is changed here alone (carriedToTheOtherServer says what that
    * leaves open).
    *

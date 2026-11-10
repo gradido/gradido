@@ -19,8 +19,8 @@ import ru from '@/locales/ru.json'
 import tr from '@/locales/tr.json'
 import { pluralRules } from '@/utils/pluralRules'
 import sidebar from '@/components/Menu/Sidebar.vue?raw'
-import MatchingTile from './MatchingTile.vue'
-import tileSource from './MatchingTile.vue?raw'
+import { MatchingTile } from './MatchingTile'
+import tileSource from './MatchingTile.tsx?raw'
 
 // Mutable, so a case can switch matching off. The tile reads it when it decides, and so
 // does `mayFind`'s module beside it.
@@ -49,8 +49,8 @@ const mountTile = (state = {}, props = {}, language = i18n) => {
     props,
     global: {
       plugins: [language, router, pinia],
-      // The two icons come from the build's resolver, which the tests do not run.
-      stubs: { ITablerHeartHandshake: true, IMdiChevronRight: true },
+      // The two icons are imported (`~icons/…`) and carry the icon's own name.
+      stubs: { TablerHeartHandshake: true, MdiChevronRight: true },
     },
   })
   return { wrapper, store: useWalletStore(pinia) }
@@ -385,7 +385,7 @@ describe('MatchingTile', () => {
 
     it('shows the icon of the menu entry, and keeps it out of what is read aloud', () => {
       const { wrapper } = mountTile()
-      const icon = label(wrapper).find('i-tabler-heart-handshake-stub')
+      const icon = label(wrapper).find('tabler-heart-handshake-stub')
 
       expect(icon.exists()).toBe(true)
       // The word beside it says the same; read aloud twice it would only be noise.
@@ -400,7 +400,9 @@ describe('MatchingTile', () => {
       )
 
       expect(entry).not.toBeNull()
-      expect(tileSource).toContain(`<${entry[1]} aria-hidden="true" />`)
+      // The menu resolves `i-tabler-heart-handshake` by name; the tile imports the same icon.
+      const imported = entry[1].replace(/^i-([a-z0-9]+)-/, '~icons/$1/')
+      expect(tileSource).toContain(`from '${imported}'`)
     })
 
     // BBadge's default variant brings black `!important` text that wins over the white of

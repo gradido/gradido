@@ -2,8 +2,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import MatchList from './MatchList.vue'
-import GeoSearchField from './GeoSearchField.vue'
+import { MatchList } from './MatchList'
+import { GeoSearchField } from './GeoSearchField'
 
 // The address search goes through the real provider; only the network ends are replaced: the
 // GMS search itself and the address it answers under.
