@@ -10,6 +10,7 @@ import {
   specifiedRules,
   validate,
 } from 'graphql'
+import { validationRules } from '@/server/validationRules'
 import { schema } from './schema'
 
 /**
@@ -61,7 +62,11 @@ const PACKAGES = ['admin', 'frontend'] as const
  */
 const AT_LEAST: Record<string, number> = { admin: 50, frontend: 72 }
 
-const RULES = specifiedRules.filter((rule) => rule !== NoUnusedFragmentsRule)
+// The server's own rules as well: a front end that sends what they reject fails here.
+const RULES = [
+  ...specifiedRules.filter((rule) => rule !== NoUnusedFragmentsRule),
+  ...validationRules,
+]
 
 /** The GraphQL inside `gql\`…\`` literals. The `.js`/`.ts` documents carry no `${}`. */
 const gqlBodies = (source: string): string[] =>

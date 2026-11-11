@@ -10,7 +10,8 @@ import { LogError } from './LogError'
  *
  * One HTTP request is one operation -- the server takes no POST that carries several -- and
  * the context function makes one context for it. What is left to count is the aliases: a
- * document may ask for the same field any number of times under other names.
+ * document may ask for the same field any number of times under other names. Only at the root:
+ * below it validationRules.ts rejects every alias, and it caps the root fields of an operation.
  */
 export interface RequestBudget {
   // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
