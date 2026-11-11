@@ -121,6 +121,17 @@ export class AppDatabase {
           }
         } catch (error) {
           logger.warn(`Attempt ${attempt} failed to connect to DB:`, error)
+          logger.info(`connect details: `, {
+            type: 'mysql',
+            legacySpatialSupport: false,
+            host: CONFIG.DB_HOST,
+            port: CONFIG.DB_PORT,
+            username: CONFIG.DB_USER,
+            password: CONFIG.DB_PASSWORD,
+            database: CONFIG.DB_DATABASE,
+            entities,
+            synchronize: false,
+          })
           await new Promise((resolve) => setTimeout(resolve, CONFIG.DB_CONNECT_RETRY_DELAY_MS))
         }
       }
