@@ -1,6 +1,10 @@
 // AI-GENERATED — not an architecture reference
+import { describe, expect, it } from 'bun:test'
 import { showsSenderAvatar } from './SenderAvatar.logic'
-import { PictureLinkState, pictureRenditionsForCodeHolder } from './ThankYouGreetingPicture.logic'
+import {
+  PictureLinkState,
+  pictureRenditionsForCodeHolder,
+} from './ThankYouGreetingPictureAccess.logic'
 
 // The member who made the link and the one who accepted it, with ids that have nothing in
 // common, so that none passes for the other.

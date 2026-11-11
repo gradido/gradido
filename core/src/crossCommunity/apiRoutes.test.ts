@@ -680,6 +680,64 @@ describe('the member picture routes', () => {
   })
 })
 
+describe('POST peer-api/v1/transactionLink', () => {
+  const CODE = 'a1f9c2d41b7e19981fa0d001'
+  const MAKER = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+  const client = () =>
+    new ApiClient(
+      `${baseUrl}/`,
+      new Ed25519KeyPair(home.publicKey),
+      new X25519KeyPair(home.publicEncryptionKey),
+    )
+
+  beforeEach(() => {
+    fetchSpy.mockImplementation((async (request: Request) => {
+      AppContext.getInstance().setHomeCommunity(home)
+      const response = await app.handle(request)
+      AppContext.getInstance().setHomeCommunity(sender)
+      return response
+    }) as never)
+    AppContext.getInstance().setHomeCommunity(sender)
+  })
+
+  it('answers the link for whoever holds its code, sealed for the community asking', async () => {
+    const validUntil = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    spies.push(
+      spyOn(database, 'dbFindTransactionLinkForCodeHolder').mockResolvedValue({
+        link: {
+          code: CODE,
+          amount: GradidoUnit.fromString('20'),
+          memo: 'Danke',
+          createdAt: new Date('2026-11-01T10:00:00.000Z'),
+          validUntil,
+          redeemedAt: null,
+          redeemedBy: null,
+          deletedAt: null,
+        },
+        maker: { gradidoId: MAKER, communityUuid: home.communityUuid, alias: 'bibi' },
+        greeting: null,
+      } as never),
+      spyOn(database, 'dbFindMemberAvatarsSmall').mockResolvedValue([]),
+    )
+
+    const { data, error } = await client().transactionLink({ code: CODE })
+
+    expect(error).toBeNull()
+    expect(data).toMatchObject({
+      amount: '20',
+      memo: 'Danke',
+      sender: { gradidoId: MAKER, alias: 'bibi' },
+      greeting: null,
+      senderAvatar: null,
+    })
+  })
+
+  it('answers 404 for an unknown code', async () => {
+    spies.push(spyOn(database, 'dbFindTransactionLinkForCodeHolder').mockResolvedValue(null))
+    expect((await client().transactionLink({ code: CODE })).error?.status).toBe(404)
+  })
+})
+
 describe('the chat message routes', () => {
   const ANNA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   const BEN = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'

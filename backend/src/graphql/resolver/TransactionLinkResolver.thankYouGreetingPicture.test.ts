@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { inspect } from 'node:util'
 import { getLogger } from 'config-schema/test/testSetup'
-import { removeLargeThankYouGreetingPicture } from 'core'
+import {
+  removeLargeThankYouGreetingPicture,
+  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
+  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
+  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
+} from 'core'
 import {
   DBDuplicateEntryError,
   DBNotFoundError,
@@ -14,11 +19,6 @@ import {
 import { CHAT_IMAGE_MAX_SIDE, THANK_YOU_PICTURE_LARGE_MAX_BYTES } from 'shared'
 import { reencodeImage } from 'shared-native'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
-  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
-  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
-} from '@/data/ThankYouGreetingPicture.logic'
 import { Context, newRequestBudget } from '@/server/context'
 import { TransactionLinkResolver } from './TransactionLinkResolver'
 

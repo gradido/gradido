@@ -219,7 +219,6 @@ export const FEDERATION_REQUEST_TIMEOUT_S = 5
 // The largest request body the federation service takes (its Elysia server refuses a longer one
 // with 413), and what a community sending to another measures a sealed chat message against.
 export const FEDERATION_REQUEST_MAX_BYTES = 100 * 1024
-export const REDEEM_JWT_TOKEN_EXPIRATION = '10m'
 export const GRADIDO_REALM = 'gradido'
 
 // communication with frontend

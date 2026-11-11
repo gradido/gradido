@@ -46,9 +46,8 @@
           v-if="isForeignCommunitySelected"
           variant="gradido"
           class="fs-7 redeem-thanks-account-go"
-          :disabled="forwarding"
+          :href="recipientRedeemUrl"
           data-test="redeem-thanks-forward"
-          @click="forward"
         >
           {{ $t('gdd_per_link.to-switch') }}
         </BButton>
@@ -98,19 +97,17 @@ import { BButton, BLink } from 'bootstrap-vue-next'
 import CommunitySwitch from '@/components/CommunitySwitch'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import { useRedeemCommunity } from '@/composables/useRedeemCommunity'
-import { useAppToast } from '@/composables/useToast'
 import CONFIG from '@/config'
 
 const props = defineProps({
   linkData: { type: Object, required: true },
-  // The code in the address: the token for another community is signed for it.
+  // The code in the address: the redeem page of another community gets it.
   redeemCode: { type: String, required: true },
   // The page has read the switch already (`REDEEM_SELECT_COMMUNITY`).
   asksWhere: { type: Boolean, default: false },
 })
 
 const { routeWithParamsAndQuery } = useAuthLinks()
-const { toastError } = useAppToast()
 
 const accountOpen = ref(false)
 
@@ -133,26 +130,11 @@ const chooseCommunity = (community) => {
   }
 }
 
-const { isForeignCommunitySelected, forwardToRecipientCommunity } = useRedeemCommunity({
+const { isForeignCommunitySelected, recipientRedeemUrl } = useRedeemCommunity({
   linkData: () => props.linkData,
   redeemCode: () => props.redeemCode,
   recipientCommunity,
 })
-
-// The way to the other community is on its way: the button waits. Once the browser is sent
-// on it stays locked; where the token did not come, the visitor reads why and may try again.
-const forwarding = ref(false)
-
-async function forward() {
-  if (forwarding.value) return
-  forwarding.value = true
-  try {
-    if (await forwardToRecipientCommunity()) return
-  } catch (error) {
-    toastError(error.message)
-  }
-  forwarding.value = false
-}
 </script>
 
 <style lang="scss" scoped>

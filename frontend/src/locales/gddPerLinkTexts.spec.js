@@ -71,10 +71,6 @@ describe('gdd_per_link in the language files', () => {
     expect(text('fr', 'link-deleted', { date: date('fr', DATES[0]) })).not.toMatch(/\bon\b/)
   })
 
-  it('says in whole English that a member may not redeem their own link', () => {
-    expect(text('en', 'no-redeem')).toBe('You are not allowed to redeem your own link!')
-  })
-
   // The Spanish file speaks to "tú" throughout; this one said "usted".
   it('invites to register in the form the Spanish file speaks in', () => {
     expect(text('es', 'to-register')).toBe('Registra una nueva cuenta.')

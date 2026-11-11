@@ -178,6 +178,7 @@ export const createUser = gql`
     $language: String!
     $publisherId: Int
     $redeemCode: String
+    $redeemCodeCommunityUuid: String
     $project: String
     $referrerAlias: String
     $guarantorCode: String
@@ -191,6 +192,7 @@ export const createUser = gql`
       language: $language
       publisherId: $publisherId
       redeemCode: $redeemCode
+      redeemCodeCommunityUuid: $redeemCodeCommunityUuid
       project: $project
       referrerAlias: $referrerAlias
       guarantorCode: $guarantorCode
@@ -338,34 +340,6 @@ export const login = gql`
 export const logout = gql`
   mutation {
     logout
-  }
-`
-
-export const createRedeemJwtMutation = gql`
-  mutation (
-    $gradidoId: String!
-    $senderCommunityUuid: String!
-    $senderCommunityName: String!
-    $recipientCommunityUuid: String!
-    $code: String!
-    $amount: String!
-    $memo: String!
-    $firstName: String
-    $alias: String
-    $validUntil: String
-  ) {
-    createRedeemJwt(
-      gradidoId: $gradidoId
-      senderCommunityUuid: $senderCommunityUuid
-      senderCommunityName: $senderCommunityName
-      recipientCommunityUuid: $recipientCommunityUuid
-      code: $code
-      amount: $amount
-      memo: $memo
-      firstName: $firstName
-      alias: $alias
-      validUntil: $validUntil
-    )
   }
 `
 

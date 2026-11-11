@@ -8,6 +8,7 @@ import {
   UserContact as DbUserContact,
   dbFindOpenTransactionLinkWithCreatorByCode,
   dbFindTransactionLinkByCode,
+  dbFindTransactionLinkForCodeHolder,
   dbFindTransactionLinkForPreview,
   dbFindTransactionLinkWithOwner,
   dbInsertThankYouGreeting,
@@ -265,6 +266,60 @@ describe('dbFindOpenTransactionLinkWithCreatorByCode', () => {
   it('finds no redeemed link', async () => {
     await DbTransactionLink.update(link.id, { redeemedAt: new Date(), redeemedBy: bibi.id })
     expect(await dbFindOpenTransactionLinkWithCreatorByCode(link.code)).toBeNull()
+  })
+})
+
+// What another community shows of a link to whoever holds its code: the link in any state,
+// its maker, its greeting.
+describe('dbFindTransactionLinkForCodeHolder', () => {
+  let bibi: DbUser
+  let link: Awaited<ReturnType<typeof transactionLinkFactory>>
+
+  beforeEach(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    bibi = await userFactory(bibiBloxberg)
+    link = await transactionLinkFactory(
+      { email: bibi.emailContact.email, amount: 10, memo: 'for a newcomer' },
+      bibi.id,
+    )
+  })
+
+  it('finds the link with its maker, and no greeting where it has none', async () => {
+    const found = await dbFindTransactionLinkForCodeHolder(link.code)
+    expect(found?.link).toMatchObject({ id: link.id, memo: 'for a newcomer' })
+    expect(found?.maker).toEqual({
+      gradidoId: bibi.gradidoID,
+      communityUuid: bibi.communityUuid,
+      alias: bibi.alias,
+    })
+    expect(found?.greeting).toBeNull()
+  })
+
+  it('finds the greeting of the link', async () => {
+    await dbInsertThankYouGreeting({
+      transactionLinkCode: link.code,
+      motif: 'sun',
+      line: 'Thank you',
+      recipientName: 'Emma',
+    })
+    expect((await dbFindTransactionLinkForCodeHolder(link.code))?.greeting).toEqual({
+      motif: 'sun',
+      line: 'Thank you',
+      recipientName: 'Emma',
+    })
+  })
+
+  // The page says what became of it.
+  it('finds a deleted link too', async () => {
+    await DbTransactionLink.update(link.id, { deletedAt: new Date() })
+    expect((await dbFindTransactionLinkForCodeHolder(link.code))?.link.deletedAt).not.toBeNull()
+  })
+
+  it('finds nothing for an unknown code, nor a link whose maker is deleted', async () => {
+    expect(await dbFindTransactionLinkForCodeHolder('a'.repeat(24))).toBeNull()
+    await DbUser.update(bibi.id, { deletedAt: new Date() })
+    expect(await dbFindTransactionLinkForCodeHolder(link.code)).toBeNull()
   })
 })
 

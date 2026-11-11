@@ -1,15 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import { beforeEach, describe, expect, it, mock } from 'bun:test'
-import { Community as DbCommunity } from 'database'
-import { Ed25519PublicKey } from 'shared'
 import { getLogger } from '../../../../../config-schema/test/testSetup.bun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
-import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 import {
   memberAvatarDateForTransfer,
   readTransferAvatarDate,
   storeForeignMemberAvatarDate,
-  storeTransferSenderAvatarDate,
 } from './transferAvatarDate'
 
 // ⛔ No mock.module('database') here: Bun cannot restore a module mock, and two test files of
@@ -22,7 +18,6 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.xcom.transferA
 const NOW = new Date('2026-09-15T12:00:00.000Z')
 const PICTURE_DATE = '2026-09-15T06:00:00.000Z'
 const SIGNER = '56a55482-909e-46a4-bfa2-cd025e894ebb'
-const NAMED_IN_PAYLOAD = '56a55482-909e-46a4-bfa2-cd025e894ebe'
 const MEMBER = '56a55482-909e-46a4-bfa2-cd025e894ebc'
 
 const failingWith = (message: string) => async () => {
@@ -143,61 +138,6 @@ describe('storeForeignMemberAvatarDate', () => {
     expect(failing).toHaveBeenCalledTimes(1)
     expect(logger.warn).toHaveBeenCalledWith(
       'picture date of a member of another community not stored',
-      expect.any(Error),
-    )
-  })
-})
-
-describe('storeTransferSenderAvatarDate', () => {
-  const SIGNER_KEY = 'f'.repeat(64)
-  const args: EncryptedTransferArgs = { handshakeID: 'handshakeID', publicKey: SIGNER_KEY, jwt: '' }
-  const payload = {
-    senderCommunityUuid: NAMED_IN_PAYLOAD,
-    senderUserUuid: MEMBER,
-    senderAvatarUpdatedAt: PICTURE_DATE,
-  }
-  const store = mock(
-    async (_uuid: string | null, _gradidoId: unknown, _value: unknown) => undefined,
-  )
-  const findCommunity = mock(
-    async (_publicKey: Ed25519PublicKey) =>
-      ({ communityUuid: SIGNER, authenticatedAt: new Date() }) as DbCommunity,
-  )
-
-  beforeEach(() => {
-    store.mockClear()
-    findCommunity.mockClear()
-    logger.warn.mockClear()
-  })
-
-  it("files the sender's date under the community that signed, not the one the payload names", async () => {
-    await storeTransferSenderAvatarDate(args, payload, { findCommunity, store })
-
-    expect(findCommunity.mock.calls[0][0].asHex()).toBe(SIGNER_KEY)
-    expect(store.mock.calls).toEqual([[SIGNER, MEMBER, PICTURE_DATE]])
-  })
-
-  it('files nothing for a signer without completed handshake', async () => {
-    const withoutHandshake = mock(
-      async (_publicKey: Ed25519PublicKey) =>
-        ({ communityUuid: SIGNER, authenticatedAt: null }) as DbCommunity,
-    )
-
-    await storeTransferSenderAvatarDate(args, payload, { findCommunity: withoutHandshake, store })
-
-    expect(withoutHandshake).toHaveBeenCalledTimes(1)
-    expect(store).not.toHaveBeenCalled()
-  })
-
-  it('does not throw when the signer cannot be resolved', async () => {
-    await storeTransferSenderAvatarDate(args, payload, {
-      findCommunity: failingWith('EntityNotFoundError'),
-      store,
-    })
-
-    expect(store).not.toHaveBeenCalled()
-    expect(logger.warn).toHaveBeenCalledWith(
-      'community that signed the transfer not found, picture date not stored',
       expect.any(Error),
     )
   })

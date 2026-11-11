@@ -4,84 +4,37 @@ import { AddressInfo } from 'node:net'
 import { node } from '@elysia/node'
 import { listenOnFreePort } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
-import {
-  DBNotFoundError,
-  dbSelectThankYouGreetingPictureImage,
-  dbSelectThankYouGreetingPicturesByLinkCode,
-  ThankYouGreetingPicturesOfLink,
-} from 'database'
+import { hasFormOfLinkCode, thankYouGreetingPictureForCode } from 'core'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { cors } from './cors'
-import {
-  thankYouGreetingPictureForCode,
-  thankYouGreetingPictureRoutes,
-} from './thankYouGreetingPicture'
+import { thankYouGreetingPictureRoutes } from './thankYouGreetingPicture'
 
-// What the database answers is mocked here: the subject is what the address decides itself --
-// which code it asks the database about at all, which rendition it serves, and what an answer
-// looks like on the wire. TransactionLinkResolver.greetingPicture.test.ts runs the same address
-// against a database, through the server createServer builds.
-jest.mock('database', () => {
-  const original = jest.requireActual('database')
-  return {
-    __esModule: true,
-    ...original,
-    dbSelectThankYouGreetingPicturesByLinkCode: jest.fn(),
-    dbSelectThankYouGreetingPictureImage: jest.fn(),
-  }
-})
+// Which picture a code gets is thankYouGreetingPictureForCode's, tested in core, and mocked
+// here: the subject is what an answer of the address looks like on the wire.
+// TransactionLinkResolver.greetingPicture.test.ts runs the same address against a database,
+// through the server createServer builds.
+jest.mock('core', () => ({
+  __esModule: true,
+  ...jest.requireActual('core'),
+  thankYouGreetingPictureForCode: jest.fn(),
+}))
 
-const picturesOf = dbSelectThankYouGreetingPicturesByLinkCode as jest.MockedFunction<
-  typeof dbSelectThankYouGreetingPicturesByLinkCode
->
-const imageOf = dbSelectThankYouGreetingPictureImage as jest.MockedFunction<
-  typeof dbSelectThankYouGreetingPictureImage
+const served = thankYouGreetingPictureForCode as jest.MockedFunction<
+  typeof thankYouGreetingPictureForCode
 >
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.thankYouGreetingPicture`)
 
 const CODE = 'a1f9c2d41b7e19981fa0d001'
-const NOW = new Date('2026-10-03T16:30:00.000Z')
-const SMALL_ID = 11
-const LARGE_ID = 12
-// Something recognisable inside each: what is served is seen, and what a log shows.
-const SMALL = Buffer.concat([
-  Buffer.from([0xff, 0xd8]),
-  Buffer.from('the small rendition'),
-  Buffer.from([0xff, 0xd9]),
-])
+// Something recognisable inside: what is served is seen, and what a log shows.
 const LARGE = Buffer.concat([
   Buffer.from([0xff, 0xd8]),
   Buffer.from('the large rendition of a private photo'),
   Buffer.from([0xff, 0xd9]),
 ])
-
-const openLink = {
-  id: 7,
-  code: CODE,
-  userId: 4711,
-  // open for NOW and for the real clock the HTTP route reads
-  validUntil: new Date(Date.now() + 60 * 60 * 1000),
-  redeemedAt: null as Date | null,
-  redeemedBy: null as number | null,
-  deletedAt: null as Date | null,
-}
-const small = { id: SMALL_ID, rendition: 'small' as const, width: 831, height: 577 }
-const large = { id: LARGE_ID, rendition: 'large' as const, width: 1080, height: 750 }
-
-const found = (
-  link: Partial<typeof openLink> = {},
-  pictures = [small, large],
-  makerDeletedAt: Date | null = null,
-): ThankYouGreetingPicturesOfLink => ({ link: { ...openLink, ...link }, makerDeletedAt, pictures })
-
-const notFound = (id: number) => ({
-  success: false as const,
-  error: new DBNotFoundError('thank_you_greeting_pictures', `id = ${id}`),
-})
 
 // A failed query as Drizzle throws it: the statement and its parameters -- the code of the link
 // among them -- in the message and as properties of their own, the driver's error as the cause.
@@ -94,98 +47,8 @@ const databaseFailure = () =>
 
 beforeEach(() => {
   jest.clearAllMocks()
-  picturesOf.mockResolvedValue(found())
-  imageOf.mockImplementation(async (id: number) => {
-    if (id === SMALL_ID) {
-      return { success: true, value: SMALL }
-    }
-    if (id === LARGE_ID) {
-      return { success: true, value: LARGE }
-    }
-    return notFound(id)
-  })
-})
-
-describe('thankYouGreetingPictureForCode', () => {
-  it('serves the large rendition of an open link', async () => {
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBe(LARGE)
-
-    expect(picturesOf).toHaveBeenCalledTimes(1)
-    expect(picturesOf).toHaveBeenCalledWith(CODE)
-    expect(imageOf).toHaveBeenCalledTimes(1)
-    expect(imageOf).toHaveBeenCalledWith(LARGE_ID)
-  })
-
-  it('serves the small one where no large one is filed', async () => {
-    picturesOf.mockResolvedValue(found({}, [small]))
-
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBe(SMALL)
-    expect(imageOf).toHaveBeenCalledWith(SMALL_ID)
-  })
-
-  // The form is asked before the database: a made-up address costs no query.
-  it('asks the database nothing about a text that is no code', async () => {
-    for (const noCode of [
-      '',
-      'x',
-      'a1f9c2d41b7e19981fa0d00',
-      'a1f9c2d41b7e19981fa0d0011',
-      "a1f9c2d41b7e19981fa0d00'",
-      'CL-a1f9c2d41b7e19981fa0d',
-      undefined,
-      ['a1f9c2d41b7e19981fa0d001'],
-    ]) {
-      expect(await thankYouGreetingPictureForCode(noCode, NOW)).toBeNull()
-    }
-    expect(picturesOf).not.toHaveBeenCalled()
-    expect(imageOf).not.toHaveBeenCalled()
-  })
-
-  it('serves nothing for a code without a picture, and reads no picture', async () => {
-    picturesOf.mockResolvedValue(null)
-
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
-    expect(imageOf).not.toHaveBeenCalled()
-  })
-
-  // ⛔ The rule's rows for whoever holds the code: an open link, and no other.
-  it('serves nothing once the link is accepted, run out or deleted -- and reads no picture', async () => {
-    const closed = [
-      { redeemedAt: new Date('2026-10-03T15:00:00.000Z'), redeemedBy: 815 },
-      { validUntil: new Date('2026-10-03T16:29:59.999Z') },
-      { deletedAt: new Date('2026-10-03T15:00:00.000Z') },
-    ]
-    for (const state of closed) {
-      picturesOf.mockResolvedValue(found(state))
-      expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
-    }
-    expect(picturesOf).toHaveBeenCalledTimes(closed.length)
-    expect(imageOf).not.toHaveBeenCalled()
-  })
-
-  /**
-   * ⛔ The account of the member who made the link is deleted: the page of the link opens no
-   * more, and its code shows no picture -- though the link's own row still reads "open".
-   */
-  it('serves nothing of a link whose maker’s account is deleted -- and reads no picture', async () => {
-    picturesOf.mockResolvedValue(found({}, [small, large], new Date('2026-10-03T15:00:00.000Z')))
-
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
-    expect(imageOf).not.toHaveBeenCalled()
-  })
-
-  it('serves the picture up to the very moment the link runs out', async () => {
-    picturesOf.mockResolvedValue(found({ validUntil: NOW }))
-
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBe(LARGE)
-  })
-
-  // The thank-you was accepted between the two reads: the large rendition is gone.
-  it('serves nothing where the picture went between the two reads', async () => {
-    imageOf.mockResolvedValue(notFound(LARGE_ID))
-
-    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
-  })
+  // a picture for every text of the form of a code, as for an open link with one
+  served.mockImplementation(async (code) => (hasFormOfLinkCode(code) ? LARGE : null))
 })
 
 /** One answer of the address, as it goes over the wire. */
@@ -270,7 +133,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     const answer = await ask(addressOf(CODE.toUpperCase()))
 
     expect(answer.status).toBe(200)
-    expect(picturesOf).toHaveBeenCalledWith(CODE.toUpperCase())
+    expect(served).toHaveBeenCalledWith(CODE.toUpperCase(), expect.any(Date))
   })
 
   // ⛔ One empty answer, whatever the reason -- nothing on the wire tells them apart.
@@ -279,30 +142,14 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
 
     // No code at all.
     empty.push(await ask(addressOf('no-code')))
-    // An unknown code, and a link without a picture.
-    picturesOf.mockResolvedValue(null)
-    empty.push(await ask(addressOf(CODE)))
-    // Accepted, run out, deleted.
-    for (const state of [
-      { redeemedAt: new Date('2026-10-03T15:00:00.000Z'), redeemedBy: 815 },
-      { validUntil: new Date('2020-01-01T00:00:00.000Z') },
-      { deletedAt: new Date('2026-10-03T15:00:00.000Z') },
-    ]) {
-      picturesOf.mockResolvedValue(found(state))
-      empty.push(await ask(addressOf(CODE)))
-    }
-    // The account of the member who made the link is deleted.
-    picturesOf.mockResolvedValue(found({}, [small, large], new Date('2026-10-03T15:00:00.000Z')))
-    empty.push(await ask(addressOf(CODE)))
-    // The picture went between the two reads.
-    picturesOf.mockResolvedValue(found())
-    imageOf.mockResolvedValue(notFound(LARGE_ID))
+    // A code without a picture to serve: unknown, no picture, the link not open.
+    served.mockResolvedValue(null)
     empty.push(await ask(addressOf(CODE)))
     // The database does not answer.
-    picturesOf.mockRejectedValue(databaseFailure())
+    served.mockRejectedValue(databaseFailure())
     empty.push(await ask(addressOf(CODE)))
 
-    expect(empty).toHaveLength(8)
+    expect(empty).toHaveLength(3)
     const first = withoutDate(empty[0])
     expect(first.status).toBe(404)
     expect(first.body).toBe('')
@@ -315,7 +162,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   })
 
   it('writes the driver code of a failed query to the log, and neither its message nor the code of the link', async () => {
-    picturesOf.mockRejectedValue(databaseFailure())
+    served.mockRejectedValue(databaseFailure())
 
     await ask(addressOf(CODE))
 
@@ -345,7 +192,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     })
     expect(withoutDate(dressedUp)).toEqual(withoutDate(plain))
 
-    picturesOf.mockResolvedValue(null)
+    served.mockResolvedValue(null)
     const emptyPlain = await ask(addressOf(CODE))
     const emptyDressedUp = await ask(`${addressOf(CODE)}?x=<script>`, {
       headers: { Accept: 'text/html', Origin: 'https://example.org' },
@@ -367,8 +214,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
 
   /**
    * One part after the address is the text held against the form of a code: with a file's
-   * ending or an escape it is no code, gets the one empty answer and does not reach the
-   * database.
+   * ending or an escape it is no code, and gets the one empty answer.
    */
   it('takes a code and nothing after it: the same empty answer for a text with more in it', async () => {
     const empty = await emptyAnswer()
@@ -384,8 +230,6 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
       // with the path beside it, so that a failure names the one it was
       expect({ path, answer: withoutDate(answer) }).toEqual({ path, answer: empty })
     }
-    expect(picturesOf).not.toHaveBeenCalled()
-    expect(imageOf).not.toHaveBeenCalled()
   })
 
   // The route is GET and HEAD of one part after the address. Anything else is no route of
@@ -405,7 +249,6 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
       const answer = await ask(path, { method })
       expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
     }
-    expect(picturesOf).not.toHaveBeenCalled()
-    expect(imageOf).not.toHaveBeenCalled()
+    expect(served).not.toHaveBeenCalled()
   })
 })

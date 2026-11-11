@@ -200,8 +200,8 @@ export const checkUsername = gql`
 `
 
 export const queryTransactionLink = gql`
-  query ($code: String!) {
-    queryTransactionLink(code: $code) {
+  query ($code: String!, $codeCommunityUuid: String) {
+    queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
       ... on TransactionLink {
         id
         amount
@@ -230,15 +230,17 @@ export const queryTransactionLink = gql`
           uuid
         }
       }
-      ... on RedeemJwtLink {
+      ... on ForeignTransactionLink {
         amount
         memo
         code
+        createdAt
         validUntil
+        redeemedAt
+        deletedAt
         senderCommunity {
           foreign
           name
-          description
           url
           uuid
         }
@@ -246,17 +248,14 @@ export const queryTransactionLink = gql`
           gradidoID
           alias
         }
-        recipientCommunity {
-          foreign
-          name
-          description
-          url
-          uuid
+        greeting {
+          motif
+          line
+          recipientName
+          hasPicture
         }
-        recipientUser {
-          gradidoID
-          publisherId
-        }
+        senderAvatar
+        picture
       }
       ... on ContributionLink {
         id

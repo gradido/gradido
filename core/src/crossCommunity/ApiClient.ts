@@ -27,6 +27,8 @@ import {
   MemberAvatarsQuestion,
   memberAvatarFullQuestionSchema,
   memberAvatarsQuestionSchema,
+  TransactionLinkQuestion,
+  transactionLinkQuestionSchema,
 } from './schema'
 
 // What sealing adds to a body (encryptAndHash), the same for every length.
@@ -326,6 +328,12 @@ export class ApiClient {
   public memberAvatarFull(question: MemberAvatarFullQuestion) {
     return this.encryptSignVerifyDecryptClient['peer-api'].v1.memberAvatarFull.post(
       v.parse(memberAvatarFullQuestionSchema, question),
+    )
+  }
+
+  public transactionLink(question: TransactionLinkQuestion) {
+    return this.encryptSignVerifyDecryptClient['peer-api'].v1.transactionLink.post(
+      v.parse(transactionLinkQuestionSchema, question),
     )
   }
 
