@@ -157,7 +157,7 @@ export class RegisterUserRole<
     let userContact = this.prepareUserContact()
     let insertUserContactResult = await dbInsertUserContact(userContact, tx)
     if (!insertUserContactResult.success) {
-      const existingUser = await dbFindUserByEmail(this.user.email, tx)
+      const existingUser = await dbFindUserByEmail(this.user.email, true, tx)
       if (existingUser) {
         await dbRemoveUser(this.userId, tx)
         return { success: false, error: new RegisterUserDuplicateError(existingUser) }
@@ -329,7 +329,7 @@ export class RegisterUserRole<
         if (!userId) {
           throw new Error('Missing user id')
         }
-        const dbUser = await dbFindUserWithContactById(userId, tx)
+        const dbUser = await dbFindUserWithContactById(userId, false, tx)
         if (!dbUser) {
           throw new Error(`Cannot find the user just created: ${userId}`)
         }
@@ -506,7 +506,7 @@ export class RegisterUserRole<
     } else {
       passwordHash = await this.passwordEncryptionPromise
     }
-    return dbUserUpdatePassword(this.userId, PasswordEncryptionType.GRADIDO_ID, passwordHash)
+    await dbUserUpdatePassword(this.userId, PasswordEncryptionType.GRADIDO_ID, passwordHash)
   }
 
   // The password exists already, so the set-password page behind the activation link would

@@ -223,7 +223,7 @@ export async function findUserByUuids(
 /**
  * ES-021: switch an account between "person, may create" and "project account, may not".
  * This one column and nothing else — the callers hold a request-context snapshot of the
- * member, and a full `save()` would write every stale column back (see dbUpdateUserPassword).
+ * member, and a full `save()` would write every stale column back (see dbUserUpdateField in `./user`).
  *
  * TypeORM rather than Drizzle, on purpose: the declaration writes this column AND an event
  * row, and the two must land together or not at all. The events live in TypeORM, one
@@ -251,20 +251,6 @@ export async function dbSetCreationAllowed(
 /** Persist a member - inside the caller's transaction when given. */
 export async function dbSaveUser(user: DbUser, manager?: EntityManager): Promise<DbUser> {
   return manager ? manager.save(user) : DbUser.save(user)
-}
-
-/**
- * Re-key the stored password: exactly these two columns, nothing else. Callers hold a
- * request-context snapshot that may be minutes old, and a full entity `save()` diffs
- * against the row as of NOW - it would write every stale column back, `users.email_id`
- * above all, undoing whatever committed in between.
- */
-export async function dbUpdateUserPassword(
-  userId: number,
-  password: DbUser['password'],
-  passwordEncryptionType: DbUser['passwordEncryptionType'],
-): Promise<void> {
-  await DbUser.update({ id: userId }, { password, passwordEncryptionType })
 }
 
 /**
@@ -389,22 +375,6 @@ export async function dbFindAdminUsersPage(
     },
     skip: (currentPage - 1) * pageSize,
     take: pageSize,
-  })
-}
-
-/**
- * The member whose CURRENT address this is, deleted accounts included, with role and
- * address. Throws TypeORM's `EntityNotFoundError` when there is none - the caller
- * (`findUserByEmail` in `backend/src/graphql/resolver/UserResolver.ts`, where this was
- * moved from) catches exactly that.
- */
-export async function dbFindUserByEmailOrFail(email: string): Promise<DbUser> {
-  return DbUser.findOneOrFail({
-    where: {
-      emailContact: { email },
-    },
-    withDeleted: true,
-    relations: { userRole: true, emailContact: true },
   })
 }
 

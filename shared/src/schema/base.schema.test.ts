@@ -11,6 +11,7 @@ import {
   nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   uint32Schema,
+  uint64StringSchema,
   uuidv4Schema,
 } from './base.schema'
 
@@ -52,6 +53,22 @@ describe('uint32 schema', () => {
   })
   it('should validate 2092352810', () => {
     expect(v.safeParse(uint32Schema, 2092352810).success).toBeTruthy()
+  })
+})
+
+describe('uint64String schema', () => {
+  it('takes decimal digits, up to 20 of them', () => {
+    for (const code of ['0', '4711', '18446744073709551615']) {
+      expect(v.safeParse(uint64StringSchema, code).success).toBeTruthy()
+    }
+  })
+  // Whatever it lets through goes into BigInt(), which throws on anything but an integer
+  // literal and reads a `0x` prefix as hex - and turns '' into 0n.
+  it('refuses everything BigInt() would throw on or read differently', () => {
+    for (const code of ['', '-', '-1', 'not valid', '0x1F', ' 12', '12 ', '+1', '1.5', '1e3']) {
+      expect(v.safeParse(uint64StringSchema, code).success).toBeFalsy()
+    }
+    expect(v.safeParse(uint64StringSchema, '1'.repeat(21)).success).toBeFalsy()
   })
 })
 

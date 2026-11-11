@@ -46,9 +46,11 @@ import {
   dbFindReferrerAlias,
   dbFindUserByEmail,
   dbFindUserById,
+  dbFindUserByIdentifier,
   dbFindUserIdByUuids,
   dbFindUserIdsWithEveryWord,
   dbFindUserLoginByEmail,
+  dbFindUserWithContactByEmail,
   dbFindUserWithContactById,
   dbHasGuestRegisteredByLink,
   dbInsertUser,
@@ -65,6 +67,7 @@ import {
   dbUpdateUserFirstCreationStatus,
   dbUpsertForeignUser,
   dbUserUpdateField,
+  dbUserUpdateFields,
   dbUserUpdatePassword,
   findUserNamesByIds,
 } from './user'
@@ -117,14 +120,14 @@ describe('user.queries', () => {
     // refuse a member here - and the refusal would be unexplainable, because the row
     // that caused it appears in no member list of this community.
     it('lets a member take a name that only a cached foreign member holds', async () => {
-      const stranger = DbUser.create()
-      stranger.foreign = true
-      stranger.alias = 'faraway'
-      stranger.gradidoID = '11111111-2222-4333-8444-555555555555'
-      stranger.communityUuid = '99999999-2222-4333-8444-555555555555'
-      stranger.firstName = 'Far'
-      stranger.lastName = 'Away'
-      await DbUser.save(stranger)
+      await dbInsertUser({
+        foreign: true,
+        alias: 'faraway',
+        gradidoId: '11111111-2222-4333-8444-555555555555',
+        communityUuid: '99999999-2222-4333-8444-555555555555',
+        firstName: 'Far',
+        lastName: 'Away',
+      })
 
       expect(await aliasExists('faraway')).toBe(false)
     })
@@ -310,7 +313,7 @@ describe('user.queries', () => {
     })
   })
 
-  describe('dbUserUpdatePassword and dbUserUpdateField', () => {
+  describe('dbUserUpdatePassword, dbUserUpdateField and dbUserUpdateFields', () => {
     let bibi: DbUser
 
     beforeAll(async () => {
@@ -328,6 +331,45 @@ describe('user.queries', () => {
       const stored = await DbUser.findOneByOrFail({ id: bibi.id })
       expect(stored.password.toString()).toBe('4711')
       expect(stored.passwordEncryptionType).toBe(PasswordEncryptionType.GRADIDO_ID)
+    })
+
+    // setPassword activates the account with the password it sets, together with the
+    // contact it confirms: in one transaction, so the write has to go through it.
+    it('activates the account in the same write, inside the transaction it is given', async () => {
+      await dbUserUpdateField(bibi.id, 'accountState', AccountState.REGISTERED)
+
+      await drizzleDb().transaction(async (tx) => {
+        expect(
+          await dbUserUpdatePassword(
+            bibi.id,
+            PasswordEncryptionType.GRADIDO_ID,
+            4712n,
+            AccountState.ACTIVATED,
+            tx,
+          ),
+        ).toBe(1)
+        expect((await DbUser.findOneByOrFail({ id: bibi.id })).password.toString()).toBe('4711')
+      })
+
+      const stored = await DbUser.findOneByOrFail({ id: bibi.id })
+      expect(stored.password.toString()).toBe('4712')
+      expect(stored.accountState).toBe(AccountState.ACTIVATED)
+      expect(stored.emailId).toBe(bibi.emailId)
+    })
+
+    it('counts nothing for a member nobody has', async () => {
+      expect(await dbUserUpdatePassword(999999, PasswordEncryptionType.GRADIDO_ID, 1n)).toBe(0)
+      expect(await dbUserUpdateFields(999999, { firstName: 'Nobody' })).toBe(0)
+    })
+
+    // A name may be NULL in the column, though the entity's type says string.
+    it('writes several columns in one write, NULL included', async () => {
+      expect(await dbUserUpdateFields(bibi.id, { firstName: null, lastName: 'Blocksberg' })).toBe(1)
+      const stored = await DbUser.findOneByOrFail({ id: bibi.id })
+      expect(stored.firstName).toBeNull()
+      expect(stored.lastName).toBe('Blocksberg')
+      expect(stored.emailId).toBe(bibi.emailId)
+      await dbUserUpdateFields(bibi.id, { firstName: bibi.firstName, lastName: bibi.lastName })
     })
 
     it('writes the one named column and leaves the rest of the row alone', async () => {
@@ -1103,12 +1145,10 @@ describe('user.queries', () => {
 
     /** A member who arrived over `host`, with the address state and age the case needs. */
     async function arrival(
-      seed: { email?: string; alias?: string; emailChecked?: boolean },
+      seed: { email?: string; alias: string; emailChecked?: boolean },
       createdAt: Date,
     ): Promise<DbUser> {
-      const user = await userFactory({ ...seed, createdAt }, homeCom)
-      user.referrerId = host.id
-      return user.save()
+      return await userFactory({ ...seed, createdAt, referrerId: host.id }, homeCom)
     }
 
     beforeAll(async () => {
@@ -1656,8 +1696,9 @@ describe('user.queries', () => {
       })
 
       // A deleted member still holds their address - the row stays, and `email` is unique - so
-      // a registration with it has to answer as for any taken address, not collide.
-      it('finds a deleted member too', async () => {
+      // a registration with it has to answer as for any taken address, not collide: it asks
+      // withDeleted.
+      it('finds a deleted member only withDeleted', async () => {
         const gone = await userFactory({
           alias: 'GoneM',
           email: 'gone@example.org',
@@ -1665,7 +1706,8 @@ describe('user.queries', () => {
           lastName: 'Member',
         })
         await DbUser.softRemove(gone)
-        expect((await dbFindUserByEmail('gone@example.org'))?.id).toBe(gone.id)
+        expect(await dbFindUserByEmail('gone@example.org')).toBeNull()
+        expect((await dbFindUserByEmail('gone@example.org', true))?.id).toBe(gone.id)
       })
 
       // A change typed in and never confirmed is a second row of the member's, not their
@@ -1679,6 +1721,32 @@ describe('user.queries', () => {
           emailOptInTypeId: OptInType.EMAIL_OPT_IN_CHANGE,
         })
         expect(await dbFindUserByEmail('wanted@example.org')).toBeNull()
+      })
+    })
+
+    // The recipient of a transfer from another community: by gradido id, address or alias.
+    describe('dbFindUserByIdentifier', () => {
+      it('finds the member on each of the three ways', async () => {
+        for (const identifier of [bob.gradidoID, bobBaumeister.email!, bob.alias]) {
+          expect((await dbFindUserByIdentifier(identifier, homeCommunityUuid))?.id).toBe(bob.id)
+        }
+      })
+
+      it('finds a deleted member on none of them, unless withDeleted', async () => {
+        const gone = await userFactory({
+          alias: 'GoneI',
+          email: 'gone-identifier@example.org',
+          firstName: 'Gone',
+          lastName: 'Identifier',
+        })
+        await DbUser.softRemove(gone)
+
+        for (const identifier of [gone.gradidoID, 'gone-identifier@example.org', 'GoneI']) {
+          expect(await dbFindUserByIdentifier(identifier, homeCommunityUuid)).toBeNull()
+          expect((await dbFindUserByIdentifier(identifier, homeCommunityUuid, true))?.id).toBe(
+            gone.id,
+          )
+        }
       })
     })
 
@@ -1734,6 +1802,25 @@ describe('user.queries', () => {
 
         expect(await dbRemoveUser(created.id)).toBe(1)
         expect(await DbUser.findOne({ where: { id: created.id }, withDeleted: true })).toBeNull()
+      })
+
+      it('finds a deleted member with their address only withDeleted, by id and by address', async () => {
+        const gone = await userFactory({
+          alias: 'GoneC',
+          email: 'gone-contact@example.org',
+          firstName: 'Gone',
+          lastName: 'Contact',
+        })
+        await DbUser.softRemove(gone)
+
+        expect(await dbFindUserWithContactById(gone.id)).toBeNull()
+        expect((await dbFindUserWithContactById(gone.id, true))?.emailContact.email).toBe(
+          'gone-contact@example.org',
+        )
+        expect(await dbFindUserWithContactByEmail('gone-contact@example.org')).toBeNull()
+        expect((await dbFindUserWithContactByEmail('gone-contact@example.org', true))?.id).toBe(
+          gone.id,
+        )
       })
     })
   })

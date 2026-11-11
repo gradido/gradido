@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, Order, Result, UserContactType, VoidResult } from 'shared'
-import { EntityManager, Not, SelectQueryBuilder } from 'typeorm'
+import { EntityManager, SelectQueryBuilder } from 'typeorm'
 import { UserContact as DbUserContact } from '../entity'
 import { DBDuplicateEntryError, DBNotFoundError, isDuplicateEntry } from '../errorTypes'
 
@@ -265,20 +265,6 @@ export async function dbFindUserContactByCodeOrFail(code: string): Promise<DbUse
 }
 
 /**
- * The row behind a code, unless it is a pending e-mail change: that code confirms an
- * address and must not set a password. Moved from `setPassword` in
- * `backend/src/graphql/resolver/UserResolver.ts`.
- */
-export async function dbFindUserContactByCodeExceptChangeOrFail(
-  code: string,
-): Promise<DbUserContact> {
-  return DbUserContact.findOneOrFail({
-    where: { emailVerificationCode: code, emailOptInTypeId: Not(OptInType.EMAIL_OPT_IN_CHANGE) },
-    relations: ['user'],
-  })
-}
-
-/**
  * The row behind a code, only if it is of the REGISTER type. Moved from `confirmEmail` in
  * `backend/src/graphql/resolver/AssistedRegistrationResolver.ts`. A settled row carries
  * REGISTER again, so the type does not keep out a former address - see above.
@@ -286,21 +272,6 @@ export async function dbFindUserContactByCodeExceptChangeOrFail(
 export async function dbFindRegisterUserContactByCodeOrFail(code: string): Promise<DbUserContact> {
   return DbUserContact.findOneOrFail({
     where: { emailVerificationCode: code, emailOptInTypeId: OptInType.EMAIL_OPT_IN_REGISTER },
-    relations: ['user'],
-  })
-}
-
-/**
- * `dbFindUserContactByEmail` with the member loaded - deleted rows included here too. Moved
- * from `adminCreateContribution` in `backend/src/graphql/resolver/ContributionResolver.ts`.
- * `user` is empty when the address is not the member's current one.
- */
-export async function dbFindUserContactWithUserByEmail(
-  email: string,
-): Promise<DbUserContact | null> {
-  return DbUserContact.findOne({
-    where: { email },
-    withDeleted: true,
     relations: ['user'],
   })
 }

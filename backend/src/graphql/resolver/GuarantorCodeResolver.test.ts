@@ -1,15 +1,17 @@
 // AI-GENERATED — not an architecture reference
-
-import { PasswordEncryptionType } from '@enum/PasswordEncryptionType'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AccountState,
   AppDatabase,
   Event as DbEvent,
-  User as DbUser,
+  DbUser,
   UserContact as DbUserContact,
+  dbFindUserByAlias,
+  dbFindUserContactWithUserByEmail,
+  dbUserUpdateField,
+  dbUserUpdateFields,
   EventType,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { GraphQLError } from 'graphql'
 import {
@@ -17,8 +19,7 @@ import {
   GUARANTOR_LIMIT,
   verifyGuarantorCode,
 } from '@/data/GuarantorCode.logic'
-import { encryptPassword } from '@/password/PasswordEncryptor'
-import { userFactory } from '@/seeds/factory/user'
+import { SEED_USER_PASSWORD, userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { guarantorCode } from '@/seeds/graphql/queries'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -35,7 +36,6 @@ jest.mock('core', () => {
   }
 })
 
-const PASSWORD = 'Aa12345_'
 const GUEST_EMAIL = 'carla@table.example'
 
 let mutate: ApolloServerTestClient['mutate']
@@ -54,20 +54,25 @@ const openTableAccount = async (
   guest: { email: string; firstName: string; lastName: string; alias: string },
   referrerAlias: string,
 ): Promise<DbUser> => {
-  const referrer = await DbUser.findOneOrFail({ where: { alias: referrerAlias } })
-  const dbUser = await userFactory(null, { ...guest, emailChecked: false, language: 'de' })
-  // Type first, then encrypt - the derivation salts by the type, as in RegisterUserGuarantorRole.
-  dbUser.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-  dbUser.password = await encryptPassword(dbUser, PASSWORD)
-  dbUser.referrerId = referrer.id
-  dbUser.accountState = AccountState.PARTLY_ACTIVATED_GUARANTOR
-  await dbUser.save()
+  const referrer = await dbFindUserByAlias(referrerAlias, communityUuid)
+  // const dbUser = await userFactory(null, { ...guest, emailChecked: false, language: 'de' })
+  const dbUser = await userFactoryDrizzle({
+    ...guest,
+    emailChecked: false,
+    language: 'de',
+    password: true,
+    referrerId: referrer?.id,
+    accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+  })
   return dbUser
 }
 
 const loginAs = async (email: string): Promise<void> => {
   resetToken()
-  const { errors } = await mutate({ mutation: login, variables: { email, password: PASSWORD } })
+  const { errors } = await mutate({
+    mutation: login,
+    variables: { email, password: SEED_USER_PASSWORD },
+  })
   expect(errors).toBeUndefined()
 }
 
@@ -96,11 +101,11 @@ beforeAll(async () => {
   query = testEnv.query
   db = testEnv.db
   await cleanDB()
-  bibi = await userFactory(testEnv, bibiBloxberg)
-  bob = await userFactory(testEnv, bobBaumeister)
+  bibi = await userFactoryDrizzle(bibiBloxberg)
+  bob = await userFactoryDrizzle(bobBaumeister)
   // No user name: the seed gives him none.
-  await userFactory(testEnv, peterLustig)
-  const homeCom = await getHomeCommunity()
+  await userFactoryDrizzle(peterLustig)
+  const homeCom = await getHomeCommunityDrizzle()
   communityUuid = homeCom?.communityUuid ?? ''
   expect(communityUuid).not.toBe('')
 })
@@ -146,21 +151,24 @@ describe('GuarantorCodeResolver', () => {
   // behind the token any more. A code of theirs would open accounts with nobody recorded as
   // having vouched - the registration does not find a deleted member.
   it('refuses a member deleted while still signed in', async () => {
-    const bibi = await DbUser.findOneOrFail({ where: { alias: 'BBB' } })
+    const bibi = await dbFindUserByAlias('BBB', communityUuid)
+    if (!bibi) {
+      throw new Error('Missing user with alias: BBB in test db')
+    }
     await loginAs('bibi@bloxberg.de')
-    await DbUser.update(bibi.id, { deletedAt: new Date() })
+    await dbUserUpdateField(bibi.id, 'deletedAt', new Date())
     try {
       await expect(query({ query: guarantorCode })).resolves.toMatchObject({
         errors: [new GraphQLError('401 Unauthorized')],
       })
     } finally {
-      await DbUser.update(bibi.id, { deletedAt: null })
+      await dbUserUpdateField(bibi.id, 'deletedAt', null)
     }
   })
 
   // Not on RESTRICTED_FOR_PROJECT_ACCOUNT: an account that does not create may still show.
   it('mints one for a project account too', async () => {
-    await DbUser.update(bob.id, { creationAllowed: false })
+    await dbUserUpdateField(bob.id, 'creationAllowed', false)
     try {
       await loginAs('bob@baumeister.de')
       const { data, errors } = await query({ query: guarantorCode })
@@ -168,7 +176,7 @@ describe('GuarantorCodeResolver', () => {
       expect(errors).toBeUndefined()
       expect(verifyGuarantorCode(data.guarantorCode.code, communityUuid)).toBe(bob.id)
     } finally {
-      await DbUser.update(bob.id, { creationAllowed: true })
+      await dbUserUpdateField(bob.id, 'creationAllowed', true)
     }
   })
 
@@ -276,7 +284,7 @@ describe('GuarantorCodeResolver', () => {
     it('mints again once one of them confirms, and lists the others', async () => {
       const contact = await DbUserContact.findOneOrFail({ where: { email: guestEmail(1) } })
       await DbUserContact.update(contact.id, { emailChecked: true })
-      await DbUser.update(contact.userId, { accountState: AccountState.ACTIVATED })
+      await dbUserUpdateField(contact.userId, 'accountState', AccountState.ACTIVATED)
       const answer = await askAs('bibi@bloxberg.de')
 
       expect(verifyGuarantorCode(answer.code, communityUuid)).toBe(bibi.id)
@@ -286,8 +294,14 @@ describe('GuarantorCodeResolver', () => {
 
     // The way back through support: a dead guest account deleted in the admin.
     it('leaves out a guest account that was deleted', async () => {
-      const guest = await DbUser.findOneOrFail({ where: { alias: 'tischgast2' } })
-      await DbUser.update(guest.id, { deletedAt: new Date(), accountState: AccountState.DELETED })
+      const guest = await dbFindUserByAlias('tischgast2', communityUuid)
+      if (!guest) {
+        throw new Error('Missing user with alias tischgast2 in test db')
+      }
+      await dbUserUpdateFields(guest.id, {
+        deletedAt: new Date(),
+        accountState: AccountState.DELETED,
+      })
       try {
         const answer = await askAs('bibi@bloxberg.de')
 
@@ -296,7 +310,7 @@ describe('GuarantorCodeResolver', () => {
       } finally {
         // Put back, like the deleted-member test above: everything after this would otherwise
         // run with a half-deleted guest whose user_aliases row still holds their name.
-        await DbUser.update(guest.id, {
+        await dbUserUpdateFields(guest.id, {
           deletedAt: null,
           accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
         })
@@ -324,17 +338,12 @@ describe('GuarantorCodeResolver', () => {
     // answer down: the null travels up through [UnconfirmedGuest!]! to guarantorCode, and the
     // member sees no code at all until somebody repairs that other account.
     it('still answers when a guest has no name', async () => {
-      const guest = await DbUser.findOneOrFail({ where: { alias: 'tischgast3' } })
-      const { firstName, lastName } = guest
-      // Over SQL, because the columns are `nullable: true` while the entity's TypeScript type
-      // says `string` - which is the very mismatch this test is here for.
-      const setNames = async (first: string | null, last: string | null): Promise<void> => {
-        await DbUser.getRepository().query(
-          'UPDATE users SET first_name = ?, last_name = ? WHERE id = ?',
-          [first, last, guest.id],
-        )
+      const guest = await dbFindUserByAlias('tischgast3', communityUuid)
+      if (!guest) {
+        throw new Error('Missing user with alias tischgast3 in testdb')
       }
-      await setNames(null, null)
+      const { firstName, lastName } = guest
+      await dbUserUpdateFields(guest.id, { firstName: null, lastName: null })
       try {
         const answer = await askAs('bibi@bloxberg.de')
 
@@ -345,7 +354,7 @@ describe('GuarantorCodeResolver', () => {
           ) as unknown,
         ).toMatchObject({ firstName: null, lastName: null })
       } finally {
-        await setNames(firstName, lastName)
+        await dbUserUpdateFields(guest.id, { firstName, lastName })
       }
     })
   })
@@ -364,10 +373,11 @@ describe('GuarantorCodeResolver', () => {
         { email: GUEST_EMAIL, firstName: 'Carla', lastName: 'Tisch', alias: 'CarlaTisch' },
         'MeisterBob',
       )
-      guest = await DbUser.findOneOrFail({
-        where: { emailContact: { email: GUEST_EMAIL } },
-        relations: ['emailContact'],
-      })
+      const userContact = await dbFindUserContactWithUserByEmail(GUEST_EMAIL)
+      if (!userContact || !userContact.user) {
+        throw new Error(`Missing user contact ${GUEST_EMAIL} in test db`)
+      }
+      guest = { ...userContact.user, emailContact: userContact }
       expect(guest.emailContact.emailChecked).toBe(false)
     })
 

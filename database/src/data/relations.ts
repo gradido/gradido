@@ -13,6 +13,10 @@ export type DbUser = UserSelect & {
   emailContact: UserContactSelect
 }
 
+export type DbUserContact = UserContactSelect & {
+  user: UserSelect | null
+}
+
 /** What {@link dbFindUserLoginByEmail} hands back: a {@link DbUser} plus the two things
  * the login answer needs and the row cannot carry -- the member's role and the small
  * rendition of their picture. Both null where there is none. */

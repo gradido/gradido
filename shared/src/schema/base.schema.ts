@@ -62,6 +62,13 @@ export const publicKeyHexStringSchema = v.pipe(hexStringSchema, v.length(64))
 export type PublicKeyHex = v.InferOutput<typeof publicKeyHexStringSchema>
 
 export const uint32Schema = v.pipe(v.number(), v.gtValue(0), v.maxValue(4294967295))
+/**
+ * An unsigned 64-bit integer as a client sends it, in decimal digits - an e-mail code from a
+ * link, say. Checked before `BigInt()`, which throws on anything else, reads a `0x` prefix
+ * as hex and turns '' into 0n. Twenty digits are the most a BIGINT UNSIGNED has; a larger
+ * value of that length gets through and matches nothing.
+ */
+export const uint64StringSchema = v.pipe(v.string(), v.digits(), v.maxLength(20))
 
 /**
  * `schema`, optional, with a blank string - empty or only whitespace - taken as not given
