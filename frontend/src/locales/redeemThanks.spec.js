@@ -216,8 +216,6 @@ describe('redeem-thanks in the language files', () => {
   // a list that matches nothing would hold every text.
   it.each(languages)('would find the old words of the redeem page, in %s', (lang) => {
     const old = JSON.parse(readFileSync(join(here, `${lang}.json`), 'utf8')).gdd_per_link
-    expect([old.redeemed, old['no-redeem'], old['redeemed-at']].join(' ')).toMatch(
-      NOT_A_THANK_YOU[lang],
-    )
+    expect([old.redeem, old.redeemed, old['redeemed-at']].join(' ')).toMatch(NOT_A_THANK_YOU[lang])
   })
 })

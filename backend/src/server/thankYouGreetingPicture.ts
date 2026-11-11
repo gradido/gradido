@@ -1,16 +1,8 @@
 // AI-GENERATED — not an architecture reference
-import {
-  dbSelectThankYouGreetingPictureImage,
-  dbSelectThankYouGreetingPicturesByLinkCode,
-} from 'database'
+import { thankYouGreetingPictureForCode } from 'core'
 import { Elysia } from 'elysia'
 import { getLogger } from 'log4js'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import {
-  hasFormOfLinkCode,
-  pictureRenditionsForCodeHolder,
-  pictureToServe,
-} from '@/data/ThankYouGreetingPicture.logic'
 
 /**
  * The picture of a thank-you greeting, served as a plain picture at GET
@@ -48,32 +40,6 @@ const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.thankY
  * belongs to no origin (`sandbox`). The inline style is what a browser's own picture view uses.
  */
 export const PICTURE_CONTENT_POLICY = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
-
-/**
- * The bytes of the picture whoever holds this code gets now, or null. The code is held against
- * its form before the database is asked anything.
- */
-export async function thankYouGreetingPictureForCode(
-  code: unknown,
-  now: Date,
-): Promise<Buffer | null> {
-  if (!hasFormOfLinkCode(code)) {
-    return null
-  }
-  const found = await dbSelectThankYouGreetingPicturesByLinkCode(code)
-  if (!found) {
-    return null
-  }
-  const picture = pictureToServe(
-    found.pictures,
-    pictureRenditionsForCodeHolder(found.link, found.makerDeletedAt, now),
-  )
-  if (!picture) {
-    return null
-  }
-  const image = await dbSelectThankYouGreetingPictureImage(picture.id)
-  return image.success ? image.value : null
-}
 
 export const thankYouGreetingPictureRoutes = new Elysia({
   prefix: THANK_YOU_GREETING_PICTURE_PATH,

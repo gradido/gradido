@@ -8,6 +8,7 @@ import {
   MATCHING_ENTRY_DETAILS_MAX_CHARS,
   MATCHING_ENTRY_SUMMARY_MAX_CHARS,
   passwordSchema,
+  uuidv4Schema,
 } from 'shared'
 import * as v from 'valibot'
 import { guarantorCodeSchema } from '@/data/GuarantorCode.logic'
@@ -46,6 +47,8 @@ export const createUserSchema = v.object({
   language: defaultLanguageSchema,
   publisherId: v.nullish(v.number()),
   redeemCode: blankAsNull(v.string()),
+  // the community of the redeem code, where it is another one: the link is not looked up here
+  redeemCodeCommunityUuid: blankAsNull(uuidv4Schema),
   project: blankAsNull(v.string()),
   referrerAlias: blankAsNull(aliasSchema),
   guarantorCode: blankAsNull(guarantorCodeSchema),

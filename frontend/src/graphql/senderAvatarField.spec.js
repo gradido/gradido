@@ -40,13 +40,15 @@ const fieldsOf = (typeName, field) =>
     .selectionSet.selections.map((selection) => selection.name.value)
 
 describe('the face of the sender, as the redeem page asks for it', () => {
-  it('asks for it on the branch of a member’s link', () => {
+  // A link of another community is shown on the same sheet, with the face its community sent.
+  it('asks for it on the branch of a member’s link, of this community and of another one', () => {
     expect(directFields('TransactionLink')).toContain('senderAvatar')
+    expect(directFields('ForeignTransactionLink')).toContain('senderAvatar')
   })
 
-  it('asks for it neither of the sender nor of a link from another community', () => {
+  it('asks for it not of the sender', () => {
     expect(fieldsOf('TransactionLink', 'senderUser')).not.toContain('avatar')
-    expect(directFields('RedeemJwtLink')).not.toContain('senderAvatar')
+    expect(fieldsOf('ForeignTransactionLink', 'senderUser')).not.toContain('avatar')
   })
 
   // The other direction: the two views read the very field the document asks for.

@@ -67,6 +67,52 @@ export async function dbFindOpenTransactionLinkWithCreatorByCode(
     : null
 }
 
+/** A link as whoever holds its code sees it, with its maker and its greeting. */
+export type TransactionLinkForCodeHolder = {
+  link: TransactionLinksSelect
+  maker: Pick<UserSelect, 'gradidoId' | 'communityUuid' | 'alias'>
+  greeting: Pick<ThankYouGreetingSelect, 'id' | 'motif' | 'line' | 'recipientName'> | null
+}
+
+/**
+ * The link with this code -- deleted, redeemed or run out as well, its page says so -- with the
+ * member who made it and its greeting, in one round trip: what another community shows of it to
+ * whoever holds the code. Null for an unknown code, and where the maker's account is deleted: the
+ * page of such a link opens no more.
+ */
+export async function dbFindTransactionLinkForCodeHolder(
+  code: string,
+): Promise<TransactionLinkForCodeHolder | null> {
+  const rows = await drizzleDb()
+    .select({
+      link: transactionLinksTable,
+      maker: {
+        gradidoId: usersTable.gradidoId,
+        communityUuid: usersTable.communityUuid,
+        alias: usersTable.alias,
+      },
+      // ⛔ With the id: Drizzle reads a joined object whose columns are all NULL as no row, and a
+      // greeting with a photo may have neither motif, line nor name.
+      greeting: {
+        id: thankYouGreetingsTable.id,
+        motif: thankYouGreetingsTable.motif,
+        line: thankYouGreetingsTable.line,
+        recipientName: thankYouGreetingsTable.recipientName,
+      },
+    })
+    .from(transactionLinksTable)
+    .innerJoin(
+      usersTable,
+      and(eq(usersTable.id, transactionLinksTable.userId), isNull(usersTable.deletedAt)),
+    )
+    .leftJoin(
+      thankYouGreetingsTable,
+      eq(thankYouGreetingsTable.transactionLinkCode, transactionLinksTable.code),
+    )
+    .where(eq(transactionLinksTable.code, code))
+  return rows[0] ?? null
+}
+
 /**
  * A redeem link with what decides whether it can vouch for an account: what became of the
  * link, and where the account of the member who made it stands - their row and the address in

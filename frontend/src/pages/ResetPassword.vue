@@ -50,7 +50,14 @@ const { routeWithParamsAndQuery } = useAuthLinks()
 // `/checkEmail/:optin/:code?`, and that `code` IS the redeem code. It has to travel on to
 // `/login/:code?`, because the login page redeems it right after signing in. The collision
 // PR #3798 repaired has nothing to do with this page. Pinned by `ResetPassword.spec.js`.
-const linkTo = routeWithParamsAndQuery('Login')
+// A link of another community names its community in the mail's address as well
+// (`/checkEmail/:optin/:code?/:codeCommunityUuid?`); from here on it travels as the query the
+// redeem page reads.
+const { codeCommunityUuid } = useRoute().params
+const linkTo = routeWithParamsAndQuery(
+  'Login',
+  codeCommunityUuid ? { query: { codeCommunityUuid } } : {},
+)
 
 const textFields = {
   reset: {

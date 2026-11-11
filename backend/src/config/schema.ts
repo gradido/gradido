@@ -73,10 +73,6 @@ const environment = v.object({
     jwtExpirationSchema('Time for JWT token to expire, auto logout'),
     '10m',
   ),
-  REDEEM_JWT_TOKEN_EXPIRATION: v.optional(
-    jwtExpirationSchema('Time for x-community redeem JWT token to expire'),
-    '10m',
-  ),
   GDT_ACTIVE: v.optional(GDT_ACTIVE, false),
   GDT_API_URL: v.optional(GDT_API_URL, 'https://gdt.gradido.net'),
   // ES-014: the function-test area in the wallet settings, admins only. On by default, so

@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { describe, expect, it } from 'bun:test'
 import { ThankYouGreetingPictureInfo, ThankYouGreetingPicturesOfLink } from 'database'
 import {
   hasFormOfLinkCode,
@@ -10,8 +11,7 @@ import {
   pictureRenditionsForMember,
   pictureRenditionsForMemberAskingLarge,
   pictureToServe,
-} from './ThankYouGreetingPicture.logic'
-import { linkVouches } from './VouchingLink.logic'
+} from './ThankYouGreetingPictureAccess.logic'
 
 // Who is who: the member who made the link, the one who accepted it, and a third member who
 // has nothing to do with it. Ids with nothing in common, so that none passes for another.
@@ -63,18 +63,6 @@ describe('pictureLinkIsOpen', () => {
   it('is open at the very moment the link runs out, and closed a millisecond later', () => {
     expect(pictureLinkIsOpen({ ...open, validUntil: NOW }, NOW)).toBe(true)
     expect(pictureLinkIsOpen({ ...open, validUntil: new Date(NOW.getTime() - 1) }, NOW)).toBe(false)
-  })
-
-  // One notion of "open" for the account a link vouches for and for the picture it shows.
-  it('reads a link as linkVouches does', () => {
-    const owner = { ownerDeletedAt: null, ownerForeign: false, ownerEmailChecked: true }
-    for (const state of Object.values(EVERY_STATE)) {
-      expect(pictureLinkIsOpen(state, NOW)).toBe(linkVouches({ ...state, ...owner }, SENDER, NOW))
-    }
-    const atItsEnd = { ...open, validUntil: NOW }
-    expect(pictureLinkIsOpen(atItsEnd, NOW)).toBe(
-      linkVouches({ ...atItsEnd, ...owner }, SENDER, NOW),
-    )
   })
 })
 

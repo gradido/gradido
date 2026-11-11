@@ -60,18 +60,48 @@ export const crossGroupTransactionWireSchema = v.object({
 export type CrossGroupTransactionWireInput = v.InferInput<typeof crossGroupTransactionWireSchema>
 export type CrossGroupTransactionWire = v.InferOutput<typeof crossGroupTransactionWireSchema>
 
+// as createTransactionLink makes it: 24 hex characters
+const transactionLinkCodeSchema = v.pipe(v.string(), v.regex(/^[0-9a-f]{24}$/i))
+
 // A link of another community, accepted by a member of the calling one: no more than what finds
 // the link and the member. Who made it, the amount and the memo the link's community has itself.
 export const disburseTransactionLinkWireSchema = v.object({
   link: v.object({
-    // as createTransactionLink makes it: 24 hex characters
-    code: v.pipe(v.string(), v.regex(/^[0-9a-f]{24}$/i)),
+    code: transactionLinkCodeSchema,
     communityUuid: uuidv4Schema,
   }),
   recipient: involvedParties.entries.recipient,
 })
 
 export type DisburseTransactionLinkWire = v.InferOutput<typeof disburseTransactionLinkWireSchema>
+
+// A link of this community, asked for by another one, whose member holds its code.
+export const transactionLinkQuestionSchema = v.object({ code: transactionLinkCodeSchema })
+export type TransactionLinkQuestion = v.InferOutput<typeof transactionLinkQuestionSchema>
+
+// What the page of a link shows to whoever holds its code, as this community's own page does:
+// what became of the link, who made it, its greeting -- and, of an open link only, the maker's
+// face and the greeting's photo, as base64.
+export const transactionLinkWireSchema = v.object({
+  amount: gddAmountSchema,
+  memo: v.string(),
+  createdAt: dateSchema,
+  validUntil: dateSchema,
+  redeemedAt: v.nullable(dateSchema),
+  deletedAt: v.nullable(dateSchema),
+  sender: v.object({ gradidoId: uuidv4Schema, alias: aliasSchema }),
+  greeting: v.nullable(
+    v.object({
+      motif: v.nullable(v.string()),
+      line: v.nullable(v.string()),
+      recipientName: v.nullable(v.string()),
+    }),
+  ),
+  senderAvatar: v.nullable(v.string()),
+  picture: v.nullable(v.string()),
+})
+export type TransactionLinkWireInput = v.InferInput<typeof transactionLinkWireSchema>
+export type TransactionLinkWire = v.InferOutput<typeof transactionLinkWireSchema>
 
 // What one community asks another about the pictures of that other's members: the ids of a
 // list, at most as many as the wallet shows at once, or the one member a zoom is for (AS-020).

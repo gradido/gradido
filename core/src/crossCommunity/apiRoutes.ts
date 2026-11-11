@@ -24,8 +24,10 @@ import {
   editChatMessageWireSchema,
   memberAvatarFullQuestionSchema,
   memberAvatarsQuestionSchema,
+  transactionLinkQuestionSchema,
   userPublicInfoWireSchema,
 } from './schema'
+import { transactionLink } from './transactionLinks'
 import {
   auth,
   disburseTransactionLink,
@@ -175,6 +177,11 @@ export const apiRoutesV1 = new Elysia({ prefix: 'v1' })
   })
   .post('memberAvatarFull', memberAvatarFull, {
     body: memberAvatarFullQuestionSchema,
+    mapResponse: signedEncryptedJsonResponse,
+  })
+  // a link of this community, for the page of it the calling one shows to its member
+  .post('transactionLink', transactionLink, {
+    body: transactionLinkQuestionSchema,
     mapResponse: signedEncryptedJsonResponse,
   })
 

@@ -32,6 +32,11 @@ export class CreateUserArgs {
   @IsString()
   redeemCode?: string | null
 
+  // The community of the redeem code, where it is another one than this: the link lives there.
+  // Checked by createUserSchema (uuidv4Schema).
+  @Field(() => String, { nullable: true })
+  redeemCodeCommunityUuid?: string | null
+
   @Field(() => String, { nullable: true })
   @IsString()
   project?: string | null

@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { pictureLinkIsOpen } from 'core'
 import { TransactionLinkWithOwner } from 'database'
 import { linkVouches } from './VouchingLink.logic'
 
@@ -52,5 +53,21 @@ describe('linkVouches', () => {
     expect(linkVouches(link({ validUntil: NOW }), OWNER_ID, new Date(NOW.getTime() + 1))).toBe(
       false,
     )
+  })
+})
+
+// One notion of "open" for the account a link vouches for and for the picture it shows.
+describe('linkVouches and pictureLinkIsOpen', () => {
+  it('read a link alike', () => {
+    const day = 24 * HOUR_MS
+    for (const changed of [
+      {},
+      { validUntil: new Date(NOW.getTime() - day) },
+      { validUntil: NOW },
+      { redeemedAt: new Date(NOW.getTime() - HOUR_MS), redeemedBy: 815 },
+      { deletedAt: new Date(NOW.getTime() - HOUR_MS) },
+    ]) {
+      expect(pictureLinkIsOpen(link(changed), NOW)).toBe(linkVouches(link(changed), OWNER_ID, NOW))
+    }
   })
 })

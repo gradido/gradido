@@ -100,6 +100,8 @@ export const Register = defineComponent({
           language: store.language,
           publisherId: publisherId.value,
           redeemCode: redeemCode.value,
+          // the link's community, where it is another one (the redeem page's switch)
+          redeemCodeCommunityUuid: query.codeCommunityUuid || undefined,
           project: store.project,
           // Without an address to come from, the field stays out of the request.
           ...(referrerAlias ? { referrerAlias } : {}),

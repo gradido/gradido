@@ -34,12 +34,10 @@ import RedeemThanksPaper from './RedeemThanksPaper.vue'
  *
  * The answers of the server are stand-ins, keyed by the document that asks.
  */
-const apollo = vi.hoisted(() => ({ communities: [], asked: 0, createRedeemJwt: null }))
-const toasts = vi.hoisted(() => ({ toastError: null }))
+const apollo = vi.hoisted(() => ({ communities: [], asked: 0 }))
 
 vi.mock('@vue/apollo-composable', async () => {
   const { reachableCommunities } = await import('@/graphql/communities.graphql')
-  const { createRedeemJwtMutation } = await import('@/graphql/mutations')
   return {
     useQuery: (document) => {
       if (document !== reachableCommunities) throw new Error('a query this test does not know')
@@ -51,17 +49,8 @@ vi.mock('@vue/apollo-composable', async () => {
         },
       }
     },
-    useMutation: (document) => {
-      if (document !== createRedeemJwtMutation)
-        throw new Error('a mutation this test does not know')
-      return { mutate: (...args) => apollo.createRedeemJwt(...args) }
-    },
   }
 })
-
-vi.mock('@/composables/useToast', () => ({
-  useAppToast: () => ({ toastError: (...args) => toasts.toastError(...args) }),
-}))
 
 vi.mock('@/config', () => ({
   default: {
@@ -166,18 +155,7 @@ const GUEST_STATES = ['LOGGED_OUT', 'REDEEM_SELECT_COMMUNITY']
 const CLOSED_STATES = ['TEXT_REDEEMED', 'TEXT_EXPIRED', 'TEXT_DELETED']
 const ALL_STATES = [...GUEST_STATES, 'VALID', 'SELF_CREATOR', ...CLOSED_STATES]
 
-/** A promise the test settles when it wants to: the token while it is on its way. */
-const underway = () => {
-  let settle
-  const answer = new Promise((resolve, reject) => {
-    settle = { resolve, reject }
-  })
-  return { answer, ...settle }
-}
-
 describe('RedeemThanks', () => {
-  let place
-
   // The fields of the form an account is opened with check themselves by the wallet's rules.
   beforeAll(() => {
     loadAllRules(i18n.global)
@@ -187,10 +165,6 @@ describe('RedeemThanks', () => {
     i18n.global.locale.value = 'de'
     apollo.communities = [HOME, WIEN]
     apollo.asked = 0
-    apollo.createRedeemJwt = vi.fn().mockResolvedValue({ data: { createRedeemJwt: 'signed.jwt' } })
-    toasts.toastError = vi.fn()
-    place = { href: `https://ki-playground.gradido.net/redeem/${CODE}` }
-    vi.stubGlobal('location', place)
   })
 
   afterEach(() => {
@@ -434,7 +408,7 @@ describe('RedeemThanks', () => {
 
       expect(field(wrapper).find('.dropdown-toggle').text()).toBe('Gradido Wien')
       expect(forward(wrapper).text()).toBe('Jetzt weiterleiten')
-      expect(forward(wrapper).element.tagName).toBe('BUTTON')
+      expect(forward(wrapper).element.tagName).toBe('A')
       expect(signIn(wrapper).exists()).toBe(false)
     })
 
@@ -448,78 +422,15 @@ describe('RedeemThanks', () => {
       expect(forward(wrapper).exists()).toBe(false)
     })
 
-    // The same way the old page went: a token for the link and the community chosen, then
-    // the redeem page over there.
-    it('goes there the way the old page did', async () => {
+    // The redeem page over there, with the code and the community of the link: no more. That
+    // community's server asks this one for the link.
+    it('leads to the redeem page of the community chosen, with the code and the link’s community', async () => {
       const wrapper = await openField()
       await choose(wrapper, WIEN)
 
-      await forward(wrapper).trigger('click')
-      await flushPromises()
-
-      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
-      expect(apollo.createRedeemJwt).toHaveBeenCalledWith({
-        gradidoId: GRADIDO_ID,
-        senderCommunityUuid: HOME.uuid,
-        senderCommunityName: 'KI Playground',
-        recipientCommunityUuid: WIEN.uuid,
-        code: CODE,
-        amount: '20',
-        memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
-        alias: 'Oma-Emma',
-        validUntil: '2026-07-12T09:30:00.000Z',
-      })
-      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
-      expect(toasts.toastError).not.toHaveBeenCalled()
-    })
-
-    it('keeps the button locked while the token is on its way, and asks once', async () => {
-      const token = underway()
-      apollo.createRedeemJwt = vi.fn(() => token.answer)
-      const wrapper = await openField()
-      await choose(wrapper, WIEN)
-
-      await forward(wrapper).trigger('click')
-
-      expect(forward(wrapper).element.disabled).toBe(true)
-
-      forward(wrapper).element.click()
-      forward(wrapper).element.click()
-      token.resolve({ data: { createRedeemJwt: 'signed.jwt' } })
-      await flushPromises()
-
-      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
-      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
-      // The browser is leaving: nothing to tap again.
-      expect(forward(wrapper).element.disabled).toBe(true)
-    })
-
-    // Two taps in one go, before the locked button is drawn: the view itself asks once.
-    it('asks once for a double tap', async () => {
-      const token = underway()
-      apollo.createRedeemJwt = vi.fn(() => token.answer)
-      const wrapper = await openField()
-      await choose(wrapper, WIEN)
-
-      const button = forward(wrapper).element
-      button.click()
-      button.click()
-      await flushPromises()
-
-      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
-    })
-
-    it('says why where no token came, and lets the visitor try again', async () => {
-      apollo.createRedeemJwt = vi.fn().mockRejectedValue(new Error('Transaction link expired'))
-      const wrapper = await openField()
-      await choose(wrapper, WIEN)
-
-      await forward(wrapper).trigger('click')
-      await flushPromises()
-
-      expect(toasts.toastError).toHaveBeenCalledWith('Transaction link expired')
-      expect(place.href).toBe(`https://ki-playground.gradido.net/redeem/${CODE}`)
-      expect(forward(wrapper).element.disabled).toBe(false)
+      expect(forward(wrapper).attributes('href')).toBe(
+        `https://wien.example/redeem/${CODE}?codeCommunityUuid=${HOME.uuid}`,
+      )
     })
 
     // With one community the switch shows its name and offers nothing to pick: the sentence
