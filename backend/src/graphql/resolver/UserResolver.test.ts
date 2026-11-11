@@ -3392,9 +3392,7 @@ describe('UserResolver', () => {
           })
 
           it('logs the error thrown', () => {
-            expect(sendActivationEmailLogger.warn).toHaveBeenCalledWith(
-              'user with email=invalid not found',
-            )
+            expect(sendActivationEmailLogger.warn).toHaveBeenCalledWith('user not found')
           })
         })
 

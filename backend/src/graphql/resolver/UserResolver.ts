@@ -457,11 +457,11 @@ export class UserResolver {
     email = email.trim().toLowerCase()
     // withDeleted: a deleted member is answered like an unknown one, but logged.
     const user = await dbFindUserWithContactByEmail(email, true)
-    if (!user || user.deletedAt) {
+    if (!user || user.deletedAt || user.emailContact.deletedAt) {
       if (!user) {
         logger.debug(`fail on find UserContact`)
       } else {
-        logger.warn(`user ${user.id} was deleted`)
+        logger.warn(`user ${user.id} or user contact ${user.emailId} was deleted`)
       }
       return true
     }
@@ -1649,7 +1649,7 @@ export class UserResolver {
     const user = await dbFindUserWithContactByEmail(email, true)
     if (!user || user.deletedAt || user.emailContact.deletedAt) {
       if (!user) {
-        logger.warn(`user with email=${email} not found`)
+        logger.warn(`user not found`)
       } else {
         logger.warn(`call for activation of deleted user with id: ${user.id}`)
       }
