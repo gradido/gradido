@@ -1,7 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import { cleanDB, listenOnFreePort, testEnvironmentWithApp } from '@test/helpers'
+import { cleanDB, testEnvironmentWithApp } from '@test/helpers'
+import { listenOnFreePort } from '@test/listenOnFreePort'
 import { getLogger } from 'config-schema/test/testSetup'
 import { AppDatabase, LoginElopageBuys } from 'database'
 import { GRADIDO_REALM } from 'shared'

@@ -2,31 +2,22 @@
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { node } from '@elysia/node'
-import { listenOnFreePort } from '@test/helpers'
-import { getLogger } from 'config-schema/test/testSetup'
-import { hasFormOfLinkCode, thankYouGreetingPictureForCode } from 'core'
+import { listenOnFreePort } from '@test/listenOnFreePort'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { cors } from './cors'
-import { thankYouGreetingPictureRoutes } from './thankYouGreetingPicture'
 
 // Which picture a code gets is thankYouGreetingPictureForCode's, tested in core, and mocked
 // here: the subject is what an answer of the address looks like on the wire.
 // TransactionLinkResolver.greetingPicture.test.ts runs the same address against a database,
 // through the server createServer builds.
+const mockPictureForCode = jest.fn()
+const mockLogger = { error: jest.fn() }
+jest.mock('log4js', () => ({ getLogger: () => mockLogger }))
 jest.mock('core', () => ({
-  __esModule: true,
-  ...jest.requireActual('core'),
-  thankYouGreetingPictureForCode: jest.fn(),
+  thankYouGreetingPictureForCode: mockPictureForCode,
 }))
-
-const served = thankYouGreetingPictureForCode as jest.MockedFunction<
-  typeof thankYouGreetingPictureForCode
->
-
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.thankYouGreetingPicture`)
 
 const CODE = 'a1f9c2d41b7e19981fa0d001'
 // Something recognisable inside: what is served is seen, and what a log shows.
@@ -46,9 +37,12 @@ const databaseFailure = () =>
   )
 
 beforeEach(() => {
-  jest.clearAllMocks()
-  // a picture for every text of the form of a code, as for an open link with one
-  served.mockImplementation(async (code) => (hasFormOfLinkCode(code) ? LARGE : null))
+  jest.resetAllMocks()
+  // a picture for every text of the form of a code (24 hex digits, either case), as for an
+  // open link with one
+  mockPictureForCode.mockImplementation(async (code: string) =>
+    /^[0-9a-f]{24}$/i.test(code) ? LARGE : null,
+  )
 })
 
 /** One answer of the address, as it goes over the wire. */
@@ -63,6 +57,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   let port: number
 
   beforeAll(async () => {
+    const { thankYouGreetingPictureRoutes } = await import('./thankYouGreetingPicture')
     const app = new Elysia({ adapter: node() })
       .use(cors)
       .use(
@@ -133,7 +128,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     const answer = await ask(addressOf(CODE.toUpperCase()))
 
     expect(answer.status).toBe(200)
-    expect(served).toHaveBeenCalledWith(CODE.toUpperCase(), expect.any(Date))
+    expect(mockPictureForCode).toHaveBeenCalledWith(CODE.toUpperCase(), expect.any(Date))
   })
 
   // ⛔ One empty answer, whatever the reason -- nothing on the wire tells them apart.
@@ -143,10 +138,10 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     // No code at all.
     empty.push(await ask(addressOf('no-code')))
     // A code without a picture to serve: unknown, no picture, the link not open.
-    served.mockResolvedValue(null)
+    mockPictureForCode.mockResolvedValue(null)
     empty.push(await ask(addressOf(CODE)))
     // The database does not answer.
-    served.mockRejectedValue(databaseFailure())
+    mockPictureForCode.mockRejectedValue(databaseFailure())
     empty.push(await ask(addressOf(CODE)))
 
     expect(empty).toHaveLength(3)
@@ -162,13 +157,13 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
   })
 
   it('writes the driver code of a failed query to the log, and neither its message nor the code of the link', async () => {
-    served.mockRejectedValue(databaseFailure())
+    mockPictureForCode.mockRejectedValue(databaseFailure())
 
     await ask(addressOf(CODE))
 
     // Exactly one text and nothing beside it: an error handed to the logger as a second part
     // would be written out with its message, its parameters and its stack.
-    expect(logger.error.mock.calls).toEqual([
+    expect(mockLogger.error.mock.calls).toEqual([
       ['thank-you greeting picture not served (ECONNRESET)'],
     ])
     // What such a failure carries and the log must not: the check is not of an empty error.
@@ -192,7 +187,7 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
     })
     expect(withoutDate(dressedUp)).toEqual(withoutDate(plain))
 
-    served.mockResolvedValue(null)
+    mockPictureForCode.mockResolvedValue(null)
     const emptyPlain = await ask(addressOf(CODE))
     const emptyDressedUp = await ask(`${addressOf(CODE)}?x=<script>`, {
       headers: { Accept: 'text/html', Origin: 'https://example.org' },
@@ -249,6 +244,6 @@ describe('GET /api/thank-you-greeting-picture/<code>', () => {
       const answer = await ask(path, { method })
       expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
     }
-    expect(served).not.toHaveBeenCalled()
+    expect(mockPictureForCode).not.toHaveBeenCalled()
   })
 })

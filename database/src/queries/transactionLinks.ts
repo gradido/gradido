@@ -71,7 +71,7 @@ export async function dbFindOpenTransactionLinkWithCreatorByCode(
 export type TransactionLinkForCodeHolder = {
   link: TransactionLinksSelect
   maker: Pick<UserSelect, 'gradidoId' | 'communityUuid' | 'alias'>
-  greeting: Pick<ThankYouGreetingSelect, 'motif' | 'line' | 'recipientName'> | null
+  greeting: Pick<ThankYouGreetingSelect, 'id' | 'motif' | 'line' | 'recipientName'> | null
 }
 
 /**
@@ -91,7 +91,10 @@ export async function dbFindTransactionLinkForCodeHolder(
         communityUuid: usersTable.communityUuid,
         alias: usersTable.alias,
       },
+      // ⛔ With the id: Drizzle reads a joined object whose columns are all NULL as no row, and a
+      // greeting with a photo may have neither motif, line nor name.
       greeting: {
+        id: thankYouGreetingsTable.id,
         motif: thankYouGreetingsTable.motif,
         line: thankYouGreetingsTable.line,
         recipientName: thankYouGreetingsTable.recipientName,

@@ -304,9 +304,21 @@ describe('dbFindTransactionLinkForCodeHolder', () => {
       recipientName: 'Emma',
     })
     expect((await dbFindTransactionLinkForCodeHolder(link.code))?.greeting).toEqual({
+      id: expect.any(Number),
       motif: 'sun',
       line: 'Thank you',
       recipientName: 'Emma',
+    })
+  })
+
+  // A greeting with a photo of its own: no motif, and here neither line nor name either.
+  it('finds a greeting all of whose texts are empty', async () => {
+    await dbInsertThankYouGreeting({ transactionLinkCode: link.code })
+    expect((await dbFindTransactionLinkForCodeHolder(link.code))?.greeting).toEqual({
+      id: expect.any(Number),
+      motif: null,
+      line: null,
+      recipientName: null,
     })
   })
 

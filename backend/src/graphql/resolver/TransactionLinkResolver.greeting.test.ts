@@ -563,6 +563,22 @@ describe('queryTransactionLink, a link of another community', () => {
       }
     }
   `
+  // what the link's community answers for an open link with a greeting photo
+  const answered = {
+    data: {
+      amount: '20',
+      memo: 'Danke',
+      createdAt: '2026-11-01T10:00:00.000Z',
+      validUntil: '2026-11-15T10:00:00.000Z',
+      redeemedAt: null,
+      deletedAt: null,
+      sender: { gradidoId: MAKER, alias: 'bibi' },
+      greeting: { motif: null, line: 'Danke', recipientName: null },
+      senderAvatar: null,
+      picture: 'cGhvdG8=',
+    },
+    error: null,
+  } as never
   let askSpy: jest.SpyInstance
 
   beforeAll(async () => {
@@ -581,21 +597,7 @@ describe('queryTransactionLink, a link of another community', () => {
   afterEach(() => askSpy?.mockRestore())
 
   it('hands on what the link’s community answers', async () => {
-    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue({
-      data: {
-        amount: '20',
-        memo: 'Danke',
-        createdAt: '2026-11-01T10:00:00.000Z',
-        validUntil: '2026-11-15T10:00:00.000Z',
-        redeemedAt: null,
-        deletedAt: null,
-        sender: { gradidoId: MAKER, alias: 'bibi' },
-        greeting: { motif: null, line: 'Danke', recipientName: null },
-        senderAvatar: null,
-        picture: 'cGhvdG8=',
-      },
-      error: null,
-    } as never)
+    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue(answered)
     resetToken()
 
     const result = await query({
@@ -630,6 +632,30 @@ describe('queryTransactionLink, a link of another community', () => {
     })
 
     expect(result.errors?.[0].message).toContain('Transaction link of another community not read')
+  })
+
+  it('asks the link’s community once per request, however often the query is repeated', async () => {
+    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue(answered)
+    resetToken()
+
+    const result = await query({
+      query: gql`
+        query ($code: String!, $codeCommunityUuid: String) {
+          a: queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
+            __typename
+          }
+          b: queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
+            __typename
+          }
+        }
+      `,
+      variables: { code: CODE, codeCommunityUuid: PEER },
+    })
+
+    expect(askSpy).toHaveBeenCalledTimes(1)
+    expect(result.errors?.map((e: Error) => e.message)).toContain(
+      'Too many links of other communities requested at once',
+    )
   })
 })
 

@@ -98,6 +98,15 @@ export const transactionLinkCode = (date: Date): string => {
 
 const db = AppDatabase.getInstance()
 
+/**
+ * How many links of other communities one HTTP request may ask of them (queryTransactionLink),
+ * over every alias of the query (RequestBudget). The page of a link asks for one. The query is
+ * open to guests, and each ask is a request to the other community: without the cap one document
+ * would send as many as it has root fields, and that community's rate limit would then refuse this
+ * server for everybody (as MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST).
+ */
+const FOREIGN_TRANSACTION_LINKS_MAX_PER_REQUEST = 1
+
 // What the log gets of a query that failed on a greeting's row: the driver's code. Not the
 // error itself -- Drizzle writes the parameters of the statement into its message, and the name
 // a member wrote about somebody else is one of them.
@@ -373,6 +382,11 @@ export class TransactionLinkResolver {
       ? await dbFindAuthenticatedForeignCommunityByIdentifier(codeCommunityUuid)
       : null
     if (linkCom) {
+      // ⛔ Counted before the other community is asked: aliases repeat this field.
+      const asked = ++context.requestBudget.foreignTransactionLinksAsked
+      if (asked > FOREIGN_TRANSACTION_LINKS_MAX_PER_REQUEST) {
+        throw new LogError('Too many links of other communities requested at once', asked)
+      }
       const { data, error } = await ApiClientCache.getInstance()
         .get(linkCom)
         .transactionLink({ code })
