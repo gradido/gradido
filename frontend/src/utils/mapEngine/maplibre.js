@@ -382,6 +382,10 @@ export function createMap(container, options = {}) {
        * Frame a circle of `metres` around `centre` - flying there, or landing at once. The box
        * holds the drawn ring (utils/mapGeometry); its latitudes are held to what Web Mercator
        * draws, which Leaflet does inside its projection and MapLibre does not.
+       *
+       * @param {{ lat: number, lng: number }} centre
+       * @param {number} metres
+       * @param {{ fly?: boolean, duration?: number }} [options]
        */
       fitRadius: (centre, metres, { fly = false, duration } = {}) => {
         const { south, west, north, east } = boundsOfRadius(centre, metres)

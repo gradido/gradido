@@ -35,7 +35,7 @@ const state = reactive({
  * in, the windows after the invitation wait (useFirstLoginWindow, `undecided`): a first creation
  * that took the screen for the moment of the round trip would be pushed off it again.
  *
- * @param {string} member the gradidoID that opened the link
+ * @param {string | null} member the gradidoID that opened the link
  * @returns {(sentence: string | null) => void} called once with the answer: the words of the entry
  *   the link made, or null where it made none (there already, refused, no connection)
  */

@@ -38,6 +38,8 @@ export const useChatHello = (apolloClient) => {
    * What became of the hello, or null while none went out: the server's own words about its
    * copy (E-019, E-034) -- `mailed` only where a mail went out, `delivery` the enum NAME
    * (DELIVERED, PENDING, FAILED).
+   *
+   * @type {import('vue').Ref<{ mailed: boolean, delivery: string | null } | null>}
    */
   const sent = ref(null)
 

@@ -119,7 +119,7 @@ describe('the page edge on a phone', () => {
   it('lets the map stand on it rather than break out past it', () => {
     // The map used to reach a gutter past the page to get to 6px. On a 6px edge the same
     // break-out would put it 18px beyond the screen, cut off by the clip above.
-    const map = styles(source('pages', 'MatchingMap.vue'))
+    const map = live(source('pages', 'MatchingMap.module.scss'))
     expect(map).toContain('.map-shell')
     expect(map).not.toMatch(/margin-(?:left|right)\s*:\s*calc\([^;]*\*\s*-1\)/)
   })
@@ -184,14 +184,15 @@ describe('the overview tiles', () => {
   // gives it back as the padding of whatever stands in it. A horizontal padding of the
   // tile's own replaces that 12px: p-3 made it 16px, and the tile stood 4px inside the
   // cards above it on every width.
-  const tiles = ['ThanksArrivalTile.vue', 'ShowFriendsTile.vue', 'CardCircles.vue']
+  const tiles = ['ThanksArrivalTile.tsx', 'ShowFriendsTile.tsx', 'CardCircles.tsx']
 
   it.each(tiles)('%s leaves the sides of its root to the row', (file) => {
-    const template = live(source('components', 'Overview', file))
-    // The root's class, wherever it stands among the root's attributes (a `v-if` may come first).
-    const root = template.match(/<template>\s*<div\b[^>]*?\sclass="([^"]*)"/)
+    const render = live(source('components', 'Overview', file))
+    // The root is the first element the render function returns: its class is a plain string,
+    // or the plain classes beside the module's own (`class={['mb-3 …', classes['…']]}`).
+    const root = render.match(/<div\b[^>]*?\sclass=(?:'([^']*)'|\{\['([^']*)')/)
     expect(root).not.toBeNull()
-    const classes = root[1].split(/\s+/)
+    const classes = (root[1] ?? root[2]).split(/\s+/)
     expect(classes).toContain('py-3')
     expect(classes.filter((name) => /^(p|px|ps|pe)-\d$/.test(name))).toEqual([])
   })
@@ -201,7 +202,7 @@ describe('what the wider page changed around it', () => {
   it('puts the word under the icon in all three matching tabs on a phone', () => {
     // 24px more tab bar let "Zuhause" fit beside its icon at 375px while the other two words
     // still wrapped under theirs. On a phone all three go under, whatever the language.
-    const narrow = mediaBodies(styles(source('pages', 'Matching.vue')), '575.98px').join('\n')
+    const narrow = mediaBodies(live(source('pages', 'Matching.module.scss')), '575.98px').join('\n')
     expect(rule(narrow, '.matching-nav-label')).toContain('display: block')
   })
 })

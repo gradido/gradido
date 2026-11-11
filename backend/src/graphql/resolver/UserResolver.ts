@@ -22,9 +22,7 @@ import { SearchUsersResult, UserAdmin } from '@model/UserAdmin'
 import { UserContact } from '@model/UserContact'
 import { UserLocationResult } from '@model/UserLocationResult'
 import {
-  decodeJpegImage,
   ensureUrlEndsWithSlash,
-  reencodeJpegImage,
   sendAccountActivationEmail,
   sendResetPasswordEmail,
   validateAlias,
@@ -34,14 +32,13 @@ import {
 import {
   AccountState,
   ALIAS_ORIGIN_CHOSEN,
-  AppDatabase,
   ASSIGNABLE_ROLE_NAMES,
   aliasOriginIsSettled,
   CommunitiesSelect,
   DBNotFoundError,
   DbLoginUser,
-  User as DbUser,
   UserContact as DbUserContact,
+  User as DbUserLegacy,
   UserRole as DbUserRole,
   DrizzleTransaction,
   dbCountChosenAliasesSince,
@@ -58,11 +55,11 @@ import {
   dbFindProjectSpaceId,
   dbFindUserAvatarFull,
   dbFindUserAvatarSmall,
-  dbFindUserByEmailOrFail,
-  dbFindUserContactByCodeExceptChangeOrFail,
+  dbFindUserContactByCodeAndTypes,
   dbFindUserContactByCodeOrFail,
   dbFindUserLoginByEmail,
   dbFindUsers,
+  dbFindUserWithContactByEmail,
   dbInsertEvent,
   dbInsertUserAlias,
   dbMarkAliasAdopted,
@@ -70,6 +67,8 @@ import {
   dbReleaseUnconfirmedEmailChangeFor,
   dbSoftRemoveUser,
   dbUpsertUserAvatar,
+  dbUserContactUpdate,
+  dbUserContactUpdateField,
   dbUserUpdateField,
   dbUserUpdatePassword,
   drizzleDb,
@@ -88,10 +87,6 @@ import random from 'random-bigint'
 import {
   ALIAS_QUOTA_PER_WINDOW,
   ALIAS_QUOTA_WINDOW_MS,
-  AVATAR_FULL_MAX_BYTES,
-  AVATAR_FULL_MAX_SIDE,
-  AVATAR_SMALL_MAX_BYTES,
-  AVATAR_SMALL_MAX_SIDE,
   isUsableLocation,
   languageSchema,
   MEMBER_AVATARS_MAX_REFS,
@@ -100,6 +95,7 @@ import {
   passwordSchema,
   Result,
   USER_NOT_FOUND,
+  uint64StringSchema,
   updateAllDefinedAndChanged,
   XComRequestError,
 } from 'shared'
@@ -146,6 +142,7 @@ import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
+import { acceptAvatarRenditions } from './util/acceptAvatarRenditions'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
 import { resolveCommunityUuid } from './util/communities'
 import { compareGmsRelevantUserSettings } from './util/compareGmsRelevantUserSettings'
@@ -166,7 +163,6 @@ import {
   returnRestoredAccountToGms,
 } from './util/syncMatchingEntryToGms'
 
-const db = AppDatabase.getInstance()
 const createLogger = (method: string) =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserResolver.${method}`)
 
@@ -353,7 +349,7 @@ export class UserResolver {
 
     // One entity, read once, for the two things that still insist on one: the context
     // below and the login event. Needed only as long as those are on TypeORM.
-    const legacyUser = await DbUser.findOneOrFail({ where: { id: dbUser.id } })
+    const legacyUser = await DbUserLegacy.findOneOrFail({ where: { id: dbUser.id } })
     // Login runs on an inalienable right, so no authenticated caller exists while this
     // answer is serialised -- but the member HAS just proven who they are, and from here
     // on everything below is entitled to know it. Without this line the
@@ -459,20 +455,19 @@ export class UserResolver {
     logger.addContext('email', shortEmail)
     logger.info('forgotPassword...')
     email = email.trim().toLowerCase()
-    let user: DbUser
-    try {
-      user = await findUserByEmail(email)
-      logger.removeContext('email')
-      logger.addContext('user', user.id)
-    } catch (_e) {
-      logger.warn(`fail on find UserContact`)
+    // withDeleted: a deleted member is answered like an unknown one, but logged.
+    const user = await dbFindUserWithContactByEmail(email, true)
+    if (!user || user.deletedAt || user.emailContact.deletedAt) {
+      if (!user) {
+        logger.debug(`fail on find UserContact`)
+      } else {
+        logger.warn(`user ${user.id} or user contact ${user.emailId} was deleted`)
+      }
       return true
     }
+    logger.removeContext('email')
+    logger.addContext('user', user.id)
 
-    if (user.deletedAt) {
-      logger.warn(`user was deleted`)
-      return true
-    }
     if (!canEmailResend(user.emailContact.updatedAt || user.emailContact.createdAt)) {
       const diff = durationInMinutesFromDates(
         user.emailContact.updatedAt || user.emailContact.createdAt,
@@ -485,14 +480,16 @@ export class UserResolver {
         `Email already sent less than ${printTimeDuration(CONFIG.EMAIL_CODE_REQUEST_TIME)} ago`,
       )
     }
-
-    user.emailContact.updatedAt = new Date()
-    user.emailContact.emailResendCount++
-    user.emailContact.emailVerificationCode = random(64).toString()
-    user.emailContact.emailOptInTypeId = OptInType.EMAIL_OPT_IN_RESET_PASSWORD
-    await user.emailContact.save().catch(() => {
-      throw new LogError('Unable to save email verification code', user.emailContact.id)
+    const emailVerificationCode = random(64)
+    const affectedRows = await dbUserContactUpdate(user.emailContact.id, {
+      updatedAt: new Date(),
+      emailResendCount: (user.emailContact.emailResendCount ?? 0) + 1,
+      emailVerificationCode,
+      emailOptInTypeId: OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
     })
+    if (affectedRows !== 1) {
+      throw new LogError('Unable to save email verification code', user.emailContact.id)
+    }
 
     // ⛔ To the stored address, never to the one typed in. The lookup compares under
     // utf8mb4_unicode_ci, which ignores accents: "admin@gradidó.net" finds the account of
@@ -501,11 +498,11 @@ export class UserResolver {
     // emailSchema: the stored address is the salt of PasswordEncryptionType.EMAIL and
     // must stay findable as it is.
     await sendResetPasswordEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
       email: user.emailContact.email,
       language: user.language,
-      resetLink: activationLink(user.emailContact.emailVerificationCode, logger),
+      resetLink: activationLink(emailVerificationCode.toString(), logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -526,97 +523,132 @@ export class UserResolver {
     @Arg('password') password: string,
   ): Promise<boolean> {
     const logger = createLogger('setPassword')
-    logger.info(`setPassword...`)
     // Validate Password
     const validPassword = v.safeParse(passwordSchema, password)
     if (!validPassword.success) {
       throw new LogError(validPassword.issues[0].message)
     }
+    // validate code - before BigInt(), which would throw on it
+    const validCode = v.safeParse(uint64StringSchema, code)
+    if (!validCode.success) {
+      await fakeVerifyPassword()
+      throw new Error('Could not login with emailVerificationCode')
+    }
     // load code
     // A pending e-mail change carries a code of the same kind, but that code confirms an
     // address - it must not log anybody in. Its row is excluded here by its opt-in type.
-    const userContact = await dbFindUserContactByCodeExceptChangeOrFail(code).catch(() => {
-      // code wasn't in db, so we can write it into log without hesitation
-      logger.warn(`invalid emailVerificationCode=${code}`)
-      throw new Error('Could not login with emailVerificationCode')
-    })
-    // `UserContact.user` is the inverse of `users.email_id` and is empty for every row that
+    const userContact = await dbFindUserContactByCodeAndTypes(BigInt(validCode.output), [
+      OptInType.EMAIL_OPT_IN_REGISTER,
+      OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
+    ])
+    // `userContact.user` is joined over `users.email_id` and is empty for every row that
     // is not the member's current address. A row keeps its verification code when the
     // account moves on to another address, so an old "set your password" link can land here
     // pointing at an address the member gave up. It must not set a password - and it has to
     // read from outside exactly like a code we never had. The check stands BEFORE the window
     // check, which would otherwise be reached with a null user.
-    if (!userContact.user) {
-      logger.warn(`emailVerificationCode belongs to a former address, contact=${userContact.id}`)
+    if (!userContact || !userContact.user) {
+      // code wasn't in db, so we can write it into log without hesitation
+      if (!userContact) {
+        logger.debug(`invalid emailVerificationCode=${code}`)
+      } else {
+        logger.warn(`emailVerificationCode belongs to a former address, contact=${userContact.id}`)
+      }
+      // make code oracle harder
+      await fakeVerifyPassword()
       throw new Error('Could not login with emailVerificationCode')
     }
+
     logger.addContext('user', userContact.user.id)
-    logger.debug('userContact loaded...')
     // Code is only valid for `CONFIG.EMAIL_CODE_VALID_TIME` minutes
     if (!isEmailVerificationCodeValid(userContact.updatedAt || userContact.createdAt)) {
       throw new LogError(
         `Email was sent more than ${printTimeDuration(CONFIG.EMAIL_CODE_VALID_TIME)} ago`,
       )
     }
-    logger.debug('EmailVerificationCode is valid...')
 
-    // load user
     const user = userContact.user
-    logger.debug('user with EmailVerificationCode found...')
-
-    // Activate EMail
-    userContact.emailChecked = true
-    user.accountState = AccountState.ACTIVATED
 
     // Update Password
-    user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-    user.password = await encryptPassword(user, password)
-    logger.debug('User credentials updated ...')
-
-    const queryRunner = db.getDataSource().createQueryRunner()
-    await queryRunner.connect()
-    await queryRunner.startTransaction('REPEATABLE READ')
-
-    try {
-      // Save user
-      await queryRunner.manager.save(user).catch((error) => {
-        throw new LogError('Error saving user', error)
-      })
-      // Save userContact
-      await queryRunner.manager.save(userContact).catch((error) => {
-        throw new LogError('Error saving userContact', error)
-      })
-
-      await queryRunner.commitTransaction()
-      logger.info('User and UserContact data written successfully...')
-    } catch (e) {
-      await queryRunner.rollbackTransaction()
-      throw new LogError('Error on writing User and User Contact data', e)
-    } finally {
-      await queryRunner.release()
+    const passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+    const accountState = AccountState.ACTIVATED
+    const passwordHash = await encryptPassword(
+      { passwordEncryptionType, gradidoId: user.gradidoId },
+      password,
+    )
+    if (
+      passwordHash === user.password &&
+      user.passwordEncryptionType === passwordEncryptionType &&
+      user.accountState === accountState &&
+      userContact.emailChecked
+    ) {
+      logger.debug(
+        `user ${user.id} set same passwort again on activated account and activated contact`,
+      )
+      return false
     }
+    await drizzleDb().transaction(
+      async (tx) => {
+        if (
+          passwordHash !== user.password ||
+          user.passwordEncryptionType !== passwordEncryptionType ||
+          user.accountState !== accountState
+        ) {
+          const affectedRows = await dbUserUpdatePassword(
+            user.id,
+            passwordEncryptionType,
+            passwordHash,
+            accountState,
+            tx,
+          )
+          if (affectedRows !== 1) {
+            logger.error(`error updating password for user: ${user.id}`)
+            throw new Error('Error on updating')
+          }
+        }
+        // Activate EMail
+        if (!userContact.emailChecked) {
+          const affectedRows = await dbUserContactUpdateField(
+            userContact.id,
+            'emailChecked',
+            true,
+            tx,
+          )
+          if (affectedRows !== 1) {
+            logger.error(`error updating user contact ${userContact.id} to emailChecked = true`)
+            throw new Error('Error on updating')
+          }
+        }
+      },
+      { isolationLevel: 'repeatable read' },
+    )
+    logger.info('Password changed, account and contact is active')
 
-    // The address is confirmed from here on, and that stands whatever follows. An entry an
-    // event link noted at the registration is made now (Event-Matching) -- after the commit,
-    // because it is written through the other connection pool and must not be made for a
-    // confirmation that then fell through. It does not throw, and makes the entry once.
-    await makeEventMatchingEntry(user.id)
-
-    // Sign into Klicktipp
-    // TODO do we always signUp the user? How to handle things with old users?
-    if ((userContact.emailOptInTypeId as OptInType) === OptInType.EMAIL_OPT_IN_REGISTER) {
+    // After the commit: an entry an event link noted at the registration must not be made
+    // for a confirmation that then fell through, and a failing entry must not take the
+    // confirmation back. It does not throw, and makes the entry once.
+    // TODO do we always signUp the user to Klicktipp? How to handle things with old users?
+    if (userContact.emailOptInTypeId === OptInType.EMAIL_OPT_IN_REGISTER) {
+      await makeEventMatchingEntry(user.id)
       try {
-        await subscribe(userContact.email, user.language, user.firstName, user.lastName)
+        await subscribe(
+          userContact.email,
+          user.language,
+          user.firstName ?? undefined,
+          user.lastName ?? undefined,
+        )
         logger.debug('Success subscribe to klicktipp')
       } catch (e) {
         logger.error('Error subscribing to klicktipp', e)
       }
     }
-    await dbInsertEvent({
-      type: EventType.USER_ACTIVATE_ACCOUNT,
-      affectedUserId: user.id,
-      actingUserId: user.id,
-    })
+    if (user.accountState !== accountState) {
+      await dbInsertEvent({
+        type: EventType.USER_ACTIVATE_ACCOUNT,
+        affectedUserId: user.id,
+        actingUserId: user.id,
+      })
+    }
 
     return true
   }
@@ -797,6 +829,7 @@ export class UserResolver {
       updated = true
     }
 
+    let newPasswordHash: bigint | undefined
     if (password && passwordNew) {
       // Validate Password
       const validPassword = v.safeParse(passwordSchema, passwordNew)
@@ -811,10 +844,12 @@ export class UserResolver {
         throw new LogError(`Old password is invalid`)
       }
 
-      // Save new password hash and newly encrypted private key
+      // The scheme first: encryptPassword reads the salt rule off the entity it is handed.
       user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = await encryptPassword(user, passwordNew)
-      updated = true
+      newPasswordHash = await encryptPassword(user, passwordNew)
+      // Kept on the entity as well: the save below diffs it against the row, which already
+      // holds the new hash by then, and would otherwise write the old one back.
+      user.password = newPasswordHash
     }
 
     if (gmsLocation) {
@@ -867,19 +902,22 @@ export class UserResolver {
     }
 
     // early exit if no update was made
-    if (!updated && !aliasChanged) {
+    if (!updated && !aliasChanged && newPasswordHash === undefined) {
       return true
     }
 
     // Everything else is one row in one table and needs no transaction.
-    if (updated) {
-      try {
-        user = await DbUser.save(user)
-      } catch (err) {
-        const errorMessage = 'Error saving user'
-        logger.error(errorMessage, err)
-        throw new Error(errorMessage)
+    try {
+      if (newPasswordHash !== undefined) {
+        await dbUserUpdatePassword(user.id, PasswordEncryptionType.GRADIDO_ID, newPasswordHash)
       }
+      if (updated) {
+        user = await DbUserLegacy.save(user)
+      }
+    } catch (err) {
+      const errorMessage = 'Error saving user'
+      logger.error(errorMessage, err)
+      throw new Error(errorMessage)
     }
     logger.info('updateUserInfos() successfully finished...')
     logger.debug('writing User data successful...', new UserLoggingView(user))
@@ -962,8 +1000,8 @@ export class UserResolver {
    *
    * ⛔ Neither rendition is stored as it came. The small one goes to every member who sees
    * this one in a list or a chat, and to other communities that ask for it, so both are
-   * decoded and encoded again (acceptAvatar): what is stored was written by this server from
-   * pixels alone. Once in an HTTP request, counted before any of that work is done.
+   * decoded and encoded again (acceptAvatarRenditions): what is stored was written by this
+   * server from pixels alone. Once in an HTTP request, counted before any of that work is done.
    */
   @Authorized([RIGHTS.UPDATE_USER_INFOS])
   @Mutation(() => Boolean)
@@ -983,20 +1021,7 @@ export class UserResolver {
     const logger = createLogger('setUserAvatar')
     logger.addContext('user', user.id)
 
-    // One after the other, the cheap one first: where the small one is refused, no work is
-    // done on the full one.
-    const small = await this.acceptAvatar(
-      avatarSmall,
-      'small',
-      AVATAR_SMALL_MAX_BYTES,
-      AVATAR_SMALL_MAX_SIDE,
-    )
-    const full = await this.acceptAvatar(
-      avatarFull,
-      'full',
-      AVATAR_FULL_MAX_BYTES,
-      AVATAR_FULL_MAX_SIDE,
-    )
+    const { small, full } = await acceptAvatarRenditions(avatarSmall, avatarFull)
     logger.info(`setUserAvatar... ${small.length} + ${full.length} bytes`)
 
     const stored = await dbUpsertUserAvatar({
@@ -1014,51 +1039,6 @@ export class UserResolver {
   }
 
   /**
-   * One rendition as it is stored: checked, then decoded and encoded again within `maxBytes`
-   * and `maxSide` on each side. Named in the error so a member over budget learns WHICH
-   * picture was refused — with two of them in one request, "too large" on its own sends
-   * whoever reads it looking in the wrong place.
-   *
-   * The checks are decodeJpegImage and reencodeJpegImage in `core`, the ones the picture of a
-   * thank-you greeting goes through as well: one picture module, the seam at which Gradido 2
-   * is to move every kind of picture at once (E-041). The words stay the avatar's own.
-   */
-  private async acceptAvatar(
-    image: string,
-    which: string,
-    maxBytes: number,
-    maxSide: number,
-  ): Promise<Buffer> {
-    const decoded = decodeJpegImage(image, maxBytes)
-    if (!decoded.success) {
-      const { reason, bytes } = decoded.error
-      if (reason === 'EMPTY') {
-        throw new LogError(`Avatar image (${which}) is empty`)
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    const reencoded = await reencodeJpegImage(decoded.value, {
-      maxBytes,
-      maxSide,
-      maxPixels: maxSide * maxSide,
-    })
-    if (!reencoded.success) {
-      const { reason, bytes } = reencoded.error
-      if (reason === 'SIZE') {
-        throw new LogError(`Avatar image (${which}) has too many pixels`, { maxSide })
-      }
-      if (reason === 'TOO_LARGE') {
-        throw new LogError(`Avatar image (${which}) too large`, { bytes, max: maxBytes })
-      }
-      throw new LogError(`Avatar image (${which}) is not a JPEG`)
-    }
-    return reencoded.value.image
-  }
-
-  /**
    * The member's own full-size picture, on demand. Kept out of verifyLogin deliberately:
    * it is roughly ten times the everyday rendition and is wanted at two moments only —
    * printing the member card, and looking at one's own picture — so the common paths
@@ -1071,6 +1051,8 @@ export class UserResolver {
   @Authorized([RIGHTS.VERIFY_LOGIN])
   @Query(() => String, { nullable: true })
   async avatarFull(@Ctx() context: Context): Promise<string | null> {
+    // Its answer stays out of the request log (plugins.ts) -- counted before anything is read.
+    context.requestBudget.profilePicturesServed += 1
     const user = getUser(context)
     const avatar = await dbFindUserAvatarFull(user.id)
     return avatar.success ? avatar.value.toString('base64') : null
@@ -1106,6 +1088,8 @@ export class UserResolver {
     if (refs.length > MEMBER_AVATARS_MAX_REFS) {
       throw new LogError('Too many members requested at once', refs.length)
     }
+    // Its answer stays out of the request log (plugins.ts).
+    context.requestBudget.profilePicturesServed += 1
 
     const { home, foreign } = splitMemberRefsByCommunity(refs, await resolveCommunityUuid(null))
 
@@ -1447,8 +1431,8 @@ export class UserResolver {
       if (!(await dbFindProjectBrandingByAlias(project))) {
         throw new LogError(`project branding with alias: ${project} not found`)
       }
+      await dbUserUpdateField(dbUser.id, 'humhubAllowed', true)
       dbUser.humhubAllowed = true
-      await dbUser.save()
     }
     const humhubUserAccount = new HumhubAccount(dbUser)
     const autoLoginUrlPromise = humhubClient.createAutoLoginUrl(humhubUserAccount.username, project)
@@ -1557,7 +1541,7 @@ export class UserResolver {
     @Ctx()
     context: Context,
   ): Promise<string | null> {
-    const user = await DbUser.findOne({
+    const user = await DbUserLegacy.findOne({
       where: { id: userId },
       relations: ['userRole'],
     })
@@ -1596,7 +1580,7 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({ where: { id: userId } })
+    const user = await DbUserLegacy.findOne({ where: { id: userId } })
     // user exists ?
     if (!user) {
       throw new LogError('Could not find user with given ID', userId)
@@ -1617,7 +1601,7 @@ export class UserResolver {
       affectedUserId: user.id,
       actingUserId: moderator.id,
     })
-    const newUser = await DbUser.findOne({ where: { id: userId }, withDeleted: true })
+    const newUser = await DbUserLegacy.findOne({ where: { id: userId }, withDeleted: true })
     return newUser ? newUser.deletedAt : null
   }
 
@@ -1627,7 +1611,7 @@ export class UserResolver {
     @Arg('userId', () => Int) userId: number,
     @Ctx() context: Context,
   ): Promise<Date | null> {
-    const user = await DbUser.findOne({
+    const user = await DbUserLegacy.findOne({
       where: { id: userId },
       withDeleted: true,
       relations: ['emailContact'],
@@ -1662,24 +1646,34 @@ export class UserResolver {
   ): Promise<boolean> {
     const logger = createLogger('sendActivationEmail')
     email = email.trim().toLowerCase()
-    const user = await findUserByEmail(email)
-    logger.addContext('user', user.id)
-    logger.info('sendActivationEmail...')
-    if (user.deletedAt || user.emailContact.deletedAt) {
-      logger.warn('call for activation of deleted user')
-      throw new Error('User with given email contact is deleted')
+    const user = await dbFindUserWithContactByEmail(email, true)
+    if (!user || user.deletedAt || user.emailContact.deletedAt) {
+      if (!user) {
+        logger.warn(`user not found`)
+      } else {
+        logger.warn(`call for activation of deleted user with id: ${user.id}`)
+      }
+      throw new Error('No user with this credentials')
     }
-    user.emailContact.emailResendCount++
-    await user.emailContact.save()
+    logger.addContext('user', user.id)
+    // Before, a missing code went out as the link ".../null"; that mail could not activate anything.
+    if (!user.emailContact.emailVerificationCode) {
+      throw new LogError('Missing email verification code', user.emailContact.id)
+    }
+    await dbUserContactUpdateField(
+      user.emailContact.id,
+      'emailResendCount',
+      (user.emailContact.emailResendCount ?? 0) + 1,
+    )
 
     // ⛔ To the stored address, for the reason given in forgotPassword: the lookup ignores
     // accents, and the link in this mail sets the account's password.
     await sendAccountActivationEmail({
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
       email: user.emailContact.email,
       language: user.language,
-      activationLink: activationLink(user.emailContact.emailVerificationCode, logger),
+      activationLink: activationLink(user.emailContact.emailVerificationCode.toString(), logger),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
 
@@ -1715,7 +1709,7 @@ export class UserResolver {
   // FIELD RESOLVERS
   @FieldResolver(() => UserContact)
   async emailContact(
-    @Root() user: DbUser,
+    @Root() user: DbUserLegacy,
     @Ctx() context: Context,
     @Info() info: GraphQLResolveInfo,
   ): Promise<UserContact> {
@@ -1836,7 +1830,12 @@ export class UserResolver {
     if (!context.user || context.user.id !== user.id) {
       return null
     }
-    return user.avatar ?? null
+    const avatar = user.avatar ?? null
+    // An answer that carries it stays out of the request log (plugins.ts).
+    if (avatar) {
+      context.requestBudget.profilePicturesServed += 1
+    }
+    return avatar
   }
 
   /**
@@ -2049,21 +2048,6 @@ export class UserResolver {
       ? await getHomeCommunityDrizzle()
       : await getCommunityByUuid(user.communityUuid)
     return community?.name ?? null
-  }
-}
-
-export async function findUserByEmail(email: string): Promise<DbUser> {
-  try {
-    const dbUser = await dbFindUserByEmailOrFail(email)
-    return dbUser
-  } catch (e) {
-    const logger = createLogger('findUserByEmail')
-    if (e instanceof EntityNotFoundError || (e as Error).name === 'EntityNotFoundError') {
-      logger.warn(`findUserByEmail failed, user with email=${email} not found`)
-    } else {
-      logger.error(`findUserByEmail failed, unknown error: ${e}`)
-    }
-    throw new Error('No user with this credentials')
   }
 }
 

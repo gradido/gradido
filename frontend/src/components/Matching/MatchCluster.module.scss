@@ -1,0 +1,120 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the root class gives it back. */
+
+/* Like the detail window and the full list, the cluster overlay follows the wallet
+   theme — the semantic tokens flip on .dark-mode at #app/body — never the map look,
+   so it is a light or dark panel regardless of how the map underneath is tinted. It
+   stays translucent so the map reads through; 82% keeps the text legible over any
+   look, including a dark panel over a light map. */
+.cluster-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: var(--text);
+  animation: cluster-rise 0.34s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.cluster-cover :global(.cluster-close) {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(128 128 128 / 20%);
+  color: inherit;
+  cursor: pointer;
+}
+
+.cluster-cover :global(.cluster-head) {
+  margin: 2px 44px 12px 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cluster-cover :global(.cluster-rows) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cluster-cover :global(.cluster-row) {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 4px;
+  border: 0;
+  border-top: 1px solid rgb(128 128 128 / 24%);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cluster-cover :global(.cluster-dots) {
+  display: flex;
+  gap: 3px;
+  padding-top: 4px;
+}
+
+.cluster-cover :global(.cluster-dot) {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.cluster-cover :global(.cluster-body) {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cluster-cover :global(.cluster-name-row) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cluster-cover :global(.cluster-name) {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cluster-cover :global(.cluster-sep) {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentcolor;
+  opacity: 0.4;
+}
+
+.cluster-cover :global(.cluster-community) {
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+
+.cluster-cover :global(.cluster-line) {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+@keyframes cluster-rise {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

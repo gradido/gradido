@@ -61,7 +61,7 @@ async function seedUserRefByEmail(
   if (user) {
     return seedUserRefOf(user)
   }
-  const found = await dbFindUserByEmail(email)
+  const found = await dbFindUserByEmail(email, true)
   if (!found) {
     throw new Error(notFound)
   }

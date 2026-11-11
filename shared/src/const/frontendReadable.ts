@@ -27,6 +27,13 @@
 // holds its copy against this one.
 export const MEMBER_AVATARS_MAX_REFS = 100
 
+// How many people a member may keep a picture of (AS-024): the table must not grow without end,
+// and every list of the wallet carries all of them in the small rendition -- a hundred of those are
+// about 1.3 MB. Replacing a picture already kept is not counted against it. The wallet names the
+// number where a member reaches it (useKeptPictures.js); useKeptPictures.drift.spec.js holds its
+// copy against this one.
+export const KEPT_PICTURES_MAX_PER_MEMBER = 100
+
 // The emoji a member may react to a chat message with (migration 0158): the wallet's own choice
 // of forty-eight, row by row as the wallet shows them (frontend/src/utils/emojiChoice.js,
 // EMOJI_ROWS). The backend takes no other reaction (setChatMessageReaction): what one wallet

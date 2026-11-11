@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest'
-import GeoSearchField from './GeoSearchField.vue'
+import { GeoSearchField } from './GeoSearchField'
 
 const PFARRWEG = {
   lat: 49.2816472,

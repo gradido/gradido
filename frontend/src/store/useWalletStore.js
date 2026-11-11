@@ -10,6 +10,7 @@ import { clearPassOnDraft } from '../composables/usePassOnDraft'
 import { clearSendReturn } from '../composables/useSendReturn'
 import { closeAvatarZoom } from '../composables/useAvatarZoom'
 import { forgetAllMemberAvatars } from '../composables/useMemberAvatars'
+import { forgetKeptPictures } from '../composables/useKeptPictures'
 import { closeChatImageView, forgetAllChatImages } from '../composables/useChatImages'
 import { forgetAllGreetingPictures } from '../composables/useGreetingPictures'
 import { forgetAllTransactionPictures } from '../composables/useTransactionPictures'
@@ -368,6 +369,9 @@ export const useWalletStore = defineStore('wallet', {
       // the throw would take every following line of this action with it. Of the two, the
       // faces are the ones that must not survive a logout.
       forgetAllMemberAvatars()
+      // And the member's own pictures of their contacts (useKeptPictures, AS-023): the pictures in
+      // memory, and on the device whom they are of -- for the same reason.
+      forgetKeptPictures()
       // And the pictures of the chat's messages, for the same reason: they are kept in memory for
       // the session (useChatImages), and the next member to sign in on this browser must not be
       // handed the pictures of the conversations of the one before.

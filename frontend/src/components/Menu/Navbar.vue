@@ -188,7 +188,7 @@ import CONFIG from '@/config'
 import { inLogoFace } from '@/utils/logoFace'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
-import GradidoAddressCopy from '@/components/GradidoAddressCopy'
+import { GradidoAddressCopy } from '@/components/GradidoAddressCopy'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 // How many conversations hold something unread, from the chat's beat -- for the dot.
 import { chatUnreadConversations } from '@/composables/useChatUpdates'

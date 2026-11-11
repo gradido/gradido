@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import { walletStore } from '@test/walletStore'
@@ -15,9 +18,7 @@ import {
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
 import { SHOW_ME_ON_THE_MAP } from '@/utils/showMeOnTheMap'
-import EventMatchingHomeInvitation from './EventMatchingHomeInvitation.vue'
-import ownSource from './EventMatchingHomeInvitation.vue?raw'
-import matchingPageSource from '@/pages/Matching.vue?raw'
+import { EventMatchingHomeInvitation } from './EventMatchingHomeInvitation'
 
 // Mutable, so a case can switch matching off. `invitedOntoTheMap` reads the same module.
 const config = vi.hoisted(() => ({ MATCHING_ACTIVE: true }))
@@ -596,12 +597,10 @@ describe('EventMatchingHomeInvitation', () => {
 
   // The footer of the window behind "find on the map", rule for rule: the same two buttons.
   it('lays out its two buttons as the window behind "find on the map" does', () => {
-    // Every `.window-buttons` rule of a file's style block, the ones inside an @media with their
+    // Every `.window-buttons` rule of a stylesheet, the ones inside an @media with their
     // query -- comments out first, so an explanation that names a value cannot stand in for it.
-    const rules = (source) => {
-      const css = source
-        .slice(source.indexOf('<style scoped>') + '<style scoped>'.length)
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+    const rules = (sheet) => {
+      const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '')
       const squash = (s) => s.replace(/\s+/g, ' ').trim()
       const inMedia = [
         ...css.matchAll(/@media([^{]*)\{\s*([^{}]*\.window-buttons[^{]*)\{([^}]*)\}\s*\}/g),
@@ -615,11 +614,24 @@ describe('EventMatchingHomeInvitation', () => {
       )
       return [...plain, ...inMedia]
     }
-    const own = rules(ownSource)
+    // Both are CSS modules now, with `:global(` where the scoped blocks had `:deep(`. Read off
+    // the disk: under vitest `?raw` of a module stylesheet answers with the class map.
+    const here = dirname(fileURLToPath(import.meta.url))
+    const own = rules(
+      readFileSync(join(here, 'EventMatchingHomeInvitation.module.scss'), 'utf8').replaceAll(
+        ':global(',
+        ':deep(',
+      ),
+    )
 
     // The fixture proves itself: two rules outside, one inside the phone's @media.
     expect(own).toHaveLength(3)
     expect(own[2]).toMatch(/^@media \(width < 400px\)/)
-    expect(own).toEqual(rules(matchingPageSource))
+    // ⚠️ `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL` class.
+    const matchingPageStyle = readFileSync(
+      join(here, '..', 'pages', 'Matching.module.scss'),
+      'utf8',
+    )
+    expect(own).toEqual(rules(matchingPageStyle.replaceAll(':global(', ':deep(')))
   })
 })

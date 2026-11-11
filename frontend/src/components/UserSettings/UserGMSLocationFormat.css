@@ -1,0 +1,8 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The style block of UserGMSLocationFormat was not scoped: these two rules apply wherever the
+   component is on the page, as they did. */
+.user-gms-location-format > .dropdown,
+.user-gms-location-format > .dropdown > .dropdown-toggle > ul.dropdown-menu {
+  width: 100%;
+}

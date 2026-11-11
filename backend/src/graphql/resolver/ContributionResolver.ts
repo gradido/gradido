@@ -287,7 +287,8 @@ export class ContributionResolver {
       `adminCreateContribution(email=${email}, amount=${amount.toString(0)}, memo=${memo}, creationDate=${creationDate})`,
     )
     const clientTimezoneOffset = getClientTimezoneOffset(context)
-    const emailContact = await dbFindUserContactWithUserByEmail(email)
+    // withDeleted: a deleted member is told apart from an unknown address below.
+    const emailContact = await dbFindUserContactWithUserByEmail(email, true)
     if (!emailContact?.user) {
       throw new LogError('Could not find user', email)
     }

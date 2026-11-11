@@ -7,6 +7,14 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
+// jsdom applies no scoped styles, so a rule is read in the source, comments first: the comments
+// above the rules name their values too.
+const styleSource = () =>
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ContentFooter.vue'), 'utf8').replace(
+    /\/\*[\s\S]*?\*\//g,
+    '',
+  )
+
 describe('ContentFooter', () => {
   let wrapper
 
@@ -64,23 +72,45 @@ describe('ContentFooter', () => {
         const bar = wrapper.find('div.copyright .separator-start')
         expect(bar.exists()).toBe(true)
         expect(bar.element.nextElementSibling.tagName).toBe('WBR')
-        expect(bar.element.nextElementSibling.nextElementSibling).toBe(
+        const versionLine = bar.element.nextElementSibling.nextElementSibling
+        expect(versionLine.classList.contains('copyright-version')).toBe(true)
+        expect(versionLine.firstElementChild).toBe(
           wrapper.find('div.copyright').findAll('a').at(1).element,
         )
       })
 
       it('keeps the bar in the link colour it had as the version link border', () => {
-        // jsdom applies no scoped styles, so the rule is read in the source, comments first:
-        // the one above it names the colour too.
-        const source = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), 'ContentFooter.vue'),
-          'utf8',
-        ).replace(/\/\*[\s\S]*?\*\//g, '')
-        const rule = source.match(/\n\.copyright \.separator-start \{([^}]*)\}/)
+        const rule = styleSource().match(/\n\.copyright \.separator-start \{([^}]*)\}/)
         expect(rule, 'no rule for the bar').not.toBeNull()
         expect(rule[1]).toMatch(
           /color: rgba\(var\(--bs-link-color-rgb\), var\(--bs-link-opacity, 1\)\);/,
         )
+      })
+
+      // Bernd, 10.11.2026: on the phone the line broke inside the version, its number alone on
+      // the next line. Below the desktop layout (`lg`, 1025px) the version takes a line of its
+      // own and the bar goes; from 1025px on, one line with the bar as before. jsdom lays nothing
+      // out, so these hold the classes; what they do was measured in the built wallet.
+      it('stands the version on a line of its own below the desktop layout', () => {
+        const versionLine = wrapper.find('div.copyright .copyright-version')
+        expect(versionLine.classes()).toEqual(expect.arrayContaining(['d-block', 'd-lg-inline']))
+        expect(versionLine.find('a').attributes('href')).toBe(
+          `https://github.com/gradido/gradido/commit/${CONFIG.BUILD_COMMIT}`,
+        )
+      })
+
+      it('shows the bar only from the desktop layout on', () => {
+        expect(wrapper.find('div.copyright .separator-start').classes()).toEqual(
+          expect.arrayContaining(['d-none', 'd-lg-inline']),
+        )
+      })
+
+      it('spreads the version over two even lines where even its own line is too narrow', () => {
+        // A long translation on a narrow phone: its words on two lines of about the same length,
+        // rather than the number alone on the second one.
+        const rule = styleSource().match(/\n\.copyright-version \{([^}]*)\}/)
+        expect(rule, 'no rule for the version line').not.toBeNull()
+        expect(rule[1]).toMatch(/text-wrap: balance;/)
       })
 
       it('links to the login page when clicked on copyright', () => {

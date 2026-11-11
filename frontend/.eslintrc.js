@@ -128,6 +128,12 @@ module.exports = {
           '/firstCreation.checks./',
           '/firstCreation.checkHints./',
           '/firstCreation.categories./',
+          // Sentences with a slot in the middle, rendered from TSX through `I18nText`
+          // (src/components/I18nText.ts) as `keypath='…'`. The plugin's key collector reads
+          // `keypath` only on a template `<i18n-t>` and `t('…')` calls, never a JSX attribute,
+          // so every such key has to be named here.
+          'showFriends.mirror.title',
+          'thanksArrival.from',
           'error.empty-transactionlist',
           'error.no-transactionlist',
           'error.session-renewal-failed',

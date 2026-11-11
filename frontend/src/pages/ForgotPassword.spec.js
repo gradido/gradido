@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import ForgotPassword from './ForgotPassword.vue'
+import { ForgotPassword } from './ForgotPassword'
 import { BCol, BContainer, BForm, BRow } from 'bootstrap-vue-next'
 import { useForm } from 'vee-validate'
 import { useMutation } from '@vue/apollo-composable'
@@ -32,9 +32,10 @@ vi.mock('@/composables/useToast', () => ({
   })),
 }))
 
+// `meta` is a computed ref in vee-validate, and the page reads it through `.value`.
 vi.mock('vee-validate', () => ({
   useForm: vi.fn(() => ({
-    meta: { valid: true },
+    meta: { value: { valid: true } },
     values: { email: 'test@example.com' },
   })),
 }))
@@ -80,7 +81,7 @@ describe('ForgotPassword', () => {
 
   it('disables submit button when form is invalid', async () => {
     vi.mocked(useForm).mockReturnValue({
-      meta: { valid: false },
+      meta: { value: { valid: false } },
       values: { email: 'incorrect' },
     })
 
@@ -108,7 +109,7 @@ describe('ForgotPassword', () => {
 
   it('enables submit button when form is valid', async () => {
     vi.mocked(useForm).mockReturnValue({
-      meta: { valid: true },
+      meta: { value: { valid: true } },
       values: { email: 'correct@email.com' },
     })
 

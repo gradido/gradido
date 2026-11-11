@@ -1,0 +1,74 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute).
+
+   Variant D (Bernd, 20.09.2026): the face beside the news, at the size the contact window
+   shows it. Centred rather than top-aligned -- the circle is taller than the two lines of
+   text beside it, and aligned to the top it hangs below the date. */
+.show-friends-tile :global(.show-friends-mirror) {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+
+  /* The air under the block, which the date's own `my-3` used to provide before the two
+     moved into a column of their own. */
+  margin-bottom: 1rem;
+}
+
+/* ⛔ Below the LAYOUT's own switch (1025, `LG_BREAKPOINT_PX`), never Bootstrap's 992 --
+   the drift test rejects that number for exactly this reason.
+
+   Why more air here: from this width down the button stops being right-aligned and lies
+   full width directly under the block, so 16px reads as stuck to it. On the desk the
+   button stands off to the right and has horizontal air of its own, and 16px is right
+   there. (Bernd, 20.09.2026, at the mockup: "sonst klebt das so aneinander".) */
+@media (width <= 1024.98px) {
+  .show-friends-tile :global(.show-friends-mirror) {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.show-friends-tile :global(.show-friends-mirror-face) {
+  flex: 0 0 auto;
+}
+
+/* ⛔ `min-width: 0`: a user name may be twenty characters, and a flex item's default
+   minimum is its content. Without this the heading would push the row wider than the card
+   instead of wrapping inside it. */
+.show-friends-tile :global(.show-friends-mirror-text) {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* Close under the name: the date belongs to it. The air that matters is the one below the
+   whole block, not between its two lines. */
+.show-friends-tile :global(.show-friends-mirror-since) {
+  margin-top: 0.35rem;
+}
+
+/* ⛔ Looks like the tappable name everywhere else in the wallet -- link colour and an
+   underline -- for the reason `Name.vue` gives beside the same rule: the affordance is
+   what tells a member there is something behind it. `font: inherit` carries the heading's
+   own size and weight in, so the sentence reads as one sentence with one word in it that
+   can be tapped.
+
+   ⚠️ Inline, not `display: block` as in the booking row: here the name stands INSIDE a
+   sentence, and a block would push the words after it onto a line of their own. */
+.show-friends-tile :global(.show-friends-tile-name) {
+  display: inline;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  color: var(--bs-link-color, #0d6efd);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.show-friends-tile :global(.show-friends-tile-name:hover),
+.show-friends-tile :global(.show-friends-tile-name:focus-visible) {
+  color: var(--bs-link-hover-color, #0a58ca);
+}

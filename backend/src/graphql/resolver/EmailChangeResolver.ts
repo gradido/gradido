@@ -35,7 +35,7 @@ import {
   dbReleasePendingEmailChange,
   dbSaveUser,
   dbSaveUserContact,
-  dbUpdateUserPassword,
+  dbUserUpdatePassword,
   EventType,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -210,6 +210,7 @@ export class EmailChangeResolver {
     return toPending(pending, lastRequest?.createdAt ?? null)
   }
 
+  // TODO: Move all password changes into one function/interaction
   @Authorized([RIGHTS.MANAGE_OWN_EMAIL])
   @Mutation(() => PendingEmailChange)
   async requestEmailChange(
@@ -232,15 +233,16 @@ export class EmailChangeResolver {
     // every account that signed in since that type was retired, so this rarely fires -
     // but here is the one place that holds the plain password AND is about to change the
     // address, so here it is made certain.
-    if (
-      (user.passwordEncryptionType as PasswordEncryptionType) !== PasswordEncryptionType.GRADIDO_ID
-    ) {
-      user.passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
-      user.password = await encryptPassword(user, password)
+    if (user.passwordEncryptionType !== PasswordEncryptionType.GRADIDO_ID) {
+      const passwordEncryptionType = PasswordEncryptionType.GRADIDO_ID
+      const passwordHash = await encryptPassword(
+        { passwordEncryptionType, gradidoId: user.gradidoID },
+        password,
+      )
       // Exactly the two columns, NOT a full save: this entity is the request snapshot,
       // and `save()` diffs against the row as of NOW - it would write every stale column
       // back, `users.email_id` above all, undoing a confirm that landed in between.
-      await dbUpdateUserPassword(user.id, user.password, user.passwordEncryptionType)
+      await dbUserUpdatePassword(user.id, passwordEncryptionType, passwordHash)
       logger.info('re-keyed the password from the address to the gradido id')
     }
 

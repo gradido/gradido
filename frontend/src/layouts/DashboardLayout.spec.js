@@ -16,7 +16,7 @@ import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
 import FirstCreation from '@/components/FirstCreation.vue'
-import EventMatchingHomeInvitation from '@/components/EventMatchingHomeInvitation.vue'
+import { EventMatchingHomeInvitation } from '@/components/EventMatchingHomeInvitation'
 import CONFIG from '@/config'
 import { forgetWayBack, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
 
@@ -84,6 +84,8 @@ vi.mock('vue-i18n', () => ({
     d: (value) => value,
     n: (value) => value,
   }),
+  // ShowFriendsTile imports the component for its sentence with a slot in it.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 /**

@@ -1,0 +1,42 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block, flat and under the two classes the component writes on its
+   elements (UserLocationMap.spec.js reads them by selector). */
+.map-container {
+  height: 400px;
+  width: 100%;
+}
+
+/* The field rides the map, so it wears the map's chrome and not the wallet's theme: white
+   with a translucent rim and black marks, like the zoom buttons beside it, whichever theme
+   the wallet is in. It paints itself out of --surface and --border (GeoSearchField), and
+   both are inherited, so the lens, the field and its result list all follow. */
+.gk-search {
+  --surface: #fff;
+  --border: rgb(0 0 0 / 20%);
+
+  color: #212529;
+}
+
+/* The search field belongs in the map's control corner, and initMap moves it there —
+   the engine marks what it has taken with `gk-placed`. Until then the element is
+   still standing in the page flow under the map; and where no map is ever built, it
+   stays away. */
+.gk-search:not(:global(.gk-placed)) {
+  display: none;
+}
+
+/* MapLibre's zoom buttons, held to a touch measure - 30 px buttons in a 2 px rim, 34 px in
+   all - which is the measure the lens under them is built to (GeoSearchField). The big map
+   does the same. Behind `.map-container`, because MapLibre's own stylesheet arrives with the
+   engine, after this one, and would win a tie. */
+.map-container :global(.maplibregl-ctrl-group) {
+  border: 2px solid rgb(0 0 0 / 20%);
+  background-clip: padding-box;
+  box-shadow: none;
+}
+
+.map-container :global(.maplibregl-ctrl-group button) {
+  width: 30px;
+  height: 30px;
+}

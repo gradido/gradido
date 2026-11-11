@@ -1,0 +1,63 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it -- the build fails with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+.own-code-view :global(.own-code-head) {
+  padding: 4px 8px 0;
+}
+
+/* The layout's switch-over (LG_BREAKPOINT_PX), not Bootstrap's 992: from here on the
+   navbar and the page heading are on screen, and a second heading with a back arrow under
+   them would say the same thing twice. */
+@media (width >= 1025px) {
+  .own-code-view :global(.own-code-head) {
+    display: none;
+  }
+}
+
+.own-code-view :global(.own-code-back) {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.own-code-view :global(.own-code-back:hover) {
+  opacity: 1;
+}
+
+/* The size comes from `fs-5` in the markup -- the same class the pages give the sentence
+   under the code, so the two cannot drift apart. The side padding is the body's. */
+.own-code-view :global(.own-code-title) {
+  text-align: center;
+  padding: 0 8px 8px;
+}
+
+.own-code-view :global(.own-code-body) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 16px 32px;
+}
+
+/* White behind the code, always. A dark page would leave a scanner nothing to read, and
+   the surroundings are not this component's to guess. */
+.own-code-view :global(.own-code-picture) {
+  width: min(86vw, 380px);
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+}

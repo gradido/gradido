@@ -1,0 +1,22 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The pictures that are there, side by side above the frame, each named for whose it is. */
+.kept-picture-both {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 0 0 12px;
+}
+
+.kept-picture-one {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  max-width: 9rem;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--bs-secondary-color, #6c757d);
+}

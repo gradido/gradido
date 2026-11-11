@@ -1,0 +1,83 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the root class gives it back. */
+.geo-search {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+/* The lens takes the shape of the map controls it stands with - 34 square with a 2px
+   rim and a 4px radius, the touch measure both maps give their zoom buttons (MatchingMap,
+   UserLocationMap). Its colours are the field's (--surface, --border); the dark map
+   hands it other ones from outside (MatchingMap). */
+.geo-search :global(.gk-search-toggle) {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  background-clip: padding-box;
+  color: inherit;
+  cursor: pointer;
+}
+
+.geo-search :global(.search-box) {
+  position: relative;
+}
+
+.geo-search :global(.search-input) {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  min-width: 220px;
+}
+
+/* Beside the lens the field cannot take its width from the text: hold it to a size
+   that still leaves map under it on a phone. Ahead of the two plain rules above in
+   weight, so it has to stand after them. */
+.geo-search:global(.is-collapsible) :global(.search-box) {
+  width: 220px;
+  max-width: 60vw;
+}
+
+.geo-search:global(.is-collapsible) :global(.search-input) {
+  width: 100%;
+  min-width: 0;
+}
+
+.geo-search :global(.search-results) {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 18%);
+}
+
+.geo-search :global(.search-result) {
+  padding: 7px 9px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:global(.is-active) {
+    background: rgb(23 141 129 / 12%);
+  }
+}

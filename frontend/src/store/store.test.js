@@ -558,6 +558,18 @@ describe('Pinia store', () => {
         expect(forgetLegacyMapPrefsMock).toHaveBeenCalled()
       })
 
+      // The member's own pictures of their contacts (AS-023): whom they are of lies on the device
+      // until a sign-out, and not one moment longer -- the next member on this browser must not
+      // read it.
+      it('lets go of whom the member keeps a picture of', () => {
+        localStorage.setItem(
+          'gradido-kept-pictures',
+          JSON.stringify({ owner: 'user-one', keys: ['a/b'] }),
+        )
+        wallet.logout()
+        expect(localStorage.getItem('gradido-kept-pictures')).toBeNull()
+      })
+
       it('calls twenty-eight setters', () => {
         wallet.logout()
         expect(calls).toHaveLength(28)

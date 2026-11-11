@@ -70,7 +70,7 @@ describe('EmailOptinCodes', () => {
 
     describe('run time forward until code must be expired', () => {
       beforeAll(() => {
-        jest.useFakeTimers()
+        useFakeTimersForDrizzle()
         setTimeout(jest.fn(), CONFIG.EMAIL_CODE_VALID_TIME * 60 * 1000)
         jest.runAllTimers()
       })

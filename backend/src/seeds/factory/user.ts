@@ -11,12 +11,12 @@ import { encryptPassword } from '@/password/PasswordEncryptor'
 import { writeHomeCommunityEntry } from '@/seeds/community'
 import { UserInterface } from '@/seeds/users/UserInterface'
 
-const SEED_USER_PASSWORD = 'Aa12345_'
+export const SEED_USER_PASSWORD = 'Aa12345_'
 
 export const userFactory = async (_client: any, user: UserInterface): Promise<User> => {
   const dbUser = await userFactoryDb(user, await writeHomeCommunityEntry())
 
-  if (user.emailChecked) {
+  if (user.emailChecked || user.password) {
     const passwordHash = await encryptPassword(dbUser, SEED_USER_PASSWORD)
     await dbUserUpdatePassword(dbUser.id, PasswordEncryptionType.GRADIDO_ID, passwordHash)
     dbUser.password = passwordHash
@@ -27,7 +27,7 @@ export const userFactory = async (_client: any, user: UserInterface): Promise<Us
 /** userFactory as the row with its address, without the entity. */
 export const userFactoryDrizzle = async (user: UserInterface): Promise<DbUser> => {
   const dbUser = await userFactoryDrizzleDb(user, await writeHomeCommunityEntry())
-  if (user.emailChecked) {
+  if (user.emailChecked || user.password) {
     const password = await encryptPassword(dbUser, SEED_USER_PASSWORD)
     await dbUserUpdatePassword(dbUser.id, PasswordEncryptionType.GRADIDO_ID, password)
     return { ...dbUser, password }

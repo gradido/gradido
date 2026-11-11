@@ -20,8 +20,8 @@ const here = dirname(fileURLToPath(import.meta.url))
 const read = (path) => readFileSync(resolve(here, path), 'utf8')
 const LIGHT = read('./assets/scss/_design-tokens.scss')
 const DARK = read('./assets/scss/gradido-template-dark.scss')
-const LIST = read('./components/Matching/MatchList.vue')
-const MAP = read('./pages/MatchingMap.vue')
+const LIST = read('./components/Matching/MatchList.module.scss')
+const MAP = read('./pages/MatchingMap.css')
 
 // A token of a stylesheet, written out in six digits (`#fff` is the white surface).
 const full = (hex) =>
@@ -58,7 +58,7 @@ const underPointer = (ground) =>
   over(pointer.slice(1, 4).map(Number), Number(pointer[4]) / 100, ground)
 
 const contactRule = rule(LIST, '.list-section-contact')
-const darkRule = rule(LIST, '.dark-mode .list-section-contact')
+const darkRule = rule(LIST, ':global(.dark-mode) .list-section-contact')
 const ringGold = MAP.match(/\.gk-shown-ring \{[^}]*?border: 3px solid (#[0-9a-fA-F]{6});/)?.[1]
 
 describe("the gold of a shown contact in the find map's list", () => {

@@ -314,7 +314,9 @@ MODULES=(
   database
   backend
   frontend
-  admin
+  # the admin interface, served by nginx from admin-mithril/build (the Vue admin in admin/ is no
+  # longer deployed; admin-mithril still reads its GraphQL documents, locales and styles)
+  admin-mithril
   dht-node
   federation
 )
@@ -365,7 +367,8 @@ bun install --frozen-lockfile
 
 # build all modules
 log_step 'build all modules'
-bunx turbo build --env-mode=loose --concurrency=$(nproc)
+# without the Vue admin: admin-mithril is served in its place, and reads its sources, not its build
+bunx turbo build --env-mode=loose --concurrency=$(nproc) --filter='!admin'
 
 # build inspector and dlt-connector
 if [ "$DLT_ACTIVE" = true ]; then

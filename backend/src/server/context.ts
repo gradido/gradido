@@ -10,13 +10,15 @@ import { LogError } from './LogError'
  *
  * One HTTP request is one operation -- the server takes no POST that carries several -- and
  * the context function makes one context for it. What is left to count is the aliases: a
- * document may ask for the same field any number of times under other names.
+ * document may ask for the same field any number of times under other names. Only at the root:
+ * below it validationRules.ts rejects every alias, and it caps the root fields of an operation.
  */
 export interface RequestBudget {
   // Full-size member pictures, capped at MEMBER_AVATARS_FULL_MAX_PER_REQUEST.
   memberAvatarsFullServed: number
-  // The member's own picture taken in (setUserAvatar), capped at
-  // USER_AVATARS_ACCEPTED_MAX_PER_REQUEST: both renditions are decoded and encoded again.
+  // The member's own picture, or their own picture of a contact, taken in (setUserAvatar,
+  // setKeptPicture), capped together at USER_AVATARS_ACCEPTED_MAX_PER_REQUEST: both renditions
+  // are decoded and encoded again.
   userAvatarsAccepted: number
   // Other communities asked by memberAvatars, capped at MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
   memberAvatarsRelayed: number
@@ -66,6 +68,14 @@ export interface RequestBudget {
   // The moderation's remarks on members read or written (userRemark, setUserRemark), capped at
   // USER_REMARKS_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
   userRemarksServed: number
+  // A member's own pictures of their contacts read (keptPictures, keptPictureFull), capped at
+  // KEPT_PICTURES_MAX_PER_REQUEST; the list counts as KEPT_PICTURE_LIST_COUNTS. The answer of a
+  // request that read one stays out of the log.
+  keptPicturesServed: number
+  // Profile pictures handed out: the member's own (avatar, avatarFull) and those of other
+  // members (memberAvatars). Not a cap -- memberAvatars caps its members, memberAvatarFull counts
+  // in memberAvatarsFullServed. The answer of a request that was handed one stays out of the log.
+  profilePicturesServed: number
 }
 
 /** A budget with nothing spent. The context function creates one per HTTP request. */
@@ -88,6 +98,8 @@ export const newRequestBudget = (): RequestBudget => ({
   transactionReactionsSet: 0,
   userNotesServed: 0,
   userRemarksServed: 0,
+  keptPicturesServed: 0,
+  profilePicturesServed: 0,
 })
 
 export interface Context {

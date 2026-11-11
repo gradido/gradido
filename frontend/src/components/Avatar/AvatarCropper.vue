@@ -1,7 +1,23 @@
 <!-- AI-GENERATED — not an architecture reference -->
 <template>
-  <AppModal v-model="isOpen" :title="hasAvatar ? $t('avatar.change') : $t('avatar.set')">
+  <!-- ⛔ Two windows, one cropper. The member's own picture opens it as the wallet's own window
+       (AppModal) over the page, as it always did. A picture the member keeps of a contact
+       (`stacked`, AS-023) opens it over the contact window, and there it has to be a BModal: the
+       contact window's focus trap pulls the focus back out of anything outside it -- the file
+       picker's label, the slider -- and an Esc would close the contact window. A second BModal
+       is a second trap on the same stack, as the chat's large picture and its picture editor
+       are (ChatImageView). -->
+  <component
+    :is="stacked ? BModal : AppModal"
+    v-model="isOpen"
+    :title="windowTitle"
+    v-bind="stackedProps"
+  >
     <div v-if="!confirmRemove">
+      <p v-if="note" class="avatar-note" data-test="avatar-cropper-note">{{ note }}</p>
+      <!-- What is there now, while no new picture is chosen: the caller's to draw (the picture
+           kept of a contact and the contact's own, side by side). -->
+      <slot v-if="!hasPicture" name="pictures"></slot>
       <div
         ref="frame"
         class="avatar-frame"
@@ -57,13 +73,13 @@
            keeps the field focusable and lets the label do the opening, without script. -->
       <div class="avatar-actions">
         <input
-          id="avatar-source-file"
+          :id="fileId"
           type="file"
           accept="image/*"
           class="visually-hidden"
           @change="onFileChosen"
         />
-        <label class="btn btn-outline-success" for="avatar-source-file">
+        <label class="btn btn-outline-success" :for="fileId">
           {{ $t('avatar.choose-image') }}
         </label>
 
@@ -79,14 +95,14 @@
              wrapper were not there. -->
         <span class="avatar-camera">
           <input
-            id="avatar-source-camera"
+            :id="cameraId"
             type="file"
             accept="image/*"
             capture="user"
             class="visually-hidden"
             @change="onFileChosen"
           />
-          <label class="btn btn-outline-success" for="avatar-source-camera">
+          <label class="btn btn-outline-success" :for="cameraId">
             {{ $t('avatar.take-photo') }}
           </label>
         </span>
@@ -114,7 +130,7 @@
     </div>
 
     <div v-else class="avatar-remove-question">
-      <p>{{ $t('avatar.remove-question') }}</p>
+      <p>{{ removeQuestion || $t('avatar.remove-question') }}</p>
     </div>
 
     <template #footer>
@@ -125,7 +141,7 @@
       <template v-else>
         <!-- Remove sits apart from the button the member actually came to press. -->
         <BButton v-if="hasAvatar" variant="outline-danger" @click="confirmRemove = true">
-          {{ $t('avatar.remove') }}
+          {{ removeLabel || $t('avatar.remove') }}
         </BButton>
         <BButton @click="isOpen = false">{{ $t('form.cancel') }}</BButton>
         <BButton variant="success" :disabled="!cropped" @click="onSave">
@@ -133,14 +149,16 @@
         </BButton>
       </template>
     </template>
-  </AppModal>
+  </component>
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { BModal } from 'bootstrap-vue-next'
 import AppModal from '@/components/AppModal.vue'
 import { usePastedImage } from '@/composables/usePastedImage'
+import { pasteIsFor } from '@/utils/pastedImage'
 import {
   AVATAR_FULL_SIZE,
   AVATAR_FULL_TARGET_BYTES,
@@ -188,10 +206,45 @@ const WORKING_EDGE = previewSize
 const props = defineProps({
   modelValue: Boolean,
   hasAvatar: Boolean,
+  /** Over the contact window, as a BModal (see the template). The member's own picture: no. */
+  stacked: Boolean,
+  /** The window's title; the member's own picture says "set" or "change" without one. */
+  title: { type: String, default: '' },
+  /** A line under the title ("Nur Du siehst es."); none without one. */
+  note: { type: String, default: '' },
+  /** The question before removing; the member's own picture's without one. */
+  removeQuestion: { type: String, default: '' },
+  /** The remove button, where the window shows two pictures ("Mein Bild entfernen"). */
+  removeLabel: { type: String, default: '' },
 })
 const emits = defineEmits(['update:modelValue', 'saved', 'removed'])
 
 const { t } = useI18n()
+
+const windowTitle = computed(
+  () => props.title || (props.hasAvatar ? t('avatar.change') : t('avatar.set')),
+)
+
+/**
+ * What the BModal is told, over the contact window: a sheet on a phone like the window under it,
+ * and rendered only while it is open. `aria-modal` it does not set itself (ChatImageView).
+ */
+const stackedProps = computed(() =>
+  props.stacked
+    ? {
+        fullscreen: 'sm',
+        lazy: true,
+        'aria-modal': 'true',
+        'body-class': 'avatar-cropper-body',
+        'data-test': 'avatar-cropper-stacked',
+      }
+    : {},
+)
+
+// Its own ids, so the label opens this window's file field: two croppers can stand in the page
+// (the navbar's own picture, a contact's) and a label finds the first field of its id.
+const fileId = useId()
+const cameraId = useId()
 
 const isOpen = ref(props.modelValue)
 watch(
@@ -307,11 +360,20 @@ function onDrop(event) {
 
 /**
  * A picture pasted with Ctrl+V (Cmd+V) while the window is open: taken as a dropped one (Bernd,
- * 16.10.2026). Wherever the paste lands -- this window is the wallet's own (AppModal), which does
- * not take the keyboard: it stays on the page behind the window. Not while the window asks
- * whether to remove the picture. A paste that carries words is left alone (utils/pastedImage).
+ * 16.10.2026). Not while the window asks whether to remove the picture. A paste that carries
+ * words is left alone (utils/pastedImage).
+ *
+ * The member's own picture takes it wherever it lands: its window is the wallet's own
+ * (AppModal), which does not take the keyboard -- it stays on the page behind the window. Over
+ * the contact window (`stacked`) the BModal holds the keyboard, and the paste is this window's
+ * only while no other lies over it (`pasteIsFor`): the chat's compose bar under it leaves it
+ * alone for the same reason, and the enlarged face over it takes nothing.
  */
-usePastedImage(readFile, () => isOpen.value && !confirmRemove.value)
+usePastedImage(
+  readFile,
+  (event) =>
+    isOpen.value && !confirmRemove.value && (!props.stacked || pasteIsFor(event, frame.value)),
+)
 
 function loadImage(dataUrl, fileName) {
   const probe = new Image()
@@ -696,5 +758,11 @@ function onRemove() {
 
 .avatar-remove-question {
   text-align: center;
+}
+
+.avatar-note {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--text-muted, #6c757d);
 }
 </style>

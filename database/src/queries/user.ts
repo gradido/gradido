@@ -100,7 +100,7 @@ export async function dbFindUserLoginByEmail(
 ): Promise<Result<DbLoginUser, DBNotFoundError>> {
   const rows = await drizzleDb()
     .select({
-      user: usersTable,
+      ...getColumns(usersTable),
       role: userRolesTable,
       emailContact: userContactsTable,
       avatar: userAvatarsTable.avatarSmall,
@@ -119,10 +119,9 @@ export async function dbFindUserLoginByEmail(
   if (rows.length > 1) {
     throw new DBDuplicateEntryError('users by email_id', 'email', email)
   }
-  const item = rows[0]
   return {
     success: true,
-    value: { ...item.user, role: item.role, emailContact: item.emailContact, avatar: item.avatar },
+    value: rows[0],
   }
 }
 
@@ -139,34 +138,40 @@ export async function dbFindUserLoginByEmail(
  */
 export async function dbFindUserByEmail(
   email: Email,
+  withDeleted = false,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<UserSelect | null> {
   const rows = await tx
     .select({ ...getColumns(usersTable) })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
-    .where(eq(userContactsTable.email, email))
+    .where(
+      and(
+        eq(userContactsTable.email, email),
+        withDeleted
+          ? undefined
+          : and(isNull(usersTable.deletedAt), isNull(userContactsTable.deletedAt)),
+      ),
+    )
   return rows[0] ? rows[0] : null
 }
 
 export async function dbFindUserById(
   userId: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  withDeleted = false,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<UserSelect | null> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   const rows = await tx
     .select()
     .from(usersTable)
-    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
+    .where(and(eq(usersTable.id, userId), withDeleted ? undefined : isNull(usersTable.deletedAt)))
 
   return rows[0] ? rows[0] : null
 }
 
-/** dbFindUserWithContactById for a deleted member too, for whoever just wrote the row. */
-export async function dbSelectUserWithContactById(
+export async function dbFindUserWithContactById(
   userId: number,
+  withDeleted = false,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<DbUser | null> {
   const rows = await tx
@@ -176,13 +181,21 @@ export async function dbSelectUserWithContactById(
     })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
-    .where(eq(usersTable.id, userId))
+    .where(
+      and(
+        eq(usersTable.id, userId),
+        withDeleted
+          ? undefined
+          : and(isNull(usersTable.deletedAt), isNull(userContactsTable.deletedAt)),
+      ),
+    )
 
   return rows[0] ?? null
 }
 
-export async function dbFindUserWithContactById(
-  userId: number,
+export async function dbFindUserWithContactByEmail(
+  email: Email,
+  withDeleted = false,
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<DbUser | null> {
   const rows = await tx
@@ -192,7 +205,14 @@ export async function dbFindUserWithContactById(
     })
     .from(usersTable)
     .innerJoin(userContactsTable, eq(usersTable.emailId, userContactsTable.id))
-    .where(and(eq(usersTable.id, userId), isNull(usersTable.deletedAt)))
+    .where(
+      and(
+        eq(userContactsTable.email, email),
+        withDeleted
+          ? undefined
+          : and(isNull(usersTable.deletedAt), isNull(userContactsTable.deletedAt)),
+      ),
+    )
 
   return rows[0] ?? null
 }
@@ -263,8 +283,17 @@ export async function dbFindUserIdByUuids(
 export async function dbFindUserByGradidoId(
   gradidoId: Uuidv4,
   communityUuid?: Uuidv4,
+  withDeleted = false,
 ): Promise<Result<UserSelect, DBNotFoundError | DBDuplicateEntryError>> {
-  let rows = await drizzleDb().select().from(usersTable).where(eq(usersTable.gradidoId, gradidoId))
+  let rows = await drizzleDb()
+    .select()
+    .from(usersTable)
+    .where(
+      and(
+        eq(usersTable.gradidoId, gradidoId),
+        withDeleted ? undefined : isNull(usersTable.deletedAt),
+      ),
+    )
   if (rows.length === 1) {
     if (communityUuid && rows[0].communityUuid !== communityUuid) {
       return {
@@ -284,7 +313,13 @@ export async function dbFindUserByGradidoId(
     rows = await drizzleDb()
       .select()
       .from(usersTable)
-      .where(and(eq(usersTable.gradidoId, gradidoId), eq(usersTable.communityUuid, communityUuid)))
+      .where(
+        and(
+          eq(usersTable.gradidoId, gradidoId),
+          eq(usersTable.communityUuid, communityUuid),
+          withDeleted ? undefined : isNull(usersTable.deletedAt),
+        ),
+      )
     if (rows.length === 1) {
       return { success: true, value: rows[0] }
     } else {
@@ -298,28 +333,39 @@ export async function dbFindUserByGradidoId(
 export async function dbFindUserByAlias(
   alias: Alias,
   communityUuid: Uuidv4,
+  withDeleted = false,
 ): Promise<UserSelect | null> {
   const rows = await drizzleDb()
     .select()
     .from(usersTable)
-    .where(and(eq(usersTable.alias, alias), eq(usersTable.communityUuid, communityUuid)))
+    .where(
+      and(
+        eq(usersTable.alias, alias),
+        eq(usersTable.communityUuid, communityUuid),
+        withDeleted ? undefined : isNull(usersTable.deletedAt),
+      ),
+    )
   return rows[0] ?? null
 }
 
-// communityIdentifier as hint for filter especially on alias case or on gradido id duplicates
+// communityIdentifier as hint for filter especially on alias case or on gradido id duplicates.
+// A deleted member is not found on any of the three ways unless `withDeleted` - as the local
+// transfer never found one (TypeORM's findUserByIdentifier). The cross-community recipient side
+// answers such a member "Not Found", before anything is written.
 export async function dbFindUserByIdentifier(
   userIdentifier: UserIdentifier,
   communityUuid: Uuidv4,
+  withDeleted = false,
 ): Promise<UserSelect | null> {
   // fast path on gradido id, I assume that nearly no collision will occur, even with ignoring community identifier
   if (v.safeParse(uuidv4Schema, userIdentifier).success) {
-    const findUserResult = await dbFindUserByGradidoId(userIdentifier, communityUuid)
+    const findUserResult = await dbFindUserByGradidoId(userIdentifier, communityUuid, withDeleted)
     return findUserResult.success ? findUserResult.value : null
     // emails are unique and currently only stored for our own users, so we don't need to check the community identifier here either
   } else if (v.safeParse(emailSchema, userIdentifier).success) {
-    return dbFindUserByEmail(userIdentifier)
+    return dbFindUserByEmail(userIdentifier, withDeleted)
   } else {
-    return dbFindUserByAlias(v.parse(aliasSchema, userIdentifier), communityUuid)
+    return dbFindUserByAlias(v.parse(aliasSchema, userIdentifier), communityUuid, withDeleted)
   }
 }
 
@@ -610,11 +656,8 @@ export async function dbUpdateUserFirstCreationStatus(
 export async function aliasExists(
   alias: string,
   userId?: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<boolean> {
-  if (!tx) {
-    tx = drizzleDb()
-  }
   // Only local users count. Aliases are unique per community, not globally: migration
   // 0073 dropped the global UNIQUE on users.alias in favour of UNIQUE(alias, community_uuid).
   // Rows with foreign = 1 are cached copies of members of other communities, so an alias
@@ -845,18 +888,25 @@ export async function dbMarkUsersGmsRegistered(userIds: number[]): Promise<void>
  * EMAIL scheme and has just verified the password, so it can rewrite it under
  * GRADIDO_ID -- which is why the salt must not change under a hash already written.
  *
- * No `deleted_at` condition and no report of what was matched: the caller has the row in
- * hand, having just read and checked it.
+ * `accountState` goes along where setting the password is what activates the account
+ * (setPassword); left out, the column stays as it is. Pass `tx` where the write has to land
+ * together with others.
+ *
+ * No `deleted_at` condition: the caller has the row in hand, having just read and checked
+ * it. Returns the number of rows matched.
  */
 export async function dbUserUpdatePassword(
   userId: number,
   passwordEncryptionType: PasswordEncryptionType,
   password: bigint,
-): Promise<void> {
-  await drizzleDb()
+  accountState?: AccountState,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx
     .update(usersTable)
-    .set({ password, passwordEncryptionType })
+    .set({ password, passwordEncryptionType, accountState })
     .where(eq(usersTable.id, userId))
+  return rows[0] ? rows[0].affectedRows : 0
 }
 
 /**
@@ -899,15 +949,21 @@ export async function dbUserUpdateField<K extends UserSingleColumn>(
   return rows[0] ? rows[0].affectedRows : 0
 }
 
+export async function dbUserUpdateFields(
+  userId: number,
+  values: Partial<UserInsert>,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<number> {
+  const rows = await tx.update(usersTable).set(values).where(eq(usersTable.id, userId))
+  return rows[0] ? rows[0].affectedRows : 0
+}
+
 // Not a soft delete, really remove the user and his user contact from db, used in RegisterUser if something after creating user failed
 export async function dbRemoveUser(
   userId: number,
-  tx?: DrizzleTransaction | MySql2Database,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number> {
   if (userId) {
-    if (!tx) {
-      tx = drizzleDb()
-    }
     const rows = await tx.delete(usersTable).where(eq(usersTable.id, userId))
     return rows[0] ? rows[0].affectedRows : 0
   }

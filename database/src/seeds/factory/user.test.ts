@@ -164,15 +164,31 @@ describe('userFactory', () => {
     ])
   })
 
-  it('hands back the entity with the address and the community', async () => {
-    const user = await userFactory(anna)
-
+  it('userFactoryDrizzle hands back the row with the address, in the home community', async () => {
+    const user = await userFactoryDrizzle(anna)
     expect(user.emailContact.email).toBe('anna@seed.de')
-    expect(user.community?.communityUuid).toBe(homeCommunity.communityUuid)
     expect(user.communityUuid).toBe(homeCommunity.communityUuid)
     expect(user.accountState).toBe(AccountState.ACTIVATED)
-    expect(user.userRole).toBeUndefined()
-    await user.save()
+  })
+
+  // A guest a member vouched for (EM-013): a password, an unconfirmed address, a referrer.
+  it('takes the state, the referrer and a password without a confirmed address', async () => {
+    const referrer = await userFactoryDrizzle(anna)
+    const guest = await userFactoryDrizzle({
+      alias: 'SeedGuest',
+      email: 'guest@seed.de',
+      firstName: 'Gast',
+      lastName: 'G',
+      emailChecked: false,
+      password: true,
+      accountState: AccountState.PARTLY_ACTIVATED_GUARANTOR,
+      referrerId: referrer.id,
+    })
+
+    expect(guest.emailContact.emailChecked).toBe(false)
+    expect(guest.passwordEncryptionType).toBe(PasswordEncryptionType.GRADIDO_ID)
+    expect(guest.accountState).toBe(AccountState.PARTLY_ACTIVATED_GUARANTOR)
+    expect(guest.referrerId).toBe(referrer.id)
   })
 
   it('hands back the role of an admin, and of nobody else', async () => {
