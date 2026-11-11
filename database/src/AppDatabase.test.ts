@@ -9,7 +9,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 // A message from another process: published on Redis directly, so it carries no sender of
 // this process and is not delivered locally
 const publishFromElsewhere = (channel: string, message: string) =>
-  db.getRedisClient().publish(channel, message)
+  db.getRedisClient().publish(db.redisChannel(channel), message)
 
 describe('AppDatabase pub/sub', () => {
   beforeAll(async () => {

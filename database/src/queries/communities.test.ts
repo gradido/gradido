@@ -185,7 +185,9 @@ describe('community.queries', () => {
         .where(eq(communitiesTable.id, homeCom.id))
       expect((await getHomeCommunityDrizzle()).name).toBe('HomeCommunity-name')
 
-      await AppDatabase.getInstance().getRedisClient().publish(HOME_COMMUNITY_CHANGED_CHANNEL, '')
+      await AppDatabase.getInstance()
+        .getRedisClient()
+        .publish(AppDatabase.getInstance().redisChannel(HOME_COMMUNITY_CHANGED_CHANNEL), '')
       // the message of another process arrives asynchronously
       for (let attempt = 0; attempt < 50; attempt++) {
         if ((await getHomeCommunityDrizzle()).name === 'changed elsewhere') {

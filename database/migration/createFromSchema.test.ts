@@ -64,12 +64,14 @@ describe('up on an empty database', () => {
   const databaseDir = path.join(__dirname, '..')
   const fromMigrations = `${CONFIG.DB_DATABASE}_from_migrations`
   const fromSchema = `${CONFIG.DB_DATABASE}_from_schema`
+  // `up` puts DB_DATABASE_PREFIX in front itself: it is handed the name without it
+  const prefix = process.env.DB_DATABASE_PREFIX ?? ''
   let connection: Connection
 
   function up(database: string, ...flags: string[]): string {
     const result = spawnSync(process.execPath, ['run', 'up', ...flags], {
       cwd: databaseDir,
-      env: { ...process.env, DB_DATABASE: database },
+      env: { ...process.env, DB_DATABASE: database.slice(prefix.length) },
       encoding: 'utf8',
     })
     if (result.status !== 0) {

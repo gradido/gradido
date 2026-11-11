@@ -1,5 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 // Every test runs against the old admin first: there it describes how the admin behaves today.
 // It runs against the Mithril admin once its page is ported, and then has to pass there too.
@@ -26,9 +29,10 @@ const PORTED_TO_MITHRIL: string[] = [
   'chatSettings.spec.ts',
 ]
 
-// Ports of their own, so that a dev server on 8080 is neither reused nor in the way.
-const OLD_PORT = 18080
-const NEW_PORT = 18081
+// Ports of their own, so that a dev server on 8080 is neither reused nor in the way. From the
+// environment or .env where several checkouts run their tests on one machine.
+const OLD_PORT = Number(process.env.PLAYWRIGHT_OLD_PORT ?? 18080)
+const NEW_PORT = Number(process.env.PLAYWRIGHT_NEW_PORT ?? 18081)
 
 // The GraphQL endpoint on the app's own origin: page.route answers it (tests/fixtures/graphql.ts),
 // and a request to the own origin needs no CORS preflight. The wallet stays on another origin

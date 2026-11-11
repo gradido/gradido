@@ -17,7 +17,9 @@ const database = {
   DB_PORT: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT) : 3306,
   DB_USER: process.env.DB_USER ?? 'root',
   DB_PASSWORD: process.env.DB_PASSWORD ?? '',
-  DB_DATABASE: process.env.DB_DATABASE ?? 'gradido_community',
+  // The prefix is put in front of every database name, also of the ones the test scripts set
+  // on the command line: it gives each checkout on one machine databases of its own.
+  DB_DATABASE: `${process.env.DB_DATABASE_PREFIX ?? ''}${process.env.DB_DATABASE ?? 'gradido_community'}`,
   TYPEORM_LOGGING_RELATIVE_PATH:
     process.env.TYPEORM_LOGGING_RELATIVE_PATH ?? 'typeorm.database.log',
   TYPEORM_LOGGING_ACTIVE: process.env.TYPEORM_LOGGING_ACTIVE === 'true' || false,

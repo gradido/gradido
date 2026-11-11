@@ -29,6 +29,10 @@ export class AppDatabase {
   // Marks the messages this process publishes: they reach its own handlers right away,
   // so the copy coming back from Redis is dropped.
   private readonly pubSubSender = randomUUID()
+  // In front of every key and channel in Redis: the name of the database. Processes share
+  // locks and messages exactly when they share the database -- and not with another
+  // checkout, a test run or another program on the same Redis.
+  private readonly redisPrefix = `${CONFIG.DB_DATABASE}:`
   private defaultBatchSize: number = 100
 
   /**
@@ -128,13 +132,15 @@ export class AppDatabase {
     }
 
     if (redis) {
-      this.redisClient = new Redis(CONFIG.REDIS_URL)
+      // keyPrefix covers the keys, also those of redis-semaphore. Not the channels: those
+      // get the prefix in redisChannel().
+      this.redisClient = new Redis(CONFIG.REDIS_URL, { keyPrefix: this.redisPrefix })
       logger.info('Redis status=', this.redisClient.status)
       this.redisSubscriber = this.redisClient.duplicate()
-      this.redisSubscriber.on('message', (channel: string, raw: string) => {
+      this.redisSubscriber.on('message', (redisChannel: string, raw: string) => {
         const { sender, message } = parsePubSubMessage(raw)
         if (sender !== this.pubSubSender) {
-          this.deliver(channel, message)
+          this.deliver(redisChannel.slice(this.redisPrefix.length), message)
         }
       })
     }
@@ -217,6 +223,14 @@ export class AppDatabase {
   }
 
   /**
+   * The name channel has in Redis. For whoever publishes past publish(), e.g. a test playing
+   * another process.
+   */
+  public redisChannel(channel: string): string {
+    return this.redisPrefix + channel
+  }
+
+  /**
    * Calls handler for every message published on channel, by any process, until destroy().
    * Subscribing the same handler to the same channel again changes nothing.
    *
@@ -240,7 +254,9 @@ export class AppDatabase {
       return existing
     }
     // while Redis is unreachable ioredis queues the command, so this may take a while
-    const subscription = this.redisSubscriber.subscribe(channel).then(() => undefined)
+    const subscription = this.redisSubscriber
+      .subscribe(this.redisChannel(channel))
+      .then(() => undefined)
     this.channelSubscriptions.set(channel, subscription)
     subscription.catch((error) => {
       logger.error(`Redis subscribe to channel ${channel} failed:`, error)
@@ -265,7 +281,7 @@ export class AppDatabase {
       return
     }
     this.redisClient
-      .publish(channel, JSON.stringify({ sender: this.pubSubSender, message }))
+      .publish(this.redisChannel(channel), JSON.stringify({ sender: this.pubSubSender, message }))
       .catch((error) => logger.error(`Redis publish on channel ${channel} failed:`, error))
   }
 

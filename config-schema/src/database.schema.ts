@@ -93,6 +93,16 @@ export const DatabaseConfigSchema = v.pipe(
       ),
     ),
 
+    DB_DATABASE_PREFIX: v.optional(
+      v.pipe(
+        v.string(),
+        v.regex(/^([a-zA-Z][a-zA-Z0-9_]{0,31})?$/),
+        v.description(
+          'Prefix put in front of DB_DATABASE, like worktree_ (empty or unset: none). Gives each checkout on a development machine its own databases, test databases included',
+        ),
+      ),
+    ),
+
     DB_DATABASE: v.optional(
       v.pipe(
         nonEmptyStringSchema,
