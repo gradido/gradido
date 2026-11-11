@@ -736,7 +736,7 @@
   },
   "followUs": "следуйте за нами:",
   "footer": {
-    "app_version": "Версия приложения (App -СОМР.) {version}",
+    "app_version": "Версия приложения {version}",
     "copyright": {
       "link": "Академия Gradido",
       "year": "© {year}"
