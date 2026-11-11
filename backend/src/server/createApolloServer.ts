@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm'
 import { schema } from '@/graphql/schema'
 import { Context } from './context'
 import { plugins } from './plugins'
+import { validationRules } from './validationRules'
 
 export interface ApolloServerDef {
   apollo: ApolloServer<Context>
@@ -36,6 +37,7 @@ export async function createApolloServer(
     // No client sends a hash in place of the query, and the plugin's handler requires `query`
     // anyway.
     persistedQueries: false,
+    validationRules,
   })
 
   return { apollo, con: db.getDataSource(), db }
