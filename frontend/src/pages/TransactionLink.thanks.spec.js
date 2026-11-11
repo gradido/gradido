@@ -44,10 +44,10 @@ import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.v
  */
 const apollo = vi.hoisted(() => ({
   answer: null,
+  queryVariables: null,
   communities: [],
   redeem: null,
   disburse: null,
-  createRedeemJwt: null,
   createUser: null,
   login: null,
   updateUserInfos: null,
@@ -64,16 +64,10 @@ vi.mock('@vue/apollo-composable', async () => {
   const { ref } = await import('vue')
   const { queryTransactionLink } = await import('@/graphql/queries')
   const { reachableCommunities } = await import('@/graphql/communities.graphql')
-  const {
-    redeemTransactionLink,
-    disburseTransactionLink,
-    createRedeemJwtMutation,
-    createUser,
-    login,
-    updateUserInfos,
-  } = await import('@/graphql/mutations')
+  const { redeemTransactionLink, disburseTransactionLink, createUser, login, updateUserInfos } =
+    await import('@/graphql/mutations')
   return {
-    useQuery: (document) => {
+    useQuery: (document, variables) => {
       if (document === reachableCommunities) {
         return {
           onResult: (run) => {
@@ -84,6 +78,7 @@ vi.mock('@vue/apollo-composable', async () => {
         }
       }
       if (document !== queryTransactionLink) throw new Error('a query this test does not know')
+      apollo.queryVariables = variables
       return {
         result: ref(apollo.answer ? { queryTransactionLink: apollo.answer } : null),
         onResult: (run) => run(),
@@ -95,9 +90,6 @@ vi.mock('@vue/apollo-composable', async () => {
       if (document === redeemTransactionLink) return { mutate: (...args) => apollo.redeem(...args) }
       if (document === disburseTransactionLink) {
         return { mutate: (...args) => apollo.disburse(...args) }
-      }
-      if (document === createRedeemJwtMutation) {
-        return { mutate: (...args) => apollo.createRedeemJwt(...args) }
       }
       if (document === createUser) return { mutate: (...args) => apollo.createUser(...args) }
       if (document === login) return { mutate: (...args) => apollo.login(...args) }
@@ -191,18 +183,25 @@ const contributionLink = (overrides = {}) => ({
   ...overrides,
 })
 
+// A link of another community, as this community's server hands on what that one answered.
 const linkFromElsewhere = (overrides = {}) => ({
-  __typename: 'RedeemJwtLink',
+  __typename: 'ForeignTransactionLink',
   amount: '20',
   memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
-  code: 'jwt.from.elsewhere',
+  code: CODE,
+  createdAt: '2099-06-28T09:30:00.000Z',
   validUntil: '2099-07-12T09:30:00.000Z',
+  redeemedAt: null,
+  deletedAt: null,
   senderCommunity: ELSEWHERE,
   senderUser: { __typename: 'User', gradidoID: SENDER, alias: 'Oma-Emma' },
-  recipientCommunity: HOME,
-  recipientUser: null,
+  greeting: null,
+  senderAvatar: null,
+  picture: null,
   ...overrides,
 })
+// The address the switch of the other community's page sends the browser to.
+const FROM_ELSEWHERE = { query: { codeCommunityUuid: ELSEWHERE.uuid } }
 
 // What the form is sent with, and the member the server signs in for it.
 const PASSWORD = 'Aa12345_'
@@ -232,13 +231,7 @@ const offline = () =>
     networkError: new TypeError('Failed to fetch'),
   })
 
-const OLD_BLOCKS = [
-  'RedeemLoggedOut',
-  'RedeemSelectCommunity',
-  'RedeemSelfCreator',
-  'RedeemValid',
-  'RedeemedTextBox',
-]
+const OLD_BLOCKS = ['RedeemLoggedOut', 'RedeemedTextBox']
 
 const signedOut = { token: null, tokenTime: null, gradidoID: null, firstName: null, alias: null }
 
@@ -285,7 +278,7 @@ const shell = { template: '<router-view />' }
 const elsewhere = (name) => ({ template: `<div data-test="page-${name}" />` })
 
 /** The page, reached the way it is reached: under its route, inside a router-view. */
-const open = async (answer, { session = signedOut, code = CODE } = {}) => {
+const open = async (answer, { session = signedOut, code = CODE, query = {} } = {}) => {
   apollo.answer = answer
   const router = createRouter({
     history: createMemoryHistory(),
@@ -298,7 +291,7 @@ const open = async (answer, { session = signedOut, code = CODE } = {}) => {
       { path: '/contacts', component: elsewhere('contacts') },
     ],
   })
-  await router.push(`/redeem/${code}`)
+  await router.push({ path: `/redeem/${code}`, query })
   await router.isReady()
   const pinia = newStore(session)
   const wrapper = mount(shell, {
@@ -385,7 +378,6 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
     apollo.communities = [HOME, ELSEWHERE]
     apollo.redeem = vi.fn().mockResolvedValue({ data: { redeemTransactionLink: true } })
     apollo.disburse = vi.fn().mockResolvedValue({ data: { disburseTransactionLink: true } })
-    apollo.createRedeemJwt = vi.fn().mockResolvedValue({ data: { createRedeemJwt: 'signed.jwt' } })
     apollo.createUser = vi.fn().mockResolvedValue({ data: { createUser: { id: 1 } } })
     apollo.login = vi.fn().mockResolvedValue({ data: { login: NEW_MEMBER } })
     apollo.updateUserInfos = vi.fn().mockResolvedValue({ data: { updateUserInfos: true } })
@@ -428,25 +420,25 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       expect(oldBlocks(wrapper)).toEqual(['RedeemLoggedOut'])
     })
 
-    it('gives a link from another community the page it had', async () => {
-      const { wrapper } = await open(linkFromElsewhere(), { code: 'jwt.from.elsewhere' })
+    it('gives a link from another community the thank-you as well, asked for there', async () => {
+      const { wrapper } = await open(linkFromElsewhere(), FROM_ELSEWHERE)
 
-      expect(thanks(wrapper).exists()).toBe(false)
-      expect(oldBlocks(wrapper)).toEqual(['RedeemLoggedOut'])
+      expect(thanks(wrapper).exists()).toBe(true)
+      expect(oldBlocks(wrapper)).toEqual([])
+      expect(apollo.queryVariables).toEqual({ code: CODE, codeCommunityUuid: ELSEWHERE.uuid })
     })
 
-    // Where redeeming across communities is switched on, the two other kinds still open with
-    // the choice of community -- only the member's link has moved it.
-    it('keeps the choice of community on the page of the two other kinds', async () => {
+    // Where redeeming across communities is switched on, only a member's link of this
+    // community asks where the account is: a contribution link is this community's own, and
+    // whoever came from another community has named theirs already.
+    it('asks no community for a contribution link, nor for a link from another community', async () => {
       CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE = true
 
       const contribution = await open(contributionLink(), { code: 'CL-abc123' })
-      expect(thanks(contribution.wrapper).exists()).toBe(false)
-      expect(oldBlocks(contribution.wrapper)).toEqual(['RedeemSelectCommunity'])
+      expect(oldBlocks(contribution.wrapper)).toEqual(['RedeemLoggedOut'])
 
-      const border = await open(linkFromElsewhere(), { code: 'jwt.from.elsewhere' })
-      expect(thanks(border.wrapper).exists()).toBe(false)
-      expect(oldBlocks(border.wrapper)).toEqual(['RedeemSelectCommunity'])
+      const border = await open(linkFromElsewhere(), FROM_ELSEWHERE)
+      expect(thanks(border.wrapper).props('state')).toBe('LOGGED_OUT')
     })
 
     it('shows nothing of either before the link is there', async () => {
@@ -718,9 +710,7 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
   // ZE-020, F13: where redeeming across communities is switched on, the choice of community
   // stands behind "I already have an account" -- and goes the way the old page went.
   describe('a guest whose account is in another community', () => {
-    it('is taken there with a token for the code of the address', async () => {
-      const place = { href: `https://ki-playground.gradido.net/redeem/${CODE}` }
-      vi.stubGlobal('location', place)
+    it('is led there with the code of the address and the link’s community', async () => {
       CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE = true
       const { wrapper } = await open(memberLink({ communities: [HOME, ELSEWHERE] }))
 
@@ -731,19 +721,10 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         .find((entry) => entry.text() === 'Gradido Wien')
         .trigger('click')
       await flushPromises()
-      await wrapper.find('[data-test="redeem-thanks-forward"]').trigger('click')
-      await flushPromises()
 
-      expect(apollo.createRedeemJwt).toHaveBeenCalledTimes(1)
-      expect(apollo.createRedeemJwt).toHaveBeenCalledWith(
-        expect.objectContaining({
-          code: CODE,
-          gradidoId: SENDER,
-          senderCommunityUuid: HOME.uuid,
-          recipientCommunityUuid: ELSEWHERE.uuid,
-        }),
+      expect(wrapper.find('[data-test="redeem-thanks-forward"]').attributes('href')).toBe(
+        `https://wien.example/redeem/${CODE}?codeCommunityUuid=${HOME.uuid}`,
       )
-      expect(place.href).toBe('https://wien.example/redeem/signed.jwt')
     })
   })
 
@@ -828,9 +809,22 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
           language: 'de',
           publisherId: 2896,
           redeemCode: CODE,
+          redeemCodeCommunityUuid: null,
           project: null,
           password: PASSWORD,
         })
+      })
+
+      // The link is another community's: the account opens here, and the link stays there.
+      it('names the community of a link from another community', async () => {
+        const page = await open(linkFromElsewhere(), FROM_ELSEWHERE)
+        await accept(page.wrapper).trigger('click')
+        await fillIn(page.wrapper)
+        await send(page.wrapper)
+
+        expect(apollo.createUser).toHaveBeenCalledWith(
+          expect.objectContaining({ redeemCode: CODE, redeemCodeCommunityUuid: ELSEWHERE.uuid }),
+        )
       })
 
       it('signs in with the address and the password of the form', async () => {
@@ -1360,12 +1354,9 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       })
     })
 
-    // The two other kinds of link have no form and no chain.
-    it.each([
-      ['a contribution link', () => contributionLink(), 'CL-abc123'],
-      ['a link from another community', () => linkFromElsewhere(), 'jwt.from.elsewhere'],
-    ])('is not offered for %s', async (_, answer, code) => {
-      const { wrapper } = await open(answer(), { code })
+    // A contribution link has no form and no chain.
+    it('is not offered for a contribution link', async () => {
+      const { wrapper } = await open(contributionLink(), { code: 'CL-abc123' })
 
       expect(form(wrapper).exists()).toBe(false)
       expect(accept(wrapper).exists()).toBe(false)
@@ -1509,43 +1500,53 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
       )
       expect(router.currentRoute.value.path).toBe('/overview')
     })
+  })
 
-    it('books a link from another community from its old block, with its old words', async () => {
+  // A link of another community is booked there: only the code goes out, with its community.
+  describe('a link from another community', () => {
+    it('is booked there with one tap, and leads to the overview', async () => {
       const { wrapper, router } = await open(linkFromElsewhere(), {
-        code: 'jwt.from.elsewhere',
+        ...FROM_ELSEWHERE,
         session: signedInAs(ME),
       })
-
-      expect(thanks(wrapper).exists()).toBe(false)
-      expect(oldBlocks(wrapper)).toEqual(['RedeemValid'])
-
-      wrapper.findComponent({ name: 'RedeemValid' }).vm.$emit('mutation-link', '20')
+      await accept(wrapper).trigger('click')
       await flushPromises()
 
-      expect(apollo.disburse).toHaveBeenCalledTimes(1)
-      // who accepts is the member signed in, the backend knows them: only the link goes out
       expect(apollo.disburse).toHaveBeenCalledWith({
         senderCommunityUuid: ELSEWHERE.uuid,
-        code: 'jwt.from.elsewhere',
+        code: CODE,
       })
       expect(apollo.redeem).not.toHaveBeenCalled()
-      expect(toasts.toastSuccess).toHaveBeenCalledTimes(1)
-      expect(toasts.toastSuccess.mock.calls[0][0]).toContain('20 GDD')
-      expect(toasts.toastSuccess.mock.calls[0][0]).not.toContain('Dank angenommen')
       expect(router.currentRoute.value.path).toBe('/overview')
     })
 
-    it('shows a link from another community that ran out in the old box', async () => {
+    it('shows what became of it, as a link of this community', async () => {
       const { wrapper } = await open(
         linkFromElsewhere({ validUntil: '2026-07-12T09:30:00.000Z' }),
-        { code: 'jwt.from.elsewhere' },
+        FROM_ELSEWHERE,
       )
 
-      expect(thanks(wrapper).exists()).toBe(false)
-      expect(oldBlocks(wrapper)).toEqual(['RedeemedTextBox'])
-      expect(wrapper.findComponent({ name: 'RedeemedTextBox' }).props('text')).toContain(
-        'Der Link ist nicht mehr gültig.',
+      expect(thanks(wrapper).props('state')).toBe('TEXT_EXPIRED')
+      expect(oldBlocks(wrapper)).toEqual([])
+    })
+
+    // Its community sent the photo along: this community's address of photos has none of it.
+    it('shows the photo it brought along', async () => {
+      const { wrapper } = await open(
+        linkFromElsewhere({
+          greeting: {
+            __typename: 'ThankYouGreeting',
+            motif: null,
+            line: 'Danke',
+            recipientName: null,
+            hasPicture: true,
+          },
+          picture: 'cGhvdG8=',
+        }),
+        FROM_ELSEWHERE,
       )
+
+      expect(thanks(wrapper).props('picture')).toBe('data:image/jpeg;base64,cGhvdG8=')
     })
   })
 })

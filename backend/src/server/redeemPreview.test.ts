@@ -2,82 +2,56 @@
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { node } from '@elysia/node'
-import { listenOnFreePort } from '@test/helpers'
-import { getLogger } from 'config-schema/test/testSetup'
-import { hasPhraseInLocale, translateForLocale } from 'core'
-import {
-  dbFindTransactionLinkForPreview,
-  ThankYouGreetingPictureInfo,
-  TransactionLinkForPreview,
-} from 'database'
-import { DrizzleQueryError } from 'drizzle-orm'
+import { listenOnFreePort } from '@test/listenOnFreePort'
 import { Elysia } from 'elysia'
 import { helmet } from 'elysia-helmet'
 import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { OG_LOCALE, PREVIEW_LANGUAGES } from '@/data/RedeemPreview.logic'
+import type { RedeemPreview } from '@/data/RedeemPreview.logic'
 import { cors } from './cors'
-import { redeemPreviewRoutes } from './redeemPreview'
 
-// What the database answers is mocked here: the subject is what the address makes of it on
-// the wire -- status, headers, the document line for line. The rule that reads a link has its
-// own tests (data/RedeemPreview.logic.test.ts), and redeemPreview.database.test.ts runs the
-// address against a database, through the server createServer builds.
-jest.mock('database', () => {
-  const original = jest.requireActual('database')
-  return { __esModule: true, ...original, dbFindTransactionLinkForPreview: jest.fn() }
-})
-// The real phrases, wrapped so that one test can hand out a phrase no catalog has.
-jest.mock('core', () => {
-  const original = jest.requireActual('core')
-  return { __esModule: true, ...original, translateForLocale: jest.fn(original.translateForLocale) }
-})
-
-const findLink = dbFindTransactionLinkForPreview as jest.MockedFunction<
-  typeof dbFindTransactionLinkForPreview
->
-const translate = translateForLocale as jest.MockedFunction<typeof translateForLocale>
-
-const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.redeemPreview`)
+// What the route makes of a preview on the wire -- status, headers, the document line for line.
+// Everything below it is mocked: which link has which preview is redeemPreviewOf's
+// (data/RedeemPreview.logic.test.ts), the phrases of the ten languages are core's
+// (locales/localization.test.ts), and redeemPreview.database.test.ts runs the address against a
+// database, through the server createServer builds.
+const mockFindLink = jest.fn()
+const mockDriverCode = jest.fn()
+const mockRedeemPreviewOf = jest.fn()
+const mockTranslate = jest.fn()
+const mockLogger = {
+  trace: jest.fn(),
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  fatal: jest.fn(),
+}
+jest.mock('log4js', () => ({ getLogger: () => mockLogger }))
+jest.mock('core', () => ({
+  hasFormOfLinkCode: (text: unknown) => typeof text === 'string' && /^[0-9a-f]{24}$/i.test(text),
+  translateForLocale: mockTranslate,
+}))
+jest.mock('database', () => ({
+  dbFindTransactionLinkForPreview: mockFindLink,
+  driverCodeOfFailedQuery: mockDriverCode,
+}))
+jest.mock('@/data/RedeemPreview.logic', () => ({
+  OG_LOCALE: { de: 'de_DE', fr: 'fr_FR' },
+  redeemPreviewOf: mockRedeemPreviewOf,
+}))
 
 const WALLET = 'https://wallet.example'
 const CODE = 'a1f9c2d41b7e19981fa0d001'
-// An identifier with letters in it, as a member's is: what must never stand in a document.
-const GRADIDO_ID = '3f2a9c1e-7b4d-4a5f-8e6c-0d1b2a3c4e5f'
-const IDENTIFIER_FORM = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
-// Far from the moment the test runs, on either side.
-const LATER = new Date('2999-12-31T00:00:00.000Z')
-const LONG_AGO = new Date('2020-01-01T00:00:00.000Z')
-
-const SMALL: ThankYouGreetingPictureInfo = { id: 11, rendition: 'small', width: 831, height: 577 }
-const LARGE: ThankYouGreetingPictureInfo = { id: 12, rendition: 'large', width: 1080, height: 750 }
-const WITH_PHOTO = { greeting: { motif: null }, pictures: [SMALL, LARGE] }
-const WITH_MOTIF = { greeting: { motif: 'bouquet' } }
-
-const found = ({
-  link = {},
-  maker = {},
-  greeting = null,
-  pictures = [],
-}: {
-  link?: Partial<TransactionLinkForPreview['link']>
-  maker?: Partial<TransactionLinkForPreview['maker']>
-  greeting?: TransactionLinkForPreview['greeting']
-  pictures?: ThankYouGreetingPictureInfo[]
-} = {}): TransactionLinkForPreview => ({
-  link: {
-    code: CODE,
-    userId: 4711,
-    validUntil: LATER,
-    redeemedAt: null,
-    redeemedBy: null,
-    deletedAt: null,
-    ...link,
-  },
-  maker: { alias: 'Oma-Emma', gradidoId: GRADIDO_ID, language: 'de', deletedAt: null, ...maker },
-  greeting,
-  pictures,
-})
+const FOUND = { found: 'the row of the link' }
+const PREVIEW: RedeemPreview = {
+  code: CODE,
+  kind: 'greeting',
+  name: 'Oma-Emma',
+  language: 'de',
+  picture: { kind: 'photo', width: 1080, height: 750 },
+}
+const TITLE = 'Oma-Emma hat Dir einen Dank-Gruß geschickt'
+const DESCRIPTION = 'Helfen. Schenken. Danken.'
 
 /** One answer of the address, as it goes over the wire. */
 type Answer = { status: number; headers: IncomingHttpHeaders; body: string }
@@ -112,6 +86,7 @@ const configured = {
  * over HTTP: what a messenger gets, header for header.
  */
 beforeAll(async () => {
+  const { redeemPreviewRoutes } = await import('./redeemPreview')
   CONFIG.COMMUNITY_URL = WALLET
   CONFIG.COMMUNITY_REDEEM_URL = `${WALLET}/redeem/`
   const app = new Elysia({ adapter: node() })
@@ -135,8 +110,14 @@ afterAll(async () => {
 })
 
 beforeEach(() => {
-  jest.clearAllMocks()
-  findLink.mockResolvedValue(found(WITH_PHOTO))
+  jest.resetAllMocks()
+  mockFindLink.mockResolvedValue(FOUND)
+  mockRedeemPreviewOf.mockReturnValue(PREVIEW)
+  mockTranslate.mockImplementation((_language: string, key: string, values?: { name: string }) =>
+    key === 'redeemPreview.description'
+      ? DESCRIPTION
+      : `${values?.name} hat Dir einen ${key === 'redeemPreview.greetingTitle' ? 'Dank-Gruß' : 'Dank'} geschickt`,
+  )
 })
 
 const ask = (
@@ -182,7 +163,7 @@ const expectSentOn = async (answer: Answer) => {
 }
 
 describe('GET /api/redeem-preview/<code>', () => {
-  describe('for an open link', () => {
+  describe('for a link with a preview', () => {
     it('answers with a document of exactly these lines for a greeting with a photo', async () => {
       const answer = await ask(addressOf(CODE))
 
@@ -193,32 +174,32 @@ describe('GET /api/redeem-preview/<code>', () => {
         '<head>',
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        '<title>Oma-Emma hat Dir einen Dank-Gruß geschickt</title>',
+        `<title>${TITLE}</title>`,
         '<meta name="robots" content="noindex">',
         `<link rel="canonical" href="${WALLET}/redeem/${CODE}">`,
         '<meta property="og:type" content="website">',
         '<meta property="og:site_name" content="Gradido">',
         '<meta property="og:locale" content="de_DE">',
         `<meta property="og:url" content="${WALLET}/redeem/${CODE}">`,
-        '<meta property="og:title" content="Oma-Emma hat Dir einen Dank-Gruß geschickt">',
-        '<meta property="og:description" content="Helfen. Schenken. Danken.">',
+        `<meta property="og:title" content="${TITLE}">`,
+        `<meta property="og:description" content="${DESCRIPTION}">`,
         `<meta property="og:image" content="${WALLET}/api/thank-you-greeting-picture/${CODE}">`,
         '<meta property="og:image:type" content="image/jpeg">',
         '<meta property="og:image:width" content="1080">',
         '<meta property="og:image:height" content="750">',
         '<meta name="twitter:card" content="summary_large_image">',
-        '<meta name="twitter:title" content="Oma-Emma hat Dir einen Dank-Gruß geschickt">',
-        '<meta name="twitter:description" content="Helfen. Schenken. Danken.">',
+        `<meta name="twitter:title" content="${TITLE}">`,
+        `<meta name="twitter:description" content="${DESCRIPTION}">`,
         `<meta name="twitter:image" content="${WALLET}/api/thank-you-greeting-picture/${CODE}">`,
         '</head>',
         '<body>',
-        `<p><a href="${WALLET}/redeem/${CODE}">Oma-Emma hat Dir einen Dank-Gruß geschickt</a></p>`,
+        `<p><a href="${WALLET}/redeem/${CODE}">${TITLE}</a></p>`,
         '</body>',
         '</html>',
         '',
       ])
-      expect(findLink).toHaveBeenCalledTimes(1)
-      expect(findLink).toHaveBeenCalledWith(CODE)
+      expect(mockFindLink).toHaveBeenCalledWith(CODE)
+      expect(mockRedeemPreviewOf).toHaveBeenCalledWith(FOUND, expect.any(Date))
     })
 
     it('answers with these headers: its own three, and what cors and helmet give every answer', async () => {
@@ -238,15 +219,14 @@ describe('GET /api/redeem-preview/<code>', () => {
     })
 
     it('names the motif’s file and its measure for a greeting with a motif', async () => {
-      findLink.mockResolvedValue(found(WITH_MOTIF))
+      mockRedeemPreviewOf.mockReturnValue({
+        ...PREVIEW,
+        picture: { kind: 'motif', motif: 'bouquet' },
+      })
 
-      const lines = previewLines((await ask(addressOf(CODE))).body)
-
-      expect(lines).toEqual(
+      expect(previewLines((await ask(addressOf(CODE))).body)).toEqual(
         expect.arrayContaining([
-          ['og:title', 'Oma-Emma hat Dir einen Dank-Gruß geschickt'],
           ['og:image', `${WALLET}/img/thank-you-greeting/bouquet.jpg`],
-          ['og:image:type', 'image/jpeg'],
           ['og:image:width', '1080'],
           ['og:image:height', '750'],
           ['twitter:image', `${WALLET}/img/thank-you-greeting/bouquet.jpg`],
@@ -255,7 +235,11 @@ describe('GET /api/redeem-preview/<code>', () => {
     })
 
     it('names the general picture, and a title of its own, for a plain link', async () => {
-      findLink.mockResolvedValue(found())
+      mockRedeemPreviewOf.mockReturnValue({
+        ...PREVIEW,
+        kind: 'link',
+        picture: { kind: 'general' },
+      })
 
       const { body } = await ask(addressOf(CODE))
 
@@ -263,38 +247,11 @@ describe('GET /api/redeem-preview/<code>', () => {
       expect(previewLines(body)).toEqual(
         expect.arrayContaining([
           ['og:title', 'Oma-Emma hat Dir einen Dank geschickt'],
-          ['twitter:title', 'Oma-Emma hat Dir einen Dank geschickt'],
           ['og:image', `${WALLET}/img/gradido-preview-1200-630.jpg`],
           ['og:image:width', '1200'],
           ['og:image:height', '630'],
-          ['twitter:image', `${WALLET}/img/gradido-preview-1200-630.jpg`],
         ]),
       )
-    })
-
-    it('names the measure of the small rendition where no large one is filed', async () => {
-      findLink.mockResolvedValue(found({ greeting: { motif: null }, pictures: [SMALL] }))
-
-      expect(previewLines((await ask(addressOf(CODE))).body)).toEqual(
-        expect.arrayContaining([
-          ['og:image', `${WALLET}/api/thank-you-greeting-picture/${CODE}`],
-          ['og:image:width', '831'],
-          ['og:image:height', '577'],
-        ]),
-      )
-    })
-
-    it('writes nothing of the form of an identifier into any document', async () => {
-      for (const link of [WITH_PHOTO, WITH_MOTIF, {}]) {
-        findLink.mockResolvedValue(found(link))
-
-        const { status, body } = await ask(addressOf(CODE))
-
-        expect(status).toBe(200)
-        expect(body).not.toMatch(IDENTIFIER_FORM)
-      }
-      // The form is the one the member's identifier has.
-      expect(GRADIDO_ID).toMatch(IDENTIFIER_FORM)
     })
 
     /**
@@ -303,8 +260,12 @@ describe('GET /api/redeem-preview/<code>', () => {
      * wallet's own page.
      */
     it('carries every preview line once, and none of them empty', async () => {
-      for (const link of [WITH_PHOTO, WITH_MOTIF, {}]) {
-        findLink.mockResolvedValue(found(link))
+      for (const picture of [
+        PREVIEW.picture,
+        { kind: 'motif', motif: 'bouquet' },
+        { kind: 'general' },
+      ]) {
+        mockRedeemPreviewOf.mockReturnValue({ ...PREVIEW, picture })
 
         const { body } = await ask(addressOf(CODE))
         const lines = previewLines(body)
@@ -326,7 +287,6 @@ describe('GET /api/redeem-preview/<code>', () => {
           'twitter:description',
           'twitter:image',
         ])
-        expect(new Set(names).size).toBe(names.length)
         for (const [, content] of lines) {
           expect(content.trim()).not.toBe('')
         }
@@ -346,64 +306,30 @@ describe('GET /api/redeem-preview/<code>', () => {
       expect(withoutDate(head).headers).toEqual(withoutDate(got).headers)
     })
 
-    /**
-     * The column finds a link whatever the case of the letters asked for, and the document
-     * names the code the row holds: one address for one link, whoever pasted it how.
-     */
-    it('names the code of the row, not the one the request wrote', async () => {
+    // One address for one link, whoever pasted it how.
+    it('names the code of the preview, not the one the request wrote', async () => {
       const asked = CODE.toUpperCase()
-      expect(asked).not.toBe(CODE)
 
       const { status, body } = await ask(addressOf(asked))
 
       expect(status).toBe(200)
-      expect(findLink).toHaveBeenCalledWith(asked)
+      expect(mockFindLink).toHaveBeenCalledWith(asked)
       // canonical, og:url, og:image, twitter:image and the line in the body
       expect(body.split(CODE)).toHaveLength(6)
       expect(body).not.toContain(asked)
     })
 
-    it('writes the document in the language of the sender, each of the ten in words of its own', async () => {
-      const titles = new Set<string>()
-      for (const language of PREVIEW_LANGUAGES) {
-        findLink.mockResolvedValue(found({ ...WITH_PHOTO, maker: { language } }))
-
-        const { body } = await ask(addressOf(CODE))
-
-        expect(body).toContain(`<html lang="${language}">`)
-        expect(previewLines(body)).toContainEqual(['og:locale', OG_LOCALE[language]])
-        titles.add(body.split('\n').find((line) => line.startsWith('<title>')) ?? '')
-        // No phrase is the English one under another language's name.
-        for (const key of [
-          'redeemPreview.description',
-          'redeemPreview.greetingTitle',
-          'redeemPreview.linkTitle',
-        ]) {
-          expect({ language, key, own: hasPhraseInLocale(language, key) }).toEqual({
-            language,
-            key,
-            own: true,
-          })
-        }
-      }
-      expect(titles.size).toBe(PREVIEW_LANGUAGES.length)
-      expect(titles).toContain('<title>Oma-Emma sent you a thank-you greeting</title>')
-      expect(titles).toContain('<title>Oma-Emma шлёт вам открытку с благодарностью</title>')
-    })
-
-    it('writes the document in English for a sender whose language is none of the ten', async () => {
-      findLink.mockResolvedValue(found({ ...WITH_PHOTO, maker: { language: 'pl' } }))
+    it('writes the document in the language of the preview', async () => {
+      mockRedeemPreviewOf.mockReturnValue({ ...PREVIEW, language: 'fr' })
 
       const { body } = await ask(addressOf(CODE))
 
-      expect(body).toContain('<html lang="en">')
-      expect(body).toContain('<title>Oma-Emma sent you a thank-you greeting</title>')
-      expect(previewLines(body)).toEqual(
-        expect.arrayContaining([
-          ['og:locale', 'en_US'],
-          ['og:description', 'Help. Give. Thank.'],
-        ]),
-      )
+      expect(body).toContain('<html lang="fr">')
+      expect(previewLines(body)).toContainEqual(['og:locale', 'fr_FR'])
+      expect(mockTranslate).toHaveBeenCalledWith('fr', 'redeemPreview.greetingTitle', {
+        name: 'Oma-Emma',
+      })
+      expect(mockTranslate).toHaveBeenCalledWith('fr', 'redeemPreview.description')
     })
   })
 
@@ -413,7 +339,7 @@ describe('GET /api/redeem-preview/<code>', () => {
     const ESCAPED_NAME = '&lt;Tom &amp; &quot;Jerry&#39;s&quot;&gt;'
 
     it('escapes a username, in the title, in every preview line and in the body', async () => {
-      findLink.mockResolvedValue(found({ ...WITH_PHOTO, maker: { alias: NAME } }))
+      mockRedeemPreviewOf.mockReturnValue({ ...PREVIEW, name: NAME })
 
       const { body } = await ask(addressOf(CODE))
       const title = `${ESCAPED_NAME} hat Dir einen Dank-Gruß geschickt`
@@ -427,18 +353,8 @@ describe('GET /api/redeem-preview/<code>', () => {
       }
     })
 
-    // A phrase is inserted as it is by translateForLocale; the French one carries an apostrophe.
-    it('escapes the apostrophe of a translated phrase', async () => {
-      findLink.mockResolvedValue(found({ ...WITH_PHOTO, maker: { language: 'fr' } }))
-
-      const { body } = await ask(addressOf(CODE))
-
-      expect(body).toContain('<title>Oma-Emma t&#39;a envoyé un mot de remerciement</title>')
-      expect(body).not.toContain("t'a")
-    })
-
     it('escapes whatever a phrase carries, as a text and inside an attribute', async () => {
-      translate
+      mockTranslate
         .mockImplementationOnce(() => `A "title" <of> Tom & Jerry's`)
         .mockImplementationOnce(() => `<script>alert('x')</script> & "more"`)
 
@@ -500,7 +416,7 @@ describe('GET /api/redeem-preview/<code>', () => {
     })
 
     it('sends on to the configured address, whatever host the request names', async () => {
-      findLink.mockResolvedValue(null)
+      mockRedeemPreviewOf.mockReturnValue(null)
 
       const answer = await ask(`${addressOf(CODE)}?to=https://evil.example`, { headers: dressedUp })
 
@@ -510,15 +426,8 @@ describe('GET /api/redeem-preview/<code>', () => {
   })
 
   describe('for every link without a preview of its own', () => {
-    // A failed query as Drizzle throws it: the statement and its parameters -- the code of the
-    // link among them -- in the message and as properties of their own, the driver's error as
-    // the cause.
-    const databaseFailure = () =>
-      new DrizzleQueryError(
-        'select `code` from `transaction_links` where `transaction_links`.`code` = ?',
-        [CODE],
-        Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }),
-      )
+    // A failed query carries the code of the link in its message, as Drizzle's does.
+    const databaseFailure = () => new Error(`select … where code = '${CODE}'`)
 
     // ⛔ One answer, whatever the reason -- nothing on the wire tells them apart.
     it('sends on to the wallet’s address, byte for byte the same', async () => {
@@ -526,28 +435,14 @@ describe('GET /api/redeem-preview/<code>', () => {
 
       // A text that is no code.
       sentOn.push(await ask(addressOf('no-code')))
-      // A code no link has -- and a link whose maker has no row, and two links of one code:
-      // the query's one answer for the three.
-      findLink.mockResolvedValue(null)
-      sentOn.push(await ask(addressOf(CODE)))
-      // Accepted, run out, deleted.
-      for (const link of [
-        { redeemedAt: LONG_AGO, redeemedBy: 815 },
-        { redeemedBy: 815 },
-        { validUntil: LONG_AGO },
-        { deletedAt: LONG_AGO },
-      ]) {
-        findLink.mockResolvedValue(found({ ...WITH_PHOTO, link }))
-        sentOn.push(await ask(addressOf(CODE)))
-      }
-      // The account of the member who made the link is deleted.
-      findLink.mockResolvedValue(found({ ...WITH_PHOTO, maker: { deletedAt: LONG_AGO } }))
+      // A link without a preview of its own: none found, accepted, run out, deleted, …
+      mockRedeemPreviewOf.mockReturnValue(null)
       sentOn.push(await ask(addressOf(CODE)))
       // The database does not answer.
-      findLink.mockRejectedValue(databaseFailure())
+      mockFindLink.mockRejectedValue(databaseFailure())
       sentOn.push(await ask(addressOf(CODE)))
 
-      expect(sentOn).toHaveLength(8)
+      expect(sentOn).toHaveLength(3)
       for (const answer of sentOn) {
         await expectSentOn(answer)
       }
@@ -564,33 +459,35 @@ describe('GET /api/redeem-preview/<code>', () => {
       ]) {
         await expectSentOn(await ask(addressOf(noCode)))
       }
-      expect(findLink).not.toHaveBeenCalled()
+      expect(mockFindLink).not.toHaveBeenCalled()
     })
 
     it('writes the driver code of a failed query to the log, and nothing else of it', async () => {
-      findLink.mockRejectedValue(databaseFailure())
+      const failure = databaseFailure()
+      mockFindLink.mockRejectedValue(failure)
+      mockDriverCode.mockReturnValue('ECONNRESET')
 
       await ask(addressOf(CODE))
 
+      expect(mockDriverCode).toHaveBeenCalledWith(failure)
       // Exactly one text and nothing beside it: an error handed to the logger as a second
       // part would be written out with its message, its parameters and its stack.
-      expect(logger.error.mock.calls).toEqual([['redeem preview not answered (ECONNRESET)']])
-      // What such a failure carries and the log must not: the check is not of an empty error.
-      expect(databaseFailure().message).toContain(CODE)
-      expect(databaseFailure().params).toEqual([CODE])
+      expect(mockLogger.error.mock.calls).toEqual([['redeem preview not answered (ECONNRESET)']])
     })
 
     // A mistake in this code is no failed query; it is answered the same and named by its kind.
     it('writes of any other failure what kind of error it is, and answers the same', async () => {
-      findLink.mockRejectedValue(new TypeError(`no preview of ${CODE} for Oma-Emma`))
+      mockRedeemPreviewOf.mockImplementation(() => {
+        throw new TypeError(`no preview of ${CODE} for Oma-Emma`)
+      })
 
       await expectSentOn(await ask(addressOf(CODE)))
 
-      expect(logger.error.mock.calls).toEqual([['redeem preview not answered (TypeError)']])
+      expect(mockLogger.error.mock.calls).toEqual([['redeem preview not answered (TypeError)']])
     })
 
     it('answers HEAD with the same', async () => {
-      findLink.mockResolvedValue(null)
+      mockRedeemPreviewOf.mockReturnValue(null)
 
       await expectSentOn(await ask(addressOf(CODE), { method: 'HEAD' }))
     })
@@ -618,7 +515,7 @@ describe('GET /api/redeem-preview/<code>', () => {
         })
         await expectSentOn(answer)
       }
-      expect(findLink).not.toHaveBeenCalled()
+      expect(mockFindLink).not.toHaveBeenCalled()
     })
   })
 
@@ -639,16 +536,14 @@ describe('GET /api/redeem-preview/<code>', () => {
       const answer = await ask(path, { method })
       expect({ method, path, status: answer.status }).toEqual({ method, path, status: 404 })
     }
-    expect(findLink).not.toHaveBeenCalled()
+    expect(mockFindLink).not.toHaveBeenCalled()
   })
 
   // ⛔ Neither the code of a link nor a name: a served preview writes nothing at all.
   it('writes nothing to the log for a preview it serves', async () => {
     await ask(addressOf(CODE))
 
-    const written = (['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const).flatMap(
-      (level) => logger[level].mock.calls,
-    )
+    const written = Object.values(mockLogger).flatMap((level) => level.mock.calls)
     expect(written).toEqual([])
   })
 })

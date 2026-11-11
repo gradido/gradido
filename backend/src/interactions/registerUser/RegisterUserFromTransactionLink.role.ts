@@ -49,7 +49,9 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<Redeem
         dbUser.contributionLinkId = contributionLinkId
         this.contributionLinkId = contributionLinkId
       }
-    } else {
+    } else if (!this.user.redeemCodeCommunityUuid) {
+      // A link of another community is not here: it has no maker here to refer, and vouches
+      // for no account of this one.
       const transactionLink = await dbFindTransactionLinkByCode(this.user.redeemCode)
       if (transactionLink) {
         dbUser.referrerId = transactionLink.userId
@@ -60,13 +62,16 @@ export class RegisterUserFromTransactionLinkRole extends RegisterUserRole<Redeem
   }
 
   public async sendAccountActivationEmail(activationLink: string): Promise<boolean> {
-    const { firstName, lastName, language, email } = this.user
+    const { firstName, lastName, language, email, redeemCode, redeemCodeCommunityUuid } = this.user
     const result = await sendAccountActivationEmail({
       firstName,
       lastName,
       email,
       language,
-      activationLink: `${activationLink}/${this.user.redeemCode}`,
+      // the way back to the link, with its community where it is another one
+      activationLink: [activationLink, redeemCode, redeemCodeCommunityUuid]
+        .filter(Boolean)
+        .join('/'),
       timeDurationObject: getTimeDurationObject(CONFIG.EMAIL_CODE_VALID_TIME),
     })
     if (result instanceof Error) {

@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+
+import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -8,10 +10,12 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
+import { ApiClient, SENDER_AVATARS_MAX_PER_REQUEST } from 'core'
 import {
   AppDatabase,
   creationFactory,
   DBInsertFailed,
+  Community as DbCommunity,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
   DbUser,
@@ -27,7 +31,6 @@ import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
-import { SENDER_AVATARS_MAX_PER_REQUEST } from '@/data/SenderAvatar.logic'
 import { creations } from '@/seeds/creation/index'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
@@ -524,6 +527,135 @@ describe('queryTransactionLink', () => {
     expect(result.data.queryTransactionLink.deletedAt).not.toBeNull()
     expect(result.data.queryTransactionLink.greeting).toBeNull()
     expect(selectGreetings).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * A link of another community, opened here by its code and its community (the switch of the
+ * redeem page): that community answers what its page shows (peer-api transactionLink), and this
+ * one hands it on.
+ */
+describe('queryTransactionLink, a link of another community', () => {
+  const PEER = '6b7c8d9e-0f1a-4b2c-8d3e-4f5a6b7c8d9e'
+  const MAKER = '7c8d9e0f-1a2b-4c3d-9e4f-5a6b7c8d9e0f'
+  const CODE = 'b1f9c2d41b7e19981fa0d002'
+  const foreignLink = gql`
+    query ($code: String!, $codeCommunityUuid: String) {
+      queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
+        ... on ForeignTransactionLink {
+          amount
+          memo
+          code
+          redeemedAt
+          senderUser {
+            gradidoID
+            alias
+          }
+          senderCommunity {
+            uuid
+          }
+          greeting {
+            motif
+            hasPicture
+          }
+          picture
+        }
+      }
+    }
+  `
+  // what the link's community answers for an open link with a greeting photo
+  const answered = {
+    data: {
+      amount: '20',
+      memo: 'Danke',
+      createdAt: '2026-11-01T10:00:00.000Z',
+      validUntil: '2026-11-15T10:00:00.000Z',
+      redeemedAt: null,
+      deletedAt: null,
+      sender: { gradidoId: MAKER, alias: 'bibi' },
+      greeting: { motif: null, line: 'Danke', recipientName: null },
+      senderAvatar: null,
+      picture: 'cGhvdG8=',
+    },
+    error: null,
+  } as never
+  let askSpy: jest.SpyInstance
+
+  beforeAll(async () => {
+    await DbCommunity.create({
+      foreign: true,
+      url: 'http://link-peer.invalid/api/',
+      publicEncryptionKey: randomBytes(32),
+      publicKey: randomBytes(32),
+      communityUuid: PEER,
+      authenticatedAt: new Date(),
+      name: 'Link peer',
+      description: 'where the link lives',
+      creationDate: new Date(),
+    }).save()
+  })
+  afterEach(() => askSpy?.mockRestore())
+
+  it('hands on what the link’s community answers', async () => {
+    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue(answered)
+    resetToken()
+
+    const result = await query({
+      query: foreignLink,
+      variables: { code: CODE, codeCommunityUuid: PEER },
+    })
+
+    expect(result.errors).toBeUndefined()
+    expect(askSpy).toHaveBeenCalledWith({ code: CODE })
+    expect(result.data.queryTransactionLink).toEqual({
+      amount: '20',
+      memo: 'Danke',
+      code: CODE,
+      redeemedAt: null,
+      senderUser: { gradidoID: MAKER, alias: 'bibi' },
+      senderCommunity: { uuid: PEER },
+      greeting: { motif: null, hasPicture: true },
+      picture: 'cGhvdG8=',
+    })
+  })
+
+  it('answers an error where the link’s community refuses', async () => {
+    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue({
+      data: null,
+      error: { status: 404, value: 'Transaction link not found' },
+    } as never)
+    resetToken()
+
+    const result = await query({
+      query: foreignLink,
+      variables: { code: CODE, codeCommunityUuid: PEER },
+    })
+
+    expect(result.errors?.[0].message).toContain('Transaction link of another community not read')
+  })
+
+  it('asks the link’s community once per request, however often the query is repeated', async () => {
+    askSpy = jest.spyOn(ApiClient.prototype, 'transactionLink').mockResolvedValue(answered)
+    resetToken()
+
+    const result = await query({
+      query: gql`
+        query ($code: String!, $codeCommunityUuid: String) {
+          a: queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
+            __typename
+          }
+          b: queryTransactionLink(code: $code, codeCommunityUuid: $codeCommunityUuid) {
+            __typename
+          }
+        }
+      `,
+      variables: { code: CODE, codeCommunityUuid: PEER },
+    })
+
+    expect(askSpy).toHaveBeenCalledTimes(1)
+    expect(result.errors?.map((e: Error) => e.message)).toContain(
+      'Too many links of other communities requested at once',
+    )
   })
 })
 

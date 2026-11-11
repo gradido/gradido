@@ -1,14 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import {
-  Community as DbCommunity,
-  dbFindMemberAvatarTimestamps,
-  dbUpsertForeignMemberAvatarDates,
-  getCommunityByPublicKeyOrFail,
-} from 'database'
+import { dbFindMemberAvatarTimestamps, dbUpsertForeignMemberAvatarDates } from 'database'
 import { getLogger } from 'log4js'
-import { Ed25519PublicKey } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '../../../config/const'
-import { EncryptedTransferArgs } from '../../../graphql/model/EncryptedTransferArgs'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.federation.xcom.transferAvatarDate`)
 
@@ -110,41 +103,4 @@ export async function storeForeignMemberAvatarDate(
   } catch (err) {
     logger.warn('picture date of a member of another community not stored', err)
   }
-}
-
-/**
- * The receiving side of a settle (federation settleSendCoins): files the sender's picture date
- * under the community that SIGNED `args`. It is looked up by `args.publicKey`, the way
- * interpretEncryptedTransferArgs finds the community whose JWT key it verifies the envelope with,
- * and the date is filed only if that community has completed the authentication handshake
- * (`authenticatedAt`) -- the date refresh, too, asks only communities that have
- * (dbSelectAuthenticatedForeignCommunities).
- *
- * The community half of the pair comes from that community's own row; the payload's
- * `senderCommunityUuid` is not read. The member half is the payload's `senderUserUuid`.
- *
- * A signer that cannot be found is logged and returns. The write is storeForeignMemberAvatarDate,
- * which logs its own failure and returns.
- */
-export async function storeTransferSenderAvatarDate(
-  args: EncryptedTransferArgs,
-  payload: { senderUserUuid: unknown; senderAvatarUpdatedAt?: unknown },
-  deps = { findCommunity: getCommunityByPublicKeyOrFail, store: storeForeignMemberAvatarDate },
-): Promise<void> {
-  let requestingCom: DbCommunity
-  try {
-    requestingCom = await deps.findCommunity(new Ed25519PublicKey(args.publicKey))
-  } catch (err) {
-    logger.warn('community that signed the transfer not found, picture date not stored', err)
-    return
-  }
-  if (!requestingCom.authenticatedAt) {
-    logger.debug('community that signed the transfer has not completed the handshake')
-    return
-  }
-  await deps.store(
-    requestingCom.communityUuid,
-    payload.senderUserUuid,
-    payload.senderAvatarUpdatedAt,
-  )
 }

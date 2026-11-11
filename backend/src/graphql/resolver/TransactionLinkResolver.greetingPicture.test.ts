@@ -1,13 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
-import {
-  ApolloServerTestClient,
-  cleanDB,
-  listenOnFreePort,
-  resetToken,
-  testEnvironmentWithApp,
-} from '@test/helpers'
+import { ApolloServerTestClient, cleanDB, resetToken, testEnvironmentWithApp } from '@test/helpers'
+import { listenOnFreePort } from '@test/listenOnFreePort'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,

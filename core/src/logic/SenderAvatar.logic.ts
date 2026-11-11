@@ -3,7 +3,7 @@ import {
   PictureLinkState,
   pictureLinkIsOpen,
   THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
-} from './ThankYouGreetingPicture.logic'
+} from './ThankYouGreetingPictureAccess.logic'
 
 /**
  * Who gets the face of the member who made a transaction link, on the page of that link

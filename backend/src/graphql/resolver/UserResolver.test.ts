@@ -10,13 +10,13 @@ import {
   ApolloServerTestClient,
   cleanDB,
   headerPushMock,
-  listenOnFreePort,
   resetToken,
   TEST_AVATAR_200_PIXELS_BASE64,
   TEST_AVATAR_FULL_BASE64,
   TEST_AVATAR_SMALL_BASE64,
   testEnvironment,
 } from '@test/helpers'
+import { listenOnFreePort } from '@test/listenOnFreePort'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   ApiClient,

@@ -96,7 +96,7 @@ describe('the address of the picture on both sides', () => {
 
   it('takes the form of a code the server takes', () => {
     const [, form] =
-      repo('backend', 'src', 'data', 'ThankYouGreetingPicture.logic.ts').match(
+      repo('core', 'src', 'logic', 'ThankYouGreetingPictureAccess.logic.ts').match(
         /typeof text === 'string' && (\/\^.+\$\/i?)\.test\(text\)/,
       ) ?? []
     const [, ours] =

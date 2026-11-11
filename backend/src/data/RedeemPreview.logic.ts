@@ -1,12 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { TransactionLinkForPreview } from 'database'
-import { isThankYouMotif, ThankYouMotif } from 'shared'
+
 import {
   hasFormOfLinkCode,
   pictureLinkIsOpen,
   pictureRenditionsForCodeHolder,
   pictureToServe,
-} from './ThankYouGreetingPicture.logic'
+} from 'core'
+import { TransactionLinkForPreview } from 'database'
+import { isThankYouMotif, ThankYouMotif } from 'shared'
 
 /**
  * What a messenger is told about a redeem link, to draw the preview where somebody pastes the

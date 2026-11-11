@@ -201,8 +201,9 @@
  * the new account could not be signed in to. A thank-you booked on the page leads to the overview
  * instead (E-045): the page after the booking said what the overview says anyway.
  *
- * Contribution links and links from another community do not come here; they keep the page
- * they had.
+ * A link of another community comes here too, as that community answered it: a guest opens the
+ * account in this community, and a member books it from there (disburseTransactionLink).
+ * Contribution links do not come here; they keep the page they had.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -220,7 +221,7 @@ const props = defineProps({
   linkData: { type: Object, required: true },
   // The page's `itemType`.
   state: { type: String, required: true },
-  // The code in the address: the token for another community is signed for it.
+  // The code in the address: the redeem page of another community gets it.
   redeemCode: { type: String, required: true },
   // The page's booking is on its way: the button waits for the answer.
   accepting: { type: Boolean, default: false },

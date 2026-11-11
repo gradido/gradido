@@ -213,9 +213,7 @@ describe('thank-you-greeting in the language files', () => {
   // What the old redeem page said, to prove the patterns above can find something.
   it.each(languages)('would find the old words of the redeem page, in %s', (lang) => {
     const old = fileOf(lang).gdd_per_link
-    expect([old.redeemed, old['no-redeem'], old['redeemed-at']].join(' ')).toMatch(
-      NOT_A_THANK_YOU[lang],
-    )
+    expect([old.redeem, old.redeemed, old['redeemed-at']].join(' ')).toMatch(NOT_A_THANK_YOU[lang])
   })
 
   it('writes Du, Dein, Dir and Dich with a capital in German', () => {

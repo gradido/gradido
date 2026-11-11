@@ -7,7 +7,7 @@ import { ContributionType } from '@enum/ContributionType'
 import { ChatImageInput } from '@input/ChatImageInput'
 import { Community } from '@model/Community'
 import { ContributionLink } from '@model/ContributionLink'
-import { RedeemJwtLink } from '@model/RedeemJwtLink'
+import { ForeignTransactionLink } from '@model/ForeignTransactionLink'
 import { ThankYouGreeting } from '@model/ThankYouGreeting'
 import { TransactionLink, TransactionLinkResult } from '@model/TransactionLink'
 import { User } from '@model/User'
@@ -19,14 +19,24 @@ import {
   ChatMessageImageAccepted,
   contributionTransaction,
   deferredTransferTransaction,
-  EncryptedTransferArgs,
-  interpretEncryptedTransferArgs,
+  mayAddLargePicture,
+  pictureLinkIsAcceptedOrDeleted,
+  pictureRenditionsForMember,
+  pictureRenditionsForMemberAskingLarge,
+  pictureToServe,
   redeemDeferredTransferTransaction,
   removeLargeThankYouGreetingPicture,
   removeThankYouGreetingPictures,
+  SENDER_AVATARS_MAX_PER_REQUEST,
+  showsSenderAvatar,
+  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
+  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
+  THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST,
+  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
   TransactionTypeId,
+  transactionLinkWireSchema,
 } from 'core'
-import { randomBytes, randomInt } from 'crypto'
+import { randomBytes } from 'crypto'
 import {
   AppDatabase,
   Contribution as DbContribution,
@@ -47,51 +57,29 @@ import {
   EventType,
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
-  getHomeCommunity,
   getLastTransaction,
 } from 'database'
-import { getLogger, Logger } from 'log4js'
+import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
 import {
   CODE_VALID_DAYS_DURATION,
   Decay,
   DecayCalculationType,
   Duration,
-  decode,
-  encode,
-  encryptAndSign,
   GradidoUnit,
   parseOrThrowFirstIssue,
-  RedeemJwtPayloadType,
-  SignedTransferPayloadType,
-  verify,
 } from 'shared'
 import { Arg, Args, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
-import { SENDER_AVATARS_MAX_PER_REQUEST, showsSenderAvatar } from '@/data/SenderAvatar.logic'
 import { transactionLinkGreetingSchema } from '@/data/ThankYouGreeting.schema'
-import {
-  mayAddLargePicture,
-  pictureLinkIsAcceptedOrDeleted,
-  pictureRenditionsForMember,
-  pictureRenditionsForMemberAskingLarge,
-  pictureToServe,
-  THANK_YOU_GREETING_LARGE_PICTURE_COUNTS,
-  THANK_YOU_GREETING_LARGE_PICTURES_MAX_PER_REQUEST,
-  THANK_YOU_GREETING_PICTURES_ACCEPTED_MAX_PER_REQUEST,
-  THANK_YOU_GREETING_PICTURES_MAX_PER_REQUEST,
-} from '@/data/ThankYouGreetingPicture.logic'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { calculateBalance } from '@/util/validate'
 import { executeTransaction } from './TransactionResolver'
-import {
-  getAuthenticatedCommunities,
-  getCommunityByPublicKey,
-  getCommunityByUuid,
-} from './util/communities'
+import { getAuthenticatedCommunities } from './util/communities'
 import { getUserCreation, validateContribution } from './util/creations'
 import { transactionLinkListDecayed } from './util/transactionLinkListDecayed'
 
@@ -109,6 +97,15 @@ export const transactionLinkCode = (date: Date): string => {
 }
 
 const db = AppDatabase.getInstance()
+
+/**
+ * How many links of other communities one HTTP request may ask of them (queryTransactionLink),
+ * over every alias of the query (RequestBudget). The page of a link asks for one. The query is
+ * open to guests, and each ask is a request to the other community: without the cap one document
+ * would send as many as it has root fields, and that community's rate limit would then refuse this
+ * server for everybody (as MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST).
+ */
+const FOREIGN_TRANSACTION_LINKS_MAX_PER_REQUEST = 1
 
 // What the log gets of a query that failed on a greeting's row: the driver's code. Not the
 // error itself -- Drizzle writes the parameters of the statement into its message, and the name
@@ -359,85 +356,97 @@ export class TransactionLinkResolver {
     return true
   }
 
+  /**
+   * The link a code opens, for its page: a contribution link (`CL-…`), a link of this community,
+   * or -- with `codeCommunityUuid` naming another community this one knows through the handshake
+   * -- a link of that community, as it answers for whoever holds the code (peer-api
+   * transactionLink).
+   */
   @Authorized([RIGHTS.QUERY_TRANSACTION_LINK])
   @Query(() => QueryLinkResult)
   async queryTransactionLink(
     @Arg('code') code: string,
+    @Arg('codeCommunityUuid', () => String, { nullable: true }) codeCommunityUuid: string | null,
     @Ctx() context: Context,
   ): Promise<typeof QueryLinkResult> {
     const methodLogger = createLogger('queryTransactionLink')
-    methodLogger.addContext('handshakeID', randomInt(2 ** 32).toString())
-    methodLogger.debug('queryTransactionLink...')
     if (code.match(/^CL-/)) {
       const contributionLink = await DbContributionLink.findOneOrFail({
         where: { code: code.replace('CL-', '') },
         withDeleted: true,
       })
       return new ContributionLink(contributionLink)
-    } else {
-      let txLinkFound = false
-      let dbTransactionLink!: DbTransactionLink
-      try {
-        dbTransactionLink = await findTransactionLinkByCode(code)
-        txLinkFound = true
-      } catch (_err) {
-        txLinkFound = false
+    }
+    // the home community is no foreign one: its links are read below
+    const linkCom = codeCommunityUuid
+      ? await dbFindAuthenticatedForeignCommunityByIdentifier(codeCommunityUuid)
+      : null
+    if (linkCom) {
+      // ⛔ Counted before the other community is asked: aliases repeat this field.
+      const asked = ++context.requestBudget.foreignTransactionLinksAsked
+      if (asked > FOREIGN_TRANSACTION_LINKS_MAX_PER_REQUEST) {
+        throw new LogError('Too many links of other communities requested at once', asked)
       }
-      // normal redeem code
-      if (txLinkFound) {
-        methodLogger.debug(
-          'TransactionLinkResolver.queryTransactionLink... normal redeem code found=',
-          txLinkFound,
+      const { data, error } = await ApiClientCache.getInstance()
+        .get(linkCom)
+        .transactionLink({ code })
+      if (error) {
+        throw new LogError(
+          `Transaction link of another community not read: ${error.value}`,
+          error.status,
         )
-        const user = await DbUser.findOneOrFail({ where: { id: dbTransactionLink.userId } })
-        let redeemedBy
-        if (dbTransactionLink.redeemedBy) {
-          redeemedBy = new User(
-            await DbUser.findOneOrFail({ where: { id: dbTransactionLink.redeemedBy } }),
-          )
-        }
-        const communities = await getAuthenticatedCommunities()
-        // Readable by whoever holds the code, as the memo is. ⛔ Never for a deleted link:
-        // this query finds those too, and what was taken back shows nothing any more.
-        const [greeting] = dbTransactionLink.deletedAt
-          ? []
-          : await dbSelectThankYouGreetingsByLinkCodes([dbTransactionLink.code])
-        // The face of the member who made the link (ZE-038), for whoever holds the code: of an
-        // OPEN link only (showsSenderAvatar), and only where the member shows their face to
-        // other members -- that guard stands in the query (dbFindMemberAvatarsSmall). One read
-        // more for an open link: the picture lies in a table of its own, and its guard in that
-        // query. ⛔ Counted in the HTTP request's budget before it is read, as a document may
-        // name this query under any number of aliases, each with a code of its own; past the
-        // cap the link comes without its face. So it does where the read fails: the face is one
-        // part of the answer, and its failure goes into the log with the driver's code alone
-        // (driverCodeOf) -- the message of a failed Drizzle query carries the statement and its
-        // parameters, and this answer goes to whoever holds the code.
-        let senderAvatar: Buffer | null = null
-        if (showsSenderAvatar(dbTransactionLink, user.deletedAt, new Date())) {
-          context.requestBudget.senderAvatarsServed += 1
-          if (context.requestBudget.senderAvatarsServed <= SENDER_AVATARS_MAX_PER_REQUEST) {
-            // The row of this member: the id is unique only per community.
-            const rows = await dbFindMemberAvatarsSmall([user.gradidoID]).catch((e: unknown) => {
-              methodLogger.error('sender avatar could not be read', driverCodeOf(e))
-              return []
-            })
-            senderAvatar =
-              rows.find((row) => row.communityUuid === user.communityUuid)?.avatarSmall ?? null
-          }
-        }
-        return new TransactionLink(
-          dbTransactionLink,
-          new User(user),
-          redeemedBy,
-          communities,
-          greeting ? new ThankYouGreeting(greeting) : null,
-          senderAvatar,
-        )
-      } else {
-        // redeem jwt-token
-        return await this.queryRedeemJwtLink(code, methodLogger)
+      }
+      return new ForeignTransactionLink(
+        v.parse(transactionLinkWireSchema, data),
+        code,
+        new Community(linkCom),
+      )
+    }
+    const dbTransactionLink = await findTransactionLinkByCode(code)
+    const user = await DbUser.findOneOrFail({ where: { id: dbTransactionLink.userId } })
+    let redeemedBy
+    if (dbTransactionLink.redeemedBy) {
+      redeemedBy = new User(
+        await DbUser.findOneOrFail({ where: { id: dbTransactionLink.redeemedBy } }),
+      )
+    }
+    const communities = await getAuthenticatedCommunities()
+    // Readable by whoever holds the code, as the memo is. ⛔ Never for a deleted link:
+    // this query finds those too, and what was taken back shows nothing any more.
+    const [greeting] = dbTransactionLink.deletedAt
+      ? []
+      : await dbSelectThankYouGreetingsByLinkCodes([dbTransactionLink.code])
+    // The face of the member who made the link (ZE-038), for whoever holds the code: of an
+    // OPEN link only (showsSenderAvatar), and only where the member shows their face to
+    // other members -- that guard stands in the query (dbFindMemberAvatarsSmall). One read
+    // more for an open link: the picture lies in a table of its own, and its guard in that
+    // query. ⛔ Counted in the HTTP request's budget before it is read, as a document may
+    // name this query under any number of aliases, each with a code of its own; past the
+    // cap the link comes without its face. So it does where the read fails: the face is one
+    // part of the answer, and its failure goes into the log with the driver's code alone
+    // (driverCodeOf) -- the message of a failed Drizzle query carries the statement and its
+    // parameters, and this answer goes to whoever holds the code.
+    let senderAvatar: Buffer | null = null
+    if (showsSenderAvatar(dbTransactionLink, user.deletedAt, new Date())) {
+      context.requestBudget.senderAvatarsServed += 1
+      if (context.requestBudget.senderAvatarsServed <= SENDER_AVATARS_MAX_PER_REQUEST) {
+        // The row of this member: the id is unique only per community.
+        const rows = await dbFindMemberAvatarsSmall([user.gradidoID]).catch((e: unknown) => {
+          methodLogger.error('sender avatar could not be read', driverCodeOf(e))
+          return []
+        })
+        senderAvatar =
+          rows.find((row) => row.communityUuid === user.communityUuid)?.avatarSmall ?? null
       }
     }
+    return new TransactionLink(
+      dbTransactionLink,
+      new User(user),
+      redeemedBy,
+      communities,
+      greeting ? new ThankYouGreeting(greeting) : null,
+      senderAvatar,
+    )
   }
 
   @Authorized([RIGHTS.REDEEM_TRANSACTION_LINK])
@@ -697,116 +706,6 @@ export class TransactionLinkResolver {
     }
   }
 
-  @Authorized([RIGHTS.QUERY_REDEEM_JWT])
-  @Mutation(() => String)
-  async createRedeemJwt(
-    @Arg('gradidoId') gradidoId: string,
-    @Arg('senderCommunityUuid') senderCommunityUuid: string,
-    @Arg('senderCommunityName') senderCommunityName: string,
-    @Arg('recipientCommunityUuid') recipientCommunityUuid: string,
-    @Arg('code') code: string,
-    @Arg('amount') amount: string,
-    @Arg('memo') memo: string,
-    @Arg('firstName', { nullable: true }) firstName?: string,
-    @Arg('alias', { nullable: true }) alias?: string,
-    @Arg('validUntil', { nullable: true }) validUntil?: string,
-  ): Promise<string> {
-    const methodLogger = createLogger('createRedeemJwt')
-    methodLogger.addContext('code', code.substring(0, 6))
-    methodLogger.debug('args=', {
-      gradidoId,
-      senderCommunityUuid,
-      senderCommunityName,
-      recipientCommunityUuid,
-      code,
-      amount,
-      memo,
-      firstName,
-      alias,
-      validUntil,
-    })
-    try {
-      const redeemJwtPayloadType = new RedeemJwtPayloadType(
-        senderCommunityUuid,
-        gradidoId,
-        // The ALIAS, never the first name (NU-019). This token crosses a community
-        // border and is read by a stranger, so a real name signed here would leave our
-        // reach entirely -- and the redeem page displays it unguarded on the other side.
-        // Empty for a member without one; the receiving page falls back to the gradidoID.
-        //
-        // ⚠️ Measured, so nobody reads more into this than it says: it used to be
-        // `alias ?? firstName ?? ''`, but the ONLY caller (RedeemCommunitySelection.vue)
-        // has never filled the `firstName` argument, so no real name was travelling.
-        // This closes the possibility, not a live leak. The argument itself stays for
-        // now -- an old wallet bundle still in someone's browser may name it, and a
-        // rejected variable would break their redeem in the deploy window.
-        alias ?? '',
-        code,
-        amount,
-        memo,
-        validUntil ?? '',
-      )
-      // encode/sign the jwt with the private key of the sender/home community
-      const senderCom = await getCommunityByUuid(senderCommunityUuid)
-      if (!senderCom) {
-        throw new LogError('Sender community not found')
-      }
-      if (!senderCom.privateJwtKey) {
-        throw new LogError('Sender community privateJwtKey is not set')
-      }
-      const recipientCom = await getCommunityByUuid(recipientCommunityUuid)
-      if (!recipientCom) {
-        throw new LogError('Recipient community not found')
-      }
-      if (!recipientCom.publicJwtKey) {
-        throw new LogError('Recipient community publicJwtKey is not set')
-      }
-      const redeemJwt = await encryptAndSign(
-        redeemJwtPayloadType,
-        senderCom.privateJwtKey!,
-        recipientCom.publicJwtKey!,
-      )
-      if (!redeemJwt) {
-        throw new LogError('Redeem JWT was not created successfully')
-      }
-      // prepare the args for the client invocation
-      const args = new EncryptedTransferArgs()
-      args.publicKey = senderCom.publicKey.toString('hex')
-      args.jwt = redeemJwt
-      args.handshakeID = randomInt(2 ** 32).toString()
-      if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug('successfully created RedeemJWT-Response with args:', args)
-      }
-      const signedTransferPayload = new SignedTransferPayloadType(
-        args.publicKey,
-        args.jwt,
-        args.handshakeID,
-      )
-      if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug(
-          'successfully created RedeemJWT-Response with signedTransferPayload:',
-          signedTransferPayload,
-        )
-      }
-      const signedTransferJwt = await encode(signedTransferPayload, senderCom.privateJwtKey!)
-      if (!signedTransferJwt) {
-        throw new LogError('SignedTransfer JWT was not created successfully')
-      }
-      if (methodLogger.isDebugEnabled()) {
-        methodLogger.debug(
-          'successfully created RedeemJWT-Response with signedTransferJwt:',
-          signedTransferJwt,
-        )
-      }
-
-      return signedTransferJwt
-    } catch (e) {
-      const errmsg = `Error on creating Redeem JWT: error=${e}`
-      methodLogger.error(errmsg)
-      throw new Error(errmsg)
-    }
-  }
-
   /**
    * Accepts a link of another community for the signed-in member: the link's community pays it
    * out, as a transfer from the member who made it (peer-api disburseTransactionLink). Only the
@@ -1005,134 +904,5 @@ export class TransactionLinkResolver {
       throw new LogError('Could not find requested User', userId)
     }
     return transactionLinkListDecayed(paginated, filters, user)
-  }
-
-  async queryRedeemJwtLink(code: string, logger: Logger): Promise<RedeemJwtLink> {
-    logger.debug('queryRedeemJwtLink... redeem jwt-token found')
-
-    // decode token first to get the EncryptedTransferArgs with the senderCommunity.publicKey as input to verify token
-    const decodedPayload = decode(code) as SignedTransferPayloadType
-    logger.debug('queryRedeemJwtLink... decodedPayload=', decodedPayload)
-    logger.debug(
-      'switch logger-context to received token-handshakeID:' + decodedPayload.handshakeID,
-    )
-    logger.addContext('handshakeID', decodedPayload.handshakeID)
-    if (
-      decodedPayload !== null &&
-      decodedPayload.tokentype === SignedTransferPayloadType.SIGNED_TRANSFER_TYPE
-    ) {
-      const signedTransferPayload = new SignedTransferPayloadType(
-        decodedPayload.publicKey,
-        decodedPayload.jwt,
-        decodedPayload.handshakeID,
-      )
-      logger.debug('queryRedeemJwtLink... signedTransferPayload=', signedTransferPayload)
-      const senderCom = await getCommunityByPublicKey(
-        Buffer.from(signedTransferPayload.publicKey, 'hex'),
-      )
-      if (!senderCom) {
-        const errmsg = `Sender community not found with publicKey=${signedTransferPayload.publicKey}`
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      }
-      logger.debug('queryRedeemJwtLink... senderCom=', senderCom)
-      const jweVerifyResult = await verify(
-        signedTransferPayload.handshakeID,
-        signedTransferPayload.jwt,
-        senderCom.publicJwtKey!,
-      )
-      logger.debug('queryRedeemJwtLink... jweVerifyResult=', jweVerifyResult)
-      let verifiedRedeemJwtPayload: RedeemJwtPayloadType | null = null
-      if (jweVerifyResult === null) {
-        const errmsg = `Error on verify transferred redeem token with publicKey=${signedTransferPayload.publicKey}`
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      } else {
-        const encryptedTransferArgs = new EncryptedTransferArgs()
-        encryptedTransferArgs.publicKey = signedTransferPayload.publicKey
-        encryptedTransferArgs.jwt = signedTransferPayload.jwt
-        encryptedTransferArgs.handshakeID = signedTransferPayload.handshakeID
-
-        verifiedRedeemJwtPayload = (await interpretEncryptedTransferArgs(
-          encryptedTransferArgs,
-        )) as RedeemJwtPayloadType
-        if (logger.isDebugEnabled()) {
-          logger.debug(`queryRedeemJwtLink() ...`, verifiedRedeemJwtPayload)
-        }
-        if (!verifiedRedeemJwtPayload) {
-          const errmsg =
-            `invalid authentication payload of requesting community with publicKey` +
-            signedTransferPayload.publicKey
-          logger.error(errmsg)
-          throw new Error(errmsg)
-        }
-        if (verifiedRedeemJwtPayload.tokentype !== RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE) {
-          const errmsg =
-            `Wrong tokentype in redeem JWT: type=` +
-            verifiedRedeemJwtPayload.tokentype +
-            ' vs expected ' +
-            RedeemJwtPayloadType.REDEEM_ACTIVATION_TYPE
-          logger.error(errmsg)
-          throw new Error(errmsg)
-        }
-        if (senderCom?.communityUuid !== verifiedRedeemJwtPayload.sendercommunityuuid) {
-          const errmsg =
-            `Mismatch of sender community UUID in redeem JWT against transfer JWT: uuid=` +
-            senderCom.communityUuid +
-            ' vs ' +
-            verifiedRedeemJwtPayload.sendercommunityuuid
-          logger.error(errmsg)
-          throw new Error(errmsg)
-        }
-        if (verifiedRedeemJwtPayload.exp !== undefined) {
-          const expDate = new Date(verifiedRedeemJwtPayload.exp * 1000)
-          logger.debug(
-            'queryRedeemJwtLink... expDate, exp =',
-            expDate,
-            verifiedRedeemJwtPayload.exp,
-          )
-          if (expDate < new Date()) {
-            const errmsg = `Redeem JWT-Token expired! jwtPayload.exp=${expDate}`
-            logger.error(errmsg)
-            throw new Error(errmsg)
-          }
-        }
-      }
-      const homeCommunity = await getHomeCommunity()
-      if (!homeCommunity) {
-        const errmsg = `Home community not found`
-        logger.error(errmsg)
-        throw new Error(errmsg)
-      }
-      const recipientCommunity = new Community(homeCommunity)
-      const senderCommunity = new Community(senderCom)
-      const senderUser = new User(null)
-      senderUser.gradidoID = verifiedRedeemJwtPayload.sendergradidoid
-      // The signed name lands in BOTH fields, and the alias is the one that survives:
-      // `firstName` is read through the real-name guard (NU-019) and reads as null to
-      // the stranger who is redeeming, which left the redeem page with no name at all.
-      //
-      // ⚠️ The payload cannot say WHICH of the two it carries -- the field is one string.
-      // Our own side no longer signs anything but the alias (see queryTransactionLink
-      // above), so no real name of ours travels this way any more. A link minted by a
-      // community still running the older code can still carry that community's member's
-      // first name, and it is displayed. Ending that needs a distinct, versioned field in
-      // the redeem payload, which is a change to the federation contract and belongs with
-      // the rest of KLAR-11 rather than here.
-      senderUser.firstName = verifiedRedeemJwtPayload.sendername
-      senderUser.alias = verifiedRedeemJwtPayload.sendername
-      const redeemJwtLink = new RedeemJwtLink(
-        verifiedRedeemJwtPayload,
-        senderCommunity,
-        senderUser,
-        recipientCommunity,
-      )
-      logger.debug('TransactionLinkResolver.queryRedeemJwtLink... redeemJwtLink=', redeemJwtLink)
-      return redeemJwtLink
-    } else {
-      const errmsg = `transfer of redeem JWT with wrong envelope! code=${code}`
-      logger.error(errmsg)
-      throw new Error(errmsg)
-    }
   }
 }

@@ -779,6 +779,22 @@ describe('RegisterUserFromTransactionLinkRole', () => {
     })
   })
 
+  // The link is another community's: nothing of it is here to refer or record.
+  it('looks a link of another community not up here, and names its community in the mail', async () => {
+    const LINK_COMMUNITY = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'
+
+    await new RegisterUserFromTransactionLinkRole(
+      input({ redeemCode: 'abc123', redeemCodeCommunityUuid: LINK_COMMUNITY }),
+    ).run(logger)
+
+    expect(dbFindTransactionLinkByCode).not.toHaveBeenCalled()
+    expect(sendAccountActivationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activationLink: `${CONFIG.EMAIL_LINK_VERIFICATION}${storedVerificationCode()}/abc123/${LINK_COMMUNITY}`,
+      }),
+    )
+  })
+
   it('notes the entry of an event link with the account', async () => {
     mocked(dbFindContributionLinkIdByCode).mockResolvedValue(9)
 

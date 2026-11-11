@@ -11,6 +11,7 @@ import { AuthTriads } from '@/components/Auth/AuthTriads'
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({
     params: { code: 'some-code' },
+    query: {},
   })),
   useRouter: vi.fn(() => ({
     push: vi.fn(),
@@ -99,8 +100,6 @@ describe('TransactionLink', () => {
         stubs: {
           TransactionLinkItem: true,
           RedeemLoggedOut: true,
-          RedeemSelfCreator: true,
-          RedeemValid: true,
           RedeemedTextBox: true,
           AuthTriads: true,
         },
@@ -164,8 +163,6 @@ describe('TransactionLink', () => {
           },
           stubs: {
             RedeemLoggedOut: true,
-            RedeemSelfCreator: true,
-            RedeemValid: true,
             RedeemedTextBox: true,
             RedeemThanks: true,
             AuthTriads: true,
@@ -226,8 +223,6 @@ describe('TransactionLink', () => {
           },
           stubs: {
             RedeemLoggedOut: true,
-            RedeemSelfCreator: true,
-            RedeemValid: true,
             RedeemedTextBox: true,
             RedeemThanks: true,
             AuthTriads: true,

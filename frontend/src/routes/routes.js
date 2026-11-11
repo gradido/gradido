@@ -474,7 +474,8 @@ const routes = [
   },
   {
     name: 'CheckEmail',
-    path: '/checkEmail/:optin/:code?',
+    // `codeCommunityUuid`: the community of a redeem code that is another community's link
+    path: '/checkEmail/:optin/:code?/:codeCommunityUuid?',
     component: () => import('@/pages/ResetPassword'),
   },
   // Both reached from a mail, mostly in a browser that is not signed in - so no auth.

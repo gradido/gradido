@@ -18,6 +18,7 @@ import {
   largeThankYouGreetingPictureSizeFits,
   removeLargeThankYouGreetingPicture,
   removeThankYouGreetingPictures,
+  thankYouGreetingPictureForCode,
 } from './ThankYouGreetingPicture.logic'
 
 // ⛔ spyOn, not mock.module: Bun cannot restore a module mock (see ChatMessage.logic.test.ts).
@@ -336,5 +337,85 @@ describe('removeThankYouGreetingPictures', () => {
     expect(logged).toContain(`code=${CODE}`)
     expect(logged).not.toContain(SECRET.toString())
     expect(logged).not.toContain('Failed query')
+  })
+})
+
+describe('thankYouGreetingPictureForCode', () => {
+  const NOW = new Date('2026-10-03T16:30:00.000Z')
+  const SMALL = Buffer.from('the small rendition')
+  const LARGE = Buffer.from('the large rendition')
+  const openLink = {
+    userId: 4711,
+    validUntil: new Date('2026-10-10T16:30:00.000Z'),
+    redeemedAt: null as Date | null,
+    redeemedBy: null as number | null,
+    deletedAt: null as Date | null,
+  }
+  const small = { id: 11, rendition: 'small' as const, width: 831, height: 577 }
+  const large = { id: 12, rendition: 'large' as const, width: 1080, height: 750 }
+  const found = (
+    link: Partial<typeof openLink> = {},
+    pictures = [small, large],
+    makerDeletedAt: Date | null = null,
+  ) => ({ link: { ...openLink, ...link }, makerDeletedAt, pictures }) as never
+
+  let picturesOf: ReturnType<
+    typeof spyOn<typeof database, 'dbSelectThankYouGreetingPicturesByLinkCode'>
+  >
+  let imageOf: ReturnType<typeof spyOn<typeof database, 'dbSelectThankYouGreetingPictureImage'>>
+  beforeEach(() => {
+    picturesOf = spyOn(database, 'dbSelectThankYouGreetingPicturesByLinkCode').mockResolvedValue(
+      found(),
+    )
+    imageOf = spyOn(database, 'dbSelectThankYouGreetingPictureImage').mockImplementation(
+      async (id: number) =>
+        id === small.id
+          ? { success: true, value: SMALL }
+          : id === large.id
+            ? { success: true, value: LARGE }
+            : ({ success: false, error: new Error('not found') } as never),
+    )
+    spies.push(picturesOf, imageOf)
+  })
+
+  it('serves the large rendition of an open link, the small one where no large one is filed', async () => {
+    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBe(LARGE)
+    expect(picturesOf).toHaveBeenCalledWith(CODE)
+    picturesOf.mockResolvedValue(found({}, [small]))
+    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBe(SMALL)
+  })
+
+  // The form is asked before the database: a made-up address costs no query.
+  it('asks the database nothing about a text that is no code', async () => {
+    for (const noCode of ['', 'a1f9c2d41b7e19981fa0d00', "a1f9c2d41b7e19981fa0d00'", undefined]) {
+      expect(await thankYouGreetingPictureForCode(noCode, NOW)).toBeNull()
+    }
+    expect(picturesOf).not.toHaveBeenCalled()
+  })
+
+  it('serves nothing for a code without a picture', async () => {
+    picturesOf.mockResolvedValue(null)
+    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
+    expect(imageOf).not.toHaveBeenCalled()
+  })
+
+  // ⛔ Of an open link only, and not where the maker's account is deleted.
+  it('serves nothing of a link that is not open, or whose maker is deleted -- and reads no picture', async () => {
+    for (const state of [
+      found({ redeemedAt: NOW, redeemedBy: 815 }),
+      found({ validUntil: new Date(NOW.getTime() - 1) }),
+      found({ deletedAt: NOW }),
+      found({}, [small, large], NOW),
+    ]) {
+      picturesOf.mockResolvedValue(state)
+      expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
+    }
+    expect(imageOf).not.toHaveBeenCalled()
+  })
+
+  // The thank-you was accepted between the two reads: the large rendition is gone.
+  it('serves nothing where the picture went between the two reads', async () => {
+    imageOf.mockResolvedValue({ success: false, error: new Error('gone') } as never)
+    expect(await thankYouGreetingPictureForCode(CODE, NOW)).toBeNull()
   })
 })

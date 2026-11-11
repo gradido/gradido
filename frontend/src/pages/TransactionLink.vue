@@ -5,8 +5,8 @@
          as it is to the form on the login and register pages. -->
     <auth-triads />
     <div v-if="isTransactionLinkLoaded">
-      <!-- A member's redeem link arrives as a thank-you on a sheet, whatever state it is in.
-           A contribution link and a link from another community keep the page below. -->
+      <!-- A member's redeem link arrives as a thank-you on a sheet, whatever state it is in --
+           of this community or of another one. A contribution link keeps the page below. -->
       <redeem-thanks
         v-if="isThanksLink"
         :link-data="linkData"
@@ -14,36 +14,14 @@
         :redeem-code="redeemCode"
         :accepting="accepting"
         :stage="thanksStage"
-        :picture="thanksPicture"
+        :picture="shownThanksPicture"
         @accept="acceptThanks"
         @open-account="openAccount"
       />
+      <!-- A contribution link: a guest is asked in; a member's is booked as the page opens. -->
       <transaction-link-item v-else :type="itemTypeExt">
         <template #LOGGED_OUT>
-          <redeem-logged-out :link-data="linkData" :is-contribution-link="isContributionLink" />
-        </template>
-        <template #REDEEM_SELECT_COMMUNITY>
-          <redeem-select-community
-            :link-data="linkData"
-            :redeem-code="redeemCode"
-            :is-transaction-link-loaded="isTransactionLinkLoaded"
-            :is-contribution-link="isContributionLink"
-            :is-redeem-jwt-link="isRedeemJwtLink"
-          />
-        </template>
-
-        <template #SELF_CREATOR>
-          <redeem-self-creator :link-data="linkData" />
-        </template>
-
-        <template #VALID>
-          <redeem-valid
-            :link-data="linkData"
-            :is-contribution-link="isContributionLink"
-            :is-redeem-jwt-link="isRedeemJwtLink"
-            :valid-link="validLink"
-            @mutation-link="mutationLink"
-          />
+          <redeem-logged-out :link-data="linkData" />
         </template>
 
         <template #TEXT>
@@ -62,9 +40,6 @@ import { useQuery, useMutation } from '@vue/apollo-composable'
 import { AuthTriads } from '@/components/Auth/AuthTriads'
 import TransactionLinkItem from '@/components/TransactionLinkItem'
 import RedeemLoggedOut from '@/components/LinkInformations/RedeemLoggedOut'
-import RedeemSelectCommunity from '@/components/LinkInformations/RedeemSelectCommunity'
-import RedeemSelfCreator from '@/components/LinkInformations/RedeemSelfCreator'
-import RedeemValid from '@/components/LinkInformations/RedeemValid'
 import RedeemedTextBox from '@/components/LinkInformations/RedeemedTextBox'
 import RedeemThanks from '@/components/LinkInformations/RedeemThanks'
 import { useSignIn } from '@/composables/useSignIn'
@@ -78,7 +53,7 @@ import CONFIG from '@/config'
 
 const { toastError, toastSuccess } = useAppToast()
 const router = useRouter()
-const { params, meta } = useRoute()
+const { params, meta, query } = useRoute()
 const store = useWalletStore()
 const { d, t } = useI18n()
 
@@ -108,8 +83,11 @@ const linkData = ref({
 
 const redeemedBoxText = ref('')
 
+// `codeCommunityUuid`: the link is another community's, the switch of its page sent the browser
+// here (useRedeemCommunity).
 const { result, onResult, error, onError, refetch } = useQuery(queryTransactionLink, {
   code: params.code,
+  codeCommunityUuid: query.codeCommunityUuid ?? null,
 })
 
 const { mutate: redeemMutate } = useMutation(redeemTransactionLink)
@@ -122,22 +100,23 @@ const isContributionLink = computed(() => {
   return params.code?.search(/^CL-/) === 0
 })
 
-const isRedeemJwtLink = computed(() => {
-  if (
-    isTransactionLinkLoaded.value &&
-    result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink'
-  ) {
-    return true
-  }
-  return false
-})
+const isMemberLink = (answer) =>
+  ['TransactionLink', 'ForeignTransactionLink'].includes(answer?.queryTransactionLink?.__typename)
 
-// A member's own redeem link: neither a contribution link (`CL-...`) nor a link that came
-// over from another community. Only this kind is received as a thank-you (RedeemThanks).
-const isThanksLink = computed(
-  () =>
-    isTransactionLinkLoaded.value &&
-    result.value?.queryTransactionLink?.__typename === 'TransactionLink',
+// A member's redeem link, of this community or of another one: no contribution link (`CL-...`).
+// This kind is received as a thank-you (RedeemThanks).
+const isThanksLink = computed(() => isTransactionLinkLoaded.value && isMemberLink(result.value))
+
+// A link of another community: it is booked there (disburseTransactionLink), and its photo
+// comes with it.
+const isForeignLink = computed(
+  () => result.value?.queryTransactionLink?.__typename === 'ForeignTransactionLink',
+)
+
+// "Where is your account?" -- asked on a member's link of this community only: whoever came
+// here from another community has named theirs already.
+const asksCommunity = computed(
+  () => CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE && isThanksLink.value && !isForeignLink.value,
 )
 
 // What just happened to the thank-you on this page, for RedeemThanks: 'almost' where the account
@@ -153,25 +132,6 @@ const tokenExpiresInSeconds = computed(() => {
     (new Date(store.tokenTime * 1000).getTime() - new Date().getTime()) / 1000,
   )
   return remainingSecs <= 0 ? 0 : remainingSecs
-})
-
-const validLink = computed(() => {
-  // console.log('TransactionLink.validLink... linkData.value.validUntil=', linkData.value.validUntil)
-  // console.log('TransactionLink.validLink... new Date()=', new Date())
-  if (!isTransactionLinkLoaded.value) {
-    return false
-  }
-  if (!linkData.value.validUntil) {
-    return false
-  }
-  const validUntilDate = new Date(linkData.value.validUntil)
-  // console.log('TransactionLink.validLink... validUntilDate=', validUntilDate)
-  // console.log('TransactionLink.validLink... new Date()=', new Date())
-  // console.log(
-  //   'TransactionLink.validLink... validUntilDate.getTime() >= new Date().getTime()=',
-  //   validUntilDate.getTime() >= new Date().getTime(),
-  // )
-  return validUntilDate.getTime() >= new Date().getTime()
 })
 
 const itemType = computed(() => {
@@ -212,13 +172,7 @@ const itemType = computed(() => {
         //   'TransactionLink.itemType... CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
         //   CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
         // )
-        if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
-          // console.log('TransactionLink.itemType... REDEEM_SELECT_COMMUNITY')
-          return 'REDEEM_SELECT_COMMUNITY'
-        } else {
-          // console.log('TransactionLink.itemType... LOGGED_OUT')
-          return 'LOGGED_OUT'
-        }
+        return asksCommunity.value ? 'REDEEM_SELECT_COMMUNITY' : 'LOGGED_OUT'
       }
     }
     // console.log(
@@ -227,7 +181,6 @@ const itemType = computed(() => {
     // )
     // console.log('TransactionLink.itemType... linkData.value=', linkData.value)
     // console.log('TransactionLink.itemType... store.gradidoID=', store.gradidoID)
-    // console.log('TransactionLink.itemType... isRedeemJwtLink=', isRedeemJwtLink.value)
     // console.log('TransactionLink.itemType... linkData.value.senderUser=', linkData.value.senderUser)
     // console.log(
     //   'TransactionLink.itemType... linkData.value.recipientUser.gradidoID=',
@@ -269,18 +222,11 @@ const itemType = computed(() => {
   //   'TransactionLink.itemType... vor last return CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE=',
   //   CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
   // )
-  if (CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE) {
-    // console.log('TransactionLink.itemType...last return= REDEEM_SELECT_COMMUNITY')
-    return 'REDEEM_SELECT_COMMUNITY'
-  } else {
-    // console.log('TransactionLink.itemType... last return= LOGGED_OUT')
-    return 'LOGGED_OUT'
-  }
+  return asksCommunity.value ? 'REDEEM_SELECT_COMMUNITY' : 'LOGGED_OUT'
 })
 
 const itemTypeExt = computed(() => {
   // console.log('TransactionLink.itemTypeExt... itemType=', itemType.value)
-  // console.log('TransactionLink.itemTypeExt... validLink=', validLink.value)
   if (itemType.value.startsWith('TEXT')) {
     return 'TEXT'
   }
@@ -289,16 +235,21 @@ const itemTypeExt = computed(() => {
 
 watch(itemType, (newItemType) => {
   // console.log('TransactionLink.watch... itemType=', itemType.value)
-  // console.log('TransactionLink.watch... validLink=', validLink.value)
   updateRedeemedBoxText(newItemType)
 })
 
 // The photo of a thank-you greeting that carries one, for the sheet (useThankYouLinkPicture):
 // asked for once, as soon as the page knows that the link is open and its greeting has a photo
 // -- and kept from then on: the sheet and the strip over the account form show the same one.
+// A link of another community brought its photo along: this community's address of photos has
+// none of it.
 const { picture: thanksPicture, load: loadThanksPicture } = useThankYouLinkPicture()
 watch(
-  () => [isThanksLink.value, linkData.value?.greeting?.hasPicture, itemType.value],
+  () => [
+    isThanksLink.value && !isForeignLink.value,
+    linkData.value?.greeting?.hasPicture,
+    itemType.value,
+  ],
   ([thanks, hasPicture, state]) => {
     if (thanks && hasPicture === true && !state.startsWith('TEXT')) {
       loadThanksPicture(redeemCode.value)
@@ -306,6 +257,11 @@ watch(
   },
   { immediate: true },
 )
+
+const shownThanksPicture = computed(() => {
+  if (!isForeignLink.value) return thanksPicture.value
+  return linkData.value.picture ? `data:image/jpeg;base64,${linkData.value.picture}` : null
+})
 
 function updateRedeemedBoxText(type) {
   // console.log('TransactionLink.updateRedeemedBoxText... type=', type)
@@ -341,18 +297,13 @@ onMounted(() => {
 onResult(() => {
   // console.log('TransactionLink.onResult... result=', result.value)
   // console.log('TransactionLink.onResult... stringify result=', JSON.stringify(result.value))
-  if (result.value?.queryTransactionLink?.__typename === 'TransactionLink') {
-    // console.log('TransactionLink.onResult... TransactionLink')
+  if (isMemberLink(result.value)) {
     isTransactionLinkLoaded.value = true
     setTransactionLinkInformation()
   } else if (result.value?.queryTransactionLink?.__typename === 'ContributionLink') {
     // console.log('TransactionLink.onResult... ContributionLink')
     isTransactionLinkLoaded.value = true
     setContributionLinkInformation()
-  } else if (result.value?.queryTransactionLink?.__typename === 'RedeemJwtLink') {
-    // console.log('TransactionLink.onResult... RedeemJwtLink')
-    isTransactionLinkLoaded.value = true
-    setRedeemJwtLinkInformation()
   } else {
     // console.log('TransactionLink.onResult... unknown type:', result.value)
   }
@@ -370,7 +321,7 @@ function setTransactionLinkInformation(answer = result.value) {
   // const queryTransactionLink = result.value.queryTransactionLink
   const deepCopy = JSON.parse(JSON.stringify(answer))
   // console.log('TransactionLink.setTransactionLinkInformation... deepCopy=', deepCopy)
-  if (deepCopy && deepCopy.queryTransactionLink.__typename === 'TransactionLink') {
+  if (isMemberLink(deepCopy)) {
     // console.log('TransactionLink.setTransactionLinkInformation... typename === TransactionLink')
     // recipientUser is only set if the user is logged in
     if (store.gradidoID !== null) {
@@ -403,33 +354,18 @@ function setContributionLinkInformation() {
   }
 }
 
-function setRedeemJwtLinkInformation() {
-  // console.log('TransactionLink.setRedeemJwtLinkInformation... result=', result.value)
-  const deepCopy = JSON.parse(JSON.stringify(result.value))
-  // console.log('TransactionLink.setRedeemJwtLinkInformation... deepCopy=', deepCopy)
-  if (deepCopy) {
-    // console.log('TransactionLink.setRedeemJwtLinkInformation... recipientUser is only set if the user is logged in')
-    if (store.gradidoID !== null) {
-      // console.log('TransactionLink.setRedeemJwtLinkInformation... gradidoID=', store.gradidoID)
-      deepCopy.queryTransactionLink.recipientUser = {
-        __typename: 'User',
-        gradidoID: store.gradidoID,
-        firstName: store.firstName,
-        alias: store.alias,
-      }
-    }
-    // console.log(
-    //   'TransactionLink.setRedeemJwtLinkInformation... deepCopy.queryTransactionLink.recipientUser=',
-    //   deepCopy.queryTransactionLink.recipientUser,
-    // )
-    linkData.value = deepCopy.queryTransactionLink
-    // console.log('TransactionLink.setRedeemJwtLinkInformation... linkData.value=', linkData.value)
-  }
-}
-
 // The booking of a thank-you is on its way: the button waits, and a second tap asks nothing.
 // Before, a double tap on "redeem" sent the request twice.
 const accepting = ref(false)
+
+// The booking of a member's link: a link of another community is paid out from there.
+const bookThanks = () =>
+  isForeignLink.value
+    ? disburseMutate({
+        senderCommunityUuid: linkData.value.senderCommunity.uuid,
+        code: redeemCode.value,
+      })
+    : redeemMutate({ code: redeemCode.value })
 
 // A member takes the thank-you with one tap, and stands on the overview once it is booked.
 // Where the booking fails, the page says why and leads to the overview, as before.
@@ -437,7 +373,7 @@ async function acceptThanks() {
   if (accepting.value) return
   accepting.value = true
   try {
-    await redeemMutate({ code: redeemCode.value })
+    await bookThanks()
     // E-045 (Bernd, 08.11.2026): the page after the booking said what the overview says anyway --
     // the tile, the answer, the chat mark; so the member lands there. The button stays locked
     // until the overview stands.
@@ -457,7 +393,7 @@ const answeredByServer = (err) => (err?.graphQLErrors?.length ?? 0) > 0
 // The link once more, fresh from the server, and with it the state the page shows.
 async function refreshLink() {
   const answer = await refetch()
-  if (answer?.data?.queryTransactionLink?.__typename === 'TransactionLink') {
+  if (isMemberLink(answer?.data)) {
     setTransactionLinkInformation(answer.data)
   }
 }
@@ -500,6 +436,8 @@ async function openAccount({ firstName, lastName, email, password }) {
         language: store.language,
         publisherId: store.publisherId,
         redeemCode: redeemCode.value,
+        // the link's community, where it is another one: the link is not here
+        redeemCodeCommunityUuid: query.codeCommunityUuid ?? null,
         project: store.project,
         password,
       })
@@ -527,7 +465,7 @@ async function openAccount({ firstName, lastName, email, password }) {
       if (store.emailChecked === false) holdAccountWindowsForThisSession()
     }
     try {
-      await redeemMutate({ code: redeemCode.value })
+      await bookThanks()
     } catch (err) {
       if (!answeredByServer(err)) throw err
       toastError(err.message)
@@ -546,35 +484,14 @@ async function openAccount({ firstName, lastName, email, password }) {
   }
 }
 
+// A contribution link, booked as the page opens for a member.
 async function mutationLink(amount) {
-  // console.log('TransactionLink.mutationLink... params=', params)
-  // console.log('TransactionLink.mutationLink... linkData.value=', linkData.value)
-  // console.log('TransactionLink.mutationLink... linkData=', linkData)
-  if (isRedeemJwtLink.value) {
-    // console.log('TransactionLink.mutationLink... trigger disbursement from recipient-community')
-    try {
-      await disburseMutate({
-        senderCommunityUuid: linkData.value.senderCommunity.uuid,
-        code: linkData.value.code,
-      })
-      toastSuccess(t('gdd_per_link.disbured', { n: amount }))
-      await router.push('/overview')
-    } catch (err) {
-      toastError(err.message)
-      await router.push('/overview')
-    }
-  } else {
-    // console.log('TransactionLink.mutationLink... local transaction or contribution')
-    try {
-      await redeemMutate({
-        code: redeemCode.value,
-      })
-      toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
-      await router.push('/overview')
-    } catch (err) {
-      toastError(err.message)
-      await router.push('/overview')
-    }
+  try {
+    await redeemMutate({ code: redeemCode.value })
+    toastSuccess(t('gdd_per_link.redeemed', { n: amount }))
+  } catch (err) {
+    toastError(err.message)
   }
+  await router.push('/overview')
 }
 </script>

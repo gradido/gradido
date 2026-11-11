@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import {
   dbDeleteThankYouGreetingPicturesByLinkCode,
+  dbSelectThankYouGreetingPictureImage,
+  dbSelectThankYouGreetingPicturesByLinkCode,
   ThankYouGreetingPictureRendition,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -20,6 +22,11 @@ import {
   ChatMessageImageSent,
 } from './ChatMessageImage.logic'
 import { decodeJpegImage, JpegImageRefusal, reencodeJpegImage } from './JpegImage.logic'
+import {
+  hasFormOfLinkCode,
+  pictureRenditionsForCodeHolder,
+  pictureToServe,
+} from './ThankYouGreetingPictureAccess.logic'
 
 const createLogger = () => getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.logic.ThankYouGreetingPicture`)
 
@@ -143,7 +150,7 @@ export const acceptSmallThankYouGreetingPicture = (
  * ⛔ Never throws. It runs where a link could not be saved, where one was deleted and after one
  * was accepted, and none of the three may fail over it: its own failure is only logged. A row
  * left behind is handed to nobody -- every reader starts from the link and asks the rule first
- * (backend: data/ThankYouGreetingPicture.logic.ts).
+ * (ThankYouGreetingPictureAccess.logic.ts).
  */
 export async function removeThankYouGreetingPictures(
   transactionLinkCode: string,
@@ -174,3 +181,32 @@ export async function removeThankYouGreetingPictures(
  */
 export const removeLargeThankYouGreetingPicture = (transactionLinkCode: string): Promise<boolean> =>
   removeThankYouGreetingPictures(transactionLinkCode, 'large')
+
+/**
+ * The bytes of the picture whoever holds this code gets now, or null: the large rendition of an
+ * OPEN link, the small one where no large one is filed (pictureRenditionsForCodeHolder). The code
+ * is held against its form before the database is asked anything. It serves the address of the
+ * picture (backend server/thankYouGreetingPicture.ts) and the answer to another community that
+ * asks for the link (crossCommunity transactionLink).
+ */
+export async function thankYouGreetingPictureForCode(
+  code: unknown,
+  now: Date,
+): Promise<Buffer | null> {
+  if (!hasFormOfLinkCode(code)) {
+    return null
+  }
+  const found = await dbSelectThankYouGreetingPicturesByLinkCode(code)
+  if (!found) {
+    return null
+  }
+  const picture = pictureToServe(
+    found.pictures,
+    pictureRenditionsForCodeHolder(found.link, found.makerDeletedAt, now),
+  )
+  if (!picture) {
+    return null
+  }
+  const image = await dbSelectThankYouGreetingPictureImage(picture.id)
+  return image.success ? image.value : null
+}

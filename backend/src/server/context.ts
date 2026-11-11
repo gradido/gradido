@@ -22,6 +22,9 @@ export interface RequestBudget {
   userAvatarsAccepted: number
   // Other communities asked by memberAvatars, capped at MEMBER_AVATARS_RELAYS_MAX_PER_REQUEST.
   memberAvatarsRelayed: number
+  // Links of other communities asked of them (queryTransactionLink), capped at
+  // FOREIGN_TRANSACTION_LINKS_MAX_PER_REQUEST.
+  foreignTransactionLinksAsked: number
   // Pages of a chat thread or of a group (chatMessagesWithMember, chatGroupMessages), capped
   // together at CHAT_MESSAGE_PAGES_MAX_PER_REQUEST.
   chatMessagePagesServed: number
@@ -83,6 +86,7 @@ export const newRequestBudget = (): RequestBudget => ({
   memberAvatarsFullServed: 0,
   userAvatarsAccepted: 0,
   memberAvatarsRelayed: 0,
+  foreignTransactionLinksAsked: 0,
   chatMessagePagesServed: 0,
   chatGroupListsServed: 0,
   chatUpdatesServed: 0,

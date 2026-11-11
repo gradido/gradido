@@ -1,6 +1,6 @@
 <template>
   <div class="redeem-logged-out">
-    <redeem-information :link-data="linkData" :is-contribution-link="isContributionLink" />
+    <redeem-information :link-data="linkData" />
 
     <BCard>
       <div class="mb-2">
@@ -31,6 +31,5 @@ import { useAuthLinks } from '@/composables/useAuthLinks'
 const { routeWithParamsAndQuery } = useAuthLinks()
 defineProps({
   linkData: { type: Object, required: true },
-  isContributionLink: { type: Boolean, default: false },
 })
 </script>

@@ -26,7 +26,7 @@ type Query {
   favoriteList: [MemberRef!]!
   transactionList(counterparty: MemberAvatarRefInput, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionList!
   transactionPicture(transactionId: Int!): String
-  queryTransactionLink(code: String!): QueryLinkResult!
+  queryTransactionLink(codeCommunityUuid: String, code: String!): QueryLinkResult!
   thankYouGreetingPicture(large: Boolean = false, linkId: Int!): String
   listTransactionLinks(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionLinkResult!
   listTransactionLinksAdmin(userId: Int!, filters: TransactionLinkFilters, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): TransactionLinkResult!
@@ -544,7 +544,7 @@ type TransactionPicture {
   hasPicture: Boolean!
 }
 
-union QueryLinkResult = TransactionLink | RedeemJwtLink | ContributionLink
+union QueryLinkResult = TransactionLink | ForeignTransactionLink | ContributionLink
 
 type TransactionLink {
   id: Int!
@@ -565,15 +565,19 @@ type TransactionLink {
   senderAvatar: String
 }
 
-type RedeemJwtLink {
+type ForeignTransactionLink {
   senderCommunity: Community!
   senderUser: User!
-  recipientCommunity: Community!
-  recipientUser: User
   amount: GradidoUnit!
   memo: String!
   code: String!
+  createdAt: DateTime!
   validUntil: DateTime!
+  redeemedAt: DateTime
+  deletedAt: DateTime
+  greeting: ThankYouGreeting
+  senderAvatar: String
+  picture: String
 }
 
 type ContributionLink {
@@ -1022,7 +1026,6 @@ type Mutation {
   createTransactionLink(amount: GradidoUnit!, memo: String!, greeting: ThankYouGreetingInput): TransactionLink!
   deleteTransactionLink(id: Int!): Boolean!
   redeemTransactionLink(code: String!): Boolean!
-  createRedeemJwt(validUntil: String, alias: String, firstName: String, memo: String!, amount: String!, code: String!, recipientCommunityUuid: String!, senderCommunityName: String!, senderCommunityUuid: String!, gradidoId: String!): String!
   disburseTransactionLink(code: String!, senderCommunityUuid: String!): Boolean!
   addThankYouGreetingPicture(picture: ChatImageInput!, linkId: Int!): Boolean!
   createContributionLink(amount: GradidoUnit!, name: String!, memo: String!, cycle: String!, validFrom: String, validTo: String, maxAmountPerMonth: GradidoUnit, maxPerCycle: Int!): ContributionLink!
@@ -1093,7 +1096,7 @@ type Mutation {
   setUserRemark(userId: Int!, remark: String!): UserRemark
   login(email: String!, password: String!, publisherId: Int, project: String): User!
   logout: Boolean!
-  createUser(alias: String, email: String!, firstName: String!, lastName: String!, language: String, publisherId: Int, redeemCode: String, project: String, referrerAlias: String, guarantorCode: String, password: String, eventMatchingEntry: EventMatchingEntryInput): Boolean!
+  createUser(alias: String, email: String!, firstName: String!, lastName: String!, language: String, publisherId: Int, redeemCode: String, redeemCodeCommunityUuid: String, project: String, referrerAlias: String, guarantorCode: String, password: String, eventMatchingEntry: EventMatchingEntryInput): Boolean!
   forgotPassword(email: String!): Boolean!
   setPassword(password: String!, code: String!): Boolean!
   updateUserInfos(firstName: String, lastName: String, alias: String, language: String, publisherId: Int, password: String, passwordNew: String, hideAmountGDD: Boolean, hideAmountGDT: Boolean, humhubAllowed: Boolean, gmsAllowed: Boolean, avatarVisibleToMembers: Boolean, transfersInChat: Boolean, gmsPublishName: PublishNameType, humhubPublishName: PublishNameType, gmsLocation: Location, gmsPublishLocation: GmsPublishLocationType, aboutMe: String): Boolean!
