@@ -10,6 +10,19 @@
     "locales:fix": {},
     "lint:fix": {
       "dependsOn": ["stylelint:fix", "locales:fix"]
+    },
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "ADMIN_*", "COMMUNITY_*", "GRAPHQL_*", "WALLET_*",
+        "HUMHUB_*", "*_ACTIVE", "DEBUG_DISABLE_AUTH"
+      ]
+    },
+    "test": {
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "ADMIN_*", "COMMUNITY_*", "GRAPHQL_*", "WALLET_*",
+        "HUMHUB_*", "*_ACTIVE", "DEBUG_DISABLE_AUTH"
+      ]
     }
   }
 }

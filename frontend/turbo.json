@@ -18,8 +18,35 @@
     },
     "build": {
       "dependsOn": ["compile-scss", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "NODE_ENV",
+        "BUILD_COMMIT",
+        "FRONTEND_*",
+        "COMMUNITY_*",
+        "GRAPHQL_*",
+        "ADMIN_AUTH_*",
+        "MAP_*",
+        "META_*",
+        "*_ACTIVE",
+        "AUTO_POLL_INTERVAL"
+      ],
       "outputs": ["build/**"],
       "cache": true
+    },
+    "test": {
+      "env": [
+        "NODE_ENV",
+        "BUILD_COMMIT",
+        "FRONTEND_*",
+        "COMMUNITY_*",
+        "GRAPHQL_*",
+        "ADMIN_AUTH_*",
+        "MAP_*",
+        "META_*",
+        "*_ACTIVE",
+        "AUTO_POLL_INTERVAL"
+      ]
     }
   }
 }

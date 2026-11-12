@@ -8,6 +8,12 @@
     },
     "lint:fix": {
       "dependsOn": ["locales:fix"]
+    },
+    "test": {
+      "env": [
+        "NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE", "COMMUNITY_*",
+        "URL_PROTOCOL", "LOG*", "DLT_*", "EMAIL*", "FEDERATION_*", "HOME_COMMUNITY_SEED"
+      ]
     }
   }
 }
