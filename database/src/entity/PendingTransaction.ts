@@ -84,12 +84,12 @@ export class PendingTransaction extends BaseEntity {
   @Column({ name: 'creation_date', type: 'datetime', precision: 3, nullable: true, default: null })
   creationDate: Date | null
 
-  @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })
+  @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
   userId: number
 
   @Column({
     name: 'user_gradido_id',
-    type: 'varchar',
+    type: 'char',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -107,7 +107,7 @@ export class PendingTransaction extends BaseEntity {
 
   @Column({
     name: 'user_community_uuid',
-    type: 'varchar',
+    type: 'char',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -125,12 +125,12 @@ export class PendingTransaction extends BaseEntity {
 
   @Column({
     name: 'linked_user_gradido_id',
-    type: 'varchar',
+    type: 'char',
     length: 36,
-    nullable: true,
+    nullable: false,
     collation: 'utf8mb4_unicode_ci',
   })
-  linkedUserGradidoID: string | null
+  linkedUserGradidoID: string
 
   @Column({
     name: 'linked_user_name',
@@ -143,7 +143,7 @@ export class PendingTransaction extends BaseEntity {
 
   @Column({
     name: 'linked_user_community_uuid',
-    type: 'varchar',
+    type: 'char',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',

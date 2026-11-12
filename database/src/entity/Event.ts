@@ -33,35 +33,35 @@ export class Event extends BaseEntity {
   })
   createdAt: Date
 
-  @Column({ name: 'affected_user_id', type: 'bigint', unsigned: true, nullable: false })
+  @Column({ name: 'affected_user_id', type: 'int', unsigned: true, nullable: false })
   affectedUserId: number
 
   @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'affected_user_id', referencedColumnName: 'id' })
   affectedUser: UserType
 
-  @Column({ name: 'acting_user_id', type: 'bigint', unsigned: true, nullable: false })
+  @Column({ name: 'acting_user_id', type: 'int', unsigned: true, nullable: false })
   actingUserId: number
 
   @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'acting_user_id', referencedColumnName: 'id' })
   actingUser: UserType
 
-  @Column({ name: 'involved_user_id', type: 'bigint', unsigned: true, nullable: true })
+  @Column({ name: 'involved_user_id', type: 'int', unsigned: true, nullable: true })
   involvedUserId: number | null
 
   @ManyToOne(() => require('./User').User)
   @JoinColumn({ name: 'involved_user_id', referencedColumnName: 'id' })
   involvedUser: UserType | null
 
-  @Column({ name: 'involved_transaction_id', type: 'bigint', unsigned: true, nullable: true })
+  @Column({ name: 'involved_transaction_id', type: 'int', unsigned: true, nullable: true })
   involvedTransactionId: number | null
 
   @ManyToOne(() => require('./Transaction').Transaction)
   @JoinColumn({ name: 'involved_transaction_id', referencedColumnName: 'id' })
   involvedTransaction: TransactionType | null
 
-  @Column({ name: 'involved_contribution_id', type: 'bigint', unsigned: true, nullable: true })
+  @Column({ name: 'involved_contribution_id', type: 'int', unsigned: true, nullable: true })
   involvedContributionId: number | null
 
   @ManyToOne(() => require('./Contribution').Contribution)
@@ -70,7 +70,7 @@ export class Event extends BaseEntity {
 
   @Column({
     name: 'involved_contribution_message_id',
-    type: 'bigint',
+    type: 'int',
     unsigned: true,
     nullable: true,
   })
@@ -80,14 +80,14 @@ export class Event extends BaseEntity {
   @JoinColumn({ name: 'involved_contribution_message_id', referencedColumnName: 'id' })
   involvedContributionMessage: ContributionMessageType | null
 
-  @Column({ name: 'involved_transaction_link_id', type: 'bigint', unsigned: true, nullable: true })
+  @Column({ name: 'involved_transaction_link_id', type: 'int', unsigned: true, nullable: true })
   involvedTransactionLinkId: number | null
 
   @ManyToOne(() => require('./TransactionLink').TransactionLink)
   @JoinColumn({ name: 'involved_transaction_link_id', referencedColumnName: 'id' })
   involvedTransactionLink: TransactionLinkType | null
 
-  @Column({ name: 'involved_contribution_link_id', type: 'bigint', unsigned: true, nullable: true })
+  @Column({ name: 'involved_contribution_link_id', type: 'int', unsigned: true, nullable: true })
   involvedContributionLinkId: number | null
 
   @ManyToOne(() => require('./ContributionLink').ContributionLink)

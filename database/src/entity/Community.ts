@@ -74,7 +74,7 @@ export class Community extends BaseEntity {
   })
   location: Geometry | null
 
-  @Column({ name: 'hiero_topic_id', type: 'varchar', length: 255, nullable: true })
+  @Column({ name: 'hiero_topic_id', type: 'varchar', length: 512, nullable: true })
   hieroTopicId: string | null
 
   @CreateDateColumn({

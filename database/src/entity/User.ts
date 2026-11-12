@@ -41,7 +41,7 @@ export class User extends BaseEntity {
 
   @Column({
     name: 'community_uuid',
-    type: 'char',
+    type: 'varchar',
     length: 36,
     nullable: false,
     collation: 'utf8mb4_unicode_ci',
@@ -150,20 +150,20 @@ export class User extends BaseEntity {
   )
   userRole: UserRoleType | null
 
-  @Column({ name: 'referrer_id', type: 'bigint', unsigned: true, nullable: true, default: null })
+  @Column({ name: 'referrer_id', type: 'int', unsigned: true, nullable: true, default: null })
   referrerId?: number | null
 
   @Column({
     name: 'contribution_link_id',
-    type: 'bigint',
+    type: 'int',
     unsigned: true,
     nullable: true,
     default: null,
   })
   contributionLinkId?: number | null
 
-  @Column({ name: 'publisher_id', type: 'bigint', unsigned: true, default: 0 })
-  publisherId: number
+  @Column({ name: 'publisher_id', type: 'int', unsigned: true, nullable: true, default: 0 })
+  publisherId: number | null
 
   @Column({ name: 'gms_allowed', type: 'bool', default: false })
   gmsAllowed: boolean

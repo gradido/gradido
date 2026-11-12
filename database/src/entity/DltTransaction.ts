@@ -28,7 +28,7 @@ export class DltTransaction extends BaseEntity {
     default: null,
     collation: 'utf8mb4_unicode_ci',
   })
-  hieroTransactionId: string
+  hieroTransactionId: string | null
 
   @Column({ name: 'verified', type: 'bool', nullable: false, default: false })
   verified: boolean
