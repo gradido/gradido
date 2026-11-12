@@ -8,7 +8,11 @@
     "test": {
       "dependsOn": ["^build"]
     },
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
     "typecheck": {
+      "dependsOn": ["transit"]
     },
     "dev": {
       "dependsOn": ["^build"],
