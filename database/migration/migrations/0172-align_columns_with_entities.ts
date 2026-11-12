@@ -2,7 +2,8 @@
 // Columns that had drifted from what the code assumes about them are brought in line.
 //
 // `user_contacts.email_opt_in_type_id` and `email_resend_count` become NOT NULL DEFAULT 0. The
-// rows that hold NULL get 0 first, which is what the code read them as anyway.
+// rows that hold NULL get 0 first, which is what the code read them as anyway. `updated_at` is
+// ON UPDATE CURRENT_TIMESTAMP and is set to itself, so the backfill does not stamp those rows.
 //
 // Fourteen columns that hold an id, a type or a counter were signed `int` and become
 // `int unsigned`, like the primary keys they point at. Nullability and defaults stay as they
@@ -17,7 +18,8 @@ export async function upgrade(queryFn: (query: string, values?: any[]) => Promis
   await queryFn(`
     UPDATE user_contacts
        SET email_opt_in_type_id = COALESCE(email_opt_in_type_id, 0),
-           email_resend_count = COALESCE(email_resend_count, 0)
+           email_resend_count = COALESCE(email_resend_count, 0),
+           updated_at = updated_at
      WHERE email_opt_in_type_id IS NULL OR email_resend_count IS NULL;`)
   await queryFn(`
     ALTER TABLE user_contacts
