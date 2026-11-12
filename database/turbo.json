@@ -9,26 +9,35 @@
     },
     "up:backend_test": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE"]
     },
     "up:federation_test": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE"]
     },
     "up:dht_test": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE"]
     },
     "up:test": {
       "cache": false,
-      "dependsOn": ["build"]
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": ["NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE"]
     },
     "up": {
       "cache": false,
       "dependsOn": ["build"]
     },
     "test": {
-      "dependsOn": ["up:test", "^build"]
+      "dependsOn": ["up:test", "^build"],
+      "env": ["NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE"]
     },
     "down": {
       "cache": false,
