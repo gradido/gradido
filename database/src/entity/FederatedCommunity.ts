@@ -18,7 +18,7 @@ export class FederatedCommunity extends BaseEntity {
   @Column({ name: 'foreign', type: 'bool', nullable: false, default: true })
   foreign: boolean
 
-  @Column({ name: 'public_key', type: 'binary', length: 32, default: null, nullable: true })
+  @Column({ name: 'public_key', type: 'binary', length: 32, nullable: false })
   publicKey: Buffer
 
   @Column({ name: 'api_version', type: 'varchar', length: 10, nullable: false })

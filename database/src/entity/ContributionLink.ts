@@ -27,7 +27,13 @@ export class ContributionLink extends BaseEntity {
   })
   amount: GradidoUnit
 
-  @Column({ type: 'varchar', length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({
+    type: 'varchar',
+    length: 12,
+    nullable: false,
+    default: 'ONCE',
+    collation: 'utf8mb4_unicode_ci',
+  })
   cycle: string
 
   @Column({ name: 'max_per_cycle', type: 'int', unsigned: true, nullable: false, default: 1 })

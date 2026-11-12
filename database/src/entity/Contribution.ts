@@ -20,7 +20,7 @@ export class Contribution extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ type: 'bigint', unsigned: true, nullable: false, name: 'user_id' })
+  @Column({ type: 'int', unsigned: true, nullable: false, name: 'user_id' })
   userId: number
 
   @ManyToOne(
@@ -50,29 +50,30 @@ export class Contribution extends BaseEntity {
   })
   amount: GradidoUnit
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'moderator_id' })
-  moderatorId: number
+  @Column({ type: 'int', unsigned: true, nullable: true, name: 'moderator_id' })
+  moderatorId: number | null
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'contribution_link_id' })
-  contributionLinkId: number
+  @Column({ type: 'int', unsigned: true, nullable: true, name: 'contribution_link_id' })
+  contributionLinkId: number | null
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'confirmed_by' })
-  confirmedBy: number
+  @Column({ type: 'int', unsigned: true, nullable: true, name: 'confirmed_by' })
+  confirmedBy: number | null
 
   @Column({ type: 'datetime', nullable: true, name: 'confirmed_at' })
-  confirmedAt: Date
+  confirmedAt: Date | null
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'denied_by' })
-  deniedBy: number
+  @Column({ type: 'int', unsigned: true, nullable: true, name: 'denied_by' })
+  deniedBy: number | null
 
   @Column({ type: 'datetime', nullable: true, name: 'denied_at' })
-  deniedAt: Date
+  deniedAt: Date | null
 
   @Column({
     name: 'contribution_type',
     type: 'varchar',
     length: 12,
     nullable: false,
+    default: 'ADMIN',
     collation: 'utf8mb4_unicode_ci',
   })
   contributionType: string
@@ -82,24 +83,25 @@ export class Contribution extends BaseEntity {
     type: 'varchar',
     length: 12,
     nullable: false,
+    default: 'PENDING',
     collation: 'utf8mb4_unicode_ci',
   })
   contributionStatus: string
 
-  @Column({ type: 'bigint', unsigned: true, nullable: true, name: 'transaction_id' })
-  transactionId: number
+  @Column({ type: 'int', unsigned: true, nullable: true, name: 'transaction_id' })
+  transactionId: number | null
 
   @Column({ type: 'datetime', nullable: true, name: 'updated_at' })
-  updatedAt: Date
+  updatedAt: Date | null
 
-  @Column({ type: 'bigint', nullable: true, unsigned: true, name: 'updated_by' })
+  @Column({ type: 'int', nullable: true, unsigned: true, name: 'updated_by' })
   updatedBy: number | null
 
   // Group functions: when the group was set through the group field — on
   // submission and on every later change, including a change to "no group". NULL means it
   // was never set that way, which is the only case where a legacy inline "#tag" in the memo
   // still counts. Once this carries a timestamp, hashtags in the text are free text.
-  @Column({ type: 'datetime', nullable: true, name: 'creation_groups_set_at' })
+  @Column({ type: 'datetime', precision: 3, nullable: true, name: 'creation_groups_set_at' })
   creationGroupsSetAt: Date | null
 
   // Part of the member's first creation (ES-002, migration 0170): the bundle the window filed.
@@ -109,8 +111,8 @@ export class Contribution extends BaseEntity {
   @DeleteDateColumn({ type: 'datetime', name: 'deleted_at' })
   deletedAt: Date | null
 
-  @DeleteDateColumn({ type: 'bigint', unsigned: true, nullable: true, name: 'deleted_by' })
-  deletedBy: number
+  @DeleteDateColumn({ type: 'int', unsigned: true, nullable: true, name: 'deleted_by' })
+  deletedBy: number | null
 
   @OneToMany(
     () => require('./ContributionMessage').ContributionMessage,

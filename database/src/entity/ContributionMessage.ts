@@ -21,7 +21,7 @@ export class ContributionMessage extends BaseEntity {
   id: number
 
   @Index()
-  @Column({ name: 'contribution_id', type: 'bigint', unsigned: true, nullable: false })
+  @Column({ name: 'contribution_id', type: 'int', unsigned: true, nullable: false })
   contributionId: number
 
   @ManyToOne(
@@ -31,7 +31,7 @@ export class ContributionMessage extends BaseEntity {
   @JoinColumn({ name: 'contribution_id' })
   contribution: ContributionType
 
-  @Column({ name: 'user_id', type: 'bigint', unsigned: true, nullable: false })
+  @Column({ name: 'user_id', type: 'int', unsigned: true, nullable: false })
   userId: number
 
   @ManyToOne(
@@ -50,15 +50,21 @@ export class ContributionMessage extends BaseEntity {
 
   @UpdateDateColumn()
   @Column({ type: 'datetime', default: null, nullable: true, name: 'updated_at' })
-  updatedAt: Date
+  updatedAt: Date | null
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date | null
 
-  @Column({ name: 'deleted_by', type: 'bigint', default: null, unsigned: true, nullable: true })
-  deletedBy: number
+  @Column({ name: 'deleted_by', type: 'int', default: null, unsigned: true, nullable: true })
+  deletedBy: number | null
 
-  @Column({ type: 'varchar', length: 12, nullable: false, collation: 'utf8mb4_unicode_ci' })
+  @Column({
+    type: 'varchar',
+    length: 12,
+    nullable: false,
+    default: 'DIALOG',
+    collation: 'utf8mb4_unicode_ci',
+  })
   type: string
 
   @Column({ name: 'is_moderator', type: 'bool', nullable: false, default: false })

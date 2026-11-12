@@ -52,8 +52,8 @@ export class GmsUser {
   uuid: string
   communityUuid: string
   email: string | undefined
-  countryCode: string | undefined
-  mobile: string | undefined
+  countryCode: string | null | undefined
+  mobile: string | null | undefined
   status: number
   createdAt: Date
   updatedAt: Date
@@ -74,7 +74,7 @@ export class GmsUser {
     }
   }
 
-  private getGmsCountryCode(user: dbUser): string | undefined {
+  private getGmsCountryCode(user: dbUser): string | null | undefined {
     if (
       user.gmsAllowed &&
       ((user.emailContact?.gmsPublishPhone as GmsPublishPhoneType) ===
@@ -86,7 +86,7 @@ export class GmsUser {
     }
   }
 
-  private getGmsPhone(user: dbUser): string | undefined {
+  private getGmsPhone(user: dbUser): string | null | undefined {
     if (
       user.gmsAllowed &&
       (user.emailContact?.gmsPublishPhone as GmsPublishPhoneType) ===

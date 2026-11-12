@@ -10,6 +10,7 @@ import {
   EventType,
 } from 'database'
 import { GraphQLError } from 'graphql'
+import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
@@ -254,7 +255,7 @@ describe('ContributionMessageResolver', () => {
             message: 'Admin Test',
             senderAlias: 'peterl',
             contributionMemo: 'Test env contribution',
-            contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${result.data.createContribution.id}`,
+            contributionFrontendLink: `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#contributionListItem-${result.data.createContribution.id}`,
             // ⭐ And this is the point of the flag, asserted where it matters most: the
             // ORDINARY moderator message keeps its reply button. Only a caller that
             // confirms the contribution straight after commenting says false, and this is

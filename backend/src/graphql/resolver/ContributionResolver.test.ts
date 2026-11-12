@@ -904,7 +904,7 @@ describe('ContributionResolver', () => {
             language: 'de',
             senderAlias: admin.alias,
             contributionMemo: 'Test contribution to deny',
-            contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${contributionToDeny.data.createContribution.id}`,
+            contributionFrontendLink: `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#contributionListItem-${contributionToDeny.data.createContribution.id}`,
           })
         })
       })
@@ -2014,7 +2014,7 @@ describe('ContributionResolver', () => {
                 language: 'de',
                 senderAlias: admin.alias,
                 contributionMemo: 'Das war leider zu Viel!',
-                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
+                contributionFrontendLink: `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
           })
@@ -2182,7 +2182,7 @@ describe('ContributionResolver', () => {
                 senderAlias: admin.alias,
                 contributionMemo: 'Herzlich Willkommen bei Gradido liebe Bibi!',
                 contributionAmount: GradidoUnit.fromNumber(450),
-                contributionFrontendLink: `http://localhost/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
+                contributionFrontendLink: `${CONFIG.COMMUNITY_URL}/contributions/own-contributions/1#contributionListItem-${creation?.id}`,
               })
             })
 

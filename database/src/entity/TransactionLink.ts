@@ -19,7 +19,7 @@ export class TransactionLink extends BaseEntity {
   @PrimaryGeneratedColumn('increment', { unsigned: true })
   id: number
 
-  @Column({ type: 'bigint', unsigned: true, nullable: false })
+  @Column({ type: 'int', unsigned: true, nullable: false })
   userId: number
 
   @Column({

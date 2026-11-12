@@ -19,8 +19,7 @@ export class UserContact extends BaseEntity {
     name: 'type',
     type: 'varchar',
     length: 100,
-    nullable: true,
-    default: null,
+    nullable: false,
     collation: 'utf8mb4_unicode_ci',
   })
   type: string
@@ -92,7 +91,7 @@ export class UserContact extends BaseEntity {
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  countryCode: string
+  countryCode: string | null
 
   @Column({
     type: 'varchar',
@@ -101,7 +100,7 @@ export class UserContact extends BaseEntity {
     nullable: true,
     collation: 'utf8mb4_unicode_ci',
   })
-  phone: string
+  phone: string | null
 
   @Column({ name: 'gms_publish_phone', type: 'int', unsigned: true, nullable: false, default: 0 })
   gmsPublishPhone: number

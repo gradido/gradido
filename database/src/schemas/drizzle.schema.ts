@@ -150,8 +150,8 @@ export const contributionsTable = mysqlTable(
   'contributions',
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-    userId: int('user_id').default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'date' }).default(sql`NULL`),
+    userId: int('user_id', { unsigned: true }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date' }).default(sql`current_timestamp()`),
     resubmissionAt: datetime('resubmission_at', { mode: 'date' }).default(sql`NULL`),
     contributionDate: datetime('contribution_date', { mode: 'date' }).default(sql`NULL`),
     memo: varchar({ length: 512 }).notNull(),
@@ -159,7 +159,7 @@ export const contributionsTable = mysqlTable(
       sql`NULL`,
     ),
     amount: customGradidoUnit('amount_gdd4').default(sql`NULL`),
-    moderatorId: int('moderator_id').default(sql`NULL`),
+    moderatorId: int('moderator_id', { unsigned: true }).default(sql`NULL`),
     contributionLinkId: int('contribution_link_id', { unsigned: true }).default(sql`NULL`),
     confirmedBy: int('confirmed_by', { unsigned: true }).default(sql`NULL`),
     confirmedAt: datetime('confirmed_at', { mode: 'date' }).default(sql`NULL`),
@@ -600,9 +600,9 @@ export type LoginElopageBuyInsert = typeof loginElopageBuysTable.$inferInsert
 // table has it the other way round.
 export const pendingTransactionsTable = mysqlTable('pending_transactions', {
   id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-  state: int().notNull(),
+  state: int({ unsigned: true }).notNull(),
   previous: int({ unsigned: true }).default(sql`NULL`),
-  typeId: int('type_id').default(sql`NULL`),
+  typeId: int('type_id', { unsigned: true }).default(sql`NULL`),
   transactionLinkId: int('transaction_link_id', { unsigned: true }).default(sql`NULL`),
   amountLegacy: decimal('amount_legacy', { precision: 40, scale: 20, mode: 'string' }).default(
     sql`NULL`,
@@ -620,7 +620,7 @@ export const pendingTransactionsTable = mysqlTable('pending_transactions', {
   ),
   decay: customGradidoUnit('decay_gdd4').default(sql`NULL`),
   decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-  decayCalculationType: int('decay_calculation_type').default(0),
+  decayCalculationType: int('decay_calculation_type', { unsigned: true }).default(0),
   memo: varchar({ length: 512 }).notNull(),
   creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
   userId: int('user_id', { unsigned: true }).notNull(),
@@ -633,7 +633,7 @@ export const pendingTransactionsTable = mysqlTable('pending_transactions', {
     .collate('utf8mb4_unicode_ci')
     .default(sql`NULL`),
   linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).notNull(),
-  linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+  linkedTransactionId: int('linked_transaction_id', { unsigned: true }).default(sql`NULL`),
 })
 
 export type PendingTransactionSelect = typeof pendingTransactionsTable.$inferSelect
@@ -662,7 +662,7 @@ export const transactionsTable = mysqlTable(
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     previous: int({ unsigned: true }).default(sql`NULL`),
-    typeId: int('type_id').default(sql`NULL`),
+    typeId: int('type_id', { unsigned: true }).default(sql`NULL`),
     transactionLinkId: int('transaction_link_id', { unsigned: true }).default(sql`NULL`),
     thankYouCardId: int('thank_you_card_id', { unsigned: true }).default(sql`NULL`),
     // The picture sent with a transfer (`transaction_pictures`, migration 0154), on both rows.
@@ -683,7 +683,7 @@ export const transactionsTable = mysqlTable(
     ),
     decay: customGradidoUnit('decay_gdd4').default(sql`NULL`),
     decayStart: datetime('decay_start', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    decayCalculationType: int('decay_calculation_type').default(0),
+    decayCalculationType: int('decay_calculation_type', { unsigned: true }).default(0),
     memo: varchar({ length: 512 }).notNull(),
     creationDate: datetime('creation_date', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     userId: int('user_id', { unsigned: true }).notNull(),
@@ -697,7 +697,7 @@ export const transactionsTable = mysqlTable(
     linkedUserCommunityUuid: char('linked_user_community_uuid', { length: 36 }).default(sql`NULL`),
     linkedUserGradidoId: char('linked_user_gradido_id', { length: 36 }).default(sql`NULL`),
     linkedUserName: varchar('linked_user_name', { length: 512 }).default(sql`NULL`),
-    linkedTransactionId: int('linked_transaction_id').default(sql`NULL`),
+    linkedTransactionId: int('linked_transaction_id', { unsigned: true }).default(sql`NULL`),
     // Whether the recipient saw the transfer (migration 0169, Chat E-086). Only meaningful on a
     // RECEIVE row; a received transfer with `seen` false counts as unread.
     seen: boolean().default(false).notNull(),
@@ -803,7 +803,7 @@ export const usersTable = mysqlTable(
     // Mandatory since migration 0164, for the cached copies of members of other communities
     // (`foreign = 1`) as well: they are filed with the alias that community sent, or not at all.
     alias: varchar({ length: 20 }).notNull(),
-    emailId: int('email_id').default(sql`NULL`), // TODO: check if it is possible to set to not null
+    emailId: int('email_id', { unsigned: true }).default(sql`NULL`), // TODO: check if it is possible to set to not null
     firstName: varchar('first_name', { length: 255 }).default(sql`NULL`),
     lastName: varchar('last_name', { length: 255 }).default(sql`NULL`),
     gmsPublishName: int('gms_publish_name', { unsigned: true }).default(0).notNull(),
@@ -815,14 +815,16 @@ export const usersTable = mysqlTable(
     // loses precision. `unsigned` also keeps drizzle-kit from turning the column signed,
     // which every hash from 2^63 up would overflow.
     password: bigint({ mode: 'bigint', unsigned: true }).default(0n),
-    passwordEncryptionType: int('password_encryption_type').default(0).notNull(),
+    passwordEncryptionType: int('password_encryption_type', { unsigned: true })
+      .default(0)
+      .notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
     language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
     referrerId: int('referrer_id', { unsigned: true }).default(sql`NULL`),
     contributionLinkId: int('contribution_link_id', { unsigned: true }).default(sql`NULL`),
-    publisherId: int('publisher_id').default(0),
+    publisherId: int('publisher_id', { unsigned: true }).default(0),
     hideAmountGdd: boolean('hideAmountGDD').default(false),
     hideAmountGdt: boolean('hideAmountGDT').default(false),
     gmsAllowed: boolean('gms_allowed').default(false).notNull(),
@@ -878,9 +880,7 @@ export const userSelectSchema = createSelectSchema(usersTable, {
 })
 
 // A member's addresses - every one they ever held stays; `users.email_id` marks the one in
-// force (see queries/userContacts.typeorm.ts for the life of a row). Mirrors the table as
-// the migrations leave it, not the TypeORM entity: `email_opt_in_type_id` is nullable here
-// and `type` is not, the other way round from the entity.
+// force (see queries/userContacts.typeorm.ts for the life of a row).
 //
 // ⚠️ The verification and veto codes are unsigned 64 bit words: mode 'bigint' and
 // unsigned, for the reason users.password gives - as a JS number almost every code would
@@ -899,8 +899,8 @@ export const userContactsTable = mysqlTable(
     changeVetoCode: bigint('change_veto_code', { mode: 'bigint', unsigned: true }).default(
       sql`NULL`,
     ),
-    emailOptInTypeId: int('email_opt_in_type_id').default(sql`NULL`),
-    emailResendCount: int('email_resend_count').default(0),
+    emailOptInTypeId: int('email_opt_in_type_id', { unsigned: true }).default(0).notNull(),
+    emailResendCount: int('email_resend_count', { unsigned: true }).default(0).notNull(),
     emailChecked: boolean('email_checked').default(false).notNull(),
     gmsPublishEmail: boolean('gms_publish_email').default(false).notNull(),
     countryCode: varchar('country_code', { length: 255 }).default(sql`NULL`),

@@ -483,7 +483,7 @@ export class UserResolver {
     const emailVerificationCode = random(64)
     const affectedRows = await dbUserContactUpdate(user.emailContact.id, {
       updatedAt: new Date(),
-      emailResendCount: (user.emailContact.emailResendCount ?? 0) + 1,
+      emailResendCount: user.emailContact.emailResendCount + 1,
       emailVerificationCode,
       emailOptInTypeId: OptInType.EMAIL_OPT_IN_RESET_PASSWORD,
     })
@@ -1663,7 +1663,7 @@ export class UserResolver {
     await dbUserContactUpdateField(
       user.emailContact.id,
       'emailResendCount',
-      (user.emailContact.emailResendCount ?? 0) + 1,
+      user.emailContact.emailResendCount + 1,
     )
 
     // ⛔ To the stored address, for the reason given in forgotPassword: the lookup ignores
