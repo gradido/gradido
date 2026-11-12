@@ -104,6 +104,24 @@ test.describe('the address', () => {
     await expect.poll(() => graphql.sentFor('adminEmailStatus').length).toBe(2)
   })
 
+  test('sends no mail to a member without an address, until one is given', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({
+      searchUsers: searchUsers([member(4, { email: null, emailChecked: null })]),
+      adminReplaceUnconfirmedEmail: 'member4@example.com',
+    })
+    await signIn(page, '/user')
+    await openTab(page, 0, de.e_mail)
+    const send = pane(page).locator('.test-button')
+    await expect(send).toBeDisabled()
+
+    await pane(page).getByTestId('email-replace-input').fill('member4@example.com')
+    await pane(page).getByTestId('email-replace-button').click()
+    await expect(send).toBeEnabled()
+  })
+
   test('says in its own words why an address was not corrected', async ({ page, graphql }) => {
     graphql.answer({ adminReplaceUnconfirmedEmail: new Failure('Email address already in use') })
     await signIn(page, '/user')

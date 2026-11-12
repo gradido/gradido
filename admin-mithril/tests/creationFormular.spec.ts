@@ -100,6 +100,16 @@ test('offers the submission only with an amount and a text of ten characters', a
   await expect(submit(page)).toBeEnabled()
 })
 
+test('offers no submission for a member without an address', async ({ page, graphql }) => {
+  graphql.answer({ searchUsers: searchUsers([member(7, { email: null, emailChecked: null })]) })
+  await openRow(page)
+  await chooseMonth(page, 0)
+  await amount(page).fill('100')
+  await text(page).fill('ten chars!')
+
+  await expect(submit(page)).toBeDisabled()
+})
+
 test('moves the slider with the amount, and the amount with the slider', async ({ page }) => {
   await openRow(page)
   await chooseMonth(page, 0)

@@ -136,6 +136,8 @@ export const ConfirmRegisterMailFormular = defineComponent({
                   // ⚠️ No prop of BButton: it lands on the button as an attribute, as it did
                   {...{ append: '' }}
                   class='test-button'
+                  // without an address there is nobody to send the mail to
+                  disabled={!email.value}
                   onClick={sendRegisterMail}
                 >
                   {t('unregister_mail.button')}
