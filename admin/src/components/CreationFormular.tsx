@@ -90,7 +90,10 @@ export const CreationFormular = defineComponent({
     // ⚠️ Checks '' but not null: with an amount and a memo handed in and no month chosen,
     // submit is enabled and fails on the missing month. Kept as it was.
     const disabled = computed(() => {
-      return selected.value === '' || value.value <= 0 || text.value.length < 10
+      // a creation is booked by the address: a member without one gets none
+      return (
+        !props.item.email || selected.value === '' || value.value <= 0 || text.value.length < 10
+      )
     })
 
     const submitBtnText = computed(() => {

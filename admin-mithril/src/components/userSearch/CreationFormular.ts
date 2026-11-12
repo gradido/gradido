@@ -48,7 +48,7 @@ export class CreationFormular implements ClassComponent<Attrs> {
 
   private async submit(member: SearchedMember) {
     // also a second press that comes before the button is drawn locked
-    if (this.submitting) {
+    if (this.submitting || !member.email) {
       return
     }
     const amount = this.amount
@@ -109,8 +109,13 @@ export class CreationFormular implements ClassComponent<Attrs> {
     const { userId, creation } = member
     const phone = isPhone()
     const textValid = this.text.length >= MIN_TEXT
+    // a creation is booked by the address: a member without one gets none
     const disabled =
-      this.submitting || this.month === null || Number(this.amount) <= 0 || !textValid
+      !member.email ||
+      this.submitting ||
+      this.month === null ||
+      Number(this.amount) <= 0 ||
+      !textValid
     // The three parts keep the room `m-4` gave them at the desk, and take the width of the card on
     // a phone (CreationFormular.module.css).
     return m('.component-creation-formular', [
