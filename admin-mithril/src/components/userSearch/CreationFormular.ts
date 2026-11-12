@@ -72,7 +72,7 @@ export class CreationFormular implements ClassComponent<Attrs> {
     }
     member.creation = v.parse(openAmountsSchema, answer.value).adminCreateContribution
     setOpenCreations(adminStore.openCreations + 1)
-    toastSuccess(t('creation_form.toasted', { value: amount, email: member.email }))
+    toastSuccess(t('creation_form.toasted', { value: amount, email: member.email ?? '' }))
   }
 
   private amountRow(member: SearchedMember) {

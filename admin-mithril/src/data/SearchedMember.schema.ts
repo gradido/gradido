@@ -7,9 +7,10 @@ export const searchedMemberSchema = v.object({
   firstName: v.string(),
   lastName: v.string(),
   alias: v.nullable(v.string()),
-  email: v.string(),
+  // null for a member without an address: UserAdmin leaves both open, and the tab "all" lists them
+  email: v.nullable(v.string()),
   creation: v.array(v.string()),
-  emailChecked: v.boolean(),
+  emailChecked: v.nullable(v.boolean()),
   emailConfirmationSend: v.nullable(v.string()),
   deletedAt: v.nullable(v.string()),
   createdAt: v.string(),

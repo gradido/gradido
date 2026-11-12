@@ -67,6 +67,16 @@ const months = (page: Page) =>
       .map((date) => new Intl.DateTimeFormat('de', { month: 'short' }).format(date))
   })
 
+test('lists a member without an address', async ({ page, graphql }) => {
+  // UserAdmin leaves both open where a member has no email contact; only "all" lists them
+  graphql.answer({ searchUsers: searchUsers([member(6, { email: null, emailChecked: null })]) })
+  await signIn(page, '/user')
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(rows(page)).toContainText('First6')
+  await expect(page.getByTestId('user-search-hits')).toHaveText('1 Treffer')
+})
+
 test('lists the members of the first page, asking once', async ({ page, graphql }) => {
   await signIn(page, '/user')
 

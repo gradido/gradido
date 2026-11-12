@@ -78,7 +78,7 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
     if (this.replacement === typed) {
       this.replacement = ''
     }
-    toastSuccess(t('unregister_mail.replace.success', { email: member.email }))
+    toastSuccess(t('unregister_mail.replace.success', { email: member.email ?? '' }))
     // what the server now knows of the addresses, which the correction does not answer
     this.loadStatus(member.userId)
   }
@@ -97,7 +97,7 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
         ? m(
             '.alert.alert-warning.small',
             { 'data-test': 'email-replace-warning' },
-            t('unregister_mail.replace.elopage_warning', { email: member.email }),
+            t('unregister_mail.replace.elopage_warning', { email: member.email ?? '' }),
           )
         : null,
       m('.input-group', { role: 'group' }, [
@@ -127,7 +127,9 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
 
   view({ attrs: { member } }: Vnode<Attrs>) {
     const { status } = this
-    const { email, emailConfirmationSend } = member
+    const { emailConfirmationSend } = member
+    // a member without an address has none to show or to write to
+    const email = member.email ?? ''
     // half the padding below 992px: a phone has no room to spare inside the card
     return m(
       '.component-confirm-register-mail',
@@ -161,7 +163,7 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
         // shown only where it says something the current address does not
         status
           ? m('.mt-3.small', { 'data-test': 'email-status' }, [
-              status.gdtEmail !== email
+              status.gdtEmail !== member.email
                 ? m(
                     'div',
                     { 'data-test': 'email-gdt' },
