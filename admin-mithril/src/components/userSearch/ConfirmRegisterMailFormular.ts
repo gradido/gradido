@@ -154,7 +154,8 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
                 }),
                 m(
                   'button.btn.btn-md.btn-outline-success.test-button',
-                  { type: 'button', onclick: () => this.sendMail(email) },
+                  // without an address there is nobody to send the mail to
+                  { type: 'button', disabled: !email, onclick: () => this.sendMail(email) },
                   t('unregister_mail.button'),
                 ),
               ]),
