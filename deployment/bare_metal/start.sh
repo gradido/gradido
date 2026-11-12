@@ -368,7 +368,27 @@ bun install --frozen-lockfile
 # build all modules
 log_step 'build all modules'
 # without the Vue admin: admin-mithril is served in its place, and reads its sources, not its build
-bunx turbo build --env-mode=loose --concurrency=$(nproc) --filter='!admin'
+# Parallel builds are about 30% faster, but peak at roughly 2.2 GB of RAM (one build at a time:
+# roughly 1.7 GB, measured on 16 cores). On a small server without swap that fills the memory and
+# freezes the machine, so build in parallel only if enough memory (RAM + swap) is free right now.
+BUILD_PARALLEL_MIN_FREE_MB=3000
+BUILD_FREE_MB=$(awk '/^(MemAvailable|SwapFree):/ {kb += $2} END {print int(kb / 1024)}' /proc/meminfo)
+if [ "$BUILD_FREE_MB" -ge "$BUILD_PARALLEL_MIN_FREE_MB" ]; then
+  BUILD_CONCURRENCY=$(nproc)
+else
+  BUILD_CONCURRENCY=1
+fi
+echo "${BUILD_FREE_MB} MB memory free, build with concurrency ${BUILD_CONCURRENCY}"
+if [ "$BUILD_CONCURRENCY" -gt 1 ] && bunx turbo build --env-mode=loose --concurrency="$BUILD_CONCURRENCY" --filter='!admin'; then
+  :
+else
+  # either too little memory, or the parallel build failed, maybe killed for lack of memory:
+  # then try once more, one build at a time
+  if [ "$BUILD_CONCURRENCY" -gt 1 ]; then
+    echo 'parallel build failed, retry with concurrency 1'
+  fi
+  bunx turbo build --env-mode=loose --concurrency=1 --filter='!admin'
+fi
 
 # build inspector and dlt-connector
 if [ "$DLT_ACTIVE" = true ]; then
