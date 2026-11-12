@@ -6,7 +6,8 @@
     "lint:fix": {
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
     },
     "transit": {
       "dependsOn": ["^transit"]

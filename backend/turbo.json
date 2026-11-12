@@ -15,9 +15,20 @@
       "dependsOn": ["database#up:backend_test", "^build"],
       "inputs": [
         "$TURBO_DEFAULT$",
+        ".env*",
         "$TURBO_ROOT$/admin/src/graphql/**",
         "$TURBO_ROOT$/frontend/src/graphql/**"
+      ],
+      "env": [
+        "NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE", "COMMUNITY_*",
+        "URL_PROTOCOL", "LOG*", "DLT_*", "EMAIL*", "FEDERATION_*", "HOME_COMMUNITY_SEED",
+        "ANTHROPIC_*", "BACKEND_PORT", "CHAT_VIDEO_SERVERS", "CREA_STUB",
+        "FUNCTION_TESTS_ENABLED", "GDT_*", "GMS_*", "HUMHUB_*", "JWT_*", "KLICKT*",
+        "MATCHING_ACTIVE", "WEBHOOK_ELOPAGE_SECRET"
       ]
+    },
+    "build": {
+      "env": ["BUILD_COMMIT"]
     },
     "dev": {
       "dependsOn": ["database#up", "^build"]

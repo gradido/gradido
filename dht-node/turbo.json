@@ -2,7 +2,11 @@
   "extends": ["//"],
   "tasks": {
     "test": {
-      "dependsOn": ["database#up:dht_test", "^build"]
+      "dependsOn": ["database#up:dht_test", "^build"],
+      "env": [
+        "NODE_ENV", "DB_*", "TYPEORM_*", "REDIS_URL", "DEFAULT_LANGUAGE", "COMMUNITY_*",
+        "URL_PROTOCOL", "LOG*", "FEDERATION_*"
+      ]
     },
     "dev": {
       "dependsOn": ["database#up", "^build"]

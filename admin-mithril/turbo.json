@@ -1,0 +1,19 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "$TURBO_ROOT$/admin/src/**"],
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "ADMIN_*", "COMMUNITY_*", "GRAPHQL_*", "WALLET_*",
+        "HUMHUB_*", "*_ACTIVE", "DEBUG_DISABLE_AUTH"
+      ]
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "$TURBO_ROOT$/admin/src/**"],
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "ADMIN_*", "COMMUNITY_*", "GRAPHQL_*", "WALLET_*",
+        "HUMHUB_*", "*_ACTIVE", "DEBUG_DISABLE_AUTH"
+      ]
+    }
+  }
+}
