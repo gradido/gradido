@@ -39,11 +39,10 @@ Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataS
 
 ## The admin exists twice
 
-The admin interface is in the middle of a rewrite: `admin/` (Vue) and `admin-mithril/` (Mithril) coexist. The bare-metal deployment serves `admin-mithril/build`. The Docker Compose setup still serves `admin/`. Until `admin/` is removed, **every change to the admin's behaviour is made in both**, in the same change: a fix, a new field, a new page. Otherwise the two drift apart, and the specs that compare them stop telling the truth.
+The admin interface is in the middle of a rewrite: `admin/` (Vue) and `admin-mithril/` (Mithril) coexist. The bare-metal deployment serves `admin-mithril/build`. The Docker Compose setup still serves `admin/`. **Changes to the admin's behaviour are made in `admin-mithril/` only** — a fix, a new field, a new page. `admin/` is no longer brought along; it stays as it is until it is removed.
 
-- **Shared files:** `admin-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `admin/src` through the `@admin` alias. Change them once, in `admin/`; both admins pick them up.
-- **Specs:** the Playwright specs in `admin-mithril/tests` run against both admins (projects `old` and `new`). Extend the spec first, then change both admins until it passes on both.
-- **Deliberate deviations:** where the admins are meant to differ (a bug fixed only in the Mithril admin), the test says so with `test.skip(info.project.name === 'old', '<reason>')`, and the Mithril code carries a `Fixed:` comment.
+- **Shared files:** `admin-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `admin/src` through the `@admin` alias. They still live there and are changed there.
+- **Specs:** the Playwright specs in `admin-mithril/tests` run against the old admin (project `old`), and against the Mithril admin (project `new`) only once their file is listed in `PORTED_TO_MITHRIL` in `admin-mithril/playwright.config.ts`. A spec for something only the Mithril admin has goes into that list and skips the old one with `test.skip(info.project.name === 'old', '<reason>')`; otherwise it runs in no project at all.
 - **Running the specs:** `cd admin-mithril && bun run test:compare`. The old admin's own Vitest suite (`bunx turbo test --filter=admin`) keeps running as well.
 
 # Running builds, tests and checks

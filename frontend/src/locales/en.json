@@ -757,6 +757,7 @@
     "change": "Change",
     "check_now": "Check now",
     "close": "Close",
+    "collapse": "Collapse",
     "community-not-reachable": "This community cannot be reached right now. Please check which community is selected.",
     "current_available": "Currently available",
     "current_balance": "Current Balance",
@@ -1273,6 +1274,7 @@
     "send": "Send Gradido and email",
     "settings": "Settings",
     "show-friends": "Show it to your friends",
+    "support": "Support",
     "thank-you-greeting": "Thank-you greeting",
     "transactions": "Your transactions"
   },
@@ -1609,6 +1611,42 @@
   "status": "Status",
   "submitted": "Submitted",
   "success": "Success",
+  "support": {
+    "answerQuestion": "There is a new message for this request.",
+    "changed": "This request has changed in the meantime.",
+    "closed": "The request is closed.",
+    "done": "Done, thanks",
+    "failed": "Unfortunately, that did not work. Please try again.",
+    "info": {
+      "information": "Here is what matters for your community and who looks after it. The easiest way to ask your question is under “Write”.",
+      "myRequests": "Here are your requests and the answers to them. If you write again, the request is open again.",
+      "write": {
+        "answer": "You will receive the answer by e-mail. You will also find it here under “My requests”.",
+        "text": "Tell us what you need help with. A person from your community will read your request and reply to you.",
+        "title": "Get help here"
+      }
+    },
+    "legend": {
+      "closed": "closed",
+      "deleted": "deleted",
+      "inProgress": "There is a question from the moderators.",
+      "open": "sent, waiting for an answer"
+    },
+    "messagesReached": "This request already has {max} messages. Please start a new request.",
+    "myRequests": "My requests",
+    "noRequests": "You have not made a request yet.",
+    "number": "Request no. {number}",
+    "perDayReached": "You have already made {max} requests in the last 24 hours. Please continue in one of them.",
+    "placeholder": "What can we help you with?",
+    "question": "Your question",
+    "readBy": {
+      "group": "Your request goes to the moderators of the group “{group}”. Other members cannot see it.",
+      "none": "Your request goes to your community's support team. Other members cannot see it."
+    },
+    "send": "Send",
+    "sent": "Your request has been sent.",
+    "write": "Write"
+  },
   "thank-you-card": {
     "back-to-calculator": "Back to the calculator",
     "name": "Thank you card",

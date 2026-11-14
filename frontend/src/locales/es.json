@@ -757,6 +757,7 @@
     "change": "Cambiar",
     "check_now": "Revisar",
     "close": "Cerrar",
+    "collapse": "Contraer",
     "community-not-reachable": "Esta comunidad no está disponible en este momento. Comprueba qué comunidad está seleccionada.",
     "current_available": "Actualmente disponible",
     "current_balance": "Saldo de cuenta actual",
@@ -1273,6 +1274,7 @@
     "send": "Enviar Gradido y correo electrónico",
     "settings": "Configuración",
     "show-friends": "Muéstraselo a tus amigos",
+    "support": "Soporte",
     "thank-you-greeting": "Saludo de agradecimiento",
     "transactions": "Tus transacciones"
   },
@@ -1609,6 +1611,42 @@
   "status": "Estado",
   "submitted": "Enviado",
   "success": "Lo lograste",
+  "support": {
+    "answerQuestion": "Hay un nuevo mensaje sobre esta consulta.",
+    "changed": "Esta consulta ha cambiado mientras tanto.",
+    "closed": "La consulta está cerrada.",
+    "done": "Resuelto, gracias",
+    "failed": "Lamentablemente, no ha funcionado. Inténtalo de nuevo, por favor.",
+    "info": {
+      "information": "Aquí verás qué es importante para tu comunidad y quién se ocupa de ella. La forma más sencilla de hacer tu pregunta es en «Escribir».",
+      "myRequests": "Aquí están tus consultas y las respuestas. Si vuelves a escribir, la consulta se abre de nuevo.",
+      "write": {
+        "answer": "Recibirás la respuesta por correo electrónico. También la encontrarás aquí, en «Mis consultas».",
+        "text": "Escríbenos en qué necesitas ayuda. Una persona de tu comunidad lee tu consulta y te responde.",
+        "title": "Aquí encontrarás ayuda"
+      }
+    },
+    "legend": {
+      "closed": "cerrada",
+      "deleted": "eliminada",
+      "inProgress": "Hay una pregunta de los moderadores.",
+      "open": "enviada, esperando respuesta"
+    },
+    "messagesReached": "Esta consulta ya tiene {max} mensajes. Haz una nueva consulta, por favor.",
+    "myRequests": "Mis consultas",
+    "noRequests": "Aún no has hecho ninguna consulta.",
+    "number": "Consulta n.º {number}",
+    "perDayReached": "En las últimas 24 horas ya has hecho {max} consultas. Sigue escribiendo en una de ellas, por favor.",
+    "placeholder": "¿En qué podemos ayudarte?",
+    "question": "Tu pregunta",
+    "readBy": {
+      "group": "Tu consulta llega a los moderadores del grupo «{group}». Los demás miembros no pueden verla.",
+      "none": "Tu consulta llega al soporte de la comunidad. Los demás miembros no pueden verla."
+    },
+    "send": "Enviar",
+    "sent": "Tu consulta se ha enviado.",
+    "write": "Escribir"
+  },
   "thank-you-card": {
     "back-to-calculator": "Volver a la calculadora",
     "name": "Tarjeta de agradecimiento",

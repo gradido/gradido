@@ -102,6 +102,32 @@ export const message = string()
   .min(1, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(MESSAGE_MAX_CHARS, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
+// A support request (SUA-015, SUA-020): the words of a message, and at least a few of them. A
+// member files at most so many requests in 24 hours, and a thread holds at most so many messages
+// -- the words the wallet shows where the server refuses at either. Keep in step with
+// SUPPORT_TICKET_* in the shared package; validationSchemas.drift.spec.js holds them together.
+export const SUPPORT_TICKET_TEXT_MIN_CHARS = 5
+export const SUPPORT_TICKETS_PER_DAY_MAX = 10
+export const SUPPORT_TICKET_MESSAGES_MAX = 100
+
+export const supportTicketText = string()
+  .trim()
+  .required('form.validation.memo.required')
+  .min(SUPPORT_TICKET_TEXT_MIN_CHARS, ({ min }) => ({
+    key: 'form.validation.memo.min',
+    values: { min },
+  }))
+  // ... and counted as the server counts (SupportTicket.schema.ts): "🌸🌸🌸" is three characters,
+  // not six, or the wallet lets through what the server refuses. A test of its own beside
+  // `min`, not in its place: ValidatedInput reads `min` and its number from describe().
+  .test({
+    name: 'minCharacters',
+    params: { min: SUPPORT_TICKET_TEXT_MIN_CHARS },
+    message: ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }),
+    test: (value) => Array.from(value ?? '').length >= SUPPORT_TICKET_TEXT_MIN_CHARS,
+  })
+  .max(MESSAGE_MAX_CHARS, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
+
 export const subject = string()
   .required('form.validation.subject.required')
   .min(5, ({ min }) => ({ key: 'form.validation.subject.min', values: { min } }))

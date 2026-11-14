@@ -1644,3 +1644,78 @@ export const transactionPictureImagesTable = mysqlTable(
 
 export type TransactionPictureImageSelect = typeof transactionPictureImagesTable.$inferSelect
 export type TransactionPictureImageInsert = typeof transactionPictureImagesTable.$inferInsert
+
+// Support requests (migration 0173, SUA-001): a request in the shape of a contribution, its
+// thread in the shape of the contribution's. The states and kinds are plain varchar columns,
+// typed by the object of the same name; the backend registers that very object as a GraphQL
+// enum (graphql/enum/SupportTicketStatus.ts, SupportTicketMessageType.ts), as for the chat.
+export const SupportTicketStatus = {
+  OPEN: 'OPEN',
+  // a question back to the member: the member is to answer
+  IN_PROGRESS: 'IN_PROGRESS',
+  CLOSED: 'CLOSED',
+  DELETED: 'DELETED',
+} as const
+export type SupportTicketStatus = (typeof SupportTicketStatus)[keyof typeof SupportTicketStatus]
+export const SupportTicketMessageType = {
+  DIALOG: 'DIALOG',
+  // the moderation's internal note, which the member never reads
+  MODERATOR: 'MODERATOR',
+} as const
+export type SupportTicketMessageType =
+  (typeof SupportTicketMessageType)[keyof typeof SupportTicketMessageType]
+
+export const supportTicketsTable = mysqlTable(
+  'support_tickets',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    // NULL: the community's support as a whole, no group.
+    creationGroupId: int('creation_group_id', { unsigned: true }).default(sql`NULL`),
+    text: text().notNull(),
+    status: varchar({ length: 12 }).$type<SupportTicketStatus>().default('OPEN').notNull(),
+    resubmissionAt: datetime('resubmission_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+    closedAt: datetime('closed_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    closedBy: int('closed_by', { unsigned: true }).default(sql`NULL`),
+    deletedAt: datetime('deleted_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    deletedBy: int('deleted_by', { unsigned: true }).default(sql`NULL`),
+  },
+  (table) => [
+    index('support_tickets_user_id_idx').on(table.userId, table.id),
+    index('support_tickets_status_idx').on(table.status, table.id),
+    index('support_tickets_creation_group_id_idx').on(
+      table.creationGroupId,
+      table.status,
+      table.id,
+    ),
+  ],
+)
+
+export type SupportTicketSelect = typeof supportTicketsTable.$inferSelect
+export type SupportTicketInsert = typeof supportTicketsTable.$inferInsert
+
+export const supportTicketMessagesTable = mysqlTable(
+  'support_ticket_messages',
+  {
+    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
+    supportTicketId: int('support_ticket_id', { unsigned: true }).notNull(),
+    userId: int('user_id', { unsigned: true }).notNull(),
+    message: text().notNull(),
+    type: varchar({ length: 12 }).$type<SupportTicketMessageType>().default('DIALOG').notNull(),
+    isModerator: boolean('is_moderator').default(false).notNull(),
+    // As on contribution_messages: the language model whose words the message carries.
+    aiModel: varchar('ai_model', { length: 64 }).default(sql`NULL`),
+    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
+      .default(sql`current_timestamp(3)`)
+      .notNull(),
+  },
+  (table) => [
+    index('support_ticket_messages_support_ticket_id_idx').on(table.supportTicketId, table.id),
+  ],
+)
+
+export type SupportTicketMessageSelect = typeof supportTicketMessagesTable.$inferSelect
+export type SupportTicketMessageInsert = typeof supportTicketMessagesTable.$inferInsert

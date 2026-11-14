@@ -1,0 +1,13 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* A request keeps the lines its member wrote. */
+.text {
+  white-space: pre-line;
+}
+
+/* The wallet takes the outline off focused elements; a key on these actions has to show where it is. */
+.action:focus-visible {
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+  border-radius: 4px;
+}

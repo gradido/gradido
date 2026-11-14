@@ -116,6 +116,12 @@ export enum RIGHTS {
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
+  // Asking the support (SUA-001, SupportTicketResolver): filing a request, reading one's own
+  // requests and their threads, writing in them and closing them. Every call reaches the caller's
+  // own requests and nothing else -- no operation takes a member. On neither restriction list
+  // (SUA-016): a project account comes back to creating only through the support, and an account
+  // whose address is not confirmed may ask why the mail does not arrive.
+  USE_SUPPORT_TICKETS = 'USE_SUPPORT_TICKETS',
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the

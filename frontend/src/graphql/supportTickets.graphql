@@ -1,0 +1,57 @@
+# AI-GENERATED — not an architecture reference
+# The member's side of support requests (SUA-001). The thread is asked for when the member opens
+# it, not with the list: a thread may hold 100 messages of 5,000 characters each.
+
+fragment supportTicketFields on SupportTicket {
+  id
+  text
+  status
+  creationGroupTag
+  creationGroupName
+  createdAt
+}
+
+# The nine fields the thread draws (ContributionMessagesListItem), as on a contribution's thread:
+# no row number of anybody.
+fragment supportTicketMessageFields on SupportTicketMessage {
+  id
+  message
+  createdAt
+  type
+  userAlias
+  userAvatarColorIndex
+  userGradidoID
+  userCommunityUuid
+  userAvatarUpdatedAt
+}
+
+query listSupportTickets($currentPage: Int!, $pageSize: Int!) {
+  listSupportTickets(currentPage: $currentPage, pageSize: $pageSize) {
+    count
+    tickets {
+      ...supportTicketFields
+    }
+  }
+}
+
+query listSupportTicketMessages($supportTicketId: Int!) {
+  listSupportTicketMessages(supportTicketId: $supportTicketId) {
+    ...supportTicketMessageFields
+  }
+}
+
+mutation createSupportTicket($text: String!, $creationGroupTag: String) {
+  createSupportTicket(text: $text, creationGroupTag: $creationGroupTag) {
+    ...supportTicketFields
+  }
+}
+
+mutation createSupportTicketMessage($supportTicketId: Int!, $message: String!) {
+  createSupportTicketMessage(supportTicketId: $supportTicketId, message: $message) {
+    ...supportTicketMessageFields
+  }
+}
+
+mutation closeSupportTicket($supportTicketId: Int!) {
+  closeSupportTicket(supportTicketId: $supportTicketId)
+}

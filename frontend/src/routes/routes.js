@@ -405,6 +405,26 @@ const routes = [
     },
   },
   ...matchingRoutes,
+  // Support requests (SUA-001): only by address until the menu takes "Support" in place of
+  // "Information" (K5) -- the page is whole from the first delivery on, the admin's side follows.
+  {
+    path: '/support',
+    component: () => import('@/pages/Support').then((page) => page.Support),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'support',
+    },
+    redirect: () => ({ path: '/support/write' }),
+  },
+  {
+    path: '/support/:tab/:page?',
+    component: () => import('@/pages/Support').then((page) => page.Support),
+    meta: {
+      requiresAuth: true,
+      pageTitle: 'support',
+      rightSide: 'support',
+    },
+  },
   {
     path: '/information',
     component: () => import('@/pages/InfoStatistic').then((page) => page.InfoStatistic),

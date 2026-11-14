@@ -71,6 +71,14 @@ export interface RequestBudget {
   // The moderation's remarks on members read or written (userRemark, setUserRemark), capped at
   // USER_REMARKS_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
   userRemarksServed: number
+  // Lists and threads of support requests read (listSupportTickets, listSupportTicketMessages),
+  // capped together at SUPPORT_TICKET_READS_MAX_PER_REQUEST. The answer of a request that read
+  // one stays out of the log.
+  supportTicketReadsServed: number
+  // Writes of the support (createSupportTicket, createSupportTicketMessage, closeSupportTicket),
+  // capped together at SUPPORT_TICKET_WRITES_MAX_PER_REQUEST. The answer of a request that wrote
+  // stays out of the log: it carries the words.
+  supportTicketWritesServed: number
   // A member's own pictures of their contacts read (keptPictures, keptPictureFull), capped at
   // KEPT_PICTURES_MAX_PER_REQUEST; the list counts as KEPT_PICTURE_LIST_COUNTS. The answer of a
   // request that read one stays out of the log.
@@ -102,6 +110,8 @@ export const newRequestBudget = (): RequestBudget => ({
   transactionReactionsSet: 0,
   userNotesServed: 0,
   userRemarksServed: 0,
+  supportTicketReadsServed: 0,
+  supportTicketWritesServed: 0,
   keptPicturesServed: 0,
   profilePicturesServed: 0,
 })

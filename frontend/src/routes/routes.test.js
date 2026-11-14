@@ -33,7 +33,7 @@ describe('the right-hand column is a property of the route', () => {
   // What the layout can put in the column, plus the one entry that is not a panel at all:
   // `bookings-or-contacts` is a QUESTION -- which of the two shall stand here? -- and the
   // layout answers it from the route's default and the member's remembered choice (KF-009).
-  const PANELS = ['contributions', 'matching', 'bookings-or-contacts']
+  const PANELS = ['contributions', 'matching', 'support', 'bookings-or-contacts']
   const SWITCHABLE = 'bookings-or-contacts'
   const POSITIONS = ['bookings', 'contacts']
 

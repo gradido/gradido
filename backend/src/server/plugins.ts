@@ -90,6 +90,13 @@ export const logPlugin = {
             // moderators alone -- and so is Crea's answer where she read one (CreaResolver).
             logger.trace('Response-Data: left out, it holds a remark')
           } else if (
+            requestContext.contextValue.requestBudget?.supportTicketReadsServed ||
+            requestContext.contextValue.requestBudget?.supportTicketWritesServed
+          ) {
+            // A member's support request and its thread are between the member and the
+            // moderation (SupportTicketResolver).
+            logger.trace('Response-Data: left out, it holds a support request')
+          } else if (
             requestContext.contextValue.requestBudget?.chatImagesServed ||
             requestContext.contextValue.requestBudget?.thankYouGreetingPicturesServed ||
             requestContext.contextValue.requestBudget?.transactionPicturesServed ||

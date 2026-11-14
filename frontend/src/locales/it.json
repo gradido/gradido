@@ -757,6 +757,7 @@
     "change": "Modifica",
     "check_now": "Verifica ora",
     "close": "Chiudi",
+    "collapse": "Comprimi",
     "community-not-reachable": "Questa comunità non è raggiungibile al momento. Controlla quale comunità è selezionata.",
     "current_available": "Attualmente disponibile",
     "current_balance": "Saldo attuale",
@@ -1273,6 +1274,7 @@
     "send": "Invia Gradido ed e‑mail",
     "settings": "Impostazioni",
     "show-friends": "Mostralo ai tuoi amici",
+    "support": "Supporto",
     "thank-you-greeting": "Biglietto di ringraziamento",
     "transactions": "Le tue transazioni"
   },
@@ -1609,6 +1611,42 @@
   "status": "Stato",
   "submitted": "Inviato",
   "success": "Successo",
+  "support": {
+    "answerQuestion": "C'è un nuovo messaggio su questa richiesta.",
+    "changed": "Questa richiesta è cambiata nel frattempo.",
+    "closed": "La richiesta è chiusa.",
+    "done": "Risolto, grazie",
+    "failed": "Purtroppo non ha funzionato. Riprova, per favore.",
+    "info": {
+      "information": "Qui c'è ciò che conta per la tua comunità e chi se ne occupa. Il modo più semplice per fare la tua domanda è in «Scrivi».",
+      "myRequests": "Qui ci sono le tue richieste e le risposte. Se scrivi di nuovo, la richiesta torna aperta.",
+      "write": {
+        "answer": "La risposta ti arriva via e-mail. La trovi anche qui, in «Le mie richieste».",
+        "text": "Scrivici in che cosa possiamo aiutarti. Una persona della tua comunità legge la tua richiesta e ti risponde.",
+        "title": "Qui trovi aiuto"
+      }
+    },
+    "legend": {
+      "closed": "chiusa",
+      "deleted": "eliminata",
+      "inProgress": "C'è una domanda da parte dei moderatori.",
+      "open": "inviata, in attesa di risposta"
+    },
+    "messagesReached": "In questa richiesta ci sono già {max} messaggi. Fai una nuova richiesta, per favore.",
+    "myRequests": "Le mie richieste",
+    "noRequests": "Non hai ancora fatto nessuna richiesta.",
+    "number": "Richiesta n. {number}",
+    "perDayReached": "Nelle ultime 24 ore hai già fatto {max} richieste. Continua a scrivere in una di queste, per favore.",
+    "placeholder": "Come possiamo aiutarti?",
+    "question": "La tua domanda",
+    "readBy": {
+      "group": "La tua richiesta va ai moderatori del gruppo «{group}». Gli altri membri non possono vederla.",
+      "none": "La tua richiesta va al supporto della comunità. Gli altri membri non possono vederla."
+    },
+    "send": "Invia",
+    "sent": "La tua richiesta è stata inviata.",
+    "write": "Scrivi"
+  },
   "thank-you-card": {
     "back-to-calculator": "Torna alla calcolatrice",
     "name": "Carta di ringraziamento",

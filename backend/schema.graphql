@@ -62,6 +62,8 @@ type Query {
   spaces(limit: Int! = 20, page: Int! = 1): SpaceList!
   showFriends: ShowFriends!
   communityStatistics: CommunityStatistics!
+  listSupportTickets(pageSize: Int!, currentPage: Int!): SupportTicketList!
+  listSupportTicketMessages(supportTicketId: Int!): [SupportTicketMessage!]!
   thankYouCardPaymentTarget(code: String!): ThankYouCardPaymentTarget!
   thankYouCardSettings: ThankYouCardSettings
   thankYouCards: [ThankYouCard!]!
@@ -877,6 +879,50 @@ type DynamicStatisticsFields {
   totalGradidoUnbookedDecayed: GradidoUnit!
 }
 
+type SupportTicketList {
+  count: Int!
+  tickets: [SupportTicket!]!
+}
+
+type SupportTicket {
+  id: Int!
+  text: String!
+  status: SupportTicketStatus!
+  creationGroupTag: String
+  creationGroupName: String
+  createdAt: DateTime!
+}
+
+"""
+The state of a support request: open, a question back to the member, closed, deleted
+"""
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+  DELETED
+}
+
+type SupportTicketMessage {
+  id: Int!
+  message: String!
+  createdAt: DateTime!
+  type: SupportTicketMessageType!
+  userAlias: String
+  userAvatarColorIndex: Int
+  userGradidoID: String
+  userCommunityUuid: String
+  userAvatarUpdatedAt: DateTime
+}
+
+"""
+The kind of a message in a support request: dialog, or the moderation internal note
+"""
+enum SupportTicketMessageType {
+  DIALOG
+  MODERATOR
+}
+
 type ThankYouCardPaymentTarget {
   status: ThankYouCardPaymentStatus!
   cardLabel: String
@@ -1080,6 +1126,9 @@ type Mutation {
   setCreationAllowed(allowed: Boolean!, userId: Int!): Boolean!
   upsertProjectBranding(input: ProjectBrandingInput!): ProjectBranding
   deleteProjectBranding(id: ID!): Boolean!
+  createSupportTicket(creationGroupTag: String, text: String!): SupportTicket!
+  createSupportTicketMessage(message: String!, supportTicketId: Int!): SupportTicketMessage!
+  closeSupportTicket(supportTicketId: Int!): Boolean!
   createThankYouCardPayment(code: String!, amount: GradidoUnit!, memo: String!): ThankYouCardPayment!
   confirmThankYouCardPayment(pin: String!, paymentId: Int!): ThankYouCardPaymentResult!
   setThankYouCardSettings(pin: String!, maxPerPayment: GradidoUnit!, maxPerDay: GradidoUnit!): ThankYouCardSettings!

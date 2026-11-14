@@ -757,6 +757,7 @@
     "change": "Wijzigen",
     "check_now": "Nu controleren",
     "close": "Sluiten",
+    "collapse": "Inklappen",
     "community-not-reachable": "Deze gemeenschap is op dit moment niet bereikbaar. Controleer welke gemeenschap is gekozen.",
     "current_available": "Momenteel beschikbaar",
     "current_balance": "Actueel banksaldo",
@@ -1273,6 +1274,7 @@
     "send": "Gradido en e‑mail versturen",
     "settings": "Instellingen",
     "show-friends": "Laat het je vrienden zien",
+    "support": "Support",
     "thank-you-greeting": "Dankgroetje",
     "transactions": "Jouw transacties"
   },
@@ -1609,6 +1611,42 @@
   "status": "Status",
   "submitted": "Ingediend",
   "success": "Succes",
+  "support": {
+    "answerQuestion": "Er is een nieuw bericht over deze vraag.",
+    "changed": "Deze vraag is intussen veranderd.",
+    "closed": "De vraag is gesloten.",
+    "done": "Opgelost, bedankt",
+    "failed": "Dat is helaas niet gelukt. Probeer het nog eens.",
+    "info": {
+      "information": "Hier staat wat belangrijk is voor je gemeenschap en wie zich erom bekommert. Je vraag stel je het makkelijkst onder “Schrijven”.",
+      "myRequests": "Hier staan je vragen en de antwoorden erop. Schrijf je nog een keer, dan is de vraag weer open.",
+      "write": {
+        "answer": "Het antwoord krijg je per e-mail. Je vindt het ook hier onder “Mijn vragen”.",
+        "text": "Schrijf ons waarmee je hulp nodig hebt. Iemand uit je gemeenschap leest je vraag en antwoordt je.",
+        "title": "Hier krijg je hulp"
+      }
+    },
+    "legend": {
+      "closed": "gesloten",
+      "deleted": "verwijderd",
+      "inProgress": "De moderators hebben een vraag aan je.",
+      "open": "verzonden, wacht op antwoord"
+    },
+    "messagesReached": "Bij deze vraag staan al {max} berichten. Stel alsjeblieft een nieuwe vraag.",
+    "myRequests": "Mijn vragen",
+    "noRequests": "Je hebt nog geen vraag gesteld.",
+    "number": "Vraag nr. {number}",
+    "perDayReached": "Je hebt in de afgelopen 24 uur al {max} vragen gesteld. Schrijf alsjeblieft verder in een daarvan.",
+    "placeholder": "Waarmee kunnen we je helpen?",
+    "question": "Je vraag",
+    "readBy": {
+      "group": "Je vraag gaat naar de moderators van de groep “{group}”. Andere leden kunnen je vraag niet zien.",
+      "none": "Je vraag gaat naar de support van de gemeenschap. Andere leden kunnen je vraag niet zien."
+    },
+    "send": "Versturen",
+    "sent": "Je vraag is verstuurd.",
+    "write": "Schrijven"
+  },
   "thank-you-card": {
     "back-to-calculator": "Terug naar de rekenmachine",
     "name": "Dankkaart",

@@ -1,16 +1,26 @@
 // AI-GENERATED — not an architecture reference
 import { useMutation } from '@vue/apollo-composable'
 import { BButton, BCol, BForm, BFormTextarea, BRow, type ButtonVariant } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, type PropType, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { ContributionMessage } from '@/components/ContributionMessages/ContributionMessagesListItem'
 import { useAppToast } from '@/composables/useToast'
 import { createContributionMessage } from '@/graphql/mutations.js'
 
-/** The reply field under a contribution's thread. */
+/**
+ * The reply field under a thread: a contribution's, or -- with `send` -- another one's (a support
+ * request). `send` hands the words on and answers the message the thread shows; what it throws is
+ * shown as it is. `maxLength` stops the field where the server stops.
+ */
 export const ContributionMessagesFormular = defineComponent({
   name: 'ContributionMessagesFormular',
   props: {
     contributionId: { type: Number, required: true },
+    send: {
+      type: Function as PropType<(message: string) => Promise<ContributionMessage>>,
+      default: undefined,
+    },
+    maxLength: { type: Number, default: undefined },
   },
   emits: ['add-contribution-message'],
   setup(props, { emit, expose }) {
@@ -29,13 +39,17 @@ export const ContributionMessagesFormular = defineComponent({
       event.preventDefault()
       isSubmitting.value = true
       try {
-        const result = await createContributionMessageMutation({
-          contributionId: props.contributionId,
-          message: formText.value,
-        })
+        const message = props.send
+          ? await props.send(formText.value)
+          : (
+              await createContributionMessageMutation({
+                contributionId: props.contributionId,
+                message: formText.value,
+              })
+            )?.data.createContributionMessage
 
         formText.value = ''
-        emit('add-contribution-message', result?.data.createContributionMessage)
+        emit('add-contribution-message', message)
         toastSuccess(t('message.reply'))
       } catch (error) {
         toastError((error as Error).message)
@@ -62,6 +76,7 @@ export const ContributionMessagesFormular = defineComponent({
               id='textarea'
               modelValue={formText.value}
               placeholder={t('form.memo')}
+              maxlength={props.maxLength}
               rows={8}
               style={{ height: 'auto' }}
               onUpdate:modelValue={(value) => {

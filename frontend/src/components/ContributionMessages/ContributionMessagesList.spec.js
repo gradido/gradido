@@ -23,7 +23,7 @@ vi.mock('@/components/ContributionMessages/ContributionMessagesFormular', () => 
   ContributionMessagesFormular: {
     name: 'ContributionMessagesFormular',
     template: '<div class="contribution-messages-formular-mock"></div>',
-    props: ['contributionId'],
+    props: ['contributionId', 'send', 'maxLength'],
   },
 }))
 
@@ -80,8 +80,27 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(false)
     })
 
-    it('renders close button', () => {
-      expect(wrapper.find('button').text()).toContain('form.close')
+    it('renders the button that folds the thread away', () => {
+      expect(wrapper.find('button').text()).toContain('form.collapse')
+    })
+
+    it('takes a reply in the states another thread names, and in no other', async () => {
+      const support = ['OPEN', 'IN_PROGRESS', 'CLOSED']
+      await wrapper.setProps({ status: 'CLOSED', replyStates: support })
+      expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
+      await wrapper.setProps({ status: 'DELETED' })
+      expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(false)
+    })
+
+    it('hands the sending and the length to the reply field, and puts neither on itself', async () => {
+      const send = vi.fn()
+      await wrapper.setProps({ send, maxLength: 5000 })
+      const field = wrapper.findComponent({ name: 'ContributionMessagesFormular' })
+      expect(field.props('send')).toBe(send)
+      expect(field.props('maxLength')).toBe(5000)
+      const own = wrapper.find('.contribution-messages-list')
+      expect(own.attributes('send')).toBeUndefined()
+      expect(own.attributes('maxlength')).toBeUndefined()
     })
   })
 })

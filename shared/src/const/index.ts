@@ -54,6 +54,14 @@ export const MEMO_MIN_CHARS = 5
 // at some 5,500 characters the first of them no longer holds.
 export const MESSAGE_MAX_CHARS = 5000
 export const MESSAGE_MIN_CHARS = 1
+// a support request (SUA-015, SUA-020): its words are those of a message -- MESSAGE_MAX_CHARS
+// bounds them, for the reason given there -- and at least a few of them. A member files at most
+// so many requests in 24 hours, and the thread of a request holds at most so many messages, the
+// moderation's notes counted. The wallet keeps a copy of the three (frontend/src/
+// validationSchemas.js), and validationSchemas.drift.spec.js holds them together.
+export const SUPPORT_TICKET_TEXT_MIN_CHARS = 5
+export const SUPPORT_TICKETS_PER_DAY_MAX = 10
+export const SUPPORT_TICKET_MESSAGES_MAX = 100
 // matching: what a member writes about themselves, and the long form of a single
 // entry. Both are `text` columns, so the database bound is 65535 BYTES — under
 // utf8mb4 an emoji costs four of them, and hitting that bound surfaces as a raw
