@@ -525,6 +525,37 @@ test('sends nothing empty or too long, and says how long a message may be', asyn
   await expect(card(page).getByText(de.support.tooLong.replace('{max}', '5000'))).toHaveCount(0)
 })
 
+test('keeps a draft to each tab: words begun as a note never go to the member', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await opened(page)
+  const notice = card(page).getByRole('tab', { name: de.moderator.notice })
+  const message = card(page).getByRole('tab', { name: de.moderator.message })
+  await notice.click()
+  await field(page).fill('Intern: hat sich selbst geholfen.')
+  await message.click()
+  await expect(field(page)).toHaveValue('')
+  await expect(button(page, de.support.answer)).toBeDisabled()
+  await field(page).fill('Schön, dass es klappt!')
+  await button(page, de.support.answer).click()
+
+  await expect(toast(page, de.message.request)).toBeVisible()
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
+    { supportTicketId: 1, message: 'Schön, dass es klappt!', type: 'DIALOG', close: false },
+  ])
+  // the note's draft is still there, and "Abbrechen" empties only the draft shown
+  await notice.click()
+  await expect(field(page)).toHaveValue('Intern: hat sich selbst geholfen.')
+  await message.click()
+  await field(page).fill('Doch nicht')
+  await button(page, de.form.cancel).click()
+  await notice.click()
+  await expect(field(page)).toHaveValue('Intern: hat sich selbst geholfen.')
+})
+
 test('empties the field with "Abbrechen", and sends nothing', async ({ page, graphql }, info) => {
   test.skip(info.project.name === 'old', ONLY_NEW)
   await opened(page)
@@ -548,8 +579,10 @@ test('keeps the words and says why where the server refuses', async ({ page, gra
   await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
 
   await card(page).getByRole('tab', { name: de.moderator.notice }).click()
+  await field(page).fill('Noch eine Notiz')
   await button(page, de.save).click()
   await expect(toast(page, de.support.notesReached.replace('{max}', '100'))).toBeVisible()
+  await expect(field(page)).toHaveValue('Noch eine Notiz')
 
   graphql.answer({ adminCreateSupportTicketMessage: new Failure('SUPPORT_TICKET_NOT_FOUND') })
   await button(page, de.save).click()

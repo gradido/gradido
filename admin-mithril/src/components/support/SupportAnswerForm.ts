@@ -25,34 +25,41 @@ interface Attrs {
 
 let lastId = 0
 
+type AnswerTab = FormTab.MESSAGE | FormTab.NOTE
+
 /**
  * The form under an opened support request (K3): a message to the member -- "Antworten" makes the
  * request a question back to them, "Antworten und schließen" closes it, and the member gets a
  * mail either way -- or a note for the moderation, which changes nothing of the request and
- * reaches the member nowhere. Ctrl/Cmd+B sets bold, as in the contribution's thread. What the
- * request is after a write, the server says: the page asks for its list anew.
+ * reaches the member nowhere. Each tab keeps a draft of its own: words begun as a note never go
+ * to the member, and by mail, because the tab was switched before "Antworten". Ctrl/Cmd+B sets
+ * bold, as in the contribution's thread. What the request is after a write, the server says: the
+ * page asks for its list anew.
  */
 export class SupportAnswerForm implements ClassComponent<Attrs> {
   private readonly id = `support-answer-${++lastId}`
-  private tab = FormTab.MESSAGE
-  private text = ''
+  private tab: AnswerTab = FormTab.MESSAGE
+  private readonly texts: Record<AnswerTab, string> = { [FormTab.MESSAGE]: '', [FormTab.NOTE]: '' }
   private sending = false
 
   private async send({ supportTicketId, onwritten }: Attrs, close: boolean) {
+    const tab = this.tab
+    const text = this.texts[tab]
     // one write at a time, and only words the server takes
-    if (this.sending || !sendable(this.text)) {
+    if (this.sending || !sendable(text)) {
       return
     }
-    const note = this.tab === FormTab.NOTE
+    const note = tab === FormTab.NOTE
     this.sending = true
     const answer = await graphqlRequest(
       adminCreateSupportTicketMessage,
-      answerVariables(supportTicketId, this.text, { note, close }),
+      answerVariables(supportTicketId, text, { note, close }),
     )
     this.sending = false
     if (answer.success) {
       toastSuccess(t('message.request'))
-      this.text = ''
+      // the draft that went, the other tab's stays
+      this.texts[tab] = ''
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
       toastError(refusalWords(answer.error.messages, { note }))
@@ -61,31 +68,31 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
   }
 
   view({ attrs }: Vnode<Attrs>) {
-    const tooLong = charactersOf(this.text) > MESSAGE_MAX_CHARS
-    const disabled = this.sending || !sendable(this.text)
-    const hintId = `${this.id}-too-long`
-    const field = (placeholder: string) =>
+    const disabled = this.sending || !sendable(this.texts[this.tab])
+    const tooLong = (tab: AnswerTab) => charactersOf(this.texts[tab]) > MESSAGE_MAX_CHARS
+    const hintId = (tab: AnswerTab) => `${this.id}-too-long-${tab}`
+    // Functions, not vnodes: each tab draws its own field, with its own draft, and Mithril draws a
+    // vnode in one place only.
+    const field = (tab: AnswerTab, placeholder: string) =>
       m('textarea.form-control', {
         placeholder,
         rows: isPhone() ? 6 : 12,
-        value: this.text,
-        'aria-invalid': tooLong ? 'true' : undefined,
-        'aria-describedby': tooLong ? hintId : undefined,
+        value: this.texts[tab],
+        'aria-invalid': tooLong(tab) ? 'true' : undefined,
+        'aria-describedby': tooLong(tab) ? hintId(tab) : undefined,
         oninput: (event: Event) => {
-          this.text = (event.target as HTMLTextAreaElement).value
+          this.texts[tab] = (event.target as HTMLTextAreaElement).value
         },
         onkeydown: (event: KeyboardEvent) =>
           boldShortcut(event, (value) => {
-            this.text = value
+            this.texts[tab] = value
           }),
       })
-    // Functions, not vnodes: each tab draws its own, and Mithril draws a vnode in one place only.
-    // The hint stands in the tab shown; the other one is hidden.
-    const hint = (tab: FormTab) =>
-      tooLong && tab === this.tab
+    const hint = (tab: AnswerTab) =>
+      tooLong(tab)
         ? m(
             'p.mt-1.mb-0.text-danger.small',
-            { id: hintId },
+            { id: hintId(tab) },
             t('support.tooLong', { max: MESSAGE_MAX_CHARS }),
           )
         : null
@@ -99,9 +106,10 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
           'form',
           {
             // no submit: the buttons say what is sent, and Enter in the field is a new line
+            // "Abbrechen" empties the draft shown, not the other tab's
             onreset: (event: Event) => {
               event.preventDefault()
-              this.text = ''
+              this.texts[this.tab] = ''
             },
           },
           [
@@ -109,7 +117,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
               class: 'mt-3',
               contentClass: 'mt-3',
               active: this.tab,
-              onchange: (tab: FormTab) => {
+              onchange: (tab: AnswerTab) => {
                 this.tab = tab
               },
               tabs: [
@@ -119,7 +127,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                     { title: t('moderator.message-tooltip') },
                     t('moderator.message'),
                   ),
-                  content: [field(t('moderator.message')), hint(FormTab.MESSAGE)],
+                  content: [field(FormTab.MESSAGE, t('moderator.message')), hint(FormTab.MESSAGE)],
                 },
                 {
                   title: m(
@@ -127,7 +135,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                     { title: t('moderator.notice-tooltip') },
                     t('moderator.notice'),
                   ),
-                  content: [field(t('moderator.notice')), hint(FormTab.NOTE)],
+                  content: [field(FormTab.NOTE, t('moderator.notice')), hint(FormTab.NOTE)],
                 },
               ],
             }),

@@ -29,12 +29,12 @@
     "addedSupportTicketMessage": {
       "answered": "{moderatorAlias} has replied to your request no. {supportTicketNumber}.",
       "answeredBySupport": "Support has replied to your request no. {supportTicketNumber}.",
-      "closed": "This closes the request. If you write again, it is open again.",
+      "closed": "This reply closes the request. If you write again, it opens again.",
       "message": "“{message}”",
       "readMessage": "Read and reply to message",
       "subject": "Reply to your support request",
       "title": "Reply to your support request",
-      "toAnswer": "You can reply directly at your request."
+      "toAnswer": "You can reply directly in your request."
     },
     "assistedRegistrationConfirm": {
       "accountCreated": "Together with a Gradido member, an account has just been set up for you — with this e-mail address.",
