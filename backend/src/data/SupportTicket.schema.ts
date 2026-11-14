@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { SupportTicketStatus } from 'database'
 import {
   MESSAGE_MAX_CHARS,
   MESSAGE_MIN_CHARS,
@@ -40,4 +41,10 @@ export const supportTicketMessageSchema = v.pipe(
 export const supportTicketsPageSchema = v.object({
   currentPage: positiveIntegerSchema,
   pageSize: v.pipe(positiveIntegerSchema, v.maxValue(SUPPORT_TICKETS_PAGE_SIZE_MAX)),
+})
+
+/** A page of the moderation's list: the states of a tab -- never none -- and the page. */
+export const adminSupportTicketsPageSchema = v.object({
+  statuses: v.pipe(v.array(v.enum(SupportTicketStatus)), v.nonEmpty()),
+  ...supportTicketsPageSchema.entries,
 })

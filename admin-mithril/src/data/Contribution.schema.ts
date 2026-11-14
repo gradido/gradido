@@ -2,7 +2,8 @@
 import * as v from 'valibot'
 import { creationGroupNameSchema } from './CreationGroup.schema'
 
-const contributorSchema = v.object({
+/** The member of a contribution, as its row, its face and its opened card read them. */
+export const contributorSchema = v.object({
   firstName: v.string(),
   lastName: v.string(),
   alias: v.nullable(v.string()),

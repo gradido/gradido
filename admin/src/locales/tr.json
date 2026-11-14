@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",
     "statistic": "İstatistik",
+    "support": "Destek",
     "theme": {
       "dark": "Koyu",
       "light": "Açık",
@@ -649,6 +650,22 @@
   "show_details": "Ayrıntıları göster",
   "status": "Durum",
   "success": "Başarılı",
+  "support": {
+    "closedAt": "Kapatıldı",
+    "closedBy": "{name} tarafından kapatıldı",
+    "closedByMember": "Üye tarafından kapatıldı",
+    "deletedBy": "{name} tarafından silindi",
+    "loadFailed": "Talepler yüklenemedi. Lütfen tekrar dene.",
+    "notFound": "Bu talep mevcut değil ya da senin gruplarının dışında.",
+    "request": "Talep",
+    "sent": "Gönderildi",
+    "tab": {
+      "all": "Tümü",
+      "closed": "Kapalı",
+      "deleted": "Silindi",
+      "open": "Açık"
+    }
+  },
   "text": "Metin",
   "thank-you-cheque": {
     "download": "Başlangıç bakiyesi çekini indir",

@@ -245,6 +245,9 @@ export class NavBar implements ClassComponent {
                   },
                   'bg-color-creation',
                 ),
+                // the requests of the moderator's groups (Support-Anfragen K2); the count of the
+                // open ones comes with K3
+                navItem({ to: '/support', label: t('navbar.support') }),
                 // A moderator sees one of the settings pages, and may only look there: it stands
                 // in the bar itself rather than alone in a menu.
                 isAdmin

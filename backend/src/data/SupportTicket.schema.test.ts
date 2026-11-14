@@ -2,6 +2,7 @@
 import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_TEXT_MIN_CHARS } from 'shared'
 import * as v from 'valibot'
 import {
+  adminSupportTicketsPageSchema,
   supportTicketMessageSchema,
   supportTicketsPageSchema,
   supportTicketTextSchema,
@@ -69,5 +70,25 @@ describe('supportTicketsPageSchema', () => {
     expect(v.safeParse(supportTicketsPageSchema, { currentPage: 1, pageSize: 0 }).success).toBe(
       false,
     )
+  })
+})
+
+describe('adminSupportTicketsPageSchema', () => {
+  const page = (input: object) =>
+    v.safeParse(adminSupportTicketsPageSchema, { currentPage: 1, pageSize: 25, ...input }).success
+
+  it('takes the states of a tab, one or more', () => {
+    expect(page({ statuses: ['CLOSED'] })).toBe(true)
+    expect(page({ statuses: ['OPEN', 'IN_PROGRESS'] })).toBe(true)
+  })
+
+  it('refuses no state at all and a state that does not exist', () => {
+    expect(page({ statuses: [] })).toBe(false)
+    expect(page({ statuses: ['PENDING'] })).toBe(false)
+  })
+
+  it('takes the page as the member side does', () => {
+    expect(page({ statuses: ['OPEN'], pageSize: 26 })).toBe(false)
+    expect(page({ statuses: ['OPEN'], currentPage: 0 })).toBe(false)
   })
 })

@@ -122,6 +122,12 @@ export enum RIGHTS {
   // (SUA-016): a project account comes back to creating only through the support, and an account
   // whose address is not confirmed may ask why the mail does not arrive.
   USE_SUPPORT_TICKETS = 'USE_SUPPORT_TICKETS',
+  // The moderation's side of the support (SUA-005, SupportTicketModerationResolver): the list of the
+  // requests and their threads, the internal notes in them. Every call reaches what the caller's
+  // creation groups cover and no other request (describeModeratorCreationGroups), and never the
+  // caller's own request: there they are the member. ⛔ Moderator list only -- the member must not
+  // read the notes on their request.
+  MANAGE_SUPPORT_TICKETS = 'MANAGE_SUPPORT_TICKETS',
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the

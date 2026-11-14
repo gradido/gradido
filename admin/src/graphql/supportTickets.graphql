@@ -1,0 +1,62 @@
+# AI-GENERATED — not an architecture reference
+
+# The support requests of a tab, a page of them, with the member in the shape the creation page's
+# rows have -- without the address, which stands beside the member (userEmail): User.emailContact
+# asks the database again where no address is in force, and fails there for the whole page.
+query adminListSupportTickets($statuses: [SupportTicketStatus!]!, $currentPage: Int!, $pageSize: Int!) {
+  adminListSupportTickets(statuses: $statuses, currentPage: $currentPage, pageSize: $pageSize) {
+    count
+    tickets {
+      id
+      userId
+      user {
+        id
+        firstName
+        lastName
+        alias
+        gradidoID
+        communityUuid
+        avatarUpdatedAt
+        findableOnMap
+        deletedAt
+        publicName
+        userIdentifier
+        createdAt
+      }
+      userEmail
+      text
+      status
+      creationGroupTag
+      creationGroupName
+      createdAt
+      closedAt
+      closedBy
+      closedByUserName
+      lastMessageType
+      lastMessageByModerator
+    }
+  }
+}
+
+# An opened request: its thread, the notes among it, and the moderation's remark on its member --
+# one round trip, as for an opened contribution (adminListContributionMessages.ts).
+query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
+  userRemark(userId: $userId) {
+    remark
+    updatedAt
+    updatedByName
+  }
+  adminListSupportTicketMessages(supportTicketId: $supportTicketId) {
+    id
+    message
+    createdAt
+    type
+    userAlias
+    userId
+    userAvatarColorIndex
+    userGradidoID
+    userCommunityUuid
+    userAvatarUpdatedAt
+    isModerator
+  }
+}

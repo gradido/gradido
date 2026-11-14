@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Usa il tuo logo nel login di Gradido e aggiungi nuovi utenti a uno spazio Humhub",
     "settings": "Impostazioni",
     "statistic": "Statistica",
+    "support": "Supporto",
     "theme": {
       "dark": "Scuro",
       "light": "Chiaro",
@@ -649,6 +650,22 @@
   "show_details": "Mostra dettagli",
   "status": "Stato",
   "success": "Successo",
+  "support": {
+    "closedAt": "Chiusa",
+    "closedBy": "Chiusa da {name}",
+    "closedByMember": "Chiusa dal membro",
+    "deletedBy": "Eliminata da {name}",
+    "loadFailed": "Non è stato possibile caricare le richieste. Riprova, per favore.",
+    "notFound": "Questa richiesta non esiste, oppure è fuori dai tuoi gruppi.",
+    "request": "Richiesta",
+    "sent": "Inviata",
+    "tab": {
+      "all": "Tutte",
+      "closed": "Chiuse",
+      "deleted": "Eliminate",
+      "open": "Aperte"
+    }
+  },
   "text": "Testo",
   "thank-you-cheque": {
     "download": "Scarica l'assegno di credito iniziale",

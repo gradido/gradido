@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Usa tu propio logotipo en el inicio de sesión de Gradido y añade nuevos usuarios a un espacio de Humhub",
     "settings": "Configuración",
     "statistic": "Estadística",
+    "support": "Soporte",
     "theme": {
       "dark": "Oscuro",
       "light": "Claro",
@@ -649,6 +650,22 @@
   "show_details": "Mostrar detalles",
   "status": "Estado",
   "success": "Éxito",
+  "support": {
+    "closedAt": "Cerrada",
+    "closedBy": "Cerrada por {name}",
+    "closedByMember": "Cerrada por el miembro",
+    "deletedBy": "Eliminada por {name}",
+    "loadFailed": "No se pudieron cargar las consultas. Inténtalo de nuevo, por favor.",
+    "notFound": "Esta consulta no existe o está fuera de tus grupos.",
+    "request": "Consulta",
+    "sent": "Enviada",
+    "tab": {
+      "all": "Todas",
+      "closed": "Cerradas",
+      "deleted": "Eliminadas",
+      "open": "Abiertas"
+    }
+  },
   "text": "Texto",
   "thank-you-cheque": {
     "download": "Descargar cheque de saldo inicial",

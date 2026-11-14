@@ -27,6 +27,7 @@ const PORTED_TO_MITHRIL: string[] = [
   'creationGroups.spec.ts',
   'creaSettings.spec.ts',
   'chatSettings.spec.ts',
+  'support.spec.ts',
 ]
 
 // Ports of their own, so that a dev server on 8080 is neither reused nor in the way. From the
