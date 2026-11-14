@@ -326,6 +326,24 @@ describe('the answer in the request log', () => {
     expect(traced).toBe('Response-Data: left out, it holds a remark')
   })
 
+  it("is left out where the request read a member's support request or its thread", async () => {
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), supportTicketReadsServed: 1 } },
+      { listSupportTickets: { tickets: [{ text: 'Meine Tochter heisst Ramona' }] } },
+    )
+    expect(traced).not.toContain('Ramona')
+    expect(traced).toBe('Response-Data: left out, it holds a support request')
+  })
+
+  it('is left out where the request wrote in the support', async () => {
+    const traced = await answerTraced(
+      { requestBudget: { ...newRequestBudget(), supportTicketWritesServed: 1 } },
+      { createSupportTicketMessage: { message: 'Meine Tochter heisst Ramona' } },
+    )
+    expect(traced).not.toContain('Ramona')
+    expect(traced).toBe('Response-Data: left out, it holds a support request')
+  })
+
   it('is written where the request was handed no picture of any kind', async () => {
     const traced = await answerTraced({ requestBudget: newRequestBudget() }, { sendCoins: true })
     expect(traced).toContain('"sendCoins": true')
