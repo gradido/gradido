@@ -421,6 +421,23 @@ test.describe('on a phone', () => {
     // the moderator's own: no button
     await expect(row(page, 5).locator('.phone-actions button')).toHaveCount(0)
   })
+
+  test('puts the number at the corner of the open tab, as the creation page does', async ({
+    page,
+  }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    await open(page)
+    const badge = tab(page, de.support.tab.open).locator('.tab-badge')
+    await expect(badge).toHaveText('6')
+    await expect(badge).toHaveCSS('position', 'absolute')
+    // in the tab's upper right corner, not on a line of its own below the word
+    const tabBox = await tab(page, de.support.tab.open).boundingBox()
+    const badgeBox = await badge.boundingBox()
+    expect(badgeBox && tabBox && badgeBox.y - tabBox.y).toBeLessThan(8)
+    expect(
+      badgeBox && tabBox && tabBox.x + tabBox.width - (badgeBox.x + badgeBox.width),
+    ).toBeLessThan(12)
+  })
 })
 
 // K3: the moderation answers, notes, closes with the tick and deletes; the count of the open tab.

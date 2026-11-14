@@ -5,6 +5,8 @@ import {
   adminListSupportTickets,
 } from '@admin/graphql/supportTickets.graphql'
 import { keepLastTab, lastTab } from '@admin/utils/lastSearch'
+// the creation page's rules for its tabs, under its class, which this page carries too
+import '@admin/pages/CreationConfirm.css'
 import m, { type ClassComponent } from 'mithril'
 import * as v from 'valibot'
 import { ConfirmModal } from '@/components/bootstrap/ConfirmModal'
@@ -188,7 +190,8 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
-    return m('.support-tickets.mt-2', [
+    // `creation-confirm` as well: the rules of the creation page's tabs and rows hold here too
+    return m('.support-tickets.creation-confirm.mt-2', [
       m(
         'div',
         m(Tabs, {
@@ -205,7 +208,8 @@ export class Support implements ClassComponent {
             this.page = 1
             this.load(1)
           },
-          // on a phone the symbol stands above the word and the number at the corner (App.css)
+          // on a phone the symbol stands above the word (App.css) and the number at the corner of
+          // the tab (CreationConfirm.css)
           tabs: TABS.map(({ icon, tone, word }, index) => ({
             title: [
               m.trust(tone ? icon.replace('<svg ', `<svg class="${tone}" `) : icon),
