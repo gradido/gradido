@@ -16,7 +16,9 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountSupportTicketDialogOfOwner,
   dbInsertSupportTicketMessage,
+  dbSelectNewestSupportTicketDialogs,
   dbSelectSupportTicketDialogOfOwner,
+  dbSelectSupportTicketThread,
 } from './supportTicketMessages'
 import { dbInsertSupportTicket } from './supportTickets'
 
@@ -163,6 +165,104 @@ describe('supportTicketMessages query test', () => {
       } finally {
         await setStatus('OPEN')
       }
+    })
+  })
+})
+
+// The moderation's side (K2): every kind of message, and the newest dialog message of a page.
+describe('supportTicketMessages query test, the moderation side', () => {
+  let otherTicketId: number
+  const writeIn = (
+    supportTicketId: number,
+    userId: number,
+    message: string,
+    type: SupportTicketMessageType = 'DIALOG',
+  ) =>
+    inTransaction((tx) =>
+      dbInsertSupportTicketMessage(
+        { supportTicketId, userId, message, type, isModerator: userId === peter.id, createdAt: AT },
+        tx,
+      ),
+    )
+
+  beforeAll(async () => {
+    otherTicketId = await inTransaction((tx) =>
+      dbInsertSupportTicket(
+        { userId: peter.id, creationGroupId: null, text: 'Frage', createdAt: AT },
+        tx,
+      ),
+    )
+  })
+
+  describe('the newest dialog message of each request', () => {
+    it('answers its kind and whether the moderation wrote it, a younger note left out', async () => {
+      await writeIn(ticketId, bibi.id, 'question')
+      await writeIn(ticketId, peter.id, 'answer')
+      await writeIn(ticketId, peter.id, 'a note after the answer', 'MODERATOR')
+      await writeIn(otherTicketId, peter.id, 'question of the moderator as a member')
+      await writeIn(otherTicketId, bibi.id, 'answer of bibi')
+      expect(await dbSelectNewestSupportTicketDialogs([ticketId, otherTicketId])).toEqual(
+        new Map([
+          [ticketId, { type: 'DIALOG', isModerator: true }],
+          [otherTicketId, { type: 'DIALOG', isModerator: false }],
+        ]),
+      )
+    })
+
+    it('leaves out a request without a dialog message, also one with only a note', async () => {
+      await writeIn(otherTicketId, peter.id, 'only a note', 'MODERATOR')
+      expect(await dbSelectNewestSupportTicketDialogs([ticketId, otherTicketId])).toEqual(new Map())
+    })
+
+    it('answers only the requests asked about', async () => {
+      await writeIn(ticketId, bibi.id, 'question')
+      await writeIn(otherTicketId, bibi.id, 'another')
+      expect([...(await dbSelectNewestSupportTicketDialogs([otherTicketId])).keys()]).toEqual([
+        otherTicketId,
+      ])
+      expect(await dbSelectNewestSupportTicketDialogs([])).toEqual(new Map())
+    })
+  })
+
+  describe('the thread as the moderation reads it', () => {
+    it('reads the dialog and the notes, the oldest first, each with its author', async () => {
+      const question = await writeIn(ticketId, bibi.id, 'question')
+      const note = await writeIn(ticketId, peter.id, 'internal note', 'MODERATOR')
+      const answer = await writeIn(ticketId, peter.id, 'answer')
+      await writeIn(otherTicketId, bibi.id, 'another request')
+      const thread = await dbSelectSupportTicketThread(ticketId)
+      expect(thread.map((message) => message.id)).toEqual([question, note, answer])
+      expect(thread[1]).toEqual({
+        id: note,
+        message: 'internal note',
+        createdAt: AT,
+        type: 'MODERATOR',
+        isModerator: true,
+        authorId: peter.id,
+        authorAlias: peter.alias,
+        authorFirstName: peter.firstName,
+        authorLastName: peter.lastName,
+        authorGradidoId: peter.gradidoId,
+        authorCommunityUuid: peter.communityUuid,
+      })
+      expect(thread[0]).toMatchObject({ authorId: bibi.id, isModerator: false, type: 'DIALOG' })
+    })
+
+    it('reads the thread of a deleted request as well', async () => {
+      const answer = await writeIn(ticketId, peter.id, 'answer')
+      const setStatus = (status: 'OPEN' | 'DELETED') =>
+        db.update(supportTicketsTable).set({ status }).where(eq(supportTicketsTable.id, ticketId))
+      try {
+        await setStatus('DELETED')
+        expect((await dbSelectSupportTicketThread(ticketId)).map((m) => m.id)).toEqual([answer])
+      } finally {
+        await setStatus('OPEN')
+      }
+    })
+
+    it('answers no message for a request nobody wrote in yet, and for a missing one', async () => {
+      expect(await dbSelectSupportTicketThread(ticketId)).toEqual([])
+      expect(await dbSelectSupportTicketThread(ticketId + 1000)).toEqual([])
     })
   })
 })

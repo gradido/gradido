@@ -62,6 +62,8 @@ type Query {
   spaces(limit: Int! = 20, page: Int! = 1): SpaceList!
   showFriends: ShowFriends!
   communityStatistics: CommunityStatistics!
+  adminListSupportTickets(pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
+  adminListSupportTicketMessages(supportTicketId: Int!): [AdminSupportTicketMessage!]!
   listSupportTickets(pageSize: Int!, currentPage: Int!): SupportTicketList!
   listSupportTicketMessages(supportTicketId: Int!): [SupportTicketMessage!]!
   thankYouCardPaymentTarget(code: String!): ThankYouCardPaymentTarget!
@@ -879,6 +881,60 @@ type DynamicStatisticsFields {
   totalGradidoUnbookedDecayed: GradidoUnit!
 }
 
+type AdminSupportTicketList {
+  count: Int!
+  tickets: [AdminSupportTicket!]!
+}
+
+type AdminSupportTicket {
+  id: Int!
+  userId: Int!
+  user: User
+  userEmail: String
+  text: String!
+  status: SupportTicketStatus!
+  creationGroupTag: String
+  creationGroupName: String
+  createdAt: DateTime!
+  closedAt: DateTime
+  closedBy: Int
+  closedByUserName: String
+  lastMessageType: SupportTicketMessageType
+  lastMessageByModerator: Boolean
+}
+
+"""
+The state of a support request: open, a question back to the member, closed, deleted
+"""
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+  DELETED
+}
+
+"""
+The kind of a message in a support request: dialog, or the moderation internal note
+"""
+enum SupportTicketMessageType {
+  DIALOG
+  MODERATOR
+}
+
+type AdminSupportTicketMessage {
+  id: Int!
+  message: String!
+  createdAt: DateTime!
+  type: SupportTicketMessageType!
+  userAlias: String
+  userId: Int!
+  userAvatarColorIndex: Int
+  userGradidoID: String
+  userCommunityUuid: String
+  userAvatarUpdatedAt: DateTime
+  isModerator: Boolean!
+}
+
 type SupportTicketList {
   count: Int!
   tickets: [SupportTicket!]!
@@ -893,16 +949,6 @@ type SupportTicket {
   createdAt: DateTime!
 }
 
-"""
-The state of a support request: open, a question back to the member, closed, deleted
-"""
-enum SupportTicketStatus {
-  OPEN
-  IN_PROGRESS
-  CLOSED
-  DELETED
-}
-
 type SupportTicketMessage {
   id: Int!
   message: String!
@@ -913,14 +959,6 @@ type SupportTicketMessage {
   userGradidoID: String
   userCommunityUuid: String
   userAvatarUpdatedAt: DateTime
-}
-
-"""
-The kind of a message in a support request: dialog, or the moderation internal note
-"""
-enum SupportTicketMessageType {
-  DIALOG
-  MODERATOR
 }
 
 type ThankYouCardPaymentTarget {

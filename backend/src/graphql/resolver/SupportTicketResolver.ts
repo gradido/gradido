@@ -85,7 +85,7 @@ const ticketFiled = (
 /**
  * The member's side of support requests (SUA-001): a member asks the support of their community
  * in the wallet, finds the request in their list, reads the thread, writes in it and closes it.
- * The moderation's side comes with K2 and K3.
+ * The moderation's side is SupportTicketModerationResolver.
  *
  * No operation takes a member: it is always the signed-in one, and every query has them in its
  * condition -- another member's request answers as a missing one does. The member reads the

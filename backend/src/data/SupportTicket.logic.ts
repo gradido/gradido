@@ -14,12 +14,13 @@ export const SUPPORT_TICKET_WRITES_MAX_PER_REQUEST = 1
 
 /**
  * How many lists and threads of requests one HTTP request may read (listSupportTickets,
- * listSupportTicketMessages counted together). A thread may hold SUPPORT_TICKET_MESSAGES_MAX
- * messages of MESSAGE_MAX_CHARS each; the wallet reads one list or one thread at a time.
+ * listSupportTicketMessages, adminListSupportTickets, adminListSupportTicketMessages counted
+ * together). A thread may hold SUPPORT_TICKET_MESSAGES_MAX messages of MESSAGE_MAX_CHARS each;
+ * the wallet and the admin read one list or one thread at a time.
  */
 export const SUPPORT_TICKET_READS_MAX_PER_REQUEST = 5
 
-/** The longest page of a member's own requests: the wallet's PAGE_SIZE. */
+/** The longest page of requests: the PAGE_SIZE of the wallet's list and of the admin's. */
 export const SUPPORT_TICKETS_PAGE_SIZE_MAX = 25
 
 /** The window SUPPORT_TICKETS_PER_DAY_MAX counts in: the 24 hours before `now`. */
@@ -28,6 +29,27 @@ export const supportTicketsWindowStart = (now: Date): Date =>
 
 /** The states from which a member closes their own request ("Erledigt, danke", SUA-010). */
 export const MEMBER_CLOSES_FROM: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS']
+
+/**
+ * When and by whom a request was closed, as the moderation's list shows it (SUA-008): a deleted
+ * one by when and by whom it was deleted, as for contributions; an open one by nobody, whatever
+ * an earlier closing left in its row.
+ */
+export const closingOf = (ticket: {
+  status: SupportTicketStatus
+  closedAt: Date | null
+  closedBy: number | null
+  deletedAt: Date | null
+  deletedBy: number | null
+}): { at: Date | null; by: number | null } => {
+  if (ticket.status === 'DELETED') {
+    return { at: ticket.deletedAt, by: ticket.deletedBy }
+  }
+  if (ticket.status === 'CLOSED') {
+    return { at: ticket.closedAt, by: ticket.closedBy }
+  }
+  return { at: null, by: null }
+}
 
 // The expected failures, as codes: the wallet words them in the reader's language.
 export const SUPPORT_TICKET_INVALID = 'SUPPORT_TICKET_INVALID'

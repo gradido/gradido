@@ -94,7 +94,7 @@ export const logPlugin = {
             requestContext.contextValue.requestBudget?.supportTicketWritesServed
           ) {
             // A member's support request and its thread are between the member and the
-            // moderation (SupportTicketResolver).
+            // moderation (SupportTicketResolver, SupportTicketModerationResolver).
             logger.trace('Response-Data: left out, it holds a support request')
           } else if (
             requestContext.contextValue.requestBudget?.chatImagesServed ||

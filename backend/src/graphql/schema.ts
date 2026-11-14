@@ -32,6 +32,7 @@ import { ProjectAccountResolver } from './resolver/ProjectAccountResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { ShowFriendsResolver } from './resolver/ShowFriendsResolver'
 import { StatisticsResolver } from './resolver/StatisticsResolver'
+import { SupportTicketModerationResolver } from './resolver/SupportTicketModerationResolver'
 import { SupportTicketResolver } from './resolver/SupportTicketResolver'
 import { ThankYouCardPaymentResolver } from './resolver/ThankYouCardPaymentResolver'
 import { ThankYouCardResolver } from './resolver/ThankYouCardResolver'
@@ -84,6 +85,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       ShowFriendsResolver,
       StatisticsResolver,
       SupportTicketResolver,
+      SupportTicketModerationResolver,
       ThankYouCardPaymentResolver,
       ThankYouCardResolver,
       TransactionLinkResolver,

@@ -71,9 +71,10 @@ export interface RequestBudget {
   // The moderation's remarks on members read or written (userRemark, setUserRemark), capped at
   // USER_REMARKS_MAX_PER_REQUEST. The answer of a request that read one stays out of the log.
   userRemarksServed: number
-  // Lists and threads of support requests read (listSupportTickets, listSupportTicketMessages),
-  // capped together at SUPPORT_TICKET_READS_MAX_PER_REQUEST. The answer of a request that read
-  // one stays out of the log.
+  // Lists and threads of support requests read (listSupportTickets, listSupportTicketMessages,
+  // adminListSupportTickets, adminListSupportTicketMessages), capped together at
+  // SUPPORT_TICKET_READS_MAX_PER_REQUEST. The answer of a request that read one stays out of the
+  // log.
   supportTicketReadsServed: number
   // Writes of the support (createSupportTicket, createSupportTicketMessage, closeSupportTicket),
   // capped together at SUPPORT_TICKET_WRITES_MAX_PER_REQUEST. The answer of a request that wrote

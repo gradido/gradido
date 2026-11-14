@@ -12,8 +12,11 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountSupportTicketsOfUserSince,
   dbInsertSupportTicket,
+  dbSelectSupportTicketOwnerInScope,
+  dbSelectSupportTicketsInScope,
   dbSelectSupportTicketsOfUser,
   dbUpdateSupportTicketOfOwner,
+  SupportTicketScope,
 } from './supportTickets'
 
 const appDB = AppDatabase.getInstance()
@@ -198,6 +201,160 @@ describe('supportTickets query test', () => {
       )
       expect(written).toBe(false)
       expect((await rowOf(id)).status).toBe('DELETED')
+    })
+  })
+})
+
+// The moderation's side (K2): a moderator reaches the requests their scope covers -- in the list,
+// in its count and in the check of a single request, through the one condition.
+describe('supportTickets query test, the moderation side', () => {
+  let choirId: number
+  const EVERYTHING: SupportTicketScope = {
+    tags: [],
+    seesAllCreationGroups: true,
+    seesUntagged: true,
+  }
+  const scope = (tags: string[], seesUntagged: boolean): SupportTicketScope => ({
+    tags,
+    seesAllCreationGroups: false,
+    seesUntagged,
+  })
+  // the ids of the first page, and the count of all, which has to agree with them here
+  const reached = async (where: SupportTicketScope, statuses: SupportTicketStatus[] = ALL) => {
+    const { count, tickets } = await dbSelectSupportTicketsInScope(statuses, where, 0, 25)
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket) => ticket.id)
+  }
+  const setState = (id: number, set: Partial<typeof supportTicketsTable.$inferInsert>) =>
+    db.update(supportTicketsTable).set(set).where(eq(supportTicketsTable.id, id))
+
+  beforeAll(async () => {
+    const [choir] = await db.insert(creationGroupsTable).values({ tag: 'choir', name: 'Chor' })
+    choirId = choir.insertId
+  })
+
+  describe('the scope', () => {
+    let inGarden: number
+    let inChoir: number
+    let ungrouped: number
+    beforeEach(async () => {
+      inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      ungrouped = await file(bibi.id, 'no group', MORNING)
+    })
+
+    it('reaches every request where the moderator sees all of them', async () => {
+      expect(await reached(EVERYTHING)).toEqual([ungrouped, inChoir, inGarden])
+    })
+
+    it('reaches the requests of the groups of the scope and no other', async () => {
+      expect(await reached(scope(['garden'], false))).toEqual([inGarden])
+      expect(await reached(scope(['garden', 'choir'], false))).toEqual([inChoir, inGarden])
+    })
+
+    it('reaches the requests of no group where the scope says "untagged"', async () => {
+      expect(await reached(scope([], true))).toEqual([ungrouped])
+    })
+
+    it('reaches both where the scope names a group and "untagged"', async () => {
+      expect(await reached(scope(['choir'], true))).toEqual([ungrouped, inChoir])
+    })
+
+    it('reaches nothing where the scope names no group and not "untagged"', async () => {
+      expect(await reached(scope([], false))).toEqual([])
+    })
+
+    it('reaches nothing of a tag that names no group', async () => {
+      expect(await reached(scope(['nobody-moderates-this'], false))).toEqual([])
+    })
+  })
+
+  describe('the list', () => {
+    it('lists the requests in these states, the newest first, with group and closing', async () => {
+      const open = await file(bibi.id, 'open', MORNING, gardenId)
+      const asked = await file(bibi.id, 'a question back', MORNING)
+      await setState(asked, { status: 'IN_PROGRESS' })
+      const closed = await file(peter.id, 'closed', NOON)
+      await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      const deleted = await file(bibi.id, 'deleted', NOON)
+      await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+
+      expect(
+        await dbSelectSupportTicketsInScope(['OPEN', 'IN_PROGRESS'], EVERYTHING, 0, 25),
+      ).toEqual({
+        count: 2,
+        tickets: [
+          {
+            id: asked,
+            userId: bibi.id,
+            text: 'a question back',
+            status: 'IN_PROGRESS',
+            createdAt: MORNING,
+            creationGroupTag: null,
+            creationGroupName: null,
+            closedAt: null,
+            closedBy: null,
+            deletedAt: null,
+            deletedBy: null,
+          },
+          expect.objectContaining({
+            id: open,
+            status: 'OPEN',
+            creationGroupTag: 'garden',
+            creationGroupName: 'Garten',
+          }),
+        ],
+      })
+      expect(await dbSelectSupportTicketsInScope(['CLOSED'], EVERYTHING, 0, 25)).toEqual({
+        count: 1,
+        tickets: [
+          expect.objectContaining({
+            id: closed,
+            userId: peter.id,
+            closedAt: NOON,
+            closedBy: bibi.id,
+          }),
+        ],
+      })
+      expect(await dbSelectSupportTicketsInScope(['DELETED'], EVERYTHING, 0, 25)).toEqual({
+        count: 1,
+        tickets: [expect.objectContaining({ id: deleted, deletedAt: NOON, deletedBy: peter.id })],
+      })
+      expect(await reached(EVERYTHING)).toEqual([deleted, closed, asked, open])
+    })
+
+    it('answers a page and the count of all the scope reaches', async () => {
+      const ids: number[] = []
+      for (const text of ['a', 'b', 'c']) {
+        ids.push(await file(bibi.id, text, NOON, gardenId))
+      }
+      await file(bibi.id, 'outside the scope', NOON, choirId)
+      const page = await dbSelectSupportTicketsInScope(ALL, scope(['garden'], false), 1, 1)
+      expect(page.count).toBe(3)
+      expect(page.tickets.map((ticket) => ticket.id)).toEqual([ids[1]])
+    })
+  })
+
+  describe('a single request', () => {
+    it('answers its owner where the scope reaches it, in any state', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      expect(await dbSelectSupportTicketOwnerInScope(id, scope(['garden'], false))).toBe(bibi.id)
+      await setState(id, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+      expect(await dbSelectSupportTicketOwnerInScope(id, scope(['garden'], false))).toBe(bibi.id)
+      const ungrouped = await file(peter.id, 'no group', MORNING)
+      expect(await dbSelectSupportTicketOwnerInScope(ungrouped, scope([], true))).toBe(peter.id)
+      expect(await dbSelectSupportTicketOwnerInScope(ungrouped, EVERYTHING)).toBe(peter.id)
+    })
+
+    it('answers null outside the scope and for a missing request alike', async () => {
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      expect(await dbSelectSupportTicketOwnerInScope(inChoir, scope(['garden'], true))).toBeNull()
+      expect(
+        await dbSelectSupportTicketOwnerInScope(ungrouped, scope(['garden'], false)),
+      ).toBeNull()
+      expect(await dbSelectSupportTicketOwnerInScope(inChoir, scope([], false))).toBeNull()
+      expect(await dbSelectSupportTicketOwnerInScope(inChoir + 1000, EVERYTHING)).toBeNull()
     })
   })
 })
