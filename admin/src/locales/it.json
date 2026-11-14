@@ -681,7 +681,7 @@
     "notFound": "Questa richiesta non esiste, oppure è fuori dai tuoi gruppi.",
     "notesReached": "In questa richiesta ci sono già {max} note.",
     "number": "Richiesta n. {number}",
-    "reassign": "Inoltrare la richiesta",
+    "reassign": "Inoltra la richiesta",
     "reassignConfirm": "Sì, inoltra",
     "reassignHint": "A seconda dei tuoi gruppi visibili, potrebbe non comparire più nel tuo elenco. Nella conversazione si vede chi l'ha inoltrata; anche il membro lo vede.",
     "reassignQuestion": "Inoltrare questa richiesta da {from} a {to}?",

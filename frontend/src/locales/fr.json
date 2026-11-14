@@ -1645,7 +1645,7 @@
     },
     "reassigned": "Le support a transmis ta demande",
     "reassignedBy": "{name} a transmis ta demande",
-    "reassignedFromTo": "de {from} à {to}",
+    "reassignedFromTo": "{from} → {to}",
     "send": "Envoyer",
     "sent": "Ta demande a été envoyée.",
     "write": "Écrire"
