@@ -1274,6 +1274,7 @@
     "send": "Gradido ve e‑posta gönder",
     "settings": "Ayarlar",
     "show-friends": "Arkadaşlarına göster",
+    "support": "Destek",
     "thank-you-greeting": "Teşekkür mesajı",
     "transactions": "İşlemlerin"
   },
@@ -1610,6 +1611,42 @@
   "status": "Durum",
   "submitted": "Gönderildi",
   "success": "Başarılı",
+  "support": {
+    "answerQuestion": "Bu talep için yeni bir mesaj var.",
+    "changed": "Talep bu arada değişmiş.",
+    "closed": "Talep kapatıldı.",
+    "done": "Çözüldü, teşekkürler",
+    "failed": "Maalesef olmadı. Lütfen tekrar dene.",
+    "info": {
+      "information": "Burada topluluğun için önemli olanlar ve onunla kimin ilgilendiği yer alıyor. Soru sormanın en kolay yolu «Yaz» bölümü.",
+      "myRequests": "Burada taleplerin ve onlara verilen yanıtlar yer alıyor. Tekrar yazarsan talep yeniden açılır.",
+      "write": {
+        "answer": "Yanıtı e-postayla alırsın. Onu burada, «Taleplerim» altında da bulursun.",
+        "text": "Bize hangi konuda yardıma ihtiyacın olduğunu yaz. Topluluğundan biri talebini okur ve sana yanıt verir.",
+        "title": "Burada yardım alırsın"
+      }
+    },
+    "legend": {
+      "closed": "kapatıldı",
+      "deleted": "silindi",
+      "inProgress": "Moderatörlerden bir soru var.",
+      "open": "gönderildi, yanıt bekleniyor"
+    },
+    "messagesReached": "Bu talepte zaten {max} mesaj var. Lütfen yeni bir talep oluştur.",
+    "myRequests": "Taleplerim",
+    "noRequests": "Henüz hiç talepte bulunmadın.",
+    "number": "Talep no. {number}",
+    "perDayReached": "Son 24 saatte zaten {max} talepte bulundun. Lütfen bunlardan birinde yazmaya devam et.",
+    "placeholder": "Sana nasıl yardımcı olabiliriz?",
+    "question": "Soru",
+    "readBy": {
+      "group": "Talebin «{group}» grubunun moderatörlerine gider. Diğer üyeler onu göremez.",
+      "none": "Talebin topluluğun destek ekibine gider. Diğer üyeler onu göremez."
+    },
+    "send": "Gönder",
+    "sent": "Talebin gönderildi.",
+    "write": "Yaz"
+  },
   "thank-you-card": {
     "back-to-calculator": "Hesap makinesine dön",
     "name": "Teşekkür kartı",

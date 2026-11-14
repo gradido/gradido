@@ -1274,6 +1274,7 @@
     "send": "Enviar Gradido e e‑mail",
     "settings": "Definições",
     "show-friends": "Mostra aos teus amigos",
+    "support": "Suporte",
     "thank-you-greeting": "Postal de agradecimento",
     "transactions": "As tuas transações"
   },
@@ -1610,6 +1611,42 @@
   "status": "Estado",
   "submitted": "Submetido",
   "success": "Sucesso",
+  "support": {
+    "answerQuestion": "Existe uma nova mensagem para este pedido.",
+    "changed": "Este pedido mudou entretanto.",
+    "closed": "O pedido está fechado.",
+    "done": "Resolvido, agradeço",
+    "failed": "Infelizmente, não resultou. Tenta outra vez, por favor.",
+    "info": {
+      "information": "Aqui está o que é importante para a tua comunidade e quem cuida dela. A forma mais simples de fazeres a tua pergunta é em «Escrever».",
+      "myRequests": "Aqui estão os teus pedidos e as respostas. Se voltares a escrever, o pedido fica novamente aberto.",
+      "write": {
+        "answer": "Recebes a resposta por e-mail. Também a encontras aqui, em «Os meus pedidos».",
+        "text": "Escreve-nos sobre aquilo em que precisas de ajuda. Uma pessoa da tua comunidade lê o teu pedido e responde-te.",
+        "title": "Aqui recebes ajuda"
+      }
+    },
+    "legend": {
+      "closed": "fechado",
+      "deleted": "eliminado",
+      "inProgress": "Há uma questão dos moderadores.",
+      "open": "enviado, à espera de resposta"
+    },
+    "messagesReached": "Este pedido já tem {max} mensagens. Faz um novo pedido, por favor.",
+    "myRequests": "Os meus pedidos",
+    "noRequests": "Ainda não fizeste nenhum pedido.",
+    "number": "Pedido n.º {number}",
+    "perDayReached": "Nas últimas 24 horas já fizeste {max} pedidos. Continua a escrever num deles, por favor.",
+    "placeholder": "Em que te podemos ajudar?",
+    "question": "A tua pergunta",
+    "readBy": {
+      "group": "O teu pedido vai para os moderadores do grupo «{group}». Os outros membros não o podem ver.",
+      "none": "O teu pedido vai para o suporte da comunidade. Os outros membros não o podem ver."
+    },
+    "send": "Enviar",
+    "sent": "O teu pedido foi enviado.",
+    "write": "Escrever"
+  },
   "thank-you-card": {
     "back-to-calculator": "Voltar à calculadora",
     "name": "Cartão de agradecimento",

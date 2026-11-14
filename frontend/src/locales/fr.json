@@ -1274,6 +1274,7 @@
     "send": "Envoyer Gradido et e‑mail",
     "settings": "Configuration",
     "show-friends": "Montre-le à tes amis",
+    "support": "Aide",
     "thank-you-greeting": "Mot de remerciement",
     "transactions": "Tes transactions"
   },
@@ -1610,6 +1611,42 @@
   "status": "Statut",
   "submitted": "Envoyé",
   "success": "Avec succès",
+  "support": {
+    "answerQuestion": "Il y a un nouveau message concernant cette demande.",
+    "changed": "Cette demande a changé entre-temps.",
+    "closed": "La demande est fermée.",
+    "done": "C'est réglé, merci",
+    "failed": "Malheureusement, cela n'a pas fonctionné. Réessaie, s'il te plaît.",
+    "info": {
+      "information": "Tu trouveras ici ce qui compte pour ta communauté et les personnes qui s'en occupent. Le plus simple pour poser ta question, c'est sous « Écrire ».",
+      "myRequests": "Tu trouveras ici tes demandes et leurs réponses. Si tu écris à nouveau, la demande est rouverte.",
+      "write": {
+        "answer": "Tu reçois la réponse par e-mail. Tu la trouves aussi ici, sous « Mes demandes ».",
+        "text": "Écris-nous en quoi tu as besoin d'aide. Une personne de ta communauté lit ta demande et te répond.",
+        "title": "Ici, tu trouves de l'aide"
+      }
+    },
+    "legend": {
+      "closed": "fermée",
+      "deleted": "supprimée",
+      "inProgress": "Il y a une question des modérateurs.",
+      "open": "envoyée, en attente de réponse"
+    },
+    "messagesReached": "Cette demande contient déjà {max} messages. Fais une nouvelle demande, s'il te plaît.",
+    "myRequests": "Mes demandes",
+    "noRequests": "Tu n'as encore fait aucune demande.",
+    "number": "Demande n° {number}",
+    "perDayReached": "Tu as déjà fait {max} demandes ces 24 dernières heures. Continue dans l'une d'elles, s'il te plaît.",
+    "placeholder": "Comment pouvons-nous t'aider ?",
+    "question": "Ta question",
+    "readBy": {
+      "group": "Ta demande est transmise aux modérateurs du groupe « {group} ». Les autres membres ne peuvent pas la voir.",
+      "none": "Ta demande est transmise au support de la communauté. Les autres membres ne peuvent pas la voir."
+    },
+    "send": "Envoyer",
+    "sent": "Ta demande a été envoyée.",
+    "write": "Écrire"
+  },
   "thank-you-card": {
     "back-to-calculator": "Retour à la calculatrice",
     "name": "Carte de remerciement",

@@ -1274,6 +1274,7 @@
     "send": "Gradido und E‑Mail senden",
     "settings": "Einstellungen",
     "show-friends": "Zeig es Deinen Freunden",
+    "support": "Support",
     "thank-you-greeting": "Dank-Gruß",
     "transactions": "Deine Transaktionen"
   },
@@ -1610,6 +1611,42 @@
   "status": "Status",
   "submitted": "Eingereicht",
   "success": "Erfolg",
+  "support": {
+    "answerQuestion": "Zu dieser Anfrage liegt eine neue Nachricht vor.",
+    "changed": "Diese Anfrage hat sich inzwischen geändert.",
+    "closed": "Die Anfrage ist geschlossen.",
+    "done": "Erledigt, danke",
+    "failed": "Das hat leider nicht geklappt. Versuch es bitte noch einmal.",
+    "info": {
+      "information": "Hier steht, was für Deine Gemeinschaft wichtig ist und wer sich um sie kümmert. Deine Frage stellst Du am einfachsten unter „Schreiben“.",
+      "myRequests": "Hier stehen Deine Anfragen und die Antworten darauf. Schreibst Du noch einmal, ist die Anfrage wieder offen.",
+      "write": {
+        "answer": "Die Antwort bekommst Du per E-Mail. Du findest sie auch hier unter „Meine Anfragen“.",
+        "text": "Schreib uns, wobei Du Hilfe brauchst. Ein Mensch aus Deiner Gemeinschaft liest Deine Anfrage und antwortet Dir.",
+        "title": "Hier bekommst Du Hilfe"
+      }
+    },
+    "legend": {
+      "closed": "geschlossen",
+      "deleted": "gelöscht",
+      "inProgress": "Es gibt eine Rückfrage der Moderatoren.",
+      "open": "gesendet, wartet auf Antwort"
+    },
+    "messagesReached": "In dieser Anfrage stehen schon {max} Nachrichten. Stell bitte eine neue Anfrage.",
+    "myRequests": "Meine Anfragen",
+    "noRequests": "Du hast noch keine Anfrage gestellt.",
+    "number": "Anfrage Nr. {number}",
+    "perDayReached": "Du hast in den letzten 24 Stunden schon {max} Anfragen gestellt. Schreib bitte in einer davon weiter.",
+    "placeholder": "Wobei können wir Dir helfen?",
+    "question": "Deine Frage",
+    "readBy": {
+      "group": "Deine Anfrage geht an die Moderatoren der Gruppe „{group}“. Andere Mitglieder sehen sie nicht.",
+      "none": "Deine Anfrage geht an den Support der Gemeinschaft. Andere Mitglieder sehen sie nicht."
+    },
+    "send": "Abschicken",
+    "sent": "Deine Anfrage ist abgeschickt.",
+    "write": "Schreiben"
+  },
   "thank-you-card": {
     "back-to-calculator": "Zurück zum Rechner",
     "name": "Dank-Karte",

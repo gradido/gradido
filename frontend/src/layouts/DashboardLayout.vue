@@ -282,6 +282,9 @@
             <template #contributions>
               <contributions-template />
             </template>
+            <template #support>
+              <support-template />
+            </template>
             <template #matching>
               <matching-template />
             </template>
@@ -329,6 +332,7 @@ import { useI18n } from 'vue-i18n'
 import { useApolloClient, useQuery, useMutation } from '@vue/apollo-composable'
 import ContentHeader from '@/layouts/templates/ContentHeader'
 import ContributionsTemplate from '@/layouts/templates/ContributionsTemplate'
+import SupportTemplate from '@/layouts/templates/SupportTemplate'
 import MatchingTemplate from '@/layouts/templates/MatchingTemplate'
 import Breadcrumb from '@/components/Breadcrumb/breadcrumb'
 import RightSide from '@/layouts/templates/RightSide'

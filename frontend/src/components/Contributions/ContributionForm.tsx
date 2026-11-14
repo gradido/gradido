@@ -1,5 +1,4 @@
 // AI-GENERATED — not an architecture reference
-import { useQuery } from '@vue/apollo-composable'
 import { BButton, BCol, BForm, BFormGroup, BRow, type ButtonVariant } from 'bootstrap-vue-next'
 import {
   computed,
@@ -10,7 +9,6 @@ import {
   reactive,
   ref,
   toRaw,
-  watch,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { date as dateSchema, number, object, string } from 'yup'
@@ -18,13 +16,9 @@ import { OpenCreationsAmount } from '@/components/Contributions/OpenCreationsAmo
 import LabeledInput from '@/components/Inputs/LabeledInput.vue'
 import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import ThemedSelect from '@/components/ThemedSelect.vue'
+import { useCreationGroupChoice } from '@/composables/useCreationGroupChoice'
 import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 import { GDD_PER_HOUR } from '@/constants'
-import {
-  creationGroups as creationGroupsQuery,
-  suggestedCreationGroup as suggestedCreationGroupQuery,
-} from '@/graphql/contributions.graphql'
-import { creationGroupLabel } from '@/utils/creationGroupLabel'
 import './ContributionForm.css'
 
 /**
@@ -72,46 +66,11 @@ export const ContributionForm = defineComponent({
 
     const form = reactive<ContributionFormModel>({ ...entityDataToForm.value })
 
-    // Group functions: the creation-group field (create only). Options come from the
-    // canonical list — every group stays choosable here, including quiet ones, otherwise a
-    // dormant group could never be woken up. Pre-filled with the member's own last statement,
-    // derived in the backend, unless something is already chosen. Optional / non-blocking.
-    const { result: creationGroupsResult } = useQuery(creationGroupsQuery)
-    // Asked of the server every time, never taken from the cache. Submitting swaps this form
-    // out for the success screen (a v-if in ContributionCreate), so coming back mounts a fresh
-    // one — and a cached answer would be the one from BEFORE the submission. That is what put
-    // the old group back after someone had just switched to "no group". Note that
-    // cache-and-network would not do: it hands over the stale value first, and by the time the
-    // real answer lands the field is filled, so the guard below refuses to correct it.
-    // Only when submitting. The same form is mounted for editing, where the group field is
+    // Group functions: the creation-group field (create only), as the support form has it.
+    // Optional / non-blocking. Not pre-filled where a contribution is edited, where the field is
     // hidden (`!form.id`) -- asking there would cost a query whose answer is thrown away.
-    const { result: suggestedCreationGroupResult } = useQuery(
-      suggestedCreationGroupQuery,
-      {},
-      { fetchPolicy: 'no-cache', enabled: !form.id },
-    )
-
-    const selectedCreationGroup = ref<string>(form.creationGroups?.[0] ?? '')
-
-    const creationGroupSelectOptions = computed(() => [
-      { value: '', text: t('contribution.creationGroup.none') },
-      ...(creationGroupsResult.value?.creationGroups ?? []).map(
-        (creationGroup: { tag: string; name: string | null }) => ({
-          value: creationGroup.tag,
-          text: creationGroupLabel(creationGroup),
-        }),
-      ),
-    ])
-
-    watch(
-      () => suggestedCreationGroupResult.value?.suggestedCreationGroup?.tag ?? '',
-      (suggestion: string) => {
-        if (!form.id && suggestion && !selectedCreationGroup.value) {
-          selectedCreationGroup.value = suggestion
-        }
-      },
-      { immediate: true },
-    )
+    const { selected: selectedCreationGroup, options: creationGroupSelectOptions } =
+      useCreationGroupChoice({ initial: form.creationGroups?.[0] ?? '', suggest: !form.id })
 
     const now = ref(new Date()) // checked every minute, updated if day, month or year changed
     const disableSmartValidState = ref(false)

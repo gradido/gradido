@@ -4,7 +4,14 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { MESSAGE_MAX_CHARS, message } from './validationSchemas'
+import {
+  MESSAGE_MAX_CHARS,
+  message,
+  SUPPORT_TICKET_MESSAGES_MAX,
+  SUPPORT_TICKET_TEXT_MIN_CHARS,
+  SUPPORT_TICKETS_PER_DAY_MAX,
+  supportTicketText,
+} from './validationSchemas'
 
 // How long a chat message may be exists twice: in `shared`, where the server takes it from, and
 // here, where the compose bar's field stops and words kept for later are cut. The wallet does
@@ -43,5 +50,35 @@ describe('the length of a chat message, on both sides', () => {
     expect(message.isValidSync('x'.repeat(min - 1))).toBe(false)
     expect(message.isValidSync('x'.repeat(max))).toBe(true)
     expect(message.isValidSync('x'.repeat(max + 1))).toBe(false)
+  })
+})
+
+// The bounds of a support request: the server refuses at them, the wallet stops there and words
+// the refusal with the same numbers.
+describe('the bounds of a support request, on both sides', () => {
+  it('are the same numbers here and in shared', () => {
+    const inSharedNumbers = [
+      'SUPPORT_TICKET_TEXT_MIN_CHARS',
+      'SUPPORT_TICKETS_PER_DAY_MAX',
+      'SUPPORT_TICKET_MESSAGES_MAX',
+    ].map((name) => Number(inShared(name)))
+
+    expect(inSharedNumbers.every((number) => number > 0)).toBe(true)
+    expect([
+      SUPPORT_TICKET_TEXT_MIN_CHARS,
+      SUPPORT_TICKETS_PER_DAY_MAX,
+      SUPPORT_TICKET_MESSAGES_MAX,
+    ]).toEqual(inSharedNumbers)
+  })
+
+  it('hold a request to its shortest and longest, without the blanks around it', () => {
+    const min = Number(inShared('SUPPORT_TICKET_TEXT_MIN_CHARS'))
+    const max = Number(inShared('MESSAGE_MAX_CHARS'))
+
+    expect(supportTicketText.isValidSync('x'.repeat(min))).toBe(true)
+    expect(supportTicketText.isValidSync('x'.repeat(min - 1))).toBe(false)
+    expect(supportTicketText.isValidSync(`  ${'x'.repeat(min - 1)}  `)).toBe(false)
+    expect(supportTicketText.isValidSync('x'.repeat(max))).toBe(true)
+    expect(supportTicketText.isValidSync('x'.repeat(max + 1))).toBe(false)
   })
 })
