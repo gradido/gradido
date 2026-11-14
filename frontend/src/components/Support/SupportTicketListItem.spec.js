@@ -184,18 +184,21 @@ describe('SupportTicketListItem', () => {
       )
     })
 
-    it('keeps a reply that a thread asked for before it would come back without', async () => {
+    it('asks the thread again after a reply, and keeps the history and the reply', async () => {
       let earlier
-      mockQuery.mockImplementationOnce(() => new Promise((resolve) => (earlier = resolve)))
+      const reply = { id: 9, message: 'Noch eine Frage' }
+      mockQuery
+        .mockImplementationOnce(() => new Promise((resolve) => (earlier = resolve)))
+        .mockResolvedValueOnce(answering([MODERATION, reply]))
       const wrapper = mountRow({ messagesVisible: true })
-      thread(wrapper).vm.$emit('add-contribution-message', { id: 9, message: 'Noch eine Frage' })
+      thread(wrapper).vm.$emit('add-contribution-message', reply)
       earlier(answering([MODERATION]))
       await flushPromises()
       expect(
         thread(wrapper)
           .props('messages')
           .map((message) => message.id),
-      ).toEqual([9])
+      ).toEqual([7, 9])
     })
 
     it('drops the thread of a request deleted meanwhile, also what is still on its way', async () => {
@@ -214,6 +217,9 @@ describe('SupportTicketListItem', () => {
     it('opens the request again with the message the member wrote', async () => {
       const wrapper = mountRow({ status: 'CLOSED', messagesVisible: true })
       await flushPromises()
+      mockQuery.mockResolvedValueOnce(
+        answering([MODERATION, { id: 9, message: 'Noch eine Frage' }]),
+      )
       thread(wrapper).vm.$emit('add-contribution-message', { id: 9, message: 'Noch eine Frage' })
       await flushPromises()
       expect(signOf(wrapper)).toEqual({ variant: 'primary', icon: 'bell-fill' })

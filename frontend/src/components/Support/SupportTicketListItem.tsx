@@ -148,11 +148,13 @@ export const SupportTicketListItem = defineComponent({
       }
     }
 
+    // The reply shows at once; then the thread is asked for again. A read still on its way left
+    // before the reply and would come back without it -- the new read drops it, and its answer
+    // holds the history and the reply alike.
     const addMessage = (message: ContributionMessage) => {
-      // A thread asked for before this reply would come back without it.
-      asked += 1
       messages.value = [...messages.value, message]
       localStatus.value = 'OPEN'
+      loadThread()
       emit('ticket-changed')
     }
 
