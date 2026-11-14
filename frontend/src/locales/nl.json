@@ -593,7 +593,7 @@
     "resent": "De bevestigingsmail is opnieuw onderweg.",
     "strip": "Er is een bevestigingsmail naar je onderweg — klik op de link erin. Tot {deadline} kun je je account al volledig gebruiken.",
     "title": "Bevestig je e-mailadres",
-    "writeSupport": "Komt de mail niet aan? Schrijf de support."
+    "writeSupport": "Komt de mail niet aan? Schrijf naar de support."
   },
   "emoji": {
     "choice": "Emoji's",
@@ -1614,11 +1614,11 @@
   "success": "Succes",
   "support": {
     "answerQuestion": "Er is een nieuw bericht over deze vraag.",
-    "badge": "{n} vraag met een vraag aan jou | {n} vragen met een vraag aan jou",
+    "badge": "{n} vraag wacht op je antwoord | {n} vragen wachten op je antwoord",
     "changed": "Deze vraag is intussen veranderd.",
     "closed": "De vraag is gesloten.",
     "done": "Opgelost, bedankt",
-    "dot": "Een vraag over een van je vragen",
+    "dot": "Een van je vragen wacht op je antwoord",
     "failed": "Dat is helaas niet gelukt. Probeer het nog eens.",
     "info": {
       "information": "Hier staat wat belangrijk is voor je gemeenschap en wie zich erom bekommert. Je vraag stel je het makkelijkst onder “Schrijven”.",

@@ -1637,11 +1637,11 @@
       "open": "enviado, à espera de resposta"
     },
     "messagesReached": "Este pedido já tem {max} mensagens. Faz um novo pedido, por favor.",
-    "messagesReachedOff": "Este pedido já tem {max} mensagens. Podes contactar o suporte em {mail}.",
+    "messagesReachedOff": "Este pedido já tem {max} mensagens. Podes contactar o suporte através de {mail}.",
     "myRequests": "Os meus pedidos",
     "noRequests": "Ainda não fizeste nenhum pedido.",
     "number": "Pedido n.º {number}",
-    "off": "De momento, os novos pedidos estão desativados na tua comunidade. Podes contactar o suporte em {mail}.",
+    "off": "De momento, os novos pedidos estão desativados na tua comunidade. Podes contactar o suporte através de {mail}.",
     "perDayReached": "Nas últimas 24 horas já fizeste {max} pedidos. Continua a escrever num deles, por favor.",
     "placeholder": "Em que te podemos ajudar?",
     "question": "A tua pergunta",

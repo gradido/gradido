@@ -1641,7 +1641,7 @@
     "myRequests": "Taleplerim",
     "noRequests": "Henüz hiç talepte bulunmadın.",
     "number": "Talep no. {number}",
-    "off": "Topluluğunda yeni talepler şu anda kapalı. Destek ekibine {mail} adresinden ulaşabilirsin.",
+    "off": "Topluluğunda yeni talep alımı şu anda kapalı. Destek ekibine {mail} adresinden ulaşabilirsin.",
     "perDayReached": "Son 24 saatte zaten {max} talepte bulundun. Lütfen bunlardan birinde yazmaya devam et.",
     "placeholder": "Sana nasıl yardımcı olabiliriz?",
     "question": "Soru",

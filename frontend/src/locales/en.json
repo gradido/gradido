@@ -593,7 +593,7 @@
     "resent": "The confirmation mail is on its way again.",
     "strip": "A confirmation e-mail is on its way to you — please click the link in it. Until {deadline}, you can already use your account in full.",
     "title": "Confirm your e-mail address",
-    "writeSupport": "The mail does not arrive? Write to the support team."
+    "writeSupport": "Is the mail not arriving? Write to the support team."
   },
   "emoji": {
     "choice": "Emoji",

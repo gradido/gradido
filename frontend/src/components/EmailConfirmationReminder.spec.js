@@ -57,7 +57,7 @@ const i18n = createI18n({
       'emailConfirmation.resend': 'Send mail again',
       'emailConfirmation.resendTooSoon': 'the mail has only just gone',
       'emailConfirmation.changeAddress': 'Correct address',
-      'emailConfirmation.writeSupport': 'The mail does not arrive? Write to the support.',
+      'emailConfirmation.writeSupport': 'Is the mail not arriving? Write to the support team.',
     },
   },
 })
@@ -193,7 +193,7 @@ describe('EmailConfirmationReminder', () => {
     ])('is there while new requests are %s (%s)', (active) => {
       const wrapper = mountOverdue(active)
       expect(link(wrapper).attributes('href')).toBe('/support/write')
-      expect(link(wrapper).text()).toBe('The mail does not arrive? Write to the support.')
+      expect(link(wrapper).text()).toBe('Is the mail not arriving? Write to the support team.')
       expect(wrapper.findAll('button')).toHaveLength(2)
     })
 

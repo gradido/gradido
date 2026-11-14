@@ -1637,11 +1637,11 @@
       "open": "envoyée, en attente de réponse"
     },
     "messagesReached": "Cette demande contient déjà {max} messages. Fais une nouvelle demande, s'il te plaît.",
-    "messagesReachedOff": "Cette demande contient déjà {max} messages. Tu peux joindre le support à {mail}.",
+    "messagesReachedOff": "Cette demande contient déjà {max} messages. Tu peux joindre le support à l'adresse {mail}.",
     "myRequests": "Mes demandes",
     "noRequests": "Tu n'as encore fait aucune demande.",
     "number": "Demande n° {number}",
-    "off": "Les nouvelles demandes sont désactivées pour le moment dans ta communauté. Tu peux joindre le support à {mail}.",
+    "off": "Les nouvelles demandes sont désactivées pour le moment dans ta communauté. Tu peux joindre le support à l'adresse {mail}.",
     "perDayReached": "Tu as déjà fait {max} demandes ces 24 dernières heures. Continue dans l'une d'elles, s'il te plaît.",
     "placeholder": "Comment pouvons-nous t'aider ?",
     "question": "Ta question",

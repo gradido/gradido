@@ -694,11 +694,11 @@
     "searchMember": "Rechercher ce membre",
     "sent": "Envoyée",
     "switch": {
-      "confirmBody": "Les membres ne pourront plus faire de nouvelle demande. Les demandes ouvertes restent dans cette liste ; qui a une demande ouverte peut continuer à y écrire.",
+      "confirmBody": "Les membres ne pourront plus faire de nouvelle demande. Les demandes ouvertes restent dans cette liste ; les membres qui ont une demande ouverte peuvent continuer à y écrire.",
       "confirmOpen": "Encore ouvertes : {open}",
       "confirmTitle": "Désactiver les nouvelles demandes",
       "confirmYes": "Oui, désactiver",
-      "hint": "Désactivé, le portefeuille affiche de nouveau « Information ». Les demandes ouvertes restent jusqu'à leur fermeture.",
+      "hint": "Quand les nouvelles demandes sont désactivées, le portefeuille affiche de nouveau « Information ». Les demandes ouvertes restent jusqu'à leur fermeture.",
       "label": "Les membres peuvent faire de nouvelles demandes",
       "off": "Les nouvelles demandes sont désactivées.",
       "on": "Les nouvelles demandes sont activées."

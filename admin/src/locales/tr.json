@@ -694,14 +694,14 @@
     "searchMember": "Bu üyeyi ara",
     "sent": "Gönderildi",
     "switch": {
-      "confirmBody": "Üyeler artık yeni talep gönderemez. Açık talepler bu listede kalır; açık bir talebi olan, onun içinde yazmaya devam edebilir.",
+      "confirmBody": "Üyeler artık yeni talep gönderemez. Açık talepler bu listede kalır; açık talebi olan üyeler o talepte yazmaya devam edebilir.",
       "confirmOpen": "Hâlâ açık: {open}",
-      "confirmTitle": "Yeni talepleri kapat",
+      "confirmTitle": "Yeni talep alımını kapat",
       "confirmYes": "Evet, kapat",
-      "hint": "Kapatıldığında cüzdan yeniden “Bilgi” gösterir. Açık talepler kapanana kadar kalır.",
+      "hint": "Talep alımı kapalıyken cüzdanda yeniden «Bilgi» menüsü görünür. Açık talepler kapanana kadar kalır.",
       "label": "Üyeler yeni talep gönderebilir",
-      "off": "Yeni talepler kapalı.",
-      "on": "Yeni talepler açık."
+      "off": "Yeni talep alımı kapalı.",
+      "on": "Yeni talep alımı açık."
     },
     "tab": {
       "all": "Tümü",

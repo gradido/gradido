@@ -698,7 +698,7 @@
       "confirmOpen": "Ainda abertos: {open}",
       "confirmTitle": "Desativar novos pedidos",
       "confirmYes": "Sim, desativar",
-      "hint": "Desativado, a carteira volta a mostrar «Informação». Os pedidos abertos mantêm-se até serem fechados.",
+      "hint": "Com os novos pedidos desativados, a carteira volta a mostrar «Informação». Os pedidos abertos mantêm-se até serem fechados.",
       "label": "Os membros podem fazer novos pedidos",
       "off": "Os novos pedidos estão desativados.",
       "on": "Os novos pedidos estão ativados."

@@ -694,11 +694,11 @@
     "searchMember": "Search for this member",
     "sent": "Sent",
     "switch": {
-      "confirmBody": "Members can then make no new request. Open requests stay in this list; whoever has an open request can go on writing in it.",
+      "confirmBody": "Members will no longer be able to make new requests. Open requests stay in this list; members with an open request can keep writing in it.",
       "confirmOpen": "Still open: {open}",
       "confirmTitle": "Switch off new requests",
       "confirmYes": "Yes, switch off",
-      "hint": "Switched off, the wallet shows “Information” again. Open requests stay until they are closed.",
+      "hint": "While new requests are switched off, the wallet shows “Information” again. Open requests stay until they are closed.",
       "label": "Members can make new requests",
       "off": "New requests are switched off.",
       "on": "New requests are switched on."
