@@ -25,13 +25,18 @@ export const sendable = (text: string) => {
 
 /**
  * What the form sends (adminCreateSupportTicketMessage): its tab says message or note, its button
- * whether the answer closes the request -- a note closes nothing --, its box the resubmission (K4),
- * an ISO moment or none.
+ * whether the answer closes the request -- a note closes nothing --, its box the resubmission (K4):
+ * an ISO moment, null to take it away, or undefined where the box was not touched -- then nothing
+ * is sent of it, and the request keeps what it has.
  */
 export const answerVariables = (
   supportTicketId: number,
   text: string,
-  { note, close, resubmissionAt }: { note: boolean; close: boolean; resubmissionAt: string | null },
+  {
+    note,
+    close,
+    resubmissionAt,
+  }: { note: boolean; close: boolean; resubmissionAt: string | null | undefined },
 ) => ({
   supportTicketId,
   message: text,

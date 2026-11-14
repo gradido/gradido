@@ -82,6 +82,20 @@ describe('answerVariables', () => {
       }),
     ).toMatchObject({ type: 'MODERATOR', resubmissionAt: '2026-11-20T08:00:00.000Z' })
   })
+
+  it('sends nothing of a box that was not touched: as JSON the field is gone', () => {
+    const untouched = answerVariables(7, 'Intern', {
+      note: true,
+      close: false,
+      resubmissionAt: undefined,
+    })
+    expect(JSON.parse(JSON.stringify(untouched))).toEqual({
+      supportTicketId: 7,
+      message: 'Intern',
+      type: 'MODERATOR',
+      close: false,
+    })
+  })
 })
 
 describe('refusalWords', () => {

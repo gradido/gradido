@@ -22,6 +22,7 @@ import {
   dbUpdateSupportTicketOfModerator,
   dbUpdateSupportTicketOfOwner,
   SupportTicketFilter,
+  SupportTicketResubmission,
   SupportTicketScope,
 } from './supportTickets'
 
@@ -616,7 +617,7 @@ describe('supportTickets query test, the moderation side', () => {
     // a note: no state, only what becomes of the resubmission (K4)
     const note = (
       id: number,
-      resubmissionAt: Date | null,
+      resubmissionAt: SupportTicketResubmission,
       statusIn = ANSWERS_FROM,
       within = EVERYTHING,
     ) => dbUpdateSupportTicketOfModerator(where(id, statusIn, within), { resubmissionAt })
@@ -732,6 +733,31 @@ describe('supportTickets query test, the moderation side', () => {
       // and a note without one takes it away
       expect(await note(id, null, ANSWERS_FROM, scope(['garden'], false))).toBe(true)
       expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: null })
+    })
+
+    it('keeps with "keep" what the request has, and still finds the row', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      // a colleague set one: a note whose box was not touched leaves it
+      await setState(id, { resubmissionAt: LATER })
+      expect(await note(id, 'keep')).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+      // the member wrote and took it away: the note does not put it back
+      await setState(id, { resubmissionAt: null })
+      expect(await note(id, 'keep')).toBe(true)
+      expect((await rowOf(id)).resubmissionAt).toBeNull()
+      // an answer keeps it too, and makes the request a question back
+      await setState(id, { resubmissionAt: LATER })
+      expect(
+        await dbUpdateSupportTicketOfModerator(where(id, ANSWERS_FROM), {
+          ...A_QUESTION_BACK,
+          resubmissionAt: 'keep',
+        }),
+      ).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+      // the condition holds as for any other write
+      const own = await file(peter.id, 'my own', MORNING)
+      expect(await note(own, 'keep')).toBe(false)
+      expect(await note(id, 'keep', ANSWERS_FROM, scope(['choir'], false))).toBe(false)
     })
 
     it('sets no resubmission outside the scope, on a deleted request, on the own one or a missing one', async () => {

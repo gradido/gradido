@@ -1232,15 +1232,22 @@ describe('SupportTicketModerationResolver, the resubmission (K4)', () => {
   // a week ahead of whenever the test runs: a resubmission still to come
   const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   LATER.setMilliseconds(0)
+  // `undefined`: the form's box untouched -- the argument is not sent at all
   const write = (
     supportTicketId: number,
-    resubmissionAt: string | null,
+    resubmissionAt: string | null | undefined,
     type: SupportTicketMessageType = 'DIALOG',
     close = false,
   ): Promise<any> =>
     mutate({
       mutation: adminCreateSupportTicketMessage,
-      variables: { supportTicketId, message: 'Ich melde mich.', type, close, resubmissionAt },
+      variables: {
+        supportTicketId,
+        message: 'Ich melde mich.',
+        type,
+        close,
+        ...(resubmissionAt === undefined ? {} : { resubmissionAt }),
+      },
     })
   const rowOf = async (id: number) =>
     (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
@@ -1287,6 +1294,30 @@ describe('SupportTicketModerationResolver, the resubmission (K4)', () => {
     expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
     expect((await write(id, null, 'MODERATOR')).errors).toBeUndefined()
     expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+  })
+
+  it('keeps the resubmission where the box was not touched: that of a colleague stays, and none comes back that the member took away', async () => {
+    const id = await file(bibi.id, 'Hochbeet', 310, gardenId)
+    expect((await write(id, LATER.toISOString(), 'MODERATOR')).errors).toBeUndefined()
+    // another note, its box untouched
+    expect((await write(id, undefined, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+    // the member writes "dringend": the resubmission is gone, and a note or an answer whose box was
+    // not touched does not put it back
+    await loginAs('bibi@bloxberg.de')
+    expect(
+      (
+        await mutate({
+          mutation: createSupportTicketMessage,
+          variables: { supportTicketId: id, message: 'Dringend, bitte!' },
+        })
+      ).errors,
+    ).toBeUndefined()
+    await loginAs('peter@lustig.de')
+    expect((await write(id, undefined, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect((await write(id, undefined)).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: null })
   })
 
   it('refuses an answer that closes and waits, and a moment that is none, with nothing written', async () => {

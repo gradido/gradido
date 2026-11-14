@@ -370,27 +370,41 @@ export const supportTicketOfModerator = ({
   ) as SQL
 
 /**
+ * What a write of the moderation does to a request's resubmission (K4): sets it to a moment,
+ * takes it away (null), or keeps what is there -- 'keep' where the form's box was not touched, so
+ * that what the member or a colleague changed meanwhile stays.
+ */
+export type SupportTicketResubmission = Date | null | 'keep'
+
+/**
  * Changes a request as the moderation does (answering, noting, closing, deleting it), where it is
  * the moderator's to act on (supportTicketOfModerator), and answers whether it did. The values are
  * fixed ones: nothing of the row is read and written back. A note sets no state, only what becomes
  * of the resubmission.
  *
  * The resubmission is no choice: every write says what becomes of it (K4), and a write that
- * forgets it does not compile.
+ * forgets it does not compile. 'keep' sets the column to itself: the row is still found.
  *
  * ⚠️ True also where nothing changes -- an answer to a question back leaves it one: the driver
  * counts the rows found (FOUND_ROWS), as for the member's write below.
  */
 export async function dbUpdateSupportTicketOfModerator(
   where: SupportTicketOfModerator,
-  set: Pick<SupportTicketInsert, 'status' | 'closedAt' | 'closedBy' | 'deletedAt' | 'deletedBy'> & {
-    resubmissionAt: Date | null
+  {
+    resubmissionAt,
+    ...set
+  }: Pick<SupportTicketInsert, 'status' | 'closedAt' | 'closedBy' | 'deletedAt' | 'deletedBy'> & {
+    resubmissionAt: SupportTicketResubmission
   },
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<boolean> {
   const [result] = await tx
     .update(supportTicketsTable)
-    .set(set)
+    .set({
+      ...set,
+      resubmissionAt:
+        resubmissionAt === 'keep' ? sql`${supportTicketsTable.resubmissionAt}` : resubmissionAt,
+    })
     .where(supportTicketOfModerator(where))
   return result.affectedRows === 1
 }

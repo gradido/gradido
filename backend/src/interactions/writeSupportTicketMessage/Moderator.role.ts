@@ -5,6 +5,7 @@ import {
   dbReassignSupportTicketOfModerator,
   dbUpdateSupportTicketOfModerator,
   SupportTicketMessageType,
+  SupportTicketResubmission,
   SupportTicketScope,
   SupportTicketStatus,
 } from 'database'
@@ -32,17 +33,21 @@ export interface ModeratorWrite {
   kind: ModeratorMessageKind
   /** the moment of the message, which closes the request where the answer does */
   at: Date
-  /** the resubmission as the form's box stands with the message (K4): a moment, or none */
-  resubmissionAt: Date | null
+  /**
+   * the resubmission as the form's box stands with the message (K4): a moment, none, or 'keep'
+   * where the box was not touched
+   */
+  resubmissionAt: SupportTicketResubmission
 }
 
 /**
  * A moderator as writer (K3): an answer -- the request is a question back to the member then,
  * and who closed it is gone --, an answer that closes it, or a note, which is the moderation's
  * alone. Each sets the resubmission as the form's box stands (K4): an answer and a note to the
- * moment or to none, an answer that closes to none; a note changes nothing else of the request.
- * The count and the write stand on one condition: this request, from these states, within the
- * scope, not the moderator's own.
+ * moment, to none, or -- the box untouched -- they keep what the request has now, also what the
+ * member or a colleague did since the form opened; an answer that closes to none. A note changes
+ * nothing else of the request. The count and the write stand on one condition: this request, from
+ * these states, within the scope, not the moderator's own.
  */
 export const moderatorWriter = ({
   moderator,
@@ -54,7 +59,7 @@ export const moderatorWriter = ({
 }: ModeratorWrite): SupportTicketWriter => {
   const type =
     kind === 'NOTE' ? SupportTicketMessageType.MODERATOR : SupportTicketMessageType.DIALOG
-  const statusIn = kind === 'NOTE' && resubmissionAt ? OPEN_TAB : WRITES_INTO
+  const statusIn = kind === 'NOTE' && resubmissionAt instanceof Date ? OPEN_TAB : WRITES_INTO
   const where = (id: number) => ({ id, statusIn, scope, moderatorId: moderator.id })
   return {
     userId: moderator.id,

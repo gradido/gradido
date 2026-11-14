@@ -110,13 +110,18 @@ describe('adminSupportTicketsPageSchema', () => {
 describe('supportTicketResubmissionSchema', () => {
   const read = (input: unknown) => v.safeParse(supportTicketResubmissionSchema, input)
 
-  it('takes a moment as the form sends it, and none', () => {
+  it('takes a moment as the form sends it, null to take it away, and nothing to keep it', () => {
     expect(read('2026-11-20T08:00:00.000Z')).toMatchObject({
       success: true,
       output: new Date('2026-11-20T08:00:00.000Z'),
     })
     expect(read(null)).toMatchObject({ success: true, output: null })
-    expect(read(undefined)).toMatchObject({ success: true, output: null })
+    // the box untouched: what the request has stays
+    expect(read(undefined)).toMatchObject({ success: true, output: 'keep' })
+  })
+
+  it('takes no word for keeping: only the absent argument keeps', () => {
+    expect(read('keep').success).toBe(false)
   })
 
   it('takes a moment in the past: it hides nothing', () => {

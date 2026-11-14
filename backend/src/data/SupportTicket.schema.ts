@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { SupportTicketStatus } from 'database'
+import { SupportTicketResubmission, SupportTicketStatus } from 'database'
 import {
   MESSAGE_MAX_CHARS,
   MESSAGE_MIN_CHARS,
@@ -40,18 +40,23 @@ export const supportTicketMessageSchema = v.pipe(
 /**
  * A resubmission as the admin's form sends it (K4): a moment as Date.prototype.toISOString writes
  * it -- nothing that rolls over ("2026-02-30T…" is March) or would be read in the server's time
- * zone -- or none. A moment in the past is no error: it hides nothing.
+ * zone --, null to take it away, or nothing where the form's box was not touched: then the request
+ * keeps what it has ('keep'). A moment in the past is no error: it hides nothing.
  */
-export const supportTicketResubmissionSchema = v.nullish(
-  v.pipe(
-    v.string(),
-    v.check((text) => {
-      const moment = new Date(text)
-      return !Number.isNaN(moment.getTime()) && moment.toISOString() === text
-    }, 'Support request: the resubmission is no moment'),
-    v.transform((text) => new Date(text)),
+export const supportTicketResubmissionSchema = v.pipe(
+  v.optional(
+    v.nullable(
+      v.pipe(
+        v.string(),
+        v.check((text) => {
+          const moment = new Date(text)
+          return !Number.isNaN(moment.getTime()) && moment.toISOString() === text
+        }, 'Support request: the resubmission is no moment'),
+        v.transform((text) => new Date(text)),
+      ),
+    ),
   ),
-  null,
+  v.transform((moment): SupportTicketResubmission => (moment === undefined ? 'keep' : moment)),
 )
 
 /** A page of the member's own requests. */

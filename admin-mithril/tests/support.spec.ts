@@ -512,7 +512,6 @@ test('answers below the thread, and asks for the thread, the list and the count 
       message: 'Am **Handy** oben rechts.',
       type: 'DIALOG',
       close: false,
-      resubmissionAt: null,
     },
   ])
   await expect(field(page)).toHaveValue('')
@@ -549,7 +548,6 @@ test('answers and closes with the green button, and the row goes where the list 
       message: 'Ja, genau so.',
       type: 'DIALOG',
       close: true,
-      resubmissionAt: null,
     },
   ])
   await expect(rows(page)).toHaveCount(5)
@@ -575,7 +573,6 @@ test('writes a note under its own tab with "Speichern", and offers no answer the
       message: 'Rückruf vereinbart',
       type: 'MODERATOR',
       close: false,
-      resubmissionAt: null,
     },
   ])
 })
@@ -628,7 +625,6 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
       message: 'Schön, dass es klappt!',
       type: 'DIALOG',
       close: false,
-      resubmissionAt: null,
     },
   ])
   // the note's draft is still there, and "Abbrechen" empties only the draft shown
@@ -1213,6 +1209,56 @@ test('sends no resubmission in the past, and none with a time that is no time', 
       resubmissionAt: '2030-11-20T08:00:00.000Z',
     },
   ])
+})
+
+test('sends nothing of a box it did not touch: the request keeps what it has, and the box follows it', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  // waiting until Monday; after the first note the list says the member took it away meanwhile
+  let waits = true
+  graphql.answer({
+    adminCreateSupportTicketMessage: () => {
+      waits = false
+      return { id: 99 }
+    },
+    adminListSupportTickets: () =>
+      ticketList([
+        listedTicket(1, 1, { resubmissionAt: waits ? '2030-11-20T08:00:00.000Z' : null }),
+        listedTicket(2, 2),
+      ]),
+  })
+  await signIn(page, '/support')
+  await details(page, 0).click()
+  await expect(box(page)).toBeChecked()
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await button(page, de.save).click()
+  await expect(toast(page, de.message.request)).toBeVisible()
+  const [first] = asked(graphql, 'adminCreateSupportTicketMessage')
+  expect(first).toEqual({
+    supportTicketId: 1,
+    message: 'Rückruf vereinbart',
+    type: 'MODERATOR',
+    close: false,
+  })
+  expect('resubmissionAt' in first).toBe(false)
+  // the new list has none: the untouched box follows it, and the next note sends nothing either
+  await expect(box(page)).not.toBeChecked()
+  await field(page).fill('Noch ein Vermerk')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(2)
+  expect('resubmissionAt' in asked(graphql, 'adminCreateSupportTicketMessage')[1]).toBe(false)
+  // touched, it goes: ticked off it takes the resubmission away
+  await box(page).check()
+  await box(page).uncheck()
+  await field(page).fill('Doch nicht warten')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(3)
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')[2]).toMatchObject({
+    resubmissionAt: null,
+  })
 })
 
 test('has no box for a note under a closed request, and one for an answer there', async ({

@@ -42,10 +42,12 @@ type AnswerTab = FormTab.MESSAGE | FormTab.NOTE
  * page asks for its list anew.
  *
  * Above the tabs the box of the resubmission (K4), as on a contribution: it opens as the request
- * came, with its moment while that is still to come, and goes with every answer and note -- set,
- * kept or taken away. A closed request waits for nothing: with the box set nothing closes, and
- * under a closed request a note has no box (the server takes a note with a moment into an open
- * request only).
+ * came, with its moment while that is still to come, and goes with an answer or a note once it was
+ * touched -- set or taken away. Untouched, nothing of it is sent, and the request keeps what it has
+ * then: also what the member or a colleague did since the row was opened -- the member writing
+ * takes a resubmission away, and an unrelated note may not put it back. A closed request waits for
+ * nothing: with the box set nothing closes, and under a closed request a note has no box (the
+ * server takes a note with a moment into an open request only).
  */
 export class SupportAnswerForm implements ClassComponent<Attrs> {
   private readonly id = `support-answer-${++lastId}`
@@ -55,8 +57,22 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
   private box = false
   private day = ''
   private time = '00:00'
+  // whether the box, its day or its time was changed since the row opened or the last write
+  private touched = false
 
   oninit({ attrs: { ticket } }: Vnode<Attrs>) {
+    this.boxAsCame(ticket)
+  }
+
+  // Untouched, the box follows the request where the list brings it anew with another
+  // resubmission: what it shows is what the request has.
+  onbeforeupdate({ attrs: { ticket } }: Vnode<Attrs>, { attrs: { ticket: before } }: Vnode<Attrs>) {
+    if (!this.touched && ticket.resubmissionAt !== before.resubmissionAt) {
+      this.boxAsCame(ticket)
+    }
+  }
+
+  private boxAsCame(ticket: ListedSupportTicket) {
     const waiting = waitingUntil(ticket)
     this.box = waiting !== null
     if (waiting) {
@@ -78,7 +94,9 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
     if (this.sending || !sendable(text) || (waits && (close || !this.day || !isTime(this.time)))) {
       return
     }
-    const resubmission = waits ? momentOf(this.day, this.time) : null
+    // the box goes only where it was touched; untouched, the request keeps what it has
+    const touched = this.touched
+    const resubmission = touched && waits ? momentOf(this.day, this.time) : null
     if (resubmission && resubmission < new Date()) {
       toastError(t('contributionMessagesForm.resubmissionDateInPast'))
       return
@@ -90,7 +108,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       answerVariables(ticket.id, text, {
         note,
         close,
-        resubmissionAt: resubmission?.toISOString() ?? null,
+        resubmissionAt: touched ? (resubmission?.toISOString() ?? null) : undefined,
       }),
     )
     this.sending = false
@@ -100,6 +118,8 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       if (this.texts[tab] === text) {
         this.texts[tab] = ''
       }
+      // what the box shows is what the request has now: untouched again
+      this.touched = false
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
       toastError(
@@ -161,6 +181,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                   'data-test': 'support-resubmission-box',
                   onchange: (event: Event) => {
                     this.box = (event.target as HTMLInputElement).checked
+                    this.touched = true
                   },
                 }),
                 m(
@@ -184,6 +205,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                         'data-test': 'support-resubmission-day',
                         oninput: (event: Event) => {
                           this.day = (event.target as HTMLInputElement).value
+                          this.touched = true
                         },
                       }),
                     ),
@@ -200,6 +222,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                           const field = event.target as HTMLInputElement
                           this.time = field.value.replace(/[^0-9:]/g, '')
                           field.value = this.time
+                          this.touched = true
                         },
                         onblur: () => {
                           this.time = wholeTime(this.time)

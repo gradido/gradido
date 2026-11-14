@@ -248,10 +248,10 @@ export class SupportTicketModerationResolver {
    * moderation (`type` MODERATOR), which changes nothing of the request and reaches the member
    * nowhere. Into an open request, one with a question back or a closed one; never into a deleted
    * one, never into the moderator's own. A note that would close is no write (invalid). Each sets
-   * the resubmission as the form's box stands (K4): `resubmissionAt`, or none -- a note with one
-   * into an open request only, and an answer that closes with none (invalid). An answer is mailed
-   * to the member once it is stored, to a confirmed address. Answers the message as the thread
-   * shows it.
+   * the resubmission as the form's box stands (K4): `resubmissionAt`, null to take it away, or --
+   * not given, the box untouched -- what the request has stays; a note with a moment goes into an
+   * open request only, and an answer that closes with one is invalid. An answer is mailed to the
+   * member once it is stored, to a confirmed address. Answers the message as the thread shows it.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => AdminSupportTicketMessage)
@@ -260,7 +260,8 @@ export class SupportTicketModerationResolver {
     @Arg('message', () => String) message: string,
     @Arg('type', () => SupportTicketMessageType) type: SupportTicketMessageType,
     @Arg('close', () => Boolean) close: boolean,
-    @Arg('resubmissionAt', () => String, { nullable: true }) resubmissionAt: string | null,
+    @Arg('resubmissionAt', () => String, { nullable: true })
+    resubmissionAt: string | null | undefined,
     @Ctx() context: Context,
   ): Promise<AdminSupportTicketMessage> {
     countSupportTicketWrite(context)
@@ -268,7 +269,7 @@ export class SupportTicketModerationResolver {
     const words = v.safeParse(supportTicketMessageSchema, message)
     const resubmission = v.safeParse(supportTicketResubmissionSchema, resubmissionAt)
     const kind =
-      resubmission.success && moderatorMessageKind(type, close, resubmission.output !== null)
+      resubmission.success && moderatorMessageKind(type, close, resubmission.output instanceof Date)
     if (!words.success || !resubmission.success || !kind) {
       throw new LogError(SUPPORT_TICKET_INVALID)
     }

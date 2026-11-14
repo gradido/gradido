@@ -111,6 +111,40 @@ describe('moderatorWriter', () => {
     )
   })
 
+  it('keeps with an untouched box what the request has, a note into any state it writes into', async () => {
+    mockDatabase.dbUpdateSupportTicketOfModerator.mockResolvedValue(true)
+    const note = moderatorWriter({ ...write, kind: 'NOTE', resubmissionAt: 'keep' })
+    await note.countMessages(42, TX)
+    await note.moveRequest(42, TX)
+    expect(mockDatabase.dbCountSupportTicketMessagesOfModerator).toHaveBeenCalledWith(
+      WHERE,
+      'MODERATOR',
+      TX,
+    )
+    expect(mockDatabase.dbUpdateSupportTicketOfModerator).toHaveBeenCalledWith(
+      WHERE,
+      { resubmissionAt: 'keep' },
+      TX,
+    )
+    await moderatorWriter({ ...write, kind: 'ANSWER', resubmissionAt: 'keep' }).moveRequest(42, TX)
+    expect(mockDatabase.dbUpdateSupportTicketOfModerator).toHaveBeenLastCalledWith(
+      WHERE,
+      { status: 'IN_PROGRESS', closedAt: null, closedBy: null, resubmissionAt: 'keep' },
+      TX,
+    )
+    // closing takes it away, whatever the box
+    await moderatorWriter({
+      ...write,
+      kind: 'ANSWER_AND_CLOSE',
+      resubmissionAt: 'keep',
+    }).moveRequest(42, TX)
+    expect(mockDatabase.dbUpdateSupportTicketOfModerator).toHaveBeenLastCalledWith(
+      WHERE,
+      expect.objectContaining({ status: 'CLOSED', resubmissionAt: null }),
+      TX,
+    )
+  })
+
   it('writes a note with a resubmission into an open request only, its count on the same condition', async () => {
     mockDatabase.dbUpdateSupportTicketOfModerator.mockResolvedValue(true)
     const writer = moderatorWriter({ ...write, kind: 'NOTE', resubmissionAt: LATER })
