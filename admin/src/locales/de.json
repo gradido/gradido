@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
+    "support": "Support: {n} offene Anfragen",
+    "supportNone": "Support: keine offenen Anfragen",
+    "supportOne": "Support: eine offene Anfrage",
     "today": "Heute: {n} offene Schöpfungen",
     "todayNone": "Heute: keine offenen Schöpfungen",
     "todayOne": "Heute: eine offene Schöpfung",
@@ -651,12 +654,30 @@
   "status": "Status",
   "success": "Erfolg",
   "support": {
+    "answer": "Antworten",
+    "answerAndClose": "Antworten und schließen",
+    "close": "Schließen",
+    "closed": "Die Anfrage ist geschlossen.",
     "closedAt": "Geschlossen",
     "closedBy": "Geschlossen von {name}",
     "closedByMember": "Vom Mitglied geschlossen",
+    "confirmClose": {
+      "body": "Willst Du diese Anfrage ohne Antwort schließen? Das Mitglied bekommt dazu keine Mail.",
+      "title": "Anfrage schließen",
+      "yes": "Ja, schließen"
+    },
+    "confirmDelete": {
+      "body": "Willst Du diese Anfrage wirklich löschen? Sie steht danach unter „Gelöscht“ und lässt sich nicht wiederherstellen. Das Mitglied bekommt dazu keine Mail und sieht sie als gelöscht.",
+      "title": "Anfrage löschen",
+      "yes": "Ja, löschen"
+    },
+    "deleted": "Die Anfrage ist gelöscht.",
     "deletedBy": "Gelöscht von {name}",
+    "failed": "Das hat nicht geklappt. Versuch es bitte noch einmal.",
     "loadFailed": "Die Anfragen konnten nicht geladen werden. Versuch es bitte noch einmal.",
+    "messagesReached": "In dieser Anfrage stehen schon {max} Nachrichten.",
     "notFound": "Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.",
+    "notesReached": "In dieser Anfrage stehen schon {max} Notizen.",
     "request": "Anfrage",
     "sent": "Gesendet",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Geschlossen",
       "deleted": "Gelöscht",
       "open": "Offen"
-    }
+    },
+    "tooLong": "Höchstens {max} Zeichen."
   },
   "text": "Text",
   "thank-you-cheque": {

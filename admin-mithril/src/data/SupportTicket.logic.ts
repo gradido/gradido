@@ -3,6 +3,55 @@ import { t } from '@/i18n'
 import type { DetailsState } from './Contribution.logic'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
+/**
+ * The bounds of a thread as the server holds them (shared/src/const/index.ts, SUA-015, SUA-020):
+ * the longest message, and how many messages of one kind -- the dialog, the notes -- a request
+ * takes. Copies: the admin cannot import that file, it loads the native addon. The test reads it
+ * as text and holds the two numbers to it.
+ */
+export const MESSAGE_MAX_CHARS = 5000
+export const SUPPORT_TICKET_MESSAGES_MAX = 100
+
+/** The characters of a message as the server counts them: the blanks around gone, by code points. */
+export const charactersOf = (text: string) => Array.from(text.trim()).length
+
+/** Whether a message may be sent: words left after the trimming, and no more than the server takes. */
+export const sendable = (text: string) => {
+  const characters = charactersOf(text)
+  return characters > 0 && characters <= MESSAGE_MAX_CHARS
+}
+
+/**
+ * What the form sends (adminCreateSupportTicketMessage): its tab says message or note, its button
+ * whether the answer closes the request. A note closes nothing.
+ */
+export const answerVariables = (
+  supportTicketId: number,
+  text: string,
+  { note, close }: { note: boolean; close: boolean },
+) => ({
+  supportTicketId,
+  message: text,
+  type: note ? 'MODERATOR' : 'DIALOG',
+  close: !note && close,
+})
+
+/**
+ * A refusal of the server in the moderator's words: out of reach (missing, outside the groups,
+ * deleted, the own request), a thread full of the kind sent, or anything else.
+ */
+export const refusalWords = (messages: string[], { note }: { note: boolean }) => {
+  if (messages.includes('SUPPORT_TICKET_NOT_FOUND')) {
+    return t('support.notFound')
+  }
+  if (messages.includes('SUPPORT_TICKET_MESSAGES_REACHED')) {
+    return t(note ? 'support.notesReached' : 'support.messagesReached', {
+      max: SUPPORT_TICKET_MESSAGES_MAX,
+    })
+  }
+  return t('support.failed')
+}
+
 /** Still to be worked on: open, or with a question back to the member. */
 export const isOpenTicket = ({ status }: ListedSupportTicket) =>
   status === 'OPEN' || status === 'IN_PROGRESS'

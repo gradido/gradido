@@ -1,20 +1,28 @@
 // AI-GENERATED — not an architecture reference
-import { adminListSupportTickets } from '@admin/graphql/supportTickets.graphql'
+import {
+  adminCloseSupportTicket,
+  adminDeleteSupportTicket,
+  adminListSupportTickets,
+} from '@admin/graphql/supportTickets.graphql'
 import { keepLastTab, lastTab } from '@admin/utils/lastSearch'
 import m, { type ClassComponent } from 'mithril'
 import * as v from 'valibot'
+import { ConfirmModal } from '@/components/bootstrap/ConfirmModal'
 import { Pagination } from '@/components/bootstrap/Pagination'
 import { Tabs } from '@/components/bootstrap/Tabs'
 import {
+  type SupportDecision,
   type SupportTableKind,
   SupportTicketsTable,
 } from '@/components/support/SupportTicketsTable'
-import { toastError } from '@/components/Toasts'
+import { toastError, toastSuccess } from '@/components/Toasts'
+import { refusalWords } from '@/data/SupportTicket.logic'
 import { type ListedSupportTicket, supportTicketListSchema } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import { adminStore } from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
+import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 import { isPhone } from '@/viewport'
 import bellIcon from '~icons/bi/bell-fill'
 import checkIcon from '~icons/bi/check'
@@ -65,10 +73,34 @@ const TABS: {
   },
 ]
 
+// The two buttons of an open row (K3): what they send, what the question before says, and what
+// is said after. Neither mails the member (SUA-018).
+const DECISIONS = {
+  close: {
+    mutation: adminCloseSupportTicket,
+    title: 'support.confirmClose.title',
+    body: 'support.confirmClose.body',
+    yes: 'support.confirmClose.yes',
+    variant: 'success',
+    done: 'support.closed',
+  },
+  delete: {
+    mutation: adminDeleteSupportTicket,
+    title: 'support.confirmDelete.title',
+    body: 'support.confirmDelete.body',
+    yes: 'support.confirmDelete.yes',
+    variant: 'danger',
+    done: 'support.deleted',
+  },
+} as const
+
 /**
- * The support requests of the moderator's groups (K2), under one tab per state, 25 to a page, the
- * newest first; a request opens below its row to be read. The tab is kept for each moderator on
- * this device (lastSearch.ts). Answering comes with K3, search and group filter with K4.
+ * The support requests of the moderator's groups, under one tab per state, 25 to a page, the
+ * newest first (K2); a request opens below its row to be read and answered, and an open one is
+ * closed with the tick or deleted from its row (K3). After every write -- done or refused -- the
+ * page asks for its list and for the count of the open tab anew: what a request is now, the server
+ * says. The tab is kept for each moderator on this device (lastSearch.ts). Search and group filter
+ * come with K4.
  */
 export class Support implements ClassComponent {
   private readonly moderator = adminStore.moderator
@@ -78,14 +110,20 @@ export class Support implements ClassComponent {
   private count = 0
   // the question last asked: an answer to one before is dropped
   private asked = 0
+  // the row button the moderator is asked about
+  private decision: { ticket: ListedSupportTicket; decision: SupportDecision } | null = null
+  // the requests a decision is on its way for: a second click sends nothing
+  private readonly deciding = new Set<number>()
 
   oninit() {
     this.load(this.page)
+    askOpenSupportTickets()
   }
 
   /**
    * Asks for a page of the tab. The page counts as shown only once its requests are there: a page
-   * that fails to come leaves the one before in place, list and pager alike.
+   * that fails to come leaves the one before in place, list and pager alike. A page beyond the
+   * last -- its last request just closed or deleted -- gives way to the last one there is.
    */
   private async load(page: number) {
     const asked = ++this.asked
@@ -105,14 +143,51 @@ export class Support implements ClassComponent {
       supportTicketListSchema,
       answer.value,
     ).adminListSupportTickets
+    const last = Math.max(1, Math.ceil(count / PAGE_SIZE))
+    if (page > last) {
+      this.load(last)
+      return
+    }
     this.page = page
     this.tickets = tickets
     this.count = count
     askMemberAvatars(tickets.flatMap((ticket) => ticket.user ?? []))
   }
 
+  /** After a write: the page as it is now, and the count of the open tab. */
+  private written() {
+    this.load(this.page)
+    askOpenSupportTickets()
+  }
+
+  // The question closes before the yes is acted on (ConfirmModal): what was asked comes along.
+  private async decide({
+    ticket,
+    decision,
+  }: {
+    ticket: ListedSupportTicket
+    decision: SupportDecision
+  }) {
+    if (this.deciding.has(ticket.id)) {
+      return
+    }
+    this.deciding.add(ticket.id)
+    const answer = await graphqlRequest(DECISIONS[decision].mutation, {
+      supportTicketId: ticket.id,
+    })
+    this.deciding.delete(ticket.id)
+    if (answer.success) {
+      toastSuccess(t(DECISIONS[decision].done))
+    } else {
+      toastError(refusalWords(answer.error.messages, { note: false }))
+    }
+    this.written()
+  }
+
   view() {
     const phone = isPhone()
+    const pending = this.decision
+    const asked = pending ? DECISIONS[pending.decision] : null
     return m('.support-tickets.mt-2', [
       m(
         'div',
@@ -130,12 +205,16 @@ export class Support implements ClassComponent {
             this.page = 1
             this.load(1)
           },
-          // on a phone the symbol stands above the word (App.css)
-          tabs: TABS.map(({ icon, tone, word }) => ({
+          // on a phone the symbol stands above the word and the number at the corner (App.css)
+          tabs: TABS.map(({ icon, tone, word }, index) => ({
             title: [
               m.trust(tone ? icon.replace('<svg ', `<svg class="${tone}" `) : icon),
               ' ',
               m('span.tab-word', t(word)),
+              ' ',
+              index === 0 && adminStore.openSupportTickets > 0
+                ? m('span.badge.text-bg-danger.tab-badge', adminStore.openSupportTickets)
+                : null,
             ],
           })),
         }),
@@ -145,6 +224,10 @@ export class Support implements ClassComponent {
         tickets: this.tickets,
         kind: TABS[this.tab].kind,
         phone,
+        ondecide: (ticket: ListedSupportTicket, decision: SupportDecision) => {
+          this.decision = { ticket, decision }
+        },
+        onwritten: () => this.written(),
       }),
       // on a phone `‹`, three numbers and `›`; at the desk five places with the ellipses, and « »
       m(Pagination, {
@@ -155,6 +238,18 @@ export class Support implements ClassComponent {
         noEndButtons: phone,
         onpage: (page: number) => this.load(page),
       }),
+      pending && asked
+        ? m(ConfirmModal, {
+            title: t(asked.title),
+            body: t(asked.body),
+            yes: t(asked.yes),
+            variant: asked.variant,
+            onyes: () => this.decide(pending),
+            onclose: () => {
+              this.decision = null
+            },
+          })
+        : null,
     ])
   }
 }

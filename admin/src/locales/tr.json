@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Ayrıca hatırlatmalı: {n}",
+    "support": "Destek: {n} açık talep",
+    "supportNone": "Destek: açık talep yok",
+    "supportOne": "Destek: bir açık talep",
     "today": "Bugün: {n} açık oluşturma",
     "todayNone": "Bugün: açık oluşturma yok",
     "todayOne": "Bugün: bir açık oluşturma",
@@ -651,12 +654,30 @@
   "status": "Durum",
   "success": "Başarılı",
   "support": {
+    "answer": "Yanıtla",
+    "answerAndClose": "Yanıtla ve kapat",
+    "close": "Kapat",
+    "closed": "Talep kapatıldı.",
     "closedAt": "Kapatıldı",
     "closedBy": "{name} tarafından kapatıldı",
     "closedByMember": "Üye tarafından kapatıldı",
+    "confirmClose": {
+      "body": "Bu talebi yanıt vermeden kapatmak istiyor musun? Üye bu konuda e-posta almaz.",
+      "title": "Talebi kapat",
+      "yes": "Evet, kapat"
+    },
+    "confirmDelete": {
+      "body": "Bu talebi gerçekten silmek istiyor musun? Talep sonra «Silindi» altında durur ve geri getirilemez. Üye bu konuda e-posta almaz ve talebi silinmiş olarak görür.",
+      "title": "Talebi sil",
+      "yes": "Evet, sil"
+    },
+    "deleted": "Talep silindi.",
     "deletedBy": "{name} tarafından silindi",
+    "failed": "Olmadı. Lütfen tekrar dene.",
     "loadFailed": "Talepler yüklenemedi. Lütfen tekrar dene.",
+    "messagesReached": "Bu talepte zaten {max} mesaj var.",
     "notFound": "Bu talep mevcut değil ya da senin gruplarının dışında.",
+    "notesReached": "Bu talepte zaten {max} not var.",
     "request": "Talep",
     "sent": "Gönderildi",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Kapalı",
       "deleted": "Silindi",
       "open": "Açık"
-    }
+    },
+    "tooLong": "En fazla {max} karakter."
   },
   "text": "Metin",
   "thank-you-cheque": {

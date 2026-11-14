@@ -160,6 +160,7 @@ export class NavBar implements ClassComponent {
     // them out of sight: the route guard and the backend's rights are the boundary.
     const isAdmin = adminStore.moderator?.role === 'ADMIN'
     const openCreations = adminStore.openCreations
+    const openSupportTickets = adminStore.openSupportTickets
     // The second level. Both shapes of the bar are drawn from this one list, so that a page
     // cannot be in the wide menu and missing from the narrow one.
     const groups = [
@@ -245,9 +246,16 @@ export class NavBar implements ClassComponent {
                   },
                   'bg-color-creation',
                 ),
-                // the requests of the moderator's groups (Support-Anfragen K2); the count of the
-                // open ones comes with K3
-                navItem({ to: '/support', label: t('navbar.support') }),
+                // the requests of the moderator's groups (Support-Anfragen), with the count of the
+                // open tab as for the creation
+                navItem({
+                  to: '/support',
+                  label: t('navbar.support'),
+                  after:
+                    openSupportTickets > 0
+                      ? m('span.badge.text-bg-danger', openSupportTickets)
+                      : null,
+                }),
                 // A moderator sees one of the settings pages, and may only look there: it stands
                 // in the bar itself rather than alone in a menu.
                 isAdmin

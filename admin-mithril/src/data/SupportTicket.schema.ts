@@ -44,3 +44,11 @@ export const supportThreadSchema = v.object({
   userRemark: v.nullable(userRemarkSchema),
   adminListSupportTicketMessages: v.array(threadMessageSchema),
 })
+
+/** The two halves of the open tab in the moderator's groups (adminCountOpenSupportTickets). */
+export const openSupportTicketsSchema = v.object({
+  adminCountOpenSupportTickets: v.object({
+    forModeration: v.number(),
+    forMember: v.number(),
+  }),
+})

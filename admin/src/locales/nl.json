@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Daarnaast: {n} met herinnering",
+    "support": "Support: {n} open vragen",
+    "supportNone": "Support: geen open vragen",
+    "supportOne": "Support: één open vraag",
     "today": "Vandaag: {n} open creaties",
     "todayNone": "Vandaag: geen open creaties",
     "todayOne": "Vandaag: één open creatie",
@@ -651,12 +654,30 @@
   "status": "Status",
   "success": "Succes",
   "support": {
+    "answer": "Antwoorden",
+    "answerAndClose": "Antwoorden en sluiten",
+    "close": "Sluiten",
+    "closed": "De vraag is gesloten.",
     "closedAt": "Gesloten",
     "closedBy": "Gesloten door {name}",
     "closedByMember": "Gesloten door het lid",
+    "confirmClose": {
+      "body": "Wil je deze vraag zonder antwoord sluiten? Het lid krijgt hierover geen e-mail.",
+      "title": "Vraag sluiten",
+      "yes": "Ja, sluiten"
+    },
+    "confirmDelete": {
+      "body": "Wil je deze vraag echt verwijderen? Ze staat daarna onder ‘Verwijderd’ en kan niet worden hersteld. Het lid krijgt hierover geen e-mail en ziet de vraag als verwijderd.",
+      "title": "Vraag verwijderen",
+      "yes": "Ja, verwijderen"
+    },
+    "deleted": "De vraag is verwijderd.",
     "deletedBy": "Verwijderd door {name}",
+    "failed": "Dat is niet gelukt. Probeer het nog eens.",
     "loadFailed": "De vragen konden niet worden geladen. Probeer het nog eens.",
+    "messagesReached": "Bij deze vraag staan al {max} berichten.",
     "notFound": "Deze vraag bestaat niet of valt buiten je groepen.",
+    "notesReached": "Bij deze vraag staan al {max} notities.",
     "request": "Vraag",
     "sent": "Verzonden",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Gesloten",
       "deleted": "Verwijderd",
       "open": "Open"
-    }
+    },
+    "tooLong": "Hoogstens {max} tekens."
   },
   "text": "Tekst",
   "thank-you-cheque": {

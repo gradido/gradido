@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Inoltre: {n} con promemoria",
+    "support": "Supporto: {n} richieste aperte",
+    "supportNone": "Supporto: nessuna richiesta aperta",
+    "supportOne": "Supporto: una richiesta aperta",
     "today": "Oggi: {n} creazioni aperte",
     "todayNone": "Oggi: nessuna creazione aperta",
     "todayOne": "Oggi: una creazione aperta",
@@ -651,12 +654,30 @@
   "status": "Stato",
   "success": "Successo",
   "support": {
+    "answer": "Rispondi",
+    "answerAndClose": "Rispondi e chiudi",
+    "close": "Chiudi",
+    "closed": "La richiesta è chiusa.",
     "closedAt": "Chiusa",
     "closedBy": "Chiusa da {name}",
     "closedByMember": "Chiusa dal membro",
+    "confirmClose": {
+      "body": "Vuoi chiudere questa richiesta senza rispondere? Il membro non riceve nessuna e-mail al riguardo.",
+      "title": "Chiudi la richiesta",
+      "yes": "Sì, chiudi"
+    },
+    "confirmDelete": {
+      "body": "Vuoi davvero eliminare questa richiesta? Poi compare sotto «Eliminate» e non si può ripristinare. Il membro non riceve nessuna e-mail al riguardo e la vede come eliminata.",
+      "title": "Elimina la richiesta",
+      "yes": "Sì, elimina"
+    },
+    "deleted": "La richiesta è eliminata.",
     "deletedBy": "Eliminata da {name}",
+    "failed": "Non ha funzionato. Riprova, per favore.",
     "loadFailed": "Non è stato possibile caricare le richieste. Riprova, per favore.",
+    "messagesReached": "In questa richiesta ci sono già {max} messaggi.",
     "notFound": "Questa richiesta non esiste, oppure è fuori dai tuoi gruppi.",
+    "notesReached": "In questa richiesta ci sono già {max} note.",
     "request": "Richiesta",
     "sent": "Inviata",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Chiuse",
       "deleted": "Eliminate",
       "open": "Aperte"
-    }
+    },
+    "tooLong": "Al massimo {max} caratteri."
   },
   "text": "Testo",
   "thank-you-cheque": {

@@ -11,7 +11,12 @@ const counts = {
 }
 
 test.beforeEach(async ({ page, graphql }) => {
-  graphql.answer({ ...signedInAnswers(), ...counts })
+  // the support's count (K3) is asked beside the creation's by the Mithril admin
+  graphql.answer({
+    ...signedInAnswers(),
+    ...counts,
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0 },
+  })
   await serveWalletAssets(page)
 })
 

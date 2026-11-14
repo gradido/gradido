@@ -12,6 +12,7 @@ import { askMemberAvatars } from '@/store/memberAvatars.store'
 import { attachRemark, detachRemark, type RemarkCard, takeRemark } from '@/store/userRemarks.store'
 import { MemberLine } from '../creationConfirm/MemberLine'
 import { ThreadMessageItem } from '../creationConfirm/ThreadMessageItem'
+import { SupportAnswerForm } from './SupportAnswerForm'
 
 /** A request whose member is there to be shown; a deleted member's request does not open. */
 export type TicketWithMember = ListedSupportTicket & {
@@ -20,17 +21,21 @@ export type TicketWithMember = ListedSupportTicket & {
 
 interface Attrs {
   ticket: TicketWithMember
+  /** after a write of the form: the list and the count anew */
+  onwritten: () => void
 }
 
 /**
- * An opened support request, to read (K2): its member with the ways into the wallet and the
- * moderation's remark on them, as on an opened contribution, and the thread with the member, the
- * internal notes among it. The thread and the remark come in one request. The form to answer comes
- * with K3.
+ * An opened support request: its member with the ways into the wallet and the moderation's remark
+ * on them, as on an opened contribution, the thread with the member, the internal notes among it
+ * (K2), and the form to answer or to note (K3) -- not under a deleted request. The thread and the
+ * remark come in one request, at the opening and after every write of the form.
  */
 export class SupportTicketThread implements ClassComponent<Attrs> {
   private messages: ThreadMessage[] = []
   private remark!: RemarkCard
+  // the question last asked: an answer to one before is dropped
+  private asked = 0
 
   oninit({ attrs: { ticket } }: Vnode<Attrs>) {
     const name = ticket.user.alias || ticket.user.firstName
@@ -43,10 +48,14 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
   }
 
   private async load({ id, userId }: TicketWithMember) {
+    const asked = ++this.asked
     const answer = await graphqlRequest(adminListSupportTicketMessages, {
       supportTicketId: id,
       userId,
     })
+    if (asked !== this.asked) {
+      return
+    }
     if (!answer.success) {
       // the server's codes in the moderator's words: gone, out of reach, or not loaded
       toastError(
@@ -67,7 +76,7 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
     askMemberAvatars(threadAuthors(thread))
   }
 
-  view({ attrs: { ticket } }: Vnode<Attrs>) {
+  view({ attrs: { ticket, onwritten } }: Vnode<Attrs>) {
     return m('.contribution-messages-list', [
       m('.list-group', [
         m(MemberLine, { member: ticket.user, email: ticket.userEmail ?? '', remark: this.remark }),
@@ -86,6 +95,16 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
           ),
         ),
       ),
+      // A deleted request takes nothing more (the server refuses it as well).
+      ticket.status === 'DELETED'
+        ? null
+        : m(SupportAnswerForm, {
+            supportTicketId: ticket.id,
+            onwritten: () => {
+              this.load(ticket)
+              onwritten()
+            },
+          }),
     ])
   }
 }
