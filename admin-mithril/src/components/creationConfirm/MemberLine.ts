@@ -58,7 +58,8 @@ export class MemberLine implements ClassComponent<Attrs> {
       m('.list-group-item.d-flex.flex-wrap.align-items-center.column-gap-3.row-gap-1', [
         m(
           m.route.Link,
-          { href: `/user?search=${search}`, title: t('goTo.userSearch') },
+          // as a parameter, so that Mithril encodes it: an address may hold "&" or "+"
+          { href: '/user', params: { search }, title: t('goTo.userSearch') },
           `${member.firstName} ${member.lastName}`,
         ),
         email ? m('a.text-break', { href: `mailto:${email}` }, email) : null,

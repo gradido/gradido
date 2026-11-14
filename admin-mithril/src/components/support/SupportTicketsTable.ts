@@ -149,13 +149,16 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         showing ? m.trust(arrowUpIcon) : detailsIcon(ticketDetailsState(ticket)),
       )
     }
+    // Six lines until the row is opened; a row that does not open (the own request, a deleted
+    // member's) shows its words in full, or the rest could not be read at all.
     const words = (ticket: ListedSupportTicket) => {
       const closing = closingLine(ticket)
+      const whole = this.open === ticket.id || !canOpen(ticket)
       return [
         m(
           'div',
           {
-            class: this.open === ticket.id ? 'support-ticket-text' : 'support-ticket-text clamped',
+            class: whole ? 'support-ticket-text' : 'support-ticket-text clamped',
             'data-test': 'support-ticket-text',
           },
           ticket.text,

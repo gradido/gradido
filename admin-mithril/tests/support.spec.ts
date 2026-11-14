@@ -246,7 +246,7 @@ test('opens a request with its member, the remark and the whole thread, to read'
   const member = card(page).locator('.list-group-item').first()
   await expect(member.getByRole('link', { name: 'First1 Last1' })).toHaveAttribute(
     'href',
-    '/admin/user?search=member1@example.org',
+    '/admin/user?search=member1%40example.org',
   )
   await expect(member.getByRole('link', { name: 'member1@example.org' })).toHaveAttribute(
     'href',
@@ -308,10 +308,19 @@ test('shows a long request in six lines until its row is opened', async ({
   graphql.answer({
     adminListSupportTickets: ticketList([
       listedTicket(1, 1, { text: 'Lange Anfrage '.repeat(357) }),
+      // the own request does not open: its words stand in full
+      listedTicket(6, 6, {
+        text: 'Eigene lange Anfrage '.repeat(238),
+        user: supportMember(6, { gradidoID: moderator.gradidoID }),
+      }),
     ]),
   })
   await signIn(page, '/support')
   const words = row(page, 0).getByTestId('support-ticket-text')
+  await expect(row(page, 1).getByTestId('support-ticket-text')).toHaveCSS(
+    '-webkit-line-clamp',
+    'none',
+  )
 
   await expect(words).toHaveCSS('-webkit-line-clamp', '6')
   await details(page, 0).click()
@@ -330,6 +339,49 @@ test('asks for the next page', async ({ page, graphql }, info) => {
       currentPage: 2,
       pageSize: 25,
     })
+})
+
+test('stays on its page when the next one fails to come', async ({ page, graphql }, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  graphql.answer({ adminListSupportTickets: new Failure('Too many support requests read at once') })
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+
+  await expect(page.getByRole('alert').filter({ hasText: de.support.loadFailed })).toBeVisible()
+  await expect(rows(page)).toHaveCount(6)
+  await expect(page.getByRole('menuitem', { name: 'Go to page 1' })).toHaveAttribute(
+    'tabindex',
+    '0',
+  )
+  await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toHaveAttribute(
+    'tabindex',
+    '-1',
+  )
+})
+
+test('offers no page of the tab before while the next tab loads', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toBeVisible()
+  // the closed tab's answer is held back until the pager has been looked at
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  graphql.answer({
+    adminListSupportTickets: async () => {
+      await held
+      return ticketList(closed)
+    },
+  })
+  await tab(page, de.support.tab.closed).click()
+
+  await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toHaveCount(0)
+  release()
+  await expect(rows(page)).toHaveCount(2)
 })
 
 test.describe('on a phone', () => {

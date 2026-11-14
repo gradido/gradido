@@ -102,9 +102,10 @@ test('opens a contribution with its member, the remark and the thread', async ({
   await expect(details(page, 0)).toHaveAttribute('title', de.hide_details)
   await expect(details(page, 0)).toHaveAttribute('aria-expanded', 'true')
   const member = card(page).locator('.list-group-item').first()
+  // the old admin writes the address into the link as it is, the Mithril admin encodes it
   await expect(member.getByRole('link', { name: 'First1 Last1' })).toHaveAttribute(
     'href',
-    '/admin/user?search=member1@example.org',
+    /^\/admin\/user\?search=member1(@|%40)example\.org$/,
   )
   await expect(member.getByRole('link', { name: 'member1@example.org' })).toHaveAttribute(
     'href',

@@ -80,14 +80,18 @@ export class Support implements ClassComponent {
   private asked = 0
 
   oninit() {
-    this.load()
+    this.load(this.page)
   }
 
-  private async load() {
+  /**
+   * Asks for a page of the tab. The page counts as shown only once its requests are there: a page
+   * that fails to come leaves the one before in place, list and pager alike.
+   */
+  private async load(page: number) {
     const asked = ++this.asked
     const answer = await graphqlRequest(adminListSupportTickets, {
       statuses: TABS[this.tab].states,
-      currentPage: this.page,
+      currentPage: page,
       pageSize: PAGE_SIZE,
     })
     if (asked !== this.asked) {
@@ -101,6 +105,7 @@ export class Support implements ClassComponent {
       supportTicketListSchema,
       answer.value,
     ).adminListSupportTickets
+    this.page = page
     this.tickets = tickets
     this.count = count
     askMemberAvatars(tickets.flatMap((ticket) => ticket.user ?? []))
@@ -119,9 +124,11 @@ export class Support implements ClassComponent {
           onchange: (tab: number) => {
             this.tab = tab
             keepLastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, tab)
+            // the tab before goes at once, its pages too: none of them may be asked for in this one
             this.tickets = []
+            this.count = 0
             this.page = 1
-            this.load()
+            this.load(1)
           },
           // on a phone the symbol stands above the word (App.css)
           tabs: TABS.map(({ icon, tone, word }) => ({
@@ -146,10 +153,7 @@ export class Support implements ClassComponent {
         pages: Math.ceil(this.count / PAGE_SIZE),
         limit: phone ? 3 : 5,
         noEndButtons: phone,
-        onpage: (page: number) => {
-          this.page = page
-          this.load()
-        },
+        onpage: (page: number) => this.load(page),
       }),
     ])
   }
