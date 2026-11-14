@@ -7,6 +7,7 @@ import {
   SUPPORT_TICKET_MAILED_PER_HOUR_MAX,
   SupportTicketMailCandidate,
   supportAnswerMailDecision,
+  supportTicketGroupName,
   supportTicketMailRecipients,
   supportTicketMailsAllowed,
   supportTicketsWindowStart,
@@ -107,6 +108,16 @@ describe('reassignedLine', () => {
     expect(
       reassignedLine({ tag: 'garden', name: 'Garten\r\nam Hang' }, { tag: 'choir', name: 'Chor' }),
     ).toBe('Garten am Hang\nChor')
+  })
+})
+
+// the group in the mail to the moderation (K5), named as everywhere in the admin
+describe('supportTicketGroupName', () => {
+  it('names a group by its name, one without a name by its tag, and no group as none', () => {
+    expect(supportTicketGroupName({ tag: 'garden', name: 'Garten' })).toBe('Garten')
+    expect(supportTicketGroupName({ tag: 'choir', name: null })).toBe('#choir')
+    expect(supportTicketGroupName({ tag: 'choir', name: '' })).toBe('#choir')
+    expect(supportTicketGroupName(null)).toBeNull()
   })
 })
 

@@ -10,6 +10,12 @@ import type { SupportTicketModeratorsMail } from './supportTicketModeratorsMail'
 const mockLogger = { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() }
 const mockDatabase = {
   dbSelectRoleHoldersWithContact: jest.fn(),
+  // named only so that the modules of the scope load under Bun, which links named imports;
+  // nothing here reads them
+  AppDatabase: {},
+  Contribution: {},
+  CreationGroup: {},
+  UserRole: {},
   // only the values read
   RoleNames: {
     ADMIN: 'ADMIN',
@@ -27,7 +33,12 @@ const mockCore = {
   sendNewSupportTicketEmail: jest.fn(),
 }
 
-jest.mock('log4js', () => ({ getLogger: () => mockLogger }))
+// addLayout and configure: `shared` loads the logging set-up of config-schema, which calls both
+jest.mock('log4js', () => ({
+  getLogger: () => mockLogger,
+  addLayout: jest.fn(),
+  configure: jest.fn(),
+}))
 jest.mock('database', () => mockDatabase)
 jest.mock('core', () => mockCore)
 
