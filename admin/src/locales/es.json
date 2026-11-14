@@ -693,6 +693,16 @@
     "resubmissionLine": "Recordatorio: {day}, {time}",
     "searchMember": "Buscar a este miembro",
     "sent": "Enviada",
+    "switch": {
+      "confirmBody": "Los miembros ya no podrán hacer ninguna consulta nueva. Las consultas abiertas se quedan en esta lista; quien tenga una consulta abierta puede seguir escribiendo en ella.",
+      "confirmOpen": "Aún abiertas: {open}",
+      "confirmTitle": "Desactivar nuevas consultas",
+      "confirmYes": "Sí, desactivar",
+      "hint": "Desactivado, el monedero vuelve a mostrar «Información». Las consultas abiertas se mantienen hasta que se cierren.",
+      "label": "Los miembros pueden hacer nuevas consultas",
+      "off": "Las nuevas consultas están desactivadas.",
+      "on": "Las nuevas consultas están activadas."
+    },
     "tab": {
       "all": "Todas",
       "closed": "Cerradas",

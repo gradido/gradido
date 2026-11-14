@@ -693,6 +693,16 @@
     "resubmissionLine": "Promemoria: {day}, {time}",
     "searchMember": "Cerca questo membro",
     "sent": "Inviata",
+    "switch": {
+      "confirmBody": "I membri non potranno più inviare nuove richieste. Le richieste aperte restano in questo elenco; chi ha una richiesta aperta può continuare a scriverci.",
+      "confirmOpen": "Ancora aperte: {open}",
+      "confirmTitle": "Disattiva le nuove richieste",
+      "confirmYes": "Sì, disattiva",
+      "hint": "Se disattivato, il wallet mostra di nuovo «Informazione». Le richieste aperte restano finché non vengono chiuse.",
+      "label": "I membri possono inviare nuove richieste",
+      "off": "Le nuove richieste sono disattivate.",
+      "on": "Le nuove richieste sono attivate."
+    },
     "tab": {
       "all": "Tutte",
       "closed": "Chiuse",

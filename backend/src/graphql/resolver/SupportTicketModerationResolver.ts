@@ -9,12 +9,14 @@ import {
   dbCountOpenSupportTicketsInScope,
   dbFindMemberAvatarTimestamps,
   dbFindUsersWithEmailContactByIds,
+  dbIsSupportTicketsActive,
   dbSelectCreationGroupByTag,
   dbSelectNewestSupportTicketDialogs,
   dbSelectSupportTicketGroupInScope,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketThread,
+  dbUpdateHomeCommunity,
   dbUpdateSupportTicketOfModerator,
   findUserNamesByIds,
   SupportTicketFilter,
@@ -398,6 +400,24 @@ export class SupportTicketModerationResolver {
     }
     return true
   }
+  /**
+   * Switches whether the members of this community file new support requests (K5, SUA-019), for
+   * administrators only: off, no new request is filed, and what runs, runs to its end; a moderator
+   * reads the switch through supportTicketsMenu. Answers what holds afterwards, read back through
+   * the cached home community the wallet's menu reads, not the argument. Not counted in the
+   * support's budget: it writes no request, so there are no words to keep out of the log.
+   */
+  @Authorized([RIGHTS.SET_SUPPORT_TICKETS_ACTIVE])
+  @Mutation(() => Boolean)
+  async adminSetSupportTicketsActive(
+    @Arg('active', () => Boolean) active: boolean,
+  ): Promise<boolean> {
+    return fromDatabase(SUPPORT_TICKET_NOT_STORED, async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: active })
+      return dbIsSupportTicketsActive()
+    })
+  }
+
   /**
    * Hands a request the moderator reaches on to another group, or to no group (`creationGroupTag`
    * '', K4, SUA-018): an open one or one with a question back, never the moderator's own. The

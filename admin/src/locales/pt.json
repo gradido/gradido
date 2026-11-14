@@ -693,6 +693,16 @@
     "resubmissionLine": "Lembrete: {day}, {time}",
     "searchMember": "Pesquisar este membro",
     "sent": "Enviado",
+    "switch": {
+      "confirmBody": "Os membros deixam de poder fazer novos pedidos. Os pedidos abertos ficam nesta lista; quem tem um pedido aberto pode continuar a escrever nele.",
+      "confirmOpen": "Ainda abertos: {open}",
+      "confirmTitle": "Desativar novos pedidos",
+      "confirmYes": "Sim, desativar",
+      "hint": "Desativado, a carteira volta a mostrar «Informação». Os pedidos abertos mantêm-se até serem fechados.",
+      "label": "Os membros podem fazer novos pedidos",
+      "off": "Os novos pedidos estão desativados.",
+      "on": "Os novos pedidos estão ativados."
+    },
     "tab": {
       "all": "Todos",
       "closed": "Fechados",

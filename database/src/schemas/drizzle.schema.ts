@@ -112,6 +112,16 @@ export const communitiesTable = mysqlTable(
      *
      */
     matchingKeyingActive: boolean('matching_keying_active').default(false).notNull(),
+    /**
+     * Whether members file support requests in the wallet (Support-Anfragen K5, SUA-019): on, the
+     * wallet's menu says "Support"; off, no new request is filed, and a member with a request not
+     * closed keeps "Support" in the menu until it is -- what runs, runs to its end. On for every
+     * row (migration 0174, "ab Werk an").
+     *
+     * Read through the cached home community (`dbIsSupportTicketsActive`), written via
+     * `dbUpdateHomeCommunity`, as `matchingKeyingActive` above.
+     */
+    supportTicketsActive: boolean('support_tickets_active').default(true).notNull(),
   },
   (table) => [
     unique('url_key').on(table.url),

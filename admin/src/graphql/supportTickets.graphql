@@ -126,3 +126,16 @@ mutation adminDeleteSupportTicket($supportTicketId: Int!) {
 mutation adminReassignSupportTicket($supportTicketId: Int!, $creationGroupTag: String!) {
   adminReassignSupportTicket(supportTicketId: $supportTicketId, creationGroupTag: $creationGroupTag)
 }
+
+# Whether members file new support requests (K5, SUA-019), read as the wallet's menu reads it: a
+# moderator is a member too. Null where the server could not say.
+query supportTicketsMenu {
+  supportTicketsMenu {
+    active
+  }
+}
+
+# Switches new requests on or off (K5), for administrators; answers what holds afterwards.
+mutation adminSetSupportTicketsActive($active: Boolean!) {
+  adminSetSupportTicketsActive(active: $active)
+}

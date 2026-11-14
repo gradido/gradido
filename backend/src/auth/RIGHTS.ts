@@ -128,6 +128,10 @@ export enum RIGHTS {
   // caller's own request: there they are the member. ⛔ Moderator list only -- the member must not
   // read the notes on their request.
   MANAGE_SUPPORT_TICKETS = 'MANAGE_SUPPORT_TICKETS',
+  // Whether the members of this community file support requests in the wallet (K5, SUA-019): the
+  // switch on the admin's support page. ⛔ Administrator list only, and not COMMUNITY_UPDATE --
+  // that one the DLT connector holds as well.
+  SET_SUPPORT_TICKETS_ACTIVE = 'SET_SUPPORT_TICKETS_ACTIVE',
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the

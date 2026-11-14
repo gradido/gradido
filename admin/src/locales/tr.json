@@ -693,6 +693,16 @@
     "resubmissionLine": "Hatırlatma: {day}, {time}",
     "searchMember": "Bu üyeyi ara",
     "sent": "Gönderildi",
+    "switch": {
+      "confirmBody": "Üyeler artık yeni talep gönderemez. Açık talepler bu listede kalır; açık bir talebi olan, onun içinde yazmaya devam edebilir.",
+      "confirmOpen": "Hâlâ açık: {open}",
+      "confirmTitle": "Yeni talepleri kapat",
+      "confirmYes": "Evet, kapat",
+      "hint": "Kapatıldığında cüzdan yeniden “Bilgi” gösterir. Açık talepler kapanana kadar kalır.",
+      "label": "Üyeler yeni talep gönderebilir",
+      "off": "Yeni talepler kapalı.",
+      "on": "Yeni talepler açık."
+    },
     "tab": {
       "all": "Tümü",
       "closed": "Kapalı",

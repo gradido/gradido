@@ -5,10 +5,12 @@ import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
 import { sendAddedSupportTicketMessageEmail } from 'core'
 import {
   AppDatabase,
+  communitiesTable,
   creationGroupsTable,
   DbUser,
   dbSelectRoleHoldersWithContact,
   dbSelectSupportTicketsInScope,
+  dbUpdateHomeCommunity,
   drizzleDb,
   SupportTicketMessageType,
   SupportTicketStatus,
@@ -1702,5 +1704,89 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     expect(await recipientsOf('garden')).toEqual([bob.id, alma.id])
     expect(await recipientsOf('choir')).toEqual([carla, alma.id])
     expect(await recipientsOf(null)).toEqual([raeuber.id, carla, alma.id])
+  })
+})
+
+// The switch of new requests (K5, SUA-019): an administrator's, on the support page. Off, nothing
+// new is filed (SupportTicketResolver.test.ts); all the moderation does runs on.
+describe('SupportTicketModerationResolver, the switch of new requests (K5)', () => {
+  const adminSetSupportTicketsActive = gql`
+    mutation ($active: Boolean!) {
+      adminSetSupportTicketsActive(active: $active)
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+      }
+    }
+  `
+  const switchTo = (active: boolean): Promise<any> =>
+    mutate({ mutation: adminSetSupportTicketsActive, variables: { active } })
+  // what the database holds, not what the mutation answered (Falle 13)
+  const stored = async (): Promise<boolean> =>
+    (
+      await drizzleDb()
+        .select({ active: communitiesTable.supportTicketsActive })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.foreign, false))
+    )[0].active
+  const statusOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+
+  afterAll(async () => {
+    await dbUpdateHomeCommunity({ supportTicketsActive: true })
+  })
+
+  it('switches nothing without a login, for a member, or for a moderator', async () => {
+    resetToken()
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    await loginAs('bibi@bloxberg.de')
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    await loginAs('bob@baumeister.de')
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    expect(await stored()).toBe(true)
+  })
+
+  it('lets an administrator switch new requests off and on again, and answers what holds', async () => {
+    await loginAs('peter@lustig.de')
+    expect((await switchTo(false)).data.adminSetSupportTicketsActive).toBe(false)
+    expect(await stored()).toBe(false)
+    expect((await switchTo(true)).data.adminSetSupportTicketsActive).toBe(true)
+    expect(await stored()).toBe(true)
+  })
+
+  it('lets the moderation act on with new requests off: an answer opens a closed request again', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Längst geschlossen', 600, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(601),
+      closedBy: bibi.id,
+    })
+    expect((await switchTo(false)).errors).toBeUndefined()
+    const res: any = await mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: {
+        supportTicketId: id,
+        message: 'Noch eine Rückfrage',
+        type: 'DIALOG',
+        close: false,
+      },
+    })
+    expect(res.errors).toBeUndefined()
+    expect(await statusOf(id)).toMatchObject({ status: 'IN_PROGRESS' })
+    await loginAs('bob@baumeister.de')
+    expect((await list(OPEN_TAB)).errors).toBeUndefined()
   })
 })

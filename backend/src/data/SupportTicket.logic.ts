@@ -21,6 +21,10 @@ export const SUPPORT_TICKET_WRITES_MAX_PER_REQUEST = 1
  * adminCountOpenSupportTickets counted together). A thread may hold SUPPORT_TICKET_MESSAGES_MAX
  * dialog messages of MESSAGE_MAX_CHARS each, and the moderation's thread as many notes besides;
  * the wallet and the admin read one list or one thread at a time.
+ *
+ * ⚠️ The one named exception: supportTicketsMenu (K5) counts in neither budget. It rides in the
+ * chat's beat, and a count here would keep the chat's answer out of the log; it carries two
+ * numbers and a truth value, no words, and the cap of root fields bounds its aliases.
  */
 export const SUPPORT_TICKET_READS_MAX_PER_REQUEST = 5
 
@@ -216,6 +220,8 @@ export const SUPPORT_TICKET_NOT_FOUND = 'SUPPORT_TICKET_NOT_FOUND'
 export const SUPPORT_TICKET_MESSAGES_REACHED = 'SUPPORT_TICKET_MESSAGES_REACHED'
 export const SUPPORT_TICKET_NOT_STORED = 'SUPPORT_TICKET_NOT_STORED'
 export const SUPPORT_TICKET_NOT_READ = 'SUPPORT_TICKET_NOT_READ'
+// New requests are switched off in this community (K5, SUA-019); what runs, runs on.
+export const SUPPORT_TICKETS_OFF = 'SUPPORT_TICKETS_OFF'
 
 /** A write in a thread that was not done, by its code. */
 export class SupportTicketRefused extends DomainError {

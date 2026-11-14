@@ -15,6 +15,7 @@ import {
   dbInsertForeignCommunity,
   dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
+  dbIsSupportTicketsActive,
   dbReplaceHomeCommunitySigningKeys,
   dbSelectAuthenticatedForeignCommunities,
   dbSelectHomeCommunity,
@@ -266,6 +267,43 @@ describe('community.queries', () => {
       // (backend/src/index.ts), so this is not a state the keying run meets.
       await createCommunity(true)
       await expect(dbIsMatchingKeyingActive()).rejects.toBeInstanceOf(MissingHomeCommunityError)
+    })
+  })
+  describe('dbIsSupportTicketsActive', () => {
+    it('is on for a community that was never switched (SUA-019, "ab Werk an")', async () => {
+      await createCommunity(false)
+      expect(await dbIsSupportTicketsActive()).toBe(true)
+    })
+
+    it('is turned off and on again through dbUpdateHomeCommunity, read through the cache', async () => {
+      await createCommunity(false)
+      expect(await dbIsSupportTicketsActive()).toBe(true)
+
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+      expect(await dbIsSupportTicketsActive()).toBe(false)
+      // the value in the database, not only what the cache answers (Falle 13: a field the
+      // schema does not name would be dropped by the write without a word)
+      const [row] = await drizzleDb()
+        .select({ active: communitiesTable.supportTicketsActive })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.foreign, false))
+      expect(row.active).toBe(false)
+
+      await dbUpdateHomeCommunity({ supportTicketsActive: true })
+      expect(await dbIsSupportTicketsActive()).toBe(true)
+    })
+
+    it('leaves a foreign community alone', async () => {
+      const foreign = await createCommunity(true)
+      await createCommunity(false)
+
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+
+      const [row] = await drizzleDb()
+        .select({ active: communitiesTable.supportTicketsActive })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.id, foreign.id))
+      expect(row.active).toBe(true)
     })
   })
   describe('dbSelectAuthenticatedForeignCommunities', () => {
