@@ -12,7 +12,8 @@ import classes from './ContributionMessagesList.module.scss'
 
 /**
  * The thread under a contribution: its messages, the reply field while the contribution is
- * still open, and the button that folds the thread away again.
+ * still open, and the button that folds the thread away again. Another thread (a support
+ * request) names the states in which it takes a reply.
  */
 export const ContributionMessagesList = defineComponent({
   name: 'ContributionMessagesList',
@@ -20,6 +21,10 @@ export const ContributionMessagesList = defineComponent({
     contributionId: { type: Number, required: true },
     status: { type: String, required: true },
     messages: { type: Array as PropType<ContributionMessage[]>, required: true },
+    replyStates: {
+      type: Array as PropType<string[]>,
+      default: () => ['PENDING', 'IN_PROGRESS'],
+    },
   },
   emits: ['close-messages-list'],
   setup(props, { emit, attrs }) {
@@ -40,14 +45,14 @@ export const ContributionMessagesList = defineComponent({
         <div>
           {/* What the row listens for on this thread (`add-contribution-message`) is the reply
               field's event: handed on as the attributes it arrives as, as `v-bind="$attrs"` did. */}
-          {['PENDING', 'IN_PROGRESS'].includes(props.status) ? (
+          {props.replyStates.includes(props.status) ? (
             <ContributionMessagesFormular contributionId={props.contributionId} {...attrs} />
           ) : null}
         </div>
 
         <div class={['text-center pointer', 'clearboth', classes.clearboth]}>
           <BButton variant='outline-primary' {...block} onClick={() => emit('close-messages-list')}>
-            <IBiArrowUpShort /> {t('form.close')}
+            <IBiArrowUpShort /> {t('form.collapse')}
           </BButton>
         </div>
       </div>

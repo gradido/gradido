@@ -80,8 +80,16 @@ describe('ContributionMessagesList', () => {
       expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(false)
     })
 
-    it('renders close button', () => {
-      expect(wrapper.find('button').text()).toContain('form.close')
+    it('renders the button that folds the thread away', () => {
+      expect(wrapper.find('button').text()).toContain('form.collapse')
+    })
+
+    it('takes a reply in the states another thread names, and in no other', async () => {
+      const support = ['OPEN', 'IN_PROGRESS', 'CLOSED']
+      await wrapper.setProps({ status: 'CLOSED', replyStates: support })
+      expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(true)
+      await wrapper.setProps({ status: 'DELETED' })
+      expect(wrapper.findComponent({ name: 'ContributionMessagesFormular' }).exists()).toBe(false)
     })
   })
 })

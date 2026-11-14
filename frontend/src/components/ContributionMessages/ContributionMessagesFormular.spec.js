@@ -111,6 +111,41 @@ describe('ContributionMessagesFormular', () => {
     })
   })
 
+  // Another thread (a support request) hands in how its words are sent, and how many it takes.
+  describe('with a send function of another thread', () => {
+    const message = { id: 7, message: 'Danke!' }
+
+    it('hands the words to it, not to the contribution, and adds what it answers', async () => {
+      const send = vi.fn().mockResolvedValue(message)
+      wrapper = createWrapper({ send })
+      await wrapper.find('textarea#textarea').setValue('Danke!')
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      expect(send).toHaveBeenCalledWith('Danke!')
+      expect(mockMutate).not.toHaveBeenCalled()
+      expect(wrapper.emitted('add-contribution-message')).toEqual([[message]])
+      expect(wrapper.vm.formText).toBe('')
+    })
+
+    it('shows what it throws, and keeps the words', async () => {
+      const send = vi
+        .fn()
+        .mockRejectedValue(new Error('In dieser Anfrage stehen schon 100 Nachrichten.'))
+      wrapper = createWrapper({ send })
+      await wrapper.find('textarea#textarea').setValue('Danke!')
+      await wrapper.find('form').trigger('submit')
+      await nextTick()
+      expect(mockToastError).toHaveBeenCalledWith('In dieser Anfrage stehen schon 100 Nachrichten.')
+      expect(wrapper.emitted('add-contribution-message')).toBeUndefined()
+      expect(wrapper.vm.formText).toBe('Danke!')
+    })
+  })
+
+  it('stops the field at the length it is given, and nowhere without one', () => {
+    expect(createWrapper({ maxLength: 5000 }).find('textarea').attributes('maxlength')).toBe('5000')
+    expect(createWrapper().find('textarea').attributes('maxlength')).toBeUndefined()
+  })
+
   it('disables submit button when form is empty', async () => {
     const submitButton = wrapper.find('button[type="submit"]')
     expect(submitButton.attributes('diabled')).toBeUndefined()
