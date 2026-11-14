@@ -307,6 +307,7 @@ describe('supportTickets query test, the moderation side', () => {
             closedBy: null,
             deletedAt: null,
             deletedBy: null,
+            resubmissionAt: null,
           },
           expect.objectContaining({
             id: open,

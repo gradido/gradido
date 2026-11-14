@@ -1100,8 +1100,10 @@ describe('SupportTicketModerationResolver, the search and the group filter (K4)'
     expect(await found('Hochbeet Bloxberg')).toEqual([ungrouped, inChoir, inGarden])
     expect(await found('lustig.de hochbeet')).toEqual([peters])
     expect(await found(String(inChoir))).toEqual([inChoir])
-    // blanks only: no search
-    expect((await found('   ')).length).toBeGreaterThan(4)
+    // blanks only: no search -- all the requests, more than one page by now
+    const all = await search('   ')
+    expect(all.errors).toBeUndefined()
+    expect(all.data.adminListSupportTickets.count).toBeGreaterThan(4)
   })
 
   it('narrows to some group, to none and to the group of a tag', async () => {
@@ -1505,7 +1507,8 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     await loginAs('bob@baumeister.de')
     expect((await handOn(id, 'choir')).errors).toBeUndefined()
     expect((await rowOf(id)).creationGroupId).toBe(choirId)
-    expect(await idsListed()).not.toContain(id)
+    // out of reach: its thread answers as a missing one -- a list of all would be pages by now
+    await expect(threadOf(id)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
     await expect(handOn(id, 'garden')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
     // a moderator of the requests of no group hands one into a group
     const ungrouped = await file(bibi.id, 'Ohne Gruppe', 403, null)
