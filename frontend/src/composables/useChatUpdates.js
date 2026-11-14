@@ -121,12 +121,18 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  *
  * Answers the chat's part, and the support's beside it (K5) -- undefined where the field is not
  * in the answer.
+ *
+ * `errorPolicy: 'all'`: the support's field has an authorization check of its own on the server,
+ * and an error there -- the member read anew and the database slow for that moment -- left
+ * Apollo's default to throw the chat's answer away with it. Now only the chat's own part decides:
+ * where it is missing, the question failed, whatever the errors say.
  */
 const ask = async (afterId, editedCursor, reactedCursor) => {
   const { data } = await beat.client.query({
     query: newChatMessagesSince,
     variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor, reactedCursor },
     fetchPolicy: 'no-cache',
+    errorPolicy: 'all',
     context: { renewSession: false },
   })
   const update = data?.newChatMessagesSince

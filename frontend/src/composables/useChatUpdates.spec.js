@@ -984,6 +984,67 @@ describe('useChatUpdates', () => {
       expect(menu()).toEqual(NOTHING)
     })
 
+    /**
+     * The support's field has an authorization check of its own on the server. Where only that
+     * check fails, the answer carries the chat's part and an error for the support's field: the
+     * beat keeps the chat's part and goes on at its pace. The fake client throws as Apollo does
+     * for an answer with errors, unless the question asked for them (`errorPolicy: 'all'`).
+     */
+    describe("an error in the support's field alone", () => {
+      const withErrors = (answer, errors) => ({ ...answer, errors })
+      const apolloLike = (answers) => {
+        const query = vi.fn(async (options) => {
+          const answer = answers.shift() ?? update()
+          if (answer.errors && options.errorPolicy !== 'all') {
+            throw new Error(answer.errors[0].message)
+          }
+          return answer
+        })
+        return { query }
+      }
+      const ERROR = [{ message: '401 Unauthorized', path: ['supportTicketsMenu'] }]
+
+      it('asks with the errors handed back, not thrown', async () => {
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        expect(server.query.mock.calls[0][0].errorPolicy).toBe('all')
+      })
+
+      it("keeps the chat's answer and its pace, and the support's numbers as they were", async () => {
+        const client = apolloLike([
+          withSupport(update({ latestId: 20 }), { active: true, inProgress: 2, unfinished: 2 }),
+          withErrors(withSupport(update({ latestId: 22, unread: 4 }), null), ERROR),
+        ])
+        startChatUpdates(client)
+        await vi.advanceTimersByTimeAsync(0)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+        expect(chatUnreadConversations.value).toBe(4)
+        expect(menu()).toEqual({ active: true, inProgress: 2, unfinished: 2 })
+        // no pause of an error: the next question comes after the usual fifteen seconds
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(3)
+        expect(client.query.mock.calls[2][0].variables.afterId).toBe(22)
+      })
+
+      it("still counts it as a failed question where the chat's part is missing", async () => {
+        const client = apolloLike([
+          update({ latestId: 20 }),
+          withErrors({ data: null }, [
+            { message: 'database gone', path: ['newChatMessagesSince'] },
+          ]),
+        ])
+        startChatUpdates(client)
+        await vi.advanceTimersByTimeAsync(0)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(2)
+
+        // the pause of an error is longer than the usual fifteen seconds
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(2)
+      })
+    })
+
     it("asks it at once with pollChatNow, as the chat's", async () => {
       server.answer(update(), withSupport(update(), { active: true, inProgress: 1, unfinished: 1 }))
       startChatUpdates(server.client)
