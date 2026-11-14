@@ -1443,6 +1443,8 @@ test('sends a handing on once: while it goes, its dropdown takes no other pick',
   await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
   await expect(dialog(page)).toHaveCount(0)
   await pickGroup(page, 0, de.contribution.noGroup)
+  // the pick is drawn -- the list closed in the same drawing -- and no question came
+  await expect(row(page, 0).locator('.group-select .dropdown-menu')).not.toHaveClass(/show/)
   await expect(dialog(page)).toHaveCount(0)
   await expect(shownGroup(page, 0)).toHaveText('#kueche')
 
