@@ -3,7 +3,12 @@ import {
   closingOf,
   moderatorMessageKind,
   reassignedLine,
+  SUPPORT_TICKET_MAIL_RECIPIENTS_MAX,
+  SUPPORT_TICKET_MAILED_PER_HOUR_MAX,
+  SupportTicketMailCandidate,
   supportAnswerMailDecision,
+  supportTicketMailRecipients,
+  supportTicketMailsAllowed,
   supportTicketsWindowStart,
 } from './SupportTicket.logic'
 
@@ -102,5 +107,114 @@ describe('reassignedLine', () => {
     expect(
       reassignedLine({ tag: 'garden', name: 'Garten\r\nam Hang' }, { tag: 'choir', name: 'Chor' }),
     ).toBe('Garten am Hang\nChor')
+  })
+})
+
+describe('supportTicketMailRecipients', () => {
+  // the scopes as describeModeratorCreationGroups reads them
+  const everything = { tags: [], seesAllCreationGroups: true, seesUntagged: true }
+  const groups = (tags: string[], seesUntagged = false) => ({
+    tags,
+    seesAllCreationGroups: false,
+    seesUntagged,
+  })
+  const moderator = (
+    id: number,
+    scope: Pick<SupportTicketMailCandidate, 'tags' | 'seesAllCreationGroups' | 'seesUntagged'>,
+  ): SupportTicketMailCandidate => ({ id, handlesSupportTickets: true, isAdmin: false, ...scope })
+  // an administrator's scope reads as everything, and counts for nothing here
+  const admin = (id: number): SupportTicketMailCandidate => ({
+    id,
+    handlesSupportTickets: true,
+    isAdmin: true,
+    ...everything,
+  })
+  const ids = (recipients: SupportTicketMailCandidate[]) => recipients.map(({ id }) => id)
+
+  const garden = moderator(11, groups(['garden']))
+  const untagged = moderator(12, groups([], true))
+  const both = moderator(13, groups(['choir'], true))
+  const all = moderator(14, everything)
+  const peter = admin(1)
+  const cast = [all, both, untagged, garden, peter]
+
+  it('mails, for a request of a group, those it is assigned to and then those who see everything', () => {
+    expect(ids(supportTicketMailRecipients(cast, 'garden', []))).toEqual([11, 14])
+    expect(ids(supportTicketMailRecipients(cast, 'choir', []))).toEqual([13, 14])
+  })
+
+  it('mails, for a request without a group, those with "no group" and then those who see everything', () => {
+    expect(ids(supportTicketMailRecipients(cast, null, []))).toEqual([12, 13, 14])
+  })
+
+  it('mails nobody who does not find the request in their list', () => {
+    // a moderator of "no group" sees no request of a group, a moderator of a group none without
+    expect(ids(supportTicketMailRecipients([untagged, peter], 'garden', []))).toEqual([1])
+    expect(ids(supportTicketMailRecipients([garden, peter], null, []))).toEqual([1])
+    // a scope of no group and no "no group" reaches nothing, as the list's condition does
+    expect(ids(supportTicketMailRecipients([moderator(15, groups([])), peter], null, []))).toEqual([
+      1,
+    ])
+  })
+
+  it('compares the tags without case and accents, as the list does in SQL', () => {
+    const cafe = moderator(16, groups(['Café']))
+    expect(ids(supportTicketMailRecipients([cafe], 'cafe', []))).toEqual([16])
+    expect(ids(supportTicketMailRecipients([cafe], 'CAFE', []))).toEqual([16])
+    expect(ids(supportTicketMailRecipients([cafe], 'cafes', []))).toEqual([])
+  })
+
+  it('mails the administrators only where no moderator is left, whatever their scope', () => {
+    expect(ids(supportTicketMailRecipients([peter, admin(2)], 'garden', []))).toEqual([1, 2])
+    expect(ids(supportTicketMailRecipients([peter, garden], 'garden', []))).toEqual([11])
+  })
+
+  it('never mails the asking member, nor who handed on -- and then looks who is left', () => {
+    expect(ids(supportTicketMailRecipients(cast, 'garden', [11]))).toEqual([14])
+    // the only moderator of the group asks, and nobody sees everything: the administrators hear
+    expect(ids(supportTicketMailRecipients([garden, peter], 'garden', [11]))).toEqual([1])
+    expect(ids(supportTicketMailRecipients([garden, peter], 'garden', [11, 1]))).toEqual([])
+  })
+
+  it('mails nobody whose role may not handle requests', () => {
+    const notAllowed = { ...all, id: 17, handlesSupportTickets: false }
+    expect(ids(supportTicketMailRecipients([notAllowed, peter], 'garden', []))).toEqual([1])
+    expect(
+      ids(supportTicketMailRecipients([{ ...peter, handlesSupportTickets: false }], null, [])),
+    ).toEqual([])
+  })
+
+  it('mails at most twenty, first those the group is assigned to, each by number', () => {
+    const many = Array.from({ length: 30 }, (_, i) => moderator(100 + i, everything))
+    const assigned = Array.from({ length: 5 }, (_, i) => moderator(200 - i, groups(['garden'])))
+    const chosen = ids(supportTicketMailRecipients([...many, ...assigned], 'garden', []))
+    expect(chosen).toHaveLength(SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
+    expect(chosen.slice(0, 5)).toEqual([196, 197, 198, 199, 200])
+    expect(chosen.slice(5)).toEqual(Array.from({ length: 15 }, (_, i) => 100 + i))
+  })
+})
+
+describe('supportTicketMailsAllowed', () => {
+  const HOUR = 60 * 60 * 1000
+  const NOW = Date.parse('2026-11-14T12:00:00.000Z')
+
+  it('lets a request start mails while fewer than twenty did in the hour before', () => {
+    const before = Array.from({ length: SUPPORT_TICKET_MAILED_PER_HOUR_MAX - 1 }, (_, i) => NOW - i)
+    expect(supportTicketMailsAllowed(before, NOW)).toEqual({
+      allowed: true,
+      mailedAt: [...before, NOW],
+    })
+  })
+
+  it('lets no twenty-first start mails within the hour, and keeps the moments as they are', () => {
+    const before = Array.from({ length: SUPPORT_TICKET_MAILED_PER_HOUR_MAX }, (_, i) => NOW - i)
+    expect(supportTicketMailsAllowed(before, NOW)).toEqual({ allowed: false, mailedAt: before })
+  })
+
+  it('counts nothing older than an hour', () => {
+    const before = Array.from({ length: SUPPORT_TICKET_MAILED_PER_HOUR_MAX }, () => NOW - HOUR)
+    expect(supportTicketMailsAllowed(before, NOW)).toEqual({ allowed: true, mailedAt: [NOW] })
+    const justInside = [...before.slice(1), NOW - HOUR + 1]
+    expect(supportTicketMailsAllowed(justInside, NOW).mailedAt).toEqual([NOW - HOUR + 1, NOW])
   })
 })

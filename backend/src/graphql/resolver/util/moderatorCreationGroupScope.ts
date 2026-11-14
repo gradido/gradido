@@ -63,8 +63,10 @@ export interface ModeratorCreationGroups {
   seesUntagged: boolean
 }
 
+// Only these two fields are read, so a row of any query will do: the mail about a support
+// request reads the moderators through Drizzle (supportTicketModeratorsMail.ts).
 export const describeModeratorCreationGroups = (
-  role?: DbUserRole | null,
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups'> | null,
 ): ModeratorCreationGroups => {
   if (!role || !isScopedModeratorRole(role.role)) {
     return { tags: [], seesAllCreationGroups: true, seesUntagged: true }

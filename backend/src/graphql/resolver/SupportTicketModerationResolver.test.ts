@@ -7,6 +7,8 @@ import {
   AppDatabase,
   creationGroupsTable,
   DbUser,
+  dbSelectRoleHoldersWithContact,
+  dbSelectSupportTicketsInScope,
   drizzleDb,
   SupportTicketMessageType,
   SupportTicketStatus,
@@ -30,6 +32,8 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
+import { readSupportTicketMailRecipients } from './util/supportTicketModeratorsMail'
 
 // The moderation's side of support requests (K2, K3), through the schema: `@Authorized` and the
 // request's budget live at the GraphQL layer, the scope in the database. bibi asks, peter is an
@@ -44,6 +48,7 @@ jest.mock('core', () => {
     __esModule: true,
     ...original,
     sendAddedSupportTicketMessageEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+    sendNewSupportTicketEmail: jest.fn(async () => ({ accepted: ['watched'] })),
   }
 })
 
@@ -1627,5 +1632,75 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     expect(res.data.listSupportTicketMessages).toEqual([
       { message: 'Garten\nChor', type: 'REASSIGNED', userAlias: peter.alias },
     ])
+  })
+})
+
+// SUA-024, point 3, and Falle 18 of K5: who hears of a request by mail is who finds it in their
+// list -- the rule of the mail and the list's condition (supportTicketsInScope) held against each
+// other, for every kind of scope: a group (bob), "no group" (räuber), both (carla, from the search
+// above), everything (alma, new here).
+describe('SupportTicketModerationResolver, the mail and the list agree (K5)', () => {
+  let alma: DbUser
+
+  beforeAll(async () => {
+    alma = await userFactoryDrizzle({
+      ...bobBaumeister,
+      alias: 'AlmaAll',
+      email: 'alma@all.de',
+      firstName: 'Alma',
+    })
+    await moderate(alma, [])
+  })
+
+  const holderId = async (email: string): Promise<number> => {
+    const holder = (await dbSelectRoleHoldersWithContact()).find((row) => row.email === email)
+    if (!holder) {
+      throw new Error(`no role holder ${email}`)
+    }
+    return holder.userId
+  }
+
+  // the moderators -- not the administrators -- whose list holds this request
+  const findersOf = async (ticketId: number, word: string): Promise<number[]> => {
+    const finders: number[] = []
+    for (const holder of await dbSelectRoleHoldersWithContact()) {
+      if (holder.role === RoleNames.ADMIN) {
+        continue
+      }
+      const { tickets } = await dbSelectSupportTicketsInScope(
+        ['OPEN'],
+        describeModeratorCreationGroups(holder),
+        { words: [word], group: null, hideResubmissionsAfter: null },
+        0,
+        25,
+      )
+      if (tickets.some(({ id }) => id === ticketId)) {
+        finders.push(holder.userId)
+      }
+    }
+    return finders
+  }
+
+  it.each([
+    ['garden', 'Gartenprobe'],
+    ['choir', 'Chorprobe'],
+    [null, 'Ohneprobe'],
+  ])('mails for a request of %s exactly those who find it in their list', async (tag, word) => {
+    const groupId = tag === 'garden' ? gardenId : tag === 'choir' ? choirId : null
+    const id = await file(bibi.id, `Eine ${word}`, 500, groupId)
+    const recipients = (await readSupportTicketMailRecipients(tag, [bibi.id])).map(
+      ({ userId }) => userId,
+    )
+    expect(recipients.length).toBeGreaterThan(0)
+    expect([...recipients].sort()).toEqual((await findersOf(id, word)).sort())
+  })
+
+  it("names them in the order of the rule: the group's first, then who sees everything", async () => {
+    const carla = await holderId('carla@sonne.de')
+    const recipientsOf = async (tag: string | null) =>
+      (await readSupportTicketMailRecipients(tag, [])).map(({ userId }) => userId)
+    expect(await recipientsOf('garden')).toEqual([bob.id, alma.id])
+    expect(await recipientsOf('choir')).toEqual([carla, alma.id])
+    expect(await recipientsOf(null)).toEqual([raeuber.id, carla, alma.id])
   })
 })

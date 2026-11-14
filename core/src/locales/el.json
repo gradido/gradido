@@ -173,6 +173,17 @@
       "transactionDetails": "Λεπτομέρειες συναλλαγής",
       "yourGradidoTeam": "η ομάδα σου Gradido"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias} υπέβαλε ένα αίτημα (αρ. {supportTicketNumber}).",
+      "filedByMember": "Ένα μέλος υπέβαλε ένα αίτημα (αρ. {supportTicketNumber}).",
+      "group": "Ομάδα: {groupName}",
+      "noGroup": "Χωρίς ομάδα",
+      "reassigned": "{actorAlias} προώθησε το αίτημα αρ. {supportTicketNumber}.",
+      "reassignedBySomebody": "Το αίτημα αρ. {supportTicketNumber} προωθήθηκε.",
+      "subject": "Νέο αίτημα υποστήριξης",
+      "title": "Νέο αίτημα υποστήριξης",
+      "whereToFind": "Θα το βρεις στον χώρο διαχείρισης, στην ενότητα «Υποστήριξη»."
+    },
     "resetPassword": {
       "pleaseClickLink": "Αν ήσουν εσύ, κάνε κλικ εδώ.",
       "subject": "Επαναφορά κωδικού πρόσβασης",

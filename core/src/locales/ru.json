@@ -173,6 +173,17 @@
       "transactionDetails": "Сведения о транзакции",
       "yourGradidoTeam": "ваша команда Gradido"
     },
+    "newSupportTicket": {
+      "filed": "Пользователь {actorAlias} создал обращение (№ {supportTicketNumber}).",
+      "filedByMember": "Участник создал обращение (№ {supportTicketNumber}).",
+      "group": "Группа: {groupName}",
+      "noGroup": "Без группы",
+      "reassigned": "Пользователь {actorAlias} передал обращение № {supportTicketNumber}.",
+      "reassignedBySomebody": "Обращение № {supportTicketNumber} передано.",
+      "subject": "Новое обращение в поддержку",
+      "title": "Новое обращение в поддержку",
+      "whereToFind": "Вы найдёте его в разделе администрирования, в пункте «Поддержка»."
+    },
     "resetPassword": {
       "pleaseClickLink": "Если это были вы, пожалуйста, нажмите здесь.",
       "subject": "Сброс пароля",

@@ -1,0 +1,32 @@
+//- AI-GENERATED — not an architecture reference
+extend ../layout.pug
+
+//- A member asked the support, or a moderator handed a request on (Support-Anfragen K5): sent to
+    the moderators who find the request in their list, else to the administrators (SUA-024), and
+    only to a confirmed address. The mail is the nudge, the admin's list the content (MAIL-008):
+    who did it, the number and the group -- never a word of the request. The username and the
+    group's name are people's writing and are escaped, as every value set with `=` is.
+block content
+  h2= t('emails.newSupportTicket.title')
+  .text-block
+    include ../includes/salutation.pug
+    if reassigned
+      if actorAlias
+        p= t('emails.newSupportTicket.reassigned', { actorAlias, supportTicketNumber })
+      else
+        p= t('emails.newSupportTicket.reassignedBySomebody', { supportTicketNumber })
+    else
+      if actorAlias
+        p= t('emails.newSupportTicket.filed', { actorAlias, supportTicketNumber })
+      else
+        p= t('emails.newSupportTicket.filedByMember', { supportTicketNumber })
+    if groupName
+      p= t('emails.newSupportTicket.group', { groupName })
+    else
+      p= t('emails.newSupportTicket.noGroup')
+    //- No link into the admin: without a running session it ends on "not found" (SUA-024, 5 a).
+    p= t('emails.newSupportTicket.whereToFind')
+
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+  include ../includes/doNotReply.pug

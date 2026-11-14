@@ -28,6 +28,7 @@ import {
   SUPPORT_TICKET_NOT_STORED,
   SUPPORT_TICKET_UNKNOWN_GROUP,
   SUPPORT_TICKETS_PER_DAY_REACHED,
+  supportTicketGroupName,
   supportTicketsWindowStart,
 } from '@/data/SupportTicket.logic'
 import {
@@ -41,6 +42,10 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { countSupportTicketRead, countSupportTicketWrite } from './util/countSupportTicket'
 import { fromDatabase } from './util/fromDatabase'
+import {
+  mailModeratorsOfSupportTicket,
+  readSupportTicketMailRecipients,
+} from './util/supportTicketModeratorsMail'
 
 /** A message of the thread as the member reads it; the date of the author's picture beside it. */
 const messageOf = (
@@ -98,7 +103,11 @@ const ticketFiled = (
  */
 @Resolver()
 export class SupportTicketResolver {
-  /** Files a request in the group of this tag, or in none; the words without their blanks. */
+  /**
+   * Files a request in the group of this tag, or in none; the words without their blanks. The
+   * moderators who find it in their list hear of it by mail (K5), and the answer does not wait
+   * for the mails.
+   */
   @Authorized([RIGHTS.USE_SUPPORT_TICKETS])
   @Mutation(() => SupportTicket)
   async createSupportTicket(
@@ -120,6 +129,9 @@ export class SupportTicketResolver {
     if (creationGroupTag && !group) {
       throw new LogError(SUPPORT_TICKET_UNKNOWN_GROUP)
     }
+    // Who hears of it, read before it is filed (never throws): what follows the filing without
+    // being waited for is the sending alone.
+    const recipients = await readSupportTicketMailRecipients(group?.tag ?? null, [member.id])
     const createdAt = new Date()
     const id = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       ticketFiled(member.id, group?.id ?? null, words.output, createdAt),
@@ -127,6 +139,14 @@ export class SupportTicketResolver {
     if (id === null) {
       throw new LogError(SUPPORT_TICKETS_PER_DAY_REACHED)
     }
+    // biome-ignore lint/complexity/noVoid: the mails follow, the request does not wait for them
+    void mailModeratorsOfSupportTicket({
+      supportTicketId: id,
+      recipients,
+      actorAlias: member.alias || null,
+      groupName: supportTicketGroupName(group),
+      reassigned: false,
+    })
     return {
       id,
       text: words.output,

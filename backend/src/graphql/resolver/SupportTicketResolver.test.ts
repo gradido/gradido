@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { sendNewSupportTicketEmail } from 'core'
 import {
   AppDatabase,
   creationGroupsTable,
@@ -26,6 +27,18 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 // budget live at the GraphQL layer, and the owner in every query's condition lives in the
 // database. bibi asks, bob is another member, peter answers as the moderation (written straight
 // into the tables: the moderation's side comes with K2 and K3).
+
+// The mail to the moderation about a new request (K5) is caught here: what it says is core's
+// (sendEmailVariants.newSupportTicket), who gets it the rule's (SupportTicket.logic) -- and here
+// peter, the one administrator, is everybody with a role.
+jest.mock('core', () => {
+  const original = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...original,
+    sendNewSupportTicketEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+  }
+})
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -168,6 +181,56 @@ describe('SupportTicketResolver', () => {
       await expect(
         mutate({ mutation: closeSupportTicket, variables: { supportTicketId: 1 } }),
       ).resolves.toEqual(unauthorized)
+    })
+  })
+
+  // First among the tests that file: the mails of an hour are capped per process (SUA-024).
+  describe('the mail to the moderation (K5)', () => {
+    const mail = sendNewSupportTicketEmail as jest.Mock
+    /** Waits for what a request does not wait for: the mails it started. */
+    const mailsSent = async (): Promise<void> => {
+      for (let turn = 0; turn < 5; turn++) {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      }
+    }
+
+    beforeEach(() => mail.mockClear())
+    afterEach(clearTickets)
+
+    it('mails the moderation once the request is filed: who asked, its number and group, no word of it', async () => {
+      await loginAs('bibi@bloxberg.de')
+      const id = await fileOk('Wie giesse ich den Garten?', 'garden')
+      await mailsSent()
+      expect(mail.mock.calls).toEqual([
+        [
+          {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            email: 'peter@lustig.de',
+            language: 'de',
+            actorAlias: 'BBB',
+            supportTicketNumber: id,
+            groupName: 'Garten',
+            reassigned: false,
+          },
+        ],
+      ])
+    })
+
+    it('files the request all the same where the mail fails', async () => {
+      await loginAs('bibi@bloxberg.de')
+      mail.mockRejectedValueOnce(new Error('the mail server is gone'))
+      const id = await fileOk('Und ohne Mail?')
+      await mailsSent()
+      expect(mail).toHaveBeenCalledTimes(1)
+      expect(await statusOf(id)).toMatchObject({ status: 'OPEN', text: 'Und ohne Mail?' })
+    })
+
+    it('mails nobody about the own request of the only one there is to mail', async () => {
+      await loginAs('peter@lustig.de')
+      await fileOk('Ich frage selbst.')
+      await mailsSent()
+      expect(mail).not.toHaveBeenCalled()
     })
   })
 
