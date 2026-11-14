@@ -15,12 +15,13 @@ import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountSupportTicketDialogOfOwner,
+  dbCountSupportTicketMessagesOfModerator,
   dbInsertSupportTicketMessage,
   dbSelectNewestSupportTicketDialogs,
   dbSelectSupportTicketDialogOfOwner,
   dbSelectSupportTicketThread,
 } from './supportTicketMessages'
-import { dbInsertSupportTicket } from './supportTickets'
+import { dbInsertSupportTicket, SupportTicketScope } from './supportTickets'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -263,6 +264,56 @@ describe('supportTicketMessages query test, the moderation side', () => {
     it('answers no message for a request nobody wrote in yet, and for a missing one', async () => {
       expect(await dbSelectSupportTicketThread(ticketId)).toEqual([])
       expect(await dbSelectSupportTicketThread(ticketId + 1000)).toEqual([])
+    })
+  })
+
+  // peter moderates (K3): bibi's request has no group, the other one is peter's own
+  describe('counting a thread as the moderation writes in it', () => {
+    const EVERYTHING: SupportTicketScope = {
+      tags: [],
+      seesAllCreationGroups: true,
+      seesUntagged: true,
+    }
+    const counted = (
+      id: number,
+      type: SupportTicketMessageType,
+      within: SupportTicketScope = EVERYTHING,
+      statusIn: ('OPEN' | 'IN_PROGRESS' | 'CLOSED' | 'DELETED')[] = [
+        'OPEN',
+        'IN_PROGRESS',
+        'CLOSED',
+      ],
+    ) =>
+      inTransaction((tx) =>
+        dbCountSupportTicketMessagesOfModerator(
+          { id, statusIn, scope: within, moderatorId: peter.id },
+          type,
+          tx,
+        ),
+      )
+
+    it('counts the messages of the kind asked for, each kind on its own', async () => {
+      await writeIn(ticketId, bibi.id, 'question')
+      await writeIn(ticketId, peter.id, 'answer')
+      await writeIn(ticketId, peter.id, 'note', 'MODERATOR')
+      expect(await counted(ticketId, 'DIALOG')).toBe(2)
+      expect(await counted(ticketId, 'MODERATOR')).toBe(1)
+    })
+
+    it('counts where the scope reaches the request, and answers 0 outside it', async () => {
+      await writeIn(ticketId, bibi.id, 'question')
+      const ofNoGroup = { tags: [], seesAllCreationGroups: false, seesUntagged: true }
+      const ofTheGarden = { tags: ['garden'], seesAllCreationGroups: false, seesUntagged: false }
+      expect(await counted(ticketId, 'DIALOG', ofNoGroup)).toBe(1)
+      expect(await counted(ticketId, 'DIALOG', ofTheGarden)).toBe(0)
+    })
+
+    it('answers 0 for the moderator own request, a request of another state and a missing one', async () => {
+      await writeIn(otherTicketId, peter.id, 'my own question')
+      await writeIn(ticketId, bibi.id, 'question')
+      expect(await counted(otherTicketId, 'DIALOG')).toBe(0)
+      expect(await counted(ticketId, 'DIALOG', EVERYTHING, ['CLOSED'])).toBe(0)
+      expect(await counted(ticketId + 1000, 'DIALOG')).toBe(0)
     })
   })
 })

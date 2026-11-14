@@ -26,6 +26,16 @@
       "title": "Bericht over je bijdrage aan het algemeen welzijn",
       "toSeeAndAnswerMessage": "Je kunt direct bij je bijdrage antwoorden."
     },
+    "addedSupportTicketMessage": {
+      "answered": "{moderatorAlias} heeft je vraag nr. {supportTicketNumber} beantwoord.",
+      "answeredBySupport": "De support heeft je vraag nr. {supportTicketNumber} beantwoord.",
+      "closed": "Daarmee is de vraag gesloten. Schrijf je nog een keer, dan is de vraag weer open.",
+      "message": "‘{message}’",
+      "readMessage": "Bericht lezen en beantwoorden",
+      "subject": "Antwoord op je supportvraag",
+      "title": "Antwoord op je supportvraag",
+      "toAnswer": "Je kunt direct bij je vraag antwoorden."
+    },
     "assistedRegistrationConfirm": {
       "accountCreated": "Samen met een Gradido-lid is er zojuist een account voor je aangemaakt — met dit e-mailadres.",
       "accountCreatedByThanks": "Bij het aannemen van een bedankje is er zojuist een account voor je aangemaakt — met dit e-mailadres.",

@@ -1,34 +1,47 @@
 // AI-GENERATED — not an architecture reference
+import { SupportTicketMessageType } from '@enum/SupportTicketMessageType'
 import { SupportTicketStatus } from '@enum/SupportTicketStatus'
+import { AdminOpenSupportTickets } from '@model/AdminOpenSupportTickets'
 import { AdminSupportTicket, AdminSupportTicketList } from '@model/AdminSupportTicket'
 import { AdminSupportTicketMessage } from '@model/AdminSupportTicketMessage'
 import { User } from '@model/User'
 import {
+  dbCountOpenSupportTicketsInScope,
   dbFindMemberAvatarTimestamps,
   dbFindUsersWithEmailContactByIds,
   dbSelectNewestSupportTicketDialogs,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketThread,
+  dbUpdateSupportTicketOfModerator,
   findUserNamesByIds,
   SupportTicketThreadMessage,
 } from 'database'
 import { avatarColorIndex } from 'shared'
-import { Arg, Authorized, Ctx, Int, Query, Resolver } from 'type-graphql'
+import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
 import {
   closingOf,
+  MODERATOR_CLOSES_FROM,
+  moderatorMessageKind,
   SUPPORT_TICKET_INVALID,
   SUPPORT_TICKET_NOT_FOUND,
   SUPPORT_TICKET_NOT_READ,
+  SUPPORT_TICKET_NOT_STORED,
 } from '@/data/SupportTicket.logic'
-import { adminSupportTicketsPageSchema } from '@/data/SupportTicket.schema'
+import {
+  adminSupportTicketsPageSchema,
+  supportTicketMessageSchema,
+} from '@/data/SupportTicket.schema'
+import { moderatorWriter } from '@/interactions/writeSupportTicketMessage/Moderator.role'
+import { writeSupportTicketMessage } from '@/interactions/writeSupportTicketMessage/WriteSupportTicketMessage.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { countSupportTicketRead } from './util/countSupportTicket'
+import { countSupportTicketRead, countSupportTicketWrite } from './util/countSupportTicket'
 import { fromDatabase } from './util/fromDatabase'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
+import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
 
 /** A message of the thread as the moderation reads it; the date of the author's picture beside it. */
 const messageOf = (
@@ -50,17 +63,19 @@ const messageOf = (
 })
 
 /**
- * The moderation's side of support requests (K2, SUA-005): the list under the admin's tabs and
- * the thread of an opened request, to read. Answering, notes, closing and deleting come with K3.
+ * The moderation's side of support requests (SUA-005): the list under the admin's tabs and the
+ * thread of an opened request (K2); answering, notes, closing with the tick, deleting, and the
+ * count of the open tab (K3).
  *
- * A moderator reaches what their creation groups cover -- the list, its count and the thread
- * through one condition (supportTicketsInScope), read off their role and never off an argument.
- * Their own request stands in the list like any other, but its thread is not theirs to read: on
- * it they are the member, and the notes on it are the moderation's (SUA-018).
+ * A moderator reaches what their creation groups cover -- the list, its count, the thread and
+ * every act on a request through one condition (supportTicketsInScope), read off their role and
+ * never off an argument; an act has it in the condition of its write. Their own request stands
+ * in the list like any other, but it is not theirs to read or act on: on it they are the member,
+ * and the notes on it are the moderation's (SUA-018).
  *
- * Nothing of the words reaches the log: both reads count in the request's budget, which keeps the
- * answer out of it (countSupportTicket.ts), and a database error is logged by its code
- * (fromDatabase).
+ * Nothing of the words reaches the log: every read and every write counts in the request's
+ * budget, which keeps the answer out of it (countSupportTicket.ts), and a database error is
+ * logged by its code (fromDatabase).
  */
 @Resolver()
 export class SupportTicketModerationResolver {
@@ -163,5 +178,152 @@ export class SupportTicketModerationResolver {
       ])
       return thread.map((row) => messageOf(row, dates.get(row.authorId) ?? null))
     })
+  }
+
+  /**
+   * How many requests the open tab holds, as its two halves (K3): waiting for the moderation,
+   * waiting for the member. Within the scope, the moderator's own requests counted as the tab
+   * lists them -- what the badges and the start page show.
+   */
+  @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
+  @Query(() => AdminOpenSupportTickets)
+  async adminCountOpenSupportTickets(@Ctx() context: Context): Promise<AdminOpenSupportTickets> {
+    countSupportTicketRead(context)
+    return fromDatabase(SUPPORT_TICKET_NOT_READ, () =>
+      dbCountOpenSupportTicketsInScope(describeModeratorCreationGroups(context.user?.userRole)),
+    )
+  }
+
+  /**
+   * Writes in the thread of a request the moderator reaches (K3): an answer to the member -- a
+   * question back then, or closed with `close` ("Antworten und schließen") -- or a note for the
+   * moderation (`type` MODERATOR), which changes nothing of the request and reaches the member
+   * nowhere. Into an open request, one with a question back or a closed one; never into a deleted
+   * one, never into the moderator's own. A note that would close is no write (invalid). An answer
+   * is mailed to the member once it is stored, to a confirmed address. Answers the message as the
+   * thread shows it.
+   */
+  @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
+  @Mutation(() => AdminSupportTicketMessage)
+  async adminCreateSupportTicketMessage(
+    @Arg('supportTicketId', () => Int) supportTicketId: number,
+    @Arg('message', () => String) message: string,
+    @Arg('type', () => SupportTicketMessageType) type: SupportTicketMessageType,
+    @Arg('close', () => Boolean) close: boolean,
+    @Ctx() context: Context,
+  ): Promise<AdminSupportTicketMessage> {
+    countSupportTicketWrite(context)
+    const moderator = getUser(context)
+    const words = v.safeParse(supportTicketMessageSchema, message)
+    const kind = moderatorMessageKind(type, close)
+    if (!words.success || kind === null) {
+      throw new LogError(SUPPORT_TICKET_INVALID)
+    }
+    const scope = describeModeratorCreationGroups(context.user?.userRole)
+    // The member who owns the request, whose row the transaction holds first: an owner never
+    // changes. The write checks the scope again, in its own condition.
+    const ownerId = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      dbSelectSupportTicketOwnerInScope(supportTicketId, scope),
+    )
+    if (ownerId === null || ownerId === moderator.id) {
+      throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
+    }
+    const createdAt = new Date()
+    const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      writeSupportTicketMessage(
+        moderatorWriter({ moderator, ownerId, scope, kind, at: createdAt }),
+        supportTicketId,
+        words.output,
+        createdAt,
+      ),
+    )
+    if (!written.success) {
+      throw new LogError(written.error.code, supportTicketId)
+    }
+    // Once the message is stored, and outside fromDatabase: the mail never throws, and nothing
+    // that becomes of it may report the stored answer as failed.
+    await mailMemberOfSupportAnswer({
+      supportTicketId,
+      ownerId,
+      kind,
+      moderatorAlias: moderator.alias || null,
+      message: words.output,
+    })
+    return messageOf(
+      {
+        id: written.value,
+        message: words.output,
+        createdAt,
+        type:
+          kind === 'NOTE' ? SupportTicketMessageType.MODERATOR : SupportTicketMessageType.DIALOG,
+        isModerator: true,
+        authorId: moderator.id,
+        authorAlias: moderator.alias,
+        authorFirstName: moderator.firstName,
+        authorLastName: moderator.lastName,
+        authorGradidoId: moderator.gradidoID,
+        authorCommunityUuid: moderator.communityUuid,
+      },
+      null,
+    )
+  }
+
+  /**
+   * Closes a request the moderator reaches, an open one or one with a question back, with no
+   * message and no mail (the tick, SUA-010, SUA-018); the member sees it closed.
+   */
+  @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
+  @Mutation(() => Boolean)
+  async adminCloseSupportTicket(
+    @Arg('supportTicketId', () => Int) supportTicketId: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    countSupportTicketWrite(context)
+    const moderator = getUser(context)
+    const closed = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      dbUpdateSupportTicketOfModerator(
+        {
+          id: supportTicketId,
+          statusIn: MODERATOR_CLOSES_FROM,
+          scope: describeModeratorCreationGroups(context.user?.userRole),
+          moderatorId: moderator.id,
+        },
+        { status: SupportTicketStatus.CLOSED, closedAt: new Date(), closedBy: moderator.id },
+      ),
+    )
+    if (!closed) {
+      throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
+    }
+    return true
+  }
+
+  /**
+   * Deletes a request the moderator reaches, an open one or one with a question back -- softly:
+   * it stands under "Gelöscht" then, with no way back, and the member sees it as deleted, with no
+   * thread. No message and no mail (SUA-018).
+   */
+  @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
+  @Mutation(() => Boolean)
+  async adminDeleteSupportTicket(
+    @Arg('supportTicketId', () => Int) supportTicketId: number,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    countSupportTicketWrite(context)
+    const moderator = getUser(context)
+    const deleted = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      dbUpdateSupportTicketOfModerator(
+        {
+          id: supportTicketId,
+          statusIn: MODERATOR_CLOSES_FROM,
+          scope: describeModeratorCreationGroups(context.user?.userRole),
+          moderatorId: moderator.id,
+        },
+        { status: SupportTicketStatus.DELETED, deletedAt: new Date(), deletedBy: moderator.id },
+      ),
+    )
+    if (!deleted) {
+      throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
+    }
+    return true
   }
 }

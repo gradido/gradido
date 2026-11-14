@@ -62,6 +62,34 @@ export const sendAddedContributionMessageEmail = (
   })
 }
 
+/**
+ * The mail to a member whose support request a moderator answered (Support-Anfragen K3): who
+ * answered which request, the answer, and the way to "Meine Anfragen". `moderatorAlias` is the
+ * moderator's username, as the wallet's thread names them -- null where they have none, and the
+ * mail says "the support". `closed`: the answer closed the request ("Antworten und schließen"),
+ * and the mail says that writing again opens it.
+ *
+ * Whether the mail goes at all is the caller's: an answer, to a confirmed address (SUA-016),
+ * never a note.
+ */
+export const sendAddedSupportTicketMessageEmail = (
+  data: EmailCommonData & {
+    moderatorAlias: string | null
+    supportTicketNumber: number
+    message: string
+    closed: boolean
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  return sendEmailTranslated({
+    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    template: 'addedSupportTicketMessage',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendAccountActivationEmail = (
   data: EmailCommonData & {
     activationLink: string

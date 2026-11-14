@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { and, count, desc, eq, gte, inArray, isNull, or, SQL, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNull, ne, or, SQL, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import {
   creationGroupsTable,
+  SupportTicketInsert,
   SupportTicketStatus,
   supportTicketsTable,
 } from '../schemas/drizzle.schema'
@@ -185,6 +186,109 @@ export async function dbSelectSupportTicketOwnerInScope(
     .from(supportTicketsTable)
     .where(and(eq(supportTicketsTable.id, id), supportTicketsInScope(scope)))
   return row?.userId ?? null
+}
+
+/**
+ * How many requests the open tab of a moderator holds, as its two halves: waiting for the
+ * moderation (OPEN) and waiting for the member (IN_PROGRESS) -- what the badges and the start
+ * page count. Within the scope, and as the tab lists them: the moderator's own requests counted
+ * too. One query.
+ */
+export async function dbCountOpenSupportTicketsInScope(
+  scope: SupportTicketScope,
+): Promise<{ forModeration: number; forMember: number }> {
+  const [row] = await drizzleDb()
+    .select({
+      forModeration: count(
+        sql`case when ${supportTicketsTable.status} = ${SupportTicketStatus.OPEN} then 1 end`,
+      ),
+      forMember: count(
+        sql`case when ${supportTicketsTable.status} = ${SupportTicketStatus.IN_PROGRESS} then 1 end`,
+      ),
+    })
+    .from(supportTicketsTable)
+    .where(
+      and(
+        inArray(supportTicketsTable.status, [
+          SupportTicketStatus.OPEN,
+          SupportTicketStatus.IN_PROGRESS,
+        ]),
+        supportTicketsInScope(scope),
+      ),
+    )
+  return row
+}
+
+/**
+ * A request as the moderation may act on it (K3): this one, standing in one of the states the
+ * act starts from, within the moderator's scope, and not the moderator's own (SUA-018).
+ */
+export interface SupportTicketOfModerator {
+  id: number
+  statusIn: SupportTicketStatus[]
+  scope: SupportTicketScope
+  moderatorId: number
+}
+
+/**
+ * The one condition of every act of the moderation on a request -- the count of its thread, the
+ * write, the check before a note -- so that what decides cannot differ between them. A request
+ * outside the scope, of another state, the moderator's own and a missing one answer alike. In the
+ * statement that writes, not in a read before it: a request that left the scope or changed its
+ * state in between is not written.
+ */
+export const supportTicketOfModerator = ({
+  id,
+  statusIn,
+  scope,
+  moderatorId,
+}: SupportTicketOfModerator): SQL =>
+  // never undefined: the id is in it
+  and(
+    eq(supportTicketsTable.id, id),
+    inArray(supportTicketsTable.status, statusIn),
+    ne(supportTicketsTable.userId, moderatorId),
+    supportTicketsInScope(scope),
+  ) as SQL
+
+/**
+ * Changes a request as the moderation does (answering, closing, deleting it), where it is the
+ * moderator's to act on (supportTicketOfModerator), and answers whether it did. The values are
+ * fixed ones: nothing of the row is read and written back.
+ *
+ * ⚠️ True also where nothing changes -- an answer to a question back leaves it one: the driver
+ * counts the rows found (FOUND_ROWS), as for the member's write below.
+ */
+export async function dbUpdateSupportTicketOfModerator(
+  where: SupportTicketOfModerator,
+  set: Pick<SupportTicketInsert, 'closedAt' | 'closedBy' | 'deletedAt' | 'deletedBy'> & {
+    status: SupportTicketStatus
+  },
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<boolean> {
+  const [result] = await tx
+    .update(supportTicketsTable)
+    .set(set)
+    .where(supportTicketOfModerator(where))
+  return result.affectedRows === 1
+}
+
+/**
+ * Holds a request where it is the moderator's to act on (supportTicketOfModerator), and answers
+ * whether it is: for a write into its thread that changes nothing of the request (a note). A
+ * locking read holds the condition of the row as it is now, not as the transaction first read
+ * it, and keeps the row as it is until the transaction ends.
+ */
+export async function dbLockSupportTicketOfModerator(
+  where: SupportTicketOfModerator,
+  tx: DrizzleTransaction,
+): Promise<boolean> {
+  const rows = await tx
+    .select({ id: supportTicketsTable.id })
+    .from(supportTicketsTable)
+    .where(supportTicketOfModerator(where))
+    .for('update')
+  return rows.length === 1
 }
 
 /**

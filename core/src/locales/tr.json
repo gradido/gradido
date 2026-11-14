@@ -26,6 +26,16 @@
       "title": "Ortak yarara katkın hakkında mesaj",
       "toSeeAndAnswerMessage": "Doğrudan katkının yanından yanıtlayabilirsin."
     },
+    "addedSupportTicketMessage": {
+      "answered": "{moderatorAlias}, {supportTicketNumber} numaralı talebine yanıt verdi.",
+      "answeredBySupport": "Destek ekibi, {supportTicketNumber} numaralı talebine yanıt verdi.",
+      "closed": "Böylece talep kapatıldı. Tekrar yazarsan talep yeniden açılır.",
+      "message": "“{message}”",
+      "readMessage": "Mesajı oku ve yanıtla",
+      "subject": "Destek talebine yanıt",
+      "title": "Destek talebine yanıt",
+      "toAnswer": "Doğrudan talebinin altından yanıt verebilirsin."
+    },
     "assistedRegistrationConfirm": {
       "accountCreated": "Bir Gradido üyesiyle birlikte az önce senin için bir hesap oluşturuldu — bu e-posta adresiyle.",
       "accountCreatedByThanks": "Bir teşekkür kabul edilirken az önce senin için bir hesap oluşturuldu — bu e-posta adresiyle.",

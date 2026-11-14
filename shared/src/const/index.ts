@@ -56,9 +56,11 @@ export const MESSAGE_MAX_CHARS = 5000
 export const MESSAGE_MIN_CHARS = 1
 // a support request (SUA-015, SUA-020): its words are those of a message -- MESSAGE_MAX_CHARS
 // bounds them, for the reason given there -- and at least a few of them. A member files at most
-// so many requests in 24 hours, and the thread of a request holds at most so many messages, the
-// moderation's notes counted. The wallet keeps a copy of the three (frontend/src/
-// validationSchemas.js), and validationSchemas.drift.spec.js holds them together.
+// so many requests in 24 hours, and the thread of a request holds at most so many messages of the
+// dialog, and as many internal notes of the moderation besides: each kind counts on its own, so
+// that a note reaches the member in no number. The wallet keeps a copy of the three (frontend/src/
+// validationSchemas.js), and validationSchemas.drift.spec.js holds them together; the admin keeps
+// MESSAGE_MAX_CHARS (admin-mithril/src/data/SupportTicket.logic.ts).
 export const SUPPORT_TICKET_TEXT_MIN_CHARS = 5
 export const SUPPORT_TICKETS_PER_DAY_MAX = 10
 export const SUPPORT_TICKET_MESSAGES_MAX = 100

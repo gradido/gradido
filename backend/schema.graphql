@@ -64,6 +64,7 @@ type Query {
   communityStatistics: CommunityStatistics!
   adminListSupportTickets(pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
   adminListSupportTicketMessages(supportTicketId: Int!): [AdminSupportTicketMessage!]!
+  adminCountOpenSupportTickets: AdminOpenSupportTickets!
   listSupportTickets(pageSize: Int!, currentPage: Int!): SupportTicketList!
   listSupportTicketMessages(supportTicketId: Int!): [SupportTicketMessage!]!
   thankYouCardPaymentTarget(code: String!): ThankYouCardPaymentTarget!
@@ -935,6 +936,11 @@ type AdminSupportTicketMessage {
   isModerator: Boolean!
 }
 
+type AdminOpenSupportTickets {
+  forModeration: Int!
+  forMember: Int!
+}
+
 type SupportTicketList {
   count: Int!
   tickets: [SupportTicket!]!
@@ -1164,6 +1170,9 @@ type Mutation {
   setCreationAllowed(allowed: Boolean!, userId: Int!): Boolean!
   upsertProjectBranding(input: ProjectBrandingInput!): ProjectBranding
   deleteProjectBranding(id: ID!): Boolean!
+  adminCreateSupportTicketMessage(close: Boolean!, type: SupportTicketMessageType!, message: String!, supportTicketId: Int!): AdminSupportTicketMessage!
+  adminCloseSupportTicket(supportTicketId: Int!): Boolean!
+  adminDeleteSupportTicket(supportTicketId: Int!): Boolean!
   createSupportTicket(creationGroupTag: String, text: String!): SupportTicket!
   createSupportTicketMessage(message: String!, supportTicketId: Int!): SupportTicketMessage!
   closeSupportTicket(supportTicketId: Int!): Boolean!

@@ -1,0 +1,38 @@
+//- AI-GENERATED — not an architecture reference
+extend ../layout.pug
+
+//- A moderator answered a member's support request (Support-Anfragen K3): sent to the member,
+    and only to an address the member confirmed (SUA-016) -- never for an internal note, never for
+    closing with the tick or deleting. In the shape of the mail about a contribution's thread
+    (addedContributionMessage): who answered which request, the answer in the card, how to answer.
+    The moderator by username, as the wallet's thread names them; without one, "the support". The
+    request by its number, as "Meine Anfragen" names it.
+block content
+  h2= t('emails.addedSupportTicketMessage.title')
+  .text-block
+    include ../includes/salutation.pug
+    if moderatorAlias
+      p= t('emails.addedSupportTicketMessage.answered', { moderatorAlias, supportTicketNumber })
+    else
+      p= t('emails.addedSupportTicketMessage.answeredBySupport', { supportTicketNumber })
+  .content
+    h2= t('emails.addedSupportTicketMessage.readMessage')
+    div(class="p_content")
+      p
+        //- What the moderator typed, through +humanText only: bold as in the thread.
+        +humanText(t('emails.addedSupportTicketMessage.message', { message }), { bold: true })
+      p= t('emails.addedSupportTicketMessage.toAnswer')
+      //- "Antworten und schließen": the member may still write, and the request opens again.
+      if closed
+        p= t('emails.addedSupportTicketMessage.closed')
+    //- Green where the answer belongs: "Meine Anfragen", its first page. The same button for an
+        answer that closed the request, for the reason above.
+    .child-right
+      a.button-5(href=`${communityURL}/support/my-requests`)
+        include ../includes/chatbox-icon.pug
+        span #{t('emails.general.answerNow')}
+
+  a.button-3(href=`${communityURL}/transactions`) #{t('emails.general.toAccount')}
+
+  //- Until mail answers reach the request, this mail says not to answer it (SUA-013).
+  include ../includes/doNotReply.pug

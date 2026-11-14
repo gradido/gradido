@@ -26,6 +26,16 @@
       "title": "Nachricht zu Deinem Gemeinwohl-Beitrag",
       "toSeeAndAnswerMessage": "Antworten kannst Du direkt bei Deinem Beitrag."
     },
+    "addedSupportTicketMessage": {
+      "answered": "{moderatorAlias} hat auf Deine Anfrage Nr. {supportTicketNumber} geantwortet.",
+      "answeredBySupport": "Der Support hat auf Deine Anfrage Nr. {supportTicketNumber} geantwortet.",
+      "closed": "Die Anfrage ist damit geschlossen. Schreibst Du noch einmal, ist sie wieder offen.",
+      "message": "„{message}“",
+      "readMessage": "Nachricht lesen und beantworten",
+      "subject": "Antwort auf Deine Support-Anfrage",
+      "title": "Antwort auf Deine Support-Anfrage",
+      "toAnswer": "Antworten kannst Du direkt bei Deiner Anfrage."
+    },
     "assistedRegistrationConfirm": {
       "accountCreated": "Gemeinsam mit einem Gradido-Mitglied wurde soeben ein Konto für Dich eingerichtet — mit dieser E-Mail-Adresse.",
       "accountCreatedByThanks": "Beim Annehmen eines Danks wurde soeben ein Konto für Dich eingerichtet — mit dieser E-Mail-Adresse.",

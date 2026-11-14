@@ -9,6 +9,7 @@ import {
   supportTicketsTable,
   usersTable,
 } from '../schemas/drizzle.schema'
+import { SupportTicketOfModerator, supportTicketOfModerator } from './supportTickets'
 
 /**
  * A message of the thread as the member reads it, with what the member may be shown of its
@@ -63,6 +64,36 @@ export async function dbCountSupportTicketDialogOfOwner(
       and(
         eq(supportTicketMessagesTable.supportTicketId, supportTicketId),
         eq(supportTicketMessagesTable.type, SupportTicketMessageType.DIALOG),
+      ),
+    )
+  return row.messages
+}
+
+/**
+ * How many messages of one kind a request's thread holds -- the dialog for an answer, the notes
+ * for a note: each kind has its own limit. Counted where the request is the moderator's to act on
+ * (supportTicketOfModerator); outside the scope, in another state and on the moderator's own it
+ * answers 0, as for a missing one -- a full thread there is refused as missing, not as full.
+ */
+export async function dbCountSupportTicketMessagesOfModerator(
+  where: SupportTicketOfModerator,
+  type: SupportTicketMessageType,
+  tx: DrizzleTransaction,
+): Promise<number> {
+  const [row] = await tx
+    .select({ messages: count() })
+    .from(supportTicketMessagesTable)
+    .innerJoin(
+      supportTicketsTable,
+      and(
+        eq(supportTicketsTable.id, supportTicketMessagesTable.supportTicketId),
+        supportTicketOfModerator(where),
+      ),
+    )
+    .where(
+      and(
+        eq(supportTicketMessagesTable.supportTicketId, where.id),
+        eq(supportTicketMessagesTable.type, type),
       ),
     )
   return row.messages

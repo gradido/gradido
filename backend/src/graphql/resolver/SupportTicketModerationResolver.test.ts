@@ -2,6 +2,7 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { sendAddedSupportTicketMessageEmail } from 'core'
 import {
   AppDatabase,
   creationGroupsTable,
@@ -12,11 +13,13 @@ import {
   supportTicketMessagesTable,
   supportTicketsTable,
   UserRole,
+  userContactsTable,
   usersTable,
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
+import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SUPPORT_TICKET_READS_MAX_PER_REQUEST } from '@/data/SupportTicket.logic'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
@@ -28,11 +31,21 @@ import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
 
-// The moderation's side of support requests (K2), through the schema: `@Authorized` and the
+// The moderation's side of support requests (K2, K3), through the schema: `@Authorized` and the
 // request's budget live at the GraphQL layer, the scope in the database. bibi asks, peter is an
 // administrator, bob moderates the garden (and asks himself), räuber the requests without a group.
 // garrick has no address in force, stephen's account is deleted. The requests and their threads
-// are written straight into the tables, the way the member's side (K1) and K3 write them.
+// are written straight into the tables, the way the member's side (K1) and K3 write them. The
+// mail to the member is caught here: what it says is core's (sendEmailVariants.supportAnswer).
+
+jest.mock('core', () => {
+  const original = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...original,
+    sendAddedSupportTicketMessageEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+  }
+})
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -481,6 +494,530 @@ describe('SupportTicketModerationResolver', () => {
       expect(lines.join('')).toContain('SUPPORT_TICKET_INVALID')
       for (const words of ['giesse', 'Morgens', 'gärtnert', 'probt', 'singt']) {
         expect(lines.join('')).not.toContain(words)
+      }
+    })
+  })
+})
+
+// K3: the moderation answers, notes, closes with the tick and deletes; the count of the open tab.
+// Every request here is filed for its test: the requests above stay as K2's tests read them.
+describe('SupportTicketModerationResolver, acting on a request (K3)', () => {
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+        message
+        type
+        isModerator
+        userId
+        userAlias
+        userGradidoID
+      }
+    }
+  `
+  const adminCloseSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminCloseSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminDeleteSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminDeleteSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminCountOpenSupportTickets = gql`
+    query {
+      adminCountOpenSupportTickets {
+        forModeration
+        forMember
+      }
+    }
+  `
+  // the member's own reading of the thread (K1)
+  const listSupportTicketMessages = gql`
+    query ($supportTicketId: Int!) {
+      listSupportTicketMessages(supportTicketId: $supportTicketId) {
+        id
+        message
+        type
+      }
+    }
+  `
+
+  const write = (
+    supportTicketId: number,
+    message: string,
+    type: SupportTicketMessageType = 'DIALOG',
+    close = false,
+  ): Promise<any> =>
+    mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: { supportTicketId, message, type, close },
+    })
+  const tick = (supportTicketId: number): Promise<any> =>
+    mutate({ mutation: adminCloseSupportTicket, variables: { supportTicketId } })
+  const remove = (supportTicketId: number): Promise<any> =>
+    mutate({ mutation: adminDeleteSupportTicket, variables: { supportTicketId } })
+  const counted = (): Promise<any> => query({ query: adminCountOpenSupportTickets })
+
+  const rowOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const messagesOf = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+  const mail = sendAddedSupportTicketMessageEmail as jest.Mock
+  const mails = () => mail.mock.calls.map(([data]) => data)
+  // a full thread of one kind, written in one statement
+  const fill = (
+    supportTicketId: number,
+    author: DbUser,
+    howMany: number,
+    type: SupportTicketMessageType,
+  ) =>
+    drizzleDb()
+      .insert(supportTicketMessagesTable)
+      .values(
+        Array.from({ length: howMany }, (_, n) => ({
+          supportTicketId,
+          userId: author.id,
+          message: `${type} ${n}`,
+          type,
+          isModerator: author.id === peter.id,
+          createdAt: at(100 + n),
+        })),
+      )
+
+  // nothing is written where nothing may be: the row as it was, no message in its thread
+  const untouched = async (id: number, status: SupportTicketStatus) => {
+    expect(await rowOf(id)).toMatchObject({ status, deletedAt: null })
+    expect(await messagesOf(id)).toEqual([])
+  }
+
+  beforeEach(() => {
+    mail.mockClear()
+  })
+
+  describe('without a login', () => {
+    beforeAll(() => resetToken())
+
+    it('answers, notes, closes, deletes and counts nothing', async () => {
+      const id = await file(bibi.id, 'Hilfe ohne Anmeldung', 30, gardenId)
+      await expect(write(id, 'Antwort')).resolves.toEqual(unauthorized)
+      await expect(write(id, 'Notiz', 'MODERATOR')).resolves.toEqual(unauthorized)
+      await expect(tick(id)).resolves.toEqual(unauthorized)
+      await expect(remove(id)).resolves.toEqual(unauthorized)
+      await expect(counted()).resolves.toEqual(unauthorized)
+      await untouched(id, 'OPEN')
+    })
+  })
+
+  describe('a member without the right', () => {
+    beforeAll(() => loginAs('bibi@bloxberg.de'))
+
+    it('answers, notes, closes, deletes and counts nothing, also in the own request', async () => {
+      const id = await file(bibi.id, 'Meine eigene Anfrage', 31, gardenId)
+      await expect(write(id, 'Antwort')).resolves.toEqual(unauthorized)
+      await expect(write(id, 'Notiz', 'MODERATOR')).resolves.toEqual(unauthorized)
+      await expect(tick(id)).resolves.toEqual(unauthorized)
+      await expect(remove(id)).resolves.toEqual(unauthorized)
+      await expect(counted()).resolves.toEqual(unauthorized)
+      await untouched(id, 'OPEN')
+    })
+  })
+
+  describe('an administrator', () => {
+    beforeAll(() => loginAs('peter@lustig.de'))
+
+    it('answers: the answer in the thread, a question back to the member, and a mail to the member', async () => {
+      const id = await file(bibi.id, 'Wie schöpfe ich?', 32, gardenId)
+      const res = await write(id, '  Am **Handy** oben rechts.  ')
+      expect(res.errors).toBeUndefined()
+      expect(res.data.adminCreateSupportTicketMessage).toMatchObject({
+        message: 'Am **Handy** oben rechts.',
+        type: 'DIALOG',
+        isModerator: true,
+        userId: peter.id,
+        userGradidoID: peter.gradidoId,
+      })
+      expect(await rowOf(id)).toMatchObject({
+        status: 'IN_PROGRESS',
+        closedAt: null,
+        closedBy: null,
+      })
+      expect(await messagesOf(id)).toEqual([
+        expect.objectContaining({
+          id: res.data.adminCreateSupportTicketMessage.id,
+          userId: peter.id,
+          message: 'Am **Handy** oben rechts.',
+          type: 'DIALOG',
+          isModerator: true,
+        }),
+      ])
+      expect(mails()).toEqual([
+        expect.objectContaining({
+          email: 'bibi@bloxberg.de',
+          firstName: 'Bibi',
+          language: bibi.language,
+          moderatorAlias: peter.alias || null,
+          supportTicketNumber: id,
+          message: 'Am **Handy** oben rechts.',
+          closed: false,
+        }),
+      ])
+    })
+
+    it('answers and closes: closed by the moderator at the moment of the answer, mailed with it', async () => {
+      const id = await file(bibi.id, 'Kann ich das so machen?', 33, gardenId)
+      const res = await write(id, 'Ja, genau so.', 'DIALOG', true)
+      expect(res.errors).toBeUndefined()
+      const row = await rowOf(id)
+      expect(row).toMatchObject({ status: 'CLOSED', closedBy: peter.id })
+      expect(row.closedAt).toEqual((await messagesOf(id))[0].createdAt)
+      expect(mails()).toEqual([expect.objectContaining({ supportTicketNumber: id, closed: true })])
+    })
+
+    it('writes a note that changes nothing of the request and mails nobody', async () => {
+      // the member closed it just before
+      const id = await file(bibi.id, 'Erledigt, danke', 34, gardenId, {
+        status: 'CLOSED',
+        closedAt: at(35),
+        closedBy: bibi.id,
+      })
+      const res = await write(id, 'Intern: hat sich selbst geholfen.', 'MODERATOR')
+      expect(res.errors).toBeUndefined()
+      expect(res.data.adminCreateSupportTicketMessage).toMatchObject({
+        type: 'MODERATOR',
+        isModerator: true,
+      })
+      expect(await rowOf(id)).toMatchObject({
+        status: 'CLOSED',
+        closedAt: at(35),
+        closedBy: bibi.id,
+      })
+      expect(await messagesOf(id)).toEqual([
+        expect.objectContaining({ type: 'MODERATOR', isModerator: true }),
+      ])
+      expect(mail).not.toHaveBeenCalled()
+    })
+
+    it('opens a closed request again as a question back with an answer, also one the member closed', async () => {
+      const id = await file(bibi.id, 'Noch eine Frage dazu', 36, gardenId, {
+        status: 'CLOSED',
+        closedAt: at(37),
+        closedBy: bibi.id,
+      })
+      expect((await write(id, 'Gern, was denn?')).errors).toBeUndefined()
+      expect(await rowOf(id)).toMatchObject({
+        status: 'IN_PROGRESS',
+        closedAt: null,
+        closedBy: null,
+      })
+    })
+
+    it('refuses a note that would close, words too long and none, with nothing written', async () => {
+      const id = await file(bibi.id, 'Bitte hilf mir', 38, gardenId)
+      await expect(write(id, 'Intern', 'MODERATOR', true)).resolves.toEqual(
+        refusedWith('SUPPORT_TICKET_INVALID'),
+      )
+      await expect(write(id, 'a'.repeat(MESSAGE_MAX_CHARS + 1))).resolves.toEqual(
+        refusedWith('SUPPORT_TICKET_INVALID'),
+      )
+      await expect(write(id, '   ')).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+      // the bound itself is taken, counted by characters: an emoji is one
+      expect((await write(id, '😊'.repeat(MESSAGE_MAX_CHARS))).errors).toBeUndefined()
+      expect(await messagesOf(id)).toHaveLength(1)
+    })
+
+    it('writes nothing into a deleted request, also where its thread is full', async () => {
+      const id = await file(bibi.id, 'Gelöscht', 39, gardenId, {
+        status: 'DELETED',
+        deletedAt: at(40),
+        deletedBy: peter.id,
+      })
+      await fill(id, bibi, SUPPORT_TICKET_MESSAGES_MAX, 'DIALOG')
+      for (const attempt of [
+        () => write(id, 'Antwort'),
+        () => write(id, 'Antwort und Schluss', 'DIALOG', true),
+        () => write(id, 'Notiz', 'MODERATOR'),
+        () => tick(id),
+        () => remove(id),
+      ]) {
+        await expect(attempt()).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      }
+      expect(await rowOf(id)).toMatchObject({ status: 'DELETED', deletedAt: at(40) })
+      expect(await messagesOf(id)).toHaveLength(SUPPORT_TICKET_MESSAGES_MAX)
+      expect(mail).not.toHaveBeenCalled()
+    })
+
+    it('takes the last message the dialog holds and refuses the next; the notes count on their own', async () => {
+      const id = await file(bibi.id, 'Ein langes Gespräch', 41, gardenId)
+      await fill(id, bibi, SUPPORT_TICKET_MESSAGES_MAX - 1, 'DIALOG')
+      expect((await write(id, 'Die letzte Antwort')).errors).toBeUndefined()
+      await expect(write(id, 'Eine zu viel')).resolves.toEqual(
+        refusedWith('SUPPORT_TICKET_MESSAGES_REACHED'),
+      )
+      // a full dialog takes notes still, up to as many
+      await fill(id, peter, SUPPORT_TICKET_MESSAGES_MAX - 1, 'MODERATOR')
+      expect((await write(id, 'Die letzte Notiz', 'MODERATOR')).errors).toBeUndefined()
+      await expect(write(id, 'Eine Notiz zu viel', 'MODERATOR')).resolves.toEqual(
+        refusedWith('SUPPORT_TICKET_MESSAGES_REACHED'),
+      )
+      expect(await messagesOf(id)).toHaveLength(2 * SUPPORT_TICKET_MESSAGES_MAX)
+    })
+
+    it('closes with the tick: closed by the moderator, no message, no mail -- an open one and a question back, no other', async () => {
+      const open = await file(bibi.id, 'Hat sich erledigt', 42, gardenId)
+      const asked = await file(bibi.id, 'Rückfrage offen', 43, gardenId, { status: 'IN_PROGRESS' })
+      const closed = await file(bibi.id, 'Schon geschlossen', 44, gardenId, {
+        status: 'CLOSED',
+        closedAt: at(45),
+        closedBy: bibi.id,
+      })
+      for (const id of [open, asked]) {
+        expect(await tick(id)).toEqual(
+          expect.objectContaining({ data: { adminCloseSupportTicket: true } }),
+        )
+        expect(await rowOf(id)).toMatchObject({ status: 'CLOSED', closedBy: peter.id })
+        expect(await messagesOf(id)).toEqual([])
+      }
+      await expect(tick(closed)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      expect(await rowOf(closed)).toMatchObject({ closedAt: at(45), closedBy: bibi.id })
+      expect(mail).not.toHaveBeenCalled()
+    })
+
+    it('deletes: deleted by the moderator, no message, no mail -- an open one and a question back, no other', async () => {
+      const open = await file(bibi.id, 'Spam', 46, gardenId)
+      const asked = await file(bibi.id, 'Doppelt gefragt', 47, gardenId, { status: 'IN_PROGRESS' })
+      const closed = await file(bibi.id, 'Geschlossen', 48, gardenId, {
+        status: 'CLOSED',
+        closedAt: at(49),
+        closedBy: bibi.id,
+      })
+      for (const id of [open, asked]) {
+        expect(await remove(id)).toEqual(
+          expect.objectContaining({ data: { adminDeleteSupportTicket: true } }),
+        )
+        expect(await rowOf(id)).toMatchObject({ status: 'DELETED', deletedBy: peter.id })
+        expect((await rowOf(id)).deletedAt).not.toBeNull()
+        expect(await messagesOf(id)).toEqual([])
+      }
+      await expect(remove(closed)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      expect(await rowOf(closed)).toMatchObject({ status: 'CLOSED', deletedAt: null })
+      expect(mail).not.toHaveBeenCalled()
+    })
+
+    it('answers a request that does not exist as one outside the scope', async () => {
+      const missing = 9999999
+      await expect(write(missing, 'Antwort')).resolves.toEqual(
+        refusedWith('SUPPORT_TICKET_NOT_FOUND'),
+      )
+      await expect(tick(missing)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      await expect(remove(missing)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    })
+
+    it('mails no address that is not confirmed, nobody without an address in force, and no deleted member', async () => {
+      const unconfirmed = await file(raeuber.id, 'Meine Adresse ist neu', 50, null)
+      const withoutAddress = await file(garrick.id, 'Ohne Adresse', 51, gardenId)
+      const ofTheDeleted = await file(stephen.id, 'Ein gelöschtes Konto', 52, null)
+      const confirmedAgain = () =>
+        drizzleDb()
+          .update(userContactsTable)
+          .set({ emailChecked: true })
+          .where(eq(userContactsTable.userId, raeuber.id))
+      await drizzleDb()
+        .update(userContactsTable)
+        .set({ emailChecked: false })
+        .where(eq(userContactsTable.userId, raeuber.id))
+      try {
+        for (const id of [unconfirmed, withoutAddress, ofTheDeleted]) {
+          expect((await write(id, 'Antwort')).errors).toBeUndefined()
+          expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS' })
+        }
+        expect(mail).not.toHaveBeenCalled()
+      } finally {
+        await confirmedAgain()
+      }
+    })
+
+    it('answers alike where the mail fails: the answer stands, and is not reported as failed', async () => {
+      const id = await file(bibi.id, 'Wenn die Mail nicht geht', 53, gardenId)
+      mail.mockRejectedValueOnce(new Error('the transport is down'))
+      const res = await write(id, 'Die Antwort steht trotzdem.')
+      expect(res.errors).toBeUndefined()
+      expect(await messagesOf(id)).toHaveLength(1)
+      expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS' })
+    })
+
+    it('counts the open tab as it lists it, both halves, the moderator own requests too', async () => {
+      const res = await counted()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.adminCountOpenSupportTickets).toEqual({
+        forModeration: (await listed(['OPEN'])).count,
+        forMember: (await listed(['IN_PROGRESS'])).count,
+      })
+      expect(res.data.adminCountOpenSupportTickets.forModeration).toBeGreaterThan(0)
+      expect(res.data.adminCountOpenSupportTickets.forMember).toBeGreaterThan(0)
+    })
+
+    // Each write is a transaction or a mail: one per HTTP request, over every alias (RequestBudget).
+    it.each([
+      [
+        'an answer',
+        (id: number) =>
+          `adminCreateSupportTicketMessage(supportTicketId: ${id}, message: "Antwort", type: DIALOG, close: false) { id }`,
+      ],
+      ['a tick', (id: number) => `adminCloseSupportTicket(supportTicketId: ${id})`],
+      ['a delete', (id: number) => `adminDeleteSupportTicket(supportTicketId: ${id})`],
+    ])(
+      'writes %s once per HTTP request: the second is refused, nothing written twice',
+      async (_kind, field) => {
+        const first = await file(bibi.id, 'Erste', 54, gardenId)
+        const second = await file(bibi.id, 'Zweite', 55, gardenId)
+        const res: any = await mutate({
+          mutation: gql(`mutation { first: ${field(first)} second: ${field(second)} }`),
+        })
+        expect(res.errors).toEqual([
+          expect.objectContaining({ message: 'Too many support writes at once' }),
+        ])
+        await untouched(second, 'OPEN')
+        expect(mail.mock.calls.length).toBeLessThanOrEqual(1)
+      },
+    )
+
+    it('reads the count at most so many times per HTTP request', async () => {
+      const aliases = Array.from(
+        { length: SUPPORT_TICKET_READS_MAX_PER_REQUEST + 1 },
+        (_, n) => `count${n}: adminCountOpenSupportTickets { forModeration }`,
+      )
+      const res: any = await query({ query: gql(`query { ${aliases.join('\n')} }`) })
+      expect(res.errors).toEqual([
+        expect.objectContaining({ message: 'Too many support requests read at once' }),
+      ])
+    })
+  })
+
+  describe('a moderator of one group', () => {
+    beforeAll(() => loginAs('bob@baumeister.de'))
+
+    it('answers, notes, closes and deletes in the group', async () => {
+      const answered = await file(bibi.id, 'Im Garten', 60, gardenId)
+      expect((await write(answered, 'Bob antwortet.')).errors).toBeUndefined()
+      expect((await write(answered, 'Bob notiert.', 'MODERATOR')).errors).toBeUndefined()
+      expect(await rowOf(answered)).toMatchObject({ status: 'IN_PROGRESS' })
+      const ticked = await file(bibi.id, 'Im Garten erledigt', 61, gardenId)
+      expect((await tick(ticked)).errors).toBeUndefined()
+      expect(await rowOf(ticked)).toMatchObject({ status: 'CLOSED', closedBy: bob.id })
+      const removed = await file(bibi.id, 'Im Garten doppelt', 62, gardenId)
+      expect((await remove(removed)).errors).toBeUndefined()
+      expect(await rowOf(removed)).toMatchObject({ status: 'DELETED', deletedBy: bob.id })
+    })
+
+    it('reaches nothing outside the group: every act answers as for a missing request, nothing is written', async () => {
+      const inChoir = await file(bibi.id, 'Im Chor', 63, choirId)
+      const ungrouped = await file(bibi.id, 'Ohne Gruppe', 64, null)
+      for (const id of [inChoir, ungrouped]) {
+        for (const attempt of [
+          () => write(id, 'Antwort'),
+          () => write(id, 'Antwort und Schluss', 'DIALOG', true),
+          () => write(id, 'Notiz', 'MODERATOR'),
+          () => tick(id),
+          () => remove(id),
+        ]) {
+          await expect(attempt()).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+        }
+        await untouched(id, 'OPEN')
+      }
+      expect(mail).not.toHaveBeenCalled()
+    })
+
+    it('acts on nothing of the own request, also where it stands in the group', async () => {
+      const own = await file(bob.id, 'Meine eigene Frage', 65, gardenId)
+      for (const attempt of [
+        () => write(own, 'Ich antworte mir selbst'),
+        () => write(own, 'Ich notiere mir selbst', 'MODERATOR'),
+        () => tick(own),
+        () => remove(own),
+      ]) {
+        await expect(attempt()).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      }
+      await untouched(own, 'OPEN')
+    })
+
+    it('counts the open tab of the group only, as the tab lists it', async () => {
+      const res = await counted()
+      expect(res.errors).toBeUndefined()
+      expect(res.data.adminCountOpenSupportTickets).toEqual({
+        forModeration: (await listed(['OPEN'])).count,
+        forMember: (await listed(['IN_PROGRESS'])).count,
+      })
+      // the choir's open request of the test before is not counted here
+      await loginAs('peter@lustig.de')
+      const all = (await counted()).data.adminCountOpenSupportTickets
+      expect(all.forModeration).toBeGreaterThan(res.data.adminCountOpenSupportTickets.forModeration)
+      await loginAs('bob@baumeister.de')
+    })
+  })
+
+  describe('the member', () => {
+    it('reads the answer and none of the notes, through the own operations', async () => {
+      await loginAs('peter@lustig.de')
+      const id = await file(bibi.id, 'Was sieht das Mitglied?', 70, gardenId)
+      await write(id, 'Die Antwort an Dich.')
+      await write(id, 'Nur für die Moderation.', 'MODERATOR')
+      await loginAs('bibi@bloxberg.de')
+      const res: any = await query({
+        query: listSupportTicketMessages,
+        variables: { supportTicketId: id },
+      })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.listSupportTicketMessages).toEqual([
+        expect.objectContaining({ message: 'Die Antwort an Dich.', type: 'DIALOG' }),
+      ])
+    })
+  })
+
+  describe('the log', () => {
+    it('gets nothing of the words of an answer or a note, also where one is refused', async () => {
+      await loginAs('peter@lustig.de')
+      const id = await file(bibi.id, 'Wörter im Protokoll?', 71, gardenId)
+      clearLogs()
+      await write(id, 'Sonnenblumenkerne')
+      await write(id, 'Kompostwürmer', 'MODERATOR')
+      await write(id, 'Regentonne', 'MODERATOR', true)
+      await write(id, 'x'.repeat(MESSAGE_MAX_CHARS) + 'Gartenzwerg')
+      await loginAs('bob@baumeister.de')
+      const inChoir = await file(bibi.id, 'Chorprobe', 72, choirId)
+      await write(inChoir, 'Notenständer')
+      const lines: string[] = []
+      const stdout = jest.spyOn(process.stdout, 'write').mockImplementation((line) => {
+        lines.push(String(line))
+        return true
+      })
+      printLogs()
+      stdout.mockRestore()
+      // the fixture has to prove itself: the refusals were logged
+      expect(lines.join('')).toContain('SUPPORT_TICKET_NOT_FOUND')
+      expect(lines.join('')).toContain('SUPPORT_TICKET_INVALID')
+      for (const words of [
+        'Sonnenblumen',
+        'Kompost',
+        'Regentonne',
+        'Gartenzwerg',
+        'Notenständer',
+      ]) {
+        expect([words, lines.join('').includes(words)]).toEqual([words, false])
       }
     })
   })

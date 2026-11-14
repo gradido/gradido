@@ -26,6 +26,16 @@
       "title": "Message concernant ta contribution au bien commun",
       "toSeeAndAnswerMessage": "Tu peux répondre directement sur ta contribution."
     },
+    "addedSupportTicketMessage": {
+      "answered": "{moderatorAlias} a répondu à ta demande n° {supportTicketNumber}.",
+      "answeredBySupport": "L'assistance a répondu à ta demande n° {supportTicketNumber}.",
+      "closed": "La demande est ainsi fermée. Si tu écris à nouveau, elle est rouverte.",
+      "message": "« {message} »",
+      "readMessage": "Lire et répondre au message",
+      "subject": "Réponse à ta demande d'assistance",
+      "title": "Réponse à ta demande d'assistance",
+      "toAnswer": "Tu peux répondre directement dans ta demande."
+    },
     "assistedRegistrationConfirm": {
       "accountCreated": "Avec un membre Gradido, un compte vient d'être créé pour toi — avec cette adresse e-mail.",
       "accountCreatedByThanks": "Lors de l'acceptation d'un remerciement, un compte vient d'être créé pour toi — avec cette adresse e-mail.",
