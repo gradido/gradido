@@ -442,6 +442,13 @@ test.describe('on a phone', () => {
 
 // K3: the moderation answers, notes, closes with the tick and deletes; the count of the open tab.
 const field = (page: Page) => card(page).locator('.tab-pane.active textarea')
+// A form tab, chosen: Mithril draws the switch at the next frame, so what is typed right after a
+// click would still go into the tab before.
+const choose = async (page: Page, name: string) => {
+  const formTab = card(page).getByRole('tab', { name })
+  await formTab.click()
+  await expect(formTab).toHaveAttribute('aria-selected', 'true')
+}
 const button = (page: Page, name: string) => card(page).getByRole('button', { name, exact: true })
 const dialog = (page: Page) => page.getByRole('dialog')
 const toast = (page: Page, text: string) => page.getByRole('alert').filter({ hasText: text })
@@ -505,7 +512,7 @@ test('writes a note under its own tab with "Speichern", and offers no answer the
   test.skip(info.project.name === 'old', ONLY_NEW)
   graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
   await opened(page)
-  await card(page).getByRole('tab', { name: de.moderator.notice }).click()
+  await choose(page, de.moderator.notice)
   await expect(card(page).locator('.row.mt-4 button')).toHaveText([de.form.cancel, de.save])
   await field(page).fill('Rückruf vereinbart')
   await button(page, de.save).click()
@@ -549,11 +556,9 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
   test.skip(info.project.name === 'old', ONLY_NEW)
   graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
   await opened(page)
-  const notice = card(page).getByRole('tab', { name: de.moderator.notice })
-  const message = card(page).getByRole('tab', { name: de.moderator.message })
-  await notice.click()
+  await choose(page, de.moderator.notice)
   await field(page).fill('Intern: hat sich selbst geholfen.')
-  await message.click()
+  await choose(page, de.moderator.message)
   await expect(field(page)).toHaveValue('')
   await expect(button(page, de.support.answer)).toBeDisabled()
   await field(page).fill('Schön, dass es klappt!')
@@ -564,12 +569,12 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
     { supportTicketId: 1, message: 'Schön, dass es klappt!', type: 'DIALOG', close: false },
   ])
   // the note's draft is still there, and "Abbrechen" empties only the draft shown
-  await notice.click()
+  await choose(page, de.moderator.notice)
   await expect(field(page)).toHaveValue('Intern: hat sich selbst geholfen.')
-  await message.click()
+  await choose(page, de.moderator.message)
   await field(page).fill('Doch nicht')
   await button(page, de.form.cancel).click()
-  await notice.click()
+  await choose(page, de.moderator.notice)
   await expect(field(page)).toHaveValue('Intern: hat sich selbst geholfen.')
 })
 
@@ -595,7 +600,7 @@ test('keeps the words and says why where the server refuses', async ({ page, gra
   // done or refused, the list is asked for anew
   await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
 
-  await card(page).getByRole('tab', { name: de.moderator.notice }).click()
+  await choose(page, de.moderator.notice)
   await field(page).fill('Noch eine Notiz')
   await button(page, de.save).click()
   await expect(toast(page, de.support.notesReached.replace('{max}', '100'))).toBeVisible()
