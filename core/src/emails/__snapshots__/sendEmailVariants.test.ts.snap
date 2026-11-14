@@ -2239,7 +2239,7 @@ exports[`sendEmailVariants sendAddedSupportTicketMessageEmail result has the cor
           <div class=\"p_content\" style=\"margin: 15px 0 15px 0; line-height: 26px; color: #696c72;\">
             <p><span class=\"human-text\" style=\"white-space: pre-line; overflow-wrap: anywhere; word-break: break-word;\">“My answer.”</span>
             </p>
-            <p>You can reply directly at your request.</p>
+            <p>You can reply directly in your request.</p>
           </div>
           <div class=\"child-right\" style=\"text-align: right;\"><a class=\"button-5\" href=\"http://localhost/support/my-requests\" style=\"display: inline-block; padding: 9px 15px; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; margin: 25px 0 25px 0; background-image: linear-gradient(135deg, #53900c, #6e6e6e); font-size: 20px; font-weight: 600; color: #f5f5f5; width: auto; box-shadow: none; transition: all 0.3s ease;\"><span class=\"chatbox-wrapper\" style=\"margin-right: 8px;\"><img class=\"bi-chatbox\" alt=\"chatbox\" loading=\"lazy\" src=\"cid:chatboxicon\" style=\"margin-bottom: -5px;\"></span><span>Reply</span></a></div>
         </div><a class=\"button-3\" href=\"http://localhost/transactions\" style=\"display: inline-block; padding: 9px 15px; color: white; border: 0; line-height: inherit; text-decoration: none; cursor: pointer; border-radius: 20px; background-image: radial-gradient(circle farthest-corner at 0% 0%, #f9cd69, #c58d38); box-shadow: 16px 13px 35px 0 rgba(56, 56, 56, 0.3); margin: 25px 0 25px 0; width: 50%;\">To account</a>
