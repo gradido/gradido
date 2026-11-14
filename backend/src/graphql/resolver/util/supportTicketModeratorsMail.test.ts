@@ -104,14 +104,19 @@ beforeEach(() => {
 })
 
 describe('readSupportTicketMailRecipients', () => {
-  it('finds, for a request of a group, its moderators and then those who see everything', async () => {
-    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([11, 14])
-    expect(ids(await readSupportTicketMailRecipients('choir', []))).toEqual([13, 14])
+  // the staircase of the rule (SUA-027): the group's own, else who sees everything, else admins
+  it('finds, for a request of a group, its moderators', async () => {
+    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([11])
+    expect(ids(await readSupportTicketMailRecipients('choir', []))).toEqual([13])
     expect(mockDatabase.dbSelectRoleHoldersWithContact).toHaveBeenCalledTimes(2)
   })
 
-  it('finds, for a request without a group, those with "no group" and then those who see everything', async () => {
-    expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([12, 13, 14])
+  it('finds, for a request without a group, those with "no group"', async () => {
+    expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([12, 13])
+  })
+
+  it('finds those who see everything for a group without moderators of its own', async () => {
+    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([14])
   })
 
   it('finds the administrators where no moderator is left', async () => {

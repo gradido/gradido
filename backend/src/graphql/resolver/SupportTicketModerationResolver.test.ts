@@ -1637,10 +1637,11 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
   })
 })
 
-// SUA-024, point 3, and Falle 18 of K5: who hears of a request by mail is who finds it in their
+// SUA-024, point 3, SUA-027 and Falle 18 of K5: who hears of a request by mail finds it in their
 // list -- the rule of the mail and the list's condition (supportTicketsInScope) held against each
 // other, for every kind of scope: a group (bob), "no group" (räuber), both (carla, from the search
-// above), everything (alma, new here).
+// above), everything (alma, new here). The rule is a staircase: the group's own moderators, else
+// those who see everything, else the administrators.
 describe('SupportTicketModerationResolver, the mail and the list agree (K5)', () => {
   let alma: DbUser
 
@@ -1687,29 +1688,38 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     ['garden', 'Gartenprobe'],
     ['choir', 'Chorprobe'],
     [null, 'Ohneprobe'],
-  ])('mails for a request of %s exactly those who find it in their list', async (tag, word) => {
+  ])('mails for a request of %s only those who find it in their list', async (tag, word) => {
     const groupId = tag === 'garden' ? gardenId : tag === 'choir' ? choirId : null
     const id = await file(bibi.id, `Eine ${word}`, 500, groupId)
     const recipients = (await readSupportTicketMailRecipients(tag, [bibi.id])).map(
       ({ userId }) => userId,
     )
+    const finders = await findersOf(id, word)
     expect(recipients.length).toBeGreaterThan(0)
-    expect([...recipients].sort()).toEqual((await findersOf(id, word)).sort())
+    expect(finders).toEqual(expect.arrayContaining(recipients))
+    // who sees everything finds it too, and is the next step only (SUA-027)
+    expect(finders).toContain(alma.id)
+    expect(recipients).not.toContain(alma.id)
   })
 
-  it("names them in the order of the rule: the group's first, then who sees everything", async () => {
+  it("names the group's own, else who sees everything, else the administrators (SUA-027)", async () => {
     const carla = await holderId('carla@sonne.de')
-    const recipientsOf = async (tag: string | null) =>
-      (await readSupportTicketMailRecipients(tag, [])).map(({ userId }) => userId)
-    expect(await recipientsOf('garden')).toEqual([bob.id, alma.id])
-    expect(await recipientsOf('choir')).toEqual([carla, alma.id])
-    expect(await recipientsOf(null)).toEqual([raeuber.id, carla, alma.id])
+    const recipientsOf = async (tag: string | null, notFor: number[] = []) =>
+      (await readSupportTicketMailRecipients(tag, notFor)).map(({ userId }) => userId)
+    expect(await recipientsOf('garden')).toEqual([bob.id])
+    expect(await recipientsOf('choir')).toEqual([carla])
+    expect(await recipientsOf(null)).toEqual([raeuber.id, carla])
+    // a group without moderators of its own, and one whose only moderator asks
+    expect(await recipientsOf('orchard')).toEqual([alma.id])
+    expect(await recipientsOf('garden', [bob.id])).toEqual([alma.id])
+    expect(await recipientsOf('garden', [bob.id, alma.id])).toEqual([peter.id])
   })
 })
 
 // The mail when a request is handed on (K5, SUA-024 point 6): the moderators of the group it goes
 // to hear of it as of a new one, with who handed it on -- never that one, never the member. Who
-// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all).
+// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all);
+// the staircase of SUA-027 mails alma only where the group has nobody left.
 describe('SupportTicketModerationResolver, the mail when a request is handed on (K5)', () => {
   const adminReassignSupportTicket = gql`
     mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
@@ -1749,8 +1759,8 @@ describe('SupportTicketModerationResolver, the mail when a request is handed on 
     await loginAs('peter@lustig.de')
     expect((await handOn(id, 'choir')).data.adminReassignSupportTicket).toBe(true)
     await mailsSent()
-    // the group's first, then who sees everything; not bob, whose garden it left
-    expect(mailedTo()).toEqual(['carla@sonne.de', 'alma@all.de'])
+    // the group's own; not bob, whose garden it left, and not alma, the next step only
+    expect(mailedTo()).toEqual(['carla@sonne.de'])
     for (const [data] of moderatorsMail.mock.calls) {
       expect(data).toMatchObject({
         actorAlias: peter.alias,
@@ -1768,17 +1778,23 @@ describe('SupportTicketModerationResolver, the mail when a request is handed on 
     await loginAs('peter@lustig.de')
     expect((await handOn(id, '')).errors).toBeUndefined()
     await mailsSent()
-    expect(mailedTo()).toEqual(['raeuber@hotzenplotz.de', 'carla@sonne.de', 'alma@all.de'])
+    expect(mailedTo()).toEqual(['raeuber@hotzenplotz.de', 'carla@sonne.de'])
     expect(moderatorsMail.mock.calls[0][0]).toMatchObject({ groupName: null, reassigned: true })
   })
 
-  it('never mails who handed it on, also where they are among the moderators of the new group', async () => {
-    const id = await file(bibi.id, 'Für den Chor', 602, gardenId)
+  it('never mails who handed it on, also where they would be the next step', async () => {
+    // bob asks in the choir, and alma hands it on to his garden: bob is the member who asked and
+    // alma who handed on, so the staircase goes on to the administrators
+    const id = await file(bob.id, 'Eher etwas für den Garten', 602, choirId)
     await loginAs('alma@all.de')
-    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    expect((await handOn(id, 'garden')).errors).toBeUndefined()
     await mailsSent()
-    expect(mailedTo()).toEqual(['carla@sonne.de'])
-    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({ actorAlias: 'AlmaAll' })
+    expect(mailedTo()).toEqual(['peter@lustig.de'])
+    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({
+      actorAlias: 'AlmaAll',
+      groupName: 'Garten',
+      reassigned: true,
+    })
   })
 
   it('never mails the member who asked, also where they moderate the new group', async () => {
@@ -1803,7 +1819,7 @@ describe('SupportTicketModerationResolver, the mail when a request is handed on 
     await mailsSent()
     expect(res.errors).toBeUndefined()
     expect(res.data.adminReassignSupportTicket).toBe(true)
-    expect(moderatorsMail).toHaveBeenCalledTimes(2)
+    expect(moderatorsMail).toHaveBeenCalledTimes(1)
     expect((await linesOf(id)).map(({ message }) => message)).toEqual(['Garten\nChor'])
   })
 

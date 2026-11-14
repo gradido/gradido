@@ -131,13 +131,14 @@ const sameTag = (a: string, b: string): boolean =>
   a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 
 /**
- * Who hears of a request by mail -- a new one, or one handed on to `groupTag` (null: no group):
- * the moderators who find it in their list (supportTicketsInScope) -- first those its group is
- * assigned to (for one without a group: those with "no group"), then those who see everything,
- * each by their number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Only where none is left do the
- * administrators get it, whatever their scope says. Who may not handle requests gets nothing, and
- * neither does anybody in `notFor` -- the asking member, who handed on: they fall out first, so
- * the request of a group's only moderator still reaches somebody (SUA-024, point 3).
+ * Who hears of a request by mail -- a new one, or one handed on to `groupTag` (null: no group): a
+ * staircase (SUA-027), each step among those who find the request in their list
+ * (supportTicketsInScope). First the moderators its group is assigned to (for one without a group:
+ * those with "no group"); only where none is left, the moderators who see everything; only where
+ * none of them is left either, the administrators, whatever their scope says. Each step by their
+ * number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests gets nothing, and
+ * neither does anybody in `notFor` -- the asking member, who handed on: they fall out first, so the
+ * request of a group's only moderator still reaches somebody.
  */
 export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate>(
   candidates: T[],
@@ -156,11 +157,9 @@ export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate
   const seeEverything = left.filter(
     ({ isAdmin, seesAllCreationGroups }) => !isAdmin && seesAllCreationGroups,
   )
-  const moderators = [...assigned, ...seeEverything]
-  return (moderators.length > 0 ? moderators : left.filter(({ isAdmin }) => isAdmin)).slice(
-    0,
-    SUPPORT_TICKET_MAIL_RECIPIENTS_MAX,
-  )
+  const administrators = left.filter(({ isAdmin }) => isAdmin)
+  const step = [assigned, seeEverything, administrators].find((each) => each.length > 0) ?? []
+  return step.slice(0, SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
 }
 
 /**

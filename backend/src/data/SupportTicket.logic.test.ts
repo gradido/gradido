@@ -149,13 +149,20 @@ describe('supportTicketMailRecipients', () => {
   const peter = admin(1)
   const cast = [all, both, untagged, garden, peter]
 
-  it('mails, for a request of a group, those it is assigned to and then those who see everything', () => {
-    expect(ids(supportTicketMailRecipients(cast, 'garden', []))).toEqual([11, 14])
-    expect(ids(supportTicketMailRecipients(cast, 'choir', []))).toEqual([13, 14])
+  // a staircase (SUA-027): the next step only where the one before has nobody left
+  it('mails, for a request of a group, those it is assigned to, and only them', () => {
+    expect(ids(supportTicketMailRecipients(cast, 'garden', []))).toEqual([11])
+    expect(ids(supportTicketMailRecipients(cast, 'choir', []))).toEqual([13])
   })
 
-  it('mails, for a request without a group, those with "no group" and then those who see everything', () => {
-    expect(ids(supportTicketMailRecipients(cast, null, []))).toEqual([12, 13, 14])
+  it('mails, for a request without a group, those with "no group", and only them', () => {
+    expect(ids(supportTicketMailRecipients(cast, null, []))).toEqual([12, 13])
+  })
+
+  it('mails those who see everything where the group has nobody, and only then', () => {
+    expect(ids(supportTicketMailRecipients(cast, 'orchard', []))).toEqual([14])
+    expect(ids(supportTicketMailRecipients([all, untagged, peter], 'garden', []))).toEqual([14])
+    expect(ids(supportTicketMailRecipients([all, garden, both, peter], null, []))).toEqual([13])
   })
 
   it('mails nobody who does not find the request in their list', () => {
@@ -178,10 +185,13 @@ describe('supportTicketMailRecipients', () => {
   it('mails the administrators only where no moderator is left, whatever their scope', () => {
     expect(ids(supportTicketMailRecipients([peter, admin(2)], 'garden', []))).toEqual([1, 2])
     expect(ids(supportTicketMailRecipients([peter, garden], 'garden', []))).toEqual([11])
+    expect(ids(supportTicketMailRecipients([peter, all], 'garden', []))).toEqual([14])
   })
 
   it('never mails the asking member, nor who handed on -- and then looks who is left', () => {
+    // the group's only moderator asks: the next step, those who see everything
     expect(ids(supportTicketMailRecipients(cast, 'garden', [11]))).toEqual([14])
+    expect(ids(supportTicketMailRecipients(cast, 'garden', [11, 14]))).toEqual([1])
     // the only moderator of the group asks, and nobody sees everything: the administrators hear
     expect(ids(supportTicketMailRecipients([garden, peter], 'garden', [11]))).toEqual([1])
     expect(ids(supportTicketMailRecipients([garden, peter], 'garden', [11, 1]))).toEqual([])
@@ -195,13 +205,17 @@ describe('supportTicketMailRecipients', () => {
     ).toEqual([])
   })
 
-  it('mails at most twenty, first those the group is assigned to, each by number', () => {
+  it('mails at most twenty of a step, each by number', () => {
+    const assigned = Array.from({ length: 30 }, (_, i) => moderator(200 - i, groups(['garden'])))
     const many = Array.from({ length: 30 }, (_, i) => moderator(100 + i, everything))
-    const assigned = Array.from({ length: 5 }, (_, i) => moderator(200 - i, groups(['garden'])))
     const chosen = ids(supportTicketMailRecipients([...many, ...assigned], 'garden', []))
-    expect(chosen).toHaveLength(SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
-    expect(chosen.slice(0, 5)).toEqual([196, 197, 198, 199, 200])
-    expect(chosen.slice(5)).toEqual(Array.from({ length: 15 }, (_, i) => 100 + i))
+    expect(chosen).toEqual(
+      Array.from({ length: SUPPORT_TICKET_MAIL_RECIPIENTS_MAX }, (_, i) => 171 + i),
+    )
+    // the next step also counts only up to twenty
+    expect(ids(supportTicketMailRecipients(many, 'garden', []))).toEqual(
+      Array.from({ length: SUPPORT_TICKET_MAIL_RECIPIENTS_MAX }, (_, i) => 100 + i),
+    )
   })
 })
 
