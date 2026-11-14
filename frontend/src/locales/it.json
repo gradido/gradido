@@ -1643,6 +1643,9 @@
       "group": "La tua richiesta va ai moderatori del gruppo «{group}». Gli altri membri non possono vederla.",
       "none": "La tua richiesta va al supporto della comunità. Gli altri membri non possono vederla."
     },
+    "reassigned": "Il supporto ha inoltrato la tua richiesta",
+    "reassignedBy": "{name} ha inoltrato la tua richiesta",
+    "reassignedFromTo": "da {from} a {to}",
     "send": "Invia",
     "sent": "La tua richiesta è stata inviata.",
     "write": "Scrivi"

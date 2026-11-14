@@ -916,11 +916,12 @@ enum SupportTicketStatus {
 }
 
 """
-The kind of a message in a support request: dialog, or the moderation internal note
+The kind of a message in a support request: dialog, the moderation internal note, or the line a handing on to another group leaves
 """
 enum SupportTicketMessageType {
   DIALOG
   MODERATOR
+  REASSIGNED
 }
 
 type AdminSupportTicketMessage {
@@ -1175,6 +1176,7 @@ type Mutation {
   adminCreateSupportTicketMessage(resubmissionAt: String, close: Boolean!, type: SupportTicketMessageType!, message: String!, supportTicketId: Int!): AdminSupportTicketMessage!
   adminCloseSupportTicket(supportTicketId: Int!): Boolean!
   adminDeleteSupportTicket(supportTicketId: Int!): Boolean!
+  adminReassignSupportTicket(creationGroupTag: String!, supportTicketId: Int!): Boolean!
   createSupportTicket(creationGroupTag: String, text: String!): SupportTicket!
   createSupportTicketMessage(message: String!, supportTicketId: Int!): SupportTicketMessage!
   closeSupportTicket(supportTicketId: Int!): Boolean!

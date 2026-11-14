@@ -14,6 +14,8 @@ import {
   dbCountOpenSupportTicketsInScope,
   dbCountSupportTicketsOfUserSince,
   dbInsertSupportTicket,
+  dbReassignSupportTicketOfModerator,
+  dbSelectSupportTicketGroupInScope,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketsOfUser,
@@ -483,6 +485,91 @@ describe('supportTickets query test, the moderation side', () => {
       expect(
         await dbCountOpenSupportTicketsInScope(EVERYTHING, new Date(LATER.getTime() + 1)),
       ).toEqual({ forModeration: 2, forMember: 1, onResubmission: 0 })
+    })
+  })
+
+  // K4: handing a request on to another group, or to none
+  describe('handing on', () => {
+    const OPEN_TAB: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS']
+    const where = (id: number, within = EVERYTHING) => ({
+      id,
+      statusIn: OPEN_TAB,
+      scope: within,
+      moderatorId: peter.id,
+    })
+    const handOn = (id: number, from: number | null, to: number | null, within = EVERYTHING) =>
+      inTransaction((tx) => dbReassignSupportTicketOfModerator(where(id, within), from, to, tx))
+
+    it('reads the member and the group of a request where the scope reaches it', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      expect(await dbSelectSupportTicketGroupInScope(inGarden, scope(['garden'], false))).toEqual({
+        userId: bibi.id,
+        creationGroupId: gardenId,
+        creationGroupTag: 'garden',
+        creationGroupName: 'Garten',
+      })
+      expect(await dbSelectSupportTicketGroupInScope(ungrouped, scope([], true))).toEqual({
+        userId: bibi.id,
+        creationGroupId: null,
+        creationGroupTag: null,
+        creationGroupName: null,
+      })
+      expect(await dbSelectSupportTicketGroupInScope(inGarden, scope([], true))).toBeNull()
+      expect(await dbSelectSupportTicketGroupInScope(inGarden + 1000, EVERYTHING)).toBeNull()
+    })
+
+    it('moves a request into a group, out of one into none, and leaves its state', async () => {
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { status: 'IN_PROGRESS', resubmissionAt: LATER })
+      expect(await handOn(ungrouped, null, gardenId)).toBe(true)
+      expect(await rowOf(ungrouped)).toMatchObject({
+        creationGroupId: gardenId,
+        status: 'IN_PROGRESS',
+        // the moderators of the new group see it at once
+        resubmissionAt: null,
+      })
+      expect(await handOn(ungrouped, gardenId, null)).toBe(true)
+      expect(await rowOf(ungrouped)).toMatchObject({ creationGroupId: null, status: 'IN_PROGRESS' })
+      expect(await handOn(ungrouped, null, choirId)).toBe(true)
+      expect((await rowOf(ungrouped)).creationGroupId).toBe(choirId)
+    })
+
+    it('moves nothing where the request no longer stands in the group read before', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      // a colleague handed it on in between
+      await setState(id, { creationGroupId: choirId })
+      expect(await handOn(id, gardenId, null)).toBe(false)
+      expect((await rowOf(id)).creationGroupId).toBe(choirId)
+      // and one read as of no group, which stands in one by now
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { creationGroupId: gardenId })
+      expect(await handOn(ungrouped, null, choirId)).toBe(false)
+      expect((await rowOf(ungrouped)).creationGroupId).toBe(gardenId)
+    })
+
+    it('moves no closed, deleted or own request, none outside the scope and no missing one', async () => {
+      const closed = await file(bibi.id, 'closed', MORNING, gardenId)
+      await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      const deleted = await file(bibi.id, 'deleted', MORNING, gardenId)
+      await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+      const own = await file(peter.id, 'my own', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      expect(await handOn(closed, gardenId, null)).toBe(false)
+      expect(await handOn(deleted, gardenId, null)).toBe(false)
+      expect(await handOn(own, gardenId, null)).toBe(false)
+      expect(await handOn(inChoir, choirId, gardenId, scope(['garden'], true))).toBe(false)
+      expect(await handOn(inChoir + 1000, null, gardenId)).toBe(false)
+      for (const [id, group] of [
+        [closed, gardenId],
+        [deleted, gardenId],
+        [own, gardenId],
+        [inChoir, choirId],
+      ]) {
+        expect((await rowOf(id)).creationGroupId).toBe(group)
+      }
+      // into a group outside the scope it may go: handing on is out of the own scope
+      expect(await handOn(inChoir, choirId, null, scope(['choir'], false))).toBe(true)
     })
   })
 

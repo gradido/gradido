@@ -2,6 +2,7 @@
 import {
   dbCountSupportTicketMessagesOfModerator,
   dbLockUserRowDrizzle,
+  dbReassignSupportTicketOfModerator,
   dbUpdateSupportTicketOfModerator,
   SupportTicketMessageType,
   SupportTicketScope,
@@ -17,8 +18,11 @@ import type { SupportTicketWriter } from './WriteSupportTicketMessage.context'
  */
 const WRITES_INTO: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS', 'CLOSED']
 
-/** A note that sets a resubmission goes into an open request only: a closed one waits for nothing. */
-const RESUBMITS_INTO: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS']
+/**
+ * The open tab's states: a note that sets a resubmission goes into an open request only -- a
+ * closed one waits for nothing --, and only an open one is handed on, as for contributions (K4).
+ */
+const OPEN_TAB: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS']
 
 export interface ModeratorWrite {
   moderator: { id: number }
@@ -50,7 +54,7 @@ export const moderatorWriter = ({
 }: ModeratorWrite): SupportTicketWriter => {
   const type =
     kind === 'NOTE' ? SupportTicketMessageType.MODERATOR : SupportTicketMessageType.DIALOG
-  const statusIn = kind === 'NOTE' && resubmissionAt ? RESUBMITS_INTO : WRITES_INTO
+  const statusIn = kind === 'NOTE' && resubmissionAt ? OPEN_TAB : WRITES_INTO
   const where = (id: number) => ({ id, statusIn, scope, moderatorId: moderator.id })
   return {
     userId: moderator.id,
@@ -82,5 +86,48 @@ export const moderatorWriter = ({
         }[kind],
         tx,
       ),
+  }
+}
+
+export interface ModeratorReassign {
+  moderator: { id: number }
+  /** the member who owns the request, read before the transaction: an owner never changes */
+  ownerId: number
+  scope: SupportTicketScope
+  /** the group the request was read in before the transaction, and the one it goes to; null: none */
+  from: number | null
+  to: number | null
+}
+
+/**
+ * A moderator handing a request on to another group, or to none (K4, SUA-018), as the third
+ * writer: the line it leaves in the thread is of its own kind, at most SUPPORT_TICKET_MESSAGES_MAX
+ * of them. Only an open request is handed on, never the moderator's own, and only from the group
+ * it still stands in -- so the line never names a group the request was not in. The target is not
+ * checked against the scope: handing on is out of the own groups. The state stays; a resubmission
+ * goes with it.
+ */
+export const moderatorReassigner = ({
+  moderator,
+  ownerId,
+  scope,
+  from,
+  to,
+}: ModeratorReassign): SupportTicketWriter => {
+  const where = (id: number) => ({ id, statusIn: OPEN_TAB, scope, moderatorId: moderator.id })
+  return {
+    userId: moderator.id,
+    isModerator: true,
+    type: SupportTicketMessageType.REASSIGNED,
+    // the member's row, as for every write into the request
+    lock: (_supportTicketId, tx) => dbLockUserRowDrizzle(ownerId, tx),
+    countMessages: (supportTicketId, tx) =>
+      dbCountSupportTicketMessagesOfModerator(
+        where(supportTicketId),
+        SupportTicketMessageType.REASSIGNED,
+        tx,
+      ),
+    moveRequest: (supportTicketId, tx) =>
+      dbReassignSupportTicketOfModerator(where(supportTicketId), from, to, tx),
   }
 }

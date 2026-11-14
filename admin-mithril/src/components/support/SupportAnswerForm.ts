@@ -102,7 +102,12 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       }
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
-      toastError(refusalWords(answer.error.messages, { note }))
+      toastError(
+        refusalWords(
+          answer.error.messages,
+          note ? 'support.notesReached' : 'support.messagesReached',
+        ),
+      )
     }
     onwritten()
   }

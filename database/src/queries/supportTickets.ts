@@ -273,6 +273,35 @@ export async function dbSelectSupportTicketOwnerInScope(
   return row?.userId ?? null
 }
 
+/** The member and the group of a request, as the moderation hands it on (K4). */
+export interface SupportTicketGroupOfModeration {
+  userId: number
+  creationGroupId: number | null
+  creationGroupTag: string | null
+  creationGroupName: string | null
+}
+
+/**
+ * The member who owns this request and the group it stands in, where the scope reaches it, in any
+ * state. Null where it does not, and where there is no such request: the two answer alike.
+ */
+export async function dbSelectSupportTicketGroupInScope(
+  id: number,
+  scope: SupportTicketScope,
+): Promise<SupportTicketGroupOfModeration | null> {
+  const [row] = await drizzleDb()
+    .select({
+      userId: supportTicketsTable.userId,
+      creationGroupId: supportTicketsTable.creationGroupId,
+      creationGroupTag: creationGroupsTable.tag,
+      creationGroupName: creationGroupsTable.name,
+    })
+    .from(supportTicketsTable)
+    .leftJoin(creationGroupsTable, eq(creationGroupsTable.id, supportTicketsTable.creationGroupId))
+    .where(and(eq(supportTicketsTable.id, id), supportTicketsInScope(scope)))
+  return row ?? null
+}
+
 /**
  * How many requests the open tab of a moderator holds, as its two halves: waiting for the
  * moderation (OPEN) and waiting for the member (IN_PROGRESS) -- what the badges and the start
@@ -363,6 +392,33 @@ export async function dbUpdateSupportTicketOfModerator(
     .update(supportTicketsTable)
     .set(set)
     .where(supportTicketOfModerator(where))
+  return result.affectedRows === 1
+}
+
+/**
+ * Hands a request on from group `from` to group `to` (K4, null: no group), where it is the
+ * moderator's to act on (supportTicketOfModerator) and still stands in `from` -- the group it was
+ * read in before, so that a line in its thread never names a group it was not in --, and answers
+ * whether it did. A resubmission goes with it: the moderators of the new group see the request at
+ * once. Its state stays. The caller makes sure `to` is another group than `from`.
+ */
+export async function dbReassignSupportTicketOfModerator(
+  where: SupportTicketOfModerator,
+  from: number | null,
+  to: number | null,
+  tx: DrizzleTransaction,
+): Promise<boolean> {
+  const [result] = await tx
+    .update(supportTicketsTable)
+    .set({ creationGroupId: to, resubmissionAt: null })
+    .where(
+      and(
+        supportTicketOfModerator(where),
+        from === null
+          ? isNull(supportTicketsTable.creationGroupId)
+          : eq(supportTicketsTable.creationGroupId, from),
+      ),
+    )
   return result.affectedRows === 1
 }
 

@@ -1643,6 +1643,9 @@
       "group": "Your request goes to the moderators of the group “{group}”. Other members cannot see it.",
       "none": "Your request goes to your community's support team. Other members cannot see it."
     },
+    "reassigned": "The support team handed your request on",
+    "reassignedBy": "{name} handed your request on",
+    "reassignedFromTo": "from {from} to {to}",
     "send": "Send",
     "sent": "Your request has been sent.",
     "write": "Write"

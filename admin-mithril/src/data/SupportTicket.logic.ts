@@ -54,18 +54,36 @@ export const waitingUntil = (
 
 /**
  * A refusal of the server in the moderator's words: out of reach (missing, outside the groups,
- * deleted, the own request), a thread full of the kind sent, or anything else.
+ * deleted, the own request), a thread full of the kind sent -- messages, notes, or the lines of
+ * handing it on (K4) --, a group that does not exist, or anything else.
  */
-export const refusalWords = (messages: string[], { note }: { note: boolean }) => {
+export const refusalWords = (
+  messages: string[],
+  full: 'support.messagesReached' | 'support.notesReached' | 'support.reassignedReached',
+) => {
   if (messages.includes('SUPPORT_TICKET_NOT_FOUND')) {
     return t('support.notFound')
   }
   if (messages.includes('SUPPORT_TICKET_MESSAGES_REACHED')) {
-    return t(note ? 'support.notesReached' : 'support.messagesReached', {
-      max: SUPPORT_TICKET_MESSAGES_MAX,
-    })
+    return t(full, { max: SUPPORT_TICKET_MESSAGES_MAX })
+  }
+  if (messages.includes('SUPPORT_TICKET_UNKNOWN_GROUP')) {
+    return t('support.unknownGroup')
   }
   return t('support.failed')
+}
+
+/**
+ * The line a handing on left in the thread (K4), as the moderation reads it: from which group to
+ * which, "(ohne Gruppe)" for none. The server writes it as two lines; null where it is not that.
+ */
+export const reassignedFromTo = (message: string) => {
+  const lines = message.split('\n')
+  if (lines.length !== 2) {
+    return null
+  }
+  const [from, to] = lines.map((line) => line || t('contribution.noGroup'))
+  return t('support.reassignedFromTo', { from, to })
 }
 
 /** Still to be worked on: open, or with a question back to the member. */

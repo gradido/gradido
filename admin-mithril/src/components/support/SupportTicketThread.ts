@@ -47,6 +47,14 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
     detachRemark(this.remark)
   }
 
+  // A handing on from the row's dropdown (K4) leaves a line in the thread: where the opened row
+  // comes back in the new list with another group, its thread loads anew.
+  onbeforeupdate({ attrs: { ticket } }: Vnode<Attrs>, { attrs: { ticket: before } }: Vnode<Attrs>) {
+    if (ticket.id === before.id && ticket.creationGroupTag !== before.creationGroupTag) {
+      this.load(ticket)
+    }
+  }
+
   private async load({ id, userId }: TicketWithMember) {
     const asked = ++this.asked
     const answer = await graphqlRequest(adminListSupportTicketMessages, {

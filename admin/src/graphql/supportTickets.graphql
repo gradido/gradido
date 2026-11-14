@@ -120,3 +120,9 @@ mutation adminCloseSupportTicket($supportTicketId: Int!) {
 mutation adminDeleteSupportTicket($supportTicketId: Int!) {
   adminDeleteSupportTicket(supportTicketId: $supportTicketId)
 }
+
+# Hands a request on to another group, or to none ('', K4): the thread gets a line the member
+# reads too. The page reads only that it went through; the list is asked for anew.
+mutation adminReassignSupportTicket($supportTicketId: Int!, $creationGroupTag: String!) {
+  adminReassignSupportTicket(supportTicketId: $supportTicketId, creationGroupTag: $creationGroupTag)
+}

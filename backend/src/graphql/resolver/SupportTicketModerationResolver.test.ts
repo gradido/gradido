@@ -1372,3 +1372,220 @@ describe('SupportTicketModerationResolver, the resubmission (K4)', () => {
     expect(await rowOf(closed)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
   })
 })
+
+// K4: handing a request on to another group, or to none, with the line it leaves in the thread
+describe('SupportTicketModerationResolver, handing on (K4)', () => {
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+      }
+    }
+  `
+  // the member's own reading of the thread (K1)
+  const listSupportTicketMessages = gql`
+    query ($supportTicketId: Int!) {
+      listSupportTicketMessages(supportTicketId: $supportTicketId) {
+        message
+        type
+        userAlias
+      }
+    }
+  `
+  const handOn = (supportTicketId: number, creationGroupTag: string): Promise<any> =>
+    mutate({
+      mutation: adminReassignSupportTicket,
+      variables: { supportTicketId, creationGroupTag },
+    })
+  const rowOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const linesOf = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+  const mail = sendAddedSupportTicketMessageEmail as jest.Mock
+  const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  LATER.setMilliseconds(0)
+
+  beforeEach(() => {
+    mail.mockClear()
+  })
+
+  it('hands nothing on without a login, or without the right', async () => {
+    const id = await file(bibi.id, 'Weiterreichen?', 400, gardenId)
+    resetToken()
+    await expect(handOn(id, '')).resolves.toEqual(unauthorized)
+    await loginAs('bibi@bloxberg.de')
+    await expect(handOn(id, '')).resolves.toEqual(unauthorized)
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Wer kümmert sich?', 401, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    const res = await handOn(id, '')
+    expect(res.errors).toBeUndefined()
+    expect(res.data.adminReassignSupportTicket).toBe(true)
+    expect(await rowOf(id)).toMatchObject({
+      creationGroupId: null,
+      status: 'IN_PROGRESS',
+      resubmissionAt: null,
+    })
+    expect(await linesOf(id)).toEqual([
+      expect.objectContaining({
+        type: 'REASSIGNED',
+        message: 'Garten\n',
+        userId: peter.id,
+        isModerator: true,
+      }),
+    ])
+    // and back into a group, named by its name
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    expect((await rowOf(id)).creationGroupId).toBe(choirId)
+    expect((await linesOf(id)).map((line) => line.message)).toEqual(['Garten\n', '\nChor'])
+    expect(mail).not.toHaveBeenCalled()
+  })
+
+  it('lets a moderator hand on out of the own groups, and reach the request no more after', async () => {
+    const id = await file(bibi.id, 'Eher etwas für den Chor', 402, gardenId)
+    await loginAs('bob@baumeister.de')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    expect((await rowOf(id)).creationGroupId).toBe(choirId)
+    expect(await idsListed()).not.toContain(id)
+    await expect(handOn(id, 'garden')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    // a moderator of the requests of no group hands one into a group
+    const ungrouped = await file(bibi.id, 'Ohne Gruppe', 403, null)
+    await loginAs('raeuber@hotzenplotz.de')
+    expect((await handOn(ungrouped, 'garden')).errors).toBeUndefined()
+    expect((await rowOf(ungrouped)).creationGroupId).toBe(gardenId)
+  })
+
+  it('hands on no closed, deleted, own or unreachable request, and none that does not exist', async () => {
+    const closed = await file(bibi.id, 'zu', 404, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(405),
+      closedBy: bibi.id,
+    })
+    const deleted = await file(bibi.id, 'weg', 406, gardenId, {
+      status: 'DELETED',
+      deletedAt: at(407),
+      deletedBy: peter.id,
+    })
+    const bobs = await file(bob.id, 'meine eigene', 408, gardenId)
+    const inChoir = await file(bibi.id, 'im Chor', 409, choirId)
+    await loginAs('bob@baumeister.de')
+    for (const id of [closed, deleted, bobs, inChoir, inChoir + 1000]) {
+      await expect(handOn(id, '')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    }
+    for (const [id, group] of [
+      [closed, gardenId],
+      [deleted, gardenId],
+      [bobs, gardenId],
+      [inChoir, choirId],
+    ]) {
+      expect((await rowOf(id)).creationGroupId).toBe(group)
+      expect(await linesOf(id)).toEqual([])
+    }
+  })
+
+  it('refuses a group that does not exist, and the group the request is in', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Wohin?', 410, gardenId)
+    await expect(handOn(id, 'nobody-moderates-this')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_UNKNOWN_GROUP'),
+    )
+    await expect(handOn(id, 'garden')).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands a request on at most so many times', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Hin und her', 411, gardenId)
+    await drizzleDb()
+      .insert(supportTicketMessagesTable)
+      .values(
+        Array.from({ length: SUPPORT_TICKET_MESSAGES_MAX }, (_, n) => ({
+          supportTicketId: id,
+          userId: peter.id,
+          message: `Garten ${n}\n`,
+          type: 'REASSIGNED' as const,
+          isModerator: true,
+          createdAt: at(412),
+        })),
+      )
+    await expect(handOn(id, '')).resolves.toEqual(refusedWith('SUPPORT_TICKET_MESSAGES_REACHED'))
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+  })
+
+  it('takes no message of the kind a handing on leaves: that line is the server own', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Ein falscher Weg', 413, gardenId)
+    await expect(
+      mutate({
+        mutation: adminCreateSupportTicketMessage,
+        variables: {
+          supportTicketId: id,
+          message: 'Garten\nChor',
+          type: 'REASSIGNED',
+          close: false,
+        },
+      }),
+    ).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands on at most once per HTTP request', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Zweimal?', 414, gardenId)
+    const res: any = await mutate({
+      mutation: gql(`mutation {
+        first: adminReassignSupportTicket(supportTicketId: ${id}, creationGroupTag: "")
+        second: adminReassignSupportTicket(supportTicketId: ${id}, creationGroupTag: "choir")
+      }`),
+    })
+    expect(res.errors).toEqual([
+      expect.objectContaining({ message: 'Too many support writes at once' }),
+    ])
+    expect(await linesOf(id)).toHaveLength(1)
+  })
+
+  it('lets the member read the line, and still no note, through the own operations', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Meine Frage', 415, gardenId)
+    await writes(id, peter, 'Intern: an den Chor', 416, 'MODERATOR')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    await loginAs('bibi@bloxberg.de')
+    const res: any = await query({
+      query: listSupportTicketMessages,
+      variables: { supportTicketId: id },
+    })
+    expect(res.errors).toBeUndefined()
+    expect(res.data.listSupportTicketMessages).toEqual([
+      { message: 'Garten\nChor', type: 'REASSIGNED', userAlias: peter.alias },
+    ])
+  })
+})

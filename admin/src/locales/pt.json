@@ -681,6 +681,14 @@
     "notFound": "Este pedido não existe ou não pertence aos teus grupos.",
     "notesReached": "Este pedido já tem {max} notas.",
     "number": "Pedido n.º {number}",
+    "reassign": "Encaminhar o pedido",
+    "reassignConfirm": "Sim, encaminhar",
+    "reassignHint": "Dependendo dos teus grupos visíveis, pode deixar de aparecer na tua lista. Na conversa fica registado quem o encaminhou; o membro também vê isso.",
+    "reassignQuestion": "Encaminhar este pedido de {from} para {to}?",
+    "reassigned": "O pedido foi encaminhado.",
+    "reassignedFromTo": "de {from} para {to}",
+    "reassignedHead": "Encaminhado",
+    "reassignedReached": "Este pedido já foi encaminhado {max} vezes.",
     "request": "Pedido",
     "resubmissionLine": "Lembrete: {day}, {time}",
     "searchMember": "Pesquisar este membro",
@@ -691,7 +699,8 @@
       "deleted": "Eliminados",
       "open": "Abertos"
     },
-    "tooLong": "No máximo {max} caracteres."
+    "tooLong": "No máximo {max} caracteres.",
+    "unknownGroup": "Este grupo não existe."
   },
   "text": "Texto",
   "thank-you-cheque": {

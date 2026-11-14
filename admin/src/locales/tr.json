@@ -681,6 +681,14 @@
     "notFound": "Bu talep mevcut değil ya da senin gruplarının dışında.",
     "notesReached": "Bu talepte zaten {max} not var.",
     "number": "Talep no. {number}",
+    "reassign": "Talebi aktar",
+    "reassignConfirm": "Evet, aktar",
+    "reassignHint": "Görünür gruplarına bağlı olarak talep listende artık görünmeyebilir. Konuşmada onu kimin aktardığı yazar; üye de bunu görür.",
+    "reassignQuestion": "Bu talep {from} grubundan {to} grubuna aktarılsın mı?",
+    "reassigned": "Talep aktarıldı.",
+    "reassignedFromTo": "{from} grubundan {to} grubuna",
+    "reassignedHead": "Aktarıldı",
+    "reassignedReached": "Bu talep zaten {max} kez aktarıldı.",
     "request": "Talep",
     "resubmissionLine": "Hatırlatma: {day}, {time}",
     "searchMember": "Bu üyeyi ara",
@@ -691,7 +699,8 @@
       "deleted": "Silindi",
       "open": "Açık"
     },
-    "tooLong": "En fazla {max} karakter."
+    "tooLong": "En fazla {max} karakter.",
+    "unknownGroup": "Bu grup mevcut değil."
   },
   "text": "Metin",
   "thank-you-cheque": {

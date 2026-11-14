@@ -681,6 +681,14 @@
     "notFound": "Deze vraag bestaat niet of valt buiten je groepen.",
     "notesReached": "Bij deze vraag staan al {max} notities.",
     "number": "Vraag nr. {number}",
+    "reassign": "Vraag doorgeven",
+    "reassignConfirm": "Ja, doorgeven",
+    "reassignHint": "Afhankelijk van je zichtbare groepen staat ze daarna mogelijk niet meer in je lijst. In het gesprek staat wie ze heeft doorgegeven; het lid ziet dat ook.",
+    "reassignQuestion": "Deze vraag doorgeven van {from} naar {to}?",
+    "reassigned": "De vraag is doorgegeven.",
+    "reassignedFromTo": "van {from} naar {to}",
+    "reassignedHead": "Doorgegeven",
+    "reassignedReached": "Deze vraag is al {max} keer doorgegeven.",
     "request": "Vraag",
     "resubmissionLine": "Herinnering: {day}, {time}",
     "searchMember": "Naar dit lid zoeken",
@@ -691,7 +699,8 @@
       "deleted": "Verwijderd",
       "open": "Open"
     },
-    "tooLong": "Hoogstens {max} tekens."
+    "tooLong": "Hoogstens {max} tekens.",
+    "unknownGroup": "Deze groep bestaat niet."
   },
   "text": "Tekst",
   "thank-you-cheque": {

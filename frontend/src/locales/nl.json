@@ -1643,6 +1643,9 @@
       "group": "Je vraag gaat naar de moderators van de groep “{group}”. Andere leden kunnen je vraag niet zien.",
       "none": "Je vraag gaat naar de support van de gemeenschap. Andere leden kunnen je vraag niet zien."
     },
+    "reassigned": "De support heeft je vraag doorgegeven",
+    "reassignedBy": "{name} heeft je vraag doorgegeven",
+    "reassignedFromTo": "van {from} naar {to}",
     "send": "Versturen",
     "sent": "Je vraag is verstuurd.",
     "write": "Schrijven"

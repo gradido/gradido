@@ -681,6 +681,14 @@
     "notFound": "This request does not exist, or it is outside your groups.",
     "notesReached": "This request already has {max} notes.",
     "number": "Request no. {number}",
+    "reassign": "Hand the request on",
+    "reassignConfirm": "Yes, hand it on",
+    "reassignHint": "Depending on your visible groups, it may no longer appear in your list. The thread shows who handed it on; the member sees that too.",
+    "reassignQuestion": "Hand this request on from {from} to {to}?",
+    "reassigned": "The request has been handed on.",
+    "reassignedFromTo": "from {from} to {to}",
+    "reassignedHead": "Handed on",
+    "reassignedReached": "This request has already been handed on {max} times.",
     "request": "Request",
     "resubmissionLine": "Resubmission: {day}, {time}",
     "searchMember": "Search for this member",
@@ -691,7 +699,8 @@
       "deleted": "Deleted",
       "open": "Open"
     },
-    "tooLong": "At most {max} characters."
+    "tooLong": "At most {max} characters.",
+    "unknownGroup": "This group does not exist."
   },
   "text": "Text",
   "thank-you-cheque": {

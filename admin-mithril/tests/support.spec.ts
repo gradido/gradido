@@ -162,9 +162,9 @@ test('tells by the details button who is to answer, and opens neither the own re
     `${de.details} – ${de.contribution.detailsState.conversation}`,
   )
   await expect(details(page, 3)).toHaveAttribute('title', de.details)
-  // a deleted member's: it does not open, but it can be deleted and closed (K3); no member, no
-  // magnifier (K4)
-  await expect(row(page, 4).getByRole('button')).toHaveText(['', ''])
+  // a deleted member's: it does not open, but it can be deleted and closed (K3) and handed on by
+  // its group (K4); no member, no magnifier (K4)
+  await expect(row(page, 4).getByRole('button')).toHaveText(['', de.contribution.noGroup, ''])
   await expect(row(page, 4).getByRole('button', { name: de.delete })).toBeVisible()
   await expect(row(page, 4).getByRole('button', { name: de.support.close })).toBeVisible()
   // the moderator's own: on it they are the member (SUA-018) -- no button that acts on the
@@ -449,6 +449,12 @@ test.describe('on a phone', () => {
     await expect(first.locator('.phone-head .phone-search button')).toHaveAttribute(
       'title',
       de.support.searchMember,
+    )
+    // the group to hand it on below the name (K4); the own request shows its group as text
+    await expect(first.locator('.phone-head .phone-group .group-select')).toHaveCount(1)
+    await expect(row(page, 5).locator('.phone-head .phone-group .group-select')).toHaveCount(0)
+    await expect(row(page, 5).locator('.phone-head .phone-group')).toHaveText(
+      de.contribution.noGroup,
     )
   })
 
@@ -1220,4 +1226,251 @@ test('has no box for a note under a closed request, and one for an answer there'
   await expect(box(page)).toBeVisible()
   await choose(page, de.moderator.notice)
   await expect(box(page)).toHaveCount(0)
+})
+
+// K4: handing a request on to another group, from the dropdown of its row
+const pickGroup = async (page: Page, index: number, group: string) => {
+  await row(page, index).locator('.group-select .dropdown-toggle').click()
+  await row(page, index).locator('.group-select .dropdown-item', { hasText: group }).click()
+}
+const shownGroup = (page: Page, index: number) =>
+  row(page, index).locator('.group-select .dropdown-toggle')
+
+test('hands an open request on to another group once asked, then asks for the list and the count anew', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: true })
+  await open(page)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await expect(shownGroup(page, 0)).toHaveAttribute('aria-label', de.support.reassign)
+
+  await pickGroup(page, 0, '#kueche')
+  await expect(dialog(page).locator('.modal-title')).toHaveText(de.support.reassign)
+  await expect(dialog(page).locator('.modal-body p')).toHaveText([
+    'Diese Anfrage von Garten an #kueche weiterreichen?',
+    de.support.reassignHint,
+  ])
+  // what is asked stands in the dropdown meanwhile
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([
+    { supportTicketId: 1, creationGroupTag: 'kueche' },
+  ])
+  // whether the request is still in the list is the server's to say
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+  await expect.poll(() => asked(graphql, 'adminCountOpenSupportTickets').length).toBe(2)
+})
+
+test('hands on from "(ohne Gruppe)" and to it, a deleted member\'s request too', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: true })
+  await open(page)
+
+  await expect(shownGroup(page, 1)).toHaveText(de.contribution.noGroup)
+  await pickGroup(page, 1, 'Garten')
+  await expect(dialog(page).locator('.modal-body p').first()).toHaveText(
+    `Diese Anfrage von ${de.contribution.noGroup} an Garten weiterreichen?`,
+  )
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+
+  await pickGroup(page, 4, 'Garten')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await pickGroup(page, 0, de.contribution.noGroup)
+  await expect(dialog(page).locator('.modal-body p').first()).toHaveText(
+    `Diese Anfrage von Garten an ${de.contribution.noGroup} weiterreichen?`,
+  )
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect
+    .poll(() => asked(graphql, 'adminReassignSupportTicket'))
+    .toEqual([
+      { supportTicketId: 2, creationGroupTag: 'garten' },
+      { supportTicketId: 5, creationGroupTag: 'garten' },
+      { supportTicketId: 1, creationGroupTag: '' },
+    ])
+})
+
+test('offers the dropdown on open requests only, on "Alle" too, and never on the own', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  for (const index of [0, 1, 2, 3, 4]) {
+    await expect(row(page, index).locator('.group-select')).toHaveCount(1)
+  }
+  // the own request: its group as text (SUA-018)
+  await expect(row(page, 5).locator('.group-select')).toHaveCount(0)
+  await expect(row(page, 5).locator('td').nth(3)).toContainText(de.contribution.noGroup)
+
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await expect(page.locator('.support-tickets-table .group-select')).toHaveCount(0)
+
+  await tab(page, de.support.tab.all).click()
+  await expect(rows(page)).toHaveCount(9)
+  // the five open ones that are not the own
+  await expect(page.locator('.support-tickets-table .group-select')).toHaveCount(5)
+})
+
+test('puts the dropdown back where the question is answered no, or the server refuses', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: new Failure('SUPPORT_TICKET_MESSAGES_REACHED') })
+  await open(page)
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([])
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, 'Diese Anfrage ist schon 100 Mal weitergereicht worden.')).toBeVisible()
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+
+  graphql.answer({ adminReassignSupportTicket: new Failure('SUPPORT_TICKET_UNKNOWN_GROUP') })
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.unknownGroup)).toBeVisible()
+})
+
+test('sends a handing on once: while it goes, its dropdown takes no other pick', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  graphql.answer({
+    adminReassignSupportTicket: async () => {
+      await held
+      return true
+    },
+  })
+  await open(page)
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  await pickGroup(page, 0, de.contribution.noGroup)
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+
+  release()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([
+    { supportTicketId: 1, creationGroupTag: 'kueche' },
+  ])
+})
+
+test("keeps the row's own group among the choices while the groups do not come", async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ creationGroups: new Failure('the groups did not come') })
+  await open(page)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await shownGroup(page, 0).click()
+  await expect(row(page, 0).locator('.group-select .dropdown-item')).toHaveText([
+    de.contribution.noGroup,
+    'Garten',
+  ])
+})
+
+test('shows in the thread who handed a request on, from which group to which', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTicketMessages: [
+      ticketMessage(1),
+      ticketMessage(2, {
+        type: 'REASSIGNED',
+        message: 'Garten\n',
+        userAlias: 'peter',
+        userId: 99,
+        isModerator: true,
+      }),
+      // words in another shape: the head alone
+      ticketMessage(3, {
+        type: 'REASSIGNED',
+        message: 'Garten',
+        userAlias: 'peter',
+        userId: 99,
+        isModerator: true,
+      }),
+    ],
+  })
+  await open(page)
+  await details(page, 0).click()
+
+  const lines = card(page).locator('.contribution-messages-list-item')
+  await expect(lines).toHaveCount(3)
+  await expect(lines.nth(1).locator('[data-test="message-kind"]')).toHaveText(
+    de.support.reassignedHead,
+  )
+  await expect(lines.nth(1).locator('[data-test="moderator-message"]')).toHaveText(
+    `von Garten an ${de.contribution.noGroup}`,
+  )
+  await expect(lines.nth(1).locator('[data-test="moderator-name"]')).toHaveText('peter')
+  await expect(lines.nth(2).locator('[data-test="message-kind"]')).toHaveText(
+    de.support.reassignedHead,
+  )
+  await expect(lines.nth(2).locator('[data-test="moderator-message"]')).toHaveCount(0)
+})
+
+test('loads the thread of an opened request anew once it comes back in another group', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let moved = false
+  graphql.answer({
+    adminReassignSupportTicket: () => {
+      moved = true
+      return true
+    },
+    adminListSupportTickets: () =>
+      ticketList(
+        [
+          listedTicket(
+            1,
+            1,
+            moved
+              ? { creationGroupTag: 'kueche' }
+              : { creationGroupTag: 'garten', creationGroupName: 'Garten' },
+          ),
+          ...tickets.slice(1),
+          own,
+        ],
+        30,
+      ),
+  })
+  await open(page)
+  await details(page, 0).click()
+  await expect.poll(() => asked(graphql, 'adminListSupportTicketMessages').length).toBe(1)
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+  await expect.poll(() => asked(graphql, 'adminListSupportTicketMessages').length).toBe(2)
+  // the row stays open
+  await expect(card(page)).toBeVisible()
 })

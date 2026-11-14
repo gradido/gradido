@@ -9,7 +9,9 @@ import {
   dbCountOpenSupportTicketsInScope,
   dbFindMemberAvatarTimestamps,
   dbFindUsersWithEmailContactByIds,
+  dbSelectCreationGroupByTag,
   dbSelectNewestSupportTicketDialogs,
+  dbSelectSupportTicketGroupInScope,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketThread,
@@ -26,17 +28,22 @@ import {
   closingOf,
   MODERATOR_CLOSES_FROM,
   moderatorMessageKind,
+  reassignedLine,
   SUPPORT_TICKET_INVALID,
   SUPPORT_TICKET_NOT_FOUND,
   SUPPORT_TICKET_NOT_READ,
   SUPPORT_TICKET_NOT_STORED,
+  SUPPORT_TICKET_UNKNOWN_GROUP,
 } from '@/data/SupportTicket.logic'
 import {
   adminSupportTicketsPageSchema,
   supportTicketMessageSchema,
   supportTicketResubmissionSchema,
 } from '@/data/SupportTicket.schema'
-import { moderatorWriter } from '@/interactions/writeSupportTicketMessage/Moderator.role'
+import {
+  moderatorReassigner,
+  moderatorWriter,
+} from '@/interactions/writeSupportTicketMessage/Moderator.role'
 import { writeSupportTicketMessage } from '@/interactions/writeSupportTicketMessage/WriteSupportTicketMessage.context'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -82,7 +89,7 @@ const messageOf = (
 /**
  * The moderation's side of support requests (SUA-005): the list under the admin's tabs and the
  * thread of an opened request (K2); answering, notes, closing with the tick, deleting, and the
- * count of the open tab (K3).
+ * count of the open tab (K3); search, group filter, resubmission and handing on (K4).
  *
  * A moderator reaches what their creation groups cover -- the list, its count, the thread and
  * every act on a request through one condition (supportTicketsInScope), read off their role and
@@ -387,6 +394,67 @@ export class SupportTicketModerationResolver {
     )
     if (!deleted) {
       throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
+    }
+    return true
+  }
+  /**
+   * Hands a request the moderator reaches on to another group, or to no group (`creationGroupTag`
+   * '', K4, SUA-018): an open one or one with a question back, never the moderator's own. The
+   * target is not checked against the scope -- handing on is out of the own groups --, and the
+   * request may leave the moderator's reach with it: nothing of it is answered, the page asks for
+   * its list anew. The thread gets a line of its own kind with the two groups as they are named
+   * now, which the member reads too; the text is the server's, from no argument. A resubmission
+   * goes with it; no mail.
+   */
+  @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
+  @Mutation(() => Boolean)
+  async adminReassignSupportTicket(
+    @Arg('supportTicketId', () => Int) supportTicketId: number,
+    @Arg('creationGroupTag', () => String) creationGroupTag: string,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    countSupportTicketWrite(context)
+    const moderator = getUser(context)
+    const scope = describeModeratorCreationGroups(context.user?.userRole)
+    // the request as it stands now, and the group it goes to: an owner never changes, and the
+    // write holds on to the group read here
+    const [ticket, target] = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      Promise.all([
+        dbSelectSupportTicketGroupInScope(supportTicketId, scope),
+        creationGroupTag ? dbSelectCreationGroupByTag(creationGroupTag) : null,
+      ]),
+    )
+    if (ticket === null || ticket.userId === moderator.id) {
+      throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
+    }
+    if (creationGroupTag && target === null) {
+      throw new LogError(SUPPORT_TICKET_UNKNOWN_GROUP, supportTicketId)
+    }
+    const to = target?.id ?? null
+    // into the group it is in: no handing on, and no line "from X to X"
+    if (to === ticket.creationGroupId) {
+      throw new LogError(SUPPORT_TICKET_INVALID, supportTicketId)
+    }
+    const line = reassignedLine(
+      { tag: ticket.creationGroupTag, name: ticket.creationGroupName },
+      { tag: target?.tag ?? null, name: target?.name ?? null },
+    )
+    const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      writeSupportTicketMessage(
+        moderatorReassigner({
+          moderator,
+          ownerId: ticket.userId,
+          scope,
+          from: ticket.creationGroupId,
+          to,
+        }),
+        supportTicketId,
+        line,
+        new Date(),
+      ),
+    )
+    if (!written.success) {
+      throw new LogError(written.error.code, supportTicketId)
     }
     return true
   }

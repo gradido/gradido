@@ -681,6 +681,14 @@
     "notFound": "Esta consulta no existe o está fuera de tus grupos.",
     "notesReached": "Esta consulta ya tiene {max} notas.",
     "number": "Consulta n.º {number}",
+    "reassign": "Pasar la consulta",
+    "reassignConfirm": "Sí, pasarla",
+    "reassignHint": "Según tus grupos visibles, puede dejar de aparecer en tu lista. En el hilo consta quién la ha pasado; el miembro también lo ve.",
+    "reassignQuestion": "¿Pasar esta consulta de {from} a {to}?",
+    "reassigned": "La consulta se ha pasado.",
+    "reassignedFromTo": "de {from} a {to}",
+    "reassignedHead": "Pasada",
+    "reassignedReached": "Esta consulta ya se ha pasado {max} veces.",
     "request": "Consulta",
     "resubmissionLine": "Recordatorio: {day}, {time}",
     "searchMember": "Buscar a este miembro",
@@ -691,7 +699,8 @@
       "deleted": "Eliminadas",
       "open": "Abiertas"
     },
-    "tooLong": "Como máximo {max} caracteres."
+    "tooLong": "Como máximo {max} caracteres.",
+    "unknownGroup": "Este grupo no existe."
   },
   "text": "Texto",
   "thank-you-cheque": {

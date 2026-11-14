@@ -681,6 +681,14 @@
     "notFound": "Cette demande n'existe pas ou ne fait pas partie de tes groupes.",
     "notesReached": "Cette demande contient déjà {max} notes.",
     "number": "Demande n° {number}",
+    "reassign": "Transmettre la demande",
+    "reassignConfirm": "Oui, transmettre",
+    "reassignHint": "Selon tes groupes visibles, elle pourrait ne plus apparaître dans ta liste. Le fil indique qui l'a transmise ; le membre le voit aussi.",
+    "reassignQuestion": "Transmettre cette demande de {from} à {to} ?",
+    "reassigned": "La demande est transmise.",
+    "reassignedFromTo": "de {from} à {to}",
+    "reassignedHead": "Transmise",
+    "reassignedReached": "Cette demande a déjà été transmise {max} fois.",
     "request": "Demande",
     "resubmissionLine": "Rappel : {day}, {time}",
     "searchMember": "Rechercher ce membre",
@@ -691,7 +699,8 @@
       "deleted": "Supprimées",
       "open": "Ouvertes"
     },
-    "tooLong": "{max} caractères au maximum."
+    "tooLong": "{max} caractères au maximum.",
+    "unknownGroup": "Ce groupe n'existe pas."
   },
   "text": "Texte",
   "thank-you-cheque": {

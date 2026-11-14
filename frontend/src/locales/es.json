@@ -1643,6 +1643,9 @@
       "group": "Tu consulta llega a los moderadores del grupo «{group}». Los demás miembros no pueden verla.",
       "none": "Tu consulta llega al soporte de la comunidad. Los demás miembros no pueden verla."
     },
+    "reassigned": "El soporte ha pasado tu consulta",
+    "reassignedBy": "{name} ha pasado tu consulta",
+    "reassignedFromTo": "de {from} a {to}",
     "send": "Enviar",
     "sent": "Tu consulta se ha enviado.",
     "write": "Escribir"

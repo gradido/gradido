@@ -9,6 +9,7 @@ import {
   isOpenTicket,
   MESSAGE_MAX_CHARS,
   memberSearchOf,
+  reassignedFromTo,
   refusalWords,
   SUPPORT_TICKET_MESSAGES_MAX,
   sendable,
@@ -85,20 +86,46 @@ describe('answerVariables', () => {
 
 describe('refusalWords', () => {
   it('says out of reach, a full thread of the kind sent, or that it did not work', () => {
-    expect(refusalWords(['SUPPORT_TICKET_NOT_FOUND'], { note: false })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_NOT_FOUND'], 'support.messagesReached')).toBe(
       'Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.',
     )
-    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: false })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.messagesReached')).toBe(
       'In dieser Anfrage stehen schon 100 Nachrichten.',
     )
-    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: true })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.notesReached')).toBe(
       'In dieser Anfrage stehen schon 100 Notizen.',
     )
     for (const code of ['SUPPORT_TICKET_INVALID', 'SUPPORT_TICKET_NOT_STORED', 'Failed to fetch']) {
-      expect(refusalWords([code], { note: false })).toBe(
+      expect(refusalWords([code], 'support.messagesReached')).toBe(
         'Das hat nicht geklappt. Versuch es bitte noch einmal.',
       )
     }
+  })
+
+  it('knows the refusals of a handing on (K4): too often, and a group that does not exist', () => {
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.reassignedReached')).toBe(
+      'Diese Anfrage ist schon 100 Mal weitergereicht worden.',
+    )
+    expect(refusalWords(['SUPPORT_TICKET_UNKNOWN_GROUP'], 'support.reassignedReached')).toBe(
+      'Diese Gruppe gibt es nicht.',
+    )
+    // into the group it is in: the page does not send that, the server refuses it as invalid
+    expect(refusalWords(['SUPPORT_TICKET_INVALID'], 'support.reassignedReached')).toBe(
+      'Das hat nicht geklappt. Versuch es bitte noch einmal.',
+    )
+  })
+})
+
+describe('reassignedFromTo', () => {
+  it('reads the two lines of a handing on, "(ohne Gruppe)" for an empty one', () => {
+    expect(reassignedFromTo('Chor\nTanz')).toBe('von Chor an Tanz')
+    expect(reassignedFromTo('\n#garten')).toBe('von (ohne Gruppe) an #garten')
+    expect(reassignedFromTo('Chor\n')).toBe('von Chor an (ohne Gruppe)')
+  })
+
+  it('reads nothing else: words in another shape give no line', () => {
+    expect(reassignedFromTo('Chor')).toBeNull()
+    expect(reassignedFromTo('Chor\nTanz\nGarten')).toBeNull()
   })
 })
 

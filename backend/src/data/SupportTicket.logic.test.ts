@@ -2,6 +2,7 @@
 import {
   closingOf,
   moderatorMessageKind,
+  reassignedLine,
   supportAnswerMailDecision,
   supportTicketsWindowStart,
 } from './SupportTicket.logic'
@@ -16,6 +17,11 @@ describe('moderatorMessageKind', () => {
   it('knows no note that closes', () => {
     expect(moderatorMessageKind('MODERATOR', true, false)).toBeNull()
     expect(moderatorMessageKind('MODERATOR', true, true)).toBeNull()
+  })
+
+  it('knows no message of the kind a handing on leaves: only the server writes that line (K4)', () => {
+    expect(moderatorMessageKind('REASSIGNED', false, false)).toBeNull()
+    expect(moderatorMessageKind('REASSIGNED', true, false)).toBeNull()
   })
 
   it('lets an answer and a note set a resubmission, and no answer that closes (K4)', () => {
@@ -78,5 +84,23 @@ describe('closingOf', () => {
   it('names nobody for an open one or one with a question back', () => {
     expect(closingOf({ ...row, status: 'OPEN' })).toEqual({ at: null, by: null })
     expect(closingOf({ ...row, status: 'IN_PROGRESS' })).toEqual({ at: null, by: null })
+  })
+})
+
+describe('reassignedLine', () => {
+  it('names the two groups a line each, by name, without one by its tag, none as empty', () => {
+    expect(reassignedLine({ tag: 'garden', name: 'Garten' }, { tag: null, name: null })).toBe(
+      'Garten\n',
+    )
+    expect(reassignedLine({ tag: null, name: null }, { tag: 'choir', name: null })).toBe('\n#choir')
+    expect(reassignedLine({ tag: 'garden', name: '' }, { tag: 'choir', name: 'Chor' })).toBe(
+      '#garden\nChor',
+    )
+  })
+
+  it('writes exactly two lines, also where a name has a line break in it', () => {
+    expect(
+      reassignedLine({ tag: 'garden', name: 'Garten\r\nam Hang' }, { tag: 'choir', name: 'Chor' }),
+    ).toBe('Garten am Hang\nChor')
   })
 })

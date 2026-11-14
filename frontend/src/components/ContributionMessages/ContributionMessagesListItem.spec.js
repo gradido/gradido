@@ -106,6 +106,63 @@ describe('ContributionMessagesListItem', () => {
     })
   })
 
+  // A support request's thread (K4, SUA-018): the line a handing on left, in the frame of a change
+  describe('REASSIGNED message type', () => {
+    const reassigned = (more = {}) =>
+      createWrapper({
+        message: {
+          type: 'REASSIGNED',
+          createdAt: '2026-11-14T15:00:00.000Z',
+          message: 'Chor\nTanz',
+          userAlias: 'moderator',
+          userAvatarColorIndex: 4,
+          ...more,
+        },
+      })
+
+    beforeEach(() => {
+      mockT.mockClear()
+    })
+
+    it('stands in the frame of a change, with its date and the face of who handed it on', () => {
+      wrapper = reassigned()
+      expect(wrapper.find('[data-test="reassigned"].border').exists()).toBe(true)
+      expect(wrapper.find('small').text()).toContain('Formatted:')
+      expect(wrapper.findComponent(AppAvatar).props('initials')).toBe('MO')
+      expect(wrapper.find('.is-moderator').exists()).toBe(false)
+      expect(wrapper.find('.parse-message-mock').exists()).toBe(false)
+    })
+
+    it('names who handed it on, and from which group to which', () => {
+      wrapper = reassigned()
+      expect(mockT).toHaveBeenCalledWith('support.reassignedBy', { name: 'moderator' })
+      expect(mockT).toHaveBeenCalledWith('support.reassignedFromTo', { from: 'Chor', to: 'Tanz' })
+      expect(wrapper.find('[data-test="reassigned-by"]').text()).toBe('support.reassignedBy')
+      expect(wrapper.find('[data-test="reassigned-from-to"]').text()).toBe(
+        'support.reassignedFromTo',
+      )
+    })
+
+    it('says "(ohne Gruppe)" for an empty line', () => {
+      wrapper = reassigned({ message: '\nTanz' })
+      expect(mockT).toHaveBeenCalledWith('support.reassignedFromTo', {
+        from: 'contribution.creationGroup.none',
+        to: 'Tanz',
+      })
+    })
+
+    it('says "the support" where no username came with it', () => {
+      wrapper = reassigned({ userAlias: null })
+      expect(wrapper.find('[data-test="reassigned-by"]').text()).toBe('support.reassigned')
+    })
+
+    it('shows the head alone where the words have another shape', () => {
+      wrapper = reassigned({ message: 'Chor' })
+      expect(wrapper.find('[data-test="reassigned-by"]').exists()).toBe(true)
+      expect(wrapper.find('[data-test="reassigned-from-to"]').exists()).toBe(false)
+    })
+  })
+
   describe('Non-moderator message', () => {
     beforeEach(() => {
       wrapper = createWrapper({

@@ -4,6 +4,7 @@ import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
   adminListSupportTickets,
+  adminReassignSupportTicket,
 } from '@admin/graphql/supportTickets.graphql'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@admin/utils/lastSearch'
 // the creation page's rules for its tabs, under its class, which this page carries too
@@ -109,8 +110,9 @@ const groupsSchema = v.object({
  * The support requests of the moderator's groups, under one tab per state, 25 to a page, the
  * newest first (K2), searched by text or by a member and filtered by group (K4); a request opens
  * below its row to be read and answered, and an open one is closed with the tick or deleted from
- * its row (K3). After every write -- done or refused -- the page asks for its list and for the
- * count of the open tab anew: what a request is now, the server says. The search and the tab are
+ * its row (K3), or handed on to another group (K4). After every write -- done or refused -- the
+ * page asks for its list and for the count of the open tab anew: what a request is now, the
+ * server says. The search and the tab are
  * kept for each moderator on this device (lastSearch.ts); the group filter opens on all they see.
  */
 export class Support implements ClassComponent {
@@ -223,9 +225,28 @@ export class Support implements ClassComponent {
     if (answer.success) {
       toastSuccess(t(DECISIONS[decision].done))
     } else {
-      toastError(refusalWords(answer.error.messages, { note: false }))
+      toastError(refusalWords(answer.error.messages, 'support.messagesReached'))
     }
     this.written()
+  }
+
+  /**
+   * Hands a request on to the group `tag`, '' for none (K4), without a mail; whether the server
+   * took it. Then the page as it is now: by the moderator's groups the request may have left the
+   * list.
+   */
+  private async reassign(ticket: ListedSupportTicket, tag: string) {
+    const answer = await graphqlRequest(adminReassignSupportTicket, {
+      supportTicketId: ticket.id,
+      creationGroupTag: tag,
+    })
+    if (answer.success) {
+      toastSuccess(t('support.reassigned'))
+    } else {
+      toastError(refusalWords(answer.error.messages, 'support.reassignedReached'))
+    }
+    this.written()
+    return answer.success
   }
 
   view() {
@@ -326,6 +347,8 @@ export class Support implements ClassComponent {
           this.query = search
           this.searchAnew()
         },
+        groups: this.groups,
+        onassign: (ticket: ListedSupportTicket, tag: string) => this.reassign(ticket, tag),
         onwritten: () => this.written(),
       }),
       // on a phone `‹`, three numbers and `›`; at the desk five places with the ellipses, and « »

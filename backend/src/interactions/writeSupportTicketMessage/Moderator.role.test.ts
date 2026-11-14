@@ -6,8 +6,9 @@ import type { DrizzleTransaction } from 'database'
 const mockDatabase = {
   dbCountSupportTicketMessagesOfModerator: jest.fn(),
   dbLockUserRowDrizzle: jest.fn(),
+  dbReassignSupportTicketOfModerator: jest.fn(),
   dbUpdateSupportTicketOfModerator: jest.fn(),
-  SupportTicketMessageType: { DIALOG: 'DIALOG', MODERATOR: 'MODERATOR' },
+  SupportTicketMessageType: { DIALOG: 'DIALOG', MODERATOR: 'MODERATOR', REASSIGNED: 'REASSIGNED' },
   SupportTicketStatus: { IN_PROGRESS: 'IN_PROGRESS', CLOSED: 'CLOSED' },
 }
 
@@ -15,6 +16,7 @@ jest.mock('database', () => mockDatabase)
 
 type RoleModule = typeof import('./Moderator.role')
 let moderatorWriter: RoleModule['moderatorWriter']
+let moderatorReassigner: RoleModule['moderatorReassigner']
 
 const TX = { isTransaction: true } as unknown as DrizzleTransaction
 const AT = new Date('2026-11-14T13:00:00.000Z')
@@ -28,7 +30,7 @@ const WHERE = { id: 42, statusIn: ['OPEN', 'IN_PROGRESS', 'CLOSED'], scope: SCOP
 const WHERE_OPEN = { ...WHERE, statusIn: ['OPEN', 'IN_PROGRESS'] }
 
 beforeAll(async () => {
-  ;({ moderatorWriter } = await import('./Moderator.role'))
+  ;({ moderatorWriter, moderatorReassigner } = await import('./Moderator.role'))
 })
 
 beforeEach(() => {
@@ -141,5 +143,48 @@ describe('moderatorWriter', () => {
     await expect(moderatorWriter({ ...write, kind: 'NOTE' }).moveRequest(42, TX)).resolves.toBe(
       false,
     )
+  })
+})
+
+describe('moderatorReassigner', () => {
+  // from the garden (3) to no group
+  const reassign = { moderator: { id: 9 }, ownerId: 7, scope: SCOPE, from: 3, to: null }
+
+  it('writes the line of a handing on as the moderator, of its own kind', () => {
+    expect(moderatorReassigner(reassign)).toMatchObject({
+      userId: 9,
+      isModerator: true,
+      type: 'REASSIGNED',
+    })
+  })
+
+  it('holds the row of the member who owns the request', async () => {
+    await moderatorReassigner(reassign).lock(42, TX)
+    expect(mockDatabase.dbLockUserRowDrizzle).toHaveBeenCalledWith(7, TX)
+  })
+
+  it('counts its own lines and moves the request on the one condition: open, in scope, not the own', async () => {
+    mockDatabase.dbCountSupportTicketMessagesOfModerator.mockResolvedValue(2)
+    mockDatabase.dbReassignSupportTicketOfModerator.mockResolvedValue(true)
+    const writer = moderatorReassigner(reassign)
+    await expect(writer.countMessages(42, TX)).resolves.toBe(2)
+    await expect(writer.moveRequest(42, TX)).resolves.toBe(true)
+    expect(mockDatabase.dbCountSupportTicketMessagesOfModerator).toHaveBeenCalledWith(
+      WHERE_OPEN,
+      'REASSIGNED',
+      TX,
+    )
+    expect(mockDatabase.dbReassignSupportTicketOfModerator).toHaveBeenCalledWith(
+      WHERE_OPEN,
+      3,
+      null,
+      TX,
+    )
+    expect(mockDatabase.dbUpdateSupportTicketOfModerator).not.toHaveBeenCalled()
+  })
+
+  it('answers what the move answers: false where the request moved or is out of reach', async () => {
+    mockDatabase.dbReassignSupportTicketOfModerator.mockResolvedValue(false)
+    await expect(moderatorReassigner(reassign).moveRequest(42, TX)).resolves.toBe(false)
   })
 })

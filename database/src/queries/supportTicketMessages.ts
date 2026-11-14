@@ -101,9 +101,10 @@ export async function dbCountSupportTicketMessagesOfModerator(
 
 /**
  * The thread of a request as its owner reads it, the oldest message first: the DIALOG messages
- * and no other kind -- the moderation's internal notes are not the member's, and a kind added
- * later is not either until somebody says so here. Another member's request answers no message,
- * as a missing one does. One query, the authors with it.
+ * and the lines a handing on leaves (K4, SUA-018), no other kind -- the moderation's internal
+ * notes are not the member's, and a kind added later is not either until somebody says so here.
+ * Another member's request answers no message, as a missing one does. One query, the authors with
+ * it.
  */
 export async function dbSelectSupportTicketDialogOfOwner(
   supportTicketId: number,
@@ -134,7 +135,10 @@ export async function dbSelectSupportTicketDialogOfOwner(
     .where(
       and(
         eq(supportTicketMessagesTable.supportTicketId, supportTicketId),
-        eq(supportTicketMessagesTable.type, SupportTicketMessageType.DIALOG),
+        inArray(supportTicketMessagesTable.type, [
+          SupportTicketMessageType.DIALOG,
+          SupportTicketMessageType.REASSIGNED,
+        ]),
         // a deleted request shows no thread, here as in the wallet
         ne(supportTicketsTable.status, SupportTicketStatus.DELETED),
       ),

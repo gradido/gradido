@@ -8,5 +8,5 @@ export { SupportTicketMessageType }
 registerEnumType(SupportTicketMessageType, {
   name: 'SupportTicketMessageType',
   description:
-    'The kind of a message in a support request: dialog, or the moderation internal note',
+    'The kind of a message in a support request: dialog, the moderation internal note, or the line a handing on to another group leaves',
 })
