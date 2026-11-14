@@ -3,6 +3,10 @@
 import { readonly, ref } from 'vue'
 import { newChatMessagesSince } from '@/graphql/chat.graphql'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
+import {
+  forgetSupportTicketsMenu,
+  setSupportTicketsMenu,
+} from '@/composables/useSupportTicketsMenu'
 
 /**
  * The chat's one beat (E-017): ONE question -- "what is new for me since this id?" -- asked for
@@ -26,6 +30,10 @@ import { refreshContactsPanel } from '@/composables/useContactsPanel'
  *
  * Started by the layout of the signed-in wallet (DashboardLayout) and stopped when it goes, and
  * by the store's logout: nothing of one member's chat reaches the next member on this device.
+ *
+ * The document asks one field more beside the chat's (Support-Anfragen K5): `supportTicketsMenu`,
+ * which goes on to useSupportTicketsMenu as it came and is nothing to the chat. It never fails a
+ * question (the server answers it null where it cannot count), so the beat stays the chat's.
  */
 
 /** The beat while all is well. A constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). */
@@ -110,6 +118,9 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  *
  * `no-cache`: nothing reads these answers back, and every marker would leave an entry of its own
  * in the store until the logout.
+ *
+ * Answers the chat's part, and the support's beside it (K5) -- undefined where the field is not
+ * in the answer.
  */
 const ask = async (afterId, editedCursor, reactedCursor) => {
   const { data } = await beat.client.query({
@@ -120,7 +131,7 @@ const ask = async (afterId, editedCursor, reactedCursor) => {
   })
   const update = data?.newChatMessagesSince
   if (!update) throw new Error('newChatMessagesSince: no answer')
-  return update
+  return { update, supportTicketsMenu: data.supportTicketsMenu }
 }
 
 /**
@@ -150,8 +161,13 @@ const cycle = async (mine) => {
     let rounds = 0
     let more = false
     do {
-      const update = await ask(beat.marker, beat.editedCursor, beat.reactedCursor)
+      const { update, supportTicketsMenu } = await ask(
+        beat.marker,
+        beat.editedCursor,
+        beat.reactedCursor,
+      )
       if (mine !== generation) return
+      setSupportTicketsMenu(supportTicketsMenu)
       // The number moved without anything arriving: a conversation was read -- here, after
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
       // first answer only says where one stands; the list was loaded a moment ago.
@@ -268,6 +284,7 @@ export const stopChatUpdates = () => {
   if (beat.client) document.removeEventListener('visibilitychange', onVisibility)
   beat = idle()
   unread.value = 0
+  forgetSupportTicketsMenu()
 }
 
 /**

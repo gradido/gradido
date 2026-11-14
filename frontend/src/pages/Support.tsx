@@ -1,11 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { BImg, BTab, BTabs } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { NavContributions, type NavTab } from '@/components/Contributions/NavContributions'
 import { SupportForm } from '@/components/Support/SupportForm'
 import { SupportTicketList } from '@/components/Support/SupportTicketList'
+import { setFirstLoginWindowWanted } from '@/composables/useFirstLoginWindow'
 import { InfoStatistic } from '@/pages/InfoStatistic'
 import IonPersonSharp from '~icons/ion/person-sharp'
 import IMdiInformation from '~icons/mdi/information'
@@ -14,8 +15,13 @@ const TABS = ['write', 'my-requests', 'information']
 
 /**
  * "Support" (SUA-009): writing a request, the member's own requests, and what the page
- * "Information" says -- three tabs in the form of "Schöpfen". Reached by its address until the
- * menu takes it in place of "Information" (K5).
+ * "Information" says -- three tabs in the form of "Schöpfen". In the menu in the place of
+ * "Information" since K5.
+ *
+ * While the page stands, no window of the first logins opens over it (SUA-016): whoever came here
+ * wants to ask something -- also an account whose address did not arrive, whose window cannot be
+ * closed and leads here. It takes the screen at the head of their order, as the conversation an
+ * address opens does (useFirstLoginWindow).
  */
 export const Support = defineComponent({
   name: 'Support',
@@ -23,6 +29,9 @@ export const Support = defineComponent({
     const route = useRoute()
     const router = useRouter()
     const { t } = useI18n()
+
+    setFirstLoginWindowWanted('support', true)
+    onBeforeUnmount(() => setFirstLoginWindowWanted('support', false))
 
     const tabIndex = ref(0)
     watch(

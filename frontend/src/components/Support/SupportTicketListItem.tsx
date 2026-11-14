@@ -15,6 +15,7 @@ import {
   createSupportTicketMessage,
   listSupportTicketMessages,
 } from '@/graphql/supportTickets.graphql'
+import { useWalletStore } from '@/store/useWalletStore'
 import { creationGroupLabel } from '@/utils/creationGroupLabel'
 import { supportTicketRefusal } from '@/utils/supportTicketRefusal'
 import { SUPPORT_TICKET_SIGNS } from '@/utils/supportTicketStatus'
@@ -58,6 +59,10 @@ export const SupportTicketListItem = defineComponent({
   setup(props, { emit, expose }) {
     const { t, d } = useI18n()
     const { toastError, toastSuccess } = useAppToast()
+    const store = useWalletStore()
+    // a full thread names the support's address while new requests are switched off (K5)
+    const refusal = (error: unknown) =>
+      supportTicketRefusal(t, error, store.supportTicketsActive === false)
     const { client: apolloClient } = useApolloClient()
     const { mutate: createMessageMutation } = useMutation(createSupportTicketMessage)
     const { mutate: closeMutation } = useMutation(closeSupportTicket)
@@ -111,7 +116,7 @@ export const SupportTicketListItem = defineComponent({
         )
       } catch (error) {
         if (question === asked) {
-          toastError(supportTicketRefusal(t, error))
+          toastError(refusal(error))
         }
       }
     }
@@ -147,7 +152,7 @@ export const SupportTicketListItem = defineComponent({
         const answer = await createMessageMutation({ supportTicketId: props.id, message })
         return answer?.data.createSupportTicketMessage
       } catch (error) {
-        throw new Error(supportTicketRefusal(t, error))
+        throw new Error(refusal(error))
       }
     }
 
@@ -172,7 +177,7 @@ export const SupportTicketListItem = defineComponent({
         toastSuccess(t('support.closed'))
         localStatus.value = 'CLOSED'
       } catch (error) {
-        toastError(supportTicketRefusal(t, error))
+        toastError(refusal(error))
       } finally {
         closing.value = false
         emit('ticket-changed')

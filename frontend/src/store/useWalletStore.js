@@ -102,6 +102,11 @@ export const useWalletStore = defineStore('wallet', {
     avatar: null,
     redirectPath: '/overview',
     transactionToHighlightId: '',
+    // Whether the community lets its members file new support requests (K5, SUA-019), as the
+    // chat's beat last said (DashboardLayout); null for not known, which reads as on. ⛔ The
+    // community's, not the member's: login and logout leave it alone, or the menu would jump from
+    // "Support" to "Information" at nearly every visit to a community that switched it off.
+    supportTicketsActive: null,
   }),
   actions: {
     setLanguage(language) {
@@ -157,6 +162,9 @@ export const useWalletStore = defineStore('wallet', {
     // (a store persisted before the field existed, or a login answer that does not carry it).
     setCreationAllowed(creationAllowed) {
       this.creationAllowed = creationAllowed
+    },
+    setSupportTicketsActive(supportTicketsActive) {
+      this.supportTicketsActive = supportTicketsActive
     },
     setFirstCreationStatus(firstCreationStatus) {
       this.firstCreationStatus = firstCreationStatus

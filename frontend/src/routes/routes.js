@@ -1,5 +1,7 @@
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import CONFIG from '@/config'
+import { supportTicketsInProgress } from '@/composables/useSupportTicketsMenu'
+import { useWalletStore } from '@/store/useWalletStore'
 
 // The new matching ships dark. Without MATCHING_ACTIVE its routes are never
 // registered at all, so /matching falls through to the catch-all and shows "not
@@ -405,8 +407,9 @@ const routes = [
     },
   },
   ...matchingRoutes,
-  // Support requests (SUA-001): only by address until the menu takes "Support" in place of
-  // "Information" (K5) -- the page is whole from the first delivery on, the admin's side follows.
+  // Support requests (SUA-001), in the menu in the place of "Information" since K5. "Support"
+  // leads here, and the tab is chosen here: "Meine Anfragen" where a question back waits for the
+  // member, or where new requests are switched off (SUA-024, 1 b); else "Schreiben".
   {
     path: '/support',
     component: () => import('@/pages/Support').then((page) => page.Support),
@@ -414,7 +417,12 @@ const routes = [
       requiresAuth: true,
       pageTitle: 'support',
     },
-    redirect: () => ({ path: '/support/write' }),
+    redirect: () => ({
+      path:
+        supportTicketsInProgress.value > 0 || useWalletStore().supportTicketsActive === false
+          ? '/support/my-requests'
+          : '/support/write',
+    }),
   },
   {
     path: '/support/:tab/:page?',
@@ -425,6 +433,9 @@ const routes = [
       rightSide: 'support',
     },
   },
+  // The page "Information" is the third tab of "Support" since K5: its old address leads there
+  // while new requests are on -- not known reads as on --, and stays the page it was while they
+  // are off, when the menu says "Information" again. No guard leads back from the tab.
   {
     path: '/information',
     component: () => import('@/pages/InfoStatistic').then((page) => page.InfoStatistic),
@@ -432,6 +443,8 @@ const routes = [
       requiresAuth: true,
       pageTitle: 'information',
     },
+    beforeEnter: () =>
+      useWalletStore().supportTicketsActive === false ? true : { path: '/support/information' },
   },
   // {
   //   path: '/storys',

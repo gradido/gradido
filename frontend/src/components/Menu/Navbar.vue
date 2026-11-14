@@ -90,8 +90,10 @@
             >
               <span class="visually-hidden">{{ $t('navigation.menu') }}</span>
               <span class="navbar-toggler-icon h2">
+                <!-- one dot for both: something unread in the chat, a question back to one of
+                     the member's support requests (K5) -- the line beside it says which -->
                 <span
-                  v-if="chatUnreadConversations > 0"
+                  v-if="chatUnreadConversations > 0 || supportTicketsInProgress > 0"
                   class="chat-unread-dot"
                   aria-hidden="true"
                   data-test="chat-unread-dot"
@@ -103,6 +105,13 @@
                 data-test="chat-unread-dot-label"
               >
                 {{ $t('chatThread.unreadDot') }}
+              </span>
+              <span
+                v-if="supportTicketsInProgress > 0"
+                class="visually-hidden"
+                data-test="support-dot-label"
+              >
+                {{ $t('support.dot') }}
               </span>
             </button>
           </div>
@@ -192,6 +201,7 @@ import { GradidoAddressCopy } from '@/components/GradidoAddressCopy'
 import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 // How many conversations hold something unread, from the chat's beat -- for the dot.
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
+import { supportTicketsInProgress } from '@/composables/useSupportTicketsMenu'
 
 defineProps({
   balance: { type: Number, required: true },

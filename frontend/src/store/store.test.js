@@ -274,6 +274,19 @@ describe('Pinia store', () => {
         expect(wallet.eventMatchingEntry).toBeNull()
       })
     })
+
+    // Support-Anfragen K5: whether the community takes new requests, as the beat last said
+    describe('supportTicketsActive', () => {
+      it('is not known before anything said it', () => {
+        expect(walletOf().supportTicketsActive).toBeNull()
+      })
+
+      it.each([true, false])('holds %s', (active) => {
+        const wallet = walletOf()
+        wallet.setSupportTicketsActive(active)
+        expect(wallet.supportTicketsActive).toBe(active)
+      })
+    })
   })
 
   describe('actions', () => {
@@ -573,6 +586,26 @@ describe('Pinia store', () => {
       it('calls twenty-eight setters', () => {
         wallet.logout()
         expect(calls).toHaveLength(28)
+      })
+
+      /**
+       * ⛔ The switch of new support requests is the community's, not the member's (K5): neither
+       * a sign-out nor the sign-in after it touches it. Set back to "not known" there, the menu
+       * of a community that switched them off would show "Support" at nearly every visit, until
+       * the beat's first answer put "Information" back.
+       */
+      it('keeps the switch of new support requests over a sign-out and the sign-in after', () => {
+        wallet.setSupportTicketsActive(false)
+        calls.length = 0
+        wallet.logout()
+        wallet.login({
+          gradidoID: 'user-two',
+          language: 'de',
+          role: null,
+          klickTipp: { newsletterState: false },
+        })
+        expect(wallet.supportTicketsActive).toBe(false)
+        expect(calls.map(([name]) => name)).not.toContain('setSupportTicketsActive')
       })
 
       // What an event link offered goes with whoever signs out, like the publisher's id. (For

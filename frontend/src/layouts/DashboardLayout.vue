@@ -364,6 +364,7 @@ import { ensureKeptPictures, startKeptPictures } from '@/composables/useKeptPict
 import { ensureFavorites } from '@/composables/useFavorites'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
+import { supportTicketsActiveNow } from '@/composables/useSupportTicketsMenu'
 import { useRightSidePref } from '@/composables/useRightSidePref'
 import { useViewport } from '@/composables/useViewport'
 import { routeSection } from '@/utils/routeSection'
@@ -636,6 +637,14 @@ onMounted(() => {
 })
 
 onBeforeUnmount(stopChatUpdates)
+
+// The switch of new support requests (K5) is the community's: kept in the store once the beat
+// names it, so that the menu stands right at the next start before the first answer comes.
+watch(supportTicketsActiveNow, (active) => {
+  if (active !== null) {
+    store.setSupportTicketsActive(active)
+  }
+})
 
 /**
  * Signs the member out. By their own word -- "Abmelden" in a menu, or in the question before a

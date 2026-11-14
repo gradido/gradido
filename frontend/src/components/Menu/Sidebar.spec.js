@@ -10,11 +10,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-// Mock vue-router
+// Mock vue-router: the route as the menu reads it -- its address, and the records it matched
+// (the support's entry is lit by the record, K5). Changed by a test, put back after it.
+const mockRoute = { path: '/', matched: [] }
 vi.mock('vue-router', () => ({
-  useRoute: vi.fn(() => ({
-    path: '/',
-  })),
+  useRoute: vi.fn(() => mockRoute),
 }))
 
 // Mock Apollo
@@ -40,8 +40,12 @@ const i18n = createI18n({
         settings: 'Settings',
         admin_area: 'Admin',
         logout: 'Logout',
+        support: 'Support',
       },
       info: 'Info',
+      support: {
+        badge: '{n} request with a question back | {n} requests with a question back',
+      },
       creation: 'Creation',
       chatThread: {
         unreadBadge: '{n} conversation with new messages | {n} conversations with new messages',
@@ -150,8 +154,10 @@ describe('Sidebar', () => {
         expect(wrapper.findAll('.nav-item').at(5).find('a').attributes('href')).toBe('/contacts')
       })
 
-      it('has nav-item "info" in navbar', () => {
-        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('Info')
+      // "Support" in the place of "Information" (K5): a switch not known yet reads as on
+      it('has nav-item "Support" where "Information" stood', () => {
+        expect(wrapper.findAll('.nav-item').at(6).text()).toContain('Support')
+        expect(wrapper.findAll('.nav-item').at(6).attributes('data-test')).toBe('support-menu')
       })
     })
 
@@ -237,7 +243,7 @@ describe('Sidebar and the project account', () => {
     const wrapper = mountSidebar({ creationAllowed: false })
     expect(wrapper.find('[data-test="creation-menu"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Creation')
-    for (const label of ['Overview', 'Send', 'Transactions', 'Chat', 'Info', 'Settings']) {
+    for (const label of ['Overview', 'Send', 'Transactions', 'Chat', 'Support', 'Settings']) {
       expect(wrapper.text()).toContain(label)
     }
     // The pairs close up around the gap.
@@ -299,7 +305,7 @@ describe('Sidebar with MATCHING_ACTIVE off', () => {
       'Transactions',
       'Chat',
       'Creation',
-      'Info',
+      'Support',
       'Settings',
     ]) {
       expect(text).toContain(label)
@@ -449,5 +455,165 @@ describe('Sidebar and the chat', () => {
     expect(rule('\\.chat-menu-item')).toMatch(/display:\s*flex/)
     expect(rule('\\.chat-menu-label')).toMatch(/white-space:\s*nowrap/)
     expect(wrapperClassOfTheEntry()).toContain('chat-menu-item')
+  })
+})
+
+/**
+ * "Support" in the place of "Information" (K5, SUA-009, SUA-024 1 b): while the community lets
+ * its members file new requests -- not known yet reads as on --, and while the member has a
+ * request not closed, also with the switch off. The switch comes from the store, the member's
+ * numbers through the real beat (useChatUpdates), as the chat's do.
+ */
+describe('Sidebar and the support (K5)', () => {
+  const answerWith = (supportTicketsMenu) => ({
+    query: vi.fn(async () => ({
+      data: {
+        newChatMessagesSince: { latestId: 1, unreadConversations: 0, messages: [], hasMore: false },
+        supportTicketsMenu,
+      },
+    })),
+  })
+  const beatBrings = async (supportTicketsMenu) => {
+    startChatUpdates(answerWith(supportTicketsMenu))
+    await flushPromises()
+  }
+  const mountSidebar = (state = {}) =>
+    mount(Sidebar, {
+      global: {
+        plugins: [createWalletStore(state), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+  const supportEntry = (wrapper) => wrapper.find('[data-test="support-menu"]')
+  const informationEntry = (wrapper) =>
+    wrapper
+      .findAll('.nav-item')
+      .find((item) => item.find('a').attributes('href') === '/information')
+  const badge = (wrapper) => wrapper.find('[data-test="support-badge"]')
+  const sentence = (wrapper) => wrapper.find('[data-test="support-badge-label"]')
+  const lit = (wrapper) => supportEntry(wrapper).find('a').classes().includes('active-route')
+
+  afterEach(() => {
+    stopChatUpdates()
+    mockRoute.path = '/'
+    mockRoute.matched = []
+  })
+
+  it.each([
+    [null, 'not known yet'],
+    [true, 'on'],
+  ])('stands in the place of "Information" while the switch is %s (%s)', (active) => {
+    const wrapper = mountSidebar({ supportTicketsActive: active })
+    expect(supportEntry(wrapper).find('a').attributes('href')).toBe('/support')
+    expect(supportEntry(wrapper).text()).toBe('Support')
+    expect(informationEntry(wrapper)).toBeUndefined()
+    expect(wrapper.text()).not.toContain('Info')
+    // in the very place: the first of the second section
+    expect(wrapper.findAll('.nav-item').at(6).attributes('data-test')).toBe('support-menu')
+  })
+
+  it('carries the question mark in a circle, in the tone of the others', () => {
+    const wrapper = mountSidebar()
+    expect(supportEntry(wrapper).html()).toContain('i-mdi-help-circle')
+    expect(supportEntry(wrapper).html()).not.toContain('i-mdi-information')
+    expect(wrapper.find('[data-test="support-menu-icon"]').classes()).toContain('svg-icon')
+  })
+
+  it('gives "Information" back while new requests are off and nothing of the member\'s is open', async () => {
+    await beatBrings({ active: false, inProgress: 0, unfinished: 0 })
+    const wrapper = mountSidebar({ supportTicketsActive: false })
+    expect(supportEntry(wrapper).exists()).toBe(false)
+    expect(informationEntry(wrapper).text()).toBe('Info')
+    expect(wrapper.findAll('.nav-item').at(6).find('a').attributes('href')).toBe('/information')
+    expect(wrapper.findAll('.nav-item')).toHaveLength(mountSidebar().findAll('.nav-item').length)
+  })
+
+  it('stays while the member has a request not closed, also with the switch off', async () => {
+    await beatBrings({ active: false, inProgress: 0, unfinished: 1 })
+    const wrapper = mountSidebar({ supportTicketsActive: false })
+    expect(supportEntry(wrapper).exists()).toBe(true)
+    expect(informationEntry(wrapper)).toBeUndefined()
+  })
+
+  it('shows no mark while no question back waits', async () => {
+    await beatBrings({ active: true, inProgress: 0, unfinished: 2 })
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).exists()).toBe(false)
+    expect(sentence(wrapper).exists()).toBe(false)
+    expect(supportEntry(wrapper).text()).toBe('Support')
+  })
+
+  // in the form of the chat's mark, on the corner of the symbol, for the same reason
+  it('shows the number of requests with a question back on the symbol', async () => {
+    await beatBrings({ active: true, inProgress: 2, unfinished: 3 })
+    const wrapper = mountSidebar()
+    const holder = supportEntry(wrapper).find('.chat-menu-icon')
+    expect(holder.find('[data-test="support-badge"]').exists()).toBe(true)
+    expect(badge(wrapper).text()).toBe('2')
+    expect(badge(wrapper).attributes('aria-hidden')).toBe('true')
+    expect(badge(wrapper).classes()).toContain('chat-unread-badge')
+  })
+
+  it('says the number as a sentence after the word, for the ear', async () => {
+    await beatBrings({ active: true, inProgress: 2, unfinished: 2 })
+    const wrapper = mountSidebar()
+    const word = supportEntry(wrapper).find('.chat-menu-label')
+    expect(sentence(wrapper).classes()).toContain('visually-hidden')
+    expect(sentence(wrapper).text()).toBe('2 requests with a question back')
+    expect(
+      word.element.compareDocumentPosition(sentence(wrapper).element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it('says one request in the singular', async () => {
+    await beatBrings({ active: true, inProgress: 1, unfinished: 1 })
+    expect(sentence(mountSidebar()).text()).toBe('1 request with a question back')
+  })
+
+  it('stops the figure at 99+', async () => {
+    await beatBrings({ active: true, inProgress: 120, unfinished: 120 })
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).text()).toBe('99+')
+    expect(sentence(wrapper).text()).toBe('120 requests with a question back')
+  })
+
+  it("goes when the beat stops: the numbers were the member's", async () => {
+    await beatBrings({ active: true, inProgress: 2, unfinished: 2 })
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).exists()).toBe(true)
+    stopChatUpdates()
+    await flushPromises()
+    expect(badge(wrapper).exists()).toBe(false)
+  })
+
+  /**
+   * /support leads to a tab, and BNavItem lights only an exact match: the entry is lit by hand on
+   * every address under it -- by the route's record, so an address typed in another case counts.
+   */
+  it.each([
+    ['/support/write', '/support/:tab/:page?', true],
+    ['/support/my-requests/2', '/support/:tab/:page?', true],
+    ['/Support/Information', '/support/:tab/:page?', true],
+    ['/overview', '/overview', false],
+    ['/information', '/information', false],
+  ])('on %s (record %s) is lit: %s', (path, record, on) => {
+    mockRoute.path = path
+    mockRoute.matched = [{ path: record }]
+    expect(lit(mountSidebar())).toBe(on)
+  })
+
+  it('lights the entry that comes in the place of "Information", without a route change', async () => {
+    mockRoute.path = '/support/my-requests'
+    mockRoute.matched = [{ path: '/support/:tab/:page?' }]
+    const wrapper = mountSidebar({ supportTicketsActive: false })
+    expect(supportEntry(wrapper).exists()).toBe(false)
+
+    await beatBrings({ active: false, inProgress: 1, unfinished: 1 })
+    await wrapper.vm.$nextTick()
+
+    expect(supportEntry(wrapper).exists()).toBe(true)
+    expect(lit(wrapper)).toBe(true)
   })
 })

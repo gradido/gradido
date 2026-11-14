@@ -37,7 +37,9 @@
     <template #information>
       <div class="text-dark">
         <h4 class="alert-heading">{{ $t('info') }}</h4>
-        <p>{{ $t('support.info.information') }}</p>
+        <!-- with new requests switched off (K5) without the way to "Schreiben" -->
+        <p v-if="store.supportTicketsActive === false">{{ $t('support.info.informationOff') }}</p>
+        <p v-else>{{ $t('support.info.information') }}</p>
       </div>
     </template>
   </contribution-info>
@@ -46,4 +48,7 @@
 import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
 import VariantIcon from '@/components/VariantIcon.vue'
 import { SUPPORT_TICKET_SIGNS as SIGNS } from '@/utils/supportTicketStatus'
+import { useWalletStore } from '@/store/useWalletStore'
+
+const store = useWalletStore()
 </script>

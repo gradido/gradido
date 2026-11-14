@@ -57,16 +57,21 @@ const i18n = createI18n({
       'emailConfirmation.resend': 'Send mail again',
       'emailConfirmation.resendTooSoon': 'the mail has only just gone',
       'emailConfirmation.changeAddress': 'Correct address',
+      'emailConfirmation.writeSupport': 'The mail does not arrive? Write to the support.',
     },
   },
 })
 
 const hoursAgo = (hours) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
 
+// The link to the support (K5) as an anchor with its address, so that it can be read.
+const RouterLink = { props: ['to'], template: '<a :href="to"><slot /></a>' }
+
 const mountWith = (state) =>
   mount(EmailConfirmationReminder, {
     global: {
       plugins: [walletStore({ language: 'en', ...state }), i18n],
+      stubs: { RouterLink },
     },
   })
 
@@ -169,6 +174,33 @@ describe('EmailConfirmationReminder', () => {
       } finally {
         vi.useRealTimers()
       }
+    })
+  })
+
+  /**
+   * A third way, while the support takes requests (K5, SUA-016): an account whose address did
+   * not arrive may ask. Not a button -- the two ways out stay the two buttons --, a link to
+   * "Schreiben"; the page "Support" holds this window back while it stands.
+   */
+  describe('the way to the support', () => {
+    const mountOverdue = (supportTicketsActive) =>
+      mountWith({ emailChecked: false, accountCreatedAt: hoursAgo(25), supportTicketsActive })
+    const link = (wrapper) => wrapper.find('[data-test="email-confirmation-support"]')
+
+    it.each([
+      [null, 'not known yet'],
+      [true, 'on'],
+    ])('is there while new requests are %s (%s)', (active) => {
+      const wrapper = mountOverdue(active)
+      expect(link(wrapper).attributes('href')).toBe('/support/write')
+      expect(link(wrapper).text()).toBe('The mail does not arrive? Write to the support.')
+      expect(wrapper.findAll('button')).toHaveLength(2)
+    })
+
+    it('is not there while new requests are switched off', () => {
+      const wrapper = mountOverdue(false)
+      expect(wrapper.find('[data-test="email-confirmation-overdue"]').exists()).toBe(true)
+      expect(link(wrapper).exists()).toBe(false)
     })
   })
 

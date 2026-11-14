@@ -592,7 +592,8 @@
     "resendTooSoon": "La mail di conferma è appena partita. Attendi qualche minuto prima di richiederla di nuovo.",
     "resent": "La mail di conferma è di nuovo in viaggio.",
     "strip": "Una mail di conferma è in viaggio verso di te — clicca sul link al suo interno. Fino al giorno {deadline}, puoi già usare pienamente il tuo account.",
-    "title": "Conferma il tuo indirizzo e-mail"
+    "title": "Conferma il tuo indirizzo e-mail",
+    "writeSupport": "La mail non arriva? Scrivi al supporto."
   },
   "emoji": {
     "choice": "Emoji",
@@ -1613,12 +1614,15 @@
   "success": "Successo",
   "support": {
     "answerQuestion": "C'è un nuovo messaggio su questa richiesta.",
+    "badge": "{n} richiesta con una domanda per te | {n} richieste con una domanda per te",
     "changed": "Questa richiesta è cambiata nel frattempo.",
     "closed": "La richiesta è chiusa.",
     "done": "Risolto, grazie",
+    "dot": "Una domanda su una delle tue richieste",
     "failed": "Purtroppo non ha funzionato. Riprova, per favore.",
     "info": {
       "information": "Qui c'è ciò che conta per la tua comunità e chi se ne occupa. Il modo più semplice per fare la tua domanda è in «Scrivi».",
+      "informationOff": "Qui c'è ciò che conta per la tua comunità e chi se ne occupa.",
       "myRequests": "Qui ci sono le tue richieste e le risposte. Se scrivi di nuovo, la richiesta torna aperta.",
       "write": {
         "answer": "La risposta ti arriva via e-mail. La trovi anche qui, in «Le mie richieste».",
@@ -1633,9 +1637,11 @@
       "open": "inviata, in attesa di risposta"
     },
     "messagesReached": "In questa richiesta ci sono già {max} messaggi. Fai una nuova richiesta, per favore.",
+    "messagesReachedOff": "In questa richiesta ci sono già {max} messaggi. Puoi contattare il supporto a {mail}.",
     "myRequests": "Le mie richieste",
     "noRequests": "Non hai ancora fatto nessuna richiesta.",
     "number": "Richiesta n. {number}",
+    "off": "Al momento le nuove richieste sono disattivate nella tua comunità. Puoi contattare il supporto a {mail}.",
     "perDayReached": "Nelle ultime 24 ore hai già fatto {max} richieste. Continua a scrivere in una di queste, per favore.",
     "placeholder": "Come possiamo aiutarti?",
     "question": "La tua domanda",

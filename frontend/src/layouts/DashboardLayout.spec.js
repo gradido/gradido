@@ -19,6 +19,10 @@ import FirstCreation from '@/components/FirstCreation.vue'
 import { EventMatchingHomeInvitation } from '@/components/EventMatchingHomeInvitation'
 import CONFIG from '@/config'
 import { forgetWayBack, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
+import {
+  forgetSupportTicketsMenu,
+  setSupportTicketsMenu,
+} from '@/composables/useSupportTicketsMenu'
 
 // `fileURLToPath`, not `new URL(...)`: jsdom brings its own `URL`, which node rejects.
 const here = dirname(fileURLToPath(import.meta.url))
@@ -972,6 +976,36 @@ describe('DashboardLayout', () => {
    * own ran straight into it. So on every width under the cards -- and nowhere else, where
    * the phone keeps the page close under its heading.
    */
+  /**
+   * The switch of new support requests (K5) is the community's: the beat brings it to
+   * useSupportTicketsMenu, and the layout keeps it in the store, so the menu stands right at the
+   * next start, before the first answer. "Not known" -- no answer yet, or the beat stopped --
+   * takes nothing from the store.
+   */
+  describe('the switch of new support requests', () => {
+    afterEach(() => {
+      forgetSupportTicketsMenu()
+    })
+
+    it('keeps in the store what the beat says, each time it changes', async () => {
+      setSupportTicketsMenu({ active: false, inProgress: 0, unfinished: 0 })
+      await nextTick()
+      expect(useWalletStore(store).supportTicketsActive).toBe(false)
+
+      setSupportTicketsMenu({ active: true, inProgress: 0, unfinished: 0 })
+      await nextTick()
+      expect(useWalletStore(store).supportTicketsActive).toBe(true)
+    })
+
+    it('takes nothing from the store when the beat forgets', async () => {
+      setSupportTicketsMenu({ active: false, inProgress: 1, unfinished: 1 })
+      await nextTick()
+      forgetSupportTicketsMenu()
+      await nextTick()
+      expect(useWalletStore(store).supportTicketsActive).toBe(false)
+    })
+  })
+
   describe('the space between the balance cards and the page', () => {
     const gapOn = async (path) => {
       wrapper.vm.skeleton = false
@@ -989,14 +1023,18 @@ describe('DashboardLayout', () => {
       },
     )
 
-    it.each(['/contacts', '/settings', '/information', '/contributions/contribute'])(
-      'is left to the desk on %s, which shows no cards',
-      async (path) => {
-        const classes = await gapOn(path)
-        expect(classes).toContain('mt-0')
-        expect(classes).toContain('mt-lg-3')
-      },
-    )
+    // '/information' leads to the third tab of "Support" while the switch is not known (K5)
+    it.each([
+      '/contacts',
+      '/settings',
+      '/information',
+      '/support/write',
+      '/contributions/contribute',
+    ])('is left to the desk on %s, which shows no cards', async (path) => {
+      const classes = await gapOn(path)
+      expect(classes).toContain('mt-0')
+      expect(classes).toContain('mt-lg-3')
+    })
 
     /**
      * The layout names the sections in a list, and the cards live in the slots of
