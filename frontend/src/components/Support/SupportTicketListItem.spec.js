@@ -124,6 +124,8 @@ describe('SupportTicketListItem', () => {
         expect.objectContaining({
           variables: { supportTicketId: 12 },
           fetchPolicy: 'network-only',
+          // a read after a reply must not share the answer of one still on its way
+          context: { queryDeduplication: false },
         }),
       )
       expect(thread(wrapper).props('messages')).toEqual([MODERATION])

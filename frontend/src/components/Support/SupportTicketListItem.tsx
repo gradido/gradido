@@ -91,6 +91,9 @@ export const SupportTicketListItem = defineComponent({
           query: listSupportTicketMessages,
           variables: { supportTicketId: props.id },
           fetchPolicy: 'network-only',
+          // Each read its own request: Apollo would otherwise hand a read after a reply the
+          // answer of an identical one still on its way -- the one without the reply.
+          context: { queryDeduplication: false },
         })
         if (question !== asked) {
           return
