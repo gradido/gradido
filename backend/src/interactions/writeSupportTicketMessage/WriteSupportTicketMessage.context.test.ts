@@ -8,7 +8,6 @@ import type { SupportTicketWriter } from './WriteSupportTicketMessage.context'
 const mockTx = { isTransaction: true }
 const mockDatabase = {
   dbInsertSupportTicketMessage: jest.fn(),
-  dbLockUserRowDrizzle: jest.fn(),
   drizzleDb: () => ({ transaction: mockTransaction }),
 }
 const mockTransaction = jest.fn()
@@ -21,6 +20,7 @@ let writeSupportTicketMessage: ContextModule['writeSupportTicketMessage']
 const AT = new Date('2026-11-14T08:00:00.000Z')
 let steps: string[]
 let writer: SupportTicketWriter & {
+  lock: jest.Mock
   countMessages: jest.Mock
   moveRequest: jest.Mock
 }
@@ -33,9 +33,6 @@ beforeEach(() => {
   jest.resetAllMocks()
   steps = []
   mockTransaction.mockImplementation((work: (tx: unknown) => unknown) => work(mockTx))
-  mockDatabase.dbLockUserRowDrizzle.mockImplementation(async () => {
-    steps.push('lock')
-  })
   mockDatabase.dbInsertSupportTicketMessage.mockImplementation(async () => {
     steps.push('insert')
     return 77
@@ -44,6 +41,9 @@ beforeEach(() => {
     userId: 3,
     isModerator: false,
     type: 'DIALOG',
+    lock: jest.fn(async () => {
+      steps.push('lock')
+    }),
     countMessages: jest.fn(async () => {
       steps.push('count')
       return 0
@@ -74,9 +74,19 @@ describe('writeSupportTicketMessage', () => {
     )
   })
 
-  it('holds the writer row first, before it counts and writes', async () => {
+  it('writes as the role is: a note of the moderation stays a note', async () => {
+    writer.type = 'MODERATOR'
+    writer.isModerator = true
+    await writeSupportTicketMessage(writer, 42, 'intern', AT)
+    expect(mockDatabase.dbInsertSupportTicketMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'MODERATOR', isModerator: true }),
+      mockTx,
+    )
+  })
+
+  it('holds what the role holds first, before it counts and writes', async () => {
     await writeSupportTicketMessage(writer, 42, 'Danke!', AT)
-    expect(mockDatabase.dbLockUserRowDrizzle).toHaveBeenCalledWith(3, mockTx)
+    expect(writer.lock).toHaveBeenCalledWith(42, mockTx)
     expect(steps).toEqual(['lock', 'count', 'move', 'insert'])
   })
 

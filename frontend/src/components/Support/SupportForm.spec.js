@@ -84,6 +84,19 @@ describe('SupportForm', () => {
     expect(wrapper.find('textarea').element.value).toBe('')
   })
 
+  it('sends once, however often it is pressed while it sends, and is closed meanwhile', async () => {
+    let done
+    mockMutate.mockImplementation(() => new Promise((resolve) => (done = resolve)))
+    const wrapper = mountForm()
+    await wrapper.find('textarea').setValue('Wie schöpfe ich?')
+    await wrapper.find('form').trigger('submit')
+    expect(sendButton(wrapper).attributes('disabled')).toBeDefined()
+    await wrapper.find('form').trigger('submit')
+    done({ data: { createSupportTicket: { id: 12 } } })
+    await flushPromises()
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+  })
+
   it('files a request without a group as one for the community', async () => {
     mockMutate.mockResolvedValue({ data: { createSupportTicket: { id: 12 } } })
     const wrapper = mountForm()

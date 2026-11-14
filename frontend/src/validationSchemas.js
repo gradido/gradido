@@ -117,6 +117,15 @@ export const supportTicketText = string()
     key: 'form.validation.memo.min',
     values: { min },
   }))
+  // ... and counted as the server counts (SupportTicket.schema.ts): "🌸🌸🌸" is three characters,
+  // not six, or the wallet lets through what the server refuses. A test of its own beside
+  // `min`, not in its place: ValidatedInput reads `min` and its number from describe().
+  .test({
+    name: 'minCharacters',
+    params: { min: SUPPORT_TICKET_TEXT_MIN_CHARS },
+    message: ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }),
+    test: (value) => Array.from(value ?? '').length >= SUPPORT_TICKET_TEXT_MIN_CHARS,
+  })
   .max(MESSAGE_MAX_CHARS, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
 export const subject = string()

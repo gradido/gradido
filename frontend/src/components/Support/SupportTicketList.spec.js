@@ -52,6 +52,14 @@ describe('SupportTicketList', () => {
     expect(options).toMatchObject({ fetchPolicy: 'cache-and-network' })
   })
 
+  it('asks for the page the member turns to', async () => {
+    answering(TICKETS)
+    const wrapper = mount(SupportTicketList)
+    const [, variables] = vi.mocked(useQuery).mock.calls[0]
+    wrapper.findComponent({ name: 'PaginatorRouteParamsPage' }).vm.$emit('update:modelValue', 2)
+    expect(variables()).toEqual({ currentPage: 2, pageSize: 25 })
+  })
+
   it('shows a row for each request, as the server orders them', () => {
     answering(TICKETS)
     expect(rows(mount(SupportTicketList)).map((row) => row.props('id'))).toEqual([13, 12])

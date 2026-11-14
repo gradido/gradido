@@ -4,7 +4,8 @@
 import type { DrizzleTransaction } from 'database'
 
 const mockDatabase = {
-  dbCountSupportTicketMessagesOfOwner: jest.fn(),
+  dbCountSupportTicketDialogOfOwner: jest.fn(),
+  dbLockUserRowDrizzle: jest.fn(),
   dbUpdateSupportTicketOfOwner: jest.fn(),
   SupportTicketMessageType: { DIALOG: 'DIALOG' },
   SupportTicketStatus: { OPEN: 'OPEN' },
@@ -31,10 +32,15 @@ describe('memberWriter', () => {
     expect(memberWriter(MEMBER)).toMatchObject({ userId: 7, isModerator: false, type: 'DIALOG' })
   })
 
-  it('counts the thread of a request of the member own only', async () => {
-    mockDatabase.dbCountSupportTicketMessagesOfOwner.mockResolvedValue(4)
+  it('holds its own row: the row of the owner of every request it writes into', async () => {
+    await memberWriter(MEMBER).lock(42, TX)
+    expect(mockDatabase.dbLockUserRowDrizzle).toHaveBeenCalledWith(7, TX)
+  })
+
+  it('counts the dialog of a request of the member own only, as the member reads it', async () => {
+    mockDatabase.dbCountSupportTicketDialogOfOwner.mockResolvedValue(4)
     await expect(memberWriter(MEMBER).countMessages(42, TX)).resolves.toBe(4)
-    expect(mockDatabase.dbCountSupportTicketMessagesOfOwner).toHaveBeenCalledWith(42, 7, TX)
+    expect(mockDatabase.dbCountSupportTicketDialogOfOwner).toHaveBeenCalledWith(42, 7, TX)
   })
 
   it('opens the member own request again, from open, a question back or closed, and forgets who closed it', async () => {

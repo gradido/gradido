@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import type { DrizzleTransaction, SupportTicketMessageType } from 'database'
-import { dbInsertSupportTicketMessage, dbLockUserRowDrizzle, drizzleDb } from 'database'
+import { dbInsertSupportTicketMessage, drizzleDb } from 'database'
 import { Result, SUPPORT_TICKET_MESSAGES_MAX } from 'shared'
 import {
   SUPPORT_TICKET_MESSAGES_REACHED,
@@ -19,6 +19,13 @@ export interface SupportTicketWriter {
   isModerator: boolean
   type: SupportTicketMessageType
   /** How many messages the thread holds, where this writer may see it -- 0 otherwise. */
+  /**
+   * Holds, as the first statement of the transaction, the row every write into this request
+   * waits for: the row of the member who owns the request. The member holds its own; a writer
+   * for somebody else's request holds the owner's as well, or a member and a moderator who both
+   * count 99 messages at the same moment both write one.
+   */
+  lock(supportTicketId: number, tx: DrizzleTransaction): Promise<void>
   countMessages(supportTicketId: number, tx: DrizzleTransaction): Promise<number>
   /**
    * Moves the request on as this writer's message does, and answers whether it may write into
@@ -44,7 +51,7 @@ export async function writeSupportTicketMessage(
   createdAt: Date,
 ): Promise<Result<number, SupportTicketRefused>> {
   return drizzleDb().transaction(async (tx: DrizzleTransaction) => {
-    await dbLockUserRowDrizzle(writer.userId, tx)
+    await writer.lock(supportTicketId, tx)
     if ((await writer.countMessages(supportTicketId, tx)) >= SUPPORT_TICKET_MESSAGES_MAX) {
       return { success: false, error: new SupportTicketRefused(SUPPORT_TICKET_MESSAGES_REACHED) }
     }

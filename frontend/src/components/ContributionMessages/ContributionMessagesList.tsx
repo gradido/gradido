@@ -25,6 +25,13 @@ export const ContributionMessagesList = defineComponent({
       type: Array as PropType<string[]>,
       default: () => ['PENDING', 'IN_PROGRESS'],
     },
+    // For the reply field, handed on by name: as attributes they would also land on this
+    // component's own element, the function as its source text.
+    send: {
+      type: Function as PropType<(message: string) => Promise<ContributionMessage>>,
+      default: undefined,
+    },
+    maxLength: { type: Number, default: undefined },
   },
   emits: ['close-messages-list'],
   setup(props, { emit, attrs }) {
@@ -46,7 +53,12 @@ export const ContributionMessagesList = defineComponent({
           {/* What the row listens for on this thread (`add-contribution-message`) is the reply
               field's event: handed on as the attributes it arrives as, as `v-bind="$attrs"` did. */}
           {props.replyStates.includes(props.status) ? (
-            <ContributionMessagesFormular contributionId={props.contributionId} {...attrs} />
+            <ContributionMessagesFormular
+              contributionId={props.contributionId}
+              send={props.send}
+              maxLength={props.maxLength}
+              {...attrs}
+            />
           ) : null}
         </div>
 

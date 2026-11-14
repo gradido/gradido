@@ -15,6 +15,7 @@ import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX, SUPPORT_TICKETS_PER_DAY_MAX } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { SUPPORT_TICKET_READS_MAX_PER_REQUEST } from '@/data/SupportTicket.logic'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
@@ -310,19 +311,22 @@ describe('SupportTicketResolver', () => {
       )
     })
 
-    it('writes at most so many messages in a thread, the notes counted', async () => {
+    it('writes at most so many messages in a thread, counting what the member reads', async () => {
       const id = await fileOk('Wie schöpfe ich?')
+      // The notes of the moderation are no part of the limit: the member learns of them from
+      // no number, also not from the moment the thread is full.
+      const rows = (count: number, type: SupportTicketMessageType) =>
+        Array.from({ length: count }, (_, n) => ({
+          supportTicketId: id,
+          userId: peter.id,
+          message: `${type} ${n}`,
+          type,
+          isModerator: true,
+        }))
       await drizzleDb()
         .insert(supportTicketMessagesTable)
-        .values(
-          Array.from({ length: SUPPORT_TICKET_MESSAGES_MAX }, (_, n) => ({
-            supportTicketId: id,
-            userId: peter.id,
-            message: `note ${n}`,
-            type: 'MODERATOR' as const,
-            isModerator: true,
-          })),
-        )
+        .values([...rows(SUPPORT_TICKET_MESSAGES_MAX - 1, 'DIALOG'), ...rows(5, 'MODERATOR')])
+      expect((await write(id, 'the last one')).errors).toBeUndefined()
       await expect(write(id, 'one too many')).resolves.toEqual(
         refusedWith('SUPPORT_TICKET_MESSAGES_REACHED'),
       )
@@ -345,6 +349,74 @@ describe('SupportTicketResolver', () => {
         expect.objectContaining({ message: 'Too many support writes at once' }),
       ])
       expect(await drizzleDb().select().from(supportTicketsTable)).toHaveLength(1)
+    })
+
+    // Each operation counts itself in the budget of the HTTP request -- and the counters are also
+    // what keeps a support answer out of the trace log (plugins.ts): one missing count would let a
+    // whole thread into the log. So every operation is held here, not only the first.
+    it('reads the own list at most so many times per HTTP request', async () => {
+      const aliases = Array.from(
+        { length: SUPPORT_TICKET_READS_MAX_PER_REQUEST + 1 },
+        (_, n) => `list${n}: listSupportTickets(currentPage: 1, pageSize: 5) { count }`,
+      )
+      const res: any = await query({ query: gql(`query { ${aliases.join('\n')} }`) })
+      expect(res.errors).toEqual([
+        expect.objectContaining({ message: 'Too many support requests read at once' }),
+      ])
+    })
+
+    it('reads a thread at most so many times per HTTP request', async () => {
+      const id = await fileOk('Wie schöpfe ich?')
+      const aliases = Array.from(
+        { length: SUPPORT_TICKET_READS_MAX_PER_REQUEST + 1 },
+        (_, n) => `thread${n}: listSupportTicketMessages(supportTicketId: ${id}) { id }`,
+      )
+      const res: any = await query({ query: gql(`query { ${aliases.join('\n')} }`) })
+      expect(res.errors).toEqual([
+        expect.objectContaining({ message: 'Too many support requests read at once' }),
+      ])
+    })
+
+    it('writes one message per HTTP request, however many aliases ask for more', async () => {
+      const id = await fileOk('Wie schöpfe ich?')
+      const res: any = await mutate({
+        mutation: gql`
+          mutation ($id: Int!) {
+            first: createSupportTicketMessage(supportTicketId: $id, message: "Erstens") {
+              id
+            }
+            second: createSupportTicketMessage(supportTicketId: $id, message: "Zweitens") {
+              id
+            }
+          }
+        `,
+        variables: { id },
+      })
+      expect(res.errors).toEqual([
+        expect.objectContaining({ message: 'Too many support writes at once' }),
+      ])
+      expect(await thread(id)).toHaveLength(1)
+    })
+
+    it('closes one request per HTTP request, however many aliases ask for more', async () => {
+      const first = await fileOk('Die erste Frage')
+      const second = await fileOk('Die zweite Frage')
+      const res: any = await mutate({
+        mutation: gql`
+          mutation ($first: Int!, $second: Int!) {
+            first: closeSupportTicket(supportTicketId: $first)
+            second: closeSupportTicket(supportTicketId: $second)
+          }
+        `,
+        variables: { first, second },
+      })
+      expect(res.errors).toEqual([
+        expect.objectContaining({ message: 'Too many support writes at once' }),
+      ])
+      expect([(await statusOf(first)).status, (await statusOf(second)).status]).toEqual([
+        'CLOSED',
+        'OPEN',
+      ])
     })
   })
 

@@ -9,7 +9,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
-  dbCountSupportTicketMessagesOfOwner,
+  dbCountSupportTicketDialogOfOwner,
   dbInsertSupportTicketMessage,
   dbSelectSupportTicketDialogOfOwner,
 } from './supportTicketMessages'
@@ -88,23 +88,23 @@ describe('supportTicketMessages query test', () => {
   })
 
   describe('counting a thread', () => {
-    it('counts every kind of message of the owner request, the notes as well', async () => {
+    it('counts the dialog of the owner request, not the notes of the moderation', async () => {
       await write(bibi.id, 'question', AT)
       await write(peter.id, 'note', AT, 'MODERATOR')
       await write(peter.id, 'answer', LATER)
       expect(
-        await inTransaction((tx) => dbCountSupportTicketMessagesOfOwner(ticketId, bibi.id, tx)),
-      ).toBe(3)
+        await inTransaction((tx) => dbCountSupportTicketDialogOfOwner(ticketId, bibi.id, tx)),
+      ).toBe(2)
     })
 
     it('answers 0 for the request of another member, as for a missing one', async () => {
       await write(bibi.id, 'question', AT)
       expect(
-        await inTransaction((tx) => dbCountSupportTicketMessagesOfOwner(ticketId, peter.id, tx)),
+        await inTransaction((tx) => dbCountSupportTicketDialogOfOwner(ticketId, peter.id, tx)),
       ).toBe(0)
       expect(
         await inTransaction((tx) =>
-          dbCountSupportTicketMessagesOfOwner(ticketId + 1000, bibi.id, tx),
+          dbCountSupportTicketDialogOfOwner(ticketId + 1000, bibi.id, tx),
         ),
       ).toBe(0)
     })

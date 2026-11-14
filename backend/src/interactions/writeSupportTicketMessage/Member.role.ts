@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import {
-  dbCountSupportTicketMessagesOfOwner,
+  dbCountSupportTicketDialogOfOwner,
+  dbLockUserRowDrizzle,
   dbUpdateSupportTicketOfOwner,
   SupportTicketMessageType,
   SupportTicketStatus,
@@ -19,8 +20,10 @@ export const memberWriter = (member: { id: number }): SupportTicketWriter => ({
   userId: member.id,
   isModerator: false,
   type: SupportTicketMessageType.DIALOG,
+  // The member owns every request it writes into: its own row is the owner's.
+  lock: (_supportTicketId, tx) => dbLockUserRowDrizzle(member.id, tx),
   countMessages: (supportTicketId, tx) =>
-    dbCountSupportTicketMessagesOfOwner(supportTicketId, member.id, tx),
+    dbCountSupportTicketDialogOfOwner(supportTicketId, member.id, tx),
   moveRequest: (supportTicketId, tx) =>
     dbUpdateSupportTicketOfOwner(
       { id: supportTicketId, userId: member.id, statusIn: WRITES_INTO },

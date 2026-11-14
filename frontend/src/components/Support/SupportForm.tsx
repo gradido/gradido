@@ -39,6 +39,9 @@ export const SupportForm = defineComponent({
 
     const submit = async (event: Event) => {
       event.preventDefault()
+      if (sending.value) {
+        return
+      }
       sending.value = true
       try {
         await createSupportTicketMutation({

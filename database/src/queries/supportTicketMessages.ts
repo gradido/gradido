@@ -38,11 +38,12 @@ export async function dbInsertSupportTicketMessage(
 }
 
 /**
- * How many messages the thread of a request holds -- every kind, the moderation's notes as
- * well --, where the request is this member's. Another member's request answers 0, as a missing
+ * How many messages of a request's thread the member reads: the dialog, without the moderation's
+ * notes -- a note reaches the member in no number either, also not in the limit of a thread.
+ * Counted where the request is this member's; another member's request answers 0, as a missing
  * one does: how full somebody else's thread is is nobody's business.
  */
-export async function dbCountSupportTicketMessagesOfOwner(
+export async function dbCountSupportTicketDialogOfOwner(
   supportTicketId: number,
   ownerId: number,
   tx: DrizzleTransaction,
@@ -57,7 +58,12 @@ export async function dbCountSupportTicketMessagesOfOwner(
         eq(supportTicketsTable.userId, ownerId),
       ),
     )
-    .where(eq(supportTicketMessagesTable.supportTicketId, supportTicketId))
+    .where(
+      and(
+        eq(supportTicketMessagesTable.supportTicketId, supportTicketId),
+        eq(supportTicketMessagesTable.type, SupportTicketMessageType.DIALOG),
+      ),
+    )
   return row.messages
 }
 

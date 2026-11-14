@@ -4,6 +4,7 @@ import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
 import * as yup from 'yup'
 import { BFormInvalidFeedback, BFormInput, BFormTextarea, BFormGroup } from 'bootstrap-vue-next'
 import LabeledInput from '@/components/Inputs/LabeledInput.vue'
+import { supportTicketText } from '@/validationSchemas'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -43,6 +44,17 @@ describe('ValidatedInput', () => {
 
   beforeEach(() => {
     wrapper = createWrapper()
+  })
+
+  // The support form's field, with the real rules: a rule that ValidatedInput cannot read draws
+  // no field at all, and the form's spec, which mocks this component, would not see it.
+  it('draws the field of a support request, and holds it to its words', async () => {
+    const field = createWrapper({ rules: supportTicketText, textarea: 'true' })
+    expect(field.find('textarea').exists()).toBe(true)
+    await field.setProps({ modelValue: '🌸🌸🌸' })
+    expect(field.find('textarea').classes()).not.toContain('is-valid')
+    await field.setProps({ modelValue: '🌸🌸🌸🌸🌸' })
+    expect(field.find('textarea').classes()).toContain('is-valid')
   })
 
   it('renders the label and input', () => {
