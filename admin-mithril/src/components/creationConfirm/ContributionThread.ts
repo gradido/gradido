@@ -9,7 +9,7 @@ import {
   type ThreadMessage,
   threadSchema,
 } from '@/data/Contribution.schema'
-import { colleagueQuestion } from '@/data/ContributionThread.logic'
+import { colleagueQuestion, threadAuthors } from '@/data/ContributionThread.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { d, t } from '@/i18n'
 import { adminStore } from '@/store/admin.store'
@@ -75,19 +75,7 @@ export class ContributionThread implements ClassComponent<Attrs> {
     this.count = thread.count
     takeRemark(this.remark, userRemark)
     // the faces of everybody who wrote in the thread
-    askMemberAvatars(
-      thread.messages.flatMap(({ userGradidoID, userCommunityUuid, userAvatarUpdatedAt }) =>
-        userGradidoID && userCommunityUuid
-          ? [
-              {
-                gradidoID: userGradidoID,
-                communityUuid: userCommunityUuid,
-                avatarUpdatedAt: userAvatarUpdatedAt,
-              },
-            ]
-          : [],
-      ),
-    )
+    askMemberAvatars(threadAuthors(thread.messages))
   }
 
   view({ attrs }: Vnode<Attrs>) {

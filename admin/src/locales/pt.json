@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Usa o teu próprio logótipo no início de sessão do Gradido e adiciona novos utilizadores a um espaço Humhub",
     "settings": "Definições",
     "statistic": "Estatística",
+    "support": "Suporte",
     "theme": {
       "dark": "Escuro",
       "light": "Claro",
@@ -649,6 +650,22 @@
   "show_details": "Mostrar detalhes",
   "status": "Estado",
   "success": "Sucesso",
+  "support": {
+    "closedAt": "Fechado",
+    "closedBy": "Fechado por {name}",
+    "closedByMember": "Fechado pelo membro",
+    "deletedBy": "Eliminado por {name}",
+    "loadFailed": "Não foi possível carregar os pedidos. Tenta de novo, por favor.",
+    "notFound": "Este pedido não existe ou não pertence aos teus grupos.",
+    "request": "Pedido",
+    "sent": "Enviado",
+    "tab": {
+      "all": "Todos",
+      "closed": "Fechados",
+      "deleted": "Eliminados",
+      "open": "Abertos"
+    }
+  },
   "text": "Texto",
   "thank-you-cheque": {
     "download": "Descarregar cheque de saldo inicial",

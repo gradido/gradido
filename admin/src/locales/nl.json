@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
     "statistic": "Statistiek",
+    "support": "Support",
     "theme": {
       "dark": "Donker",
       "light": "Licht",
@@ -649,6 +650,22 @@
   "show_details": "Details tonen",
   "status": "Status",
   "success": "Succes",
+  "support": {
+    "closedAt": "Gesloten",
+    "closedBy": "Gesloten door {name}",
+    "closedByMember": "Gesloten door het lid",
+    "deletedBy": "Verwijderd door {name}",
+    "loadFailed": "De vragen konden niet worden geladen. Probeer het nog eens.",
+    "notFound": "Deze vraag bestaat niet of valt buiten je groepen.",
+    "request": "Vraag",
+    "sent": "Verzonden",
+    "tab": {
+      "all": "Alle",
+      "closed": "Gesloten",
+      "deleted": "Verwijderd",
+      "open": "Open"
+    }
+  },
   "text": "Tekst",
   "thank-you-cheque": {
     "download": "Startsaldocheque downloaden",

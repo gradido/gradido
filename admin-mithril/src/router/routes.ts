@@ -12,6 +12,7 @@ import { FederationVisualize } from '@/pages/FederationVisualize'
 import { NotFound } from '@/pages/NotFound'
 import { ProjectBranding } from '@/pages/ProjectBranding'
 import { Statistic } from '@/pages/Statistic'
+import { Support } from '@/pages/Support'
 import { UserSearch } from '@/pages/UserSearch'
 import { adminStore } from '@/store/admin.store'
 import { authenticate } from './authenticate'
@@ -49,6 +50,7 @@ export const routes: RouteDefs = {
   '/user': protectedPage(UserSearch),
   '/statistic': protectedPage(Statistic),
   '/creation-confirm': protectedPage(CreationConfirm),
+  '/support': protectedPage(Support),
   '/contribution-links': protectedPage(ContributionLinks),
   '/federation': protectedPage(FederationVisualize, true),
   '/projectBranding': protectedPage(ProjectBranding, true),

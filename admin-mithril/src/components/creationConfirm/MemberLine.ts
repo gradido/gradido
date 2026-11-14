@@ -50,15 +50,18 @@ export class MemberLine implements ClassComponent<Attrs> {
 
   view({ attrs: { member, email, remark } }: Vnode<Attrs>) {
     const name = member.alias || member.firstName
+    // A support request can come from a member without an address in force: the search then
+    // looks for the username, else the name, and there is no address to write to.
+    const search = email || member.alias || `${member.firstName} ${member.lastName}`
     return [
       // side by side at the desk; on a phone each part wraps as a whole
       m('.list-group-item.d-flex.flex-wrap.align-items-center.column-gap-3.row-gap-1', [
         m(
           m.route.Link,
-          { href: `/user?search=${email}`, title: t('goTo.userSearch') },
+          { href: `/user?search=${search}`, title: t('goTo.userSearch') },
           `${member.firstName} ${member.lastName}`,
         ),
-        m('a.text-break', { href: `mailto:${email}` }, email),
+        email ? m('a.text-break', { href: `mailto:${email}` }, email) : null,
         m('span', [
           `${member.publicName ?? ''} `,
           // the remark's button behind the pin and the arrow, never alone on a line

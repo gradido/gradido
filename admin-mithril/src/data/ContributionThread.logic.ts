@@ -98,3 +98,17 @@ export const colleagueQuestion = (
   })
   return asker === memberKey(moderator) ? null : { name: newest.userAlias ?? '' }
 }
+
+/** Who wrote in a thread, for their faces (askMemberAvatars); a writer who is gone is left out. */
+export const threadAuthors = (messages: ThreadMessage[]) =>
+  messages.flatMap(({ userGradidoID, userCommunityUuid, userAvatarUpdatedAt }) =>
+    userGradidoID && userCommunityUuid
+      ? [
+          {
+            gradidoID: userGradidoID,
+            communityUuid: userCommunityUuid,
+            avatarUpdatedAt: userAvatarUpdatedAt,
+          },
+        ]
+      : [],
+  )

@@ -6,6 +6,7 @@ import {
   messageParts,
   recordAmount,
   recordDate,
+  threadAuthors,
   withBold,
 } from './ContributionThread.logic'
 
@@ -98,5 +99,35 @@ describe('colleagueQuestion', () => {
     ).toBeNull()
     expect(colleagueQuestion('IN_PROGRESS', [message(1)], 2, me)).toBeNull()
     expect(colleagueQuestion('PENDING', [message(1)], 1, me)).toBeNull()
+  })
+})
+
+describe('threadAuthors', () => {
+  const message = (more: Partial<ThreadMessage>): ThreadMessage => ({
+    id: 1,
+    message: '',
+    createdAt: '2026-11-14T09:00:00.000Z',
+    type: 'DIALOG',
+    userAlias: 'someone',
+    userId: 2,
+    userAvatarColorIndex: null,
+    userGradidoID: 'g',
+    userCommunityUuid: 'c',
+    userAvatarUpdatedAt: '2026-11-01T00:00:00.000Z',
+    isModerator: false,
+    ...more,
+  })
+
+  it('names who wrote, by the pair and the date of the picture, and leaves out who is gone', () => {
+    expect(
+      threadAuthors([
+        message({}),
+        message({ userGradidoID: null, userCommunityUuid: null }),
+        message({ userGradidoID: 'h', userAvatarUpdatedAt: null }),
+      ]),
+    ).toEqual([
+      { gradidoID: 'g', communityUuid: 'c', avatarUpdatedAt: '2026-11-01T00:00:00.000Z' },
+      { gradidoID: 'h', communityUuid: 'c', avatarUpdatedAt: null },
+    ])
   })
 })

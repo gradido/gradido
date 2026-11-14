@@ -1,0 +1,16 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The words of a support request keep the member's line breaks, as in the wallet. */
+.support-ticket-text {
+  white-space: pre-line;
+}
+
+/* In a row at most six lines -- a request may have 5,000 characters; the opened row shows all of
+   them, above its thread. No colour of its own: light, dark and the phone's card alike. */
+.support-ticket-text.clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  overflow: hidden;
+}

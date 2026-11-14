@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Utilise ton propre logo sur la page de connexion de Gradido et ajoute de nouveaux utilisateurs à un espace Humhub",
     "settings": "Configuration",
     "statistic": "Statistique",
+    "support": "Assistance",
     "theme": {
       "dark": "Sombre",
       "light": "Clair",
@@ -649,6 +650,22 @@
   "show_details": "Afficher les détails",
   "status": "Statut",
   "success": "Succès",
+  "support": {
+    "closedAt": "Fermée",
+    "closedBy": "Fermée par {name}",
+    "closedByMember": "Fermée par le membre",
+    "deletedBy": "Supprimée par {name}",
+    "loadFailed": "Les demandes n'ont pas pu être chargées. Réessaie, s'il te plaît.",
+    "notFound": "Cette demande n'existe pas ou ne fait pas partie de tes groupes.",
+    "request": "Demande",
+    "sent": "Envoyée",
+    "tab": {
+      "all": "Toutes",
+      "closed": "Fermées",
+      "deleted": "Supprimées",
+      "open": "Ouvertes"
+    }
+  },
   "text": "Texte",
   "thank-you-cheque": {
     "download": "Télécharger le chèque de crédit de départ",

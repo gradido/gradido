@@ -562,6 +562,7 @@
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "settings": "Settings",
     "statistic": "Statistics",
+    "support": "Support",
     "theme": {
       "dark": "Dark",
       "light": "Light",
@@ -649,6 +650,22 @@
   "show_details": "Show details",
   "status": "Status",
   "success": "Success",
+  "support": {
+    "closedAt": "Closed",
+    "closedBy": "Closed by {name}",
+    "closedByMember": "Closed by the member",
+    "deletedBy": "Deleted by {name}",
+    "loadFailed": "The requests could not be loaded. Please try again.",
+    "notFound": "This request does not exist, or it is outside your groups.",
+    "request": "Request",
+    "sent": "Sent",
+    "tab": {
+      "all": "All",
+      "closed": "Closed",
+      "deleted": "Deleted",
+      "open": "Open"
+    }
+  },
   "text": "Text",
   "thank-you-cheque": {
     "download": "Download starting bonus cheque",
