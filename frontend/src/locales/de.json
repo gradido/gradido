@@ -1614,7 +1614,7 @@
   "success": "Erfolg",
   "support": {
     "answerQuestion": "Zu dieser Anfrage liegt eine neue Nachricht vor.",
-    "badge": "{n} Anfrage mit einer Rückfrage | {n} Anfragen mit einer Rückfrage",
+    "badge": "{n} Anfrage mit Rückfrage | {n} Anfragen mit Rückfrage",
     "changed": "Diese Anfrage hat sich inzwischen geändert.",
     "closed": "Die Anfrage ist geschlossen.",
     "done": "Erledigt, danke",

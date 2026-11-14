@@ -698,7 +698,7 @@
       "confirmOpen": "Noch offen: {open}",
       "confirmTitle": "Neue Anfragen ausschalten",
       "confirmYes": "Ja, ausschalten",
-      "hint": "Ausgeschaltet zeigt das Wallet wieder „Information“. Offene Anfragen bleiben, bis sie geschlossen sind.",
+      "hint": "Sind neue Anfragen ausgeschaltet, zeigt das Wallet wieder „Information“. Offene Anfragen bleiben, bis sie geschlossen sind.",
       "label": "Mitglieder können neue Anfragen stellen",
       "off": "Neue Anfragen sind ausgeschaltet.",
       "on": "Neue Anfragen sind eingeschaltet."
