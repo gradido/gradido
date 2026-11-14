@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { useQuery } from '@vue/apollo-composable'
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
@@ -24,9 +24,16 @@ export const SupportTicketList = defineComponent({
     const { t } = useI18n()
 
     const currentPage = ref(Number(route.params.page) || 1)
+    // The page in the address leads, also back in the browser's history.
+    watch(
+      () => route.params.page,
+      (page) => {
+        currentPage.value = Number(page) || 1
+      },
+    )
     const openTicketId = ref<number | null>(null)
 
-    const { result, loading, refetch } = useQuery(
+    const { result, loading, error, refetch } = useQuery(
       listSupportTickets,
       () => ({ currentPage: currentPage.value, pageSize: PAGE_SIZE }),
       { fetchPolicy: 'cache-and-network', pollInterval: CONFIG.AUTO_POLL_INTERVAL || undefined },
@@ -43,7 +50,12 @@ export const SupportTicketList = defineComponent({
 
     return () => (
       <>
-        {tickets.value.length === 0 && !loading.value ? (
+        {/* A list that could not be read is no empty list; the next turn of the poll asks again. */}
+        {error.value && tickets.value.length === 0 ? (
+          <div class='page-text' data-test='support-list-failed'>
+            {t('support.failed')}
+          </div>
+        ) : tickets.value.length === 0 && !loading.value ? (
           <div class='page-text' data-test='support-no-requests'>
             {currentPage.value === 1
               ? t('support.noRequests')

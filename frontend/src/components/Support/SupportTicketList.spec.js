@@ -1,8 +1,9 @@
 // AI-GENERATED — not an architecture reference
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { useQuery } from '@vue/apollo-composable'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import { __route } from 'vue-router'
 import { listSupportTickets } from '@/graphql/supportTickets.graphql'
 import { SupportTicketList } from './SupportTicketList'
 
@@ -10,7 +11,11 @@ const mockRefetch = vi.fn()
 
 vi.mock('@vue/apollo-composable', () => ({ useQuery: vi.fn() }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
-vi.mock('vue-router', () => ({ useRoute: () => ({ params: {} }) }))
+vi.mock('vue-router', async () => {
+  const { reactive } = await import('vue')
+  const route = reactive({ params: {} })
+  return { useRoute: () => route, __route: route }
+})
 vi.mock('@/components/Support/SupportTicketListItem', () => ({
   SupportTicketListItem: {
     name: 'SupportTicketListItem',
@@ -28,10 +33,11 @@ const TICKETS = [
   { id: 12, text: 'first', status: 'CLOSED' },
 ]
 
-const answering = (tickets) => {
+const answering = (tickets, error = null) => {
   vi.mocked(useQuery).mockReturnValue({
-    result: ref({ listSupportTickets: { count: tickets.length, tickets } }),
+    result: ref(error ? undefined : { listSupportTickets: { count: tickets.length, tickets } }),
     loading: ref(false),
+    error: ref(error),
     refetch: mockRefetch,
   })
 }
@@ -41,6 +47,7 @@ const rows = (wrapper) => wrapper.findAllComponents({ name: 'SupportTicketListIt
 describe('SupportTicketList', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    __route.params = {}
   })
 
   it('asks for the first page of the member own requests, and again and again', () => {
@@ -86,5 +93,24 @@ describe('SupportTicketList', () => {
   it('says so where the member has asked nothing yet', () => {
     answering([])
     expect(mount(SupportTicketList).text()).toContain('support.noRequests')
+  })
+
+  it('takes a list that could not be read for no empty list', () => {
+    answering([], new Error('Network error'))
+    const text = mount(SupportTicketList).text()
+    expect(text).toContain('support.failed')
+    expect(text).not.toContain('support.noRequests')
+  })
+
+  it('follows the page in the address, also back in the history', async () => {
+    answering(TICKETS)
+    mount(SupportTicketList)
+    const [, variables] = vi.mocked(useQuery).mock.calls[0]
+    __route.params = { tab: 'my-requests', page: '3' }
+    await flushPromises()
+    expect(variables()).toEqual({ currentPage: 3, pageSize: 25 })
+    __route.params = { tab: 'my-requests' }
+    await flushPromises()
+    expect(variables()).toEqual({ currentPage: 1, pageSize: 25 })
   })
 })

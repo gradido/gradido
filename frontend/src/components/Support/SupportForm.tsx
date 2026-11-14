@@ -97,13 +97,15 @@ export const SupportForm = defineComponent({
             rules={supportTicketText}
             textarea='true'
             maxlength={MESSAGE_MAX_CHARS}
+            // what is typed while the request is on its way would be lost with the reset after it
+            disabled={sending.value}
             onUpdate:modelValue={(value: string) => {
               text.value = value
             }}
           />
           <BRow class='mt-4'>
             <BCol>
-              <BButton type='reset' variant='secondary'>
+              <BButton type='reset' variant='secondary' disabled={sending.value}>
                 {t('form.cancel')}
               </BButton>
             </BCol>

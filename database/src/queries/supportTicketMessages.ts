@@ -1,9 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, count, eq } from 'drizzle-orm'
+import { and, asc, count, eq, ne } from 'drizzle-orm'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import {
   SupportTicketMessageInsert,
   SupportTicketMessageType,
+  SupportTicketStatus,
   supportTicketMessagesTable,
   supportTicketsTable,
   usersTable,
@@ -103,6 +104,8 @@ export async function dbSelectSupportTicketDialogOfOwner(
       and(
         eq(supportTicketMessagesTable.supportTicketId, supportTicketId),
         eq(supportTicketMessagesTable.type, SupportTicketMessageType.DIALOG),
+        // a deleted request shows no thread, here as in the wallet
+        ne(supportTicketsTable.status, SupportTicketStatus.DELETED),
       ),
     )
     .orderBy(asc(supportTicketMessagesTable.id))

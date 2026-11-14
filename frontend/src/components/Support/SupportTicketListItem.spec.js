@@ -184,6 +184,33 @@ describe('SupportTicketListItem', () => {
       )
     })
 
+    it('keeps a reply that a thread asked for before it would come back without', async () => {
+      let earlier
+      mockQuery.mockImplementationOnce(() => new Promise((resolve) => (earlier = resolve)))
+      const wrapper = mountRow({ messagesVisible: true })
+      thread(wrapper).vm.$emit('add-contribution-message', { id: 9, message: 'Noch eine Frage' })
+      earlier(answering([MODERATION]))
+      await flushPromises()
+      expect(
+        thread(wrapper)
+          .props('messages')
+          .map((message) => message.id),
+      ).toEqual([9])
+    })
+
+    it('drops the thread of a request deleted meanwhile, also what is still on its way', async () => {
+      let late
+      const wrapper = mountRow({ messagesVisible: true })
+      await flushPromises()
+      mockQuery.mockImplementationOnce(() => new Promise((resolve) => (late = resolve)))
+      await wrapper.setProps({ status: 'IN_PROGRESS' })
+      await wrapper.setProps({ status: 'DELETED' })
+      late(answering([MODERATION]))
+      await flushPromises()
+      expect(wrapper.findComponent(BCollapse).props('modelValue')).toBe(false)
+      expect(thread(wrapper).props('messages')).toEqual([])
+    })
+
     it('opens the request again with the message the member wrote', async () => {
       const wrapper = mountRow({ status: 'CLOSED', messagesVisible: true })
       await flushPromises()
@@ -196,6 +223,39 @@ describe('SupportTicketListItem', () => {
           .map((message) => message.id),
       ).toEqual([7, 9])
       expect(wrapper.emitted('ticket-changed')).toHaveLength(1)
+    })
+  })
+
+  describe('from the keyboard', () => {
+    it('offers its actions as buttons that a key can reach', () => {
+      const wrapper = mountRow({ status: 'IN_PROGRESS' })
+      for (const test of [
+        'support-ticket-done',
+        'support-ticket-chat',
+        'support-answer-question',
+      ]) {
+        const action = wrapper.find(`[data-test="${test}"]`)
+        expect(action.attributes('role')).toBe('button')
+        expect(action.attributes('tabindex')).toBe('0')
+      }
+    })
+
+    it('closes with Enter, and opens the thread with the space bar', async () => {
+      mockMutate.mockResolvedValue({ data: { closeSupportTicket: true } })
+      const wrapper = mountRow()
+      await wrapper.find('[data-test="support-ticket-done"]').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+      expect(mockMutate).toHaveBeenCalledWith({ supportTicketId: 12 })
+      await wrapper.find('[data-test="support-ticket-chat"]').trigger('keydown', { key: ' ' })
+      expect(wrapper.emitted('toggle-messages-visible')).toHaveLength(1)
+    })
+
+    it('does nothing on another key', async () => {
+      const wrapper = mountRow()
+      await wrapper.find('[data-test="support-ticket-done"]').trigger('keydown', { key: 'a' })
+      await wrapper.find('[data-test="support-ticket-chat"]').trigger('keydown', { key: 'Tab' })
+      expect(mockMutate).not.toHaveBeenCalled()
+      expect(wrapper.emitted('toggle-messages-visible')).toBeUndefined()
     })
   })
 

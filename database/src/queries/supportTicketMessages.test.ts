@@ -1,8 +1,13 @@
 // AI-GENERATED — not an architecture reference
+import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { DbUser } from '../data'
-import { SupportTicketMessageType, supportTicketMessagesTable } from '../schemas'
+import {
+  SupportTicketMessageType,
+  supportTicketMessagesTable,
+  supportTicketsTable,
+} from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
@@ -142,6 +147,22 @@ describe('supportTicketMessages query test', () => {
       await write(peter.id, 'answer', AT)
       expect(await dbSelectSupportTicketDialogOfOwner(ticketId, peter.id)).toEqual([])
       expect(await dbSelectSupportTicketDialogOfOwner(ticketId + 1000, bibi.id)).toEqual([])
+    })
+
+    it('reads the thread of a closed request, and none of a deleted one', async () => {
+      const answer = await write(peter.id, 'answer', AT)
+      const setStatus = (status: 'OPEN' | 'CLOSED' | 'DELETED') =>
+        db.update(supportTicketsTable).set({ status }).where(eq(supportTicketsTable.id, ticketId))
+      try {
+        await setStatus('CLOSED')
+        expect(
+          (await dbSelectSupportTicketDialogOfOwner(ticketId, bibi.id)).map((m) => m.id),
+        ).toEqual([answer])
+        await setStatus('DELETED')
+        expect(await dbSelectSupportTicketDialogOfOwner(ticketId, bibi.id)).toEqual([])
+      } finally {
+        await setStatus('OPEN')
+      }
     })
   })
 })

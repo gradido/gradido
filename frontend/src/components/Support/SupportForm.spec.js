@@ -91,6 +91,9 @@ describe('SupportForm', () => {
     await wrapper.find('textarea').setValue('Wie schöpfe ich?')
     await wrapper.find('form').trigger('submit')
     expect(sendButton(wrapper).attributes('disabled')).toBeDefined()
+    // nothing typed meanwhile can be lost with the reset after the sending
+    expect(wrapper.find('textarea').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('button[type="reset"]').attributes('disabled')).toBeDefined()
     await wrapper.find('form').trigger('submit')
     done({ data: { createSupportTicket: { id: 12 } } })
     await flushPromises()

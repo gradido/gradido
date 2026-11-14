@@ -124,7 +124,14 @@ export const SupportTicketListItem = defineComponent({
     )
     watch(
       () => props.status,
-      () => {
+      (status) => {
+        // A deleted request shows no thread: what was loaded goes, and so does any answer
+        // still on its way.
+        if (status === 'DELETED') {
+          asked += 1
+          messages.value = []
+          return
+        }
         if (props.messagesVisible) {
           loadThread()
         }
@@ -142,6 +149,8 @@ export const SupportTicketListItem = defineComponent({
     }
 
     const addMessage = (message: ContributionMessage) => {
+      // A thread asked for before this reply would come back without it.
+      asked += 1
       messages.value = [...messages.value, message]
       localStatus.value = 'OPEN'
       emit('ticket-changed')
@@ -166,6 +175,20 @@ export const SupportTicketListItem = defineComponent({
     }
 
     const toggleMessages = () => emit('toggle-messages-visible')
+
+    // The row's actions look as a contribution's do; role and keys make them reachable and usable
+    // from the keyboard as well.
+    const keyboardAction = (action: () => void) => ({
+      role: 'button',
+      tabindex: 0,
+      class: classes.action,
+      onKeydown: (event: KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          action()
+        }
+      },
+    })
 
     expose({ localStatus, messages, close, addMessage })
 
@@ -200,6 +223,7 @@ export const SupportTicketListItem = defineComponent({
             <div class={['mb-3 text-break word-break', classes.text]}>{props.text}</div>
             {localStatus.value === 'IN_PROGRESS' ? (
               <div
+                {...keyboardAction(toggleMessages)}
                 class='text-danger pointer hover-font-bold mb-3'
                 data-test='support-answer-question'
                 onClick={toggleMessages}
@@ -210,7 +234,7 @@ export const SupportTicketListItem = defineComponent({
           </BCol>
           <BCol cols='12' md='1' lg='1' class='text-end align-items-center'>
             {hasThread.value ? (
-              <div onClick={toggleMessages}>
+              <div {...keyboardAction(toggleMessages)} onClick={toggleMessages}>
                 <CollapseIcon class='text-end' visible={props.messagesVisible} />
               </div>
             ) : null}
@@ -221,6 +245,7 @@ export const SupportTicketListItem = defineComponent({
             <BCol cols='6' class='text-center'>
               {closable.value ? (
                 <div
+                  {...keyboardAction(close)}
                   class='pointer d-flex flex-column align-items-center'
                   data-test='support-ticket-done'
                   onClick={close}
@@ -233,6 +258,7 @@ export const SupportTicketListItem = defineComponent({
             </BCol>
             <BCol cols='6' class='text-center'>
               <div
+                {...keyboardAction(toggleMessages)}
                 class='pointer d-flex flex-column align-items-center'
                 data-test='support-ticket-chat'
                 onClick={toggleMessages}
@@ -243,7 +269,7 @@ export const SupportTicketListItem = defineComponent({
             </BCol>
           </BRow>
         ) : null}
-        <BCollapse modelValue={props.messagesVisible}>
+        <BCollapse modelValue={props.messagesVisible && hasThread.value}>
           <ContributionMessagesList
             messages={messages.value}
             status={localStatus.value}
