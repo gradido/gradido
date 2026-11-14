@@ -46,18 +46,23 @@ export const MODERATOR_CLOSES_FROM: SupportTicketStatus[] = ['OPEN', 'IN_PROGRES
 export type ModeratorMessageKind = 'ANSWER' | 'ANSWER_AND_CLOSE' | 'NOTE'
 
 /**
- * The kind of a moderator's message as the admin's form sends it -- its type, and whether it
- * closes the request. Null for a note that would close it: a note is for the moderation, and
- * closing is done with an answer or with the tick.
+ * The kind of a moderator's message as the admin's form sends it -- its type, whether it closes
+ * the request, and whether it sets a resubmission (K4). Null for a note that would close it -- a
+ * note is for the moderation, and closing is done with an answer or with the tick --, and for an
+ * answer that would close and wait for a resubmission at once: a closed request waits for nothing.
  */
 export const moderatorMessageKind = (
   type: SupportTicketMessageType,
   close: boolean,
+  resubmits: boolean,
 ): ModeratorMessageKind | null => {
   if (type === 'MODERATOR') {
     return close ? null : 'NOTE'
   }
-  return close ? 'ANSWER_AND_CLOSE' : 'ANSWER'
+  if (close) {
+    return resubmits ? null : 'ANSWER_AND_CLOSE'
+  }
+  return 'ANSWER'
 }
 
 /**

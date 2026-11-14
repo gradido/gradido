@@ -53,6 +53,10 @@ export class AdminSupportTicket {
   @Field(() => String, { nullable: true })
   closedByUserName: string | null
 
+  // When a moderator wants the request back (K4); one in the past is due. Null for none.
+  @Field(() => Date, { nullable: true })
+  resubmissionAt: Date | null
+
   // The newest message of the dialog, the notes left out: its kind and whether the moderation
   // wrote it. Null where nobody wrote in the thread yet.
   @Field(() => SupportTicketMessageType, { nullable: true })

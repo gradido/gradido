@@ -222,7 +222,10 @@ export class SupportTicketResolver {
     )
   }
 
-  /** Closes one of the member's own requests ("Erledigt, danke"), an open one or one with a question back. */
+  /**
+   * Closes one of the member's own requests ("Erledigt, danke"), an open one or one with a
+   * question back; a resubmission of the moderation goes with it (K4).
+   */
   @Authorized([RIGHTS.USE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
   async closeSupportTicket(
@@ -234,7 +237,12 @@ export class SupportTicketResolver {
     const closed = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       dbUpdateSupportTicketOfOwner(
         { id: supportTicketId, userId: member.id, statusIn: MEMBER_CLOSES_FROM },
-        { status: SupportTicketStatus.CLOSED, closedAt: new Date(), closedBy: member.id },
+        {
+          status: SupportTicketStatus.CLOSED,
+          closedAt: new Date(),
+          closedBy: member.id,
+          resubmissionAt: null,
+        },
       ),
     )
     if (!closed) {

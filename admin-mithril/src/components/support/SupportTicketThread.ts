@@ -100,7 +100,7 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
       ticket.status === 'DELETED'
         ? null
         : m(SupportAnswerForm, {
-            supportTicketId: ticket.id,
+            ticket,
             onwritten: () => {
               this.load(ticket)
               onwritten()

@@ -1157,3 +1157,218 @@ describe('SupportTicketModerationResolver, the search and the group filter (K4)'
     expect(lines.join('')).not.toContain('Rhabarberbeet')
   })
 })
+
+// K4: the resubmission -- set with an answer or a note, hidden from the open tab while it waits,
+// counted apart, and taken away by every word or act that ends the waiting.
+describe('SupportTicketModerationResolver, the resubmission (K4)', () => {
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+      $resubmissionAt: String
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+        resubmissionAt: $resubmissionAt
+      ) {
+        id
+      }
+    }
+  `
+  const adminListHidden = gql`
+    query ($hideResubmission: Boolean!, $query: String!) {
+      adminListSupportTickets(
+        statuses: [OPEN, IN_PROGRESS]
+        currentPage: 1
+        pageSize: 25
+        query: $query
+        hideResubmission: $hideResubmission
+      ) {
+        count
+        tickets {
+          id
+          resubmissionAt
+        }
+      }
+    }
+  `
+  const adminCountOpenSupportTickets = gql`
+    query {
+      adminCountOpenSupportTickets {
+        forModeration
+        forMember
+        onResubmission
+      }
+    }
+  `
+  const adminCloseSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminCloseSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminDeleteSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminDeleteSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  // the member's own operations (K1)
+  const createSupportTicketMessage = gql`
+    mutation ($supportTicketId: Int!, $message: String!) {
+      createSupportTicketMessage(supportTicketId: $supportTicketId, message: $message) {
+        id
+      }
+    }
+  `
+  const closeSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      closeSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  // a week ahead of whenever the test runs: a resubmission still to come
+  const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  LATER.setMilliseconds(0)
+  const write = (
+    supportTicketId: number,
+    resubmissionAt: string | null,
+    type: SupportTicketMessageType = 'DIALOG',
+    close = false,
+  ): Promise<any> =>
+    mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: { supportTicketId, message: 'Ich melde mich.', type, close, resubmissionAt },
+    })
+  const rowOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const hidden = (hideResubmission: boolean, words: string): Promise<any> =>
+    query({ query: adminListHidden, variables: { hideResubmission, query: words } })
+  const listed = async (hideResubmission: boolean, words: string): Promise<number[]> => {
+    const res = await hidden(hideResubmission, words)
+    expect(res.errors).toBeUndefined()
+    const { count, tickets } = res.data.adminListSupportTickets
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket: { id: number }) => ticket.id)
+  }
+  const counted = async () => {
+    const res: any = await query({ query: adminCountOpenSupportTickets })
+    expect(res.errors).toBeUndefined()
+    return res.data.adminCountOpenSupportTickets
+  }
+
+  beforeAll(() => loginAs('peter@lustig.de'))
+
+  it('sets a resubmission with an answer, and hides and counts the request apart while it waits', async () => {
+    const id = await file(bibi.id, 'Rosenschnitt im Frühjahr', 300, gardenId)
+    const before = await counted()
+    expect(await listed(true, 'Rosenschnitt')).toEqual([id])
+
+    const res = await write(id, LATER.toISOString())
+    expect(res.errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+    expect(await listed(true, 'Rosenschnitt')).toEqual([])
+    expect(await listed(false, 'Rosenschnitt')).toEqual([id])
+    expect(await counted()).toEqual({
+      ...before,
+      forModeration: before.forModeration - 1,
+      onResubmission: before.onResubmission + 1,
+    })
+    // and the row tells it
+    const shown = await hidden(false, 'Rosenschnitt')
+    expect(new Date(shown.data.adminListSupportTickets.tickets[0].resubmissionAt)).toEqual(LATER)
+  })
+
+  it('sets, keeps and takes away a resubmission with a note, as the box stands', async () => {
+    const id = await file(bibi.id, 'Kompostkiste', 301, gardenId)
+    expect((await write(id, LATER.toISOString(), 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+    expect((await write(id, null, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+  })
+
+  it('refuses an answer that closes and waits, and a moment that is none, with nothing written', async () => {
+    const id = await file(bibi.id, 'Bewässerung', 302, gardenId)
+    await expect(write(id, LATER.toISOString(), 'DIALOG', true)).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_INVALID'),
+    )
+    await expect(write(id, '2026-02-30T08:00:00.000Z')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_INVALID'),
+    )
+    await expect(write(id, 'nächste Woche')).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect(
+      await drizzleDb()
+        .select()
+        .from(supportTicketMessagesTable)
+        .where(eq(supportTicketMessagesTable.supportTicketId, id)),
+    ).toEqual([])
+  })
+
+  it('writes a note with a resubmission into an open request only; one without into a closed one too', async () => {
+    const id = await file(bibi.id, 'Saatgut', 303, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(304),
+      closedBy: bibi.id,
+    })
+    await expect(write(id, LATER.toISOString(), 'MODERATOR')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_NOT_FOUND'),
+    )
+    expect(await rowOf(id)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+    expect((await write(id, null, 'MODERATOR')).errors).toBeUndefined()
+    // an answer with one opens it again, as a question back that waits
+    expect((await write(id, LATER.toISOString())).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+  })
+
+  it('takes the resubmission away with the tick, with deleting and with an answer that closes', async () => {
+    const ticked = await file(bibi.id, 'Haken', 305, gardenId, { resubmissionAt: LATER })
+    const removed = await file(bibi.id, 'Weg damit', 306, gardenId, { resubmissionAt: LATER })
+    const answered = await file(bibi.id, 'Erledigt', 307, gardenId, { resubmissionAt: LATER })
+    expect(
+      (await mutate({ mutation: adminCloseSupportTicket, variables: { supportTicketId: ticked } }))
+        .errors,
+    ).toBeUndefined()
+    expect(
+      (
+        await mutate({
+          mutation: adminDeleteSupportTicket,
+          variables: { supportTicketId: removed },
+        })
+      ).errors,
+    ).toBeUndefined()
+    expect((await write(answered, null, 'DIALOG', true)).errors).toBeUndefined()
+    expect(await rowOf(ticked)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+    expect(await rowOf(removed)).toMatchObject({ status: 'DELETED', resubmissionAt: null })
+    expect(await rowOf(answered)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+  })
+
+  it('takes it away where the member writes, and where the member closes', async () => {
+    const written = await file(bibi.id, 'Ich schreibe noch', 308, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    const closed = await file(bibi.id, 'Ich schliesse', 309, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    await loginAs('bibi@bloxberg.de')
+    expect(
+      (
+        await mutate({
+          mutation: createSupportTicketMessage,
+          variables: { supportTicketId: written, message: 'Noch eine Frage' },
+        })
+      ).errors,
+    ).toBeUndefined()
+    expect(
+      (await mutate({ mutation: closeSupportTicket, variables: { supportTicketId: closed } }))
+        .errors,
+    ).toBeUndefined()
+    await loginAs('peter@lustig.de')
+    expect(await rowOf(written)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect(await rowOf(closed)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+  })
+})

@@ -73,7 +73,7 @@ const byTab: Answer = ({ statuses }: { statuses: string[] }) =>
         : ticketList([...tickets, own], 30)
 
 // the two halves of the open tab (K3): the badges show their sum
-const OPEN = { forModeration: 5, forMember: 1 }
+const OPEN = { forModeration: 5, forMember: 1, onResubmission: 0 }
 
 test.beforeEach(async ({ graphql }) => {
   graphql.answer({
@@ -122,6 +122,7 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
       pageSize: 25,
       query: '',
       creationGroup: '',
+      hideResubmission: true,
     },
   ])
   await expect(heads(page)).toHaveText([
@@ -188,6 +189,7 @@ test('shows the closed, the deleted and all requests with their columns, colours
     pageSize: 25,
     query: '',
     creationGroup: '',
+    hideResubmission: false,
   })
   await expect(heads(page)).toHaveText([
     '',
@@ -237,6 +239,7 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql },
     pageSize: 25,
     query: '',
     creationGroup: '',
+    hideResubmission: false,
   })
 })
 
@@ -373,6 +376,7 @@ test('asks for the next page', async ({ page, graphql }, info) => {
       pageSize: 25,
       query: '',
       creationGroup: '',
+      hideResubmission: true,
     })
 })
 
@@ -497,7 +501,13 @@ test('answers below the thread, and asks for the thread, the list and the count 
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Am **Handy** oben rechts.', type: 'DIALOG', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Am **Handy** oben rechts.',
+      type: 'DIALOG',
+      close: false,
+      resubmissionAt: null,
+    },
   ])
   await expect(field(page)).toHaveValue('')
   // what the request is now, the server says: its thread, the list and the count, asked anew
@@ -510,6 +520,7 @@ test('answers below the thread, and asks for the thread, the list and the count 
     pageSize: 25,
     query: '',
     creationGroup: '',
+    hideResubmission: true,
   })
   // the row stays open where it is still in the list
   await expect(field(page)).toBeVisible()
@@ -527,7 +538,13 @@ test('answers and closes with the green button, and the row goes where the list 
   await button(page, de.support.answerAndClose).click()
 
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Ja, genau so.', type: 'DIALOG', close: true },
+    {
+      supportTicketId: 1,
+      message: 'Ja, genau so.',
+      type: 'DIALOG',
+      close: true,
+      resubmissionAt: null,
+    },
   ])
   await expect(rows(page)).toHaveCount(5)
   await expect(card(page)).toHaveCount(0)
@@ -547,7 +564,13 @@ test('writes a note under its own tab with "Speichern", and offers no answer the
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Rückruf vereinbart', type: 'MODERATOR', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Rückruf vereinbart',
+      type: 'MODERATOR',
+      close: false,
+      resubmissionAt: null,
+    },
   ])
 })
 
@@ -594,7 +617,13 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Schön, dass es klappt!', type: 'DIALOG', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Schön, dass es klappt!',
+      type: 'DIALOG',
+      close: false,
+      resubmissionAt: null,
+    },
   ])
   // the note's draft is still there, and "Abbrechen" empties only the draft shown
   await choose(page, de.moderator.notice)
@@ -646,9 +675,9 @@ test('lets no answer to an earlier count put back a count from before a write', 
       counted += 1
       if (counted === 1) {
         await held
-        return { forModeration: 5, forMember: 1 }
+        return { forModeration: 5, forMember: 1, onResubmission: 0 }
       }
-      return { forModeration: 4, forMember: 1 }
+      return { forModeration: 4, forMember: 1, onResubmission: 0 }
     },
   })
   const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
@@ -807,13 +836,17 @@ test('counts the open requests at the menu entry and at the open tab', async ({
 
   // after a write, the count as it is now
   graphql.answer({ adminCloseSupportTicket: true })
-  graphql.answer({ adminCountOpenSupportTickets: { forModeration: 4, forMember: 1 } })
+  graphql.answer({
+    adminCountOpenSupportTickets: { forModeration: 4, forMember: 1, onResubmission: 0 },
+  })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
   await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
   await expect(entry.locator('.badge')).toHaveText('5')
   await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
 
-  graphql.answer({ adminCountOpenSupportTickets: { forModeration: 0, forMember: 0 } })
+  graphql.answer({
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+  })
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
   await expect(entry.locator('.badge')).toHaveCount(0)
@@ -858,7 +891,12 @@ const groupFilter = (page: Page) => page.getByTestId('support-group-filter')
 const searchField = (page: Page) => page.getByPlaceholder(de.user_memo_search)
 const listAsked = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
   asked(graphql, 'adminListSupportTickets') as Record<string, unknown>[]
-const OPEN_TAB = { statuses: ['OPEN', 'IN_PROGRESS'], currentPage: 1, pageSize: 25 }
+const OPEN_TAB = {
+  statuses: ['OPEN', 'IN_PROGRESS'],
+  currentPage: 1,
+  pageSize: 25,
+  hideResubmission: true,
+}
 // a search finds nothing in these tests, no search what the tab holds
 const nothingFound: Answer = (variables: { query: string; statuses: string[] }) =>
   variables.query ? ticketList([]) : (byTab as (asked: object) => unknown)(variables)
@@ -879,7 +917,13 @@ test('searches from the first page, and keeps the search over the tabs and for t
   await tab(page, de.support.tab.closed).click()
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, statuses: ['CLOSED'], query: 'Garten Bibi', creationGroup: '' })
+    .toEqual({
+      ...OPEN_TAB,
+      statuses: ['CLOSED'],
+      hideResubmission: false,
+      query: 'Garten Bibi',
+      creationGroup: '',
+    })
   const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
   expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({
     '/support': 'Garten Bibi',
@@ -893,7 +937,13 @@ test('searches from the first page, and keeps the search over the tabs and for t
   await page.getByRole('button', { name: de.search.clear }).click()
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, statuses: ['CLOSED'], query: '', creationGroup: '' })
+    .toEqual({
+      ...OPEN_TAB,
+      statuses: ['CLOSED'],
+      hideResubmission: false,
+      query: '',
+      creationGroup: '',
+    })
 })
 
 test('lets a kept search that finds nothing give way, and keeps one typed here', async ({
@@ -1018,4 +1068,156 @@ test('searches for the member of a row with its magnifier: the address, else the
 
   await row(page, 1).getByRole('button', { name: de.support.searchMember }).click()
   await expect(searchField(page)).toHaveValue('member2')
+})
+
+// K4: the resubmission -- the box of the form, the line of the row, and the open tab without
+const box = (page: Page) => card(page).getByTestId('support-resubmission-box')
+const day = (page: Page) => card(page).getByTestId('support-resubmission-day')
+const time = (page: Page) => card(page).getByTestId('support-resubmission-time')
+const hideBox = (page: Page) => page.getByLabel(de.hide_resubmission)
+
+test('hides on the open tab what waits for a resubmission, at every opening, and shows it once asked', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await expect(hideBox(page)).toBeChecked()
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await hideBox(page).uncheck()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '' })
+
+  // the other tabs hide nothing, and have no box
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await expect(hideBox(page)).toHaveCount(0)
+  expect(listAsked(graphql).at(-1)).toMatchObject({ hideResubmission: false })
+  // not kept: the next opening hides again
+  await tab(page, de.support.tab.open).click()
+  await page.reload()
+  await expect(hideBox(page)).toBeChecked()
+  expect(listAsked(graphql).at(-1)).toMatchObject({ hideResubmission: true })
+})
+
+test('says below the words when a request is wanted back, while that is still to come', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1, { resubmissionAt: '2030-11-20T08:00:00.000Z' }),
+      listedTicket(2, 2, { resubmissionAt: '2020-01-01T08:00:00.000Z' }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await expect(rows(page)).toHaveCount(2)
+  await expect(row(page, 0)).toContainText('Wiedervorlage: 20.11.2030, 09:00')
+  await expect(row(page, 1)).not.toContainText(de.hide_resubmission.split(' ')[0])
+  await expect(row(page, 1)).not.toContainText('Wiedervorlage:')
+})
+
+test('opens the box as the request came: its moment while still to come, empty once due', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1, { resubmissionAt: '2030-11-20T08:00:00.000Z' }),
+      listedTicket(2, 2, { resubmissionAt: '2020-01-01T08:00:00.000Z' }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await details(page, 0).click()
+  await expect(box(page)).toBeChecked()
+  await expect(day(page)).toHaveValue('2030-11-20')
+  await expect(time(page)).toHaveValue('09:00')
+  await details(page, 0).click()
+  await details(page, 1).click()
+  await expect(box(page)).not.toBeChecked()
+  await expect(day(page)).toHaveCount(0)
+})
+
+test('answers with a resubmission as an ISO moment, and closes nothing while the box is set', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await opened(page)
+  await field(page).fill('Ich melde mich nächste Woche.')
+  await box(page).check()
+  // without a day nothing goes
+  await expect(button(page, de.support.answer)).toBeDisabled()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('09:00')
+  await expect(button(page, de.support.answer)).toBeEnabled()
+  await expect(button(page, de.support.answerAndClose)).toBeDisabled()
+  await expect(
+    card(page).locator('span[title]', {
+      has: page.getByRole('button', { name: de.support.answerAndClose, exact: true }),
+    }),
+  ).toHaveAttribute('title', de.support.closingWaits)
+  await button(page, de.support.answer).click()
+
+  await expect(toast(page, de.message.request)).toBeVisible()
+  // the moment where the moderator sits (Berlin, winter time): 09:00 is 08:00 UTC
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
+    {
+      supportTicketId: 1,
+      message: 'Ich melde mich nächste Woche.',
+      type: 'DIALOG',
+      close: false,
+      resubmissionAt: '2030-11-20T08:00:00.000Z',
+    },
+  ])
+})
+
+test('sends no resubmission in the past, and none with a time that is no time', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await opened(page)
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await box(page).check()
+  await day(page).fill('2020-01-01')
+  await button(page, de.save).click()
+  await expect(toast(page, de.contributionMessagesForm.resubmissionDateInPast)).toBeVisible()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('9')
+  await expect(button(page, de.save)).toBeDisabled()
+  // made whole as the field is left
+  await time(page).blur()
+  await expect(time(page)).toHaveValue('09:00')
+  await button(page, de.save).click()
+  await expect(toast(page, de.message.request)).toBeVisible()
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
+    {
+      supportTicketId: 1,
+      message: 'Rückruf vereinbart',
+      type: 'MODERATOR',
+      close: false,
+      resubmissionAt: '2030-11-20T08:00:00.000Z',
+    },
+  ])
+})
+
+test('has no box for a note under a closed request, and one for an answer there', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await details(page, 0).click()
+  await expect(box(page)).toBeVisible()
+  await choose(page, de.moderator.notice)
+  await expect(box(page)).toHaveCount(0)
 })

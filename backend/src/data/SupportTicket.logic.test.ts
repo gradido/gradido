@@ -8,13 +8,20 @@ import {
 
 describe('moderatorMessageKind', () => {
   it('tells an answer, an answer that closes and a note', () => {
-    expect(moderatorMessageKind('DIALOG', false)).toBe('ANSWER')
-    expect(moderatorMessageKind('DIALOG', true)).toBe('ANSWER_AND_CLOSE')
-    expect(moderatorMessageKind('MODERATOR', false)).toBe('NOTE')
+    expect(moderatorMessageKind('DIALOG', false, false)).toBe('ANSWER')
+    expect(moderatorMessageKind('DIALOG', true, false)).toBe('ANSWER_AND_CLOSE')
+    expect(moderatorMessageKind('MODERATOR', false, false)).toBe('NOTE')
   })
 
   it('knows no note that closes', () => {
-    expect(moderatorMessageKind('MODERATOR', true)).toBeNull()
+    expect(moderatorMessageKind('MODERATOR', true, false)).toBeNull()
+    expect(moderatorMessageKind('MODERATOR', true, true)).toBeNull()
+  })
+
+  it('lets an answer and a note set a resubmission, and no answer that closes (K4)', () => {
+    expect(moderatorMessageKind('DIALOG', false, true)).toBe('ANSWER')
+    expect(moderatorMessageKind('MODERATOR', false, true)).toBe('NOTE')
+    expect(moderatorMessageKind('DIALOG', true, true)).toBeNull()
   })
 })
 

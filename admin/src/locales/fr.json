@@ -661,6 +661,7 @@
     "closedAt": "Fermée",
     "closedBy": "Fermée par {name}",
     "closedByMember": "Fermée par le membre",
+    "closingWaits": "Avec un rappel, la demande reste ouverte.",
     "confirmClose": {
       "body": "Veux-tu fermer cette demande sans répondre ? Le membre ne reçoit pas d'e-mail à ce sujet.",
       "title": "Fermer la demande",
@@ -674,12 +675,14 @@
     "deleted": "La demande est supprimée.",
     "deletedBy": "Supprimée par {name}",
     "failed": "Cela n'a pas fonctionné. Réessaie, s'il te plaît.",
+    "hideResubmissionTooltip": "Masque toutes les demandes pour lesquelles un modérateur a défini une date de rappel.",
     "loadFailed": "Les demandes n'ont pas pu être chargées. Réessaie, s'il te plaît.",
     "messagesReached": "Cette demande contient déjà {max} messages.",
     "notFound": "Cette demande n'existe pas ou ne fait pas partie de tes groupes.",
     "notesReached": "Cette demande contient déjà {max} notes.",
     "number": "Demande n° {number}",
     "request": "Demande",
+    "resubmissionLine": "Rappel : {day}, {time}",
     "searchMember": "Rechercher ce membre",
     "sent": "Envoyée",
     "tab": {

@@ -4,6 +4,7 @@ import * as v from 'valibot'
 import {
   adminSupportTicketsPageSchema,
   supportTicketMessageSchema,
+  supportTicketResubmissionSchema,
   supportTicketsPageSchema,
   supportTicketTextSchema,
 } from './SupportTicket.schema'
@@ -80,6 +81,7 @@ describe('adminSupportTicketsPageSchema', () => {
       pageSize: 25,
       query: '',
       creationGroup: '',
+      hideResubmission: false,
       ...input,
     }).success
 
@@ -102,5 +104,30 @@ describe('adminSupportTicketsPageSchema', () => {
     expect(page({ statuses: ['OPEN'], query: 'bibi garten', creationGroup: '*grouped' })).toBe(true)
     expect(page({ statuses: ['OPEN'], query: 5 })).toBe(false)
     expect(page({ statuses: ['OPEN'], creationGroup: null })).toBe(false)
+  })
+})
+
+describe('supportTicketResubmissionSchema', () => {
+  const read = (input: unknown) => v.safeParse(supportTicketResubmissionSchema, input)
+
+  it('takes a moment as the form sends it, and none', () => {
+    expect(read('2026-11-20T08:00:00.000Z')).toMatchObject({
+      success: true,
+      output: new Date('2026-11-20T08:00:00.000Z'),
+    })
+    expect(read(null)).toMatchObject({ success: true, output: null })
+    expect(read(undefined)).toMatchObject({ success: true, output: null })
+  })
+
+  it('takes a moment in the past: it hides nothing', () => {
+    expect(read('2020-01-01T00:00:00.000Z').success).toBe(true)
+  })
+
+  it('takes no day that rolls over, no time read in the server zone, and no text', () => {
+    expect(read('2026-02-30T08:00:00.000Z').success).toBe(false)
+    expect(read('2026-11-20 08:00')).toMatchObject({ success: false })
+    expect(read('2026-11-20T08:00:00Z').success).toBe(false)
+    expect(read('Fri Nov 20 2026 09:00:00 GMT+0100').success).toBe(false)
+    expect(read('soon').success).toBe(false)
   })
 })

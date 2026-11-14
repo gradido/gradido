@@ -43,12 +43,12 @@ describe('memberWriter', () => {
     expect(mockDatabase.dbCountSupportTicketDialogOfOwner).toHaveBeenCalledWith(42, 7, TX)
   })
 
-  it('opens the member own request again, from open, a question back or closed, and forgets who closed it', async () => {
+  it('opens the member own request again, from open, a question back or closed, forgets who closed it and takes a resubmission away', async () => {
     mockDatabase.dbUpdateSupportTicketOfOwner.mockResolvedValue(true)
     await expect(memberWriter(MEMBER).moveRequest(42, TX)).resolves.toBe(true)
     expect(mockDatabase.dbUpdateSupportTicketOfOwner).toHaveBeenCalledWith(
       { id: 42, userId: 7, statusIn: ['OPEN', 'IN_PROGRESS', 'CLOSED'] },
-      { status: 'OPEN', closedAt: null, closedBy: null },
+      { status: 'OPEN', closedAt: null, closedBy: null, resubmissionAt: null },
       TX,
     )
   })

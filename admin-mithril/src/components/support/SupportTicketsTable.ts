@@ -8,12 +8,14 @@ import { icon } from '@/components/icon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import type { DetailsState } from '@/data/Contribution.logic'
 import { isTheModerator } from '@/data/Member.logic'
+import { dayAndTime } from '@/data/MessageForm.logic'
 import {
   closingLine,
   isOpenTicket,
   memberSearchOf,
   ticketDetailsState,
   ticketRowTone,
+  waitingUntil,
 } from '@/data/SupportTicket.logic'
 import type { ListedSupportTicket } from '@/data/SupportTicket.schema'
 import { d, t } from '@/i18n'
@@ -212,9 +214,13 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
       )
     }
     // Six lines until the row is opened; a row that does not open (the own request, a deleted
-    // member's) shows its words in full, or the rest could not be read at all.
+    // member's) shows its words in full, or the rest could not be read at all. Below them who
+    // closed it, or -- an open one -- when it is wanted back (K4), while that is still to come.
     const words = (ticket: ListedSupportTicket) => {
-      const closing = closingLine(ticket)
+      const waiting = waitingUntil(ticket)
+      const closing = waiting
+        ? t('support.resubmissionLine', { day: d(waiting), time: dayAndTime(waiting).time })
+        : closingLine(ticket)
       const whole = this.open === ticket.id || !canOpen(ticket)
       return [
         m(

@@ -8,6 +8,7 @@ import {
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@admin/utils/lastSearch'
 // the creation page's rules for its tabs, under its class, which this page carries too
 import '@admin/pages/CreationConfirm.css'
+import BootstrapTooltip from 'bootstrap/js/dist/tooltip'
 import m, { type ClassComponent } from 'mithril'
 import * as v from 'valibot'
 import { ConfirmModal } from '@/components/bootstrap/ConfirmModal'
@@ -122,6 +123,9 @@ export class Support implements ClassComponent {
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
   // only: a search given here stays, also where it finds nothing.
   private keptOnTrial = this.query !== ''
+  // on the open tab what waits for a resubmission is hidden, at every opening: not kept (K4)
+  private hideResubmission = true
+  private tooltip?: BootstrapTooltip
   private page = 1
   private tickets: ListedSupportTicket[] = []
   private count = 0
@@ -156,6 +160,7 @@ export class Support implements ClassComponent {
       pageSize: PAGE_SIZE,
       query: this.query,
       creationGroup: this.group,
+      hideResubmission: this.tab === 0 && this.hideResubmission,
     })
     if (asked !== this.asked) {
       return
@@ -251,6 +256,32 @@ export class Support implements ClassComponent {
           },
         }),
       ]),
+      this.tab === 0
+        ? // the word is the label of the box, so a tap on it ticks the box too
+          m('p.mb-4.d-flex.align-items-center.hide-resubmission-row', [
+            m('input.hideResubmission#hide-resubmission', {
+              type: 'checkbox',
+              checked: this.hideResubmission,
+              onchange: (event: Event) => {
+                this.hideResubmission = (event.target as HTMLInputElement).checked
+                this.searchAnew()
+              },
+            }),
+            m(
+              'label.ms-2',
+              {
+                for: 'hide-resubmission',
+                oncreate: ({ dom }: m.VnodeDOM) => {
+                  this.tooltip = new BootstrapTooltip(dom, {
+                    title: t('support.hideResubmissionTooltip'),
+                  })
+                },
+                onremove: () => this.tooltip?.dispose(),
+              },
+              t('hide_resubmission'),
+            ),
+          ])
+        : null,
       m(
         'div',
         m(Tabs, {

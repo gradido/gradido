@@ -661,6 +661,7 @@
     "closedAt": "Cerrada",
     "closedBy": "Cerrada por {name}",
     "closedByMember": "Cerrada por el miembro",
+    "closingWaits": "Con un recordatorio, la consulta sigue abierta.",
     "confirmClose": {
       "body": "¿Quieres cerrar esta consulta sin responder? El miembro no recibe ningún correo sobre ello.",
       "title": "Cerrar consulta",
@@ -674,12 +675,14 @@
     "deleted": "La consulta está eliminada.",
     "deletedBy": "Eliminada por {name}",
     "failed": "No ha funcionado. Inténtalo de nuevo, por favor.",
+    "hideResubmissionTooltip": "Oculta todas las consultas para las que un moderador ha establecido una fecha de recordatorio.",
     "loadFailed": "No se pudieron cargar las consultas. Inténtalo de nuevo, por favor.",
     "messagesReached": "Esta consulta ya tiene {max} mensajes.",
     "notFound": "Esta consulta no existe o está fuera de tus grupos.",
     "notesReached": "Esta consulta ya tiene {max} notas.",
     "number": "Consulta n.º {number}",
     "request": "Consulta",
+    "resubmissionLine": "Recordatorio: {day}, {time}",
     "searchMember": "Buscar a este miembro",
     "sent": "Enviada",
     "tab": {

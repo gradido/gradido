@@ -25,18 +25,32 @@ export const sendable = (text: string) => {
 
 /**
  * What the form sends (adminCreateSupportTicketMessage): its tab says message or note, its button
- * whether the answer closes the request. A note closes nothing.
+ * whether the answer closes the request -- a note closes nothing --, its box the resubmission (K4),
+ * an ISO moment or none.
  */
 export const answerVariables = (
   supportTicketId: number,
   text: string,
-  { note, close }: { note: boolean; close: boolean },
+  { note, close, resubmissionAt }: { note: boolean; close: boolean; resubmissionAt: string | null },
 ) => ({
   supportTicketId,
   message: text,
   type: note ? 'MODERATOR' : 'DIALOG',
   close: !note && close,
+  resubmissionAt,
 })
+
+/**
+ * The moment a request waits for (K4), where it is still to come; one that is due waits no more:
+ * the request stands in the list again, and the form's box opens empty.
+ */
+export const waitingUntil = (
+  { resubmissionAt }: Pick<ListedSupportTicket, 'resubmissionAt'>,
+  now = new Date(),
+) => {
+  const moment = resubmissionAt === null ? null : new Date(resubmissionAt)
+  return moment && moment > now ? moment : null
+}
 
 /**
  * A refusal of the server in the moderator's words: out of reach (missing, outside the groups,

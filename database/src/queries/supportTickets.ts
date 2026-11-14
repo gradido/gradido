@@ -5,11 +5,13 @@ import {
   desc,
   eq,
   exists,
+  gt,
   gte,
   inArray,
   isNotNull,
   isNull,
   like,
+  lte,
   ne,
   or,
   SQL,
@@ -134,13 +136,23 @@ export const supportTicketsInScope = ({
 
 /**
  * What the moderation's list is narrowed to (K4), beside the scope and never in its place: words,
- * each of which turns up in the request somewhere, in any order, and a group -- some group, none,
- * the one of this tag (a tag that names no group finds nothing), or any (null).
+ * each of which turns up in the request somewhere, in any order; a group -- some group, none, the
+ * one of this tag (a tag that names no group finds nothing), or any (null); and, given a moment,
+ * none of the requests that wait for a resubmission after it ("Wiedervorlage verbergen").
  */
 export interface SupportTicketFilter {
   words: string[]
   group: 'GROUPED' | 'UNGROUPED' | { tag: string } | null
+  hideResubmissionsAfter: Date | null
 }
+
+/**
+ * Whether a request waits for its resubmission (K4): a moment set, still to come. One that is due
+ * waits no more -- it stands in the list again, and counts. "Now" is the caller's.
+ */
+const waitsBeyond = (now: Date) => gt(supportTicketsTable.resubmissionAt, now)
+const waitsNoMore = (now: Date) =>
+  or(isNull(supportTicketsTable.resubmissionAt), lte(supportTicketsTable.resubmissionAt, now))
 
 /**
  * Whether a word turns up in a request: in its words; in its member as the admin's member search
@@ -195,6 +207,7 @@ export interface SupportTicketOfModeration {
   closedBy: number | null
   deletedAt: Date | null
   deletedBy: number | null
+  resubmissionAt: Date | null
 }
 
 /**
@@ -204,7 +217,7 @@ export interface SupportTicketOfModeration {
 export async function dbSelectSupportTicketsInScope(
   statuses: SupportTicketStatus[],
   scope: SupportTicketScope,
-  { words, group }: SupportTicketFilter,
+  { words, group, hideResubmissionsAfter }: SupportTicketFilter,
   offset: number,
   limit: number,
 ): Promise<{ count: number; tickets: SupportTicketOfModeration[] }> {
@@ -213,6 +226,7 @@ export async function dbSelectSupportTicketsInScope(
     supportTicketsInScope(scope),
     ...words.map(requestHasWord),
     inFilterGroup(group),
+    hideResubmissionsAfter ? waitsNoMore(hideResubmissionsAfter) : undefined,
   )
   const [[total], tickets] = await Promise.all([
     drizzleDb().select({ count: count() }).from(supportTicketsTable).where(where),
@@ -229,6 +243,7 @@ export async function dbSelectSupportTicketsInScope(
         closedBy: supportTicketsTable.closedBy,
         deletedAt: supportTicketsTable.deletedAt,
         deletedBy: supportTicketsTable.deletedBy,
+        resubmissionAt: supportTicketsTable.resubmissionAt,
       })
       .from(supportTicketsTable)
       .leftJoin(
@@ -261,20 +276,24 @@ export async function dbSelectSupportTicketOwnerInScope(
 /**
  * How many requests the open tab of a moderator holds, as its two halves: waiting for the
  * moderation (OPEN) and waiting for the member (IN_PROGRESS) -- what the badges and the start
- * page count. Within the scope, and as the tab lists them: the moderator's own requests counted
- * too. One query.
+ * page count -- and apart from them those that wait for a resubmission still to come (K4), which
+ * the tab opens without: the start page names them in a line of their own, as for contributions.
+ * Within the scope, and as the tab lists them: the moderator's own requests counted too. One
+ * query; "now" is the caller's.
  */
 export async function dbCountOpenSupportTicketsInScope(
   scope: SupportTicketScope,
-): Promise<{ forModeration: number; forMember: number }> {
+  now: Date,
+): Promise<{ forModeration: number; forMember: number; onResubmission: number }> {
   const [row] = await drizzleDb()
     .select({
       forModeration: count(
-        sql`case when ${supportTicketsTable.status} = ${SupportTicketStatus.OPEN} then 1 end`,
+        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.OPEN), waitsNoMore(now))} then 1 end`,
       ),
       forMember: count(
-        sql`case when ${supportTicketsTable.status} = ${SupportTicketStatus.IN_PROGRESS} then 1 end`,
+        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.IN_PROGRESS), waitsNoMore(now))} then 1 end`,
       ),
+      onResubmission: count(sql`case when ${waitsBeyond(now)} then 1 end`),
     })
     .from(supportTicketsTable)
     .where(
@@ -322,17 +341,21 @@ export const supportTicketOfModerator = ({
   ) as SQL
 
 /**
- * Changes a request as the moderation does (answering, closing, deleting it), where it is the
- * moderator's to act on (supportTicketOfModerator), and answers whether it did. The values are
- * fixed ones: nothing of the row is read and written back.
+ * Changes a request as the moderation does (answering, noting, closing, deleting it), where it is
+ * the moderator's to act on (supportTicketOfModerator), and answers whether it did. The values are
+ * fixed ones: nothing of the row is read and written back. A note sets no state, only what becomes
+ * of the resubmission.
+ *
+ * The resubmission is no choice: every write says what becomes of it (K4), and a write that
+ * forgets it does not compile.
  *
  * ⚠️ True also where nothing changes -- an answer to a question back leaves it one: the driver
  * counts the rows found (FOUND_ROWS), as for the member's write below.
  */
 export async function dbUpdateSupportTicketOfModerator(
   where: SupportTicketOfModerator,
-  set: Pick<SupportTicketInsert, 'closedAt' | 'closedBy' | 'deletedAt' | 'deletedBy'> & {
-    status: SupportTicketStatus
+  set: Pick<SupportTicketInsert, 'status' | 'closedAt' | 'closedBy' | 'deletedAt' | 'deletedBy'> & {
+    resubmissionAt: Date | null
   },
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<boolean> {
@@ -344,28 +367,11 @@ export async function dbUpdateSupportTicketOfModerator(
 }
 
 /**
- * Holds a request where it is the moderator's to act on (supportTicketOfModerator), and answers
- * whether it is: for a write into its thread that changes nothing of the request (a note). A
- * locking read holds the condition of the row as it is now, not as the transaction first read
- * it, and keeps the row as it is until the transaction ends.
- */
-export async function dbLockSupportTicketOfModerator(
-  where: SupportTicketOfModerator,
-  tx: DrizzleTransaction,
-): Promise<boolean> {
-  const rows = await tx
-    .select({ id: supportTicketsTable.id })
-    .from(supportTicketsTable)
-    .where(supportTicketOfModerator(where))
-    .for('update')
-  return rows.length === 1
-}
-
-/**
  * Sets the state of a request the member owns, where it stands in one of the given states, and
  * answers whether it did: the owner and the state from which it may change are the condition of
  * the write, not of a row read before it. Another member's request answers false, as a missing
- * one does.
+ * one does. What becomes of a resubmission is said with every write (K4): a member's word takes
+ * it away.
  *
  * ⚠️ True also where nothing changes -- an open request written into stays open: the pool's
  * driver counts the rows the condition found, not the rows it changed (mysql2 connects with
@@ -373,7 +379,12 @@ export async function dbLockSupportTicketOfModerator(
  */
 export async function dbUpdateSupportTicketOfOwner(
   where: { id: number; userId: number; statusIn: SupportTicketStatus[] },
-  set: { status: SupportTicketStatus; closedAt: Date | null; closedBy: number | null },
+  set: {
+    status: SupportTicketStatus
+    closedAt: Date | null
+    closedBy: number | null
+    resubmissionAt: Date | null
+  },
   tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<boolean> {
   const [result] = await tx

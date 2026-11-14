@@ -34,6 +34,7 @@ import {
 import {
   adminSupportTicketsPageSchema,
   supportTicketMessageSchema,
+  supportTicketResubmissionSchema,
 } from '@/data/SupportTicket.schema'
 import { moderatorWriter } from '@/interactions/writeSupportTicketMessage/Moderator.role'
 import { writeSupportTicketMessage } from '@/interactions/writeSupportTicketMessage/WriteSupportTicketMessage.context'
@@ -98,9 +99,9 @@ export class SupportTicketModerationResolver {
   /**
    * A page of the requests in these states, the newest first, with their members -- narrowed by a
    * search and a group (K4), beside the scope and never in its place: each word of the search
-   * turns up in the request's words, in its member or as its number. The members, the names of
-   * who closed, the pictures' dates and the newest dialog message come in one query each for the
-   * whole page.
+   * turns up in the request's words, in its member or as its number; and, asked, without what
+   * waits for a resubmission still to come. The members, the names of who closed, the pictures'
+   * dates and the newest dialog message come in one query each for the whole page.
    *
    * ⛔ The search is a name or an address: it reaches no log (fromDatabase logs by the code).
    */
@@ -112,6 +113,7 @@ export class SupportTicketModerationResolver {
     @Arg('pageSize', () => Int) pageSize: number,
     @Arg('query', () => String, { defaultValue: '' }) query: string,
     @Arg('creationGroup', () => String, { defaultValue: '' }) creationGroup: string,
+    @Arg('hideResubmission', () => Boolean, { defaultValue: false }) hideResubmission: boolean,
     @Ctx() context: Context,
   ): Promise<AdminSupportTicketList> {
     countSupportTicketRead(context)
@@ -121,6 +123,7 @@ export class SupportTicketModerationResolver {
       pageSize,
       query,
       creationGroup,
+      hideResubmission,
     })
     if (!page.success) {
       throw new LogError(SUPPORT_TICKET_INVALID)
@@ -133,6 +136,7 @@ export class SupportTicketModerationResolver {
         {
           words: searchWords(page.output.query),
           group: groupFilterOf(page.output.creationGroup),
+          hideResubmissionsAfter: page.output.hideResubmission ? new Date() : null,
         },
         (page.output.currentPage - 1) * page.output.pageSize,
         page.output.pageSize,
@@ -173,6 +177,7 @@ export class SupportTicketModerationResolver {
             closedAt: at,
             closedBy: by,
             closedByUserName: by === null ? null : (names.get(by) ?? null),
+            resubmissionAt: ticket.resubmissionAt,
             lastMessageType: last?.type ?? null,
             lastMessageByModerator: last?.isModerator ?? null,
           }
@@ -214,15 +219,19 @@ export class SupportTicketModerationResolver {
 
   /**
    * How many requests the open tab holds, as its two halves (K3): waiting for the moderation,
-   * waiting for the member. Within the scope, the moderator's own requests counted as the tab
-   * lists them -- what the badges and the start page show.
+   * waiting for the member -- and apart from them what waits for a resubmission still to come,
+   * which the tab opens without (K4). Within the scope, the moderator's own requests counted as
+   * the tab lists them -- what the badges and the start page show.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Query(() => AdminOpenSupportTickets)
   async adminCountOpenSupportTickets(@Ctx() context: Context): Promise<AdminOpenSupportTickets> {
     countSupportTicketRead(context)
     return fromDatabase(SUPPORT_TICKET_NOT_READ, () =>
-      dbCountOpenSupportTicketsInScope(describeModeratorCreationGroups(context.user?.userRole)),
+      dbCountOpenSupportTicketsInScope(
+        describeModeratorCreationGroups(context.user?.userRole),
+        new Date(),
+      ),
     )
   }
 
@@ -231,9 +240,11 @@ export class SupportTicketModerationResolver {
    * question back then, or closed with `close` ("Antworten und schließen") -- or a note for the
    * moderation (`type` MODERATOR), which changes nothing of the request and reaches the member
    * nowhere. Into an open request, one with a question back or a closed one; never into a deleted
-   * one, never into the moderator's own. A note that would close is no write (invalid). An answer
-   * is mailed to the member once it is stored, to a confirmed address. Answers the message as the
-   * thread shows it.
+   * one, never into the moderator's own. A note that would close is no write (invalid). Each sets
+   * the resubmission as the form's box stands (K4): `resubmissionAt`, or none -- a note with one
+   * into an open request only, and an answer that closes with none (invalid). An answer is mailed
+   * to the member once it is stored, to a confirmed address. Answers the message as the thread
+   * shows it.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => AdminSupportTicketMessage)
@@ -242,13 +253,16 @@ export class SupportTicketModerationResolver {
     @Arg('message', () => String) message: string,
     @Arg('type', () => SupportTicketMessageType) type: SupportTicketMessageType,
     @Arg('close', () => Boolean) close: boolean,
+    @Arg('resubmissionAt', () => String, { nullable: true }) resubmissionAt: string | null,
     @Ctx() context: Context,
   ): Promise<AdminSupportTicketMessage> {
     countSupportTicketWrite(context)
     const moderator = getUser(context)
     const words = v.safeParse(supportTicketMessageSchema, message)
-    const kind = moderatorMessageKind(type, close)
-    if (!words.success || kind === null) {
+    const resubmission = v.safeParse(supportTicketResubmissionSchema, resubmissionAt)
+    const kind =
+      resubmission.success && moderatorMessageKind(type, close, resubmission.output !== null)
+    if (!words.success || !resubmission.success || !kind) {
       throw new LogError(SUPPORT_TICKET_INVALID)
     }
     const scope = describeModeratorCreationGroups(context.user?.userRole)
@@ -263,7 +277,14 @@ export class SupportTicketModerationResolver {
     const createdAt = new Date()
     const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       writeSupportTicketMessage(
-        moderatorWriter({ moderator, ownerId, scope, kind, at: createdAt }),
+        moderatorWriter({
+          moderator,
+          ownerId,
+          scope,
+          kind,
+          at: createdAt,
+          resubmissionAt: resubmission.output,
+        }),
         supportTicketId,
         words.output,
         createdAt,
@@ -302,7 +323,8 @@ export class SupportTicketModerationResolver {
 
   /**
    * Closes a request the moderator reaches, an open one or one with a question back, with no
-   * message and no mail (the tick, SUA-010, SUA-018); the member sees it closed.
+   * message and no mail (the tick, SUA-010, SUA-018); the member sees it closed. A resubmission
+   * goes with it (K4): a closed request waits for nothing.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
@@ -320,7 +342,12 @@ export class SupportTicketModerationResolver {
           scope: describeModeratorCreationGroups(context.user?.userRole),
           moderatorId: moderator.id,
         },
-        { status: SupportTicketStatus.CLOSED, closedAt: new Date(), closedBy: moderator.id },
+        {
+          status: SupportTicketStatus.CLOSED,
+          closedAt: new Date(),
+          closedBy: moderator.id,
+          resubmissionAt: null,
+        },
       ),
     )
     if (!closed) {
@@ -332,7 +359,7 @@ export class SupportTicketModerationResolver {
   /**
    * Deletes a request the moderator reaches, an open one or one with a question back -- softly:
    * it stands under "Gelöscht" then, with no way back, and the member sees it as deleted, with no
-   * thread. No message and no mail (SUA-018).
+   * thread. No message and no mail (SUA-018), and no resubmission left (K4).
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
@@ -350,7 +377,12 @@ export class SupportTicketModerationResolver {
           scope: describeModeratorCreationGroups(context.user?.userRole),
           moderatorId: moderator.id,
         },
-        { status: SupportTicketStatus.DELETED, deletedAt: new Date(), deletedBy: moderator.id },
+        {
+          status: SupportTicketStatus.DELETED,
+          deletedAt: new Date(),
+          deletedBy: moderator.id,
+          resubmissionAt: null,
+        },
       ),
     )
     if (!deleted) {

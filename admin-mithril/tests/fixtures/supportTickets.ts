@@ -22,6 +22,7 @@ export const listedTicket = (id: number, userId = id, more: Record<string, unkno
   closedAt: null,
   closedBy: null,
   closedByUserName: null,
+  resubmissionAt: null,
   lastMessageType: null,
   lastMessageByModerator: null,
   ...more,

@@ -3,13 +3,15 @@
 # The support requests of a tab, a page of them, with the member in the shape the creation page's
 # rows have -- without the address, which stands beside the member (userEmail): User.emailContact
 # asks the database again where no address is in force, and fails there for the whole page. A
-# search and a group narrow them (K4): '' is none, and any group.
+# search and a group narrow them (K4): '' is none, and any group; and on the open tab what waits
+# for a resubmission still to come is hidden.
 query adminListSupportTickets(
   $statuses: [SupportTicketStatus!]!
   $currentPage: Int!
   $pageSize: Int!
   $query: String!
   $creationGroup: String!
+  $hideResubmission: Boolean!
 ) {
   adminListSupportTickets(
     statuses: $statuses
@@ -17,6 +19,7 @@ query adminListSupportTickets(
     pageSize: $pageSize
     query: $query
     creationGroup: $creationGroup
+    hideResubmission: $hideResubmission
   ) {
     count
     tickets {
@@ -45,6 +48,7 @@ query adminListSupportTickets(
       closedAt
       closedBy
       closedByUserName
+      resubmissionAt
       lastMessageType
       lastMessageByModerator
     }
@@ -75,28 +79,33 @@ query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
 }
 
 # The two halves of the open tab within the moderator's groups (K3): what the badges in the bar
-# and on the tab, and the start page, add up. A document of its own: the start page asks for it
-# beside the creation's counts, and either may fail without the other.
+# and on the tab, and the start page, add up -- and apart from them what waits for a resubmission
+# (K4), which the start page names in a line of its own. A document of its own: the start page
+# asks for it beside the creation's counts, and either may fail without the other.
 query adminCountOpenSupportTickets {
   adminCountOpenSupportTickets {
     forModeration
     forMember
+    onResubmission
   }
 }
 
 # An answer to the member, an answer that closes the request, or a note for the moderation
-# (K3). The page reads only that it went through; the thread is asked for anew.
+# (K3), each with the resubmission as the form's box stands (K4): an ISO moment, or null. The page
+# reads only that it went through; the thread is asked for anew.
 mutation adminCreateSupportTicketMessage(
   $supportTicketId: Int!
   $message: String!
   $type: SupportTicketMessageType!
   $close: Boolean!
+  $resubmissionAt: String
 ) {
   adminCreateSupportTicketMessage(
     supportTicketId: $supportTicketId
     message: $message
     type: $type
     close: $close
+    resubmissionAt: $resubmissionAt
   ) {
     id
   }

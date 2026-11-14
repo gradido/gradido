@@ -661,6 +661,7 @@
     "closedAt": "Fechado",
     "closedBy": "Fechado por {name}",
     "closedByMember": "Fechado pelo membro",
+    "closingWaits": "Com um lembrete, o pedido fica aberto.",
     "confirmClose": {
       "body": "Queres fechar este pedido sem responder? O membro não recebe nenhum e-mail sobre isso.",
       "title": "Fechar pedido",
@@ -674,12 +675,14 @@
     "deleted": "O pedido está eliminado.",
     "deletedBy": "Eliminado por {name}",
     "failed": "Não resultou. Tenta de novo, por favor.",
+    "hideResubmissionTooltip": "Oculta todos os pedidos para os quais um moderador definiu uma data de lembrete.",
     "loadFailed": "Não foi possível carregar os pedidos. Tenta de novo, por favor.",
     "messagesReached": "Este pedido já tem {max} mensagens.",
     "notFound": "Este pedido não existe ou não pertence aos teus grupos.",
     "notesReached": "Este pedido já tem {max} notas.",
     "number": "Pedido n.º {number}",
     "request": "Pedido",
+    "resubmissionLine": "Lembrete: {day}, {time}",
     "searchMember": "Pesquisar este membro",
     "sent": "Enviado",
     "tab": {

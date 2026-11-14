@@ -137,6 +137,14 @@ export class Dashboard implements ClassComponent {
             ),
           ])
         : null,
+      // not part of the number above, so it says "also", as for contributions (K4)
+      support?.onResubmission
+        ? m(
+            'p.mb-1',
+            { 'data-test': 'support-on-resubmission' },
+            t('dashboard.resubmission', { n: support.onResubmission }),
+          )
+        : null,
     ])
   }
 }

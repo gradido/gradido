@@ -661,6 +661,7 @@
     "closedAt": "Gesloten",
     "closedBy": "Gesloten door {name}",
     "closedByMember": "Gesloten door het lid",
+    "closingWaits": "Met een herinnering blijft de vraag open.",
     "confirmClose": {
       "body": "Wil je deze vraag zonder antwoord sluiten? Het lid krijgt hierover geen e-mail.",
       "title": "Vraag sluiten",
@@ -674,12 +675,14 @@
     "deleted": "De vraag is verwijderd.",
     "deletedBy": "Verwijderd door {name}",
     "failed": "Dat is niet gelukt. Probeer het nog eens.",
+    "hideResubmissionTooltip": "Verbergt alle vragen waarvoor een moderator een herinneringsdatum heeft ingesteld.",
     "loadFailed": "De vragen konden niet worden geladen. Probeer het nog eens.",
     "messagesReached": "Bij deze vraag staan al {max} berichten.",
     "notFound": "Deze vraag bestaat niet of valt buiten je groepen.",
     "notesReached": "Bij deze vraag staan al {max} notities.",
     "number": "Vraag nr. {number}",
     "request": "Vraag",
+    "resubmissionLine": "Herinnering: {day}, {time}",
     "searchMember": "Naar dit lid zoeken",
     "sent": "Verzonden",
     "tab": {

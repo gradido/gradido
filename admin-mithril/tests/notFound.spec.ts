@@ -13,7 +13,7 @@ test.beforeEach(async ({ page, graphql }) => {
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
     // the support's count (K3) is asked beside the creation's by the Mithril admin
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0 },
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
   })
   await serveWalletAssets(page)
 })
