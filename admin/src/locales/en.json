@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Also: {n} on resubmission",
+    "support": "Support: {n} open requests",
+    "supportNone": "Support: no open requests",
+    "supportOne": "Support: one open request",
     "today": "Today: {n} open creations",
     "todayNone": "Today: no open creations",
     "todayOne": "Today: one open creation",
@@ -651,12 +654,30 @@
   "status": "Status",
   "success": "Success",
   "support": {
+    "answer": "Reply",
+    "answerAndClose": "Reply and close",
+    "close": "Close",
+    "closed": "The request is closed.",
     "closedAt": "Closed",
     "closedBy": "Closed by {name}",
     "closedByMember": "Closed by the member",
+    "confirmClose": {
+      "body": "Do you want to close this request without a reply? The member gets no e-mail about it.",
+      "title": "Close request",
+      "yes": "Yes, close"
+    },
+    "confirmDelete": {
+      "body": "Do you really want to delete this request? It then stands under “Deleted” and cannot be restored. The member gets no e-mail about it and sees it as deleted.",
+      "title": "Delete request",
+      "yes": "Yes, delete"
+    },
+    "deleted": "The request is deleted.",
     "deletedBy": "Deleted by {name}",
+    "failed": "That did not work. Please try again.",
     "loadFailed": "The requests could not be loaded. Please try again.",
+    "messagesReached": "This request already has {max} messages.",
     "notFound": "This request does not exist, or it is outside your groups.",
+    "notesReached": "This request already has {max} notes.",
     "request": "Request",
     "sent": "Sent",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Closed",
       "deleted": "Deleted",
       "open": "Open"
-    }
+    },
+    "tooLong": "At most {max} characters."
   },
   "text": "Text",
   "thank-you-cheque": {

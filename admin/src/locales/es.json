@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "Además: {n} con recordatorio",
+    "support": "Soporte: {n} consultas abiertas",
+    "supportNone": "Soporte: ninguna consulta abierta",
+    "supportOne": "Soporte: una consulta abierta",
     "today": "Hoy: {n} creaciones abiertas",
     "todayNone": "Hoy: ninguna creación abierta",
     "todayOne": "Hoy: una creación abierta",
@@ -651,12 +654,30 @@
   "status": "Estado",
   "success": "Éxito",
   "support": {
+    "answer": "Responder",
+    "answerAndClose": "Responder y cerrar",
+    "close": "Cerrar",
+    "closed": "La consulta está cerrada.",
     "closedAt": "Cerrada",
     "closedBy": "Cerrada por {name}",
     "closedByMember": "Cerrada por el miembro",
+    "confirmClose": {
+      "body": "¿Quieres cerrar esta consulta sin responder? El miembro no recibe ningún correo sobre ello.",
+      "title": "Cerrar consulta",
+      "yes": "Sí, cerrar"
+    },
+    "confirmDelete": {
+      "body": "¿De verdad quieres eliminar esta consulta? Después aparece en «Eliminadas» y no se puede restaurar. El miembro no recibe ningún correo sobre ello y la ve como eliminada.",
+      "title": "Eliminar consulta",
+      "yes": "Sí, eliminar"
+    },
+    "deleted": "La consulta está eliminada.",
     "deletedBy": "Eliminada por {name}",
+    "failed": "No ha funcionado. Inténtalo de nuevo, por favor.",
     "loadFailed": "No se pudieron cargar las consultas. Inténtalo de nuevo, por favor.",
+    "messagesReached": "Esta consulta ya tiene {max} mensajes.",
     "notFound": "Esta consulta no existe o está fuera de tus grupos.",
+    "notesReached": "Esta consulta ya tiene {max} notas.",
     "request": "Consulta",
     "sent": "Enviada",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Cerradas",
       "deleted": "Eliminadas",
       "open": "Abiertas"
-    }
+    },
+    "tooLong": "Como máximo {max} caracteres."
   },
   "text": "Texto",
   "thank-you-cheque": {

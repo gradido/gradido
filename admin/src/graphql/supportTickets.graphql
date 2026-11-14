@@ -60,3 +60,41 @@ query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
     isModerator
   }
 }
+
+# The two halves of the open tab within the moderator's groups (K3): what the badges in the bar
+# and on the tab, and the start page, add up. A document of its own: the start page asks for it
+# beside the creation's counts, and either may fail without the other.
+query adminCountOpenSupportTickets {
+  adminCountOpenSupportTickets {
+    forModeration
+    forMember
+  }
+}
+
+# An answer to the member, an answer that closes the request, or a note for the moderation
+# (K3). The page reads only that it went through; the thread is asked for anew.
+mutation adminCreateSupportTicketMessage(
+  $supportTicketId: Int!
+  $message: String!
+  $type: SupportTicketMessageType!
+  $close: Boolean!
+) {
+  adminCreateSupportTicketMessage(
+    supportTicketId: $supportTicketId
+    message: $message
+    type: $type
+    close: $close
+  ) {
+    id
+  }
+}
+
+# The tick of a row: closed without a message and without a mail (SUA-010, SUA-018).
+mutation adminCloseSupportTicket($supportTicketId: Int!) {
+  adminCloseSupportTicket(supportTicketId: $supportTicketId)
+}
+
+# Deleted softly, without a message and without a mail (SUA-018).
+mutation adminDeleteSupportTicket($supportTicketId: Int!) {
+  adminDeleteSupportTicket(supportTicketId: $supportTicketId)
+}

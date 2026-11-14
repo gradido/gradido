@@ -367,6 +367,9 @@
   },
   "dashboard": {
     "resubmission": "En plus : {n} avec rappel",
+    "support": "Assistance : {n} demandes ouvertes",
+    "supportNone": "Assistance : aucune demande ouverte",
+    "supportOne": "Assistance : une demande ouverte",
     "today": "Aujourd'hui : {n} créations ouvertes",
     "todayNone": "Aujourd'hui : aucune création ouverte",
     "todayOne": "Aujourd'hui : une création ouverte",
@@ -651,12 +654,30 @@
   "status": "Statut",
   "success": "Succès",
   "support": {
+    "answer": "Répondre",
+    "answerAndClose": "Répondre et fermer",
+    "close": "Fermer",
+    "closed": "La demande est fermée.",
     "closedAt": "Fermée",
     "closedBy": "Fermée par {name}",
     "closedByMember": "Fermée par le membre",
+    "confirmClose": {
+      "body": "Veux-tu fermer cette demande sans répondre ? Le membre ne reçoit pas d'e-mail à ce sujet.",
+      "title": "Fermer la demande",
+      "yes": "Oui, fermer"
+    },
+    "confirmDelete": {
+      "body": "Veux-tu vraiment supprimer cette demande ? Elle figure ensuite sous « Supprimées » et ne peut pas être restaurée. Le membre ne reçoit pas d'e-mail à ce sujet et la voit comme supprimée.",
+      "title": "Supprimer la demande",
+      "yes": "Oui, supprimer"
+    },
+    "deleted": "La demande est supprimée.",
     "deletedBy": "Supprimée par {name}",
+    "failed": "Cela n'a pas fonctionné. Réessaie, s'il te plaît.",
     "loadFailed": "Les demandes n'ont pas pu être chargées. Réessaie, s'il te plaît.",
+    "messagesReached": "Cette demande contient déjà {max} messages.",
     "notFound": "Cette demande n'existe pas ou ne fait pas partie de tes groupes.",
+    "notesReached": "Cette demande contient déjà {max} notes.",
     "request": "Demande",
     "sent": "Envoyée",
     "tab": {
@@ -664,7 +685,8 @@
       "closed": "Fermées",
       "deleted": "Supprimées",
       "open": "Ouvertes"
-    }
+    },
+    "tooLong": "{max} caractères au maximum."
   },
   "text": "Texte",
   "thank-you-cheque": {

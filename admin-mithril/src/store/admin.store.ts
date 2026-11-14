@@ -14,14 +14,16 @@ import { closeMemberAvatarZoom } from './memberAvatarZoom.store'
 import { forgetModeratorContacts } from './moderatorContacts.store'
 
 /**
- * The state of the admin interface: whom it is signed in as, and how many creations are open.
- * A plain object: Mithril redraws after every event handler and every m.request, so nothing has
- * to be told of a change. Only what changes outside of Mithril (another window) calls m.redraw.
+ * The state of the admin interface: whom it is signed in as, and how many creations and support
+ * requests are open. A plain object: Mithril redraws after every event handler and every
+ * m.request, so nothing has to be told of a change. Only what changes outside of Mithril (another
+ * window) calls m.redraw.
  */
 type AdminState = {
   token: string | null
   moderator: Moderator | null
   openCreations: number
+  openSupportTickets: number
 }
 
 /** Where the admin keeps its own state in localStorage; the key of the old admin, kept. */
@@ -30,6 +32,7 @@ const STATE_KEY = 'gradido-admin'
 const savedStateSchema = v.object({
   moderator: v.optional(v.nullable(moderatorSchema), null),
   openCreations: v.optional(v.number(), 0),
+  openSupportTickets: v.optional(v.number(), 0),
 })
 
 /** What the blob holds of the state, or the empty state where it cannot be read. */
@@ -61,8 +64,8 @@ export const adminStore: AdminState = {
 }
 
 const save = () => {
-  const { moderator, openCreations } = adminStore
-  localStorage.setItem(STATE_KEY, JSON.stringify({ moderator, openCreations }))
+  const { moderator, openCreations, openSupportTickets } = adminStore
+  localStorage.setItem(STATE_KEY, JSON.stringify({ moderator, openCreations, openSupportTickets }))
 }
 
 export const setToken = (token: string | null) => {
@@ -78,6 +81,12 @@ export const setModerator = (moderator: Moderator | null) => {
 
 export const setOpenCreations = (openCreations: number) => {
   adminStore.openCreations = openCreations
+  save()
+}
+
+/** The support requests of the open tab (Support-Anfragen K3), for the badges. */
+export const setOpenSupportTickets = (openSupportTickets: number) => {
+  adminStore.openSupportTickets = openSupportTickets
   save()
 }
 

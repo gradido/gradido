@@ -26,6 +26,16 @@
       "title": "Mensagem sobre a tua contribuição para o bem comum",
       "toSeeAndAnswerMessage": "Podes responder diretamente na tua contribuição."
     },
+    "addedSupportTicketMessage": {
+      "answered": "{moderatorAlias} respondeu ao teu pedido n.º {supportTicketNumber}.",
+      "answeredBySupport": "O suporte respondeu ao teu pedido n.º {supportTicketNumber}.",
+      "closed": "Com isto, o pedido fica fechado. Se voltares a escrever, fica novamente aberto.",
+      "message": "«{message}»",
+      "readMessage": "Ler e responder à mensagem",
+      "subject": "Resposta ao teu pedido de suporte",
+      "title": "Resposta ao teu pedido de suporte",
+      "toAnswer": "Podes responder diretamente no teu pedido."
+    },
     "assistedRegistrationConfirm": {
       "accountCreated": "Juntamente com um membro Gradido acaba de ser criada uma conta para ti — com este endereço de e-mail.",
       "accountCreatedByThanks": "Ao aceitar um agradecimento, acaba de ser criada uma conta para ti — com este endereço de e-mail.",

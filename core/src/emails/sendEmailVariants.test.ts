@@ -8,6 +8,7 @@ import {
   sendAccountActivationEmail,
   sendAccountMultiRegistrationEmail,
   sendAddedContributionMessageEmail,
+  sendAddedSupportTicketMessageEmail,
   sendAssistedRegistrationConfirmEmail,
   sendContributionChangedByModeratorEmail,
   sendContributionConfirmedEmail,
@@ -162,6 +163,63 @@ describe('sendEmailVariants', () => {
         expect(html).not.toContain(contributionFrontendLink)
         // What the mail is FOR is untouched — the message itself still stands in it.
         expect(html).toContain('My message.')
+      })
+    })
+  })
+
+  describe('sendAddedSupportTicketMessageEmail', () => {
+    beforeAll(async () => {
+      result = await sendAddedSupportTicketMessageEmail({
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        email: 'peter@lustig.de',
+        language: 'en',
+        moderatorAlias: 'bibi',
+        supportTicketNumber: 7,
+        message: 'My answer.',
+        closed: false,
+      })
+    })
+
+    describe('calls "sendEmailTranslated"', () => {
+      it('with expected parameters', () => {
+        expect(sendEmailTranslatedSpy).toBeCalledWith({
+          receiver: {
+            to: '"Peter Lustig" <peter@lustig.de>',
+          },
+          template: 'addedSupportTicketMessage',
+          locals: expect.objectContaining({
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            language: 'en',
+            moderatorAlias: 'bibi',
+            supportTicketNumber: 7,
+            message: 'My answer.',
+            closed: false,
+            communityURL: CONFIG.COMMUNITY_URL,
+          }),
+        })
+      })
+    })
+
+    describe('result', () => {
+      it('is the expected object', () => {
+        // bun testrunner bug, toMatchObject mess with 'result'
+        const resultClone = JSON.parse(JSON.stringify(result))
+        expect(resultClone).toMatchObject({
+          originalMessage: expect.objectContaining({
+            to: '"Peter Lustig" <peter@lustig.de>',
+            from: 'Gradido <info@gradido.net>',
+            attachments: expect.any(Array),
+            subject: 'Reply to your support request',
+            html: expect.any(String),
+            text: expect.stringContaining('REPLY TO YOUR SUPPORT REQUEST'),
+          }),
+        })
+      })
+
+      it('has the correct html as snapshot', () => {
+        expect(result.originalMessage.html).toMatchSnapshot()
       })
     })
   })

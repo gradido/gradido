@@ -3,7 +3,11 @@ import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { Kind, type OperationDefinitionNode, parse, type SelectionSetNode } from 'graphql'
 import type * as v from 'valibot'
-import { supportThreadSchema, supportTicketListSchema } from './SupportTicket.schema'
+import {
+  openSupportTicketsSchema,
+  supportThreadSchema,
+  supportTicketListSchema,
+} from './SupportTicket.schema'
 
 // The schema is the reader of an answer: a key it asks for that the document does not ask the
 // server for throws in v.parse, and the page stands empty without a word. The tests of the pages
@@ -61,6 +65,12 @@ describe('the support documents and the schemas that read their answers', () => 
 
   it('asks for everything the thread schema reads, the remark included', () => {
     expect(notAsked(supportThreadSchema, operation('adminListSupportTicketMessages'))).toEqual([])
+  })
+
+  it('asks for both halves of the open tab that the count schema reads', () => {
+    expect(notAsked(openSupportTicketsSchema, operation('adminCountOpenSupportTickets'))).toEqual(
+      [],
+    )
   })
 
   it('notices a key the document does not ask for', () => {

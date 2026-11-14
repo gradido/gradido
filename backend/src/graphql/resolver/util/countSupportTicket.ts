@@ -10,7 +10,7 @@ import { LogError } from '@/server/LogError'
 // aliases (RequestBudget). Either count also keeps the answer of the request out of the log
 // (plugins.ts): it carries the words of a member's request or of its thread.
 
-/** Counts a list or a thread of requests read. */
+/** Counts a list, a thread or the count of the open requests read. */
 export const countSupportTicketRead = (context: Context): void => {
   context.requestBudget.supportTicketReadsServed += 1
   const served = context.requestBudget.supportTicketReadsServed
@@ -19,7 +19,7 @@ export const countSupportTicketRead = (context: Context): void => {
   }
 }
 
-/** Counts a write: a request filed, a message written, a request closed. */
+/** Counts a write: a request filed, a message or note written, a request closed or deleted. */
 export const countSupportTicketWrite = (context: Context): void => {
   context.requestBudget.supportTicketWritesServed += 1
   const served = context.requestBudget.supportTicketWritesServed

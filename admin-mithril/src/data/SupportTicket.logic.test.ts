@@ -1,11 +1,91 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import { setLocale } from '@/i18n'
-import { closingLine, isOpenTicket, ticketDetailsState, ticketRowTone } from './SupportTicket.logic'
+import {
+  answerVariables,
+  charactersOf,
+  closingLine,
+  isOpenTicket,
+  MESSAGE_MAX_CHARS,
+  refusalWords,
+  SUPPORT_TICKET_MESSAGES_MAX,
+  sendable,
+  ticketDetailsState,
+  ticketRowTone,
+} from './SupportTicket.logic'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
 beforeEach(() => setLocale('de'))
 afterEach(() => setLocale('en'))
+
+describe('the bounds of a thread', () => {
+  // The server's file loads the native addon: read as text, the number after the name.
+  const server = readFileSync(
+    new URL('../../../shared/src/const/index.ts', import.meta.url),
+    'utf8',
+  )
+  const serverValue = (name: string) =>
+    Number(server.match(new RegExp(`export const ${name} = (\\d+)\\n`))?.[1])
+
+  it('are those of the server', () => {
+    expect(MESSAGE_MAX_CHARS).toBe(serverValue('MESSAGE_MAX_CHARS'))
+    expect(SUPPORT_TICKET_MESSAGES_MAX).toBe(serverValue('SUPPORT_TICKET_MESSAGES_MAX'))
+  })
+})
+
+describe('sendable', () => {
+  it('counts as the server counts: without the blanks around, an emoji as one', () => {
+    expect(charactersOf('  Hallo \n')).toBe(5)
+    expect(charactersOf('😊😊')).toBe(2)
+  })
+
+  it('sends words up to the bound, and neither none nor more', () => {
+    expect(sendable('Ja.')).toBe(true)
+    expect(sendable(` ${'😊'.repeat(MESSAGE_MAX_CHARS)} `)).toBe(true)
+    expect(sendable('a'.repeat(MESSAGE_MAX_CHARS + 1))).toBe(false)
+    expect(sendable(' \n ')).toBe(false)
+    expect(sendable('')).toBe(false)
+  })
+})
+
+describe('answerVariables', () => {
+  it('sends an answer, an answer that closes, and a note that closes nothing', () => {
+    expect(answerVariables(7, 'Ja.', { note: false, close: false })).toEqual({
+      supportTicketId: 7,
+      message: 'Ja.',
+      type: 'DIALOG',
+      close: false,
+    })
+    expect(answerVariables(7, 'Ja.', { note: false, close: true })).toMatchObject({
+      type: 'DIALOG',
+      close: true,
+    })
+    expect(answerVariables(7, 'Intern', { note: true, close: true })).toMatchObject({
+      type: 'MODERATOR',
+      close: false,
+    })
+  })
+})
+
+describe('refusalWords', () => {
+  it('says out of reach, a full thread of the kind sent, or that it did not work', () => {
+    expect(refusalWords(['SUPPORT_TICKET_NOT_FOUND'], { note: false })).toBe(
+      'Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.',
+    )
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: false })).toBe(
+      'In dieser Anfrage stehen schon 100 Nachrichten.',
+    )
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: true })).toBe(
+      'In dieser Anfrage stehen schon 100 Notizen.',
+    )
+    for (const code of ['SUPPORT_TICKET_INVALID', 'SUPPORT_TICKET_NOT_STORED', 'Failed to fetch']) {
+      expect(refusalWords([code], { note: false })).toBe(
+        'Das hat nicht geklappt. Versuch es bitte noch einmal.',
+      )
+    }
+  })
+})
 
 const ticket = (more: Partial<ListedSupportTicket> = {}): ListedSupportTicket => ({
   id: 1,

@@ -24,6 +24,7 @@ import arrowUpIcon from '~icons/bi/arrow-up'
 import bellIcon from '~icons/bi/bell-fill'
 import chatIcon from '~icons/bi/chat-dots'
 import checkIcon from '~icons/bi/check'
+import checkLgIcon from '~icons/bi/check-lg'
 import questionIcon from '~icons/bi/question-lg'
 import questionSquareIcon from '~icons/bi/question-square'
 import trashIcon from '~icons/bi/trash'
@@ -33,11 +34,18 @@ import { SupportTicketThread, type TicketWithMember } from './SupportTicketThrea
 /** Which columns: the open tab's, a closed one's, or those of "all", which add the state. */
 export type SupportTableKind = 'open' | 'closed' | 'all'
 
+/** What the buttons of an open row do: close it with the tick, or delete it (K3, SUA-018). */
+export type SupportDecision = 'close' | 'delete'
+
 interface Attrs {
   tickets: ListedSupportTicket[]
   kind: SupportTableKind
   /** each row a card */
   phone: boolean
+  /** a button of a row was pressed: the page asks first */
+  ondecide: (ticket: ListedSupportTicket, decision: SupportDecision) => void
+  /** the form of an opened request wrote: the list and the count anew */
+  onwritten: () => void
   class?: string
 }
 
@@ -108,25 +116,54 @@ const groupOf = (ticket: ListedSupportTicket) =>
 
 /**
  * The support requests of a tab of the support page: at the desk a row each, on a phone a card
- * each. A row opens below it to read the request's thread. The words of a request stand as text,
- * with their line breaks, at most six lines until the row is opened.
+ * each. A row opens below it to read the request's thread and to answer it. The words of a request
+ * stand as text, with their line breaks, at most six lines until the row is opened. An open row
+ * has a button to delete it in front and one to close it at the end.
  */
 export class SupportTicketsTable implements ClassComponent<Attrs> {
   private open: number | null = null
   private shownList: ListedSupportTicket[] = []
 
   view({ attrs }: Vnode<Attrs>) {
-    const { tickets, kind, phone } = attrs
-    if (tickets !== this.shownList) {
-      this.shownList = tickets
-      this.open = null
-    }
-    // The moderator's own request stands in the list like any other, but they do not open it here:
-    // on it they are the member (SUA-018), and the server hands its thread only to the wallet.
+    const { tickets, kind, phone, ondecide, onwritten } = attrs
+    // The moderator's own request stands in the list like any other, but they do not open it here
+    // nor act on it: on it they are the member (SUA-018), and the server refuses it to them.
     const myself = (ticket: ListedSupportTicket) =>
       ticket.user !== null && isTheModerator(adminStore.moderator, ticket.user)
     const canOpen = (ticket: ListedSupportTicket): ticket is TicketWithMember =>
       ticket.user !== null && !myself(ticket)
+    // A new list -- after a write, or another page or tab -- leaves the opened row open where it
+    // still stands in it: its thread loads anew of itself.
+    if (tickets !== this.shownList) {
+      this.shownList = tickets
+      if (!tickets.some((ticket) => ticket.id === this.open && canOpen(ticket))) {
+        this.open = null
+      }
+    }
+    // Closing with the tick and deleting: only on the open tab, never on the own request. A
+    // deleted member's request has them too: it does not open, and would else stay open for ever.
+    const decides = (ticket: ListedSupportTicket) =>
+      kind === 'open' && isOpenTicket(ticket) && !myself(ticket)
+    const decideButton = (
+      ticket: ListedSupportTicket,
+      decision: SupportDecision,
+      classes: string,
+      svg: string,
+    ) => {
+      const name = decision === 'delete' ? t('delete') : t('support.close')
+      return m(
+        'button.btn',
+        {
+          type: 'button',
+          class: classes,
+          title: name,
+          'aria-label': name,
+          'data-test': `support-${decision}`,
+          onclick: () => ondecide(ticket, decision),
+        },
+        m.trust(svg),
+      )
+    }
 
     const detailsButton = (ticket: ListedSupportTicket, classes: string) => {
       if (!canOpen(ticket)) {
@@ -168,6 +205,14 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
     }
 
     const desk: Record<string, Field<ListedSupportTicket>> = {
+      delete: {
+        key: 'delete',
+        label: t('delete'),
+        cell: (ticket) =>
+          decides(ticket)
+            ? m('div', decideButton(ticket, 'delete', 'btn-md btn-danger me-2', trashIcon))
+            : null,
+      },
       status: {
         key: 'status',
         label: t('status'),
@@ -211,10 +256,19 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         label: t('details'),
         cell: (ticket) => detailsButton(ticket, 'btn-md btn-secondary'),
       },
+      close: {
+        key: 'close',
+        label: t('support.close'),
+        cell: (ticket) =>
+          decides(ticket)
+            ? m('div', decideButton(ticket, 'close', 'btn-md btn-success me-2', checkIcon))
+            : null,
+      },
     }
 
     // A card: its head with face, name, username and date, the group, the words in full width, the
-    // button below.
+    // buttons below -- to delete on the left, to open and to close on the right, as for a
+    // contribution.
     const card: Field<ListedSupportTicket>[] = [
       {
         key: 'phoneHead',
@@ -252,15 +306,22 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         key: 'phoneActions',
         label: '',
         cell: (ticket) =>
-          m(
-            '.phone-actions.d-flex.align-items-center.gap-2.justify-content-end',
-            detailsButton(ticket, 'btn-md btn-secondary phone-icon-btn'),
-          ),
+          m('.phone-actions.d-flex.align-items-center.gap-2', [
+            decides(ticket)
+              ? decideButton(ticket, 'delete', 'btn-md btn-danger phone-icon-btn', trashIcon)
+              : null,
+            m('.d-flex.align-items-center.gap-2.ms-auto', [
+              detailsButton(ticket, 'btn-md btn-secondary phone-icon-btn'),
+              decides(ticket)
+                ? decideButton(ticket, 'close', 'btn-md btn-success phone-icon-btn', checkLgIcon)
+                : null,
+            ]),
+          ]),
       },
     ]
 
     const columns = {
-      open: ['name', 'request', 'sent', 'details'],
+      open: ['delete', 'name', 'request', 'sent', 'details', 'close'],
       closed: ['name', 'request', 'sent', 'closedAt', 'details'],
       all: ['status', 'name', 'request', 'sent', 'closedAt', 'details'],
     }[kind].map((key) => desk[key])
@@ -279,7 +340,7 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
           this.open === ticket.id && canOpen(ticket)
             ? m(
                 '.card.shadow-lg.ps-3.pe-3.mb-5.rounded.row-details-card',
-                m('.card-body', m(SupportTicketThread, { ticket })),
+                m('.card-body', m(SupportTicketThread, { ticket, onwritten })),
               )
             : null,
       }),

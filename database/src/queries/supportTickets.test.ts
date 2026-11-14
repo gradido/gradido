@@ -10,11 +10,14 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
+  dbCountOpenSupportTicketsInScope,
   dbCountSupportTicketsOfUserSince,
   dbInsertSupportTicket,
+  dbLockSupportTicketOfModerator,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketsOfUser,
+  dbUpdateSupportTicketOfModerator,
   dbUpdateSupportTicketOfOwner,
   SupportTicketScope,
 } from './supportTickets'
@@ -355,6 +358,182 @@ describe('supportTickets query test, the moderation side', () => {
       ).toBeNull()
       expect(await dbSelectSupportTicketOwnerInScope(inChoir, scope([], false))).toBeNull()
       expect(await dbSelectSupportTicketOwnerInScope(inChoir + 1000, EVERYTHING)).toBeNull()
+    })
+  })
+
+  // peter moderates; bibi asks, and peter asks once himself (K3)
+  describe('acting on a request', () => {
+    const ANSWERS_FROM: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS', 'CLOSED']
+    const A_QUESTION_BACK = {
+      status: 'IN_PROGRESS',
+      closedAt: null,
+      closedBy: null,
+    } as const
+    const where = (id: number, statusIn: SupportTicketStatus[], within = EVERYTHING) => ({
+      id,
+      statusIn,
+      scope: within,
+      moderatorId: peter.id,
+    })
+    const answer = (id: number, within = EVERYTHING) =>
+      dbUpdateSupportTicketOfModerator(where(id, ANSWERS_FROM, within), A_QUESTION_BACK)
+    const lock = (id: number, statusIn: SupportTicketStatus[], within = EVERYTHING) =>
+      inTransaction((tx) => dbLockSupportTicketOfModerator(where(id, statusIn, within), tx))
+
+    it('writes from each state it starts from, and from no other', async () => {
+      for (const state of ALL) {
+        const id = await file(bibi.id, `in state ${state}`, MORNING)
+        await setState(id, { status: state, closedAt: NOON, closedBy: bibi.id })
+        const written = await answer(id)
+        expect([state, written]).toEqual([state, state !== 'DELETED'])
+        expect(await rowOf(id)).toMatchObject(
+          state === 'DELETED'
+            ? { status: 'DELETED', closedAt: NOON, closedBy: bibi.id }
+            : A_QUESTION_BACK,
+        )
+      }
+    })
+
+    it('closes and deletes with the moment and the moderator, from open and a question back only', async () => {
+      const open = await file(bibi.id, 'open', MORNING)
+      const asked = await file(bibi.id, 'asked', MORNING)
+      await setState(asked, { status: 'IN_PROGRESS' })
+      const closed = await file(bibi.id, 'closed', MORNING)
+      await setState(closed, { status: 'CLOSED', closedAt: MORNING, closedBy: bibi.id })
+      const closes = (id: number) =>
+        dbUpdateSupportTicketOfModerator(where(id, ['OPEN', 'IN_PROGRESS']), {
+          status: 'CLOSED',
+          closedAt: NOON,
+          closedBy: peter.id,
+        })
+      const deletes = (id: number) =>
+        dbUpdateSupportTicketOfModerator(where(id, ['OPEN', 'IN_PROGRESS']), {
+          status: 'DELETED',
+          deletedAt: NOON,
+          deletedBy: peter.id,
+        })
+
+      expect(await closes(open)).toBe(true)
+      expect(await rowOf(open)).toMatchObject({
+        status: 'CLOSED',
+        closedAt: NOON,
+        closedBy: peter.id,
+      })
+      expect(await deletes(asked)).toBe(true)
+      expect(await rowOf(asked)).toMatchObject({
+        status: 'DELETED',
+        deletedAt: NOON,
+        deletedBy: peter.id,
+        closedAt: null,
+      })
+      // a closed one is neither closed again nor deleted
+      expect(await closes(closed)).toBe(false)
+      expect(await deletes(closed)).toBe(false)
+      expect(await rowOf(closed)).toMatchObject({
+        status: 'CLOSED',
+        closedAt: MORNING,
+        closedBy: bibi.id,
+        deletedAt: null,
+      })
+    })
+
+    it('answers true where nothing changes: an answer to a question back leaves one', async () => {
+      const id = await file(bibi.id, 'asked', MORNING)
+      await setState(id, { status: 'IN_PROGRESS' })
+      expect(await answer(id)).toBe(true)
+      expect(await rowOf(id)).toMatchObject(A_QUESTION_BACK)
+    })
+
+    it('writes in each branch of the scope what the scope reaches, and nothing outside it', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      const cases: [SupportTicketScope, number[]][] = [
+        [EVERYTHING, [inGarden, inChoir, ungrouped]],
+        [scope(['garden'], false), [inGarden]],
+        [scope([], true), [ungrouped]],
+        [scope(['choir'], true), [inChoir, ungrouped]],
+        [scope([], false), []],
+        [scope(['nobody-moderates-this'], false), []],
+      ]
+      for (const [within, reaches] of cases) {
+        for (const id of [inGarden, inChoir, ungrouped]) {
+          await setState(id, { status: 'OPEN' })
+          expect([within, id, await answer(id, within)]).toEqual([within, id, reaches.includes(id)])
+          expect((await rowOf(id)).status).toBe(reaches.includes(id) ? 'IN_PROGRESS' : 'OPEN')
+        }
+      }
+    })
+
+    it('writes nothing on the moderator own request, and nothing on a missing one', async () => {
+      const own = await file(peter.id, 'my own question', MORNING)
+      expect(await answer(own)).toBe(false)
+      expect(await rowOf(own)).toMatchObject({ status: 'OPEN' })
+      expect(await answer(own + 1000)).toBe(false)
+    })
+
+    it('holds a request for a note where it is the moderator one to act on, and changes nothing of it', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      // the member closed it just before the note
+      await setState(id, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      expect(await lock(id, ANSWERS_FROM)).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      expect(await lock(id, ANSWERS_FROM, scope(['garden'], false))).toBe(true)
+    })
+
+    it('holds nothing outside the scope, of a deleted request, of the own one and of a missing one', async () => {
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      expect(await lock(inChoir, ANSWERS_FROM, scope(['garden'], true))).toBe(false)
+      const deleted = await file(bibi.id, 'deleted', MORNING)
+      await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+      expect(await lock(deleted, ANSWERS_FROM)).toBe(false)
+      const own = await file(peter.id, 'my own', MORNING)
+      expect(await lock(own, ANSWERS_FROM)).toBe(false)
+      expect(await lock(own + 1000, ANSWERS_FROM)).toBe(false)
+    })
+  })
+
+  describe('counting the open tab', () => {
+    it('counts the open and the questions back apart, the closed and the deleted not', async () => {
+      await file(bibi.id, 'open 1', MORNING)
+      await file(bibi.id, 'open 2', MORNING, gardenId)
+      const asked = await file(bibi.id, 'asked', MORNING)
+      await setState(asked, { status: 'IN_PROGRESS' })
+      const closed = await file(bibi.id, 'closed', MORNING)
+      await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      const deleted = await file(bibi.id, 'deleted', MORNING)
+      await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+      // the moderator's own counts as the tab lists it
+      await file(peter.id, 'my own', MORNING)
+
+      expect(await dbCountOpenSupportTicketsInScope(EVERYTHING)).toEqual({
+        forModeration: 3,
+        forMember: 1,
+      })
+    })
+
+    it('counts in each branch of the scope what the scope reaches, and nothing outside it', async () => {
+      await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      await setState(inChoir, { status: 'IN_PROGRESS' })
+      await file(bibi.id, 'no group', MORNING)
+
+      expect(await dbCountOpenSupportTicketsInScope(scope(['garden'], false))).toEqual({
+        forModeration: 1,
+        forMember: 0,
+      })
+      expect(await dbCountOpenSupportTicketsInScope(scope(['choir'], true))).toEqual({
+        forModeration: 1,
+        forMember: 1,
+      })
+      expect(await dbCountOpenSupportTicketsInScope(scope([], true))).toEqual({
+        forModeration: 1,
+        forMember: 0,
+      })
+      expect(await dbCountOpenSupportTicketsInScope(scope([], false))).toEqual({
+        forModeration: 0,
+        forMember: 0,
+      })
     })
   })
 })
