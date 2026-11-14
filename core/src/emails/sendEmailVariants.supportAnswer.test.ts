@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, describe, expect, it, jest, mock } from 'bun:test'
+import addressparser from 'nodemailer/lib/addressparser'
 import { CONFIG } from '../config'
 import * as sendEmailTranslatedApi from './sendEmailTranslated'
 import { sendAddedSupportTicketMessageEmail } from './sendEmailVariants'
@@ -67,7 +68,7 @@ describe('the mail about an answer to a support request', () => {
     expect(mail.subject).toBe('Antwort auf Deine Support-Anfrage')
     expect(mail.html).toContain('>Antwort auf Deine Support-Anfrage</h2>')
     expect(sendEmailTranslatedSpy).toBeCalledWith({
-      receiver: { to: 'Bibi Bloxberg <bibi@bloxberg.de>' },
+      receiver: { to: '"Bibi Bloxberg" <bibi@bloxberg.de>' },
       template: 'addedSupportTicketMessage',
       locals: expect.objectContaining({
         moderatorAlias: 'peter',
@@ -119,6 +120,20 @@ describe('the mail about an answer to a support request', () => {
     )
     expect(mail.html).toContain(`href="${MY_REQUESTS}"`)
     expect(mail.html).toContain('Antworten kannst Du direkt bei Deiner Anfrage.')
+  })
+
+  it('goes to the registered address only, whatever the name holds', async () => {
+    // a name is any string: unquoted, a comma and an angle bracket in it would start a recipient
+    const firstName = 'Eve <eve@example.net>, "Bibi" \\'
+    const mail = await sent({ firstName })
+    const { to } = sendEmailTranslatedSpy.mock.calls[0][0].receiver
+    expect(to).toBe('"Eve <eve@example.net>, \\"Bibi\\" \\\\ Bloxberg" <bibi@bloxberg.de>')
+    // as nodemailer reads the header: one mailbox, the member's
+    expect(addressparser(to)).toEqual([
+      { name: 'Eve <eve@example.net>, "Bibi" \\ Bloxberg', address: 'bibi@bloxberg.de' },
+    ])
+    expect(addressparser(`${firstName} Bloxberg <bibi@bloxberg.de>`).length).toBeGreaterThan(1)
+    expect(mail.html).toContain('Hallo Eve &lt;eve@example.net&gt;, &quot;Bibi&quot; \\ Bloxberg,')
   })
 
   it('speaks the language of the member', async () => {

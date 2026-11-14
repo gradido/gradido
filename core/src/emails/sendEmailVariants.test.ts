@@ -185,7 +185,7 @@ describe('sendEmailVariants', () => {
       it('with expected parameters', () => {
         expect(sendEmailTranslatedSpy).toBeCalledWith({
           receiver: {
-            to: 'Peter Lustig <peter@lustig.de>',
+            to: '"Peter Lustig" <peter@lustig.de>',
           },
           template: 'addedSupportTicketMessage',
           locals: expect.objectContaining({
@@ -208,7 +208,7 @@ describe('sendEmailVariants', () => {
         const resultClone = JSON.parse(JSON.stringify(result))
         expect(resultClone).toMatchObject({
           originalMessage: expect.objectContaining({
-            to: 'Peter Lustig <peter@lustig.de>',
+            to: '"Peter Lustig" <peter@lustig.de>',
             from: 'Gradido <info@gradido.net>',
             attachments: expect.any(Array),
             subject: 'Reply to your support request',

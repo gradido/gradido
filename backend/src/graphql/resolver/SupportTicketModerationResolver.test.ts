@@ -974,8 +974,17 @@ describe('SupportTicketModerationResolver, acting on a request (K3)', () => {
     it('reads the answer and none of the notes, through the own operations', async () => {
       await loginAs('peter@lustig.de')
       const id = await file(bibi.id, 'Was sieht das Mitglied?', 70, gardenId)
-      await write(id, 'Die Antwort an Dich.')
-      await write(id, 'Nur für die Moderation.', 'MODERATOR')
+      expect((await write(id, 'Die Antwort an Dich.')).errors).toBeUndefined()
+      expect((await write(id, 'Nur für die Moderation.', 'MODERATOR')).errors).toBeUndefined()
+      // both stand in the thread: what the member does not read, is there
+      const stored = await messagesOf(id)
+      expect(stored).toHaveLength(2)
+      expect(stored).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ message: 'Die Antwort an Dich.', type: 'DIALOG' }),
+          expect.objectContaining({ message: 'Nur für die Moderation.', type: 'MODERATOR' }),
+        ]),
+      )
       await loginAs('bibi@bloxberg.de')
       const res: any = await query({
         query: listSupportTicketMessages,

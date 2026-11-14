@@ -578,6 +578,69 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
   await expect(field(page)).toHaveValue('Intern: hat sich selbst geholfen.')
 })
 
+test('keeps words typed while an answer goes', async ({ page, graphql }, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  graphql.answer({
+    adminCreateSupportTicketMessage: async () => {
+      await held
+      return { id: 99 }
+    },
+  })
+  await opened(page)
+  await field(page).fill('Erster Gedanke')
+  await button(page, de.support.answer).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(1)
+  await field(page).fill('Erster Gedanke, und noch etwas')
+  release()
+
+  await expect(toast(page, de.message.request)).toBeVisible()
+  await expect(field(page)).toHaveValue('Erster Gedanke, und noch etwas')
+})
+
+test('lets no answer to an earlier count put back a count from before a write', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let counted = 0
+  graphql.answer({
+    adminCloseSupportTicket: true,
+    // the page's first question is answered last, with the count from before the tick
+    adminCountOpenSupportTickets: async () => {
+      counted += 1
+      if (counted === 1) {
+        await held
+        return { forModeration: 5, forMember: 1 }
+      }
+      return { forModeration: 4, forMember: 1 }
+    },
+  })
+  const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
+  await open(page)
+  await row(page, 0).getByRole('button', { name: de.support.close }).click()
+  await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
+  await expect(entry.locator('.badge')).toHaveText('5')
+
+  const late = page.waitForResponse((response) =>
+    (response.request().postData() ?? '').includes('adminCountOpenSupportTickets'),
+  )
+  release()
+  await late
+  // two frames: the late answer is read and drawn
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await expect(entry.locator('.badge')).toHaveText('5')
+  await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
+})
+
 test('empties the field with "Abbrechen", and sends nothing', async ({ page, graphql }, info) => {
   test.skip(info.project.name === 'old', ONLY_NEW)
   await opened(page)

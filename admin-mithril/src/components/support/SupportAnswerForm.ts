@@ -58,8 +58,10 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
     this.sending = false
     if (answer.success) {
       toastSuccess(t('message.request'))
-      // the draft that went, the other tab's stays
-      this.texts[tab] = ''
+      // the draft that went, the other tab's stays -- and words typed while it went stay too
+      if (this.texts[tab] === text) {
+        this.texts[tab] = ''
+      }
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
       toastError(refusalWords(answer.error.messages, { note }))

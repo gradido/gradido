@@ -80,8 +80,11 @@ export const sendAddedSupportTicketMessageEmail = (
     closed: boolean
   },
 ): Promise<Record<string, unknown> | boolean | null | Error> => {
+  // The member's name in quotes: a comma or an angle bracket in it starts no other recipient --
+  // a name is any string, and the answer goes to the registered address only.
+  const name = `${data.firstName} ${data.lastName}`.replace(/[\\"]/g, '\\$&')
   return sendEmailTranslated({
-    receiver: { to: `${data.firstName} ${data.lastName} <${data.email}>` },
+    receiver: { to: `"${name}" <${data.email}>` },
     template: 'addedSupportTicketMessage',
     locals: {
       ...data,
