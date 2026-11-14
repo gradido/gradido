@@ -1,5 +1,20 @@
 // AI-GENERATED — not an architecture reference
-import { and, count, desc, eq, gte, inArray, isNull, ne, or, SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  ne,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import {
@@ -7,7 +22,9 @@ import {
   SupportTicketInsert,
   SupportTicketStatus,
   supportTicketsTable,
+  usersTable,
 } from '../schemas/drizzle.schema'
+import { memberHasWord } from './user'
 
 /**
  * A member's own request as the member reads it (migration 0173): its number, its words, its
@@ -116,6 +133,53 @@ export const supportTicketsInScope = ({
 }
 
 /**
+ * What the moderation's list is narrowed to (K4), beside the scope and never in its place: words,
+ * each of which turns up in the request somewhere, in any order, and a group -- some group, none,
+ * the one of this tag (a tag that names no group finds nothing), or any (null).
+ */
+export interface SupportTicketFilter {
+  words: string[]
+  group: 'GROUPED' | 'UNGROUPED' | { tag: string } | null
+}
+
+/**
+ * Whether a word turns up in a request: in its words; in its member as the admin's member search
+ * finds them (memberHasWord), a deleted account not, the server names no deleted member; or, a
+ * word of digits, as the request's number, which the member and the mail call it by. `%` and `_`
+ * act as wildcards, as in the member search.
+ */
+const requestHasWord = (word: string) =>
+  or(
+    like(supportTicketsTable.text, `%${word}%`),
+    exists(
+      drizzleDb()
+        .select({ id: usersTable.id })
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.id, supportTicketsTable.userId),
+            isNull(usersTable.deletedAt),
+            memberHasWord(word),
+          ),
+        ),
+    ),
+    /^\d{1,9}$/.test(word) ? eq(supportTicketsTable.id, Number(word)) : undefined,
+  )
+
+/** The group of the filter, at the column; a tag in a subquery closed in itself, as the scope. */
+const inFilterGroup = (group: SupportTicketFilter['group']) => {
+  if (group === 'GROUPED') {
+    return isNotNull(supportTicketsTable.creationGroupId)
+  }
+  if (group === 'UNGROUPED') {
+    return isNull(supportTicketsTable.creationGroupId)
+  }
+  return group
+    ? sql`${supportTicketsTable.creationGroupId} in (select ${creationGroupsTable.id} from ${creationGroupsTable} where ${eq(creationGroupsTable.tag, group.tag)})`
+    : undefined
+}
+
+/**
  * A request as the moderation lists it: whose it is by number, its words, its state, its group,
  * when it was filed, and when and by whom it was closed and deleted.
  */
@@ -134,16 +198,22 @@ export interface SupportTicketOfModeration {
 }
 
 /**
- * A page of the requests in one of these states that the scope reaches, the newest first, and how
- * many there are in all.
+ * A page of the requests in one of these states that the scope reaches and the filter leaves, the
+ * newest first, and how many there are in all.
  */
 export async function dbSelectSupportTicketsInScope(
   statuses: SupportTicketStatus[],
   scope: SupportTicketScope,
+  { words, group }: SupportTicketFilter,
   offset: number,
   limit: number,
 ): Promise<{ count: number; tickets: SupportTicketOfModeration[] }> {
-  const where = and(inArray(supportTicketsTable.status, statuses), supportTicketsInScope(scope))
+  const where = and(
+    inArray(supportTicketsTable.status, statuses),
+    supportTicketsInScope(scope),
+    ...words.map(requestHasWord),
+    inFilterGroup(group),
+  )
   const [[total], tickets] = await Promise.all([
     drizzleDb().select({ count: count() }).from(supportTicketsTable).where(where),
     drizzleDb()

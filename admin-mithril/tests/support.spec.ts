@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import type { Page } from '@playwright/test'
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
+import { groups } from './fixtures/contributions'
 import { type Answer, expect, Failure, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn } from './fixtures/signIn'
 import { listedTicket, supportMember, ticketList, ticketMessage } from './fixtures/supportTickets'
@@ -83,6 +84,8 @@ test.beforeEach(async ({ graphql }) => {
     contactRefs: [],
     userRemark: REMARK,
     adminListSupportTicketMessages: [],
+    // the groups of the filter and of handing a request on (K4)
+    creationGroups: groups,
   })
 })
 
@@ -113,10 +116,17 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
     page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }),
   ).toHaveClass(/\bactive\b/)
   expect(asked(graphql, 'adminListSupportTickets')).toEqual([
-    { statuses: ['OPEN', 'IN_PROGRESS'], currentPage: 1, pageSize: 25 },
+    {
+      statuses: ['OPEN', 'IN_PROGRESS'],
+      currentPage: 1,
+      pageSize: 25,
+      query: '',
+      creationGroup: '',
+    },
   ])
   await expect(heads(page)).toHaveText([
     de.delete,
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -124,12 +134,12 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
     de.support.close,
   ])
   await expect(row(page, 0)).toHaveClass(/table-primary/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('First1 Last1')
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('member1')
-  await expect(row(page, 0).locator('td').nth(2)).toContainText('Garten')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('First1 Last1')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('member1')
+  await expect(row(page, 0).locator('td').nth(3)).toContainText('Garten')
   await expect(row(page, 0).getByTestId('support-ticket-text')).toHaveText('Words of request 1')
-  await expect(row(page, 0).locator('td').nth(3)).toHaveText('13.11.2026')
-  await expect(row(page, 1).locator('td').nth(2)).toContainText(de.contribution.noGroup)
+  await expect(row(page, 0).locator('td').nth(4)).toHaveText('13.11.2026')
+  await expect(row(page, 1).locator('td').nth(3)).toContainText(de.contribution.noGroup)
 })
 
 test('tells by the details button who is to answer, and opens neither the own request nor one without a member', async ({
@@ -151,13 +161,16 @@ test('tells by the details button who is to answer, and opens neither the own re
     `${de.details} – ${de.contribution.detailsState.conversation}`,
   )
   await expect(details(page, 3)).toHaveAttribute('title', de.details)
-  // a deleted member's: it does not open, but it can be deleted and closed (K3)
+  // a deleted member's: it does not open, but it can be deleted and closed (K3); no member, no
+  // magnifier (K4)
   await expect(row(page, 4).getByRole('button')).toHaveText(['', ''])
   await expect(row(page, 4).getByRole('button', { name: de.delete })).toBeVisible()
   await expect(row(page, 4).getByRole('button', { name: de.support.close })).toBeVisible()
-  // the moderator's own: on it they are the member (SUA-018)
-  await expect(row(page, 5).locator('td').nth(1)).toContainText('First6 Last6')
-  await expect(row(page, 5).getByRole('button')).toHaveCount(0)
+  // the moderator's own: on it they are the member (SUA-018) -- no button that acts on the
+  // request; the magnifier only searches (K4)
+  await expect(row(page, 5).locator('td').nth(2)).toContainText('First6 Last6')
+  await expect(row(page, 5).getByRole('button')).toHaveCount(1)
+  await expect(row(page, 5).getByRole('button')).toHaveAttribute('title', de.support.searchMember)
 })
 
 test('shows the closed, the deleted and all requests with their columns, colours and who closed', async ({
@@ -173,8 +186,11 @@ test('shows the closed, the deleted and all requests with their columns, colours
     statuses: ['CLOSED'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
   })
   await expect(heads(page)).toHaveText([
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -182,19 +198,20 @@ test('shows the closed, the deleted and all requests with their columns, colours
     de.details,
   ])
   await expect(row(page, 0)).toHaveClass(/table-success/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText(de.support.closedByMember)
-  await expect(row(page, 1).locator('td').nth(1)).toContainText('Geschlossen von Peter Lustig')
-  await expect(row(page, 1).locator('td').nth(3)).toHaveText('13.11.2026')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText(de.support.closedByMember)
+  await expect(row(page, 1).locator('td').nth(2)).toContainText('Geschlossen von Peter Lustig')
+  await expect(row(page, 1).locator('td').nth(4)).toHaveText('13.11.2026')
 
   await tab(page, de.support.tab.deleted).click()
   await expect(rows(page)).toHaveCount(1)
   await expect(row(page, 0)).toHaveClass(/table-danger/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('Gelöscht von Peter Lustig')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('Gelöscht von Peter Lustig')
 
   await tab(page, de.support.tab.all).click()
   await expect(rows(page)).toHaveCount(9)
   await expect(heads(page)).toHaveText([
     de.status,
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -218,6 +235,8 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql },
     statuses: ['CLOSED'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
   })
 })
 
@@ -268,7 +287,7 @@ test('opens a request with its member, the remark and the whole thread, to read'
   )
   await expect(page.getByTestId('member-remark')).toHaveText(`Bemerkung: ${REMARK.remark}`)
   await expect(card(page).locator('.list-group-item').nth(2)).toHaveText(
-    'Registriert: 15.1.2026, Gesendet: 13.11.2026',
+    'Anfrage Nr. 1, Registriert: 15.1.2026, Gesendet: 13.11.2026',
   )
 
   await expect(bubbles.nth(0)).toHaveClass(/is-user/)
@@ -352,6 +371,8 @@ test('asks for the next page', async ({ page, graphql }, info) => {
       statuses: ['OPEN', 'IN_PROGRESS'],
       currentPage: 2,
       pageSize: 25,
+      query: '',
+      creationGroup: '',
     })
 })
 
@@ -420,6 +441,11 @@ test.describe('on a phone', () => {
     )
     // the moderator's own: no button
     await expect(row(page, 5).locator('.phone-actions button')).toHaveCount(0)
+    // the magnifier below the face, as on a contribution's card (K4)
+    await expect(first.locator('.phone-head .phone-search button')).toHaveAttribute(
+      'title',
+      de.support.searchMember,
+    )
   })
 
   test('puts the number at the corner of the open tab, as the creation page does', async ({
@@ -482,6 +508,8 @@ test('answers below the thread, and asks for the thread, the list and the count 
     statuses: ['OPEN', 'IN_PROGRESS'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
   })
   // the row stays open where it is still in the list
   await expect(field(page)).toBeVisible()
@@ -823,4 +851,171 @@ test('steps back a page where the last request of the last page goes', async ({
     ),
   ).toEqual([1, 2, 2, 1])
   await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toHaveCount(0)
+})
+
+// K4: the search, the group filter and the magnifier, as on the creation page
+const groupFilter = (page: Page) => page.getByTestId('support-group-filter')
+const searchField = (page: Page) => page.getByPlaceholder(de.user_memo_search)
+const listAsked = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
+  asked(graphql, 'adminListSupportTickets') as Record<string, unknown>[]
+const OPEN_TAB = { statuses: ['OPEN', 'IN_PROGRESS'], currentPage: 1, pageSize: 25 }
+// a search finds nothing in these tests, no search what the tab holds
+const nothingFound: Answer = (variables: { query: string; statuses: string[] }) =>
+  variables.query ? ticketList([]) : (byTab as (asked: object) => unknown)(variables)
+
+test('searches from the first page, and keeps the search over the tabs and for the moderator', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await searchField(page).fill('Garten Bibi')
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '' })
+
+  await tab(page, de.support.tab.closed).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, statuses: ['CLOSED'], query: 'Garten Bibi', creationGroup: '' })
+  const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
+  expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({
+    '/support': 'Garten Bibi',
+    '/support#tab': 1,
+  })
+  await page.reload()
+  await expect(searchField(page)).toHaveValue('Garten Bibi')
+  await expect(rows(page)).toHaveCount(2)
+
+  // the × empties it
+  await page.getByRole('button', { name: de.search.clear }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, statuses: ['CLOSED'], query: '', creationGroup: '' })
+})
+
+test('lets a kept search that finds nothing give way, and keeps one typed here', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.evaluate(
+    ([key, id]) => localStorage.setItem(key, JSON.stringify({ [id]: { '/support': 'vergessen' } })),
+    [KEPT, moderator.gradidoID],
+  )
+  graphql.answer({ adminListSupportTickets: nothingFound })
+  const before = listAsked(graphql).length
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  await expect(searchField(page)).toHaveValue('')
+  expect(
+    listAsked(graphql)
+      .slice(before)
+      .map((variables) => variables.query),
+  ).toEqual(['vergessen', ''])
+  const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
+  expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({})
+
+  await searchField(page).fill('niemand')
+  await expect(rows(page)).toHaveCount(0)
+  await expect(searchField(page)).toHaveValue('niemand')
+})
+
+test('filters by group from the first page, and opens on all the moderator sees', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: 'garten' })
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
+
+  // the filter is not kept: the page opens on all again
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+})
+
+for (const [who, scope, first, choices] of [
+  [
+    'a moderator of a group and of the requests without one',
+    { visibleCreationGroups: ['kueche'], seesUntagged: true },
+    '',
+    [
+      de.creationGroupFilter.all,
+      de.creationGroupFilter.grouped,
+      de.creationGroupFilter.untagged,
+      '#kueche',
+    ],
+  ],
+  [
+    'a moderator of a group alone',
+    { visibleCreationGroups: ['kueche'], seesUntagged: false },
+    '*grouped',
+    [de.creationGroupFilter.grouped, '#kueche'],
+  ],
+  [
+    'a moderator of the requests without a group alone',
+    { visibleCreationGroups: [], seesUntagged: true },
+    '*untagged',
+    [de.creationGroupFilter.untagged],
+  ],
+] as const) {
+  test(`opens ${who} on all they see`, async ({ page, graphql }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    const scoped = {
+      ...moderator,
+      role: 'MODERATOR',
+      seesAllCreationGroups: false,
+      visibleCreationGroups: [...scope.visibleCreationGroups],
+      seesUntagged: scope.seesUntagged,
+    }
+    graphql.answer(signedInAnswers(scoped))
+    await signIn(page, '/support', scoped)
+    await expect(rows(page)).toHaveCount(6)
+
+    expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: first }])
+    await groupFilter(page).locator('.dropdown-toggle').click()
+    await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([...choices])
+  })
+}
+
+test('searches for the member of a row with its magnifier: the address, else the username', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1),
+      listedTicket(2, 2, { userEmail: null }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await expect(rows(page)).toHaveCount(2)
+  await row(page, 0).getByRole('button', { name: de.support.searchMember }).click()
+  await expect(searchField(page)).toHaveValue('member1@example.org')
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '' })
+
+  await row(page, 1).getByRole('button', { name: de.support.searchMember }).click()
+  await expect(searchField(page)).toHaveValue('member2')
 })

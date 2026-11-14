@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
+import type { Option } from '@/components/ThemedSelect'
 import { t } from '@/i18n'
-import type { DetailsState } from './Contribution.logic'
+import { type DetailsState, groupFilterOptions } from './Contribution.logic'
+import type { Moderator } from './Moderator.schema'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
 /**
@@ -99,3 +101,29 @@ export const closingLine = (ticket: ListedSupportTicket) => {
     ? t('support.deletedBy', { name: ticket.closedByUserName })
     : ''
 }
+
+/**
+ * The choices of the support's group filter (K4): the creation page's, and for a moderator of
+ * groups who sees the requests of no group as well "(mit und ohne Gruppe)" before them, the one
+ * value that shows all they see -- the creation page has none for them and begins with their
+ * groups alone. The first choice is the one the page opens with: all a moderator sees, as the
+ * badges count it. The server keeps to the scope whatever is chosen.
+ */
+export const supportGroupFilterOptions = (
+  moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
+  groups: Parameters<typeof groupFilterOptions>[1],
+): Option[] => {
+  const options = groupFilterOptions(moderator, groups)
+  return !moderator.seesAllCreationGroups &&
+    moderator.seesUntagged &&
+    moderator.visibleCreationGroups.length > 0
+    ? [{ value: '', text: t('creationGroupFilter.all') }, ...options]
+    : options
+}
+
+/**
+ * What the magnifier of a row searches for: the member's address, as on the creation page, and
+ * without one their username. Null where there is no member, or nothing to search them by.
+ */
+export const memberSearchOf = ({ user, userEmail }: ListedSupportTicket) =>
+  user ? userEmail || user.alias || null : null

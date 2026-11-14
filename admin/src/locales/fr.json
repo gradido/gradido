@@ -678,7 +678,9 @@
     "messagesReached": "Cette demande contient déjà {max} messages.",
     "notFound": "Cette demande n'existe pas ou ne fait pas partie de tes groupes.",
     "notesReached": "Cette demande contient déjà {max} notes.",
+    "number": "Demande n° {number}",
     "request": "Demande",
+    "searchMember": "Rechercher ce membre",
     "sent": "Envoyée",
     "tab": {
       "all": "Toutes",

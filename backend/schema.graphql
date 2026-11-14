@@ -62,7 +62,7 @@ type Query {
   spaces(limit: Int! = 20, page: Int! = 1): SpaceList!
   showFriends: ShowFriends!
   communityStatistics: CommunityStatistics!
-  adminListSupportTickets(pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
+  adminListSupportTickets(creationGroup: String! = "", query: String! = "", pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
   adminListSupportTicketMessages(supportTicketId: Int!): [AdminSupportTicketMessage!]!
   adminCountOpenSupportTickets: AdminOpenSupportTickets!
   listSupportTickets(pageSize: Int!, currentPage: Int!): SupportTicketList!

@@ -11,6 +11,7 @@ import { isTheModerator } from '@/data/Member.logic'
 import {
   closingLine,
   isOpenTicket,
+  memberSearchOf,
   ticketDetailsState,
   ticketRowTone,
 } from '@/data/SupportTicket.logic'
@@ -27,6 +28,7 @@ import checkIcon from '~icons/bi/check'
 import checkLgIcon from '~icons/bi/check-lg'
 import questionIcon from '~icons/bi/question-lg'
 import questionSquareIcon from '~icons/bi/question-square'
+import searchIcon from '~icons/bi/search'
 import trashIcon from '~icons/bi/trash'
 import priorityIcon from '~icons/ic/round-priority-high'
 import { SupportTicketThread, type TicketWithMember } from './SupportTicketThread'
@@ -44,6 +46,8 @@ interface Attrs {
   phone: boolean
   /** a button of a row was pressed: the page asks first */
   ondecide: (ticket: ListedSupportTicket, decision: SupportDecision) => void
+  /** the magnifier of a row: the page searches for its member */
+  onsearch: (search: string) => void
   /** the form of an opened request wrote: the list and the count anew */
   onwritten: () => void
   class?: string
@@ -125,7 +129,7 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
   private shownList: ListedSupportTicket[] = []
 
   view({ attrs }: Vnode<Attrs>) {
-    const { tickets, kind, phone, ondecide, onwritten } = attrs
+    const { tickets, kind, phone, ondecide, onsearch, onwritten } = attrs
     // The moderator's own request stands in the list like any other, but they do not open it here
     // nor act on it: on it they are the member (SUA-018), and the server refuses it to them.
     const myself = (ticket: ListedSupportTicket) =>
@@ -163,6 +167,27 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         },
         m.trust(svg),
       )
+    }
+
+    // The magnifier searches for the member of the row (K4), in every tab, the moderator's own row
+    // too: it only searches. No member, no magnifier.
+    const searchButton = (ticket: ListedSupportTicket, classes: string) => {
+      const search = memberSearchOf(ticket)
+      const name = t('support.searchMember')
+      return search
+        ? m(
+            'button.btn',
+            {
+              type: 'button',
+              class: classes,
+              title: name,
+              'aria-label': name,
+              'data-test': 'support-search-member',
+              onclick: () => onsearch(search),
+            },
+            m.trust(searchIcon),
+          )
+        : null
     }
 
     const detailsButton = (ticket: ListedSupportTicket, classes: string) => {
@@ -217,6 +242,11 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         key: 'status',
         label: t('status'),
         cell: (ticket) => STATUS_ICONS[ticket.status](),
+      },
+      search: {
+        key: 'search',
+        label: '',
+        cell: (ticket) => searchButton(ticket, 'btn-md btn-link p-0 border-0 text-primary'),
       },
       name: {
         key: 'name',
@@ -293,6 +323,8 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
                     `${t('support.closedAt')} ${formatDate(ticket.closedAt)}`,
                   ),
             ]),
+            // the magnifier below the face, as on a contribution's card
+            m('.phone-search', searchButton(ticket, 'btn-md btn-link phone-icon-btn text-primary')),
             m('.phone-group', { style: 'grid-column: 2' }, groupOf(ticket)),
           ]),
       },
@@ -320,10 +352,11 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
       },
     ]
 
+    // the magnifier in a narrow column of its own before the name, in every tab
     const columns = {
-      open: ['delete', 'name', 'request', 'sent', 'details', 'close'],
-      closed: ['name', 'request', 'sent', 'closedAt', 'details'],
-      all: ['status', 'name', 'request', 'sent', 'closedAt', 'details'],
+      open: ['delete', 'search', 'name', 'request', 'sent', 'details', 'close'],
+      closed: ['search', 'name', 'request', 'sent', 'closedAt', 'details'],
+      all: ['status', 'search', 'name', 'request', 'sent', 'closedAt', 'details'],
     }[kind].map((key) => desk[key])
 
     return m(

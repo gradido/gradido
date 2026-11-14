@@ -678,7 +678,9 @@
     "messagesReached": "This request already has {max} messages.",
     "notFound": "This request does not exist, or it is outside your groups.",
     "notesReached": "This request already has {max} notes.",
+    "number": "Request no. {number}",
     "request": "Request",
+    "searchMember": "Search for this member",
     "sent": "Sent",
     "tab": {
       "all": "All",

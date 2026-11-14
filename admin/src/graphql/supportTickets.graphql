@@ -2,9 +2,22 @@
 
 # The support requests of a tab, a page of them, with the member in the shape the creation page's
 # rows have -- without the address, which stands beside the member (userEmail): User.emailContact
-# asks the database again where no address is in force, and fails there for the whole page.
-query adminListSupportTickets($statuses: [SupportTicketStatus!]!, $currentPage: Int!, $pageSize: Int!) {
-  adminListSupportTickets(statuses: $statuses, currentPage: $currentPage, pageSize: $pageSize) {
+# asks the database again where no address is in force, and fails there for the whole page. A
+# search and a group narrow them (K4): '' is none, and any group.
+query adminListSupportTickets(
+  $statuses: [SupportTicketStatus!]!
+  $currentPage: Int!
+  $pageSize: Int!
+  $query: String!
+  $creationGroup: String!
+) {
+  adminListSupportTickets(
+    statuses: $statuses
+    currentPage: $currentPage
+    pageSize: $pageSize
+    query: $query
+    creationGroup: $creationGroup
+  ) {
     count
     tickets {
       id

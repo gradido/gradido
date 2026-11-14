@@ -678,7 +678,9 @@
     "messagesReached": "Esta consulta ya tiene {max} mensajes.",
     "notFound": "Esta consulta no existe o está fuera de tus grupos.",
     "notesReached": "Esta consulta ya tiene {max} notas.",
+    "number": "Consulta n.º {number}",
     "request": "Consulta",
+    "searchMember": "Buscar a este miembro",
     "sent": "Enviada",
     "tab": {
       "all": "Todas",

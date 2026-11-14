@@ -75,7 +75,13 @@ describe('supportTicketsPageSchema', () => {
 
 describe('adminSupportTicketsPageSchema', () => {
   const page = (input: object) =>
-    v.safeParse(adminSupportTicketsPageSchema, { currentPage: 1, pageSize: 25, ...input }).success
+    v.safeParse(adminSupportTicketsPageSchema, {
+      currentPage: 1,
+      pageSize: 25,
+      query: '',
+      creationGroup: '',
+      ...input,
+    }).success
 
   it('takes the states of a tab, one or more', () => {
     expect(page({ statuses: ['CLOSED'] })).toBe(true)
@@ -90,5 +96,11 @@ describe('adminSupportTicketsPageSchema', () => {
   it('takes the page as the member side does', () => {
     expect(page({ statuses: ['OPEN'], pageSize: 26 })).toBe(false)
     expect(page({ statuses: ['OPEN'], currentPage: 0 })).toBe(false)
+  })
+
+  it('takes a search and a group filter, empty ones too, and nothing that is no text', () => {
+    expect(page({ statuses: ['OPEN'], query: 'bibi garten', creationGroup: '*grouped' })).toBe(true)
+    expect(page({ statuses: ['OPEN'], query: 5 })).toBe(false)
+    expect(page({ statuses: ['OPEN'], creationGroup: null })).toBe(false)
   })
 })

@@ -43,8 +43,13 @@ export const supportTicketsPageSchema = v.object({
   pageSize: v.pipe(positiveIntegerSchema, v.maxValue(SUPPORT_TICKETS_PAGE_SIZE_MAX)),
 })
 
-/** A page of the moderation's list: the states of a tab -- never none -- and the page. */
+/**
+ * A page of the moderation's list: the states of a tab -- never none --, the page, the search as
+ * it was typed and the group filter as the admin's choice sends it (K4); both may be empty.
+ */
 export const adminSupportTicketsPageSchema = v.object({
   statuses: v.pipe(v.array(v.enum(SupportTicketStatus)), v.nonEmpty()),
   ...supportTicketsPageSchema.entries,
+  query: v.string(),
+  creationGroup: v.string(),
 })

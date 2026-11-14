@@ -1031,3 +1031,129 @@ describe('SupportTicketModerationResolver, acting on a request (K3)', () => {
     })
   })
 })
+
+// K4: the search and the group filter of the list, beside the scope and never in its place.
+// Every request here is filed for this block, with a word no request above has.
+describe('SupportTicketModerationResolver, the search and the group filter (K4)', () => {
+  const adminListSupportTicketsFiltered = gql`
+    query (
+      $statuses: [SupportTicketStatus!]!
+      $currentPage: Int!
+      $pageSize: Int!
+      $query: String!
+      $creationGroup: String!
+    ) {
+      adminListSupportTickets(
+        statuses: $statuses
+        currentPage: $currentPage
+        pageSize: $pageSize
+        query: $query
+        creationGroup: $creationGroup
+      ) {
+        count
+        tickets {
+          id
+        }
+      }
+    }
+  `
+  const search = (words: string, creationGroup = '', pageSize = 25): Promise<any> =>
+    query({
+      query: adminListSupportTicketsFiltered,
+      variables: { statuses: ALL, currentPage: 1, pageSize, query: words, creationGroup },
+    })
+  // the ids found, the count agreeing with them
+  const found = async (words: string, creationGroup = ''): Promise<number[]> => {
+    const res = await search(words, creationGroup)
+    expect(res.errors).toBeUndefined()
+    const { count, tickets } = res.data.adminListSupportTickets
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket: { id: number }) => ticket.id)
+  }
+  let carla: DbUser
+  let inGarden: number
+  let inChoir: number
+  let ungrouped: number
+  let peters: number
+
+  beforeAll(async () => {
+    // a moderator of a group and of the requests without one
+    carla = await userFactoryDrizzle({
+      email: 'carla@sonne.de',
+      firstName: 'Carla',
+      lastName: 'Sonne',
+      alias: 'CarlaS',
+      emailChecked: true,
+      language: 'de',
+    })
+    await moderate(carla, ['choir', '*untagged'])
+    inGarden = await file(bibi.id, 'Das Hochbeet im Garten', 200, gardenId)
+    inChoir = await file(bibi.id, 'Ein Hochbeet für den Chor', 201, choirId)
+    ungrouped = await file(bibi.id, 'Ein Hochbeet ohne Gruppe', 202, null)
+    peters = await file(peter.id, 'Mein Hochbeet', 203, gardenId)
+  })
+
+  it('finds a request by its words, its member and its number, each word somewhere in it', async () => {
+    await loginAs('peter@lustig.de')
+    expect(await found('hochbeet chor')).toEqual([inChoir])
+    expect(await found('Bloxberg Hochbeet')).toEqual([ungrouped, inChoir, inGarden])
+    expect(await found('Hochbeet Bloxberg')).toEqual([ungrouped, inChoir, inGarden])
+    expect(await found('lustig.de hochbeet')).toEqual([peters])
+    expect(await found(String(inChoir))).toEqual([inChoir])
+    // blanks only: no search
+    expect((await found('   ')).length).toBeGreaterThan(4)
+  })
+
+  it('narrows to some group, to none and to the group of a tag', async () => {
+    await loginAs('peter@lustig.de')
+    expect(await found('Hochbeet', '*grouped')).toEqual([peters, inChoir, inGarden])
+    expect(await found('Hochbeet', '*untagged')).toEqual([ungrouped])
+    expect(await found('Hochbeet', 'garden')).toEqual([peters, inGarden])
+    expect(await found('Hochbeet', 'nobody-moderates-this')).toEqual([])
+  })
+
+  // Each role with each value of the filter: what it finds lies in its scope, the count agrees,
+  // and the empty value -- the first one of the page for every role -- finds all it reaches.
+  it.each([
+    ['an administrator', 'peter@lustig.de', () => [peters, ungrouped, inChoir, inGarden]],
+    ['a moderator of one group', 'bob@baumeister.de', () => [peters, inGarden]],
+    ['a moderator of the requests without a group', 'raeuber@hotzenplotz.de', () => [ungrouped]],
+    ['a moderator of a group and of those without', 'carla@sonne.de', () => [ungrouped, inChoir]],
+  ])('%s finds nothing outside the scope, with any filter', async (_role, email, reaches) => {
+    await loginAs(email)
+    const of: Record<string, number[]> = {
+      '': [peters, ungrouped, inChoir, inGarden],
+      '*grouped': [peters, inChoir, inGarden],
+      '*untagged': [ungrouped],
+      garden: [peters, inGarden],
+      choir: [inChoir],
+      'nobody-moderates-this': [],
+    }
+    for (const [creationGroup, inFilter] of Object.entries(of)) {
+      const expected = inFilter.filter((id) => reaches().includes(id))
+      expect([creationGroup, await found('Hochbeet', creationGroup)]).toEqual([
+        creationGroup,
+        expected,
+      ])
+    }
+    expect(await found('Hochbeet')).toEqual(reaches())
+  })
+
+  it('gets nothing of the search in the log, also where the list is refused', async () => {
+    await loginAs('bob@baumeister.de')
+    clearLogs()
+    await search('Kartoffelacker', 'choir')
+    await search('Rhabarberbeet', '', 26)
+    const lines: string[] = []
+    const stdout = jest.spyOn(process.stdout, 'write').mockImplementation((line) => {
+      lines.push(String(line))
+      return true
+    })
+    printLogs()
+    stdout.mockRestore()
+    // the fixture has to prove itself: the refusal was logged
+    expect(lines.join('')).toContain('SUPPORT_TICKET_INVALID')
+    expect(lines.join('')).not.toContain('Kartoffelacker')
+    expect(lines.join('')).not.toContain('Rhabarberbeet')
+  })
+})

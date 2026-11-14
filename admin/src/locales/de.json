@@ -678,7 +678,9 @@
     "messagesReached": "In dieser Anfrage stehen schon {max} Nachrichten.",
     "notFound": "Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.",
     "notesReached": "In dieser Anfrage stehen schon {max} Notizen.",
+    "number": "Anfrage Nr. {number}",
     "request": "Anfrage",
+    "searchMember": "Nach diesem Mitglied suchen",
     "sent": "Gesendet",
     "tab": {
       "all": "Alle",

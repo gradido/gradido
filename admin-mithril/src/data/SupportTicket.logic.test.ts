@@ -8,9 +8,11 @@ import {
   closingLine,
   isOpenTicket,
   MESSAGE_MAX_CHARS,
+  memberSearchOf,
   refusalWords,
   SUPPORT_TICKET_MESSAGES_MAX,
   sendable,
+  supportGroupFilterOptions,
   ticketDetailsState,
   ticketRowTone,
 } from './SupportTicket.logic'
@@ -173,5 +175,66 @@ describe('closingLine', () => {
   it('says nothing while it is open, or where nobody is known any more', () => {
     expect(closingLine(ticket())).toBe('')
     expect(closingLine(ticket({ status: 'DELETED', closedBy: 3, closedByUserName: null }))).toBe('')
+  })
+})
+
+describe('supportGroupFilterOptions', () => {
+  const GROUPS = [
+    { tag: 'garden', name: 'Garten' },
+    { tag: 'choir', name: null },
+  ]
+  const values = (moderator: Parameters<typeof supportGroupFilterOptions>[0]) =>
+    supportGroupFilterOptions(moderator, GROUPS).map((option) => option.value)
+
+  it('opens for everybody on the value that shows all they see', () => {
+    // all groups: everything, with and without a group
+    expect(
+      values({ seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }),
+    ).toEqual(['', '*grouped', '*untagged', 'garden', 'choir'])
+    // groups and the requests of none: both, which the creation page has no value for
+    expect(
+      values({
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['garden'],
+        seesUntagged: true,
+      }),
+    ).toEqual(['', '*grouped', '*untagged', 'garden'])
+    // groups alone: all of theirs
+    expect(
+      values({
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['garden'],
+        seesUntagged: false,
+      }),
+    ).toEqual(['*grouped', 'garden'])
+    // the requests of no group alone
+    expect(
+      values({ seesAllCreationGroups: false, visibleCreationGroups: [], seesUntagged: true }),
+    ).toEqual(['*untagged'])
+  })
+
+  it('names the choices in the words of the creation page', () => {
+    const [first] = supportGroupFilterOptions(
+      { seesAllCreationGroups: false, visibleCreationGroups: ['garden'], seesUntagged: true },
+      GROUPS,
+    )
+    expect(first.text).toBe('(mit und ohne Gruppe)')
+  })
+})
+
+describe('memberSearchOf', () => {
+  const member = (alias: string | null) =>
+    ({ alias }) as unknown as NonNullable<ListedSupportTicket['user']>
+
+  it('searches by the address, and without one by the username', () => {
+    expect(memberSearchOf(ticket({ user: member('BBB'), userEmail: 'bibi@bloxberg.de' }))).toBe(
+      'bibi@bloxberg.de',
+    )
+    expect(memberSearchOf(ticket({ user: member('BBB'), userEmail: null }))).toBe('BBB')
+  })
+
+  it('has nothing to search without a member, or with neither', () => {
+    expect(memberSearchOf(ticket({ user: null, userEmail: 'bibi@bloxberg.de' }))).toBeNull()
+    expect(memberSearchOf(ticket({ user: member(null), userEmail: null }))).toBeNull()
   })
 })

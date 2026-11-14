@@ -80,9 +80,10 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
     return m('.contribution-messages-list', [
       m('.list-group', [
         m(MemberLine, { member: ticket.user, email: ticket.userEmail ?? '', remark: this.remark }),
+        // the number first: the member and the mail call the request by it (K4)
         m(
           '.list-group-item',
-          `${t('registered')}: ${d(new Date(ticket.user.createdAt))}, ${t('support.sent')}: ${d(new Date(ticket.createdAt))}`,
+          `${t('support.number', { number: ticket.id })}, ${t('registered')}: ${d(new Date(ticket.user.createdAt))}, ${t('support.sent')}: ${d(new Date(ticket.createdAt))}`,
         ),
       ]),
       m(

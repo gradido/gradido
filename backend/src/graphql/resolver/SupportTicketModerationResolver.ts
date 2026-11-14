@@ -15,9 +15,10 @@ import {
   dbSelectSupportTicketThread,
   dbUpdateSupportTicketOfModerator,
   findUserNamesByIds,
+  SupportTicketFilter,
   SupportTicketThreadMessage,
 } from 'database'
-import { avatarColorIndex } from 'shared'
+import { avatarColorIndex, searchWords } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -39,9 +40,24 @@ import { writeSupportTicketMessage } from '@/interactions/writeSupportTicketMess
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { countSupportTicketRead, countSupportTicketWrite } from './util/countSupportTicket'
+import { GROUPED_FILTER, UNTAGGED_FILTER } from './util/findContributions'
 import { fromDatabase } from './util/fromDatabase'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
+
+/**
+ * The group filter as the admin's choice sends it, the creation page's tokens (findContributions):
+ * '' any group, `*grouped` some, `*untagged` none, else a group's tag.
+ */
+const groupFilterOf = (creationGroup: string): SupportTicketFilter['group'] => {
+  if (creationGroup === GROUPED_FILTER) {
+    return 'GROUPED'
+  }
+  if (creationGroup === UNTAGGED_FILTER) {
+    return 'UNGROUPED'
+  }
+  return creationGroup ? { tag: creationGroup } : null
+}
 
 /** A message of the thread as the moderation reads it; the date of the author's picture beside it. */
 const messageOf = (
@@ -80,9 +96,13 @@ const messageOf = (
 @Resolver()
 export class SupportTicketModerationResolver {
   /**
-   * A page of the requests in these states, the newest first, with their members. The members,
-   * the names of who closed, the pictures' dates and the newest dialog message come in one query
-   * each for the whole page.
+   * A page of the requests in these states, the newest first, with their members -- narrowed by a
+   * search and a group (K4), beside the scope and never in its place: each word of the search
+   * turns up in the request's words, in its member or as its number. The members, the names of
+   * who closed, the pictures' dates and the newest dialog message come in one query each for the
+   * whole page.
+   *
+   * ⛔ The search is a name or an address: it reaches no log (fromDatabase logs by the code).
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Query(() => AdminSupportTicketList)
@@ -90,10 +110,18 @@ export class SupportTicketModerationResolver {
     @Arg('statuses', () => [SupportTicketStatus]) statuses: SupportTicketStatus[],
     @Arg('currentPage', () => Int) currentPage: number,
     @Arg('pageSize', () => Int) pageSize: number,
+    @Arg('query', () => String, { defaultValue: '' }) query: string,
+    @Arg('creationGroup', () => String, { defaultValue: '' }) creationGroup: string,
     @Ctx() context: Context,
   ): Promise<AdminSupportTicketList> {
     countSupportTicketRead(context)
-    const page = v.safeParse(adminSupportTicketsPageSchema, { statuses, currentPage, pageSize })
+    const page = v.safeParse(adminSupportTicketsPageSchema, {
+      statuses,
+      currentPage,
+      pageSize,
+      query,
+      creationGroup,
+    })
     if (!page.success) {
       throw new LogError(SUPPORT_TICKET_INVALID)
     }
@@ -102,6 +130,10 @@ export class SupportTicketModerationResolver {
       const { count, tickets } = await dbSelectSupportTicketsInScope(
         page.output.statuses,
         scope,
+        {
+          words: searchWords(page.output.query),
+          group: groupFilterOf(page.output.creationGroup),
+        },
         (page.output.currentPage - 1) * page.output.pageSize,
         page.output.pageSize,
       )

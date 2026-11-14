@@ -1,10 +1,11 @@
 // AI-GENERATED — not an architecture reference
+import { creationGroups } from '@admin/graphql/creationGroups.graphql'
 import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
   adminListSupportTickets,
 } from '@admin/graphql/supportTickets.graphql'
-import { keepLastTab, lastTab } from '@admin/utils/lastSearch'
+import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@admin/utils/lastSearch'
 // the creation page's rules for its tabs, under its class, which this page carries too
 import '@admin/pages/CreationConfirm.css'
 import m, { type ClassComponent } from 'mithril'
@@ -17,8 +18,11 @@ import {
   type SupportTableKind,
   SupportTicketsTable,
 } from '@/components/support/SupportTicketsTable'
+import { ThemedSelect } from '@/components/ThemedSelect'
 import { toastError, toastSuccess } from '@/components/Toasts'
-import { refusalWords } from '@/data/SupportTicket.logic'
+import { UserQuery } from '@/components/UserQuery'
+import { creationGroupNameSchema } from '@/data/CreationGroup.schema'
+import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.logic'
 import { type ListedSupportTicket, supportTicketListSchema } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
@@ -31,7 +35,7 @@ import checkIcon from '~icons/bi/check'
 import listIcon from '~icons/bi/list'
 import trashIcon from '~icons/bi/trash'
 
-// the page the last tab is kept for (lastSearch.ts)
+// the page the last search and tab are kept for (lastSearch.ts)
 const LAST_SEARCH_PAGE = '/support'
 const PAGE_SIZE = 25
 
@@ -96,17 +100,28 @@ const DECISIONS = {
   },
 } as const
 
+const groupsSchema = v.object({
+  creationGroups: v.array(creationGroupNameSchema),
+})
+
 /**
  * The support requests of the moderator's groups, under one tab per state, 25 to a page, the
- * newest first (K2); a request opens below its row to be read and answered, and an open one is
- * closed with the tick or deleted from its row (K3). After every write -- done or refused -- the
- * page asks for its list and for the count of the open tab anew: what a request is now, the server
- * says. The tab is kept for each moderator on this device (lastSearch.ts). Search and group filter
- * come with K4.
+ * newest first (K2), searched by text or by a member and filtered by group (K4); a request opens
+ * below its row to be read and answered, and an open one is closed with the tick or deleted from
+ * its row (K3). After every write -- done or refused -- the page asks for its list and for the
+ * count of the open tab anew: what a request is now, the server says. The search and the tab are
+ * kept for each moderator on this device (lastSearch.ts); the group filter opens on all they see.
  */
 export class Support implements ClassComponent {
   private readonly moderator = adminStore.moderator
   private tab = lastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, TABS.length)
+  private query = lastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID)
+  private groups: v.InferOutput<typeof groupsSchema>['creationGroups'] = []
+  // the first choice, all the moderator sees: their choices are known before the groups are
+  private group = this.moderator ? supportGroupFilterOptions(this.moderator, [])[0].value : ''
+  // A kept search that finds nothing any more gives way to the whole list -- on the first answer
+  // only: a search given here stays, also where it finds nothing.
+  private keptOnTrial = this.query !== ''
   private page = 1
   private tickets: ListedSupportTicket[] = []
   private count = 0
@@ -118,6 +133,12 @@ export class Support implements ClassComponent {
   private readonly deciding = new Set<number>()
 
   oninit() {
+    // in a request of its own, as the creation page asks: the groups are not support's to count
+    graphqlRequest(creationGroups).then((answer) => {
+      if (answer.success) {
+        this.groups = v.parse(groupsSchema, answer.value).creationGroups
+      }
+    })
     this.load(this.page)
     askOpenSupportTickets()
   }
@@ -133,6 +154,8 @@ export class Support implements ClassComponent {
       statuses: TABS[this.tab].states,
       currentPage: page,
       pageSize: PAGE_SIZE,
+      query: this.query,
+      creationGroup: this.group,
     })
     if (asked !== this.asked) {
       return
@@ -145,6 +168,12 @@ export class Support implements ClassComponent {
       supportTicketListSchema,
       answer.value,
     ).adminListSupportTickets
+    if (this.keptOnTrial && count === 0) {
+      this.query = ''
+      this.searchAnew()
+      return
+    }
+    this.keptOnTrial = false
     const last = Math.max(1, Math.ceil(count / PAGE_SIZE))
     if (page > last) {
       this.load(last)
@@ -154,6 +183,14 @@ export class Support implements ClassComponent {
     this.tickets = tickets
     this.count = count
     askMemberAvatars(tickets.flatMap((ticket) => ticket.user ?? []))
+  }
+
+  // A narrower or another list starts at its first page: a later one may not be in it. The one
+  // way to load (load), page 1.
+  private searchAnew() {
+    this.keptOnTrial = false
+    keepLastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID, this.query)
+    this.load(1)
   }
 
   /** After a write: the page as it is now, and the count of the open tab. */
@@ -190,8 +227,30 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
-    // `creation-confirm` as well: the rules of the creation page's tabs and rows hold here too
+    // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm.mt-2', [
+      // the search and the group side by side; on a narrow window one above the other
+      m('.creation-filters.mt-2.mb-2', [
+        m(UserQuery, {
+          class: 'creation-search',
+          placeholder: t('user_memo_search'),
+          value: this.query,
+          oninput: (query: string) => {
+            this.query = query
+            this.searchAnew()
+          },
+        }),
+        m(ThemedSelect, {
+          class: 'creation-group-filter',
+          'data-test': 'support-group-filter',
+          value: this.group,
+          options: this.moderator ? supportGroupFilterOptions(this.moderator, this.groups) : [],
+          onchange: (group: string) => {
+            this.group = group
+            this.searchAnew()
+          },
+        }),
+      ]),
       m(
         'div',
         m(Tabs, {
@@ -202,11 +261,12 @@ export class Support implements ClassComponent {
           onchange: (tab: number) => {
             this.tab = tab
             keepLastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, tab)
-            // the tab before goes at once, its pages too: none of them may be asked for in this one
+            // the tab before goes at once, its pages too: none of them may be asked for in this one;
+            // the search and the group stay
             this.tickets = []
             this.count = 0
             this.page = 1
-            this.load(1)
+            this.searchAnew()
           },
           // on a phone the symbol stands above the word (App.css) and the number at the corner of
           // the tab (CreationConfirm.css)
@@ -230,6 +290,10 @@ export class Support implements ClassComponent {
         phone,
         ondecide: (ticket: ListedSupportTicket, decision: SupportDecision) => {
           this.decision = { ticket, decision }
+        },
+        onsearch: (search: string) => {
+          this.query = search
+          this.searchAnew()
         },
         onwritten: () => this.written(),
       }),

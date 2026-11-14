@@ -678,7 +678,9 @@
     "messagesReached": "Bij deze vraag staan al {max} berichten.",
     "notFound": "Deze vraag bestaat niet of valt buiten je groepen.",
     "notesReached": "Bij deze vraag staan al {max} notities.",
+    "number": "Vraag nr. {number}",
     "request": "Vraag",
+    "searchMember": "Naar dit lid zoeken",
     "sent": "Verzonden",
     "tab": {
       "all": "Alle",

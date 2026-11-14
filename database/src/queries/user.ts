@@ -740,8 +740,11 @@ export async function findUserNamesByIds(userIds: number[]): Promise<Map<number,
  * once per matching row.
  *
  * `%` and `_` in the word act as wildcards.
+ *
+ * A condition on a row of `users`: the admin's member search asks it of every member, the
+ * support's list of the member of each request (supportTickets.ts) -- one search, found alike.
  */
-const memberHasWord = (word: string) => {
+export const memberHasWord = (word: string) => {
   const pattern = `%${word}%`
   return or(
     like(usersTable.firstName, pattern),

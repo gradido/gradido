@@ -678,7 +678,9 @@
     "messagesReached": "Bu talepte zaten {max} mesaj var.",
     "notFound": "Bu talep mevcut değil ya da senin gruplarının dışında.",
     "notesReached": "Bu talepte zaten {max} not var.",
+    "number": "Talep no. {number}",
     "request": "Talep",
+    "searchMember": "Bu üyeyi ara",
     "sent": "Gönderildi",
     "tab": {
       "all": "Tümü",

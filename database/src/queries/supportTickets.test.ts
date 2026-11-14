@@ -8,6 +8,7 @@ import { createCommunity } from '../seeds/community'
 import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountOpenSupportTicketsInScope,
@@ -19,6 +20,7 @@ import {
   dbSelectSupportTicketsOfUser,
   dbUpdateSupportTicketOfModerator,
   dbUpdateSupportTicketOfOwner,
+  SupportTicketFilter,
   SupportTicketScope,
 } from './supportTickets'
 
@@ -32,6 +34,8 @@ const DAY_BEFORE = new Date('2026-11-13T08:00:00.000Z')
 const MORNING = new Date('2026-11-14T08:00:00.000Z')
 const NOON = new Date('2026-11-14T12:00:00.000Z')
 const ALL: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS', 'CLOSED', 'DELETED']
+// no search and any group: the list as it was before K4
+const ANY: SupportTicketFilter = { words: [], group: null }
 
 const inTransaction = <T>(work: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
   drizzleDb().transaction(work)
@@ -224,7 +228,7 @@ describe('supportTickets query test, the moderation side', () => {
   })
   // the ids of the first page, and the count of all, which has to agree with them here
   const reached = async (where: SupportTicketScope, statuses: SupportTicketStatus[] = ALL) => {
-    const { count, tickets } = await dbSelectSupportTicketsInScope(statuses, where, 0, 25)
+    const { count, tickets } = await dbSelectSupportTicketsInScope(statuses, where, ANY, 0, 25)
     expect(count).toBe(tickets.length)
     return tickets.map((ticket) => ticket.id)
   }
@@ -283,7 +287,7 @@ describe('supportTickets query test, the moderation side', () => {
       await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
 
       expect(
-        await dbSelectSupportTicketsInScope(['OPEN', 'IN_PROGRESS'], EVERYTHING, 0, 25),
+        await dbSelectSupportTicketsInScope(['OPEN', 'IN_PROGRESS'], EVERYTHING, ANY, 0, 25),
       ).toEqual({
         count: 2,
         tickets: [
@@ -308,7 +312,7 @@ describe('supportTickets query test, the moderation side', () => {
           }),
         ],
       })
-      expect(await dbSelectSupportTicketsInScope(['CLOSED'], EVERYTHING, 0, 25)).toEqual({
+      expect(await dbSelectSupportTicketsInScope(['CLOSED'], EVERYTHING, ANY, 0, 25)).toEqual({
         count: 1,
         tickets: [
           expect.objectContaining({
@@ -319,7 +323,7 @@ describe('supportTickets query test, the moderation side', () => {
           }),
         ],
       })
-      expect(await dbSelectSupportTicketsInScope(['DELETED'], EVERYTHING, 0, 25)).toEqual({
+      expect(await dbSelectSupportTicketsInScope(['DELETED'], EVERYTHING, ANY, 0, 25)).toEqual({
         count: 1,
         tickets: [expect.objectContaining({ id: deleted, deletedAt: NOON, deletedBy: peter.id })],
       })
@@ -332,9 +336,97 @@ describe('supportTickets query test, the moderation side', () => {
         ids.push(await file(bibi.id, text, NOON, gardenId))
       }
       await file(bibi.id, 'outside the scope', NOON, choirId)
-      const page = await dbSelectSupportTicketsInScope(ALL, scope(['garden'], false), 1, 1)
+      const page = await dbSelectSupportTicketsInScope(ALL, scope(['garden'], false), ANY, 1, 1)
       expect(page.count).toBe(3)
       expect(page.tickets.map((ticket) => ticket.id)).toEqual([ids[1]])
+    })
+  })
+
+  // K4: the search and the group filter, beside the scope and never in its place
+  describe('the filter', () => {
+    let stephen: DbUser
+    // the ids the filter leaves of the first page, and the count of all, which has to agree
+    const found = async (filter: Partial<SupportTicketFilter>, within = EVERYTHING) => {
+      const { count, tickets } = await dbSelectSupportTicketsInScope(
+        ALL,
+        within,
+        { ...ANY, ...filter },
+        0,
+        25,
+      )
+      expect(count).toBe(tickets.length)
+      return tickets.map((ticket) => ticket.id)
+    }
+
+    beforeAll(async () => {
+      // an account deleted since: the server names it nowhere
+      stephen = await userFactoryDrizzle(stephenHawking)
+    })
+
+    it('finds a request by its words, its member and its number, each word somewhere in it', async () => {
+      const bibis = await file(bibi.id, 'Mein Hochbeet ist leer', MORNING, gardenId)
+      const peters = await file(peter.id, 'Das Passwort fehlt', NOON)
+      expect(await found({ words: ['hochbeet'] })).toEqual([bibis])
+      expect(await found({ words: ['Bibi'] })).toEqual([bibis])
+      expect(await found({ words: ['Lustig'] })).toEqual([peters])
+      // the username, and the address
+      expect(await found({ words: ['BBB'] })).toEqual([bibis])
+      expect(await found({ words: ['lustig.de'] })).toEqual([peters])
+      // in any order, one in the member and one in the words
+      expect(await found({ words: ['leer', 'Bloxberg'] })).toEqual([bibis])
+      expect(await found({ words: ['Bloxberg', 'Passwort'] })).toEqual([])
+      expect(await found({ words: [String(peters)] })).toEqual([peters])
+      expect(await found({ words: ['nobody-wrote-this'] })).toEqual([])
+    })
+
+    it('finds the request of a deleted account by its words, not by the member', async () => {
+      const id = await file(stephen.id, 'Ein schwarzes Loch', MORNING)
+      expect(await found({ words: ['Loch'] })).toEqual([id])
+      expect(await found({ words: ['Hawking'] })).toEqual([])
+      expect(await found({ words: ['StephenH'] })).toEqual([])
+    })
+
+    it('narrows to some group, to none, and to the group of a tag', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      expect(await found({ group: null })).toEqual([ungrouped, inChoir, inGarden])
+      expect(await found({ group: 'GROUPED' })).toEqual([inChoir, inGarden])
+      expect(await found({ group: 'UNGROUPED' })).toEqual([ungrouped])
+      expect(await found({ group: { tag: 'garden' } })).toEqual([inGarden])
+      expect(await found({ group: { tag: 'nobody-moderates-this' } })).toEqual([])
+      // and together with words
+      expect(await found({ group: 'GROUPED', words: ['choir'] })).toEqual([inChoir])
+    })
+
+    it('finds nothing outside the scope, in any branch of it, with any filter', async () => {
+      const inGarden = await file(bibi.id, 'Hochbeet', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'Hochbeet', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'Hochbeet', MORNING)
+      const filters: Partial<SupportTicketFilter>[] = [
+        {},
+        { words: ['Hochbeet'] },
+        { words: ['Bibi'] },
+        { group: 'GROUPED' },
+        { group: 'UNGROUPED' },
+        { group: { tag: 'garden' } },
+        { group: { tag: 'choir' } },
+      ]
+      const scopes: [SupportTicketScope, number[]][] = [
+        [EVERYTHING, [inGarden, inChoir, ungrouped]],
+        [scope(['garden'], false), [inGarden]],
+        [scope([], true), [ungrouped]],
+        [scope(['garden'], true), [inGarden, ungrouped]],
+        [scope([], false), []],
+      ]
+      for (const [within, reaches] of scopes) {
+        for (const filter of filters) {
+          const outside = (await found(filter, within)).filter((id) => !reaches.includes(id))
+          expect([within, filter, outside]).toEqual([within, filter, []])
+        }
+        // and what the scope reaches, a search that names it finds, the newest first
+        expect(await found({ words: ['Hochbeet'] }, within)).toEqual([...reaches].reverse())
+      }
     })
   })
 
