@@ -94,9 +94,12 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
     if (this.sending || !sendable(text) || (waits && (close || !this.day || !isTime(this.time)))) {
       return
     }
-    // the box goes only where it was touched; untouched, the request keeps what it has
-    const touched = this.touched
-    const resubmission = touched && waits ? momentOf(this.day, this.time) : null
+    // The box goes only where it was touched -- untouched, the request keeps what it has -- and
+    // where this tab sends it: a box ticked for an answer does not go with a closed request's
+    // note, which has none, and stays touched for the answer.
+    const goes = this.touched && (waits || !this.box)
+    const sent = { box: this.box, day: this.day, time: this.time }
+    const resubmission = goes && waits ? momentOf(this.day, this.time) : null
     if (resubmission && resubmission < new Date()) {
       toastError(t('contributionMessagesForm.resubmissionDateInPast'))
       return
@@ -108,7 +111,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       answerVariables(ticket.id, text, {
         note,
         close,
-        resubmissionAt: touched ? (resubmission?.toISOString() ?? null) : undefined,
+        resubmissionAt: goes ? (resubmission?.toISOString() ?? null) : undefined,
       }),
     )
     this.sending = false
@@ -118,8 +121,11 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       if (this.texts[tab] === text) {
         this.texts[tab] = ''
       }
-      // what the box shows is what the request has now: untouched again
-      this.touched = false
+      // What the box shows is what the request has now: untouched again -- unless it changed
+      // while the write went.
+      if (goes && this.box === sent.box && this.day === sent.day && this.time === sent.time) {
+        this.touched = false
+      }
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
       toastError(

@@ -1531,6 +1531,12 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     for (const id of [closed, deleted, bobs, inChoir, inChoir + 1000]) {
       await expect(handOn(id, '')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
     }
+    // whatever the tag: a group that does not exist, or the one it stands in
+    for (const id of [closed, deleted]) {
+      for (const tag of ['nobody-moderates-this', 'garden']) {
+        await expect(handOn(id, tag)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      }
+    }
     for (const [id, group] of [
       [closed, gardenId],
       [deleted, gardenId],
@@ -1572,7 +1578,7 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     expect((await rowOf(id)).creationGroupId).toBe(gardenId)
   })
 
-  it('takes no message of the kind a handing on leaves: that line is the server own', async () => {
+  it('takes no message of the kind a handing on leaves: only the server writes that line', async () => {
     await loginAs('peter@lustig.de')
     const id = await file(bibi.id, 'Ein falscher Weg', 413, gardenId)
     await expect(

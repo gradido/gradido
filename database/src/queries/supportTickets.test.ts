@@ -501,17 +501,20 @@ describe('supportTickets query test, the moderation side', () => {
     const handOn = (id: number, from: number | null, to: number | null, within = EVERYTHING) =>
       inTransaction((tx) => dbReassignSupportTicketOfModerator(where(id, within), from, to, tx))
 
-    it('reads the member and the group of a request where the scope reaches it', async () => {
+    it('reads the member, the state and the group of a request where the scope reaches it', async () => {
       const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
       const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
       expect(await dbSelectSupportTicketGroupInScope(inGarden, scope(['garden'], false))).toEqual({
         userId: bibi.id,
+        status: 'OPEN',
         creationGroupId: gardenId,
         creationGroupTag: 'garden',
         creationGroupName: 'Garten',
       })
       expect(await dbSelectSupportTicketGroupInScope(ungrouped, scope([], true))).toEqual({
         userId: bibi.id,
+        status: 'CLOSED',
         creationGroupId: null,
         creationGroupTag: null,
         creationGroupName: null,

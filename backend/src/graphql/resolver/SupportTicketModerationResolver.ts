@@ -425,7 +425,13 @@ export class SupportTicketModerationResolver {
         creationGroupTag ? dbSelectCreationGroupByTag(creationGroupTag) : null,
       ]),
     )
-    if (ticket === null || ticket.userId === moderator.id) {
+    // a closed or a deleted request is handed on as little as a missing one, whatever the tag: the
+    // write holds to the open states again
+    if (
+      ticket === null ||
+      ticket.userId === moderator.id ||
+      !MODERATOR_CLOSES_FROM.includes(ticket.status)
+    ) {
       throw new LogError(SUPPORT_TICKET_NOT_FOUND, supportTicketId)
     }
     if (creationGroupTag && target === null) {

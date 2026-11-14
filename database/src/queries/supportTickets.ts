@@ -276,14 +276,16 @@ export async function dbSelectSupportTicketOwnerInScope(
 /** The member and the group of a request, as the moderation hands it on (K4). */
 export interface SupportTicketGroupOfModeration {
   userId: number
+  status: SupportTicketStatus
   creationGroupId: number | null
   creationGroupTag: string | null
   creationGroupName: string | null
 }
 
 /**
- * The member who owns this request and the group it stands in, where the scope reaches it, in any
- * state. Null where it does not, and where there is no such request: the two answer alike.
+ * The member who owns this request, its state and the group it stands in, where the scope reaches
+ * it, in any state. Null where it does not, and where there is no such request: the two answer
+ * alike.
  */
 export async function dbSelectSupportTicketGroupInScope(
   id: number,
@@ -292,6 +294,7 @@ export async function dbSelectSupportTicketGroupInScope(
   const [row] = await drizzleDb()
     .select({
       userId: supportTicketsTable.userId,
+      status: supportTicketsTable.status,
       creationGroupId: supportTicketsTable.creationGroupId,
       creationGroupTag: creationGroupsTable.tag,
       creationGroupName: creationGroupsTable.name,

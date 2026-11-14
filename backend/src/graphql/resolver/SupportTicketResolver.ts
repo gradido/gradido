@@ -89,7 +89,8 @@ const ticketFiled = (
  *
  * No operation takes a member: it is always the signed-in one, and every query has them in its
  * condition -- another member's request answers as a missing one does. The member reads the
- * DIALOG messages and no other kind, and never a row number of anybody.
+ * DIALOG messages and the lines of a handing on (K4), no other kind, and never a row number of
+ * anybody.
  *
  * Nothing of the words reaches the log: the request log writes no variables, the answer of a
  * request that read or wrote stays out of it (countSupportTicket.ts), and a database error is

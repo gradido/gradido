@@ -1274,6 +1274,36 @@ test('has no box for a note under a closed request, and one for an answer there'
   await expect(box(page)).toHaveCount(0)
 })
 
+test('keeps a box set for an answer while a note goes that has none, and sends it with the answer', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await details(page, 0).click()
+  await box(page).check()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('09:00')
+  // a closed request's note has no box: nothing of it goes, and it stays set for the answer
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(1)
+  expect('resubmissionAt' in asked(graphql, 'adminCreateSupportTicketMessage')[0]).toBe(false)
+  await choose(page, de.moderator.message)
+  await expect(box(page)).toBeChecked()
+  await field(page).fill('Ich melde mich nächste Woche.')
+  await button(page, de.support.answer).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(2)
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')[1]).toMatchObject({
+    type: 'DIALOG',
+    resubmissionAt: '2030-11-20T08:00:00.000Z',
+  })
+})
+
 // K4: handing a request on to another group, from the dropdown of its row
 const pickGroup = async (page: Page, index: number, group: string) => {
   await row(page, index).locator('.group-select .dropdown-toggle').click()
