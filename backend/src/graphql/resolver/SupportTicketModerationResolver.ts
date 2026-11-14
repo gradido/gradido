@@ -36,6 +36,7 @@ import {
   SUPPORT_TICKET_NOT_READ,
   SUPPORT_TICKET_NOT_STORED,
   SUPPORT_TICKET_UNKNOWN_GROUP,
+  supportTicketGroupName,
 } from '@/data/SupportTicket.logic'
 import {
   adminSupportTicketsPageSchema,
@@ -54,6 +55,10 @@ import { GROUPED_FILTER, UNTAGGED_FILTER } from './util/findContributions'
 import { fromDatabase } from './util/fromDatabase'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
+import {
+  mailModeratorsOfSupportTicket,
+  readSupportTicketMailRecipients,
+} from './util/supportTicketModeratorsMail'
 
 /**
  * The group filter as the admin's choice sends it, the creation page's tokens (findContributions):
@@ -425,7 +430,8 @@ export class SupportTicketModerationResolver {
    * request may leave the moderator's reach with it: nothing of it is answered, the page asks for
    * its list anew. The thread gets a line of its own kind with the two groups as they are named
    * now, which the member reads too; the text is the server's, from no argument. A resubmission
-   * goes with it; no mail.
+   * goes with it. The member gets no mail; the moderators of the group it goes to hear of it as of
+   * a new request, with who handed it on (K5) -- the answer does not wait for those mails.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
@@ -466,6 +472,12 @@ export class SupportTicketModerationResolver {
       { tag: ticket.creationGroupTag, name: ticket.creationGroupName },
       { tag: target?.tag ?? null, name: target?.name ?? null },
     )
+    // who hears of it in the group it goes to (K5, SUA-024 point 6): read before the write and
+    // never throwing -- neither who hands it on nor the member who asked
+    const recipients = await readSupportTicketMailRecipients(target?.tag ?? null, [
+      moderator.id,
+      ticket.userId,
+    ])
     const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       writeSupportTicketMessage(
         moderatorReassigner({
@@ -483,6 +495,14 @@ export class SupportTicketModerationResolver {
     if (!written.success) {
       throw new LogError(written.error.code, supportTicketId)
     }
+    // biome-ignore lint/complexity/noVoid: the mails follow, the handing on does not wait for them
+    void mailModeratorsOfSupportTicket({
+      supportTicketId,
+      recipients,
+      actorAlias: moderator.alias || null,
+      groupName: supportTicketGroupName(target),
+      reassigned: true,
+    })
     return true
   }
 }

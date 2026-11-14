@@ -2,7 +2,7 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
-import { sendAddedSupportTicketMessageEmail } from 'core'
+import { sendAddedSupportTicketMessageEmail, sendNewSupportTicketEmail } from 'core'
 import {
   AppDatabase,
   communitiesTable,
@@ -1480,7 +1480,7 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     expect(await linesOf(id)).toEqual([])
   })
 
-  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail', async () => {
+  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail to the member', async () => {
     await loginAs('peter@lustig.de')
     const id = await file(bibi.id, 'Wer kümmert sich?', 401, gardenId, {
       status: 'IN_PROGRESS',
@@ -1704,6 +1704,116 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     expect(await recipientsOf('garden')).toEqual([bob.id, alma.id])
     expect(await recipientsOf('choir')).toEqual([carla, alma.id])
     expect(await recipientsOf(null)).toEqual([raeuber.id, carla, alma.id])
+  })
+})
+
+// The mail when a request is handed on (K5, SUA-024 point 6): the moderators of the group it goes
+// to hear of it as of a new one, with who handed it on -- never that one, never the member. Who
+// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all).
+describe('SupportTicketModerationResolver, the mail when a request is handed on (K5)', () => {
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const handOn = (supportTicketId: number, creationGroupTag: string): Promise<any> =>
+    mutate({
+      mutation: adminReassignSupportTicket,
+      variables: { supportTicketId, creationGroupTag },
+    })
+  const moderatorsMail = sendNewSupportTicketEmail as jest.Mock
+  const memberMail = sendAddedSupportTicketMessageEmail as jest.Mock
+  /** Waits for what the handing on does not wait for: the mails it started. */
+  const mailsSent = async (): Promise<void> => {
+    for (let turn = 0; turn < 5; turn++) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+  }
+  const mailedTo = () => moderatorsMail.mock.calls.map(([data]) => data.email)
+  const linesOf = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+
+  beforeEach(() => {
+    moderatorsMail.mockClear()
+    memberMail.mockClear()
+  })
+
+  it('mails the moderators of the group it goes to: who handed it on, its number and group', async () => {
+    const id = await file(bibi.id, 'Eher etwas für den Chor', 600, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'choir')).data.adminReassignSupportTicket).toBe(true)
+    await mailsSent()
+    // the group's first, then who sees everything; not bob, whose garden it left
+    expect(mailedTo()).toEqual(['carla@sonne.de', 'alma@all.de'])
+    for (const [data] of moderatorsMail.mock.calls) {
+      expect(data).toMatchObject({
+        actorAlias: peter.alias,
+        supportTicketNumber: id,
+        groupName: 'Chor',
+        reassigned: true,
+      })
+      expect(JSON.stringify(data)).not.toContain('Eher etwas')
+    }
+    expect(memberMail).not.toHaveBeenCalled()
+  })
+
+  it('mails those with "no group" for a request handed on to no group', async () => {
+    const id = await file(bibi.id, 'Wohin damit?', 601, choirId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, '')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['raeuber@hotzenplotz.de', 'carla@sonne.de', 'alma@all.de'])
+    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({ groupName: null, reassigned: true })
+  })
+
+  it('never mails who handed it on, also where they are among the moderators of the new group', async () => {
+    const id = await file(bibi.id, 'Für den Chor', 602, gardenId)
+    await loginAs('alma@all.de')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['carla@sonne.de'])
+    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({ actorAlias: 'AlmaAll' })
+  })
+
+  it('never mails the member who asked, also where they moderate the new group', async () => {
+    const carla = (await dbSelectRoleHoldersWithContact()).find(
+      ({ email }) => email === 'carla@sonne.de',
+    )
+    if (!carla) {
+      throw new Error('no carla')
+    }
+    const id = await file(carla.userId, 'Meine eigene Frage', 603, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['alma@all.de'])
+  })
+
+  it('hands it on all the same where the mail fails', async () => {
+    const id = await file(bibi.id, 'Und ohne Mail?', 604, gardenId)
+    await loginAs('peter@lustig.de')
+    moderatorsMail.mockRejectedValueOnce(new Error('the mail server is gone'))
+    const res = await handOn(id, 'choir')
+    await mailsSent()
+    expect(res.errors).toBeUndefined()
+    expect(res.data.adminReassignSupportTicket).toBe(true)
+    expect(moderatorsMail).toHaveBeenCalledTimes(2)
+    expect((await linesOf(id)).map(({ message }) => message)).toEqual(['Garten\nChor'])
+  })
+
+  it('mails nobody where the handing on is refused', async () => {
+    const id = await file(bibi.id, 'Bleibt im Garten', 605, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'garden')).errors?.[0].message).toBe('SUPPORT_TICKET_INVALID')
+    expect((await handOn(id, 'nowhere')).errors?.[0].message).toBe('SUPPORT_TICKET_UNKNOWN_GROUP')
+    await mailsSent()
+    expect(moderatorsMail).not.toHaveBeenCalled()
   })
 })
 
