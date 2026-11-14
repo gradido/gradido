@@ -8,17 +8,21 @@ import { createCommunity } from '../seeds/community'
 import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
+import { stephenHawking } from '../seeds/users/stephen-hawking'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountOpenSupportTicketsInScope,
   dbCountSupportTicketsOfUserSince,
   dbInsertSupportTicket,
-  dbLockSupportTicketOfModerator,
+  dbReassignSupportTicketOfModerator,
+  dbSelectSupportTicketGroupInScope,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketsOfUser,
   dbUpdateSupportTicketOfModerator,
   dbUpdateSupportTicketOfOwner,
+  SupportTicketFilter,
+  SupportTicketResubmission,
   SupportTicketScope,
 } from './supportTickets'
 
@@ -31,7 +35,11 @@ let gardenId: number
 const DAY_BEFORE = new Date('2026-11-13T08:00:00.000Z')
 const MORNING = new Date('2026-11-14T08:00:00.000Z')
 const NOON = new Date('2026-11-14T12:00:00.000Z')
+// a resubmission still to come at NOON
+const LATER = new Date('2026-11-20T09:00:00.000Z')
 const ALL: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS', 'CLOSED', 'DELETED']
+// no search and any group: the list as it was before K4
+const ANY: SupportTicketFilter = { words: [], group: null, hideResubmissionsAfter: null }
 
 const inTransaction = <T>(work: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
   drizzleDb().transaction(work)
@@ -148,7 +156,7 @@ describe('supportTickets query test', () => {
       const written = await inTransaction((tx) =>
         dbUpdateSupportTicketOfOwner(
           { id, userId: bibi.id, statusIn: ['OPEN', 'IN_PROGRESS'] },
-          { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id },
+          { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id, resubmissionAt: null },
           tx,
         ),
       )
@@ -161,7 +169,7 @@ describe('supportTickets query test', () => {
       const written = await inTransaction((tx) =>
         dbUpdateSupportTicketOfOwner(
           { id, userId: bibi.id, statusIn: ['OPEN', 'IN_PROGRESS', 'CLOSED'] },
-          { status: 'OPEN', closedAt: null, closedBy: null },
+          { status: 'OPEN', closedAt: null, closedBy: null, resubmissionAt: null },
           tx,
         ),
       )
@@ -173,14 +181,14 @@ describe('supportTickets query test', () => {
       const byPeter = await inTransaction((tx) =>
         dbUpdateSupportTicketOfOwner(
           { id, userId: peter.id, statusIn: ALL },
-          { status: 'CLOSED', closedAt: NOON, closedBy: peter.id },
+          { status: 'CLOSED', closedAt: NOON, closedBy: peter.id, resubmissionAt: null },
           tx,
         ),
       )
       const missing = await inTransaction((tx) =>
         dbUpdateSupportTicketOfOwner(
           { id: id + 1000, userId: bibi.id, statusIn: ALL },
-          { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id },
+          { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id, resubmissionAt: null },
           tx,
         ),
       )
@@ -198,7 +206,7 @@ describe('supportTickets query test', () => {
       const written = await inTransaction((tx) =>
         dbUpdateSupportTicketOfOwner(
           { id, userId: bibi.id, statusIn: ['OPEN', 'IN_PROGRESS', 'CLOSED'] },
-          { status: 'OPEN', closedAt: null, closedBy: null },
+          { status: 'OPEN', closedAt: null, closedBy: null, resubmissionAt: null },
           tx,
         ),
       )
@@ -224,7 +232,7 @@ describe('supportTickets query test, the moderation side', () => {
   })
   // the ids of the first page, and the count of all, which has to agree with them here
   const reached = async (where: SupportTicketScope, statuses: SupportTicketStatus[] = ALL) => {
-    const { count, tickets } = await dbSelectSupportTicketsInScope(statuses, where, 0, 25)
+    const { count, tickets } = await dbSelectSupportTicketsInScope(statuses, where, ANY, 0, 25)
     expect(count).toBe(tickets.length)
     return tickets.map((ticket) => ticket.id)
   }
@@ -283,7 +291,7 @@ describe('supportTickets query test, the moderation side', () => {
       await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
 
       expect(
-        await dbSelectSupportTicketsInScope(['OPEN', 'IN_PROGRESS'], EVERYTHING, 0, 25),
+        await dbSelectSupportTicketsInScope(['OPEN', 'IN_PROGRESS'], EVERYTHING, ANY, 0, 25),
       ).toEqual({
         count: 2,
         tickets: [
@@ -299,6 +307,7 @@ describe('supportTickets query test, the moderation side', () => {
             closedBy: null,
             deletedAt: null,
             deletedBy: null,
+            resubmissionAt: null,
           },
           expect.objectContaining({
             id: open,
@@ -308,7 +317,7 @@ describe('supportTickets query test, the moderation side', () => {
           }),
         ],
       })
-      expect(await dbSelectSupportTicketsInScope(['CLOSED'], EVERYTHING, 0, 25)).toEqual({
+      expect(await dbSelectSupportTicketsInScope(['CLOSED'], EVERYTHING, ANY, 0, 25)).toEqual({
         count: 1,
         tickets: [
           expect.objectContaining({
@@ -319,7 +328,7 @@ describe('supportTickets query test, the moderation side', () => {
           }),
         ],
       })
-      expect(await dbSelectSupportTicketsInScope(['DELETED'], EVERYTHING, 0, 25)).toEqual({
+      expect(await dbSelectSupportTicketsInScope(['DELETED'], EVERYTHING, ANY, 0, 25)).toEqual({
         count: 1,
         tickets: [expect.objectContaining({ id: deleted, deletedAt: NOON, deletedBy: peter.id })],
       })
@@ -332,9 +341,240 @@ describe('supportTickets query test, the moderation side', () => {
         ids.push(await file(bibi.id, text, NOON, gardenId))
       }
       await file(bibi.id, 'outside the scope', NOON, choirId)
-      const page = await dbSelectSupportTicketsInScope(ALL, scope(['garden'], false), 1, 1)
+      const page = await dbSelectSupportTicketsInScope(ALL, scope(['garden'], false), ANY, 1, 1)
       expect(page.count).toBe(3)
       expect(page.tickets.map((ticket) => ticket.id)).toEqual([ids[1]])
+    })
+  })
+
+  // K4: the search and the group filter, beside the scope and never in its place
+  describe('the filter', () => {
+    let stephen: DbUser
+    // the ids the filter leaves of the first page, and the count of all, which has to agree
+    const found = async (filter: Partial<SupportTicketFilter>, within = EVERYTHING) => {
+      const { count, tickets } = await dbSelectSupportTicketsInScope(
+        ALL,
+        within,
+        { ...ANY, ...filter },
+        0,
+        25,
+      )
+      expect(count).toBe(tickets.length)
+      return tickets.map((ticket) => ticket.id)
+    }
+
+    beforeAll(async () => {
+      // an account deleted since: the server names it nowhere
+      stephen = await userFactoryDrizzle(stephenHawking)
+    })
+
+    it('finds a request by its words, its member and its number, each word somewhere in it', async () => {
+      const bibis = await file(bibi.id, 'Mein Hochbeet ist leer', MORNING, gardenId)
+      const peters = await file(peter.id, 'Das Passwort fehlt', NOON)
+      expect(await found({ words: ['hochbeet'] })).toEqual([bibis])
+      expect(await found({ words: ['Bibi'] })).toEqual([bibis])
+      expect(await found({ words: ['Lustig'] })).toEqual([peters])
+      // the username, and the address
+      expect(await found({ words: ['BBB'] })).toEqual([bibis])
+      expect(await found({ words: ['lustig.de'] })).toEqual([peters])
+      // in any order, one in the member and one in the words
+      expect(await found({ words: ['leer', 'Bloxberg'] })).toEqual([bibis])
+      expect(await found({ words: ['Bloxberg', 'Passwort'] })).toEqual([])
+      expect(await found({ words: [String(peters)] })).toEqual([peters])
+      expect(await found({ words: ['nobody-wrote-this'] })).toEqual([])
+    })
+
+    it('finds the request of a deleted account by its words, not by the member', async () => {
+      const id = await file(stephen.id, 'Ein schwarzes Loch', MORNING)
+      expect(await found({ words: ['Loch'] })).toEqual([id])
+      expect(await found({ words: ['Hawking'] })).toEqual([])
+      expect(await found({ words: ['StephenH'] })).toEqual([])
+    })
+
+    it('narrows to some group, to none, and to the group of a tag', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      expect(await found({ group: null })).toEqual([ungrouped, inChoir, inGarden])
+      expect(await found({ group: 'GROUPED' })).toEqual([inChoir, inGarden])
+      expect(await found({ group: 'UNGROUPED' })).toEqual([ungrouped])
+      expect(await found({ group: { tag: 'garden' } })).toEqual([inGarden])
+      expect(await found({ group: { tag: 'nobody-moderates-this' } })).toEqual([])
+      // and together with words
+      expect(await found({ group: 'GROUPED', words: ['choir'] })).toEqual([inChoir])
+    })
+
+    it('finds nothing outside the scope, in any branch of it, with any filter', async () => {
+      const inGarden = await file(bibi.id, 'Hochbeet', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'Hochbeet', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'Hochbeet', MORNING)
+      const filters: Partial<SupportTicketFilter>[] = [
+        {},
+        { words: ['Hochbeet'] },
+        { words: ['Bibi'] },
+        { group: 'GROUPED' },
+        { group: 'UNGROUPED' },
+        { group: { tag: 'garden' } },
+        { group: { tag: 'choir' } },
+      ]
+      const scopes: [SupportTicketScope, number[]][] = [
+        [EVERYTHING, [inGarden, inChoir, ungrouped]],
+        [scope(['garden'], false), [inGarden]],
+        [scope([], true), [ungrouped]],
+        [scope(['garden'], true), [inGarden, ungrouped]],
+        [scope([], false), []],
+      ]
+      for (const [within, reaches] of scopes) {
+        for (const filter of filters) {
+          const outside = (await found(filter, within)).filter((id) => !reaches.includes(id))
+          expect([within, filter, outside]).toEqual([within, filter, []])
+        }
+        // and what the scope reaches, a search that names it finds, the newest first
+        expect(await found({ words: ['Hochbeet'] }, within)).toEqual([...reaches].reverse())
+      }
+    })
+  })
+
+  // K4: "Wiedervorlage verbergen", and what the count leaves out
+  describe('the resubmission', () => {
+    it('hides what waits for a resubmission after the moment, and shows what is due', async () => {
+      const waiting = await file(bibi.id, 'waits', MORNING)
+      await setState(waiting, { resubmissionAt: LATER })
+      const due = await file(bibi.id, 'due', MORNING)
+      await setState(due, { resubmissionAt: MORNING })
+      const plain = await file(bibi.id, 'plain', MORNING)
+      const listed = (hideResubmissionsAfter: Date | null) =>
+        dbSelectSupportTicketsInScope(ALL, EVERYTHING, { ...ANY, hideResubmissionsAfter }, 0, 25)
+
+      const hidden = await listed(NOON)
+      expect(hidden.tickets.map((ticket) => ticket.id)).toEqual([plain, due])
+      expect(hidden.count).toBe(2)
+      const shown = await listed(null)
+      expect(shown.tickets.map((ticket) => [ticket.id, ticket.resubmissionAt])).toEqual([
+        [plain, null],
+        [due, MORNING],
+        [waiting, LATER],
+      ])
+      expect(shown.count).toBe(3)
+      // a moment after it, the waiting one is due as well
+      expect((await listed(new Date(LATER.getTime() + 1))).count).toBe(3)
+    })
+
+    it('counts what waits apart from the two halves, in each branch of the scope', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      await setState(inGarden, { resubmissionAt: LATER })
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      await setState(inChoir, { status: 'IN_PROGRESS', resubmissionAt: LATER })
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { resubmissionAt: MORNING })
+
+      expect(await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON)).toEqual({
+        forModeration: 1,
+        forMember: 0,
+        onResubmission: 2,
+      })
+      expect(await dbCountOpenSupportTicketsInScope(scope(['garden'], false), NOON)).toEqual({
+        forModeration: 0,
+        forMember: 0,
+        onResubmission: 1,
+      })
+      expect(await dbCountOpenSupportTicketsInScope(scope([], true), NOON)).toEqual({
+        forModeration: 1,
+        forMember: 0,
+        onResubmission: 0,
+      })
+      // once due, they count again
+      expect(
+        await dbCountOpenSupportTicketsInScope(EVERYTHING, new Date(LATER.getTime() + 1)),
+      ).toEqual({ forModeration: 2, forMember: 1, onResubmission: 0 })
+    })
+  })
+
+  // K4: handing a request on to another group, or to none
+  describe('handing on', () => {
+    const OPEN_TAB: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS']
+    const where = (id: number, within = EVERYTHING) => ({
+      id,
+      statusIn: OPEN_TAB,
+      scope: within,
+      moderatorId: peter.id,
+    })
+    const handOn = (id: number, from: number | null, to: number | null, within = EVERYTHING) =>
+      inTransaction((tx) => dbReassignSupportTicketOfModerator(where(id, within), from, to, tx))
+
+    it('reads the member, the state and the group of a request where the scope reaches it', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      expect(await dbSelectSupportTicketGroupInScope(inGarden, scope(['garden'], false))).toEqual({
+        userId: bibi.id,
+        status: 'OPEN',
+        creationGroupId: gardenId,
+        creationGroupTag: 'garden',
+        creationGroupName: 'Garten',
+      })
+      expect(await dbSelectSupportTicketGroupInScope(ungrouped, scope([], true))).toEqual({
+        userId: bibi.id,
+        status: 'CLOSED',
+        creationGroupId: null,
+        creationGroupTag: null,
+        creationGroupName: null,
+      })
+      expect(await dbSelectSupportTicketGroupInScope(inGarden, scope([], true))).toBeNull()
+      expect(await dbSelectSupportTicketGroupInScope(inGarden + 1000, EVERYTHING)).toBeNull()
+    })
+
+    it('moves a request into a group, out of one into none, and leaves its state', async () => {
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { status: 'IN_PROGRESS', resubmissionAt: LATER })
+      expect(await handOn(ungrouped, null, gardenId)).toBe(true)
+      expect(await rowOf(ungrouped)).toMatchObject({
+        creationGroupId: gardenId,
+        status: 'IN_PROGRESS',
+        // the moderators of the new group see it at once
+        resubmissionAt: null,
+      })
+      expect(await handOn(ungrouped, gardenId, null)).toBe(true)
+      expect(await rowOf(ungrouped)).toMatchObject({ creationGroupId: null, status: 'IN_PROGRESS' })
+      expect(await handOn(ungrouped, null, choirId)).toBe(true)
+      expect((await rowOf(ungrouped)).creationGroupId).toBe(choirId)
+    })
+
+    it('moves nothing where the request no longer stands in the group read before', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      // a colleague handed it on in between
+      await setState(id, { creationGroupId: choirId })
+      expect(await handOn(id, gardenId, null)).toBe(false)
+      expect((await rowOf(id)).creationGroupId).toBe(choirId)
+      // and one read as of no group, which stands in one by now
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      await setState(ungrouped, { creationGroupId: gardenId })
+      expect(await handOn(ungrouped, null, choirId)).toBe(false)
+      expect((await rowOf(ungrouped)).creationGroupId).toBe(gardenId)
+    })
+
+    it('moves no closed, deleted or own request, none outside the scope and no missing one', async () => {
+      const closed = await file(bibi.id, 'closed', MORNING, gardenId)
+      await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      const deleted = await file(bibi.id, 'deleted', MORNING, gardenId)
+      await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
+      const own = await file(peter.id, 'my own', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      expect(await handOn(closed, gardenId, null)).toBe(false)
+      expect(await handOn(deleted, gardenId, null)).toBe(false)
+      expect(await handOn(own, gardenId, null)).toBe(false)
+      expect(await handOn(inChoir, choirId, gardenId, scope(['garden'], true))).toBe(false)
+      expect(await handOn(inChoir + 1000, null, gardenId)).toBe(false)
+      for (const [id, group] of [
+        [closed, gardenId],
+        [deleted, gardenId],
+        [own, gardenId],
+        [inChoir, choirId],
+      ]) {
+        expect((await rowOf(id)).creationGroupId).toBe(group)
+      }
+      // into a group outside the scope it may go: handing on is out of the own scope
+      expect(await handOn(inChoir, choirId, null, scope(['choir'], false))).toBe(true)
     })
   })
 
@@ -368,6 +608,7 @@ describe('supportTickets query test, the moderation side', () => {
       status: 'IN_PROGRESS',
       closedAt: null,
       closedBy: null,
+      resubmissionAt: null,
     } as const
     const where = (id: number, statusIn: SupportTicketStatus[], within = EVERYTHING) => ({
       id,
@@ -377,8 +618,13 @@ describe('supportTickets query test, the moderation side', () => {
     })
     const answer = (id: number, within = EVERYTHING) =>
       dbUpdateSupportTicketOfModerator(where(id, ANSWERS_FROM, within), A_QUESTION_BACK)
-    const lock = (id: number, statusIn: SupportTicketStatus[], within = EVERYTHING) =>
-      inTransaction((tx) => dbLockSupportTicketOfModerator(where(id, statusIn, within), tx))
+    // a note: no state, only what becomes of the resubmission (K4)
+    const note = (
+      id: number,
+      resubmissionAt: SupportTicketResubmission,
+      statusIn = ANSWERS_FROM,
+      within = EVERYTHING,
+    ) => dbUpdateSupportTicketOfModerator(where(id, statusIn, within), { resubmissionAt })
 
     it('writes from each state it starts from, and from no other', async () => {
       for (const state of ALL) {
@@ -405,12 +651,14 @@ describe('supportTickets query test, the moderation side', () => {
           status: 'CLOSED',
           closedAt: NOON,
           closedBy: peter.id,
+          resubmissionAt: null,
         })
       const deletes = (id: number) =>
         dbUpdateSupportTicketOfModerator(where(id, ['OPEN', 'IN_PROGRESS']), {
           status: 'DELETED',
           deletedAt: NOON,
           deletedBy: peter.id,
+          resubmissionAt: null,
         })
 
       expect(await closes(open)).toBe(true)
@@ -472,24 +720,82 @@ describe('supportTickets query test, the moderation side', () => {
       expect(await answer(own + 1000)).toBe(false)
     })
 
-    it('holds a request for a note where it is the moderator one to act on, and changes nothing of it', async () => {
+    it('sets the resubmission with a note and nothing else, whatever the member did just before', async () => {
       const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
-      // the member closed it just before the note
+      // the member closed it just before the note: the note takes the state as it is now
       await setState(id, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
-      expect(await lock(id, ANSWERS_FROM)).toBe(true)
-      expect(await rowOf(id)).toMatchObject({ status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
-      expect(await lock(id, ANSWERS_FROM, scope(['garden'], false))).toBe(true)
+      expect(await note(id, null)).toBe(true)
+      expect(await rowOf(id)).toMatchObject({
+        status: 'CLOSED',
+        closedAt: NOON,
+        closedBy: bibi.id,
+        resubmissionAt: null,
+      })
+      await setState(id, { status: 'IN_PROGRESS', closedAt: null, closedBy: null })
+      expect(await note(id, LATER, ['OPEN', 'IN_PROGRESS'])).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+      // and a note without one takes it away
+      expect(await note(id, null, ANSWERS_FROM, scope(['garden'], false))).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: null })
     })
 
-    it('holds nothing outside the scope, of a deleted request, of the own one and of a missing one', async () => {
+    it('keeps with "keep" what the request has, and still finds the row', async () => {
+      const id = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      // a colleague set one: a note whose box was not touched leaves it
+      await setState(id, { resubmissionAt: LATER })
+      expect(await note(id, 'keep')).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+      // the member wrote and took it away: the note does not put it back
+      await setState(id, { resubmissionAt: null })
+      expect(await note(id, 'keep')).toBe(true)
+      expect((await rowOf(id)).resubmissionAt).toBeNull()
+      // an answer keeps it too, and makes the request a question back
+      await setState(id, { resubmissionAt: LATER })
+      expect(
+        await dbUpdateSupportTicketOfModerator(where(id, ANSWERS_FROM), {
+          ...A_QUESTION_BACK,
+          resubmissionAt: 'keep',
+        }),
+      ).toBe(true)
+      expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+      // the condition holds as for any other write
+      const own = await file(peter.id, 'my own', MORNING)
+      expect(await note(own, 'keep')).toBe(false)
+      expect(await note(id, 'keep', ANSWERS_FROM, scope(['choir'], false))).toBe(false)
+    })
+
+    it('sets no resubmission outside the scope, on a deleted request, on the own one or a missing one', async () => {
       const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
-      expect(await lock(inChoir, ANSWERS_FROM, scope(['garden'], true))).toBe(false)
+      expect(await note(inChoir, LATER, ANSWERS_FROM, scope(['garden'], true))).toBe(false)
       const deleted = await file(bibi.id, 'deleted', MORNING)
       await setState(deleted, { status: 'DELETED', deletedAt: NOON, deletedBy: peter.id })
-      expect(await lock(deleted, ANSWERS_FROM)).toBe(false)
+      expect(await note(deleted, LATER)).toBe(false)
       const own = await file(peter.id, 'my own', MORNING)
-      expect(await lock(own, ANSWERS_FROM)).toBe(false)
-      expect(await lock(own + 1000, ANSWERS_FROM)).toBe(false)
+      expect(await note(own, LATER)).toBe(false)
+      expect(await note(own + 1000, LATER)).toBe(false)
+      for (const id of [inChoir, deleted, own]) {
+        expect((await rowOf(id)).resubmissionAt).toBeNull()
+      }
+    })
+
+    it('answers with a resubmission, and closing and deleting take one away', async () => {
+      const asked = await file(bibi.id, 'asked', MORNING)
+      expect(
+        await dbUpdateSupportTicketOfModerator(where(asked, ANSWERS_FROM), {
+          ...A_QUESTION_BACK,
+          resubmissionAt: LATER,
+        }),
+      ).toBe(true)
+      expect(await rowOf(asked)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+      expect(
+        await dbUpdateSupportTicketOfModerator(where(asked, ['OPEN', 'IN_PROGRESS']), {
+          status: 'CLOSED',
+          closedAt: NOON,
+          closedBy: peter.id,
+          resubmissionAt: null,
+        }),
+      ).toBe(true)
+      expect(await rowOf(asked)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
     })
   })
 
@@ -506,9 +812,10 @@ describe('supportTickets query test, the moderation side', () => {
       // the moderator's own counts as the tab lists it
       await file(peter.id, 'my own', MORNING)
 
-      expect(await dbCountOpenSupportTicketsInScope(EVERYTHING)).toEqual({
+      expect(await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON)).toEqual({
         forModeration: 3,
         forMember: 1,
+        onResubmission: 0,
       })
     })
 
@@ -518,21 +825,25 @@ describe('supportTickets query test, the moderation side', () => {
       await setState(inChoir, { status: 'IN_PROGRESS' })
       await file(bibi.id, 'no group', MORNING)
 
-      expect(await dbCountOpenSupportTicketsInScope(scope(['garden'], false))).toEqual({
+      expect(await dbCountOpenSupportTicketsInScope(scope(['garden'], false), NOON)).toEqual({
         forModeration: 1,
         forMember: 0,
+        onResubmission: 0,
       })
-      expect(await dbCountOpenSupportTicketsInScope(scope(['choir'], true))).toEqual({
+      expect(await dbCountOpenSupportTicketsInScope(scope(['choir'], true), NOON)).toEqual({
         forModeration: 1,
         forMember: 1,
+        onResubmission: 0,
       })
-      expect(await dbCountOpenSupportTicketsInScope(scope([], true))).toEqual({
+      expect(await dbCountOpenSupportTicketsInScope(scope([], true), NOON)).toEqual({
         forModeration: 1,
         forMember: 0,
+        onResubmission: 0,
       })
-      expect(await dbCountOpenSupportTicketsInScope(scope([], false))).toEqual({
+      expect(await dbCountOpenSupportTicketsInScope(scope([], false), NOON)).toEqual({
         forModeration: 0,
         forMember: 0,
+        onResubmission: 0,
       })
     })
   })

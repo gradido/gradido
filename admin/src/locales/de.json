@@ -661,6 +661,7 @@
     "closedAt": "Geschlossen",
     "closedBy": "Geschlossen von {name}",
     "closedByMember": "Vom Mitglied geschlossen",
+    "closingWaits": "Mit einer Wiedervorlage bleibt die Anfrage offen.",
     "confirmClose": {
       "body": "Willst Du diese Anfrage ohne Antwort schließen? Das Mitglied bekommt dazu keine Mail.",
       "title": "Anfrage schließen",
@@ -674,11 +675,23 @@
     "deleted": "Die Anfrage ist gelöscht.",
     "deletedBy": "Gelöscht von {name}",
     "failed": "Das hat nicht geklappt. Versuch es bitte noch einmal.",
+    "hideResubmissionTooltip": "Verbirgt alle Anfragen, für die ein Moderator eine Wiedervorlage gesetzt hat.",
     "loadFailed": "Die Anfragen konnten nicht geladen werden. Versuch es bitte noch einmal.",
     "messagesReached": "In dieser Anfrage stehen schon {max} Nachrichten.",
     "notFound": "Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.",
     "notesReached": "In dieser Anfrage stehen schon {max} Notizen.",
+    "number": "Anfrage Nr. {number}",
+    "reassign": "Anfrage weiterreichen",
+    "reassignConfirm": "Ja, weiterreichen",
+    "reassignHint": "Je nach Deinem Sichtbereich steht sie danach nicht mehr in Deiner Liste. Im Faden steht, wer sie weitergereicht hat; das Mitglied sieht das auch.",
+    "reassignQuestion": "Diese Anfrage von {from} an {to} weiterreichen?",
+    "reassigned": "Die Anfrage ist weitergereicht.",
+    "reassignedFromTo": "von {from} an {to}",
+    "reassignedHead": "Weitergereicht",
+    "reassignedReached": "Diese Anfrage ist schon {max} Mal weitergereicht worden.",
     "request": "Anfrage",
+    "resubmissionLine": "Wiedervorlage: {day}, {time}",
+    "searchMember": "Nach diesem Mitglied suchen",
     "sent": "Gesendet",
     "tab": {
       "all": "Alle",
@@ -686,7 +699,8 @@
       "deleted": "Gelöscht",
       "open": "Offen"
     },
-    "tooLong": "Höchstens {max} Zeichen."
+    "tooLong": "Höchstens {max} Zeichen.",
+    "unknownGroup": "Diese Gruppe gibt es nicht."
   },
   "text": "Text",
   "thank-you-cheque": {

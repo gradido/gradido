@@ -661,6 +661,7 @@
     "closedAt": "Cerrada",
     "closedBy": "Cerrada por {name}",
     "closedByMember": "Cerrada por el miembro",
+    "closingWaits": "Con un recordatorio, la consulta sigue abierta.",
     "confirmClose": {
       "body": "¿Quieres cerrar esta consulta sin responder? El miembro no recibe ningún correo sobre ello.",
       "title": "Cerrar consulta",
@@ -674,11 +675,23 @@
     "deleted": "La consulta está eliminada.",
     "deletedBy": "Eliminada por {name}",
     "failed": "No ha funcionado. Inténtalo de nuevo, por favor.",
+    "hideResubmissionTooltip": "Oculta todas las consultas para las que un moderador ha establecido una fecha de recordatorio.",
     "loadFailed": "No se pudieron cargar las consultas. Inténtalo de nuevo, por favor.",
     "messagesReached": "Esta consulta ya tiene {max} mensajes.",
     "notFound": "Esta consulta no existe o está fuera de tus grupos.",
     "notesReached": "Esta consulta ya tiene {max} notas.",
+    "number": "Consulta n.º {number}",
+    "reassign": "Derivar consulta",
+    "reassignConfirm": "Sí, derivar",
+    "reassignHint": "Según tus grupos visibles, puede dejar de aparecer en tu lista. En el hilo consta quién la ha derivado; el miembro también lo ve.",
+    "reassignQuestion": "¿Derivar esta consulta de {from} a {to}?",
+    "reassigned": "La consulta se ha derivado.",
+    "reassignedFromTo": "de {from} a {to}",
+    "reassignedHead": "Derivada",
+    "reassignedReached": "Esta consulta ya se ha derivado {max} veces.",
     "request": "Consulta",
+    "resubmissionLine": "Recordatorio: {day}, {time}",
+    "searchMember": "Buscar a este miembro",
     "sent": "Enviada",
     "tab": {
       "all": "Todas",
@@ -686,7 +699,8 @@
       "deleted": "Eliminadas",
       "open": "Abiertas"
     },
-    "tooLong": "Como máximo {max} caracteres."
+    "tooLong": "Como máximo {max} caracteres.",
+    "unknownGroup": "Este grupo no existe."
   },
   "text": "Texto",
   "thank-you-cheque": {

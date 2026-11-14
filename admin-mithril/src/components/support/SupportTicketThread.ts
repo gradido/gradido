@@ -47,6 +47,14 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
     detachRemark(this.remark)
   }
 
+  // A handing on from the row's dropdown (K4) leaves a line in the thread: where the opened row
+  // comes back in the new list with another group, its thread loads anew.
+  onbeforeupdate({ attrs: { ticket } }: Vnode<Attrs>, { attrs: { ticket: before } }: Vnode<Attrs>) {
+    if (ticket.id === before.id && ticket.creationGroupTag !== before.creationGroupTag) {
+      this.load(ticket)
+    }
+  }
+
   private async load({ id, userId }: TicketWithMember) {
     const asked = ++this.asked
     const answer = await graphqlRequest(adminListSupportTicketMessages, {
@@ -80,9 +88,10 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
     return m('.contribution-messages-list', [
       m('.list-group', [
         m(MemberLine, { member: ticket.user, email: ticket.userEmail ?? '', remark: this.remark }),
+        // the number first: the member and the mail call the request by it (K4)
         m(
           '.list-group-item',
-          `${t('registered')}: ${d(new Date(ticket.user.createdAt))}, ${t('support.sent')}: ${d(new Date(ticket.createdAt))}`,
+          `${t('support.number', { number: ticket.id })}, ${t('registered')}: ${d(new Date(ticket.user.createdAt))}, ${t('support.sent')}: ${d(new Date(ticket.createdAt))}`,
         ),
       ]),
       m(
@@ -99,7 +108,7 @@ export class SupportTicketThread implements ClassComponent<Attrs> {
       ticket.status === 'DELETED'
         ? null
         : m(SupportAnswerForm, {
-            supportTicketId: ticket.id,
+            ticket,
             onwritten: () => {
               this.load(ticket)
               onwritten()

@@ -1643,6 +1643,9 @@
       "group": "O teu pedido vai para os moderadores do grupo «{group}». Os outros membros não o podem ver.",
       "none": "O teu pedido vai para o suporte da comunidade. Os outros membros não o podem ver."
     },
+    "reassigned": "O suporte encaminhou o teu pedido",
+    "reassignedBy": "{name} encaminhou o teu pedido",
+    "reassignedFromTo": "de {from} para {to}",
     "send": "Enviar",
     "sent": "O teu pedido foi enviado.",
     "write": "Escrever"

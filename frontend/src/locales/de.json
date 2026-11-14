@@ -1643,6 +1643,9 @@
       "group": "Deine Anfrage geht an die Moderatoren der Gruppe „{group}“. Andere Mitglieder sehen sie nicht.",
       "none": "Deine Anfrage geht an den Support der Gemeinschaft. Andere Mitglieder sehen sie nicht."
     },
+    "reassigned": "Der Support hat Deine Anfrage weitergereicht",
+    "reassignedBy": "{name} hat Deine Anfrage weitergereicht",
+    "reassignedFromTo": "von {from} an {to}",
     "send": "Abschicken",
     "sent": "Deine Anfrage ist abgeschickt.",
     "write": "Schreiben"

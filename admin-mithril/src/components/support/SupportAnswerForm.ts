@@ -1,24 +1,29 @@
 // AI-GENERATED — not an architecture reference
+import timeClasses from '@admin/components/input/TimePicker.module.css'
 import { adminCreateSupportTicketMessage } from '@admin/graphql/supportTickets.graphql'
 import m, { type ClassComponent, type Vnode } from 'mithril'
 import { boldShortcut } from '@/components/boldShortcut'
 import { Tabs } from '@/components/bootstrap/Tabs'
 import { Tooltip } from '@/components/bootstrap/Tooltip'
 import { toastError, toastSuccess } from '@/components/Toasts'
+import { dayOf } from '@/data/Figures.logic'
 import { FormTab } from '@/data/FormTab.enum'
+import { dayAndTime, isTime, momentOf, wholeTime } from '@/data/MessageForm.logic'
 import {
   answerVariables,
   charactersOf,
   MESSAGE_MAX_CHARS,
   refusalWords,
   sendable,
+  waitingUntil,
 } from '@/data/SupportTicket.logic'
+import type { ListedSupportTicket } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import { isPhone } from '@/viewport'
 
 interface Attrs {
-  supportTicketId: number
+  ticket: ListedSupportTicket
   /** after every write, done or refused: the thread, the list and the count anew */
   onwritten: () => void
 }
@@ -35,25 +40,79 @@ type AnswerTab = FormTab.MESSAGE | FormTab.NOTE
  * to the member, and by mail, because the tab was switched before "Antworten". Ctrl/Cmd+B sets
  * bold, as in the contribution's thread. What the request is after a write, the server says: the
  * page asks for its list anew.
+ *
+ * Above the tabs the box of the resubmission (K4), as on a contribution: it opens as the request
+ * came, with its moment while that is still to come, and goes with an answer or a note once it was
+ * touched -- set or taken away. Untouched, nothing of it is sent, and the request keeps what it has
+ * then: also what the member or a colleague did since the row was opened -- the member writing
+ * takes a resubmission away, and an unrelated note may not put it back. A closed request waits for
+ * nothing: with the box set nothing closes, and under a closed request a note has no box (the
+ * server takes a note with a moment into an open request only).
  */
 export class SupportAnswerForm implements ClassComponent<Attrs> {
   private readonly id = `support-answer-${++lastId}`
   private tab: AnswerTab = FormTab.MESSAGE
   private readonly texts: Record<AnswerTab, string> = { [FormTab.MESSAGE]: '', [FormTab.NOTE]: '' }
   private sending = false
+  private box = false
+  private day = ''
+  private time = '00:00'
+  // whether the box, its day or its time was changed since the row opened or the last write
+  private touched = false
 
-  private async send({ supportTicketId, onwritten }: Attrs, close: boolean) {
+  oninit({ attrs: { ticket } }: Vnode<Attrs>) {
+    this.boxAsCame(ticket)
+  }
+
+  // Untouched, the box follows the request where the list brings it anew with another
+  // resubmission: what it shows is what the request has.
+  onbeforeupdate({ attrs: { ticket } }: Vnode<Attrs>, { attrs: { ticket: before } }: Vnode<Attrs>) {
+    if (!this.touched && ticket.resubmissionAt !== before.resubmissionAt) {
+      this.boxAsCame(ticket)
+    }
+  }
+
+  private boxAsCame(ticket: ListedSupportTicket) {
+    const waiting = waitingUntil(ticket)
+    this.box = waiting !== null
+    if (waiting) {
+      ;({ day: this.day, time: this.time } = dayAndTime(waiting))
+    }
+  }
+
+  // whether the box goes with what the tab sends: a closed request's note has none
+  private waits({ ticket }: Attrs) {
+    return this.box && (this.tab === FormTab.MESSAGE || ticket.status !== 'CLOSED')
+  }
+
+  private async send(attrs: Attrs, close: boolean) {
+    const { ticket, onwritten } = attrs
     const tab = this.tab
     const text = this.texts[tab]
-    // one write at a time, and only words the server takes
-    if (this.sending || !sendable(text)) {
+    const waits = this.waits(attrs)
+    // one write at a time, only words the server takes, and no moment that is none
+    if (this.sending || !sendable(text) || (waits && (close || !this.day || !isTime(this.time)))) {
+      return
+    }
+    // The box goes only where it was touched -- untouched, the request keeps what it has -- and
+    // where this tab sends it: a box ticked for an answer does not go with a closed request's
+    // note, which has none, and stays touched for the answer.
+    const goes = this.touched && (waits || !this.box)
+    const sent = { box: this.box, day: this.day, time: this.time }
+    const resubmission = goes && waits ? momentOf(this.day, this.time) : null
+    if (resubmission && resubmission < new Date()) {
+      toastError(t('contributionMessagesForm.resubmissionDateInPast'))
       return
     }
     const note = tab === FormTab.NOTE
     this.sending = true
     const answer = await graphqlRequest(
       adminCreateSupportTicketMessage,
-      answerVariables(supportTicketId, text, { note, close }),
+      answerVariables(ticket.id, text, {
+        note,
+        close,
+        resubmissionAt: goes ? (resubmission?.toISOString() ?? null) : undefined,
+      }),
     )
     this.sending = false
     if (answer.success) {
@@ -62,15 +121,30 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
       if (this.texts[tab] === text) {
         this.texts[tab] = ''
       }
+      // What the box shows is what the request has now: untouched again -- unless it changed
+      // while the write went.
+      if (goes && this.box === sent.box && this.day === sent.day && this.time === sent.time) {
+        this.touched = false
+      }
     } else {
       // the words stay in the field: nothing of them is lost to a refusal
-      toastError(refusalWords(answer.error.messages, { note }))
+      toastError(
+        refusalWords(
+          answer.error.messages,
+          note ? 'support.notesReached' : 'support.messagesReached',
+        ),
+      )
     }
     onwritten()
   }
 
   view({ attrs }: Vnode<Attrs>) {
-    const disabled = this.sending || !sendable(this.texts[this.tab])
+    const waits = this.waits(attrs)
+    // a time that is no hh:mm, or a box without a day, sends nothing: what was meant is not guessed
+    const disabled =
+      this.sending ||
+      !sendable(this.texts[this.tab]) ||
+      (waits && (!this.day || !isTime(this.time)))
     const tooLong = (tab: AnswerTab) => charactersOf(this.texts[tab]) > MESSAGE_MAX_CHARS
     const hintId = (tab: AnswerTab) => `${this.id}-too-long-${tab}`
     // Functions, not vnodes: each tab draws its own field, with its own draft, and Mithril draws a
@@ -99,6 +173,73 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
           )
         : null
     const cancel = m('.col', m('button.btn.btn-md.btn-danger', { type: 'reset' }, t('form.cancel')))
+    // the box and its moment, as on a contribution's form: a day not before today, a time hh:mm
+    const resubmission =
+      this.tab === FormTab.MESSAGE || attrs.ticket.status !== 'CLOSED'
+        ? [
+            m(
+              'fieldset.b-form-group',
+              m('.form-check', [
+                m('input.form-check-input', {
+                  id: `${this.id}-box`,
+                  type: 'checkbox',
+                  checked: this.box,
+                  'data-test': 'support-resubmission-box',
+                  onchange: (event: Event) => {
+                    this.box = (event.target as HTMLInputElement).checked
+                    this.touched = true
+                  },
+                }),
+                m(
+                  'label.form-check-label',
+                  { for: `${this.id}-box` },
+                  t('moderator.show-submission-form'),
+                ),
+              ]),
+            ),
+            this.box
+              ? m(
+                  'fieldset.b-form-group',
+                  m('.d-flex.flex-wrap.gap-2.my-2', [
+                    m(
+                      'div',
+                      m('input.form-control', {
+                        type: 'date',
+                        min: dayOf(new Date()),
+                        value: this.day,
+                        'aria-label': t('moderator.show-submission-form'),
+                        'data-test': 'support-resubmission-day',
+                        oninput: (event: Event) => {
+                          this.day = (event.target as HTMLInputElement).value
+                          this.touched = true
+                        },
+                      }),
+                    ),
+                    m(
+                      'div',
+                      m('input', {
+                        class: timeClasses.timerInput,
+                        type: 'text',
+                        placeholder: 'hh:mm',
+                        value: this.time,
+                        'data-test': 'support-resubmission-time',
+                        // only numbers and ":"; made whole as the field is left
+                        oninput: (event: Event) => {
+                          const field = event.target as HTMLInputElement
+                          this.time = field.value.replace(/[^0-9:]/g, '')
+                          field.value = this.time
+                          this.touched = true
+                        },
+                        onblur: () => {
+                          this.time = wholeTime(this.time)
+                        },
+                      }),
+                    ),
+                  ]),
+                )
+              : null,
+          ]
+        : null
 
     return m(
       '.contribution-messages-formular.support-answer-form',
@@ -115,6 +256,7 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
             },
           },
           [
+            resubmission,
             m(Tabs, {
               class: 'mt-3',
               contentClass: 'mt-3',
@@ -171,16 +313,29 @@ export class SupportAnswerForm implements ClassComponent<Attrs> {
                       },
                       t('support.answer'),
                     ),
+                    // A disabled button takes no pointer: the reason stands on what holds it.
                     m(
-                      'button.btn.btn-md.btn-success',
-                      {
-                        type: 'button',
-                        disabled,
-                        'data-test': 'support-answer-and-close',
-                        onclick: () => this.send(attrs, true),
-                      },
-                      t('support.answerAndClose'),
+                      'span.d-inline-block',
+                      { title: waits ? t('support.closingWaits') : undefined },
+                      m(
+                        'button.btn.btn-md.btn-success',
+                        {
+                          type: 'button',
+                          disabled: disabled || waits,
+                          'aria-describedby': waits ? `${this.id}-closing-waits` : undefined,
+                          'data-test': 'support-answer-and-close',
+                          onclick: () => this.send(attrs, true),
+                        },
+                        t('support.answerAndClose'),
+                      ),
                     ),
+                    waits
+                      ? m(
+                          'span.visually-hidden',
+                          { id: `${this.id}-closing-waits` },
+                          t('support.closingWaits'),
+                        )
+                      : null,
                   ]),
                 ]),
           ],

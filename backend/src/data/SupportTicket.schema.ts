@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { SupportTicketStatus } from 'database'
+import { SupportTicketResubmission, SupportTicketStatus } from 'database'
 import {
   MESSAGE_MAX_CHARS,
   MESSAGE_MIN_CHARS,
@@ -37,14 +37,43 @@ export const supportTicketMessageSchema = v.pipe(
   ),
 )
 
+/**
+ * A resubmission as the admin's form sends it (K4): a moment as Date.prototype.toISOString writes
+ * it -- nothing that rolls over ("2026-02-30T…" is March) or would be read in the server's time
+ * zone --, null to take it away, or nothing where the form's box was not touched: then the request
+ * keeps what it has ('keep'). A moment in the past is no error: it hides nothing.
+ */
+export const supportTicketResubmissionSchema = v.pipe(
+  v.optional(
+    v.nullable(
+      v.pipe(
+        v.string(),
+        v.check((text) => {
+          const moment = new Date(text)
+          return !Number.isNaN(moment.getTime()) && moment.toISOString() === text
+        }, 'Support request: the resubmission is no moment'),
+        v.transform((text) => new Date(text)),
+      ),
+    ),
+  ),
+  v.transform((moment): SupportTicketResubmission => (moment === undefined ? 'keep' : moment)),
+)
+
 /** A page of the member's own requests. */
 export const supportTicketsPageSchema = v.object({
   currentPage: positiveIntegerSchema,
   pageSize: v.pipe(positiveIntegerSchema, v.maxValue(SUPPORT_TICKETS_PAGE_SIZE_MAX)),
 })
 
-/** A page of the moderation's list: the states of a tab -- never none -- and the page. */
+/**
+ * A page of the moderation's list: the states of a tab -- never none --, the page, the search as
+ * it was typed and the group filter as the admin's choice sends it, both may be empty, and whether
+ * what waits for a resubmission is hidden (K4).
+ */
 export const adminSupportTicketsPageSchema = v.object({
   statuses: v.pipe(v.array(v.enum(SupportTicketStatus)), v.nonEmpty()),
   ...supportTicketsPageSchema.entries,
+  query: v.string(),
+  creationGroup: v.string(),
+  hideResubmission: v.boolean(),
 })

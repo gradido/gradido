@@ -11,7 +11,7 @@ import type { SupportTicketWriter } from './WriteSupportTicketMessage.context'
 /**
  * The member writes in their own request (SUA-010): into an open one, one with a question back,
  * or a closed one -- never into a deleted one. Afterwards it is open, and who closed it is gone:
- * the moderation is to answer again.
+ * the moderation is to answer again, now -- a resubmission is taken away (K4).
  */
 const WRITES_INTO: SupportTicketStatus[] = ['OPEN', 'IN_PROGRESS', 'CLOSED']
 
@@ -27,7 +27,7 @@ export const memberWriter = (member: { id: number }): SupportTicketWriter => ({
   moveRequest: (supportTicketId, tx) =>
     dbUpdateSupportTicketOfOwner(
       { id: supportTicketId, userId: member.id, statusIn: WRITES_INTO },
-      { status: SupportTicketStatus.OPEN, closedAt: null, closedBy: null },
+      { status: SupportTicketStatus.OPEN, closedAt: null, closedBy: null, resubmissionAt: null },
       tx,
     ),
 })

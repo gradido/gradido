@@ -1643,6 +1643,9 @@
       "group": "Talebin «{group}» grubunun moderatörlerine gider. Diğer üyeler onu göremez.",
       "none": "Talebin topluluğun destek ekibine gider. Diğer üyeler onu göremez."
     },
+    "reassigned": "Talebin destek ekibi tarafından aktarıldı",
+    "reassignedBy": "Talebin {name} tarafından aktarıldı",
+    "reassignedFromTo": "{from} → {to}",
     "send": "Gönder",
     "sent": "Talebin gönderildi.",
     "write": "Yaz"

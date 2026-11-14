@@ -4,6 +4,7 @@ import * as v from 'valibot'
 import {
   adminSupportTicketsPageSchema,
   supportTicketMessageSchema,
+  supportTicketResubmissionSchema,
   supportTicketsPageSchema,
   supportTicketTextSchema,
 } from './SupportTicket.schema'
@@ -75,7 +76,14 @@ describe('supportTicketsPageSchema', () => {
 
 describe('adminSupportTicketsPageSchema', () => {
   const page = (input: object) =>
-    v.safeParse(adminSupportTicketsPageSchema, { currentPage: 1, pageSize: 25, ...input }).success
+    v.safeParse(adminSupportTicketsPageSchema, {
+      currentPage: 1,
+      pageSize: 25,
+      query: '',
+      creationGroup: '',
+      hideResubmission: false,
+      ...input,
+    }).success
 
   it('takes the states of a tab, one or more', () => {
     expect(page({ statuses: ['CLOSED'] })).toBe(true)
@@ -90,5 +98,41 @@ describe('adminSupportTicketsPageSchema', () => {
   it('takes the page as the member side does', () => {
     expect(page({ statuses: ['OPEN'], pageSize: 26 })).toBe(false)
     expect(page({ statuses: ['OPEN'], currentPage: 0 })).toBe(false)
+  })
+
+  it('takes a search and a group filter, empty ones too, and nothing that is no text', () => {
+    expect(page({ statuses: ['OPEN'], query: 'bibi garten', creationGroup: '*grouped' })).toBe(true)
+    expect(page({ statuses: ['OPEN'], query: 5 })).toBe(false)
+    expect(page({ statuses: ['OPEN'], creationGroup: null })).toBe(false)
+  })
+})
+
+describe('supportTicketResubmissionSchema', () => {
+  const read = (input: unknown) => v.safeParse(supportTicketResubmissionSchema, input)
+
+  it('takes a moment as the form sends it, null to take it away, and nothing to keep it', () => {
+    expect(read('2026-11-20T08:00:00.000Z')).toMatchObject({
+      success: true,
+      output: new Date('2026-11-20T08:00:00.000Z'),
+    })
+    expect(read(null)).toMatchObject({ success: true, output: null })
+    // the box untouched: what the request has stays
+    expect(read(undefined)).toMatchObject({ success: true, output: 'keep' })
+  })
+
+  it('takes no word for keeping: only the absent argument keeps', () => {
+    expect(read('keep').success).toBe(false)
+  })
+
+  it('takes a moment in the past: it hides nothing', () => {
+    expect(read('2020-01-01T00:00:00.000Z').success).toBe(true)
+  })
+
+  it('takes no day that rolls over, no time read in the server zone, and no text', () => {
+    expect(read('2026-02-30T08:00:00.000Z').success).toBe(false)
+    expect(read('2026-11-20 08:00')).toMatchObject({ success: false })
+    expect(read('2026-11-20T08:00:00Z').success).toBe(false)
+    expect(read('Fri Nov 20 2026 09:00:00 GMT+0100').success).toBe(false)
+    expect(read('soon').success).toBe(false)
   })
 })

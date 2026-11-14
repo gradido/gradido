@@ -8,11 +8,15 @@ import {
   closingLine,
   isOpenTicket,
   MESSAGE_MAX_CHARS,
+  memberSearchOf,
+  reassignedFromTo,
   refusalWords,
   SUPPORT_TICKET_MESSAGES_MAX,
   sendable,
+  supportGroupFilterOptions,
   ticketDetailsState,
   ticketRowTone,
+  waitingUntil,
 } from './SupportTicket.logic'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
@@ -51,17 +55,43 @@ describe('sendable', () => {
 
 describe('answerVariables', () => {
   it('sends an answer, an answer that closes, and a note that closes nothing', () => {
-    expect(answerVariables(7, 'Ja.', { note: false, close: false })).toEqual({
+    const none = { resubmissionAt: null }
+    expect(answerVariables(7, 'Ja.', { note: false, close: false, ...none })).toEqual({
       supportTicketId: 7,
       message: 'Ja.',
       type: 'DIALOG',
       close: false,
+      resubmissionAt: null,
     })
-    expect(answerVariables(7, 'Ja.', { note: false, close: true })).toMatchObject({
+    expect(answerVariables(7, 'Ja.', { note: false, close: true, ...none })).toMatchObject({
       type: 'DIALOG',
       close: true,
     })
-    expect(answerVariables(7, 'Intern', { note: true, close: true })).toMatchObject({
+    expect(answerVariables(7, 'Intern', { note: true, close: true, ...none })).toMatchObject({
+      type: 'MODERATOR',
+      close: false,
+    })
+  })
+
+  it('sends the resubmission as the box stands (K4)', () => {
+    expect(
+      answerVariables(7, 'Ich melde mich.', {
+        note: true,
+        close: false,
+        resubmissionAt: '2026-11-20T08:00:00.000Z',
+      }),
+    ).toMatchObject({ type: 'MODERATOR', resubmissionAt: '2026-11-20T08:00:00.000Z' })
+  })
+
+  it('sends nothing of a box that was not touched: as JSON the field is gone', () => {
+    const untouched = answerVariables(7, 'Intern', {
+      note: true,
+      close: false,
+      resubmissionAt: undefined,
+    })
+    expect(JSON.parse(JSON.stringify(untouched))).toEqual({
+      supportTicketId: 7,
+      message: 'Intern',
       type: 'MODERATOR',
       close: false,
     })
@@ -70,20 +100,46 @@ describe('answerVariables', () => {
 
 describe('refusalWords', () => {
   it('says out of reach, a full thread of the kind sent, or that it did not work', () => {
-    expect(refusalWords(['SUPPORT_TICKET_NOT_FOUND'], { note: false })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_NOT_FOUND'], 'support.messagesReached')).toBe(
       'Diese Anfrage gibt es nicht, oder sie liegt außerhalb Deiner Gruppen.',
     )
-    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: false })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.messagesReached')).toBe(
       'In dieser Anfrage stehen schon 100 Nachrichten.',
     )
-    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], { note: true })).toBe(
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.notesReached')).toBe(
       'In dieser Anfrage stehen schon 100 Notizen.',
     )
     for (const code of ['SUPPORT_TICKET_INVALID', 'SUPPORT_TICKET_NOT_STORED', 'Failed to fetch']) {
-      expect(refusalWords([code], { note: false })).toBe(
+      expect(refusalWords([code], 'support.messagesReached')).toBe(
         'Das hat nicht geklappt. Versuch es bitte noch einmal.',
       )
     }
+  })
+
+  it('knows the refusals of a handing on (K4): too often, and a group that does not exist', () => {
+    expect(refusalWords(['SUPPORT_TICKET_MESSAGES_REACHED'], 'support.reassignedReached')).toBe(
+      'Diese Anfrage ist schon 100 Mal weitergereicht worden.',
+    )
+    expect(refusalWords(['SUPPORT_TICKET_UNKNOWN_GROUP'], 'support.reassignedReached')).toBe(
+      'Diese Gruppe gibt es nicht.',
+    )
+    // into the group it is in: the page does not send that, the server refuses it as invalid
+    expect(refusalWords(['SUPPORT_TICKET_INVALID'], 'support.reassignedReached')).toBe(
+      'Das hat nicht geklappt. Versuch es bitte noch einmal.',
+    )
+  })
+})
+
+describe('reassignedFromTo', () => {
+  it('reads the two lines of a handing on, "(ohne Gruppe)" for an empty one', () => {
+    expect(reassignedFromTo('Chor\nTanz')).toBe('von Chor an Tanz')
+    expect(reassignedFromTo('\n#garten')).toBe('von (ohne Gruppe) an #garten')
+    expect(reassignedFromTo('Chor\n')).toBe('von Chor an (ohne Gruppe)')
+  })
+
+  it('reads nothing else: words in another shape give no line', () => {
+    expect(reassignedFromTo('Chor')).toBeNull()
+    expect(reassignedFromTo('Chor\nTanz\nGarten')).toBeNull()
   })
 })
 
@@ -100,6 +156,7 @@ const ticket = (more: Partial<ListedSupportTicket> = {}): ListedSupportTicket =>
   closedAt: null,
   closedBy: null,
   closedByUserName: null,
+  resubmissionAt: null,
   lastMessageType: null,
   lastMessageByModerator: null,
   ...more,
@@ -173,5 +230,82 @@ describe('closingLine', () => {
   it('says nothing while it is open, or where nobody is known any more', () => {
     expect(closingLine(ticket())).toBe('')
     expect(closingLine(ticket({ status: 'DELETED', closedBy: 3, closedByUserName: null }))).toBe('')
+  })
+})
+
+describe('supportGroupFilterOptions', () => {
+  const GROUPS = [
+    { tag: 'garden', name: 'Garten' },
+    { tag: 'choir', name: null },
+  ]
+  const values = (moderator: Parameters<typeof supportGroupFilterOptions>[0]) =>
+    supportGroupFilterOptions(moderator, GROUPS).map((option) => option.value)
+
+  it('opens for everybody on the value that shows all they see', () => {
+    // all groups: everything, with and without a group
+    expect(
+      values({ seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }),
+    ).toEqual(['', '*grouped', '*untagged', 'garden', 'choir'])
+    // groups and the requests of none: both, which the creation page has no value for
+    expect(
+      values({
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['garden'],
+        seesUntagged: true,
+      }),
+    ).toEqual(['', '*grouped', '*untagged', 'garden'])
+    // groups alone: all of theirs
+    expect(
+      values({
+        seesAllCreationGroups: false,
+        visibleCreationGroups: ['garden'],
+        seesUntagged: false,
+      }),
+    ).toEqual(['*grouped', 'garden'])
+    // the requests of no group alone
+    expect(
+      values({ seesAllCreationGroups: false, visibleCreationGroups: [], seesUntagged: true }),
+    ).toEqual(['*untagged'])
+  })
+
+  it('names the choices in the words of the creation page', () => {
+    const [first] = supportGroupFilterOptions(
+      { seesAllCreationGroups: false, visibleCreationGroups: ['garden'], seesUntagged: true },
+      GROUPS,
+    )
+    expect(first.text).toBe('(mit und ohne Gruppe)')
+  })
+})
+
+describe('memberSearchOf', () => {
+  const member = (alias: string | null) =>
+    ({ alias }) as unknown as NonNullable<ListedSupportTicket['user']>
+
+  it('searches by the address, and without one by the username', () => {
+    expect(memberSearchOf(ticket({ user: member('BBB'), userEmail: 'bibi@bloxberg.de' }))).toBe(
+      'bibi@bloxberg.de',
+    )
+    expect(memberSearchOf(ticket({ user: member('BBB'), userEmail: null }))).toBe('BBB')
+  })
+
+  it('has nothing to search without a member, or with neither', () => {
+    expect(memberSearchOf(ticket({ user: null, userEmail: 'bibi@bloxberg.de' }))).toBeNull()
+    expect(memberSearchOf(ticket({ user: member(null), userEmail: null }))).toBeNull()
+  })
+})
+
+describe('waitingUntil', () => {
+  const NOW = new Date('2026-11-14T16:00:00.000Z')
+
+  it('is the moment of a resubmission still to come', () => {
+    expect(waitingUntil(ticket({ resubmissionAt: '2026-11-20T08:00:00.000Z' }), NOW)).toEqual(
+      new Date('2026-11-20T08:00:00.000Z'),
+    )
+  })
+
+  it('is none for a due one, and without one', () => {
+    expect(waitingUntil(ticket({ resubmissionAt: '2026-11-14T15:59:00.000Z' }), NOW)).toBeNull()
+    expect(waitingUntil(ticket({ resubmissionAt: NOW.toISOString() }), NOW)).toBeNull()
+    expect(waitingUntil(ticket(), NOW)).toBeNull()
   })
 })

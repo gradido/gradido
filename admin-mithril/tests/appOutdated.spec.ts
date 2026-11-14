@@ -15,7 +15,7 @@ test.beforeEach(async ({ page, graphql }) => {
   graphql.answer({
     ...signedInAnswers(),
     ...counts,
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0 },
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
   })
   await serveWalletAssets(page)
 })

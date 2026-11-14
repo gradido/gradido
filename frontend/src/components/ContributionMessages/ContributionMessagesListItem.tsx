@@ -26,7 +26,10 @@ export type ContributionMessage = {
   userAvatarUpdatedAt: string | null
 }
 
-/** One message of the thread: the member's own on the right, the moderation's on the left. */
+/**
+ * One message of the thread: the member's own on the right, the moderation's on the left. A
+ * support request's thread has one kind more (K4): the line a handing on left.
+ */
 export const ContributionMessagesListItem = defineComponent({
   name: 'ContributionMessagesListItem',
   props: {
@@ -135,9 +138,47 @@ export const ContributionMessagesListItem = defineComponent({
 
     const when = () => d(new Date(props.message.createdAt), 'short')
 
+    // The line a handing on of a support request left (K4, SUA-018): the group before and the one
+    // after, a line each, an empty one for none. Words in another shape give the head alone.
+    const reassignedFromTo = computed(() => {
+      const lines = props.message.message.split('\n')
+      if (lines.length !== 2) {
+        return null
+      }
+      const [from, to] = lines.map((line) => line || t('contribution.creationGroup.none'))
+      return t('support.reassignedFromTo', { from, to })
+    })
+
     return () => (
       <div class='contribution-messages-list-item'>
-        {props.message.type === 'HISTORY' ? (
+        {props.message.type === 'REASSIGNED' ? (
+          <div>
+            {/* in the frame of a change: it says what happened to the request, it is no message */}
+            <BRow class='mb-3 border border-197 p-1' data-test='reassigned'>
+              <BCol cols='10'>
+                <small>{when()}</small>
+                <div class='fw-bold' data-test='reassigned-by'>
+                  {props.message.userAlias
+                    ? t('support.reassignedBy', { name: props.message.userAlias })
+                    : t('support.reassigned')}
+                </div>
+                {reassignedFromTo.value ? (
+                  <div class='small' data-test='reassigned-from-to'>
+                    {reassignedFromTo.value}
+                  </div>
+                ) : null}
+              </BCol>
+              <BCol cols='2'>
+                <AppAvatar
+                  class='vue3-avatar'
+                  size={LIST_AVATAR_SIZE}
+                  color='#fff'
+                  {...moderationAvatar.value}
+                />
+              </BCol>
+            </BRow>
+          </div>
+        ) : props.message.type === 'HISTORY' ? (
           <div>
             <BRow class='mb-3 border border-197 p-1'>
               <BCol cols='10'>

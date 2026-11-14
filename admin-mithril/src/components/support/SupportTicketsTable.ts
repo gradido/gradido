@@ -2,17 +2,23 @@
 import '@admin/components/Tables/OpenCreationsTable.css'
 import './supportTickets.css'
 import { avatarLettering } from '@admin/utils/avatarLettering'
+import { creationGroupLabel, creationGroupOption } from '@admin/utils/creationGroupLabel'
 import m, { type Children, type ClassComponent, type Vnode } from 'mithril'
+import { Modal } from '@/components/bootstrap/Modal'
 import { type Field, Table } from '@/components/bootstrap/Table'
 import { icon } from '@/components/icon'
 import { MemberAvatar } from '@/components/MemberAvatar'
+import { type Option, ThemedSelect } from '@/components/ThemedSelect'
 import type { DetailsState } from '@/data/Contribution.logic'
 import { isTheModerator } from '@/data/Member.logic'
+import { dayAndTime } from '@/data/MessageForm.logic'
 import {
   closingLine,
   isOpenTicket,
+  memberSearchOf,
   ticketDetailsState,
   ticketRowTone,
+  waitingUntil,
 } from '@/data/SupportTicket.logic'
 import type { ListedSupportTicket } from '@/data/SupportTicket.schema'
 import { d, t } from '@/i18n'
@@ -27,6 +33,7 @@ import checkIcon from '~icons/bi/check'
 import checkLgIcon from '~icons/bi/check-lg'
 import questionIcon from '~icons/bi/question-lg'
 import questionSquareIcon from '~icons/bi/question-square'
+import searchIcon from '~icons/bi/search'
 import trashIcon from '~icons/bi/trash'
 import priorityIcon from '~icons/ic/round-priority-high'
 import { SupportTicketThread, type TicketWithMember } from './SupportTicketThread'
@@ -44,10 +51,18 @@ interface Attrs {
   phone: boolean
   /** a button of a row was pressed: the page asks first */
   ondecide: (ticket: ListedSupportTicket, decision: SupportDecision) => void
+  /** the magnifier of a row: the page searches for its member */
+  onsearch: (search: string) => void
+  /** the groups a request can be handed on to (K4); the list may come before them */
+  groups: { tag: string; name: string | null }[]
+  /** hands a request on to the group `tag`, '' for none; whether the server took it */
+  onassign: (ticket: ListedSupportTicket, tag: string) => Promise<boolean>
   /** the form of an opened request wrote: the list and the count anew */
   onwritten: () => void
   class?: string
 }
+
+type GroupChange = { ticket: ListedSupportTicket; tag: string; from: string; to: string }
 
 const LIST_AVATAR_SIZE = 48
 
@@ -108,24 +123,35 @@ const avatar = (user: ListedSupportTicket['user'], className?: string) => {
   })
 }
 
-// The group as text (K2: the choice to hand it on comes with K4), "(ohne Gruppe)" where none.
+// The group as text, as the dropdown names it, "(ohne Gruppe)" where none: of a request that is
+// not handed on from its row.
 const groupOf = (ticket: ListedSupportTicket) =>
   ticket.creationGroupTag
-    ? m('.fw-bold.mb-1', ticket.creationGroupName || ticket.creationGroupTag)
-    : m('.mb-1', m('span.fst-italic.text-muted', t('contribution.noGroup')))
+    ? m(
+        '.fw-bold',
+        creationGroupLabel({ tag: ticket.creationGroupTag, name: ticket.creationGroupName }),
+      )
+    : m('span.fst-italic.text-muted', t('contribution.noGroup'))
 
 /**
  * The support requests of a tab of the support page: at the desk a row each, on a phone a card
  * each. A row opens below it to read the request's thread and to answer it. The words of a request
  * stand as text, with their line breaks, at most six lines until the row is opened. An open row
- * has a button to delete it in front and one to close it at the end.
+ * has a button to delete it in front and one to close it at the end; its group is a dropdown that
+ * hands it on after a question (K4).
  */
 export class SupportTicketsTable implements ClassComponent<Attrs> {
   private open: number | null = null
   private shownList: ListedSupportTicket[] = []
+  // What the group dropdowns show while a handing on is asked or on its way: the request itself
+  // keeps its group until the list comes anew. A new list, or a refusal, puts them back.
+  private picked = new Map<number, string>()
+  private change: GroupChange | null = null
+  // the requests a handing on is on its way for: their dropdown takes no other pick meanwhile
+  private readonly sending = new Set<number>()
 
   view({ attrs }: Vnode<Attrs>) {
-    const { tickets, kind, phone, ondecide, onwritten } = attrs
+    const { tickets, kind, phone, groups, ondecide, onsearch, onwritten } = attrs
     // The moderator's own request stands in the list like any other, but they do not open it here
     // nor act on it: on it they are the member (SUA-018), and the server refuses it to them.
     const myself = (ticket: ListedSupportTicket) =>
@@ -136,6 +162,7 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
     // still stands in it: its thread loads anew of itself.
     if (tickets !== this.shownList) {
       this.shownList = tickets
+      this.picked.clear()
       if (!tickets.some((ticket) => ticket.id === this.open && canOpen(ticket))) {
         this.open = null
       }
@@ -144,6 +171,72 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
     // deleted member's request has them too: it does not open, and would else stay open for ever.
     const decides = (ticket: ListedSupportTicket) =>
       kind === 'open' && isOpenTicket(ticket) && !myself(ticket)
+
+    // Handing on (K4): an open request, on "open" and on "all" as on the creation page, a deleted
+    // member's too, never the own. To every group and to none; the row's own group always among
+    // the choices, also while the groups have not come or did not come -- else the dropdown stood
+    // empty where the name stood before.
+    const handsOn = (ticket: ListedSupportTicket) => isOpenTicket(ticket) && !myself(ticket)
+    const groupOptions: Option[] = [
+      { value: '', text: t('contribution.noGroup') },
+      ...groups.map(creationGroupOption),
+    ]
+    const optionsFor = (ticket: ListedSupportTicket) =>
+      ticket.creationGroupTag === null ||
+      groupOptions.some((option) => option.value === ticket.creationGroupTag)
+        ? groupOptions
+        : [
+            ...groupOptions,
+            creationGroupOption({ tag: ticket.creationGroupTag, name: ticket.creationGroupName }),
+          ]
+    const pickGroup = (ticket: ListedSupportTicket, tag: string, options: Option[]) => {
+      const own = ticket.creationGroupTag ?? ''
+      if (tag === own || this.sending.has(ticket.id)) {
+        return
+      }
+      const named = (value: string) =>
+        options.find((option) => option.value === value)?.text ?? value
+      this.picked.set(ticket.id, tag)
+      this.change = { ticket, tag, from: named(own), to: named(tag) }
+    }
+    const dropChange = () => {
+      if (this.change) {
+        this.picked.delete(this.change.ticket.id)
+      }
+      this.change = null
+    }
+    // The question closes at once, so that a second click on its yes finds nothing; the pick stays
+    // on screen until the new list comes, so that it does not flick back and forth.
+    const confirmChange = async ({ ticket, tag }: GroupChange) => {
+      this.change = null
+      this.sending.add(ticket.id)
+      const taken = await attrs.onassign(ticket, tag)
+      this.sending.delete(ticket.id)
+      if (!taken) {
+        this.picked.delete(ticket.id)
+      }
+      m.redraw()
+    }
+    // where it stands: above the words of a row, or below the name on a card
+    const groupCell = (ticket: ListedSupportTicket, place: { class: string; style?: string }) => {
+      if (!handsOn(ticket)) {
+        return m('div', place, groupOf(ticket))
+      }
+      const options = optionsFor(ticket)
+      return m(
+        'div',
+        place,
+        m(ThemedSelect, {
+          value: this.picked.get(ticket.id) ?? ticket.creationGroupTag ?? '',
+          options,
+          size: 'sm',
+          class: 'group-select',
+          'data-test': 'support-group-select',
+          label: t('support.reassign'),
+          onchange: (tag: string) => pickGroup(ticket, tag, options),
+        }),
+      )
+    }
     const decideButton = (
       ticket: ListedSupportTicket,
       decision: SupportDecision,
@@ -163,6 +256,27 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         },
         m.trust(svg),
       )
+    }
+
+    // The magnifier searches for the member of the row (K4), in every tab, the moderator's own row
+    // too: it only searches. No member, no magnifier.
+    const searchButton = (ticket: ListedSupportTicket, classes: string) => {
+      const search = memberSearchOf(ticket)
+      const name = t('support.searchMember')
+      return search
+        ? m(
+            'button.btn',
+            {
+              type: 'button',
+              class: classes,
+              title: name,
+              'aria-label': name,
+              'data-test': 'support-search-member',
+              onclick: () => onsearch(search),
+            },
+            m.trust(searchIcon),
+          )
+        : null
     }
 
     const detailsButton = (ticket: ListedSupportTicket, classes: string) => {
@@ -187,9 +301,13 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
       )
     }
     // Six lines until the row is opened; a row that does not open (the own request, a deleted
-    // member's) shows its words in full, or the rest could not be read at all.
+    // member's) shows its words in full, or the rest could not be read at all. Below them who
+    // closed it, or -- an open one -- when it is wanted back (K4), while that is still to come.
     const words = (ticket: ListedSupportTicket) => {
-      const closing = closingLine(ticket)
+      const waiting = waitingUntil(ticket)
+      const closing = waiting
+        ? t('support.resubmissionLine', { day: d(waiting), time: dayAndTime(waiting).time })
+        : closingLine(ticket)
       const whole = this.open === ticket.id || !canOpen(ticket)
       return [
         m(
@@ -218,6 +336,11 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         label: t('status'),
         cell: (ticket) => STATUS_ICONS[ticket.status](),
       },
+      search: {
+        key: 'search',
+        label: '',
+        cell: (ticket) => searchButton(ticket, 'btn-md btn-link p-0 border-0 text-primary'),
+      },
       name: {
         key: 'name',
         label: t('name'),
@@ -237,7 +360,7 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
         key: 'request',
         label: t('support.request'),
         class: 'text-break',
-        cell: (ticket) => [groupOf(ticket), words(ticket)],
+        cell: (ticket) => [groupCell(ticket, { class: 'mb-1' }), words(ticket)],
       },
       sent: {
         key: 'sent',
@@ -293,7 +416,9 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
                     `${t('support.closedAt')} ${formatDate(ticket.closedAt)}`,
                   ),
             ]),
-            m('.phone-group', { style: 'grid-column: 2' }, groupOf(ticket)),
+            // the magnifier below the face, as on a contribution's card
+            m('.phone-search', searchButton(ticket, 'btn-md btn-link phone-icon-btn text-primary')),
+            groupCell(ticket, { class: 'phone-group', style: 'grid-column: 2' }),
           ]),
       },
       {
@@ -320,15 +445,14 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
       },
     ]
 
+    // the magnifier in a narrow column of its own before the name, in every tab
     const columns = {
-      open: ['delete', 'name', 'request', 'sent', 'details', 'close'],
-      closed: ['name', 'request', 'sent', 'closedAt', 'details'],
-      all: ['status', 'name', 'request', 'sent', 'closedAt', 'details'],
+      open: ['delete', 'search', 'name', 'request', 'sent', 'details', 'close'],
+      closed: ['search', 'name', 'request', 'sent', 'closedAt', 'details'],
+      all: ['status', 'search', 'name', 'request', 'sent', 'closedAt', 'details'],
     }[kind].map((key) => desk[key])
 
-    return m(
-      '.open-creations-table.support-tickets-table',
-      { class: attrs.class },
+    return m('.open-creations-table.support-tickets-table', { class: attrs.class }, [
       m(Table<ListedSupportTicket>, {
         rows: tickets,
         fields: phone ? card : columns,
@@ -344,6 +468,37 @@ export class SupportTicketsTable implements ClassComponent<Attrs> {
               )
             : null,
       }),
-    )
+      // the question before a handing on: from which group to which, and that the request may
+      // leave the own list
+      this.change
+        ? m(
+            Modal,
+            {
+              title: t('support.reassign'),
+              onclose: dropChange,
+              footer: [
+                m(
+                  'button.btn.btn-md.btn-secondary',
+                  { type: 'button', onclick: dropChange },
+                  t('overlay.cancel'),
+                ),
+                m(
+                  'button.btn.btn-md.btn-primary',
+                  {
+                    type: 'button',
+                    'data-test': 'support-reassign-yes',
+                    onclick: () => this.change && confirmChange(this.change),
+                  },
+                  t('support.reassignConfirm'),
+                ),
+              ],
+            },
+            [
+              m('p', t('support.reassignQuestion', { from: this.change.from, to: this.change.to })),
+              m('p.fst-italic.text-muted.mb-0', t('support.reassignHint')),
+            ],
+          )
+        : null,
+    ])
   }
 }

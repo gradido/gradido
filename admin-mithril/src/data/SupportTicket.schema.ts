@@ -25,6 +25,8 @@ export const listedSupportTicketSchema = v.object({
   closedAt: v.nullable(v.string()),
   closedBy: v.nullable(v.number()),
   closedByUserName: v.nullable(v.string()),
+  // when a moderator wants it back (K4); one in the past is due
+  resubmissionAt: v.nullable(v.string()),
   // the newest message of the dialog, the notes left out
   lastMessageType: v.nullable(v.string()),
   lastMessageByModerator: v.nullable(v.boolean()),
@@ -45,10 +47,14 @@ export const supportThreadSchema = v.object({
   adminListSupportTicketMessages: v.array(threadMessageSchema),
 })
 
-/** The two halves of the open tab in the moderator's groups (adminCountOpenSupportTickets). */
+/**
+ * The two halves of the open tab in the moderator's groups (adminCountOpenSupportTickets), and
+ * apart from them what waits for a resubmission (K4).
+ */
 export const openSupportTicketsSchema = v.object({
   adminCountOpenSupportTickets: v.object({
     forModeration: v.number(),
     forMember: v.number(),
+    onResubmission: v.number(),
   }),
 })

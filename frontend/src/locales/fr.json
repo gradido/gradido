@@ -1643,6 +1643,9 @@
       "group": "Ta demande est transmise aux modérateurs du groupe « {group} ». Les autres membres ne peuvent pas la voir.",
       "none": "Ta demande est transmise au support de la communauté. Les autres membres ne peuvent pas la voir."
     },
+    "reassigned": "Le support a transmis ta demande",
+    "reassignedBy": "{name} a transmis ta demande",
+    "reassignedFromTo": "{from} → {to}",
     "send": "Envoyer",
     "sent": "Ta demande a été envoyée.",
     "write": "Écrire"

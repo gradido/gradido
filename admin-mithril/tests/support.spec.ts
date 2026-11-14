@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import type { Page } from '@playwright/test'
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
+import { groups } from './fixtures/contributions'
 import { type Answer, expect, Failure, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn } from './fixtures/signIn'
 import { listedTicket, supportMember, ticketList, ticketMessage } from './fixtures/supportTickets'
@@ -72,7 +73,7 @@ const byTab: Answer = ({ statuses }: { statuses: string[] }) =>
         : ticketList([...tickets, own], 30)
 
 // the two halves of the open tab (K3): the badges show their sum
-const OPEN = { forModeration: 5, forMember: 1 }
+const OPEN = { forModeration: 5, forMember: 1, onResubmission: 0 }
 
 test.beforeEach(async ({ graphql }) => {
   graphql.answer({
@@ -83,6 +84,8 @@ test.beforeEach(async ({ graphql }) => {
     contactRefs: [],
     userRemark: REMARK,
     adminListSupportTicketMessages: [],
+    // the groups of the filter and of handing a request on (K4)
+    creationGroups: groups,
   })
 })
 
@@ -113,10 +116,18 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
     page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }),
   ).toHaveClass(/\bactive\b/)
   expect(asked(graphql, 'adminListSupportTickets')).toEqual([
-    { statuses: ['OPEN', 'IN_PROGRESS'], currentPage: 1, pageSize: 25 },
+    {
+      statuses: ['OPEN', 'IN_PROGRESS'],
+      currentPage: 1,
+      pageSize: 25,
+      query: '',
+      creationGroup: '',
+      hideResubmission: true,
+    },
   ])
   await expect(heads(page)).toHaveText([
     de.delete,
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -124,12 +135,12 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
     de.support.close,
   ])
   await expect(row(page, 0)).toHaveClass(/table-primary/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('First1 Last1')
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('member1')
-  await expect(row(page, 0).locator('td').nth(2)).toContainText('Garten')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('First1 Last1')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('member1')
+  await expect(row(page, 0).locator('td').nth(3)).toContainText('Garten')
   await expect(row(page, 0).getByTestId('support-ticket-text')).toHaveText('Words of request 1')
-  await expect(row(page, 0).locator('td').nth(3)).toHaveText('13.11.2026')
-  await expect(row(page, 1).locator('td').nth(2)).toContainText(de.contribution.noGroup)
+  await expect(row(page, 0).locator('td').nth(4)).toHaveText('13.11.2026')
+  await expect(row(page, 1).locator('td').nth(3)).toContainText(de.contribution.noGroup)
 })
 
 test('tells by the details button who is to answer, and opens neither the own request nor one without a member', async ({
@@ -151,13 +162,16 @@ test('tells by the details button who is to answer, and opens neither the own re
     `${de.details} – ${de.contribution.detailsState.conversation}`,
   )
   await expect(details(page, 3)).toHaveAttribute('title', de.details)
-  // a deleted member's: it does not open, but it can be deleted and closed (K3)
-  await expect(row(page, 4).getByRole('button')).toHaveText(['', ''])
+  // a deleted member's: it does not open, but it can be deleted and closed (K3) and handed on by
+  // its group (K4); no member, no magnifier (K4)
+  await expect(row(page, 4).getByRole('button')).toHaveText(['', de.contribution.noGroup, ''])
   await expect(row(page, 4).getByRole('button', { name: de.delete })).toBeVisible()
   await expect(row(page, 4).getByRole('button', { name: de.support.close })).toBeVisible()
-  // the moderator's own: on it they are the member (SUA-018)
-  await expect(row(page, 5).locator('td').nth(1)).toContainText('First6 Last6')
-  await expect(row(page, 5).getByRole('button')).toHaveCount(0)
+  // the moderator's own: on it they are the member (SUA-018) -- no button that acts on the
+  // request; the magnifier only searches (K4)
+  await expect(row(page, 5).locator('td').nth(2)).toContainText('First6 Last6')
+  await expect(row(page, 5).getByRole('button')).toHaveCount(1)
+  await expect(row(page, 5).getByRole('button')).toHaveAttribute('title', de.support.searchMember)
 })
 
 test('shows the closed, the deleted and all requests with their columns, colours and who closed', async ({
@@ -173,8 +187,12 @@ test('shows the closed, the deleted and all requests with their columns, colours
     statuses: ['CLOSED'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
+    hideResubmission: false,
   })
   await expect(heads(page)).toHaveText([
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -182,19 +200,20 @@ test('shows the closed, the deleted and all requests with their columns, colours
     de.details,
   ])
   await expect(row(page, 0)).toHaveClass(/table-success/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText(de.support.closedByMember)
-  await expect(row(page, 1).locator('td').nth(1)).toContainText('Geschlossen von Peter Lustig')
-  await expect(row(page, 1).locator('td').nth(3)).toHaveText('13.11.2026')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText(de.support.closedByMember)
+  await expect(row(page, 1).locator('td').nth(2)).toContainText('Geschlossen von Peter Lustig')
+  await expect(row(page, 1).locator('td').nth(4)).toHaveText('13.11.2026')
 
   await tab(page, de.support.tab.deleted).click()
   await expect(rows(page)).toHaveCount(1)
   await expect(row(page, 0)).toHaveClass(/table-danger/)
-  await expect(row(page, 0).locator('td').nth(1)).toContainText('Gelöscht von Peter Lustig')
+  await expect(row(page, 0).locator('td').nth(2)).toContainText('Gelöscht von Peter Lustig')
 
   await tab(page, de.support.tab.all).click()
   await expect(rows(page)).toHaveCount(9)
   await expect(heads(page)).toHaveText([
     de.status,
+    '',
     de.name,
     de.support.request,
     de.support.sent,
@@ -218,6 +237,9 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql },
     statuses: ['CLOSED'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
+    hideResubmission: false,
   })
 })
 
@@ -268,7 +290,7 @@ test('opens a request with its member, the remark and the whole thread, to read'
   )
   await expect(page.getByTestId('member-remark')).toHaveText(`Bemerkung: ${REMARK.remark}`)
   await expect(card(page).locator('.list-group-item').nth(2)).toHaveText(
-    'Registriert: 15.1.2026, Gesendet: 13.11.2026',
+    'Anfrage Nr. 1, Registriert: 15.1.2026, Gesendet: 13.11.2026',
   )
 
   await expect(bubbles.nth(0)).toHaveClass(/is-user/)
@@ -352,6 +374,9 @@ test('asks for the next page', async ({ page, graphql }, info) => {
       statuses: ['OPEN', 'IN_PROGRESS'],
       currentPage: 2,
       pageSize: 25,
+      query: '',
+      creationGroup: '',
+      hideResubmission: true,
     })
 })
 
@@ -420,6 +445,17 @@ test.describe('on a phone', () => {
     )
     // the moderator's own: no button
     await expect(row(page, 5).locator('.phone-actions button')).toHaveCount(0)
+    // the magnifier below the face, as on a contribution's card (K4)
+    await expect(first.locator('.phone-head .phone-search button')).toHaveAttribute(
+      'title',
+      de.support.searchMember,
+    )
+    // the group to hand it on below the name (K4); the own request shows its group as text
+    await expect(first.locator('.phone-head .phone-group .group-select')).toHaveCount(1)
+    await expect(row(page, 5).locator('.phone-head .phone-group .group-select')).toHaveCount(0)
+    await expect(row(page, 5).locator('.phone-head .phone-group')).toHaveText(
+      de.contribution.noGroup,
+    )
   })
 
   test('puts the number at the corner of the open tab, as the creation page does', async ({
@@ -471,7 +507,12 @@ test('answers below the thread, and asks for the thread, the list and the count 
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Am **Handy** oben rechts.', type: 'DIALOG', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Am **Handy** oben rechts.',
+      type: 'DIALOG',
+      close: false,
+    },
   ])
   await expect(field(page)).toHaveValue('')
   // what the request is now, the server says: its thread, the list and the count, asked anew
@@ -482,6 +523,9 @@ test('answers below the thread, and asks for the thread, the list and the count 
     statuses: ['OPEN', 'IN_PROGRESS'],
     currentPage: 1,
     pageSize: 25,
+    query: '',
+    creationGroup: '',
+    hideResubmission: true,
   })
   // the row stays open where it is still in the list
   await expect(field(page)).toBeVisible()
@@ -499,7 +543,12 @@ test('answers and closes with the green button, and the row goes where the list 
   await button(page, de.support.answerAndClose).click()
 
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Ja, genau so.', type: 'DIALOG', close: true },
+    {
+      supportTicketId: 1,
+      message: 'Ja, genau so.',
+      type: 'DIALOG',
+      close: true,
+    },
   ])
   await expect(rows(page)).toHaveCount(5)
   await expect(card(page)).toHaveCount(0)
@@ -519,7 +568,12 @@ test('writes a note under its own tab with "Speichern", and offers no answer the
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Rückruf vereinbart', type: 'MODERATOR', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Rückruf vereinbart',
+      type: 'MODERATOR',
+      close: false,
+    },
   ])
 })
 
@@ -566,7 +620,12 @@ test('keeps a draft to each tab: words begun as a note never go to the member', 
 
   await expect(toast(page, de.message.request)).toBeVisible()
   expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
-    { supportTicketId: 1, message: 'Schön, dass es klappt!', type: 'DIALOG', close: false },
+    {
+      supportTicketId: 1,
+      message: 'Schön, dass es klappt!',
+      type: 'DIALOG',
+      close: false,
+    },
   ])
   // the note's draft is still there, and "Abbrechen" empties only the draft shown
   await choose(page, de.moderator.notice)
@@ -618,9 +677,9 @@ test('lets no answer to an earlier count put back a count from before a write', 
       counted += 1
       if (counted === 1) {
         await held
-        return { forModeration: 5, forMember: 1 }
+        return { forModeration: 5, forMember: 1, onResubmission: 0 }
       }
-      return { forModeration: 4, forMember: 1 }
+      return { forModeration: 4, forMember: 1, onResubmission: 0 }
     },
   })
   const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
@@ -779,13 +838,17 @@ test('counts the open requests at the menu entry and at the open tab', async ({
 
   // after a write, the count as it is now
   graphql.answer({ adminCloseSupportTicket: true })
-  graphql.answer({ adminCountOpenSupportTickets: { forModeration: 4, forMember: 1 } })
+  graphql.answer({
+    adminCountOpenSupportTickets: { forModeration: 4, forMember: 1, onResubmission: 0 },
+  })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
   await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
   await expect(entry.locator('.badge')).toHaveText('5')
   await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
 
-  graphql.answer({ adminCountOpenSupportTickets: { forModeration: 0, forMember: 0 } })
+  graphql.answer({
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+  })
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
   await expect(entry.locator('.badge')).toHaveCount(0)
@@ -823,4 +886,669 @@ test('steps back a page where the last request of the last page goes', async ({
     ),
   ).toEqual([1, 2, 2, 1])
   await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toHaveCount(0)
+})
+
+// K4: the search, the group filter and the magnifier, as on the creation page
+const groupFilter = (page: Page) => page.getByTestId('support-group-filter')
+const searchField = (page: Page) => page.getByPlaceholder(de.user_memo_search)
+const listAsked = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
+  asked(graphql, 'adminListSupportTickets') as Record<string, unknown>[]
+const OPEN_TAB = {
+  statuses: ['OPEN', 'IN_PROGRESS'],
+  currentPage: 1,
+  pageSize: 25,
+  hideResubmission: true,
+}
+// a search finds nothing in these tests, no search what the tab holds
+const nothingFound: Answer = (variables: { query: string; statuses: string[] }) =>
+  variables.query ? ticketList([]) : (byTab as (asked: object) => unknown)(variables)
+
+test('searches from the first page, and keeps the search over the tabs and for the moderator', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await searchField(page).fill('Garten Bibi')
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '' })
+
+  await tab(page, de.support.tab.closed).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({
+      ...OPEN_TAB,
+      statuses: ['CLOSED'],
+      hideResubmission: false,
+      query: 'Garten Bibi',
+      creationGroup: '',
+    })
+  const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
+  expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({
+    '/support': 'Garten Bibi',
+    '/support#tab': 1,
+  })
+  await page.reload()
+  await expect(searchField(page)).toHaveValue('Garten Bibi')
+  await expect(rows(page)).toHaveCount(2)
+
+  // the × empties it
+  await page.getByRole('button', { name: de.search.clear }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({
+      ...OPEN_TAB,
+      statuses: ['CLOSED'],
+      hideResubmission: false,
+      query: '',
+      creationGroup: '',
+    })
+})
+
+test('lets a kept search that finds nothing give way, and keeps one typed here', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.evaluate(
+    ([key, id]) => localStorage.setItem(key, JSON.stringify({ [id]: { '/support': 'vergessen' } })),
+    [KEPT, moderator.gradidoID],
+  )
+  graphql.answer({ adminListSupportTickets: nothingFound })
+  const before = listAsked(graphql).length
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  await expect(searchField(page)).toHaveValue('')
+  expect(
+    listAsked(graphql)
+      .slice(before)
+      .map((variables) => variables.query),
+  ).toEqual(['vergessen', ''])
+  const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
+  expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({})
+
+  await searchField(page).fill('niemand')
+  await expect(rows(page)).toHaveCount(0)
+  await expect(searchField(page)).toHaveValue('niemand')
+})
+
+test('filters by group from the first page, and opens on all the moderator sees', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: 'garten' })
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
+
+  // the filter is not kept: the page opens on all again
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+})
+
+for (const [who, scope, first, choices] of [
+  [
+    'a moderator of a group and of the requests without one',
+    { visibleCreationGroups: ['kueche'], seesUntagged: true },
+    '',
+    [
+      de.creationGroupFilter.all,
+      de.creationGroupFilter.grouped,
+      de.creationGroupFilter.untagged,
+      '#kueche',
+    ],
+  ],
+  [
+    'a moderator of a group alone',
+    { visibleCreationGroups: ['kueche'], seesUntagged: false },
+    '*grouped',
+    [de.creationGroupFilter.grouped, '#kueche'],
+  ],
+  [
+    'a moderator of the requests without a group alone',
+    { visibleCreationGroups: [], seesUntagged: true },
+    '*untagged',
+    [de.creationGroupFilter.untagged],
+  ],
+] as const) {
+  test(`opens ${who} on all they see`, async ({ page, graphql }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    const scoped = {
+      ...moderator,
+      role: 'MODERATOR',
+      seesAllCreationGroups: false,
+      visibleCreationGroups: [...scope.visibleCreationGroups],
+      seesUntagged: scope.seesUntagged,
+    }
+    graphql.answer(signedInAnswers(scoped))
+    await signIn(page, '/support', scoped)
+    await expect(rows(page)).toHaveCount(6)
+
+    expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: first }])
+    await groupFilter(page).locator('.dropdown-toggle').click()
+    await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([...choices])
+  })
+}
+
+test('searches for the member of a row with its magnifier: the address, else the username', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1),
+      listedTicket(2, 2, { userEmail: null }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await expect(rows(page)).toHaveCount(2)
+  await row(page, 0).getByRole('button', { name: de.support.searchMember }).click()
+  await expect(searchField(page)).toHaveValue('member1@example.org')
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '' })
+
+  await row(page, 1).getByRole('button', { name: de.support.searchMember }).click()
+  await expect(searchField(page)).toHaveValue('member2')
+})
+
+// K4: the resubmission -- the box of the form, the line of the row, and the open tab without
+const box = (page: Page) => card(page).getByTestId('support-resubmission-box')
+const day = (page: Page) => card(page).getByTestId('support-resubmission-day')
+const time = (page: Page) => card(page).getByTestId('support-resubmission-time')
+const hideBox = (page: Page) => page.getByLabel(de.hide_resubmission)
+
+test('hides on the open tab what waits for a resubmission, at every opening, and shows it once asked', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await expect(hideBox(page)).toBeChecked()
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect.poll(() => listAsked(graphql).length).toBe(2)
+  await hideBox(page).uncheck()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '' })
+
+  // the other tabs hide nothing, and have no box
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await expect(hideBox(page)).toHaveCount(0)
+  expect(listAsked(graphql).at(-1)).toMatchObject({ hideResubmission: false })
+  // not kept: the next opening hides again
+  await tab(page, de.support.tab.open).click()
+  await page.reload()
+  await expect(hideBox(page)).toBeChecked()
+  expect(listAsked(graphql).at(-1)).toMatchObject({ hideResubmission: true })
+})
+
+test('says below the words when a request is wanted back, while that is still to come', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1, { resubmissionAt: '2030-11-20T08:00:00.000Z' }),
+      listedTicket(2, 2, { resubmissionAt: '2020-01-01T08:00:00.000Z' }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await expect(rows(page)).toHaveCount(2)
+  await expect(row(page, 0)).toContainText('Wiedervorlage: 20.11.2030, 09:00')
+  await expect(row(page, 1)).not.toContainText(de.hide_resubmission.split(' ')[0])
+  await expect(row(page, 1)).not.toContainText('Wiedervorlage:')
+})
+
+test('opens the box as the request came: its moment while still to come, empty once due', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTickets: ticketList([
+      listedTicket(1, 1, { resubmissionAt: '2030-11-20T08:00:00.000Z' }),
+      listedTicket(2, 2, { resubmissionAt: '2020-01-01T08:00:00.000Z' }),
+    ]),
+  })
+  await signIn(page, '/support')
+  await details(page, 0).click()
+  await expect(box(page)).toBeChecked()
+  await expect(day(page)).toHaveValue('2030-11-20')
+  await expect(time(page)).toHaveValue('09:00')
+  await details(page, 0).click()
+  await details(page, 1).click()
+  await expect(box(page)).not.toBeChecked()
+  await expect(day(page)).toHaveCount(0)
+})
+
+test('answers with a resubmission as an ISO moment, and closes nothing while the box is set', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await opened(page)
+  await field(page).fill('Ich melde mich nächste Woche.')
+  await box(page).check()
+  // without a day nothing goes
+  await expect(button(page, de.support.answer)).toBeDisabled()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('09:00')
+  await expect(button(page, de.support.answer)).toBeEnabled()
+  await expect(button(page, de.support.answerAndClose)).toBeDisabled()
+  await expect(
+    card(page).locator('span[title]', {
+      has: page.getByRole('button', { name: de.support.answerAndClose, exact: true }),
+    }),
+  ).toHaveAttribute('title', de.support.closingWaits)
+  await button(page, de.support.answer).click()
+
+  await expect(toast(page, de.message.request)).toBeVisible()
+  // the moment where the moderator sits (Berlin, winter time): 09:00 is 08:00 UTC
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
+    {
+      supportTicketId: 1,
+      message: 'Ich melde mich nächste Woche.',
+      type: 'DIALOG',
+      close: false,
+      resubmissionAt: '2030-11-20T08:00:00.000Z',
+    },
+  ])
+})
+
+test('sends no resubmission in the past, and none with a time that is no time', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await opened(page)
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await box(page).check()
+  await day(page).fill('2020-01-01')
+  await button(page, de.save).click()
+  await expect(toast(page, de.contributionMessagesForm.resubmissionDateInPast)).toBeVisible()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('9')
+  await expect(button(page, de.save)).toBeDisabled()
+  // made whole as the field is left
+  await time(page).blur()
+  await expect(time(page)).toHaveValue('09:00')
+  await button(page, de.save).click()
+  await expect(toast(page, de.message.request)).toBeVisible()
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')).toEqual([
+    {
+      supportTicketId: 1,
+      message: 'Rückruf vereinbart',
+      type: 'MODERATOR',
+      close: false,
+      resubmissionAt: '2030-11-20T08:00:00.000Z',
+    },
+  ])
+})
+
+test('sends nothing of a box it did not touch: the request keeps what it has, and the box follows it', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  // waiting until Monday; after the first note the list says the member took it away meanwhile
+  let waits = true
+  graphql.answer({
+    adminCreateSupportTicketMessage: () => {
+      waits = false
+      return { id: 99 }
+    },
+    adminListSupportTickets: () =>
+      ticketList([
+        listedTicket(1, 1, { resubmissionAt: waits ? '2030-11-20T08:00:00.000Z' : null }),
+        listedTicket(2, 2),
+      ]),
+  })
+  await signIn(page, '/support')
+  await details(page, 0).click()
+  await expect(box(page)).toBeChecked()
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await button(page, de.save).click()
+  await expect(toast(page, de.message.request)).toBeVisible()
+  const [first] = asked(graphql, 'adminCreateSupportTicketMessage')
+  expect(first).toEqual({
+    supportTicketId: 1,
+    message: 'Rückruf vereinbart',
+    type: 'MODERATOR',
+    close: false,
+  })
+  expect('resubmissionAt' in first).toBe(false)
+  // the new list has none: the untouched box follows it, and the next note sends nothing either
+  await expect(box(page)).not.toBeChecked()
+  await field(page).fill('Noch ein Vermerk')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(2)
+  expect('resubmissionAt' in asked(graphql, 'adminCreateSupportTicketMessage')[1]).toBe(false)
+  // touched, it goes: ticked off it takes the resubmission away
+  await box(page).check()
+  await box(page).uncheck()
+  await field(page).fill('Doch nicht warten')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(3)
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')[2]).toMatchObject({
+    resubmissionAt: null,
+  })
+})
+
+test('has no box for a note under a closed request, and one for an answer there', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await details(page, 0).click()
+  await expect(box(page)).toBeVisible()
+  await choose(page, de.moderator.notice)
+  await expect(box(page)).toHaveCount(0)
+})
+
+test('keeps a box set for an answer while a note goes that has none, and sends it with the answer', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminCreateSupportTicketMessage: { id: 99 } })
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await details(page, 0).click()
+  await box(page).check()
+  await day(page).fill('2030-11-20')
+  await time(page).fill('09:00')
+  // a closed request's note has no box: nothing of it goes, and it stays set for the answer
+  await choose(page, de.moderator.notice)
+  await field(page).fill('Rückruf vereinbart')
+  await button(page, de.save).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(1)
+  expect('resubmissionAt' in asked(graphql, 'adminCreateSupportTicketMessage')[0]).toBe(false)
+  await choose(page, de.moderator.message)
+  await expect(box(page)).toBeChecked()
+  await field(page).fill('Ich melde mich nächste Woche.')
+  await button(page, de.support.answer).click()
+  await expect.poll(() => asked(graphql, 'adminCreateSupportTicketMessage').length).toBe(2)
+  expect(asked(graphql, 'adminCreateSupportTicketMessage')[1]).toMatchObject({
+    type: 'DIALOG',
+    resubmissionAt: '2030-11-20T08:00:00.000Z',
+  })
+})
+
+// K4: handing a request on to another group, from the dropdown of its row
+const pickGroup = async (page: Page, index: number, group: string) => {
+  await row(page, index).locator('.group-select .dropdown-toggle').click()
+  await row(page, index).locator('.group-select .dropdown-item', { hasText: group }).click()
+}
+const shownGroup = (page: Page, index: number) =>
+  row(page, index).locator('.group-select .dropdown-toggle')
+
+test('hands an open request on to another group once asked, then asks for the list and the count anew', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: true })
+  await open(page)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await expect(shownGroup(page, 0)).toHaveAttribute('aria-label', de.support.reassign)
+
+  await pickGroup(page, 0, '#kueche')
+  await expect(dialog(page).locator('.modal-title')).toHaveText(de.support.reassign)
+  await expect(dialog(page).locator('.modal-body p')).toHaveText([
+    'Diese Anfrage von Garten an #kueche weiterreichen?',
+    de.support.reassignHint,
+  ])
+  // what is asked stands in the dropdown meanwhile
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([
+    { supportTicketId: 1, creationGroupTag: 'kueche' },
+  ])
+  // whether the request is still in the list is the server's to say
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+  await expect.poll(() => asked(graphql, 'adminCountOpenSupportTickets').length).toBe(2)
+})
+
+test('hands on from "(ohne Gruppe)" and to it, a deleted member\'s request too', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: true })
+  await open(page)
+
+  await expect(shownGroup(page, 1)).toHaveText(de.contribution.noGroup)
+  await pickGroup(page, 1, 'Garten')
+  await expect(dialog(page).locator('.modal-body p').first()).toHaveText(
+    `Diese Anfrage von ${de.contribution.noGroup} an Garten weiterreichen?`,
+  )
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+
+  await pickGroup(page, 4, 'Garten')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await pickGroup(page, 0, de.contribution.noGroup)
+  await expect(dialog(page).locator('.modal-body p').first()).toHaveText(
+    `Diese Anfrage von Garten an ${de.contribution.noGroup} weiterreichen?`,
+  )
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect
+    .poll(() => asked(graphql, 'adminReassignSupportTicket'))
+    .toEqual([
+      { supportTicketId: 2, creationGroupTag: 'garten' },
+      { supportTicketId: 5, creationGroupTag: 'garten' },
+      { supportTicketId: 1, creationGroupTag: '' },
+    ])
+})
+
+test('offers the dropdown on open requests only, on "Alle" too, and never on the own', async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  await open(page)
+  for (const index of [0, 1, 2, 3, 4]) {
+    await expect(row(page, index).locator('.group-select')).toHaveCount(1)
+  }
+  // the own request: its group as text (SUA-018)
+  await expect(row(page, 5).locator('.group-select')).toHaveCount(0)
+  await expect(row(page, 5).locator('td').nth(3)).toContainText(de.contribution.noGroup)
+
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await expect(page.locator('.support-tickets-table .group-select')).toHaveCount(0)
+
+  await tab(page, de.support.tab.all).click()
+  await expect(rows(page)).toHaveCount(9)
+  // the five open ones that are not the own
+  await expect(page.locator('.support-tickets-table .group-select')).toHaveCount(5)
+})
+
+test('puts the dropdown back where the question is answered no, or the server refuses', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ adminReassignSupportTicket: new Failure('SUPPORT_TICKET_MESSAGES_REACHED') })
+  await open(page)
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([])
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, 'Diese Anfrage ist schon 100 Mal weitergereicht worden.')).toBeVisible()
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
+
+  graphql.answer({ adminReassignSupportTicket: new Failure('SUPPORT_TICKET_UNKNOWN_GROUP') })
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.unknownGroup)).toBeVisible()
+})
+
+test('sends a handing on once: while it goes, its dropdown takes no other pick', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  graphql.answer({
+    adminReassignSupportTicket: async () => {
+      await held
+      return true
+    },
+  })
+  await open(page)
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  await pickGroup(page, 0, de.contribution.noGroup)
+  // the pick is drawn -- the list closed in the same drawing -- and no question came
+  await expect(row(page, 0).locator('.group-select .dropdown-menu')).not.toHaveClass(/show/)
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+
+  release()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  expect(asked(graphql, 'adminReassignSupportTicket')).toEqual([
+    { supportTicketId: 1, creationGroupTag: 'kueche' },
+  ])
+})
+
+test("keeps the row's own group among the choices while the groups do not come", async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ creationGroups: new Failure('the groups did not come') })
+  await open(page)
+  await expect(shownGroup(page, 0)).toHaveText('Garten')
+  await shownGroup(page, 0).click()
+  await expect(row(page, 0).locator('.group-select .dropdown-item')).toHaveText([
+    de.contribution.noGroup,
+    'Garten',
+  ])
+})
+
+test('shows in the thread who handed a request on, from which group to which', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({
+    adminListSupportTicketMessages: [
+      ticketMessage(1),
+      ticketMessage(2, {
+        type: 'REASSIGNED',
+        message: 'Garten\n',
+        userAlias: 'peter',
+        userId: 99,
+        isModerator: true,
+      }),
+      // words in another shape: the head alone
+      ticketMessage(3, {
+        type: 'REASSIGNED',
+        message: 'Garten',
+        userAlias: 'peter',
+        userId: 99,
+        isModerator: true,
+      }),
+    ],
+  })
+  await open(page)
+  await details(page, 0).click()
+
+  const lines = card(page).locator('.contribution-messages-list-item')
+  await expect(lines).toHaveCount(3)
+  await expect(lines.nth(1).locator('[data-test="message-kind"]')).toHaveText(
+    de.support.reassignedHead,
+  )
+  await expect(lines.nth(1).locator('[data-test="moderator-message"]')).toHaveText(
+    `von Garten an ${de.contribution.noGroup}`,
+  )
+  await expect(lines.nth(1).locator('[data-test="moderator-name"]')).toHaveText('peter')
+  await expect(lines.nth(2).locator('[data-test="message-kind"]')).toHaveText(
+    de.support.reassignedHead,
+  )
+  await expect(lines.nth(2).locator('[data-test="moderator-message"]')).toHaveCount(0)
+})
+
+test('loads the thread of an opened request anew once it comes back in another group', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  let moved = false
+  graphql.answer({
+    adminReassignSupportTicket: () => {
+      moved = true
+      return true
+    },
+    adminListSupportTickets: () =>
+      ticketList(
+        [
+          listedTicket(
+            1,
+            1,
+            moved
+              ? { creationGroupTag: 'kueche' }
+              : { creationGroupTag: 'garten', creationGroupName: 'Garten' },
+          ),
+          ...tickets.slice(1),
+          own,
+        ],
+        30,
+      ),
+  })
+  await open(page)
+  await details(page, 0).click()
+  await expect.poll(() => asked(graphql, 'adminListSupportTicketMessages').length).toBe(1)
+
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(toast(page, de.support.reassigned)).toBeVisible()
+  await expect(shownGroup(page, 0)).toHaveText('#kueche')
+  await expect.poll(() => asked(graphql, 'adminListSupportTicketMessages').length).toBe(2)
+  // the row stays open
+  await expect(card(page)).toBeVisible()
 })

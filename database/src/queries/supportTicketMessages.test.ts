@@ -146,6 +146,17 @@ describe('supportTicketMessages query test', () => {
       ).toEqual([answer])
     })
 
+    it('reads the line a handing on leaves, among the dialog, and still no note (K4)', async () => {
+      const handedOn = await write(peter.id, 'Garten\n', AT, 'REASSIGNED')
+      await write(peter.id, 'internal note', AT, 'MODERATOR')
+      const answer = await write(peter.id, 'answer', LATER)
+      const dialog = await dbSelectSupportTicketDialogOfOwner(ticketId, bibi.id)
+      expect(dialog.map((message) => [message.id, message.type])).toEqual([
+        [handedOn, 'REASSIGNED'],
+        [answer, 'DIALOG'],
+      ])
+    })
+
     it('answers no message for the request of another member, as for a missing one', async () => {
       await write(peter.id, 'answer', AT)
       expect(await dbSelectSupportTicketDialogOfOwner(ticketId, peter.id)).toEqual([])

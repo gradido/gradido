@@ -89,7 +89,8 @@ const ticketFiled = (
  *
  * No operation takes a member: it is always the signed-in one, and every query has them in its
  * condition -- another member's request answers as a missing one does. The member reads the
- * DIALOG messages and no other kind, and never a row number of anybody.
+ * DIALOG messages and the lines of a handing on (K4), no other kind, and never a row number of
+ * anybody.
  *
  * Nothing of the words reaches the log: the request log writes no variables, the answer of a
  * request that read or wrote stays out of it (countSupportTicket.ts), and a database error is
@@ -222,7 +223,10 @@ export class SupportTicketResolver {
     )
   }
 
-  /** Closes one of the member's own requests ("Erledigt, danke"), an open one or one with a question back. */
+  /**
+   * Closes one of the member's own requests ("Erledigt, danke"), an open one or one with a
+   * question back; a resubmission of the moderation goes with it (K4).
+   */
   @Authorized([RIGHTS.USE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
   async closeSupportTicket(
@@ -234,7 +238,12 @@ export class SupportTicketResolver {
     const closed = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       dbUpdateSupportTicketOfOwner(
         { id: supportTicketId, userId: member.id, statusIn: MEMBER_CLOSES_FROM },
-        { status: SupportTicketStatus.CLOSED, closedAt: new Date(), closedBy: member.id },
+        {
+          status: SupportTicketStatus.CLOSED,
+          closedAt: new Date(),
+          closedBy: member.id,
+          resubmissionAt: null,
+        },
       ),
     )
     if (!closed) {

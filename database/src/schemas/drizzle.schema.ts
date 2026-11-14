@@ -1661,6 +1661,9 @@ export const SupportTicketMessageType = {
   DIALOG: 'DIALOG',
   // the moderation's internal note, which the member never reads
   MODERATOR: 'MODERATOR',
+  // the line a handing on leaves in the thread (K4, SUA-018): the group it came from and the one
+  // it went to, a line each, as they were named at that moment; the member reads it too
+  REASSIGNED: 'REASSIGNED',
 } as const
 export type SupportTicketMessageType =
   (typeof SupportTicketMessageType)[keyof typeof SupportTicketMessageType]

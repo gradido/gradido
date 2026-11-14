@@ -661,6 +661,7 @@
     "closedAt": "Chiusa",
     "closedBy": "Chiusa da {name}",
     "closedByMember": "Chiusa dal membro",
+    "closingWaits": "Con un promemoria, la richiesta resta aperta.",
     "confirmClose": {
       "body": "Vuoi chiudere questa richiesta senza rispondere? Il membro non riceve nessuna e-mail al riguardo.",
       "title": "Chiudi la richiesta",
@@ -674,11 +675,23 @@
     "deleted": "La richiesta è eliminata.",
     "deletedBy": "Eliminata da {name}",
     "failed": "Non ha funzionato. Riprova, per favore.",
+    "hideResubmissionTooltip": "Nasconde tutte le richieste per cui un moderatore ha impostato una data di promemoria.",
     "loadFailed": "Non è stato possibile caricare le richieste. Riprova, per favore.",
     "messagesReached": "In questa richiesta ci sono già {max} messaggi.",
     "notFound": "Questa richiesta non esiste, oppure è fuori dai tuoi gruppi.",
     "notesReached": "In questa richiesta ci sono già {max} note.",
+    "number": "Richiesta n. {number}",
+    "reassign": "Inoltra la richiesta",
+    "reassignConfirm": "Sì, inoltra",
+    "reassignHint": "A seconda dei tuoi gruppi visibili, potrebbe non comparire più nel tuo elenco. Nella conversazione si vede chi l'ha inoltrata; anche il membro lo vede.",
+    "reassignQuestion": "Inoltrare questa richiesta da {from} a {to}?",
+    "reassigned": "La richiesta è stata inoltrata.",
+    "reassignedFromTo": "da {from} a {to}",
+    "reassignedHead": "Inoltrata",
+    "reassignedReached": "Questa richiesta è già stata inoltrata {max} volte.",
     "request": "Richiesta",
+    "resubmissionLine": "Promemoria: {day}, {time}",
+    "searchMember": "Cerca questo membro",
     "sent": "Inviata",
     "tab": {
       "all": "Tutte",
@@ -686,7 +699,8 @@
       "deleted": "Eliminate",
       "open": "Aperte"
     },
-    "tooLong": "Al massimo {max} caratteri."
+    "tooLong": "Al massimo {max} caratteri.",
+    "unknownGroup": "Questo gruppo non esiste."
   },
   "text": "Testo",
   "thank-you-cheque": {

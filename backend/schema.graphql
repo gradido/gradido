@@ -62,7 +62,7 @@ type Query {
   spaces(limit: Int! = 20, page: Int! = 1): SpaceList!
   showFriends: ShowFriends!
   communityStatistics: CommunityStatistics!
-  adminListSupportTickets(pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
+  adminListSupportTickets(hideResubmission: Boolean! = false, creationGroup: String! = "", query: String! = "", pageSize: Int!, currentPage: Int!, statuses: [SupportTicketStatus!]!): AdminSupportTicketList!
   adminListSupportTicketMessages(supportTicketId: Int!): [AdminSupportTicketMessage!]!
   adminCountOpenSupportTickets: AdminOpenSupportTickets!
   listSupportTickets(pageSize: Int!, currentPage: Int!): SupportTicketList!
@@ -900,6 +900,7 @@ type AdminSupportTicket {
   closedAt: DateTime
   closedBy: Int
   closedByUserName: String
+  resubmissionAt: DateTime
   lastMessageType: SupportTicketMessageType
   lastMessageByModerator: Boolean
 }
@@ -915,11 +916,12 @@ enum SupportTicketStatus {
 }
 
 """
-The kind of a message in a support request: dialog, or the moderation internal note
+The kind of a message in a support request: dialog, the moderation internal note, or the line a handing on to another group leaves
 """
 enum SupportTicketMessageType {
   DIALOG
   MODERATOR
+  REASSIGNED
 }
 
 type AdminSupportTicketMessage {
@@ -939,6 +941,7 @@ type AdminSupportTicketMessage {
 type AdminOpenSupportTickets {
   forModeration: Int!
   forMember: Int!
+  onResubmission: Int!
 }
 
 type SupportTicketList {
@@ -1170,9 +1173,10 @@ type Mutation {
   setCreationAllowed(allowed: Boolean!, userId: Int!): Boolean!
   upsertProjectBranding(input: ProjectBrandingInput!): ProjectBranding
   deleteProjectBranding(id: ID!): Boolean!
-  adminCreateSupportTicketMessage(close: Boolean!, type: SupportTicketMessageType!, message: String!, supportTicketId: Int!): AdminSupportTicketMessage!
+  adminCreateSupportTicketMessage(resubmissionAt: String, close: Boolean!, type: SupportTicketMessageType!, message: String!, supportTicketId: Int!): AdminSupportTicketMessage!
   adminCloseSupportTicket(supportTicketId: Int!): Boolean!
   adminDeleteSupportTicket(supportTicketId: Int!): Boolean!
+  adminReassignSupportTicket(creationGroupTag: String!, supportTicketId: Int!): Boolean!
   createSupportTicket(creationGroupTag: String, text: String!): SupportTicket!
   createSupportTicketMessage(message: String!, supportTicketId: Int!): SupportTicketMessage!
   closeSupportTicket(supportTicketId: Int!): Boolean!

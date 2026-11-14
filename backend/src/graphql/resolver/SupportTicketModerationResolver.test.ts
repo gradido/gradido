@@ -1031,3 +1031,601 @@ describe('SupportTicketModerationResolver, acting on a request (K3)', () => {
     })
   })
 })
+
+// K4: the search and the group filter of the list, beside the scope and never in its place.
+// Every request here is filed for this block, with a word no request above has.
+describe('SupportTicketModerationResolver, the search and the group filter (K4)', () => {
+  const adminListSupportTicketsFiltered = gql`
+    query (
+      $statuses: [SupportTicketStatus!]!
+      $currentPage: Int!
+      $pageSize: Int!
+      $query: String!
+      $creationGroup: String!
+    ) {
+      adminListSupportTickets(
+        statuses: $statuses
+        currentPage: $currentPage
+        pageSize: $pageSize
+        query: $query
+        creationGroup: $creationGroup
+      ) {
+        count
+        tickets {
+          id
+        }
+      }
+    }
+  `
+  const search = (words: string, creationGroup = '', pageSize = 25): Promise<any> =>
+    query({
+      query: adminListSupportTicketsFiltered,
+      variables: { statuses: ALL, currentPage: 1, pageSize, query: words, creationGroup },
+    })
+  // the ids found, the count agreeing with them
+  const found = async (words: string, creationGroup = ''): Promise<number[]> => {
+    const res = await search(words, creationGroup)
+    expect(res.errors).toBeUndefined()
+    const { count, tickets } = res.data.adminListSupportTickets
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket: { id: number }) => ticket.id)
+  }
+  let carla: DbUser
+  let inGarden: number
+  let inChoir: number
+  let ungrouped: number
+  let peters: number
+
+  beforeAll(async () => {
+    // a moderator of a group and of the requests without one
+    carla = await userFactoryDrizzle({
+      email: 'carla@sonne.de',
+      firstName: 'Carla',
+      lastName: 'Sonne',
+      alias: 'CarlaS',
+      emailChecked: true,
+      language: 'de',
+    })
+    await moderate(carla, ['choir', '*untagged'])
+    inGarden = await file(bibi.id, 'Das Hochbeet im Garten', 200, gardenId)
+    inChoir = await file(bibi.id, 'Ein Hochbeet für den Chor', 201, choirId)
+    ungrouped = await file(bibi.id, 'Ein Hochbeet ohne Gruppe', 202, null)
+    peters = await file(peter.id, 'Mein Hochbeet', 203, gardenId)
+  })
+
+  it('finds a request by its words, its member and its number, each word somewhere in it', async () => {
+    await loginAs('peter@lustig.de')
+    expect(await found('hochbeet chor')).toEqual([inChoir])
+    expect(await found('Bloxberg Hochbeet')).toEqual([ungrouped, inChoir, inGarden])
+    expect(await found('Hochbeet Bloxberg')).toEqual([ungrouped, inChoir, inGarden])
+    expect(await found('lustig.de hochbeet')).toEqual([peters])
+    expect(await found(String(inChoir))).toEqual([inChoir])
+    // blanks only: no search -- all the requests, more than one page by now
+    const all = await search('   ')
+    expect(all.errors).toBeUndefined()
+    expect(all.data.adminListSupportTickets.count).toBeGreaterThan(4)
+  })
+
+  it('narrows to some group, to none and to the group of a tag', async () => {
+    await loginAs('peter@lustig.de')
+    expect(await found('Hochbeet', '*grouped')).toEqual([peters, inChoir, inGarden])
+    expect(await found('Hochbeet', '*untagged')).toEqual([ungrouped])
+    expect(await found('Hochbeet', 'garden')).toEqual([peters, inGarden])
+    expect(await found('Hochbeet', 'nobody-moderates-this')).toEqual([])
+  })
+
+  // Each role with each value of the filter: what it finds lies in its scope, the count agrees,
+  // and the empty value -- the first one of the page for every role -- finds all it reaches.
+  it.each([
+    ['an administrator', 'peter@lustig.de', () => [peters, ungrouped, inChoir, inGarden]],
+    ['a moderator of one group', 'bob@baumeister.de', () => [peters, inGarden]],
+    ['a moderator of the requests without a group', 'raeuber@hotzenplotz.de', () => [ungrouped]],
+    ['a moderator of a group and of those without', 'carla@sonne.de', () => [ungrouped, inChoir]],
+  ])('%s finds nothing outside the scope, with any filter', async (_role, email, reaches) => {
+    await loginAs(email)
+    const of: Record<string, number[]> = {
+      '': [peters, ungrouped, inChoir, inGarden],
+      '*grouped': [peters, inChoir, inGarden],
+      '*untagged': [ungrouped],
+      garden: [peters, inGarden],
+      choir: [inChoir],
+      'nobody-moderates-this': [],
+    }
+    for (const [creationGroup, inFilter] of Object.entries(of)) {
+      const expected = inFilter.filter((id) => reaches().includes(id))
+      expect([creationGroup, await found('Hochbeet', creationGroup)]).toEqual([
+        creationGroup,
+        expected,
+      ])
+    }
+    expect(await found('Hochbeet')).toEqual(reaches())
+  })
+
+  it('gets nothing of the search in the log, also where the list is refused', async () => {
+    await loginAs('bob@baumeister.de')
+    clearLogs()
+    await search('Kartoffelacker', 'choir')
+    await search('Rhabarberbeet', '', 26)
+    const lines: string[] = []
+    const stdout = jest.spyOn(process.stdout, 'write').mockImplementation((line) => {
+      lines.push(String(line))
+      return true
+    })
+    printLogs()
+    stdout.mockRestore()
+    // the fixture has to prove itself: the refusal was logged
+    expect(lines.join('')).toContain('SUPPORT_TICKET_INVALID')
+    expect(lines.join('')).not.toContain('Kartoffelacker')
+    expect(lines.join('')).not.toContain('Rhabarberbeet')
+  })
+})
+
+// K4: the resubmission -- set with an answer or a note, hidden from the open tab while it waits,
+// counted apart, and taken away by every word or act that ends the waiting.
+describe('SupportTicketModerationResolver, the resubmission (K4)', () => {
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+      $resubmissionAt: String
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+        resubmissionAt: $resubmissionAt
+      ) {
+        id
+      }
+    }
+  `
+  const adminListHidden = gql`
+    query ($hideResubmission: Boolean!, $query: String!) {
+      adminListSupportTickets(
+        statuses: [OPEN, IN_PROGRESS]
+        currentPage: 1
+        pageSize: 25
+        query: $query
+        hideResubmission: $hideResubmission
+      ) {
+        count
+        tickets {
+          id
+          resubmissionAt
+        }
+      }
+    }
+  `
+  const adminCountOpenSupportTickets = gql`
+    query {
+      adminCountOpenSupportTickets {
+        forModeration
+        forMember
+        onResubmission
+      }
+    }
+  `
+  const adminCloseSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminCloseSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminDeleteSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminDeleteSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  // the member's own operations (K1)
+  const createSupportTicketMessage = gql`
+    mutation ($supportTicketId: Int!, $message: String!) {
+      createSupportTicketMessage(supportTicketId: $supportTicketId, message: $message) {
+        id
+      }
+    }
+  `
+  const closeSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      closeSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  // a week ahead of whenever the test runs: a resubmission still to come
+  const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  LATER.setMilliseconds(0)
+  // `undefined`: the form's box untouched -- the argument is not sent at all
+  const write = (
+    supportTicketId: number,
+    resubmissionAt: string | null | undefined,
+    type: SupportTicketMessageType = 'DIALOG',
+    close = false,
+  ): Promise<any> =>
+    mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: {
+        supportTicketId,
+        message: 'Ich melde mich.',
+        type,
+        close,
+        ...(resubmissionAt === undefined ? {} : { resubmissionAt }),
+      },
+    })
+  const rowOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const hidden = (hideResubmission: boolean, words: string): Promise<any> =>
+    query({ query: adminListHidden, variables: { hideResubmission, query: words } })
+  const listed = async (hideResubmission: boolean, words: string): Promise<number[]> => {
+    const res = await hidden(hideResubmission, words)
+    expect(res.errors).toBeUndefined()
+    const { count, tickets } = res.data.adminListSupportTickets
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket: { id: number }) => ticket.id)
+  }
+  const counted = async () => {
+    const res: any = await query({ query: adminCountOpenSupportTickets })
+    expect(res.errors).toBeUndefined()
+    return res.data.adminCountOpenSupportTickets
+  }
+
+  beforeAll(() => loginAs('peter@lustig.de'))
+
+  it('sets a resubmission with an answer, and hides and counts the request apart while it waits', async () => {
+    const id = await file(bibi.id, 'Rosenschnitt im Frühjahr', 300, gardenId)
+    const before = await counted()
+    expect(await listed(true, 'Rosenschnitt')).toEqual([id])
+
+    const res = await write(id, LATER.toISOString())
+    expect(res.errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+    expect(await listed(true, 'Rosenschnitt')).toEqual([])
+    expect(await listed(false, 'Rosenschnitt')).toEqual([id])
+    expect(await counted()).toEqual({
+      ...before,
+      forModeration: before.forModeration - 1,
+      onResubmission: before.onResubmission + 1,
+    })
+    // and the row tells it
+    const shown = await hidden(false, 'Rosenschnitt')
+    expect(new Date(shown.data.adminListSupportTickets.tickets[0].resubmissionAt)).toEqual(LATER)
+  })
+
+  it('sets, keeps and takes away a resubmission with a note, as the box stands', async () => {
+    const id = await file(bibi.id, 'Kompostkiste', 301, gardenId)
+    expect((await write(id, LATER.toISOString(), 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+    expect((await write(id, null, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+  })
+
+  it('keeps the resubmission where the box was not touched: that of a colleague stays, and none comes back that the member took away', async () => {
+    const id = await file(bibi.id, 'Hochbeet', 310, gardenId)
+    expect((await write(id, LATER.toISOString(), 'MODERATOR')).errors).toBeUndefined()
+    // another note, its box untouched
+    expect((await write(id, undefined, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: LATER })
+    // the member writes "dringend": the resubmission is gone, and a note or an answer whose box was
+    // not touched does not put it back
+    await loginAs('bibi@bloxberg.de')
+    expect(
+      (
+        await mutate({
+          mutation: createSupportTicketMessage,
+          variables: { supportTicketId: id, message: 'Dringend, bitte!' },
+        })
+      ).errors,
+    ).toBeUndefined()
+    await loginAs('peter@lustig.de')
+    expect((await write(id, undefined, 'MODERATOR')).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect((await write(id, undefined)).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: null })
+  })
+
+  it('refuses an answer that closes and waits, and a moment that is none, with nothing written', async () => {
+    const id = await file(bibi.id, 'Bewässerung', 302, gardenId)
+    await expect(write(id, LATER.toISOString(), 'DIALOG', true)).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_INVALID'),
+    )
+    await expect(write(id, '2026-02-30T08:00:00.000Z')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_INVALID'),
+    )
+    await expect(write(id, 'nächste Woche')).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect(await rowOf(id)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect(
+      await drizzleDb()
+        .select()
+        .from(supportTicketMessagesTable)
+        .where(eq(supportTicketMessagesTable.supportTicketId, id)),
+    ).toEqual([])
+  })
+
+  it('writes a note with a resubmission into an open request only; one without into a closed one too', async () => {
+    const id = await file(bibi.id, 'Saatgut', 303, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(304),
+      closedBy: bibi.id,
+    })
+    await expect(write(id, LATER.toISOString(), 'MODERATOR')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_NOT_FOUND'),
+    )
+    expect(await rowOf(id)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+    expect((await write(id, null, 'MODERATOR')).errors).toBeUndefined()
+    // an answer with one opens it again, as a question back that waits
+    expect((await write(id, LATER.toISOString())).errors).toBeUndefined()
+    expect(await rowOf(id)).toMatchObject({ status: 'IN_PROGRESS', resubmissionAt: LATER })
+  })
+
+  it('takes the resubmission away with the tick, with deleting and with an answer that closes', async () => {
+    const ticked = await file(bibi.id, 'Haken', 305, gardenId, { resubmissionAt: LATER })
+    const removed = await file(bibi.id, 'Weg damit', 306, gardenId, { resubmissionAt: LATER })
+    const answered = await file(bibi.id, 'Erledigt', 307, gardenId, { resubmissionAt: LATER })
+    expect(
+      (await mutate({ mutation: adminCloseSupportTicket, variables: { supportTicketId: ticked } }))
+        .errors,
+    ).toBeUndefined()
+    expect(
+      (
+        await mutate({
+          mutation: adminDeleteSupportTicket,
+          variables: { supportTicketId: removed },
+        })
+      ).errors,
+    ).toBeUndefined()
+    expect((await write(answered, null, 'DIALOG', true)).errors).toBeUndefined()
+    expect(await rowOf(ticked)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+    expect(await rowOf(removed)).toMatchObject({ status: 'DELETED', resubmissionAt: null })
+    expect(await rowOf(answered)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+  })
+
+  it('takes it away where the member writes, and where the member closes', async () => {
+    const written = await file(bibi.id, 'Ich schreibe noch', 308, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    const closed = await file(bibi.id, 'Ich schliesse', 309, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    await loginAs('bibi@bloxberg.de')
+    expect(
+      (
+        await mutate({
+          mutation: createSupportTicketMessage,
+          variables: { supportTicketId: written, message: 'Noch eine Frage' },
+        })
+      ).errors,
+    ).toBeUndefined()
+    expect(
+      (await mutate({ mutation: closeSupportTicket, variables: { supportTicketId: closed } }))
+        .errors,
+    ).toBeUndefined()
+    await loginAs('peter@lustig.de')
+    expect(await rowOf(written)).toMatchObject({ status: 'OPEN', resubmissionAt: null })
+    expect(await rowOf(closed)).toMatchObject({ status: 'CLOSED', resubmissionAt: null })
+  })
+})
+
+// K4: handing a request on to another group, or to none, with the line it leaves in the thread
+describe('SupportTicketModerationResolver, handing on (K4)', () => {
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+      }
+    }
+  `
+  // the member's own reading of the thread (K1)
+  const listSupportTicketMessages = gql`
+    query ($supportTicketId: Int!) {
+      listSupportTicketMessages(supportTicketId: $supportTicketId) {
+        message
+        type
+        userAlias
+      }
+    }
+  `
+  const handOn = (supportTicketId: number, creationGroupTag: string): Promise<any> =>
+    mutate({
+      mutation: adminReassignSupportTicket,
+      variables: { supportTicketId, creationGroupTag },
+    })
+  const rowOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const linesOf = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+  const mail = sendAddedSupportTicketMessageEmail as jest.Mock
+  const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  LATER.setMilliseconds(0)
+
+  beforeEach(() => {
+    mail.mockClear()
+  })
+
+  it('hands nothing on without a login, or without the right', async () => {
+    const id = await file(bibi.id, 'Weiterreichen?', 400, gardenId)
+    resetToken()
+    await expect(handOn(id, '')).resolves.toEqual(unauthorized)
+    await loginAs('bibi@bloxberg.de')
+    await expect(handOn(id, '')).resolves.toEqual(unauthorized)
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Wer kümmert sich?', 401, gardenId, {
+      status: 'IN_PROGRESS',
+      resubmissionAt: LATER,
+    })
+    const res = await handOn(id, '')
+    expect(res.errors).toBeUndefined()
+    expect(res.data.adminReassignSupportTicket).toBe(true)
+    expect(await rowOf(id)).toMatchObject({
+      creationGroupId: null,
+      status: 'IN_PROGRESS',
+      resubmissionAt: null,
+    })
+    expect(await linesOf(id)).toEqual([
+      expect.objectContaining({
+        type: 'REASSIGNED',
+        message: 'Garten\n',
+        userId: peter.id,
+        isModerator: true,
+      }),
+    ])
+    // and back into a group, named by its name
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    expect((await rowOf(id)).creationGroupId).toBe(choirId)
+    expect((await linesOf(id)).map((line) => line.message)).toEqual(['Garten\n', '\nChor'])
+    expect(mail).not.toHaveBeenCalled()
+  })
+
+  it('lets a moderator hand on out of the own groups, and reach the request no more after', async () => {
+    const id = await file(bibi.id, 'Eher etwas für den Chor', 402, gardenId)
+    await loginAs('bob@baumeister.de')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    expect((await rowOf(id)).creationGroupId).toBe(choirId)
+    // out of reach: its thread answers as a missing one -- a list of all would be pages by now
+    await expect(threadOf(id)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    await expect(handOn(id, 'garden')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    // a moderator of the requests of no group hands one into a group
+    const ungrouped = await file(bibi.id, 'Ohne Gruppe', 403, null)
+    await loginAs('raeuber@hotzenplotz.de')
+    expect((await handOn(ungrouped, 'garden')).errors).toBeUndefined()
+    expect((await rowOf(ungrouped)).creationGroupId).toBe(gardenId)
+  })
+
+  it('hands on no closed, deleted, own or unreachable request, and none that does not exist', async () => {
+    const closed = await file(bibi.id, 'zu', 404, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(405),
+      closedBy: bibi.id,
+    })
+    const deleted = await file(bibi.id, 'weg', 406, gardenId, {
+      status: 'DELETED',
+      deletedAt: at(407),
+      deletedBy: peter.id,
+    })
+    const bobs = await file(bob.id, 'meine eigene', 408, gardenId)
+    const inChoir = await file(bibi.id, 'im Chor', 409, choirId)
+    await loginAs('bob@baumeister.de')
+    for (const id of [closed, deleted, bobs, inChoir, inChoir + 1000]) {
+      await expect(handOn(id, '')).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+    }
+    // whatever the tag: a group that does not exist, or the one it stands in
+    for (const id of [closed, deleted]) {
+      for (const tag of ['nobody-moderates-this', 'garden']) {
+        await expect(handOn(id, tag)).resolves.toEqual(refusedWith('SUPPORT_TICKET_NOT_FOUND'))
+      }
+    }
+    for (const [id, group] of [
+      [closed, gardenId],
+      [deleted, gardenId],
+      [bobs, gardenId],
+      [inChoir, choirId],
+    ]) {
+      expect((await rowOf(id)).creationGroupId).toBe(group)
+      expect(await linesOf(id)).toEqual([])
+    }
+  })
+
+  it('refuses a group that does not exist, and the group the request is in', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Wohin?', 410, gardenId)
+    await expect(handOn(id, 'nobody-moderates-this')).resolves.toEqual(
+      refusedWith('SUPPORT_TICKET_UNKNOWN_GROUP'),
+    )
+    await expect(handOn(id, 'garden')).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands a request on at most so many times', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Hin und her', 411, gardenId)
+    await drizzleDb()
+      .insert(supportTicketMessagesTable)
+      .values(
+        Array.from({ length: SUPPORT_TICKET_MESSAGES_MAX }, (_, n) => ({
+          supportTicketId: id,
+          userId: peter.id,
+          message: `Garten ${n}\n`,
+          type: 'REASSIGNED' as const,
+          isModerator: true,
+          createdAt: at(412),
+        })),
+      )
+    await expect(handOn(id, '')).resolves.toEqual(refusedWith('SUPPORT_TICKET_MESSAGES_REACHED'))
+    expect((await rowOf(id)).creationGroupId).toBe(gardenId)
+  })
+
+  it('takes no message of the kind a handing on leaves: only the server writes that line', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Ein falscher Weg', 413, gardenId)
+    await expect(
+      mutate({
+        mutation: adminCreateSupportTicketMessage,
+        variables: {
+          supportTicketId: id,
+          message: 'Garten\nChor',
+          type: 'REASSIGNED',
+          close: false,
+        },
+      }),
+    ).resolves.toEqual(refusedWith('SUPPORT_TICKET_INVALID'))
+    expect(await linesOf(id)).toEqual([])
+  })
+
+  it('hands on at most once per HTTP request', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Zweimal?', 414, gardenId)
+    const res: any = await mutate({
+      mutation: gql(`mutation {
+        first: adminReassignSupportTicket(supportTicketId: ${id}, creationGroupTag: "")
+        second: adminReassignSupportTicket(supportTicketId: ${id}, creationGroupTag: "choir")
+      }`),
+    })
+    expect(res.errors).toEqual([
+      expect.objectContaining({ message: 'Too many support writes at once' }),
+    ])
+    expect(await linesOf(id)).toHaveLength(1)
+  })
+
+  it('lets the member read the line, and still no note, through the own operations', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Meine Frage', 415, gardenId)
+    await writes(id, peter, 'Intern: an den Chor', 416, 'MODERATOR')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    await loginAs('bibi@bloxberg.de')
+    const res: any = await query({
+      query: listSupportTicketMessages,
+      variables: { supportTicketId: id },
+    })
+    expect(res.errors).toBeUndefined()
+    expect(res.data.listSupportTicketMessages).toEqual([
+      { message: 'Garten\nChor', type: 'REASSIGNED', userAlias: peter.alias },
+    ])
+  })
+})

@@ -13,9 +13,11 @@ import {
   recordDate,
   withBold,
 } from '@/data/ContributionThread.logic'
+import { reassignedFromTo } from '@/data/SupportTicket.logic'
 import { d, n, t } from '@/i18n'
 import { memberAvatarSource } from '@/store/memberAvatars.store'
 import { openMemberAvatarZoom } from '@/store/memberAvatarZoom.store'
+import forwardIcon from '~icons/bi/forward-fill'
 import pencilIcon from '~icons/bi/pencil-fill'
 import stickyIcon from '~icons/bi/sticky-fill'
 
@@ -43,13 +45,15 @@ const part = ({ type, text }: MessagePart) => {
 /**
  * A message of the thread, leaning to the side of who wrote it: the moderation's to the right,
  * the member's to the left, all in one grey. A note and a change say what they are in their head;
- * a change's record shows the old date, text and amount.
+ * a change's record shows the old date, text and amount. A support request's thread has one kind
+ * more (K4): the line a handing on left, from which group to which.
  */
 export class ThreadMessageItem implements ClassComponent<Attrs> {
   view({ attrs: { message, contributionUserId } }: Vnode<Attrs>) {
     const byModeration = contributionUserId !== message.userId
     const note = message.type === 'MODERATOR'
     const change = message.type === 'HISTORY'
+    const handedOn = message.type === 'REASSIGNED'
     const { letters, colorSeed, colorIndex } = avatarLettering({
       alias: message.userAlias,
       avatarColorIndex: message.userAvatarColorIndex,
@@ -88,7 +92,16 @@ export class ThreadMessageItem implements ClassComponent<Attrs> {
               icon(pencilIcon, { class: 'me-1', 'aria-hidden': 'true' }),
               t('moderator.change'),
             ])
-          : null
+          : handedOn
+            ? m(
+                'small.message-kind.d-inline-block',
+                { class: margin, 'data-test': 'message-kind' },
+                [
+                  icon(forwardIcon, { class: 'me-1', 'aria-hidden': 'true' }),
+                  t('support.reassignedHead'),
+                ],
+              )
+            : null
     const date = m(
       'small.ms-2.d-inline-block',
       { 'data-test': byModeration ? 'moderator-date' : 'user-date' },
@@ -99,6 +112,8 @@ export class ThreadMessageItem implements ClassComponent<Attrs> {
       { 'data-test': byModeration ? 'moderator-name' : 'user-name' },
       message.userAlias,
     )
+    // the words of a handing on as text; where they cannot be read, the head alone
+    const fromTo = handedOn ? reassignedFromTo(message.message) : null
     const bubble = [
       'p-2 rounded-sm mb-3 message-bubble',
       byModeration ? 'text-end is-moderator' : 'text-start is-user',
@@ -124,14 +139,20 @@ export class ThreadMessageItem implements ClassComponent<Attrs> {
         change
           ? m('small.d-block.mt-1', { 'data-test': 'history-label' }, t('moderator.history'))
           : null,
-        m(
-          '.mt-2',
-          {
-            class: parseClasses.messageBody,
-            'data-test': byModeration ? 'moderator-message' : 'user-message',
-          },
-          messageParts(message.message, message.type).map((piece) => m('span', part(piece))),
-        ),
+        handedOn && !fromTo
+          ? null
+          : m(
+              '.mt-2',
+              {
+                class: parseClasses.messageBody,
+                'data-test': byModeration ? 'moderator-message' : 'user-message',
+              },
+              handedOn
+                ? fromTo
+                : messageParts(message.message, message.type).map((piece) =>
+                    m('span', part(piece)),
+                  ),
+            ),
       ]),
     )
   }

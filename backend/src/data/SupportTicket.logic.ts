@@ -9,8 +9,9 @@ import { DomainError } from 'shared'
 /**
  * How many writes of the support one HTTP request may carry -- createSupportTicket,
  * createSupportTicketMessage, closeSupportTicket, adminCreateSupportTicketMessage,
- * adminCloseSupportTicket and adminDeleteSupportTicket counted together: a document may repeat a
- * field under any number of aliases (RequestBudget), and each write is a transaction or mails.
+ * adminCloseSupportTicket, adminDeleteSupportTicket and adminReassignSupportTicket counted
+ * together: a document may repeat a field under any number of aliases (RequestBudget), and each
+ * write is a transaction or mails.
  */
 export const SUPPORT_TICKET_WRITES_MAX_PER_REQUEST = 1
 
@@ -46,18 +47,43 @@ export const MODERATOR_CLOSES_FROM: SupportTicketStatus[] = ['OPEN', 'IN_PROGRES
 export type ModeratorMessageKind = 'ANSWER' | 'ANSWER_AND_CLOSE' | 'NOTE'
 
 /**
- * The kind of a moderator's message as the admin's form sends it -- its type, and whether it
- * closes the request. Null for a note that would close it: a note is for the moderation, and
- * closing is done with an answer or with the tick.
+ * The kind of a moderator's message as the admin's form sends it -- its type, whether it closes
+ * the request, and whether it sets a resubmission (K4). Null for a note that would close it -- a
+ * note is for the moderation, and closing is done with an answer or with the tick --, and for an
+ * answer that would close and wait for a resubmission at once: a closed request waits for nothing.
  */
 export const moderatorMessageKind = (
   type: SupportTicketMessageType,
   close: boolean,
+  resubmits: boolean,
 ): ModeratorMessageKind | null => {
   if (type === 'MODERATOR') {
     return close ? null : 'NOTE'
   }
-  return close ? 'ANSWER_AND_CLOSE' : 'ANSWER'
+  // the line a handing on leaves is the server's to write, never a moderator's message (K4)
+  if (type !== 'DIALOG') {
+    return null
+  }
+  if (close) {
+    return resubmits ? null : 'ANSWER_AND_CLOSE'
+  }
+  return 'ANSWER'
+}
+
+/**
+ * The words of the line a handing on leaves in the thread (K4, SUA-018): the group the request
+ * came from and the one it went to, a line each, as they are named at that moment -- by their
+ * name, without one by `#tag`, as everywhere in the admin and the wallet; an empty line for no
+ * group. Two lines of text, no markup: a wallet loaded before the line existed shows it as words.
+ * A line break inside a name becomes a blank, so that there are always exactly two.
+ */
+export const reassignedLine = (
+  from: { tag: string | null; name: string | null },
+  to: { tag: string | null; name: string | null },
+): string => {
+  const named = ({ tag, name }: { tag: string | null; name: string | null }) =>
+    tag === null ? '' : (name || `#${tag}`).replace(/[\r\n]+/g, ' ')
+  return `${named(from)}\n${named(to)}`
 }
 
 /**

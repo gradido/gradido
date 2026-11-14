@@ -19,8 +19,8 @@ const supportBadge = (page: Page) =>
 // The support requests (Support-Anfragen K3) stand on the start page of the Mithril admin only:
 // the old admin is no longer brought along (AGENTS.md, SUA-002). It does not ask for them.
 const ONLY_NEW = 'the support requests exist in the Mithril admin only (SUA-002)'
-const support = (forModeration: number, forMember: number) => ({
-  adminCountOpenSupportTickets: { forModeration, forMember },
+const support = (forModeration: number, forMember: number, onResubmission = 0) => ({
+  adminCountOpenSupportTickets: { forModeration, forMember, onResubmission },
 })
 
 test.beforeEach(async ({ page, graphql }) => {
@@ -138,6 +138,45 @@ test('counts the open support requests below the creation, and what waits for wh
   ])
   // the badge at the support's menu entry counts the same
   await expect(supportBadge(page)).toHaveText('4')
+})
+
+test('names the support requests on resubmission in a line of their own, not in the count', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  graphql.answer({ ...counts(2, 1, 5), ...support(3, 1, 2) })
+  await signIn(page, '/')
+
+  await expect(page.getByTestId('open-support-tickets')).toHaveText(
+    de.dashboard.support.replace('{n}', '4'),
+  )
+  await expect(page.getByTestId('support-on-resubmission')).toHaveText(
+    de.dashboard.resubmission.replace('{n}', '2'),
+  )
+  // the last line of the support, as of the creation
+  expect(
+    await page
+      .locator('.admin-dashboard [data-test]')
+      .evaluateAll((lines) => lines.map((line) => line.getAttribute('data-test'))),
+  ).toEqual([
+    'open-creations',
+    'open-creations-waiting',
+    'waiting-for-moderation',
+    'waiting-for-member',
+    'on-resubmission',
+    'open-support-tickets',
+    'support-waiting',
+    'support-waiting-for-moderation',
+    'support-waiting-for-member',
+    'support-on-resubmission',
+  ])
+  await expect(supportBadge(page)).toHaveText('4')
+
+  graphql.answer(support(3, 1, 0))
+  await page.reload()
+  await expect(page.getByTestId('open-support-tickets')).toBeVisible()
+  await expect(page.getByTestId('support-on-resubmission')).toHaveCount(0)
 })
 
 test('names one open support request as one, and says when none is open', async ({
