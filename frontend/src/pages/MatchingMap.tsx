@@ -338,14 +338,28 @@ export const MatchingMap = defineComponent({
      * The ticks this page wrote and the server took, by entry, with the stand (`updatedAt`) the
      * server answered. A list read before the write can still come in after it -- the network answer
      * of the arrival's own question, or one of askForWords' -- and its row of that entry is older:
-     * it must not turn the tick back (takeEntries). A later row is the server's word again.
+     * it must not turn the tick back (takeEntries). A later row is the server's word again, and from
+     * then on the stand older rows are held against: another device may have taken the tick off
+     * since, and a list older than both must not bring back what this page wrote (coderabbit, #4297).
      */
     const ticksWritten = new Map<string, { exactSentence: boolean; updatedAt: string }>()
     function keepTickWritten(entry: MyEntry): MyEntry {
       const tick = ticksWritten.get(entry.uuid)
-      return tick && !(Date.parse(entry.updatedAt ?? '') >= Date.parse(tick.updatedAt))
-        ? { ...entry, exactSentence: tick.exactSentence, updatedAt: tick.updatedAt }
-        : entry
+      if (!tick) {
+        return entry
+      }
+      const rowAt = Date.parse(entry.updatedAt ?? '')
+      const tickAt = Date.parse(tick.updatedAt)
+      if (rowAt >= tickAt) {
+        if (rowAt > tickAt && entry.updatedAt) {
+          ticksWritten.set(entry.uuid, {
+            exactSentence: entry.exactSentence === true,
+            updatedAt: entry.updatedAt,
+          })
+        }
+        return entry
+      }
+      return { ...entry, exactSentence: tick.exactSentence, updatedAt: tick.updatedAt }
     }
 
     /**

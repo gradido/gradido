@@ -4708,6 +4708,21 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(lastSearch().exactUuids).toEqual([])
     })
 
+    // coderabbit, #4297: another device took the tick off after this page wrote it, and a list read
+    // before both comes in late.
+    it('holds an older list against the newest list, not against the tick it superseded', async () => {
+      const shown = await ticked()
+      list(mine('a', { exactSentence: false, updatedAt: LATER }))
+      await flushPromises()
+      expect(box(shown).element.checked).toBe(false)
+
+      list(mine('a', { exactSentence: false }))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(false)
+      expect(lastSearch().exactUuids).toEqual([])
+    })
+
     it('holds nothing against a list after a write that failed', async () => {
       const shown = await page([mine('a', { exactSentence: false })])
       writeExact.mockRejectedValueOnce(new Error('Could not change MatchingEntry state'))
