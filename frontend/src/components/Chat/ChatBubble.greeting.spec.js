@@ -514,8 +514,10 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
     }
 
     it('gives the bubble of a greeting all the width a bubble may have', () => {
-      expect(rule('.chat-bubble-greeting .chat-bubble')).toMatch(/width:\s*80%;/)
-      expect(rule('.chat-bubble')).toMatch(/max-width:\s*80%;/)
+      expect(rule('.chat-bubble-greeting .chat-bubble')).toMatch(
+        /(^|\s)width:\s*var\(--chat-bubble-share\);/,
+      )
+      expect(rule('.chat-bubble')).toMatch(/max-width:\s*var\(--chat-bubble-share\);/)
     })
 
     it('sets the motif in as a picture of a message is, in a room of 36 : 25', () => {

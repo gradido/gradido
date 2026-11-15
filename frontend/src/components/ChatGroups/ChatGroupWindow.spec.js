@@ -1010,14 +1010,15 @@ describe('ChatGroupWindow', () => {
      * with it, the first rule's selector began with the tag's attributes and was held against
      * nothing.
      */
-    const rulesOf = (file) => {
-      const text = readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+    const read = (file) => readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+    const rulesOf = (file, block = 1) => {
+      const text = read(file)
       // A style module is the block alone, and reaches a child's class with `:global(` where
       // the scoped block wrote `:deep(`.
       const code = (
         file.endsWith('.scss')
           ? text.replace(/:global\(/g, ':deep(')
-          : text.split('<style')[1].replace(/^[^>]*>/, '')
+          : text.split('<style')[block].replace(/^[^>]*>/, '')
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       const rules = new Map()
       const take = (where, css) => {
@@ -1107,6 +1108,27 @@ describe('ChatGroupWindow', () => {
     it.each(TWINS)('%s is %s', (ours, theirs) => {
       expect(contact.get(theirs), `${theirs} is gone from the contact window`).toBeTruthy()
       expect(group.get(ours)).toBe(contact.get(theirs))
+    })
+
+    /**
+     * The sheet's body 1rem from the screen's sides, not a dialog's 1.5rem (Bernd, 15.11.2026): on
+     * a phone the 16 px go to the conversation. The body is BModal's own element, out of reach of
+     * the rules above: the group window names it in a block without scope -- its second --, the
+     * contact window's style module with `:global(`. Each beside BModal's own class, and each
+     * window hands BModal the class its rule names.
+     */
+    it("keeps the sheet's body 1rem from the screen's sides, as the contact window does", () => {
+      expect([...rulesOf('ChatGroupWindow.vue', 2)]).toEqual([
+        [`${SHEET} .modal .modal-body.chat-group-window-body`, 'padding-inline: 1rem'],
+      ])
+      expect(contact.get(`${SHEET} :deep(.modal .modal-body.contact-window-body)`)).toBe(
+        'padding-inline: 1rem',
+      )
+      mountWindow()
+      expect(wrapper.findComponent({ name: 'BModal' }).attributes('body-class')).toBe(
+        'chat-group-window-body',
+      )
+      expect(read('../Contacts/ContactWindow.tsx')).toContain("body-class='contact-window-body'")
     })
 
     /**

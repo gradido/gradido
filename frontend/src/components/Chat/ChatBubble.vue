@@ -1111,12 +1111,35 @@ const copyText = async () => {
   outline-offset: 2px;
 }
 
-/* `position: relative`: the menu at a message (E-059) stands over or under it. */
+/* `position: relative`: the menu at a message (E-059) stands over or under it.
+
+   `--chat-bubble-share`: how much of its line a bubble may take -- and with it the writer's name
+   over it, a greeting's bubble, the line where no mail went out. Four fifths: the rest is the side
+   that says whose message it is, and holds the sign for the message's menu (3rem, below).
+
+   On the sheet (below `sm`, where the chat windows cover a phone's screen) that fifth was much of
+   what a phone has to give (Bernd, 15.11.2026): at 390 px a bubble beside a face in a group stood
+   226 px wide, 56 px empty beside it. There a bubble takes nine tenths -- but never the sign's
+   3rem, where there is a sign: a touch screen shows none beside the bubble (below). */
 .chat-bubble-row {
+  --chat-bubble-share: 80%;
+
   position: relative;
   display: flex;
   flex-direction: column;
   margin: 0.25rem 0;
+}
+
+@media (width <= 575.98px) {
+  .chat-bubble-row {
+    --chat-bubble-share: min(90%, calc(100% - 3rem));
+  }
+}
+
+@media (width <= 575.98px) and (hover: none) {
+  .chat-bubble-row {
+    --chat-bubble-share: 90%;
+  }
 }
 
 .chat-bubble-mine {
@@ -1134,12 +1157,13 @@ const copyText = async () => {
    the modal 987 px high on an 844 px screen).
 
    `overflow-wrap: anywhere`: a long run without a space -- a pasted link, a row of letters --
-   breaks inside the bubble, which never grows past 80% of the thread. Measured with messages
-   of 5000 characters -- a letter, and one word of that length -- and a link of 200: nothing
-   past the thread from 320 to 1280 px (12.10.2026). */
+   breaks inside the bubble, which never grows past its share of the thread
+   (`--chat-bubble-share`). Measured with messages of 5000 characters -- a letter, and one word
+   of that length -- and a link of 200: nothing past the thread from 320 to 1280 px
+   (12.10.2026). */
 .chat-bubble {
   position: relative;
-  max-width: 80%;
+  max-width: var(--chat-bubble-share);
   padding: 0.45rem 0.75rem 0.3rem;
   border: 1px solid transparent;
   border-radius: 1rem;
@@ -1173,7 +1197,7 @@ const copyText = async () => {
 /* The writer's name over the first of their run: small and muted, on one line however long -- on
    the window's own surface, where the muted grey reads in both modes (the date line's measure). */
 .chat-bubble-writer {
-  max-width: 80%;
+  max-width: var(--chat-bubble-share);
   margin: 0 0 0.1rem 0.35rem;
   overflow: hidden;
   color: var(--bs-secondary-color, #6c757d);
@@ -1210,7 +1234,7 @@ const copyText = async () => {
    picture to (ZE-016). Its bubble takes all the width a bubble may have, however short its
    words: the picture is as wide as the bubble. */
 .chat-bubble-greeting .chat-bubble {
-  width: 80%;
+  width: var(--chat-bubble-share);
 }
 
 /* The motif, set in as a picture of a message is: 0.25rem from the bubble's edge -- it reaches
@@ -1409,6 +1433,38 @@ const copyText = async () => {
   opacity: 1;
 }
 
+/* Out of sight on a touch screen, the sign stands at the bubble's own edge and not 3rem beside it.
+   What is out of sight still counts for how far the thread scrolls: beside a bubble that leaves
+   less than those 3rem -- the nine tenths of a phone's sheet -- the thread scrolled sideways. */
+@media (hover: none) {
+  .chat-bubble-theirs .chat-bubble-more:not(:focus-visible) {
+    right: 0;
+  }
+
+  .chat-bubble-mine .chat-bubble-more:not(:focus-visible) {
+    left: 0;
+  }
+}
+
+/* And where a keyboard shows it on a phone's sheet, it is small enough for the tenth beside the
+   bubble: at 320 px that is 22.8 px beside somebody else's message in a group. A keyboard needs
+   no 44 px to hit. */
+@media (width <= 575.98px) and (hover: none) {
+  .chat-bubble-more:focus-visible {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 1rem;
+  }
+
+  .chat-bubble-theirs .chat-bubble-more:focus-visible {
+    right: -1.4rem;
+  }
+
+  .chat-bubble-mine .chat-bubble-more:focus-visible {
+    left: -1.4rem;
+  }
+}
+
 .chat-bubble-subject {
   font-weight: 700;
   margin-bottom: 0.1rem;
@@ -1517,7 +1573,7 @@ const copyText = async () => {
    may take two lines: no wider than a bubble may be, flush with the bubble's side, and a name
    without a space in it -- a Gradido ID stands in for a missing user name -- breaks inside. */
 .chat-bubble-not-mailed {
-  max-width: 80%;
+  max-width: var(--chat-bubble-share);
   margin-top: 0.15rem;
   font-size: 0.7rem;
   line-height: 1.35;
@@ -1562,13 +1618,13 @@ const copyText = async () => {
    room around the picture -- the caption and the time under it keep the room text needs.
 
    At least, not exactly (Bernd, 17.10.2026): the bubble is as wide as its picture -- which stands
-   as large as a greeting's picture (ChatBubbleImage) -- or as its caption, up to the 80 % of the
+   as large as a greeting's picture (ChatBubbleImage) -- or as its caption, up to the share of the
    thread any message may have; a long caption makes it wider than its picture, which keeps its
    place at the top. With a fixed width the caption stood 240 px wide in the large window (E-077),
-   beside messages three times as wide. `min()`: where 80 % of the thread is less than 16.5rem --
-   a narrow phone --, the bubble is that 80 %, as it was. */
+   beside messages three times as wide. `min()`: where that share of the thread is less than
+   16.5rem -- a narrow phone --, the bubble is that share, as it was. */
 .chat-bubble.has-image {
-  min-width: min(16.5rem, 80%);
+  min-width: min(16.5rem, var(--chat-bubble-share));
   padding: 0.25rem;
 }
 

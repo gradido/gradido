@@ -132,8 +132,9 @@ const where = computed(() => fileLinkLabel(props.href))
   color: var(--bs-secondary-color, #6c757d);
 }
 
-/* On the sheet (below `sm`, where the contact window covers the screen) a bubble is 80% of a
-   phone's width, and the card's words got what was left: measured at 320 px, 88 px -- the title
+/* On the sheet (below `sm`, where the contact window covers the screen) a bubble is narrow, and
+   the card's words got what was left: measured at 320 px with a bubble of four fifths of its line
+   (nine tenths since 15.11.2026, ChatBubble's `--chat-bubble-share`), 88 px -- the title
    broke inside "SwissTransfer" and the address ended after "swisstransfe". There the card sets
    closer, with a smaller file sign, and leaves out the sign for "opens elsewhere": the whole card
    is the link. */
