@@ -1003,7 +1003,7 @@
       "edit": "Modifica",
       "emptyText": "Offri qualcosa, cerca qualcosa o condividi un interesse, e fatti trovare.",
       "emptyTitle": "Ancora nessuna voce.",
-      "exactSentence": "Esatta",
+      "exactSentence": "Frase esatta",
       "new": "Nuova voce",
       "noDetails": "(nessun dettaglio)",
       "pause": "Metti in pausa",
@@ -1134,7 +1134,7 @@
       "choose": "Scegli:",
       "completeSentence": "Completa questa frase:",
       "detailsHeading": "Dettagli — così le persone giuste ti trovano:",
-      "exactSentenceHint": "Questa voce ti mostra le persone che hanno proprio questa frase. Se la modifichi, la voce tornerà a cercare temi simili.",
+      "exactSentenceHint": "Questa voce ti mostra le persone che hanno esattamente questa frase. Se modifichi la frase, la voce tornerà a cercare temi simili.",
       "remote": "Disponibile anche a livello sovraregionale / online",
       "remoteHint": "Così compari anche nella ricerca sovraregionale.",
       "sentenceStart": "{start} …"
