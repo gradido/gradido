@@ -1,6 +1,14 @@
 // AI-GENERATED — not an architecture reference
 import { useApolloClient, useMutation } from '@vue/apollo-composable'
-import { BAvatar, BCol, BCollapse, BRow, type ColorVariant } from 'bootstrap-vue-next'
+import {
+  BAvatar,
+  BButton,
+  BCol,
+  BCollapse,
+  BRow,
+  type ButtonVariant,
+  type ColorVariant,
+} from 'bootstrap-vue-next'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ContributionMessagesList } from '@/components/ContributionMessages/ContributionMessagesList'
@@ -21,7 +29,6 @@ import { supportTicketRefusal } from '@/utils/supportTicketRefusal'
 import { SUPPORT_TICKET_SIGNS } from '@/utils/supportTicketStatus'
 import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 import IBiChatDots from '~icons/bi/chat-dots'
-import IBiCheckLg from '~icons/bi/check-lg'
 import classes from './SupportTicketListItem.module.scss'
 
 /** A row of `listSupportTickets`: the list hands every field of it to this item by name. */
@@ -251,22 +258,23 @@ export const SupportTicketListItem = defineComponent({
           </BCol>
         </BRow>
         {hasThread.value ? (
-          <BRow class='p-2'>
-            <BCol cols='6' class='text-center'>
+          <BRow class={['p-2 align-items-center', classes.actions]}>
+            <BCol cols='8' class='text-center'>
               {closable.value ? (
-                <div
-                  {...keyboardAction(close)}
-                  class='pointer d-flex flex-column align-items-center'
+                // The button of "Abschicken": a check with a word beneath it, as a contribution's
+                // actions look, read as the request's state, not as something to press (SUA-030).
+                <BButton
+                  variant={'gradido' as ButtonVariant}
+                  disabled={closing.value}
                   data-test='support-ticket-done'
                   onClick={close}
                 >
-                  {/* the large check: the plain one draws smaller than the chat sign beside it */}
-                  <IBiCheckLg />
-                  <div>{t('support.done')}</div>
-                </div>
+                  {t('support.done')}
+                </BButton>
               ) : null}
             </BCol>
-            <BCol cols='6' class='text-center'>
+            {/* the chat in the last third, where a contribution's row has it */}
+            <BCol cols='4' class='text-center'>
               <div
                 {...keyboardAction(toggleMessages)}
                 class='pointer d-flex flex-column align-items-center'
