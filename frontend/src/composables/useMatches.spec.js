@@ -17,6 +17,8 @@ import {
   GMS_REJECTED,
   hasUsablePoint,
   isUsablePlace,
+  SENTENCE_QUESTIONS_MAX,
+  withSameSentence,
 } from './useMatches'
 
 // The Apollo client the composable asks for the token. `query` is a spy so a test
@@ -125,6 +127,42 @@ function profileUser(over = {}) {
   }
 }
 
+/**
+ * GET community-user/sentence-matches (gms_workspace#44): `{ total, users }`. Each person with ONE
+ * channel and ONE entry -- the oldest of theirs with the sentence --, `strength` 0.865, the entry of
+ * mine as `matchedEntryUuid`, `matchedSubject` null.
+ */
+function sentenceUser(over = {}, mine = UUID.mineToo) {
+  return {
+    uuid: UUID.paul,
+    alias: 'Paul',
+    aboutMe: null,
+    type: 1,
+    location: [9.7, 49.3],
+    community: { uuid: UUID.community, name: 'Gradido Künzelsau' },
+    channels: [
+      {
+        matchingType: 'interest',
+        strength: 0.865,
+        matches: [
+          {
+            matchedEntryUuid: mine,
+            matchedSubject: null,
+            uuid: UUID.other,
+            summary: 'Kongress Frequency Healing',
+            details: null,
+            remote: true,
+            strength: 0.865,
+            score: 3.2,
+            coreWord: true,
+          },
+        ],
+      },
+    ],
+    ...over,
+  }
+}
+
 const SEARCH = { center: { lat: 49.28, lng: 9.69 }, radius: 25 }
 const ACCESS = { url: 'https://ki-playground-gms.gradido.net/user-search', token: 'tok-1' }
 
@@ -188,10 +226,13 @@ describe('useMatches', () => {
               strength: 0.595,
               score: 1.4,
               coreWord: true,
+              exact: false,
             },
           ],
         },
-        scores: { angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad' }] },
+        scores: {
+          angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad', exact: false }],
+        },
       })
     })
 
@@ -205,7 +246,7 @@ describe('useMatches', () => {
         matchedUser({ channels: [channel('need'), channel('interest'), channel('offer')] }),
       )
       expect(Object.keys(match.channels).sort()).toEqual(['angebot', 'gesuch', 'interesse'])
-      const dim = { strength: 0.46, entry: UUID.mine, subject: 'lastenrad' }
+      const dim = { strength: 0.46, entry: UUID.mine, subject: 'lastenrad', exact: false }
       expect(match.scores).toEqual({ angebot: [dim], gesuch: [dim], interesse: [dim] })
     })
 
@@ -227,8 +268,8 @@ describe('useMatches', () => {
       )
       expect(match.scores).toEqual({
         angebot: [
-          { strength: 0.46, entry: UUID.mine, subject: 'lastenrad' },
-          { strength: 0.865, entry: UUID.mine, subject: 'lastenrad' },
+          { strength: 0.46, entry: UUID.mine, subject: 'lastenrad', exact: false },
+          { strength: 0.865, entry: UUID.mine, subject: 'lastenrad', exact: false },
         ],
       })
     })
@@ -255,16 +296,18 @@ describe('useMatches', () => {
             channels: [{ matchingType: 'offer', strength: 0.595, matches: [withoutSubject] }],
           }),
         ).scores.angebot[0],
-      ).toEqual({ strength: 0.595, entry: UUID.mine, subject: UUID.mine })
+      ).toEqual({ strength: 0.595, entry: UUID.mine, subject: UUID.mine, exact: false })
       expect(scoresFor({ matchedSubject: null })).toEqual({
         strength: 0.595,
         entry: UUID.mine,
         subject: UUID.mine,
+        exact: false,
       })
       expect(scoresFor({ matchedEntryUuid: null, matchedSubject: null })).toEqual({
         strength: 0.595,
         entry: null,
         subject: null,
+        exact: false,
       })
     })
 
@@ -665,6 +708,123 @@ describe('useMatches', () => {
     })
   })
 
+  /**
+   * The topic search and the sentence questions as one list (KA-020): "genau" means only, and a
+   * person is community and account together.
+   */
+  describe('withSameSentence', () => {
+    // A topic match of Marta's for an entry of mine.
+    const topicFor = (mine, over = {}) => ({
+      ...matchedUser().channels[0].matches[0],
+      matchedEntryUuid: mine,
+      ...over,
+    })
+    const withTopics = (matches, over = {}) =>
+      matchedUser({ channels: [{ matchingType: 'offer', strength: 0.595, matches }], ...over })
+    const entriesOf = (people) =>
+      people.map((person) => ({
+        uuid: person.uuid,
+        community: person.community.uuid,
+        entries: person.channels.flatMap((channel) =>
+          channel.matches.map((match) => [match.matchedEntryUuid, match.exact === true]),
+        ),
+      }))
+
+    it('passes the topic answer through untouched where no sentence answered', () => {
+      const people = [withTopics([topicFor(UUID.mineToo)])]
+      expect(withSameSentence(people, [])).toBe(people)
+    })
+
+    it('adds a person who only carries my sentence, with their entry marked', () => {
+      const merged = withSameSentence([], [{ entry: UUID.mineToo, users: [sentenceUser()] }])
+      expect(entriesOf(merged)).toEqual([
+        { uuid: UUID.paul, community: UUID.community, entries: [[UUID.mineToo, true]] },
+      ])
+    })
+
+    it('leaves out the topic matches of that entry, and a person left with none', () => {
+      const merged = withSameSentence(
+        [withTopics([topicFor(UUID.mineToo)])],
+        [{ entry: UUID.mineToo, users: [] }],
+      )
+      expect(merged).toEqual([])
+    })
+
+    it('keeps the topic matches of my other entries', () => {
+      const merged = withSameSentence(
+        [withTopics([topicFor(UUID.mine), topicFor(UUID.mineToo)])],
+        [{ entry: UUID.mineToo, users: [] }],
+      )
+      expect(entriesOf(merged)).toEqual([
+        { uuid: UUID.marta, community: UUID.community, entries: [[UUID.mine, false]] },
+      ])
+    })
+
+    it('makes one person of a topic match and a sentence, by community and uuid', () => {
+      const merged = withSameSentence(
+        [withTopics([topicFor(UUID.mine), topicFor(UUID.mineToo)])],
+        [{ entry: UUID.mineToo, users: [sentenceUser({ uuid: UUID.marta, alias: 'Marta' })] }],
+      )
+      expect(entriesOf(merged)).toEqual([
+        {
+          uuid: UUID.marta,
+          community: UUID.community,
+          entries: [
+            [UUID.mine, false],
+            [UUID.mineToo, true],
+          ],
+        },
+      ])
+    })
+
+    it('makes one person of two sentences, whatever the case of the uuids', () => {
+      const merged = withSameSentence(
+        [],
+        [
+          { entry: UUID.mine, users: [sentenceUser({}, UUID.mine)] },
+          {
+            entry: UUID.mineToo,
+            users: [
+              sentenceUser({
+                uuid: UUID.paul.toUpperCase(),
+                community: { uuid: UUID.community.toUpperCase(), name: 'Gradido Künzelsau' },
+              }),
+            ],
+          },
+        ],
+      )
+      expect(merged).toHaveLength(1)
+      expect(entriesOf(merged)[0].entries).toEqual([
+        [UUID.mine, true],
+        [UUID.mineToo, true],
+      ])
+    })
+
+    it('keeps two people apart who share a uuid in two communities', () => {
+      const elsewhere = { uuid: UUID.other, name: 'Gradido Hamburg' }
+      const merged = withSameSentence(
+        [withTopics([topicFor(UUID.mine)], { uuid: UUID.paul })],
+        [{ entry: UUID.mineToo, users: [sentenceUser({ community: elsewhere })] }],
+      )
+      expect(entriesOf(merged).map(({ uuid, community }) => [uuid, community])).toEqual([
+        [UUID.paul, UUID.community],
+        [UUID.paul, UUID.other],
+      ])
+    })
+
+    it('takes the nearest of a sentence up to the number, counting only those with a point', () => {
+      const people = ['a', 'b', 'c', 'd'].map((alias, index) =>
+        sentenceUser({
+          uuid: `5b1f0a1e-0000-4000-8000-00000000010${index}`,
+          alias,
+          location: alias === 'b' ? [] : [9.7, 49.3],
+        }),
+      )
+      const merged = withSameSentence([], [{ entry: UUID.mineToo, users: people }], 2)
+      expect(merged.map((person) => person.alias)).toEqual(['a', 'c'])
+    })
+  })
+
   describe('load', () => {
     let fetchMock
 
@@ -687,6 +847,161 @@ describe('useMatches', () => {
 
     afterEach(() => {
       vi.unstubAllGlobals()
+    })
+
+    /**
+     * The people who carry the sentence of one of my entries with the "genau" (KA-018, KA-020): one
+     * question each, beside the matches, with the same circle, reach and token.
+     */
+    describe('the people who carry one of my sentences', () => {
+      const EXACT = { ...SEARCH, exactUuids: [UUID.mineToo] }
+      let sentenceAnswer
+      beforeEach(() => {
+        sentenceAnswer = async () => okJson({ total: 1, users: [sentenceUser()] })
+        const others = fetchMock.getMockImplementation()
+        fetchMock.mockImplementation(async (url) => {
+          if (url.includes('community-user/sentence-matches')) return sentenceAnswer(url)
+          if (url.includes('community-user/matches')) {
+            return okJson([
+              matchedUser({
+                channels: [
+                  {
+                    matchingType: 'offer',
+                    strength: 0.595,
+                    matches: [
+                      matchedUser().channels[0].matches[0],
+                      { ...matchedUser().channels[0].matches[0], matchedEntryUuid: UUID.mineToo },
+                    ],
+                  },
+                ],
+              }),
+            ])
+          }
+          return others(url)
+        })
+      })
+      const asked = (route) =>
+        fetchMock.mock.calls.map(([url]) => new URL(url)).filter((url) => url.pathname === route)
+      const matchedFor = (match) =>
+        match.channels.angebot?.map((entry) => entry.matchedEntryUuid) ?? []
+
+      it('asks the sentence route for each entry with the "genau", with the circle, the reach and the token', async () => {
+        const { load } = useMatches()
+        await load({ ...EXACT, remoteOnly: true, exactUuids: [UUID.mine, UUID.mineToo] })
+
+        const urls = asked('/gms/community-user/sentence-matches')
+        expect(urls.map((url) => url.searchParams.get('entry'))).toEqual([UUID.mine, UUID.mineToo])
+        for (const url of urls) {
+          expect(url.searchParams.get('latitude')).toBe(String(SEARCH.center.lat))
+          expect(url.searchParams.get('longitude')).toBe(String(SEARCH.center.lng))
+          expect(url.searchParams.get('radius')).toBe(String(SEARCH.radius))
+          expect(url.searchParams.get('remote')).toBe('true')
+        }
+        const sent = fetchMock.mock.calls.filter(([url]) => url.includes('sentence-matches'))
+        expect(sent.map(([, init]) => init.headers.Authorization)).toEqual([
+          'Bearer tok-1',
+          'Bearer tok-1',
+        ])
+        expect(query).toHaveBeenCalledTimes(1)
+      })
+
+      it('asks no sentence for a typed question, and none without an entry with the "genau"', async () => {
+        const { load } = useMatches()
+        await load({ ...EXACT, query: { text: 'Klavier', matchingType: 'gesuch' } })
+        await load(SEARCH)
+        expect(asked('/gms/community-user/sentence-matches')).toEqual([])
+      })
+
+      it('asks about five entries at most', async () => {
+        const many = Array.from({ length: SENTENCE_QUESTIONS_MAX + 2 }, (_, i) => `entry-${i}`)
+        const { load } = useMatches()
+        await load({ ...SEARCH, exactUuids: many })
+        expect(asked('/gms/community-user/sentence-matches')).toHaveLength(SENTENCE_QUESTIONS_MAX)
+      })
+
+      it('draws the people of the sentence at the top, drops the topic matches of that entry, and the rings under them', async () => {
+        const { load, matches, presence, error } = useMatches()
+        await load(EXACT)
+
+        expect(error.value).toBeNull()
+        expect(matches.value.map((match) => match.name)).toEqual(['Marta', 'Paul'])
+        expect(matchedFor(matches.value[0])).toEqual([UUID.mine])
+        const paul = matches.value[1]
+        expect(paul.scores.interesse).toEqual([
+          { strength: 0.865, entry: UUID.mineToo, subject: UUID.mineToo, exact: true },
+        ])
+        // Marta glows and Paul now too: no ring under either.
+        expect(presence.value).toEqual([])
+      })
+
+      it.each([404, 400])(
+        'searches with that entry as without its "genau" where the GMS answers %s, and says nothing',
+        async (status) => {
+          sentenceAnswer = async () => ({ ok: false, status, json: async () => ({}) })
+          const { load, matches, presence, error } = useMatches()
+          await load(EXACT)
+
+          expect(error.value).toBeNull()
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
+          expect(matchedFor(matches.value[0])).toEqual([UUID.mine, UUID.mineToo])
+          expect(presence.value.map((person) => person.name)).toEqual(['Paul'])
+        },
+      )
+
+      it('keeps the "genau" of one entry where another one is answered 404', async () => {
+        sentenceAnswer = async (url) =>
+          url.includes(`entry=${UUID.mine}`)
+            ? { ok: false, status: 404, json: async () => ({}) }
+            : okJson({ total: 1, users: [sentenceUser()] })
+        const { load, matches } = useMatches()
+        await load({ ...SEARCH, exactUuids: [UUID.mine, UUID.mineToo] })
+
+        expect(matches.value.map((match) => match.name)).toEqual(['Marta', 'Paul'])
+        expect(matchedFor(matches.value[0])).toEqual([UUID.mine])
+      })
+
+      it.each([401, 403, 500, 503])(
+        'fails the search where the GMS answers the sentence %s',
+        async (status) => {
+          sentenceAnswer = async () => ({ ok: false, status, json: async () => ({}) })
+          const { load, matches, presence, error } = useMatches()
+          await load(EXACT)
+
+          expect(error.value?.code).toBe(GMS_UNAVAILABLE)
+          expect(matches.value).toEqual([])
+          expect(presence.value).toEqual([])
+        },
+      )
+
+      it('fails the search where the sentence question cannot reach the GMS', async () => {
+        sentenceAnswer = async () => {
+          throw new TypeError('Failed to fetch')
+        }
+        const { load, matches, error } = useMatches()
+        await load(EXACT)
+
+        expect(error.value?.code).toBe(GMS_UNAVAILABLE)
+        expect(matches.value).toEqual([])
+      })
+
+      it('lets a search that was overtaken write nothing, not even with its late sentence', async () => {
+        let release
+        sentenceAnswer = () =>
+          new Promise((resolve) => {
+            release = () => resolve(okJson({ total: 1, users: [sentenceUser()] }))
+          })
+        const { load, matches } = useMatches()
+        const first = load(EXACT)
+        await vi.waitFor(() => expect(release).toBeTypeOf('function'))
+        const firstRelease = release
+        sentenceAnswer = async () => okJson({ total: 0, users: [] })
+        await load(EXACT)
+        expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
+
+        firstRelease()
+        await first
+        expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
+      })
     })
 
     it('asks nothing without a centre or a radius', async () => {
@@ -814,7 +1129,7 @@ describe('useMatches', () => {
       expect(error.value).toBeNull()
       expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
       expect(matches.value[0].scores).toEqual({
-        angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad' }],
+        angebot: [{ strength: 0.595, entry: UUID.mine, subject: 'lastenrad', exact: false }],
       })
       expect(presence.value).toEqual([
         {

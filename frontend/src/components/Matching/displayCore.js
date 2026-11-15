@@ -150,6 +150,12 @@ export function stageBrightness(stage, cfg = DEFAULTS) {
 }
 
 /**
+ * Where somebody carries the sentence of one of my entries with the "genau" (sentence-matches,
+ * KA-018): they glow "hellrot", at the top step, whatever breadth is switched to.
+ */
+export const EXACT_STAGE = 5
+
+/**
  * One channel of one person → its step.
  *
  * `scores` holds one `{ strength, entry, subject }` per entry of theirs that answers
@@ -169,7 +175,8 @@ export function channelStage(scores, cfg = DEFAULTS, breiteOn = false) {
   scores.forEach(({ subject }, index) => {
     if (stages[index] >= 2 && subject !== null && subject !== undefined) things.add(subject)
   })
-  return applyBreite(base, breiteOn ? Math.max(0, things.size - 1) : 0)
+  const stage = applyBreite(base, breiteOn ? Math.max(0, things.size - 1) : 0)
+  return scores.some(({ exact }) => exact) ? Math.max(stage, EXACT_STAGE) : stage
 }
 
 /** Steps per channel → the marker's colour, mixed additively. */
@@ -246,6 +253,7 @@ export function scoresOf(channels) {
         strength: entry.strength,
         entry: entry.matchedEntryUuid ?? null,
         subject: entry.matchedSubject ?? entry.matchedEntryUuid ?? null,
+        exact: entry.exact === true,
       }))
     if (answered.length) scores[channel] = answered
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { verifyLogin } from './queries'
+import { listMatchingEntries, verifyLogin } from './queries'
 import { login } from './mutations'
 import { listAllContributions } from './contributions.graphql'
 
@@ -102,5 +102,15 @@ describe('listAllContributions query', () => {
 
   it('pulls in no fragment that could carry a person', () => {
     expect(row.map((selection) => selection.kind)).toEqual(row.map(() => 'Field'))
+  })
+})
+
+// The member's own entries are the only way a device learns how an entry stands: the map asks the
+// GMS who carries the sentence of each entry with the "genau" and opens wide for one released for
+// the wide search (MatchingMap), and the entries page shows the mark (Matching). Their specs answer
+// the query with made-up data, so a field missing from the document would pass every one of them.
+describe('listMatchingEntries query', () => {
+  it.each(['exactSentence', 'remote', 'active', 'keyed'])('asks for %s', (field) => {
+    expect(requestedFields(listMatchingEntries).has(field)).toBe(true)
   })
 })

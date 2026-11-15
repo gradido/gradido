@@ -95,8 +95,10 @@ type MyEntry = {
   uuid: string
   matchingType: string
   summary: string
+  remote?: boolean
   active?: boolean
   keyed?: boolean
+  exactSentence?: boolean
 }
 type View = { lat: number; lng: number; zoom: number }
 
@@ -310,6 +312,8 @@ export const MatchingMap = defineComponent({
     // has handed the words over, a moment later -- or, where that send failed, not before the
     // member's next edit: `keyed` says "worked out", not "arrived over there".
     const keyedKey = (entries: MyEntry[]) => entryKey(entries.filter((entry) => entry.keyed))
+    // The entries with the "genau" (KA-020): each asks who carries its sentence (useMatches).
+    const exactOf = (entries: MyEntry[]) => entries.filter((entry) => entry.exactSentence)
 
     /**
      * An entry of mine that has no words yet, asked about until it has them.
@@ -404,6 +408,7 @@ export const MatchingMap = defineComponent({
       listsTaken++
       const keyBefore = entryKey(myEntries.value)
       const keyedBefore = keyedKey(myEntries.value)
+      const exactBefore = entryKey(exactOf(myEntries.value))
       myEntries.value = (list ?? []).filter((entry) => entry.active)
       askAgainForWords()
       // A remembered choice can outlive what it points at: the entry may have been
@@ -428,7 +433,13 @@ export const MatchingMap = defineComponent({
       // And once an entry of mine has its words: the GMS finds with it from then on, and the search
       // asked before them found nothing with it (askAgainForWords). That search is a later one, not
       // the arrival's: a window left open last time is not brought back by it (arrivalOver).
-      if (entryKey(myEntries.value) !== keyBefore) {
+      //
+      // And where an entry gains or loses its "genau" (a link healed it, an edit took it back):
+      // the same entries, another question.
+      if (
+        entryKey(myEntries.value) !== keyBefore ||
+        entryKey(exactOf(myEntries.value)) !== exactBefore
+      ) {
         searchUnasked()
       } else if (keyedKey(myEntries.value) !== keyedBefore) {
         searchAfterWords()
@@ -1365,6 +1376,7 @@ export const MatchingMap = defineComponent({
         radius: radius.value,
         query: searchQuery.value,
         mineUuids: myEntries.value.map((entry) => entry.uuid),
+        exactUuids: exactOf(myEntries.value).map((entry) => entry.uuid),
         remoteOnly: reach.value === 'fern',
       })
     }

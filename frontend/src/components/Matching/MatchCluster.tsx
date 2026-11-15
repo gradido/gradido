@@ -13,7 +13,7 @@ export type ClusterPerson = {
   match: {
     uuid: string
     name: string
-    community: { name: string }
+    community: { uuid?: string | null; name: string }
     channels?: Partial<Record<Channel, { strength?: number | null; summary: string }[]>>
   }
   stages?: Partial<Record<Channel, number>>
@@ -78,7 +78,7 @@ export const MatchCluster = defineComponent({
         <h3 class='cluster-head'>{t('matching.cluster.title', { n: props.people.length })}</h3>
         <ul class='cluster-rows'>
           {props.people.map((item) => (
-            <li key={item.match.uuid}>
+            <li key={`${item.match.community?.uuid}/${item.match.uuid}`}>
               <button type='button' class='cluster-row' onClick={() => emit('open', item.match)}>
                 <span class='cluster-dots' aria-hidden='true'>
                   {dotsFor(item).map((channel) => (

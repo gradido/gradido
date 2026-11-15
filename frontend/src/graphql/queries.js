@@ -115,6 +115,7 @@ export const listMatchingEntries = gql`
       active
       createdAt
       keyed
+      exactSentence
     }
   }
 `

@@ -440,7 +440,7 @@ export const MatchList = defineComponent({
               </h3>
               <ul class={['rows', classes.rows]}>
                 {props.matches.map((item) => (
-                  <li key={item.match.uuid}>
+                  <li key={`${item.match.community?.uuid}/${item.match.uuid}`}>
                     <button
                       type='button'
                       class={['row', classes.row, 'row-match', classes['row-match']]}

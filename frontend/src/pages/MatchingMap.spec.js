@@ -3973,3 +3973,56 @@ describe('MatchingMap, asked to show somebody', () => {
     })
   })
 })
+
+/**
+ * The "genau" of my entries (KA-018, KA-020): the search asks who carries the sentence of each live
+ * entry with it, and a change of the mark alone asks again.
+ */
+describe('MatchingMap, the "genau" of my entries', () => {
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
+  const project = (uuid, over = {}) => ({
+    ...entry(uuid),
+    matchingType: 'interest',
+    summary: 'Kongress Frequency Healing',
+    remote: true,
+    exactSentence: true,
+    ...over,
+  })
+  const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const lastSearch = () => load.mock.calls.at(-1)[0]
+  const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
+  const located = () => fire(userLocationQuery, { userLocation: location })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('hands the search the live entries with the "genau", and only those', async () => {
+    const page = mountMap()
+    located()
+    list(project('a'), project('b', { active: false }), project('c', { exactSentence: false }))
+    await page.vm.$nextTick()
+
+    expect(lastSearch().exactUuids).toEqual(['a'])
+    expect(lastSearch().mineUuids).toEqual(['a', 'c'])
+  })
+
+  it('asks again where only the "genau" of an entry changed', async () => {
+    remember('reach', 'regional')
+    const page = mountMap()
+    located()
+    list(project('a', { exactSentence: false }))
+    await page.vm.$nextTick()
+    const asked = load.mock.calls.length
+
+    // The link healed it: the same entries, another question.
+    list(project('a'))
+    await page.vm.$nextTick()
+
+    expect(load).toHaveBeenCalledTimes(asked + 1)
+    expect(lastSearch().exactUuids).toEqual(['a'])
+  })
+})
