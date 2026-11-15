@@ -1063,6 +1063,7 @@
         "w": "à l'ouest"
       },
       "empty": "Il n'y a personne ici pour le moment. Élargis le rayon ou cherche un autre endroit.",
+      "emptyExact": "Ici, personne n'a saisi exactement cette phrase. Élargis le rayon ou cherche un autre endroit.",
       "fromHome": "depuis chez toi",
       "heading": "Des personnes à proximité",
       "kmEtwa": "environ {n} km",
@@ -1168,6 +1169,8 @@
     "query": {
       "all": "Toutes mes entrées",
       "clear": "Réinitialiser la recherche",
+      "exact": "Exactement cette entrée",
+      "exactPeople": "{n} personne | {n} personne | {n} personnes",
       "keep": "Conserver comme entrée",
       "keepAsk": "Être trouvé pour « {text} » à l'avenir ?",
       "keepNever": "Ne plus demander",

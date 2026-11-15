@@ -109,8 +109,9 @@ describe('listAllContributions query', () => {
 // GMS who carries the sentence of each entry with the "genau" and opens wide for one released for
 // the wide search (MatchingMap), and the entries page shows the mark (Matching). Their specs answer
 // the query with made-up data, so a field missing from the document would pass every one of them.
+// `updatedAt` is the stand the map keeps its own tick against an older list with.
 describe('listMatchingEntries query', () => {
-  it.each(['exactSentence', 'remote', 'active', 'keyed'])('asks for %s', (field) => {
+  it.each(['exactSentence', 'remote', 'active', 'keyed', 'updatedAt'])('asks for %s', (field) => {
     expect(requestedFields(listMatchingEntries).has(field)).toBe(true)
   })
 })

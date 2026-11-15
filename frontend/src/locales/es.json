@@ -1063,6 +1063,7 @@
         "w": "al oeste"
       },
       "empty": "Ahora mismo no hay nadie aquí. Amplía el radio o busca en otro lugar.",
+      "emptyExact": "Aquí nadie ha puesto esta misma frase. Amplía el radio o busca en otro lugar.",
       "fromHome": "desde tu casa",
       "heading": "Personas en los alrededores",
       "kmEtwa": "unos {n} km",
@@ -1168,6 +1169,8 @@
     "query": {
       "all": "Todas mis entradas",
       "clear": "Restablecer la búsqueda",
+      "exact": "Exactamente esta entrada",
+      "exactPeople": "{n} persona | {n} personas",
       "keep": "Conservar como entrada",
       "keepAsk": "¿Que te encuentren por «{text}» a partir de ahora?",
       "keepNever": "No preguntar más",

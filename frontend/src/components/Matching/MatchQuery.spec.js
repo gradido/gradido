@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { h } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { MatchQuery } from './MatchQuery'
 import { LABEL_COLORS } from './displayCore'
@@ -11,6 +12,7 @@ const i18n = createI18n({
   messages: {
     de: {
       matching: {
+        entries: { exactSentence: 'Genau' },
         query: {
           all: 'Alle meine Einträge',
           clear: 'Suche zurücksetzen',
@@ -60,7 +62,7 @@ const mountQuery = (selection = { kind: 'all' }) => {
     props: { entries, selection },
     global: {
       plugins: [i18n],
-      stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
+      stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
     },
   })
   standing.push(wrapper)
@@ -91,6 +93,14 @@ describe('MatchQuery', () => {
       const wrapper = mountQuery({ kind: 'entry', uuid: 'e1' })
 
       expect(wrapper.text()).toContain('Ich suche einen Klavierlehrer')
+    })
+
+    // A remembered entry the list has not brought yet (a cold load): the bar says what the map
+    // shows meanwhile (MatchingMap, `choiceInEffect`).
+    it('says all my entries for an entry it does not know', () => {
+      expect(mountQuery({ kind: 'entry', uuid: 'not-there' }).text()).toContain(
+        'Alle meine Einträge',
+      )
     })
 
     it('shows the words themselves when the question was typed', () => {
@@ -132,6 +142,45 @@ describe('MatchQuery', () => {
 
       expect(dots[0]).toContain(asRgb(LABEL_COLORS.gesuch))
       expect(dots[1]).toContain(asRgb(LABEL_COLORS.angebot))
+    })
+
+    // KA-023 point 6: the sign of "Meine Einträge" behind the sentence of an entry with the "genau".
+    it('marks an entry with the "genau", behind its sentence and outside what is cut short', async () => {
+      const wrapper = mount(MatchQuery, {
+        props: {
+          entries: [{ ...entries[0], exactSentence: true }, entries[1]],
+          selection: { kind: 'all' },
+        },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
+        },
+      })
+      standing.push(wrapper)
+      await wrapper.find('.query-bar').trigger('click')
+
+      const [, marked, unmarked] = wrapper.findAll('.query-option')
+      const sign = marked.find('.option-exact')
+      expect(sign.exists()).toBe(true)
+      expect(sign.attributes('aria-label')).toBe('Genau')
+      expect(sign.attributes('role')).toBe('img')
+      expect(marked.find('.option-text .option-exact').exists()).toBe(false)
+      expect(unmarked.find('.option-exact').exists()).toBe(false)
+    })
+
+    it('marks nothing in the closed bar', () => {
+      const wrapper = mount(MatchQuery, {
+        props: {
+          entries: [{ ...entries[0], exactSentence: true }],
+          selection: { kind: 'entry', uuid: 'e1' },
+        },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
+        },
+      })
+      standing.push(wrapper)
+      expect(wrapper.find('.option-exact').exists()).toBe(false)
     })
 
     it('asks straight away when the question is one of my entries', async () => {
@@ -237,6 +286,53 @@ describe('MatchQuery', () => {
 
       expect(last(wrapper)).toEqual({ kind: 'all' })
       expect(wrapper.find('.typed-input').exists()).toBe(false)
+    })
+  })
+
+  // The page sets the tick of a chosen entry under the bar (MatchingMap). Typing does not change the
+  // choice, so it steps back while a sentence is typed -- the field would no longer name what stood
+  // under it --, and the open menu lies over it.
+  describe('what the page sets under the bar', () => {
+    const mountWithBelow = () => {
+      const wrapper = mount(MatchQuery, {
+        props: { entries, selection: { kind: 'entry', uuid: 'e1' } },
+        slots: { below: () => h('p', { class: 'below-stub' }, 'Genau dieser Eintrag') },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
+        },
+      })
+      standing.push(wrapper)
+      return wrapper
+    }
+    const below = (wrapper) => wrapper.find('.below-stub')
+
+    it('stands under the closed bar', () => {
+      expect(below(mountWithBelow()).text()).toBe('Genau dieser Eintrag')
+    })
+
+    it('stands after the open menu in the page, so the menu lies over it', async () => {
+      const wrapper = mountWithBelow()
+      await wrapper.find('.query-bar').trigger('click')
+
+      const menu = wrapper.find('.query-menu').element
+      expect(below(wrapper).exists()).toBe(true)
+      expect(
+        menu.compareDocumentPosition(below(wrapper).element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('steps back while a sentence is typed, and comes back when the field is cleared', async () => {
+      const wrapper = mountWithBelow()
+      await wrapper.find('.query-bar').trigger('click')
+      await wrapper.findAll('.query-option').at(-1).trigger('click')
+      expect(below(wrapper).exists()).toBe(false)
+
+      await wrapper.find('.typed-input').setValue('Fahrrad')
+      expect(below(wrapper).exists()).toBe(false)
+
+      await wrapper.find('.typed-clear').trigger('click')
+      expect(below(wrapper).exists()).toBe(true)
     })
   })
 

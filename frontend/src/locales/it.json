@@ -1063,6 +1063,7 @@
         "w": "a ovest"
       },
       "empty": "Qui al momento non c'è nessuno. Allarga il raggio o cerca in un altro posto.",
+      "emptyExact": "Qui nessuno ha inserito esattamente questa frase. Allarga il raggio o cerca in un altro posto.",
       "fromHome": "da casa tua",
       "heading": "Persone nelle vicinanze",
       "kmEtwa": "circa {n} km",
@@ -1168,6 +1169,8 @@
     "query": {
       "all": "Tutte le mie voci",
       "clear": "Reimposta la ricerca",
+      "exact": "Esattamente questa voce",
+      "exactPeople": "{n} persona | {n} persone",
       "keep": "Conserva come voce",
       "keepAsk": "Farsi trovare per «{text}» d'ora in poi?",
       "keepNever": "Non chiedere più",

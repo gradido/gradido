@@ -568,6 +568,25 @@
   }
 }
 
+/* The tick under the search field, a box of the same form as the ones under the map. Its box
+   stands under the bar's search icon. The label wraps where it has to, never the number away
+   from its word: `exact-count` keeps "1.500 Menschen" in one piece. */
+.exact-check {
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  margin-left: 0.75rem;
+  row-gap: 0;
+
+  :global(.exact-count) {
+    white-space: nowrap;
+  }
+}
+
+/* The place of the row while a remembered entry waits for the list (exactTick, a cold load). */
+.exact-pending {
+  visibility: hidden;
+}
+
 /* The cluster overlay covers the map while the mode is still "karte", so is-list
    does not apply — hide the map controls while it shows, so nothing sits over the
    overlay or its close cross. Placed last, after the plain control selectors, to

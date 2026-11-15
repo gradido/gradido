@@ -6,10 +6,13 @@ import {
   onUnmounted,
   type PropType,
   ref,
+  type SlotsType,
+  type VNode,
   watch,
   withKeys,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import IBiBullseye from '~icons/bi/bullseye'
 import IBiCheck from '~icons/bi/check'
 import IBiChevronDown from '~icons/bi/chevron-down'
 import IBiPencil from '~icons/bi/pencil'
@@ -21,7 +24,13 @@ import classes from './MatchQuery.module.scss'
 type Channel = keyof typeof LABEL_COLORS
 
 /** One of the member's own entries, as far as the question needs it. */
-export type QueryEntry = { uuid: string; matchingType: string; summary: string }
+// `exactSentence`: the entry has the "genau" (KA-020); the menu marks it (KA-023 point 6).
+export type QueryEntry = {
+  uuid: string
+  matchingType: string
+  summary: string
+  exactSentence?: boolean
+}
 
 /** What the map is asked for. */
 export type QuerySelection =
@@ -59,7 +68,11 @@ export const MatchQuery = defineComponent({
     },
   },
   emits: ['update:selection'],
-  setup(props, { emit }) {
+  // `below`: what the page sets under the closed bar (the tick of a chosen entry). It steps back
+  // while a sentence is typed -- typing does not change the choice, and the field would no longer
+  // name what stood under it -- and the open menu lies over it.
+  slots: Object as SlotsType<{ below?: () => VNode | null }>,
+  setup(props, { emit, slots }) {
     const { t } = useI18n()
 
     const open = ref(false)
@@ -291,6 +304,17 @@ export const MatchQuery = defineComponent({
                 <span class='option-text'>
                   {`${t(`matching.type.${displayType(entry.matchingType)}.prefix`)} ${entry.summary}`}
                 </span>
+                {/* The sign of "Meine Einträge", behind the sentence and not inside it: a long
+                    sentence is cut short, the sign is not. Named for a screen reader, as the
+                    picture alone says nothing there. The closed bar has none -- the tick under it
+                    says how the chosen entry stands. */}
+                {entry.exactSentence ? (
+                  <IBiBullseye
+                    class='option-exact'
+                    role='img'
+                    aria-label={t('matching.entries.exactSentence')}
+                  />
+                ) : null}
               </li>
             ))}
 
@@ -305,6 +329,10 @@ export const MatchQuery = defineComponent({
             </li>
           </ul>
         ) : null}
+
+        {/* After the menu in the markup: the menu takes its place under the bar, so it lies over
+            what stands here rather than below it. */}
+        {!typing.value ? slots.below?.() : null}
 
         {/* Typing: the field alone is not a question. The three stances below finish
             the sentence, and finishing it is what asks. */}

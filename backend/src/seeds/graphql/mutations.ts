@@ -588,6 +588,16 @@ export const setMatchingEntryActive = gql`
   }
 `
 
+export const setMatchingEntryExactSentence = gql`
+  mutation ($uuid: String!, $exactSentence: Boolean!) {
+    setMatchingEntryExactSentence(uuid: $uuid, exactSentence: $exactSentence) {
+      uuid
+      active
+      exactSentence
+    }
+  }
+`
+
 export const deleteMatchingEntry = gql`
   mutation ($uuid: String!) {
     deleteMatchingEntry(uuid: $uuid)

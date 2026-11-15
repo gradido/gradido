@@ -21,6 +21,7 @@ import {
   deleteMatchingEntry,
   login,
   setMatchingEntryActive,
+  setMatchingEntryExactSentence,
   settleEventMatchingArrival,
   updateMatchingEntry,
 } from '@/seeds/graphql/mutations'
@@ -483,11 +484,12 @@ describe('MatchingEntryResolver', () => {
      */
     describe('the "genau"', () => {
       const exactOf = async (uuid: string) => (await entryByUuid(uuid)).exactSentence
-      // Taken off by hand in the database: no call does it before the switch on the map comes.
+      // Taken off as the member does it, with the tick at the map.
       const takeOff = (uuid: string) =>
-        db
-          .getDataSource()
-          .query('UPDATE matching_entries SET exact_sentence = 0 WHERE uuid = ?', [uuid])
+        mutate({
+          mutation: setMatchingEntryExactSentence,
+          variables: { uuid, exactSentence: false },
+        })
       const rewrite = (uuid: string, summary: string) =>
         mutate({
           mutation: updateMatchingEntry,
@@ -1020,6 +1022,35 @@ describe('MatchingEntryResolver', () => {
           }),
         )
       })
+    })
+  })
+
+  // The tick at the map (KA-023 point 5). Its decisions are held in
+  // MatchingEntryResolver.setMatchingEntryExactSentence.test.ts; here the way through.
+  describe('setMatchingEntryExactSentence', () => {
+    it('ticks it on and off, and the list says so', async () => {
+      await clearEntries()
+      await loginBibi()
+      const uuid = await seedEntry({ matchingType: 'interest', summary: 'Feuerwehr Künzelsau' })
+      const listed = async () =>
+        ((await query({ query: listMatchingEntries })) as any).data.listMatchingEntries.find(
+          (entry: { uuid: string }) => entry.uuid === uuid,
+        )
+
+      const on: any = await mutate({
+        mutation: setMatchingEntryExactSentence,
+        variables: { uuid, exactSentence: true },
+      })
+      expect(on.errors).toBeUndefined()
+      expect(on.data.setMatchingEntryExactSentence).toMatchObject({ uuid, exactSentence: true })
+      expect((await listed()).exactSentence).toBe(true)
+
+      await mutate({
+        mutation: setMatchingEntryExactSentence,
+        variables: { uuid, exactSentence: false },
+      })
+      expect((await listed()).exactSentence).toBe(false)
+      expect((await entryByUuid(uuid)).exactSentence).toBe(false)
     })
   })
 

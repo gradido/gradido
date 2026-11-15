@@ -1003,7 +1003,7 @@
       "edit": "Düzenle",
       "emptyText": "Bir şey sun, bir şey ara ya da bir ilgi alanı paylaş ve bulunmanı sağla.",
       "emptyTitle": "Henüz giriş yok.",
-      "exactSentence": "Tam eşleşme",
+      "exactSentence": "Tam bu cümle",
       "new": "Yeni giriş",
       "noDetails": "(ayrıntı yok)",
       "pause": "Duraklat",
@@ -1063,6 +1063,7 @@
         "w": "batıda"
       },
       "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "emptyExact": "Burada kimse tam olarak bu cümleyi eklememiş. Yarıçapı büyüt ya da başka bir yer ara.",
       "fromHome": "senin evinden",
       "heading": "Yakındaki insanlar",
       "kmEtwa": "yaklaşık {n} km",
@@ -1168,6 +1169,8 @@
     "query": {
       "all": "Tüm girişlerim",
       "clear": "Aramayı sıfırla",
+      "exact": "Tam olarak bu giriş",
+      "exactPeople": "{n} kişi",
       "keep": "Giriş olarak sakla",
       "keepAsk": "Bundan böyle “{text}” ile bulunmak?",
       "keepNever": "Bir daha sorma",

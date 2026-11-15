@@ -1003,7 +1003,7 @@
       "edit": "Bewerken",
       "emptyText": "Bied iets aan, zoek iets of deel een interesse, en laat je vinden.",
       "emptyTitle": "Nog geen vermeldingen.",
-      "exactSentence": "Exact",
+      "exactSentence": "Precies",
       "new": "Nieuwe vermelding",
       "noDetails": "(geen details)",
       "pause": "Pauzeren",
@@ -1063,6 +1063,7 @@
         "w": "ten westen"
       },
       "empty": "Hier is op dit moment niemand. Vergroot de straal of zoek een andere plek.",
+      "emptyExact": "Hier heeft niemand precies deze zin ingevuld. Vergroot de straal of zoek een andere plek.",
       "fromHome": "vanaf je huis",
       "heading": "Mensen in de buurt",
       "kmEtwa": "ongeveer {n} km",
@@ -1168,6 +1169,8 @@
     "query": {
       "all": "Al mijn vermeldingen",
       "clear": "Zoekopdracht wissen",
+      "exact": "Precies deze vermelding",
+      "exactPeople": "{n} persoon | {n} mensen",
       "keep": "Als vermelding bewaren",
       "keepAsk": "Voortaan gevonden worden voor ‘{text}’?",
       "keepNever": "Niet meer vragen",

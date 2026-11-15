@@ -6,6 +6,7 @@ import {
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbSetMatchingEntryActive,
+  dbSetMatchingEntryExactSentence,
   dbSetUndecidedExactSentence,
   dbUpdateMatchingEntry,
   MatchingEntrySelect,
@@ -211,6 +212,28 @@ export class MatchingEntryResolver {
     // list; pausing takes it off. Either way the run is the one that sorts it out.
     matchingKeyingRun.nudge()
     return new MatchingEntry(entry)
+  }
+
+  /**
+   * The member's tick at the map (KA-023 point 5): the "genau" on or off, written as true or
+   * false. Three requests, as for a pause: the entry looked up, the field written, read back.
+   *
+   * Nothing goes to the GMS and the keying is not nudged: the tick decides what the member's own
+   * map asks for, not how others find them, and the GMS does not know the field (KA-020).
+   */
+  @Authorized([RIGHTS.UPDATE_MATCHING_ENTRY])
+  @Mutation(() => MatchingEntry)
+  async setMatchingEntryExactSentence(
+    @Arg('uuid', () => String) uuid: string,
+    @Arg('exactSentence', () => Boolean) exactSentence: boolean,
+    @Ctx() context: Context,
+  ): Promise<MatchingEntry> {
+    await findOwnEntry(uuid, getUser(context).id)
+    const changed = await dbSetMatchingEntryExactSentence(uuid, exactSentence)
+    if (!changed.success) {
+      throw new LogError('Could not change MatchingEntry state', uuid)
+    }
+    return new MatchingEntry(await readBackMatchingEntry(uuid))
   }
 
   @Authorized([RIGHTS.DELETE_MATCHING_ENTRY])

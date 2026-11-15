@@ -38,6 +38,7 @@ const i18n = createI18n({
           kmExact: '{n} km',
           meets: 'trifft {n} Deiner Einträge',
           empty: 'Hier ist gerade niemand.',
+          emptyExact: 'Hier hat niemand genau diesen Satz eingetragen.',
           contactHeading: 'Dein Kontakt',
           fromHome: 'von Deinem Zuhause aus',
           dir: {
@@ -304,6 +305,22 @@ describe('MatchList', () => {
   it('says so plainly when there is no one', () => {
     const wrapper = mountList()
     expect(wrapper.find('.list-empty').text()).toBe('Hier ist gerade niemand.')
+  })
+
+  // The page took the answer on screen down for a search that asks other sentences (useMatches,
+  // `askingAnew`): the list is empty for that moment only, and says nothing about who is here.
+  it('says nothing about nobody while the answer to other sentences is on its way', () => {
+    const wrapper = mountList({ waiting: true })
+    expect(wrapper.find('.list-empty').exists()).toBe(false)
+  })
+
+  // KA-024: where a chosen entry shows only the people of its sentence, the neighbours are hidden,
+  // not gone.
+  it('says that nobody here entered the sentence where only its people are shown', () => {
+    const wrapper = mountList({ sentenceOnly: true })
+    expect(wrapper.find('.list-empty').text()).toBe(
+      'Hier hat niemand genau diesen Satz eingetragen.',
+    )
   })
 
   // Somebody the page was asked to show (Bernd, 09.10.2026): a contact, from the pin in the

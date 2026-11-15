@@ -523,7 +523,8 @@ export const matchingEntriesTable = mysqlTable(
     // --- end of the keying -----------------------------------------------------
     // The "genau" of an entry (KA-020): it finds only the members with the same sentence.
     // NULL where it was never decided -- every entry from before migration 0176, and one made
-    // by hand --, true where a project link set it, false where the member took it off.
+    // by hand --, true where a project link or the member's tick set it, false where the member
+    // took it off (dbSetMatchingEntryExactSentence).
     exactSentence: boolean('exact_sentence'),
   },
   (table) => [
