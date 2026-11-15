@@ -3,6 +3,7 @@ import { cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
   CreationGroup,
+  dbRemoveUserRoles,
   dbUpdateUserRoleSupportDuty,
   UserCreationGroup,
   UserRole,
@@ -175,5 +176,22 @@ describe("a moderator's visibility scope", () => {
     const row = await UserRole.findOneOrFail({ where: { userId: 7105 } })
     expect(row.visibleCreationGroups).toBe('["*untagged"]')
     expect(row.supportDuty).toBe(true)
+  })
+
+  // And where the role was taken away between that load and that save, save() finds no row and
+  // inserts the loaded one anew. The tick must not come back with it: taking the role away is
+  // what resets it (insert: false).
+  it('brings no tick back with a row its scope saving puts in anew', async () => {
+    await makeModerator(7106)
+    expect(await dbUpdateUserRoleSupportDuty(7106, true)).toEqual({ success: true })
+    const loaded = await UserRole.findOneOrFail({ where: { userId: 7106 } })
+    expect(loaded.supportDuty).toBe(true)
+
+    await dbRemoveUserRoles([7106])
+    loaded.visibleCreationGroups = JSON.stringify(['*untagged'])
+    await loaded.save()
+
+    const rows = await UserRole.find({ where: { userId: 7106 } })
+    expect(rows.map((row) => row.supportDuty)).not.toContain(true)
   })
 })

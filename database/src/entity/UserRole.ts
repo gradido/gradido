@@ -32,10 +32,20 @@ export class UserRole extends BaseEntity {
   // the rights of every signed-in request (isAuthorized) and for the member search; written only by
   // a query of its own in queries/userRoles.ts, never through this entity.
   //
-  // ⛔ `update: false`: TypeORM's save() of a row it loaded earlier writes back each column that
-  // differs from the row as it stands by then (saveModeratorScope, the renaming of a group), so a
-  // tick set between that load and that save would be taken back. An insert still writes it.
-  @Column({ name: 'support_duty', type: 'bool', nullable: false, default: false, update: false })
+  // ⛔ `insert: false, update: false`: TypeORM's save() of a row it loaded earlier writes back each
+  // column that differs from the row as it stands by then (saveModeratorScope, the renaming of a
+  // group), so a tick set between that load and that save would be taken back. And where the row
+  // was deleted in between (the role taken away), save() inserts the loaded row anew: a tick
+  // written on that insert would come back with it, while taking the role away is what resets it.
+  // So no row this entity writes carries a tick; one it inserts starts without.
+  @Column({
+    name: 'support_duty',
+    type: 'bool',
+    nullable: false,
+    default: false,
+    insert: false,
+    update: false,
+  })
   supportDuty: boolean
 
   @Column({

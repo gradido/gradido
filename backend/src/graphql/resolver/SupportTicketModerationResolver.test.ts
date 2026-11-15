@@ -11,6 +11,7 @@ import {
   dbSelectRoleHoldersWithContact,
   dbSelectSupportTicketsInScope,
   dbUpdateHomeCommunity,
+  dbUpdateUserRoleSupportDuty,
   drizzleDb,
   EventType,
   eventsTable,
@@ -187,7 +188,8 @@ const writes = async (
 }
 
 // A moderator here handles support requests -- they carry the tick (K6) -- unless a test says
-// otherwise. Written on the insert, which the tick's column takes (UserRole: `update: false`).
+// otherwise. Set by the query that alone writes it: the entity never does (UserRole, `insert`
+// and `update` false).
 const moderate = async (
   user: DbUser,
   visibleCreationGroups: string[],
@@ -201,8 +203,10 @@ const moderate = async (
   row.userId = user.id
   row.role = role
   row.visibleCreationGroups = JSON.stringify(visibleCreationGroups)
-  row.supportDuty = supportDuty
   await row.save()
+  if (supportDuty) {
+    expect(await dbUpdateUserRoleSupportDuty(user.id, true)).toEqual({ success: true })
+  }
 }
 
 // the requests, the newest last
