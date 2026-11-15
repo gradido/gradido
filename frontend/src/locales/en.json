@@ -1646,7 +1646,7 @@
     "placeholder": "What can we help you with?",
     "question": "Your question",
     "readBy": {
-      "group": "Your request goes to the moderators of the group “{group}”. Other members cannot see it.",
+      "group": "Your request goes to the support team of the group “{group}”. Other members cannot see it.",
       "none": "Your request goes to your community's support team. Other members cannot see it."
     },
     "reassigned": "The support team handed your request on",

@@ -1646,7 +1646,7 @@
     "placeholder": "Em que te podemos ajudar?",
     "question": "A tua pergunta",
     "readBy": {
-      "group": "O teu pedido vai para os moderadores do grupo «{group}». Os outros membros não o podem ver.",
+      "group": "O teu pedido vai para o suporte do grupo «{group}». Os outros membros não o podem ver.",
       "none": "O teu pedido vai para o suporte da comunidade. Os outros membros não o podem ver."
     },
     "reassigned": "O suporte encaminhou o teu pedido",
