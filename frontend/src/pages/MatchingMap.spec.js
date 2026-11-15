@@ -3975,14 +3975,20 @@ describe('MatchingMap, asked to show somebody', () => {
 })
 
 /**
- * The "genau" of my entries (KA-018, KA-020): the search asks who carries the sentence of each live
- * entry with it, and a change of the mark alone asks again.
+ * The "genau" of my entries (KA-018, KA-020, KA-021): the search asks who carries the sentence of
+ * each live entry with it, a change of the mark alone asks again, and the first map of a member
+ * with such an entry released for the wide search opens wide -- once, and only where the reach was
+ * never chosen on this device.
  */
 describe('MatchingMap, the "genau" of my entries', () => {
   beforeAll(async () => {
     await import('@/utils/mapEngine/maplibre')
   })
 
+  const CONTACT = {
+    with: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    community: 'cccccccc-0000-4000-8000-cccccccccccc',
+  }
   const project = (uuid, over = {}) => ({
     ...entry(uuid),
     matchingType: 'interest',
@@ -3992,9 +3998,23 @@ describe('MatchingMap, the "genau" of my entries', () => {
     ...over,
   })
   const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const remembered = (name) => JSON.parse(window.localStorage.getItem(KEY + name))
   const lastSearch = () => load.mock.calls.at(-1)[0]
   const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
   const located = () => fire(userLocationQuery, { userLocation: location })
+
+  /** The page with its map built (the engine comes after the quarter second) and home known. */
+  const withMap = async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const page = mountMap()
+    located()
+    await page.vm.$nextTick()
+    vi.advanceTimersByTime(250)
+    vi.useRealTimers()
+    await flushPromises()
+    await flushPromises()
+    return page
+  }
 
   afterEach(() => {
     vi.useRealTimers()
@@ -4024,5 +4044,111 @@ describe('MatchingMap, the "genau" of my entries', () => {
 
     expect(load).toHaveBeenCalledTimes(asked + 1)
     expect(lastSearch().exactUuids).toEqual(['a'])
+  })
+
+  describe('the first map', () => {
+    it('opens wide, where the list comes before the map, and remembers it', async () => {
+      remember('view', { lat: 48.2, lng: 11.6, zoom: 12 })
+      const page = mountMap()
+      list(project('a'))
+      located()
+      await flushPromises()
+
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true, exactUuids: ['a'] })
+      expect(remembered('reach')).toBe('fern')
+      // The view of the 25 km circle would hide the wide one.
+      expect(remembered('view')).toBeNull()
+      const [regional, wide] = page.findAll('.reach-btn')
+      expect(wide.attributes('aria-pressed')).toBe('true')
+      expect(regional.attributes('aria-pressed')).toBe('false')
+    })
+
+    it('goes the way of the switch where the list comes after the map stands', async () => {
+      const page = await withMap()
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+      const asked = load.mock.calls.length
+
+      list(project('a'))
+      await flushPromises()
+
+      // One search, the wide one: the switch searched, and the list does not ask a second time.
+      expect(load).toHaveBeenCalledTimes(asked + 1)
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true })
+      expect(remembered('reach')).toBe('fern')
+      expect(page.findAll('.reach-btn')[1].attributes('aria-pressed')).toBe('true')
+    })
+
+    it.each([
+      ['a reach the member chose', () => remember('reach', 'regional'), project('a')],
+      [
+        'an entry with the "genau" not released for the wide search',
+        () => {},
+        project('a', { remote: false }),
+      ],
+      ['a released entry without the "genau"', () => {}, project('a', { exactSentence: false })],
+      ['a paused entry with the "genau"', () => {}, project('a', { active: false })],
+    ])('stays regional for %s', async (_what, before, mine) => {
+      before()
+      const page = mountMap()
+      list(mine)
+      located()
+      await flushPromises()
+
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+      expect(page.findAll('.reach-btn')[0].attributes('aria-pressed')).toBe('true')
+    })
+
+    it('writes nothing where no reach was chosen and it stays regional', async () => {
+      mountMap()
+      list(project('a', { remote: false }))
+      located()
+      await flushPromises()
+
+      expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+    })
+
+    // Without the cache the query first answers with no data: that is no list.
+    it('takes an answer without data for no list', async () => {
+      mountMap()
+      fire(listMatchingEntries, undefined)
+      located()
+      await flushPromises()
+
+      expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+      expect(lastSearch()).toMatchObject({ remoteOnly: false })
+    })
+
+    it('does not switch during a visit to a contact, and does on the next ordinary visit', async () => {
+      route.current.query = CONTACT
+      const visit = await withMap()
+      list(project('a'))
+      await flushPromises()
+      expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+      expect(visit.findAll('.reach-btn')[0].attributes('aria-pressed')).toBe('true')
+      visit.unmount()
+      wrapper = null
+
+      route.current.query = {}
+      const ordinary = await withMap()
+      list(project('a'))
+      await flushPromises()
+      expect(remembered('reach')).toBe('fern')
+      expect(ordinary.findAll('.reach-btn')[1].attributes('aria-pressed')).toBe('true')
+    })
+
+    it('switches once: the member who goes back to regional stays there', async () => {
+      const page = await withMap()
+      list(project('a'))
+      await flushPromises()
+      expect(remembered('reach')).toBe('fern')
+
+      await page.findAll('.reach-btn')[0].trigger('click')
+      await flushPromises()
+      list(project('a'), project('b'))
+      await flushPromises()
+
+      expect(remembered('reach')).toBe('regional')
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+    })
   })
 })

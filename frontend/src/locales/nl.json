@@ -1003,6 +1003,7 @@
       "edit": "Bewerken",
       "emptyText": "Bied iets aan, zoek iets of deel een interesse, en laat je vinden.",
       "emptyTitle": "Nog geen vermeldingen.",
+      "exactSentence": "Exact",
       "new": "Nieuwe vermelding",
       "noDetails": "(geen details)",
       "pause": "Pauzeren",
@@ -1133,6 +1134,7 @@
       "choose": "Kies:",
       "completeSentence": "Maak deze zin af:",
       "detailsHeading": "Details — zodat de juiste mensen je vinden:",
+      "exactSentenceHint": "Deze vermelding laat je de mensen zien met precies deze zin. Pas je de zin aan, dan zoekt de vermelding weer naar vergelijkbare onderwerpen.",
       "remote": "Ook bovenregionaal / online beschikbaar",
       "remoteHint": "Je verschijnt dan ook in de bovenregionale zoekresultaten.",
       "sentenceStart": "{start} …"

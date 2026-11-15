@@ -436,6 +436,9 @@ export const MatchingMap = defineComponent({
       //
       // And where an entry gains or loses its "genau" (a link healed it, an edit took it back):
       // the same entries, another question.
+      if (openWideOnce()) {
+        return
+      }
       if (
         entryKey(myEntries.value) !== keyBefore ||
         entryKey(exactOf(myEntries.value)) !== exactBefore
@@ -444,6 +447,38 @@ export const MatchingMap = defineComponent({
       } else if (keyedKey(myEntries.value) !== keyedBefore) {
         searchAfterWords()
       }
+    }
+
+    /**
+     * The first map of a member with a "genau" entry released for the wide search opens wide
+     * (KA-021 point 1): the people of a project live far apart, and the 25 km circle would show
+     * none of them. Once, and only where the reach was never chosen on this device -- from then on
+     * it is the member's choice, kept like one. Not during a visit to a contact: that search stands
+     * on the contact; the next ordinary visit switches.
+     *
+     * The way a tap on the switch goes (setReach: the circle jumps, the map frames it, the search
+     * runs) where the map stands; before it does, the reach is set and the view of the old circle
+     * forgotten, and the map opens on the wide circle when it comes. True where it searched.
+     */
+    let openedWide = false
+    function openWideOnce() {
+      if (
+        openedWide ||
+        readPref<unknown>('reach', null) !== null ||
+        askedPerson.value ||
+        !exactOf(myEntries.value).some((entry) => entry.remote)
+      ) {
+        return false
+      }
+      openedWide = true
+      writePref('view', null)
+      if (map) {
+        setReach('fern')
+        return true
+      }
+      reach.value = 'fern'
+      writePref('reach', 'fern')
+      return false
     }
 
     /**

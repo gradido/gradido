@@ -1003,6 +1003,7 @@
       "edit": "Editar",
       "emptyText": "Ofrece algo, busca algo o comparte un interés, y deja que te encuentren.",
       "emptyTitle": "Aún no hay entradas.",
+      "exactSentence": "Exacta",
       "new": "Nueva entrada",
       "noDetails": "(sin detalles)",
       "pause": "Pausar",
@@ -1133,6 +1134,7 @@
       "choose": "Elige:",
       "completeSentence": "Completa esta frase:",
       "detailsHeading": "Detalles — para que las personas adecuadas te encuentren:",
+      "exactSentenceHint": "Esta entrada te muestra a las personas con esta misma frase. Si la cambias, volverá a buscar temas parecidos.",
       "remote": "También disponible de forma suprarregional / en línea",
       "remoteHint": "Así también apareces en la búsqueda suprarregional.",
       "sentenceStart": "{start} …"
