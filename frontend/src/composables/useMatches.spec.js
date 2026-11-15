@@ -837,24 +837,75 @@ describe('useMatches', () => {
       expect(merged.map((person) => person.alias)).toEqual(['a', 'c'])
     })
 
-    // KA-022: three projects draw no more than one; the number is shared, rounded down.
-    it('shares the number equally between the sentences that answered', () => {
-      const of = (prefix, count) =>
+    /**
+     * KA-023 point 8: the sentences that answered take their people in turns -- each its next one,
+     * nearest first --, so a small project comes in whole and the places it leaves go to the large
+     * ones, and three projects draw no more than one.
+     */
+    describe('in turns', () => {
+      const of = (prefix, count, entry = UUID.mine) =>
         Array.from({ length: count }, (_, index) =>
-          sentenceUser({
-            uuid: `5b1f0a1e-0000-4000-8000-000000000${prefix}0${index}`,
-            alias: `${prefix}${index}`,
-          }),
+          sentenceUser(
+            {
+              uuid: `5b1f0a1e-0000-4000-8000-000000000${prefix}0${index}`,
+              alias: `${prefix}${index}`,
+            },
+            entry,
+          ),
         )
-      const merged = withSameSentence(
-        [],
-        [
-          { entry: UUID.mine, users: of('1', 4) },
-          { entry: UUID.mineToo, users: of('2', 4) },
-        ],
-        5,
-      )
-      expect(merged.map((person) => person.alias)).toEqual(['10', '11', '20', '21'])
+      const aliases = (merged) => merged.map((person) => person.alias)
+
+      it('takes the next of each sentence, round after round, up to the number', () => {
+        const merged = withSameSentence(
+          [],
+          [
+            { entry: UUID.mine, users: of('1', 4) },
+            { entry: UUID.mineToo, users: of('2', 4, UUID.mineToo) },
+          ],
+          5,
+        )
+        expect(aliases(merged)).toEqual(['10', '20', '11', '21', '12'])
+      })
+
+      it('takes a small project whole and gives the places it leaves to the large one', () => {
+        const merged = withSameSentence(
+          [],
+          [
+            { entry: UUID.mine, users: of('1', 2) },
+            { entry: UUID.mineToo, users: of('2', 6, UUID.mineToo) },
+          ],
+          6,
+        )
+        expect(aliases(merged)).toEqual(['10', '20', '11', '21', '22', '23'])
+      })
+
+      it('never takes more than the number, however many sentences answered', () => {
+        const answered = Array.from({ length: 10 }, (_, index) => ({
+          entry: `entry-${index}`,
+          users: of(String(index), 3, `entry-${index}`),
+        }))
+        expect(withSameSentence([], answered, 7)).toHaveLength(7)
+      })
+
+      it('counts somebody in two answers once, and keeps the channels of both', () => {
+        const both = sentenceUser({ uuid: UUID.paul, alias: 'Paul' }, UUID.mineToo)
+        const merged = withSameSentence(
+          [],
+          [
+            {
+              entry: UUID.mine,
+              users: [sentenceUser({ uuid: UUID.paul, alias: 'Paul' }, UUID.mine), ...of('1', 2)],
+            },
+            { entry: UUID.mineToo, users: [both, ...of('2', 2, UUID.mineToo)] },
+          ],
+          3,
+        )
+        expect(aliases(merged)).toEqual(['Paul', '10', '20'])
+        expect(entriesOf(merged)[0].entries).toEqual([
+          [UUID.mine, true],
+          [UUID.mineToo, true],
+        ])
+      })
     })
   })
 
@@ -945,11 +996,16 @@ describe('useMatches', () => {
         expect(asked('/gms/community-user/sentence-matches')).toEqual([])
       })
 
-      it('asks about five entries at most', async () => {
-        const many = Array.from({ length: SENTENCE_QUESTIONS_MAX + 2 }, (_, i) => `entry-${i}`)
+      // KA-023 point 8: ten, in the order of the list.
+      it('asks about ten entries at most, the first ten', async () => {
+        const many = Array.from({ length: 12 }, (_, i) => `entry-${i}`)
         const { load } = useMatches()
         await load({ ...SEARCH, exactUuids: many })
-        expect(asked('/gms/community-user/sentence-matches')).toHaveLength(SENTENCE_QUESTIONS_MAX)
+        const entries = asked('/gms/community-user/sentence-matches').map((url) =>
+          url.searchParams.get('entry'),
+        )
+        expect(entries).toEqual(many.slice(0, 10))
+        expect(SENTENCE_QUESTIONS_MAX).toBe(10)
       })
 
       it('draws the people of the sentence at the top, drops the topic matches of that entry, and the rings under them', async () => {

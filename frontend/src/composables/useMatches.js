@@ -446,8 +446,8 @@ export function withoutMatched(people, matched) {
 }
 
 /**
- * How many people of the sentences one search draws, nearest first, shared equally between the
- * entries whose sentence answered (KA-022: two entries take 150 each). Matches are single elements
+ * How many people of the sentences one search draws, nearest first, taken in turns between the
+ * entries whose sentence answered (KA-023 point 8, withSameSentence). Matches are single elements
  * on the map, and the sentence route answers up to a thousand: measured on 15.11.2026, a graphics
  * card with a fourfold slower CPU pans 300 at about 40 frames a second and 1,000 at about 20. The
  * true number stands beside the tick at the map (`sentenceTotals`). One entry chosen on its own is
@@ -455,8 +455,13 @@ export function withoutMatched(people, matched) {
  */
 export const SENTENCE_PEOPLE_MAX = 300
 
-/** How many entries with the "genau" one search asks about; the rest search as without it. */
-export const SENTENCE_QUESTIONS_MAX = 5
+/**
+ * How many entries with the "genau" one search asks about, in the order of the list (the latest
+ * changed first); the rest search there as without it. Ten answers carry up to ten thousand people
+ * to draw 300 of them: where members with many large projects come into sight, a limit per answer
+ * belongs to the GMS ("send only the nearest 300").
+ */
+export const SENTENCE_QUESTIONS_MAX = 10
 
 /** One person, however a server spells the pair: a uuid names somebody only within one community. */
 const personKey = (user) =>
@@ -468,12 +473,13 @@ const personKey = (user) =>
  *
  * - For an entry of mine whose sentence question answered, its topic matches go: "genau" means
  *   only. A person left with no channel goes with them.
- * - The people of each answered sentence come in, the nearest of them, each of their entries
- *   marked `exact`. `limit` is shared equally between the answered sentences, so a member with
- *   three projects draws no more than one with one. Somebody without a usable point is not
- *   counted among them.
+ * - The people of each answered sentence come in, each of their entries marked `exact`, taken in
+ *   turns: every answer gives its next person, nearest first, round after round, until `limit`
+ *   people are in or no answer has anybody left (KA-023 point 8). A small project comes in whole,
+ *   and the places it leaves go to the large ones; a member with three projects draws no more
+ *   than one with one. Somebody without a usable point is not counted among them.
  * - Somebody in two answers -- a topic match and a sentence, or two sentences -- is one person,
- *   by community and uuid, with the channels of both laid together.
+ *   by community and uuid, with the channels of both laid together, and counted once.
  *
  * Without an answered sentence the topic answer passes untouched: for a member without the
  * "genau" nothing changes.
@@ -484,7 +490,6 @@ const personKey = (user) =>
  */
 export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) {
   if (!answered.length) return people
-  const perEntry = Math.floor(limit / answered.length)
   const only = new Set(answered.map(({ entry }) => entry))
   const byPerson = new Map()
   const add = (user, channels) => {
@@ -515,8 +520,20 @@ export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) 
         .filter((channel) => channel.matches.length),
     )
   }
-  for (const { users } of answered) {
-    for (const user of users.filter(hasUsablePoint).slice(0, perEntry)) {
+  // In turns. Somebody met again in a later answer brings that channel along and takes no second
+  // place: skipped, they would lose it.
+  const queues = answered.map(({ users }) => users.filter(hasUsablePoint))
+  const taken = new Set()
+  const longest = Math.max(...queues.map((queue) => queue.length))
+  for (let round = 0; round < longest && taken.size < limit; round++) {
+    for (const queue of queues) {
+      const user = queue[round]
+      if (!user) continue
+      const key = personKey(user)
+      if (!taken.has(key)) {
+        if (taken.size >= limit) continue
+        taken.add(key)
+      }
       add(
         user,
         (user.channels ?? []).map((channel) => ({
