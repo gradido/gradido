@@ -778,14 +778,16 @@ describe('useMatches', () => {
     })
 
     // coderabbit (#4296): the filter after the merge drops a person without a usable point.
-    it('keeps the usable point of the second answer where the first came without one', () => {
-      const sentence = sentenceUser({ uuid: UUID.marta, alias: 'Marta' })
+    it('keeps the usable point of the second answer where the first came without one, and its precision', () => {
+      const sentence = sentenceUser({ uuid: UUID.marta, alias: 'Marta', type: 1 })
       const merged = withSameSentence(
-        [withTopics([topicFor(UUID.mine)], { location: null })],
+        [withTopics([topicFor(UUID.mine)], { location: null, type: 0 })],
         [{ entry: UUID.mineToo, users: [sentence] }],
       )
       expect(merged).toHaveLength(1)
       expect(merged[0].location).toEqual(sentence.location)
+      // An approximate point is not labelled exact because the other answer had no point at all.
+      expect(precisionOf(merged[0].type)).toBe('ungefaehr')
     })
 
     it('makes one person of two sentences, whatever the case of the uuids', () => {

@@ -489,8 +489,12 @@ export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) 
     }
     known.channels = known.channels.concat(channels)
     // One person in two answers: where the first came without a usable point and the second with
-    // one, the second's counts -- the filter after the merge would drop them (coderabbit, #4296).
-    if (!hasUsablePoint(known) && hasUsablePoint(user)) known.location = user.location
+    // one, the second's counts -- the filter after the merge would drop them -- and its precision
+    // with it, which `type` carries (precisionOf; coderabbit, #4296).
+    if (!hasUsablePoint(known) && hasUsablePoint(user)) {
+      known.location = user.location
+      known.type = user.type
+    }
   }
   for (const user of people) {
     add(
