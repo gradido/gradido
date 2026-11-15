@@ -6,6 +6,8 @@ import {
   onUnmounted,
   type PropType,
   ref,
+  type SlotsType,
+  type VNode,
   watch,
   withKeys,
 } from 'vue'
@@ -59,7 +61,11 @@ export const MatchQuery = defineComponent({
     },
   },
   emits: ['update:selection'],
-  setup(props, { emit }) {
+  // `below`: what the page sets under the closed bar (the tick of a chosen entry). It steps back
+  // while a sentence is typed -- typing does not change the choice, and the field would no longer
+  // name what stood under it -- and the open menu lies over it.
+  slots: Object as SlotsType<{ below?: () => VNode | null }>,
+  setup(props, { emit, slots }) {
     const { t } = useI18n()
 
     const open = ref(false)
@@ -305,6 +311,10 @@ export const MatchQuery = defineComponent({
             </li>
           </ul>
         ) : null}
+
+        {/* After the menu in the markup: the menu takes its place under the bar, so it lies over
+            what stands here rather than below it. */}
+        {!typing.value ? slots.below?.() : null}
 
         {/* Typing: the field alone is not a question. The three stances below finish
             the sentence, and finishing it is what asks. */}

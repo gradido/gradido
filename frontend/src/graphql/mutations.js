@@ -153,6 +153,18 @@ export const setMatchingEntryActive = gql`
   }
 `
 
+// The tick at the map (KA-023 point 5). `updatedAt` is the stand the page keeps against a list
+// read before the write (MatchingMap).
+export const setMatchingEntryExactSentence = gql`
+  mutation ($uuid: String!, $exactSentence: Boolean!) {
+    setMatchingEntryExactSentence(uuid: $uuid, exactSentence: $exactSentence) {
+      uuid
+      exactSentence
+      updatedAt
+    }
+  }
+`
+
 export const deleteMatchingEntry = gql`
   mutation ($uuid: String!) {
     deleteMatchingEntry(uuid: $uuid)

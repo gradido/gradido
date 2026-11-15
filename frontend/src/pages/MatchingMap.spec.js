@@ -4,16 +4,26 @@ import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vite
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { reactive, ref } from 'vue'
+import { defineComponent, h, reactive, ref } from 'vue'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createI18n } from 'vue-i18n'
 import de from '@/locales/de.json'
 import { MatchingMap } from './MatchingMap'
 import { GeoSearchField } from '@/components/Matching/GeoSearchField'
-import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
-import { GMS_REJECTED, GMS_UNAVAILABLE, toProfile } from '@/composables/useMatches'
+import {
+  authenticateGmsUserSearch,
+  listMatchingEntries,
+  userLocationQuery,
+} from '@/graphql/queries'
+import {
+  GMS_REJECTED,
+  GMS_UNAVAILABLE,
+  SENTENCE_QUESTIONS_MAX,
+  toProfile,
+} from '@/composables/useMatches'
 import { created } from '@test/maplibreMock'
+import { scoresOf } from '@/components/Matching/displayCore'
 
 // The page's rules, as the .vue once held them in one block: the module (the scoped block) and
 // the global sheet of the markers, in one text. Comments first where a test says so: they name
@@ -70,6 +80,10 @@ vi.mock('vue-router', () => ({
 const handlers = new Map()
 const fire = (document, data) => handlers.get(document)?.result?.({ data })
 const listQuestion = vi.hoisted(() => vi.fn())
+// The tick under the search field writes through the one mutation the page has
+// (setMatchingEntryExactSentence), and then into the cached list for "Meine Einträge".
+const writeExact = vi.hoisted(() => vi.fn())
+const updateCachedQuery = vi.hoisted(() => vi.fn())
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: (document) => {
@@ -85,9 +99,11 @@ vi.mock('@vue/apollo-composable', () => ({
       },
     }
   },
-  useMutation: () => ({ mutate: vi.fn().mockResolvedValue({}) }),
+  useMutation: () => ({ mutate: writeExact }),
   // The page's own question for the list while an entry waits for its words (askForWords).
-  useApolloClient: () => ({ client: { query: listQuestion } }),
+  useApolloClient: () => ({
+    client: { query: listQuestion, cache: { updateQuery: updateCachedQuery } },
+  }),
 }))
 
 const load = vi.fn()
@@ -99,15 +115,35 @@ const suggest = vi.fn(async () => [])
 // spy and never fills anything in by itself.
 const matches = ref([])
 const presence = ref([])
+// The sentence questions of the search on screen (`{ [entry]: total }`) and whether an answer was
+// taken down for new ones. Held out as well; what the real `load` writes into them is held in
+// useMatches.spec.js -- a test here sets them as an answer would.
+const sentenceTotals = ref({})
+const askingAnew = ref(false)
 const searchError = ref(null)
 // The profile route. Held out like `load`, so a test can see what the window asks for
 // and hand it an answer - or none.
 const profile = vi.fn()
+// Where a test asks for it (`realSearch.on`), the page gets the real search, with the GMS answered by
+// a stand-in for `fetch`: what the map shows between two answers is only seen that way.
+const realSearch = vi.hoisted(() => ({ on: false }))
 vi.mock('@/composables/useMatches', async () => {
   const actual = await vi.importActual('@/composables/useMatches')
   return {
     ...actual,
-    useMatches: () => ({ matches, presence, error: searchError, load, suggest, profile }),
+    useMatches: () =>
+      realSearch.on
+        ? actual.useMatches()
+        : {
+            matches,
+            presence,
+            sentenceTotals,
+            askingAnew,
+            error: searchError,
+            load,
+            suggest,
+            profile,
+          },
   }
 })
 
@@ -184,11 +220,28 @@ let wrapper = null
 // unresolved; the dialog's own `shown` and `ok` reach the stub's element as native listeners.
 const BModalStub = { name: 'BModal', template: '<div class="modal-stub"><slot /></div>' }
 
+// The search field as a stand-in that still shows what the page sets under its bar (the tick of a
+// chosen entry). Its own rules -- the menu over it, nothing while a sentence is typed -- are held in
+// MatchQuery.spec.js.
+const MatchQueryStub = defineComponent({
+  name: 'MatchQuery',
+  props: { entries: Array, selection: Object, suggest: Function },
+  emits: ['update:selection'],
+  setup(_, { slots }) {
+    return () => h('div', { class: 'match-query-stub' }, slots.below?.())
+  },
+})
+
 const mountMap = ({ gmsAllowed = true, store = makeStore(gmsAllowed) } = {}) => {
   wrapper = mount(MatchingMap, {
     global: {
       plugins: [store, i18n],
-      stubs: { MatchQuery: true, MatchProfile: true, MatchList: true, BModal: BModalStub },
+      stubs: {
+        MatchQuery: MatchQueryStub,
+        MatchProfile: true,
+        MatchList: true,
+        BModal: BModalStub,
+      },
     },
   })
   return wrapper
@@ -209,7 +262,11 @@ beforeEach(() => {
   toastError.mockClear()
   matches.value = []
   presence.value = []
+  sentenceTotals.value = {}
+  askingAnew.value = false
   searchError.value = null
+  writeExact.mockReset()
+  updateCachedQuery.mockReset()
   window.localStorage.clear()
 })
 
@@ -4198,5 +4255,1011 @@ describe('MatchingMap, the "genau" of my entries', () => {
         setItem.mockRestore()
       }
     })
+  })
+})
+
+// The tick under the search field (KA-020 point 3, KA-023): set and taken off by hand, with the
+// number of the people who carry the sentence, and a chosen entry with it showing only them.
+describe('MatchingMap, the tick under the search field', () => {
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
+  const CONTACT = {
+    with: 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',
+    community: 'cccccccc-0000-4000-8000-cccccccccccc',
+  }
+  const BEFORE = '2026-11-15T10:00:00.000Z'
+  const WRITTEN = '2026-11-15T12:00:00.000Z'
+  const LATER = '2026-11-15T13:00:00.000Z'
+  // An entry of mine with the "genau". Not released for the wide search unless a test says so: a
+  // tick would open the first map wide where the test is about something else.
+  const mine = (uuid, over = {}) => ({
+    ...entry(uuid),
+    matchingType: 'interest',
+    summary: `Kongress ${uuid}`,
+    remote: false,
+    exactSentence: true,
+    updatedAt: BEFORE,
+    ...over,
+  })
+  const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const remembered = (name) => JSON.parse(window.localStorage.getItem(KEY + name))
+  const lastSearch = () => load.mock.calls.at(-1)[0]
+  const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
+  const located = () => fire(userLocationQuery, { userLocation: location })
+  const chosen = (uuid) => ({ kind: 'entry', uuid })
+  const choose = async (page, selection) => {
+    page.findComponent({ name: 'MatchQuery' }).vm.$emit('update:selection', selection)
+    await flushPromises()
+  }
+  const row = (page) => page.find('.exact-check')
+  const box = (page) => page.find('.exact-check input')
+  const number = (page) => page.find('.exact-count')
+  const tap = (page) => box(page).trigger('click')
+  const pressed = (page) => page.findAll('.reach-btn').map((btn) => btn.attributes('aria-pressed'))
+  /** What the server answers to a tick: the entry with its new state and stand. */
+  const written = (uuid, exactSentence, updatedAt = WRITTEN) => ({
+    data: { setMatchingEntryExactSentence: { uuid, exactSentence, updatedAt } },
+  })
+  /** A write held on its way until the test lets it answer. */
+  const held = () => {
+    const write = {}
+    writeExact.mockImplementationOnce(
+      () =>
+        new Promise((resolve, reject) => {
+          write.answer = resolve
+          write.fail = reject
+        }),
+    )
+    return write
+  }
+  // Somebody who carries the sentence of `of`: the brightest there is, at any strength (KA-018).
+  const carrier = (uuid, of, { exact = true, strength = 0.46 } = {}) => {
+    const channels = {
+      interesse: [
+        { uuid: `${uuid}-entry`, matchedEntryUuid: of, matchedSubject: null, strength, exact },
+      ],
+    }
+    return {
+      uuid,
+      name: uuid,
+      position: { lat: 48.2, lng: 11.6 },
+      community: { uuid: CONTACT.community, name: 'Muenchen' },
+      aboutMe: '',
+      precision: 'genau',
+      channels,
+      scores: scoresOf(channels),
+    }
+  }
+  const ring = (id) => ({
+    id,
+    uuid: `ring-${id}`,
+    name: `ring-${id}`,
+    community: { uuid: CONTACT.community, name: 'Muenchen' },
+    hasEntries: id % 2 === 0,
+    position: { lat: 48.2 + id / 1000, lng: 11.6 },
+    precision: 'ungefaehr',
+  })
+  const rings = () => created.at(-1).getSource('gk-presence').data.features.length
+  const greyBoxes = (page) =>
+    page.findAll('.map-check').filter((label) => /andere (mit|ohne) Angaben/.test(label.text()))
+
+  /** The page without its map: home known, my entries in, `selection` remembered from last time. */
+  const page = async (entries, selection = chosen(entries[0].uuid)) => {
+    remember('query', selection)
+    const mounted = mountMap()
+    located()
+    list(...entries)
+    await flushPromises()
+    return mounted
+  }
+
+  /** The same with its map built (the engine comes after the quarter second). */
+  const withMap = async (entries, selection = chosen(entries[0].uuid)) => {
+    remember('query', selection)
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const mounted = mountMap()
+    located()
+    list(...entries)
+    await mounted.vm.$nextTick()
+    vi.advanceTimersByTime(250)
+    vi.useRealTimers()
+    await flushPromises()
+    await flushPromises()
+    return mounted
+  }
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  describe('the row', () => {
+    it('stands for one chosen entry of mine, ticked as the entry has it', async () => {
+      const shown = await page([mine('a', { exactSentence: false }), mine('b')])
+
+      expect(row(shown).text()).toContain('Genau dieser Eintrag')
+      expect(box(shown).element.checked).toBe(false)
+
+      await choose(shown, chosen('b'))
+      expect(box(shown).element.checked).toBe(true)
+    })
+
+    it.each([
+      ['all my entries', { kind: 'all' }],
+      ['a typed search', { kind: 'typed', text: 'Klavier', matchingType: 'gesuch' }],
+    ])('does not stand for %s', async (_what, selection) => {
+      const shown = await page([mine('a')], selection)
+
+      expect(row(shown).exists()).toBe(false)
+    })
+
+    // Above the map and above the list alike (KA-023, "in beiden Ansichten").
+    it('stands in the list as well', async () => {
+      remember('mode', 'liste')
+      const shown = await page([mine('a')])
+
+      expect(shown.findComponent({ name: 'MatchList' }).exists()).toBe(true)
+      expect(box(shown).element.checked).toBe(true)
+    })
+
+    // Before the list the page does not know the chosen entry.
+    it('comes with the list', async () => {
+      remember('query', chosen('a'))
+      const shown = mountMap()
+      located()
+      await flushPromises()
+      expect(row(shown).exists()).toBe(false)
+
+      list(mine('a'))
+      await flushPromises()
+      expect(row(shown).exists()).toBe(true)
+    })
+
+    it.each([
+      [0, '0 Menschen'],
+      [1, '1 Mensch'],
+      [37, '37 Menschen'],
+      [1500, '1.500 Menschen'],
+    ])('says %i people while the tick is on and its question answered', async (total, words) => {
+      const shown = await page([mine('a')])
+      sentenceTotals.value = { a: total }
+      await flushPromises()
+
+      expect(number(shown).text()).toBe(words)
+    })
+
+    it.each([
+      ['its question did not answer (a GMS without it)', {}],
+      ['the GMS gave no usable number', { a: null }],
+    ])('says no number where %s, and keeps the tick', async (_what, totals) => {
+      const shown = await page([mine('a')])
+      sentenceTotals.value = totals
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(true)
+      expect(number(shown).exists()).toBe(false)
+    })
+
+    it('takes the number away with the tick, at once', async () => {
+      const shown = await page([mine('a')])
+      sentenceTotals.value = { a: 12 }
+      await flushPromises()
+      expect(number(shown).text()).toBe('12 Menschen')
+
+      held()
+      await tap(shown)
+      expect(number(shown).exists()).toBe(false)
+    })
+  })
+
+  describe('a tap on it', () => {
+    beforeEach(() => {
+      // A reach the member chose: the first map stays out of these (it has its own cases below).
+      remember('reach', 'regional')
+    })
+
+    it('ticks the box at once and holds it, asks the server, and searches with its answer', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      const asked = load.mock.calls.length
+      const write = held()
+
+      await tap(shown)
+
+      expect(writeExact).toHaveBeenCalledTimes(1)
+      expect(writeExact).toHaveBeenCalledWith({ uuid: 'a', exactSentence: true })
+      expect(box(shown).element.checked).toBe(true)
+      expect(box(shown).attributes('aria-disabled')).toBe('true')
+      // Nothing follows before the server has it.
+      expect(load).toHaveBeenCalledTimes(asked)
+
+      write.answer(written('a', true))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(true)
+      expect(box(shown).attributes('aria-disabled')).toBeUndefined()
+      expect(load).toHaveBeenCalledTimes(asked + 1)
+      expect(lastSearch().exactUuids).toEqual(['a'])
+    })
+
+    it('writes the answer into the cached list, so "Meine Einträge" has it at once', async () => {
+      const shown = await page([
+        mine('a', { exactSentence: false }),
+        mine('b', { exactSentence: false }),
+      ])
+      writeExact.mockResolvedValueOnce(written('a', true))
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(updateCachedQuery).toHaveBeenCalledTimes(1)
+      const [{ query }, update] = updateCachedQuery.mock.calls[0]
+      expect(query).toBe(listMatchingEntries)
+      const cached = {
+        listMatchingEntries: [
+          mine('a', { exactSentence: false }),
+          mine('b', { exactSentence: false }),
+        ],
+      }
+      expect(update(cached)).toEqual({
+        listMatchingEntries: [
+          mine('a', { exactSentence: true, updatedAt: WRITTEN }),
+          mine('b', { exactSentence: false }),
+        ],
+      })
+      // Nothing in the cache: nothing to write into.
+      expect(update(null)).toBeNull()
+    })
+
+    it('takes the tick off, and the search asks no sentence any more', async () => {
+      const shown = await page([mine('a')])
+      expect(lastSearch().exactUuids).toEqual(['a'])
+      writeExact.mockResolvedValueOnce(written('a', false))
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(writeExact).toHaveBeenCalledWith({ uuid: 'a', exactSentence: false })
+      expect(box(shown).element.checked).toBe(false)
+      expect(lastSearch().exactUuids).toEqual([])
+    })
+
+    it('takes the box back where the write fails, says so, and moves nothing else', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      const asked = load.mock.calls.length
+      writeExact.mockRejectedValueOnce(new Error('Could not change MatchingEntry state'))
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(false)
+      expect(box(shown).attributes('aria-disabled')).toBeUndefined()
+      expect(toastError).toHaveBeenCalledWith('Could not change MatchingEntry state')
+      expect(load).toHaveBeenCalledTimes(asked)
+      expect(updateCachedQuery).not.toHaveBeenCalled()
+    })
+
+    it('takes an answer without the entry for a write that failed', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      const asked = load.mock.calls.length
+      writeExact.mockResolvedValueOnce({})
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(false)
+      expect(toastError).toHaveBeenCalledTimes(1)
+      expect(load).toHaveBeenCalledTimes(asked)
+    })
+
+    // One write at a time (Falle 24): two taps in quick succession could reach the server the
+    // wrong way round.
+    it('lets a second tap do nothing while the first is on its way', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      const write = held()
+
+      await tap(shown)
+      await tap(shown)
+
+      expect(writeExact).toHaveBeenCalledTimes(1)
+      expect(box(shown).element.checked).toBe(true)
+
+      write.answer(written('a', true))
+      await flushPromises()
+      expect(box(shown).element.checked).toBe(true)
+
+      // And free again once the answer is in.
+      writeExact.mockResolvedValueOnce(written('a', false, LATER))
+      await tap(shown)
+      await flushPromises()
+      expect(writeExact).toHaveBeenCalledTimes(2)
+      expect(writeExact).toHaveBeenLastCalledWith({ uuid: 'a', exactSentence: false })
+      expect(box(shown).element.checked).toBe(false)
+    })
+
+    it('closes the window for several people, as a change of the choice does', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      remember('cluster', ['somebody', 'somebody-else'])
+      held()
+
+      await tap(shown)
+
+      expect(remembered('cluster')).toBeNull()
+    })
+  })
+
+  // A list read before the write can come in after it: the network answer of the arrival's own
+  // question, or one the page asks while an entry waits for its words (Falle 16).
+  describe('a list older than the tick', () => {
+    beforeEach(() => {
+      remember('reach', 'regional')
+    })
+
+    const ticked = async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      writeExact.mockResolvedValueOnce(written('a', true))
+      await tap(shown)
+      await flushPromises()
+      return shown
+    }
+
+    it('does not turn it back after the server took it', async () => {
+      const shown = await ticked()
+      const asked = load.mock.calls.length
+
+      list(mine('a', { exactSentence: false }))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(true)
+      expect(load).toHaveBeenCalledTimes(asked)
+    })
+
+    it('does not turn it back after the list that confirmed it either', async () => {
+      const shown = await ticked()
+      list(mine('a', { updatedAt: WRITTEN }))
+      await flushPromises()
+      const asked = load.mock.calls.length
+
+      list(mine('a', { exactSentence: false }))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(true)
+      expect(load).toHaveBeenCalledTimes(asked)
+    })
+
+    it('does not turn it back where it comes while the tick is on its way', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      const write = held()
+      await tap(shown)
+
+      list(mine('a', { exactSentence: false }))
+      await flushPromises()
+      expect(box(shown).element.checked).toBe(true)
+
+      write.answer(written('a', true))
+      await flushPromises()
+      expect(box(shown).element.checked).toBe(true)
+      expect(lastSearch().exactUuids).toEqual(['a'])
+    })
+
+    it('takes a later list as the server word again', async () => {
+      const shown = await ticked()
+
+      // Another device took it off since.
+      list(mine('a', { exactSentence: false, updatedAt: LATER }))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(false)
+      expect(lastSearch().exactUuids).toEqual([])
+    })
+
+    it('holds nothing against a list after a write that failed', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      writeExact.mockRejectedValueOnce(new Error('Could not change MatchingEntry state'))
+      await tap(shown)
+      await flushPromises()
+
+      // Another device ticked it meanwhile.
+      list(mine('a', { exactSentence: true }))
+      await flushPromises()
+
+      expect(box(shown).element.checked).toBe(true)
+    })
+  })
+
+  describe('one chosen entry', () => {
+    it('asks its sentence alone where it has the tick, none where it has not, and all for all my entries', async () => {
+      const shown = await page([mine('a'), mine('b'), mine('c', { exactSentence: false })], {
+        kind: 'all',
+      })
+      expect(lastSearch().exactUuids).toEqual(['a', 'b'])
+
+      await choose(shown, chosen('b'))
+      expect(lastSearch().exactUuids).toEqual(['b'])
+
+      await choose(shown, chosen('c'))
+      expect(lastSearch().exactUuids).toEqual([])
+
+      await choose(shown, { kind: 'all' })
+      expect(lastSearch().exactUuids).toEqual(['a', 'b'])
+    })
+
+    // Falle 12: chosen on its own, an entry far down the list is asked as well.
+    it('asks the sentence of an entry past the first ten', async () => {
+      const many = Array.from({ length: 12 }, (_, i) => mine(`entry-${i}`))
+      const shown = await page(many, { kind: 'all' })
+
+      await choose(shown, chosen('entry-11'))
+
+      expect(lastSearch().exactUuids).toEqual(['entry-11'])
+    })
+
+    // Falle 14: the lens builds the scores of what it lets through anew, and "genau" comes with them.
+    it('shows its people at stage 5', async () => {
+      const shown = await withMap([mine('a'), mine('b')], { kind: 'all' })
+      matches.value = [carrier('anna', 'a'), carrier('ben', 'b', { exact: false })]
+      sentenceTotals.value = { a: 1 }
+      await flushPromises()
+
+      await choose(shown, chosen('a'))
+      // The answer of the search the choice asked.
+      matches.value = [carrier('anna', 'a'), carrier('ben', 'b', { exact: false })]
+      await flushPromises()
+
+      const markers = shown.findAll('.gk-clickable')
+      expect(markers).toHaveLength(1)
+      expect(markers[0].element.style.width).toBe('130px')
+    })
+
+    it('draws no grey rings and steps the two boxes back where it answered with its sentence', async () => {
+      const shown = await withMap([mine('a')])
+      presence.value = [ring(1), ring(2)]
+      await flushPromises()
+      expect(rings()).toBe(2)
+      expect(greyBoxes(shown)).toHaveLength(2)
+      expect(shown.text()).toContain('2 Menschen gefunden')
+
+      sentenceTotals.value = { a: 3 }
+      await flushPromises()
+
+      expect(rings()).toBe(0)
+      expect(greyBoxes(shown)).toHaveLength(0)
+      expect(shown.text()).toContain('0 Menschen gefunden')
+    })
+
+    it.each([
+      ['its question did not answer (a GMS without it)', mine('a')],
+      ['it has no tick', mine('a', { exactSentence: false })],
+    ])('keeps the rings where %s', async (_what, chosenEntry) => {
+      const shown = await withMap([chosenEntry])
+      presence.value = [ring(1), ring(2)]
+      sentenceTotals.value = {}
+      await flushPromises()
+
+      expect(rings()).toBe(2)
+      expect(greyBoxes(shown)).toHaveLength(2)
+    })
+
+    // The rings are drawn by hand, and a change of the choice asks no new answer where the
+    // sentences asked stay the same.
+    it('keeps them for all my entries, and tells the map where only the choice changes', async () => {
+      const shown = await withMap([mine('a'), mine('b', { exactSentence: false })], { kind: 'all' })
+      presence.value = [ring(1), ring(2)]
+      sentenceTotals.value = { a: 3 }
+      await flushPromises()
+      expect(rings()).toBe(2)
+
+      await choose(shown, chosen('a'))
+      expect(rings()).toBe(0)
+
+      await choose(shown, chosen('b'))
+      expect(rings()).toBe(2)
+    })
+
+    it('lists nobody nearby where it answered with its sentence', async () => {
+      remember('mode', 'liste')
+      const shown = await page([mine('a')])
+      presence.value = [ring(1)]
+      await flushPromises()
+      const listed = () => shown.findComponent({ name: 'MatchList' }).props('silent')
+      expect(listed()).toHaveLength(1)
+
+      sentenceTotals.value = { a: 0 }
+      await flushPromises()
+
+      expect(listed()).toEqual([])
+    })
+
+    it('tells the list while an answer to other sentences is on its way', async () => {
+      remember('mode', 'liste')
+      const shown = await page([mine('a')])
+      const waiting = () => shown.findComponent({ name: 'MatchList' }).props('waiting')
+      expect(waiting()).toBe(false)
+
+      askingAnew.value = true
+      await flushPromises()
+
+      expect(waiting()).toBe(true)
+    })
+  })
+
+  // A window left open last time opens again where the map shows that person (Falle 20).
+  describe('a window left open last time', () => {
+    it('does not open on a topic match the lens of the chosen entry leaves out', async () => {
+      remember('profile', 'ben')
+      remember('query', chosen('a'))
+      mountMap()
+      located()
+      list(mine('a'), mine('b'))
+      await flushPromises()
+
+      sentenceTotals.value = { a: 1 }
+      matches.value = [carrier('anna', 'a'), carrier('ben', 'b', { exact: false })]
+      await flushPromises()
+
+      expect(profile).not.toHaveBeenCalled()
+    })
+
+    it('does not open on a ring where the chosen entry shows only its sentence', async () => {
+      remember('profile', 'ring-1')
+      remember('query', chosen('a'))
+      mountMap()
+      located()
+      list(mine('a'))
+      await flushPromises()
+
+      sentenceTotals.value = { a: 1 }
+      matches.value = [carrier('anna', 'a')]
+      presence.value = [ring(1)]
+      await flushPromises()
+
+      expect(profile).not.toHaveBeenCalled()
+    })
+
+    it('opens on a person the lens shows', async () => {
+      remember('profile', 'anna')
+      remember('query', chosen('a'))
+      const shown = mountMap()
+      located()
+      list(mine('a'))
+      await flushPromises()
+
+      sentenceTotals.value = { a: 1 }
+      matches.value = [carrier('anna', 'a')]
+      await flushPromises()
+
+      expect(profile).toHaveBeenCalledTimes(1)
+      expect(shown.findComponent({ name: 'MatchProfile' }).props('modelValue')).toBe(true)
+    })
+  })
+
+  // KA-021 point 1 also for a tick by hand (KA-023 point 4): after the server took it.
+  describe('the first map', () => {
+    it('opens wide once the server took the tick of an entry released for the wide search', async () => {
+      const shown = await withMap([mine('a', { exactSentence: false, remote: true })])
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+      const asked = load.mock.calls.length
+      writeExact.mockResolvedValueOnce(written('a', true))
+
+      await tap(shown)
+      await flushPromises()
+
+      // One search, the wide one.
+      expect(load).toHaveBeenCalledTimes(asked + 1)
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true, exactUuids: ['a'] })
+      expect(remembered('reach')).toBe('fern')
+      expect(pressed(shown)).toEqual(['false', 'true'])
+    })
+
+    it.each([
+      ['an entry not released for the wide search', () => {}, { remote: false }],
+      ['a reach the member chose', () => remember('reach', 'regional'), { remote: true }],
+    ])('stays regional for %s', async (_what, before, over) => {
+      before()
+      const shown = await withMap([mine('a', { exactSentence: false, ...over })])
+      writeExact.mockResolvedValueOnce(written('a', true))
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false, exactUuids: ['a'] })
+      expect(pressed(shown)).toEqual(['true', 'false'])
+    })
+
+    it('does not switch during a visit to a contact', async () => {
+      route.current.query = CONTACT
+      const shown = await withMap([mine('a', { exactSentence: false, remote: true })])
+      writeExact.mockResolvedValueOnce(written('a', true))
+
+      await tap(shown)
+      await flushPromises()
+
+      expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+      expect(pressed(shown)).toEqual(['true', 'false'])
+    })
+
+    it('does not switch where the write failed, and the next tick that holds does', async () => {
+      const shown = await withMap([mine('a', { exactSentence: false, remote: true })])
+      writeExact.mockRejectedValueOnce(new Error('Could not change MatchingEntry state'))
+
+      await tap(shown)
+      await flushPromises()
+      expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+      expect(pressed(shown)).toEqual(['true', 'false'])
+
+      writeExact.mockResolvedValueOnce(written('a', true))
+      await tap(shown)
+      await flushPromises()
+      expect(remembered('reach')).toBe('fern')
+    })
+
+    it('switches nothing back where the tick is taken off', async () => {
+      const shown = await withMap([mine('a', { exactSentence: false, remote: true })])
+      writeExact.mockResolvedValueOnce(written('a', true))
+      await tap(shown)
+      await flushPromises()
+
+      writeExact.mockResolvedValueOnce(written('a', false, LATER))
+      await tap(shown)
+      await flushPromises()
+
+      expect(remembered('reach')).toBe('fern')
+      expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true, exactUuids: [] })
+    })
+  })
+})
+
+// The tick with the real search behind the page (`realSearch`), the GMS answered by a stand-in for
+// `fetch`: what the map shows in between, when the sentences asked change (Falle 15) -- on the
+// markers, the rings, the list and the number, at once and after the answer.
+describe('MatchingMap, the tick with the real search', () => {
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
+  const ACCESS = { url: 'https://ki-playground-gms.gradido.net/user-search', token: 'tok-1' }
+  const COMMUNITY = { uuid: 'cccccccc-0000-4000-8000-cccccccccccc', name: 'Muenchen' }
+  const mine = (uuid, over = {}) => ({
+    ...entry(uuid),
+    matchingType: 'interest',
+    summary: `Kongress ${uuid}`,
+    remote: false,
+    exactSentence: true,
+    updatedAt: '2026-11-15T10:00:00.000Z',
+    ...over,
+  })
+  const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
+  const chosen = (uuid) => ({ kind: 'entry', uuid })
+  const ok = (body) => ({ ok: true, status: 200, json: async () => body })
+  let next = 0
+  // The GMS writes a point as [lng, lat]; everybody here lives near home (48.2, 11.6).
+  const somebody = (alias, channels) => {
+    next += 1
+    return {
+      uuid: `5e000000-0000-4000-8000-${String(next).padStart(12, '0')}`,
+      alias,
+      aboutMe: null,
+      type: 1,
+      location: [11.6 + next / 1000, 48.2],
+      community: COMMUNITY,
+      channels,
+    }
+  }
+  const channel = (of, strength, words) => [
+    {
+      matchingType: 'interest',
+      strength,
+      matches: [
+        {
+          matchedEntryUuid: of,
+          matchedSubject: words,
+          uuid: `5f000000-0000-4000-8000-${String(next + 100).padStart(12, '0')}`,
+          summary: `Kongress ${of}`,
+          details: null,
+          remote: true,
+          strength,
+          score: strength,
+          coreWord: true,
+        },
+      ],
+    },
+  ]
+  // A topic match of `of`: step 1, a disc of 48 px on the dark map. A carrier of its sentence: the
+  // brightest there is, 130 px.
+  const topicOf = (alias, of) => somebody(alias, channel(of, 0.46, 'thema'))
+  const carrierOf = (alias, of) => somebody(alias, channel(of, 0.865, null))
+
+  let gms
+  beforeEach(() => {
+    next = 0
+    realSearch.on = true
+    listQuestion.mockImplementation(async ({ query }) =>
+      query === authenticateGmsUserSearch
+        ? { data: { authenticateGmsUserSearch: ACCESS } }
+        : { data: { listMatchingEntries: [] } },
+    )
+    gms = {
+      gate: null,
+      sentenceStatus: 200,
+      topic: [topicOf('Tina', 'a'), topicOf('Tom', 'b'), topicOf('Carl', 'c')],
+      sentences: {
+        a: [carrierOf('Anna', 'a'), carrierOf('Arne', 'a')],
+        b: [carrierOf('Bert', 'b')],
+      },
+      rings: [
+        {
+          id: 1,
+          uuid: 'ring-1',
+          alias: 'Ruth',
+          type: 1,
+          location: [11.6, 48.21],
+          community: COMMUNITY,
+          hasEntries: true,
+        },
+        {
+          id: 2,
+          uuid: 'ring-2',
+          alias: 'Rolf',
+          type: 1,
+          location: [11.6, 48.22],
+          community: COMMUNITY,
+          hasEntries: false,
+        },
+      ],
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url) => {
+        if (gms.gate) await gms.gate
+        const { pathname, searchParams } = new URL(url)
+        if (pathname.endsWith('/community-user/matches')) return ok(gms.topic)
+        if (pathname.endsWith('/community-user/user-locations')) return ok(gms.rings)
+        if (pathname.endsWith('/community-user/sentence-matches')) {
+          if (gms.sentenceStatus !== 200) {
+            return { ok: false, status: gms.sentenceStatus, json: async () => ({}) }
+          }
+          const users = gms.sentences[searchParams.get('entry')] ?? []
+          return ok({ total: users.length, users })
+        }
+        return { ok: false, status: 404, json: async () => ({}) }
+      }),
+    )
+  })
+
+  afterEach(() => {
+    realSearch.on = false
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  /** The page with its map built and the arrival's searches answered, in the list view. */
+  const withMap = async (entries, selection) => {
+    remember('mode', 'liste')
+    remember('reach', 'regional')
+    remember('query', selection)
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const mounted = mountMap()
+    fire(userLocationQuery, { userLocation: location })
+    list(...entries)
+    await mounted.vm.$nextTick()
+    vi.advanceTimersByTime(250)
+    vi.useRealTimers()
+    await settled()
+    return mounted
+  }
+  const settled = async () => {
+    for (let round = 0; round < 4; round++) await flushPromises()
+  }
+  /** Holds the GMS until the returned function lets it answer. */
+  const hold = () => {
+    let release
+    gms.gate = new Promise((resolve) => {
+      release = resolve
+    })
+    return async () => {
+      gms.gate = null
+      release()
+      await settled()
+    }
+  }
+  /** What the page shows: markers by size, rings, the rows of the list, and the number. */
+  const onScreen = (page) => {
+    const listing = page.findComponent({ name: 'MatchList' })
+    return {
+      markers: page
+        .findAll('.gk-clickable')
+        .map((marker) => parseInt(marker.element.style.width, 10))
+        .sort((x, y) => x - y),
+      rings: created.at(-1).getSource('gk-presence').data.features.length,
+      listed: listing.props('matches').length,
+      nearby: listing.props('silent').length,
+      waiting: listing.props('waiting'),
+      number: page.find('.exact-count').exists() ? page.find('.exact-count').text() : null,
+    }
+  }
+  const EMPTY = { markers: [], rings: 0, listed: 0, nearby: 0, waiting: true, number: null }
+  const choose = async (page, selection) => {
+    page.findComponent({ name: 'MatchQuery' }).vm.$emit('update:selection', selection)
+    await settled()
+  }
+
+  it('takes everything down at once where other sentences are asked, and shows the answer', async () => {
+    const page = await withMap([mine('a'), mine('b'), mine('c', { exactSentence: false })], {
+      kind: 'all',
+    })
+    // All my entries: a and b ask their sentences; Carl answers c by topic.
+    expect(onScreen(page)).toEqual({
+      markers: [48, 130, 130, 130],
+      rings: 2,
+      listed: 4,
+      nearby: 2,
+      waiting: false,
+      number: null,
+    })
+
+    // From all my entries to one with the tick.
+    let answer = hold()
+    await choose(page, chosen('a'))
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toEqual({
+      markers: [130, 130],
+      rings: 0,
+      listed: 2,
+      nearby: 0,
+      waiting: false,
+      number: '2 Menschen',
+    })
+
+    // From one to another.
+    answer = hold()
+    await choose(page, chosen('b'))
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toEqual({
+      markers: [130],
+      rings: 0,
+      listed: 1,
+      nearby: 0,
+      waiting: false,
+      number: '1 Mensch',
+    })
+
+    // Back to all my entries.
+    answer = hold()
+    await choose(page, { kind: 'all' })
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [48, 130, 130, 130], rings: 2, nearby: 2 })
+
+    // To an entry without the tick.
+    answer = hold()
+    await choose(page, chosen('c'))
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toEqual({
+      markers: [48],
+      rings: 2,
+      listed: 1,
+      nearby: 2,
+      waiting: false,
+      number: null,
+    })
+  })
+
+  it('takes everything down at once where the tick is set and where it is taken off', async () => {
+    const page = await withMap([mine('c', { exactSentence: false })], chosen('c'))
+    expect(onScreen(page)).toMatchObject({ markers: [48], rings: 2 })
+
+    // Set: nobody carries the sentence of c.
+    writeExact.mockResolvedValueOnce({
+      data: {
+        setMatchingEntryExactSentence: {
+          uuid: 'c',
+          exactSentence: true,
+          updatedAt: '2026-11-15T12:00:00.000Z',
+        },
+      },
+    })
+    let answer = hold()
+    await page.find('.exact-check input').trigger('click')
+    await settled()
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toEqual({
+      markers: [],
+      rings: 0,
+      listed: 0,
+      nearby: 0,
+      waiting: false,
+      number: '0 Menschen',
+    })
+
+    // Taken off: Carl and the rings again.
+    writeExact.mockResolvedValueOnce({
+      data: {
+        setMatchingEntryExactSentence: {
+          uuid: 'c',
+          exactSentence: false,
+          updatedAt: '2026-11-15T13:00:00.000Z',
+        },
+      },
+    })
+    answer = hold()
+    await page.find('.exact-check input').trigger('click')
+    await settled()
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [48], rings: 2, nearby: 2, number: null })
+  })
+
+  it('takes everything down for an entry past the limit chosen on its own, and back', async () => {
+    const many = Array.from({ length: SENTENCE_QUESTIONS_MAX + 1 }, (_, i) => mine(`e${i}`))
+    const last = `e${SENTENCE_QUESTIONS_MAX}`
+    gms.topic = []
+    gms.sentences = { [last]: [carrierOf('Lena', last)] }
+    const page = await withMap(many, { kind: 'all' })
+    // All my entries: the last one is not asked, and nobody carries the others.
+    expect(onScreen(page)).toMatchObject({ markers: [], rings: 2 })
+
+    let answer = hold()
+    await choose(page, chosen(last))
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [130], rings: 0, number: '1 Mensch' })
+
+    answer = hold()
+    await choose(page, { kind: 'all' })
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [], rings: 2, waiting: false })
+  })
+
+  // Falle 13: a GMS without the question (400) cannot be told apart beforehand. The map stands
+  // empty for the moment all the same, and then the entry searches as without its "genau".
+  it('shows the topic matches and the rings again at a GMS without the question', async () => {
+    gms.sentenceStatus = 400
+    const page = await withMap([mine('a'), mine('b'), mine('c', { exactSentence: false })], {
+      kind: 'all',
+    })
+    expect(onScreen(page)).toMatchObject({ markers: [48, 48, 48], rings: 2 })
+
+    let answer = hold()
+    await choose(page, chosen('a'))
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toEqual({
+      markers: [48],
+      rings: 2,
+      listed: 1,
+      nearby: 2,
+      waiting: false,
+      number: null,
+    })
+    expect(page.find('.exact-check input').element.checked).toBe(true)
+
+    answer = hold()
+    await choose(page, { kind: 'all' })
+    expect(onScreen(page)).toEqual(EMPTY)
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [48, 48, 48], rings: 2 })
+  })
+
+  // For a member without a change in the sentences asked, a search is what it always was: the
+  // answer on screen stays until the new one is there.
+  it('takes nothing down where the sentences asked stay the same', async () => {
+    gms.topic = [topicOf('Tina', 'a'), topicOf('Tom', 'b')]
+    const page = await withMap([mine('a'), mine('b', { exactSentence: false })], { kind: 'all' })
+    const before = onScreen(page)
+    expect(before).toMatchObject({ markers: [48, 130, 130], rings: 2, waiting: false })
+
+    const answer = hold()
+    await choose(page, chosen('a'))
+    // The markers of the answer on screen stay until the new one (they are drawn by hand); the
+    // rings step back at once, as the entry shows only its sentence.
+    expect(onScreen(page)).toMatchObject({ markers: [48, 130, 130], rings: 0, waiting: false })
+    await answer()
+    expect(onScreen(page)).toMatchObject({ markers: [130, 130], rings: 0, number: '2 Menschen' })
   })
 })

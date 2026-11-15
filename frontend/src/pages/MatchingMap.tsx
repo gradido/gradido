@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { useApolloClient, useQuery } from '@vue/apollo-composable'
+import { useApolloClient, useMutation, useQuery } from '@vue/apollo-composable'
 import { BButton, BCol, BFormInput, BModal, BRow, type ButtonVariant } from 'bootstrap-vue-next'
 import {
   type CSSProperties,
@@ -49,6 +49,7 @@ import {
   withProfile,
 } from '@/composables/useMatches'
 import { useAppToast } from '@/composables/useToast'
+import { setMatchingEntryExactSentence } from '@/graphql/mutations'
 import { listMatchingEntries, userLocationQuery } from '@/graphql/queries'
 import { useWalletStore } from '@/store/useWalletStore'
 import { escapeHtml } from '@/utils/escapeHtml'
@@ -99,6 +100,7 @@ type MyEntry = {
   active?: boolean
   keyed?: boolean
   exactSentence?: boolean
+  updatedAt?: string
 }
 type View = { lat: number; lng: number; zoom: number }
 
@@ -194,7 +196,7 @@ const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 export const MatchingMap = defineComponent({
   name: 'MatchingMap',
   setup(_, { expose }) {
-    const { t, locale } = useI18n()
+    const { t, n, locale } = useI18n()
     const router = useRouter()
     const route = useRoute()
     const entryDraft = useEntryDraft()
@@ -249,6 +251,8 @@ export const MatchingMap = defineComponent({
     const {
       matches,
       presence,
+      sentenceTotals,
+      askingAnew,
       error: searchError,
       load,
       suggest,
@@ -314,6 +318,20 @@ export const MatchingMap = defineComponent({
     const keyedKey = (entries: MyEntry[]) => entryKey(entries.filter((entry) => entry.keyed))
     // The entries with the "genau" (KA-020): each asks who carries its sentence (useMatches).
     const exactOf = (entries: MyEntry[]) => entries.filter((entry) => entry.exactSentence)
+
+    /**
+     * The ticks this page wrote and the server took, by entry, with the stand (`updatedAt`) the
+     * server answered. A list read before the write can still come in after it -- the network answer
+     * of the arrival's own question, or one of askForWords' -- and its row of that entry is older:
+     * it must not turn the tick back (takeEntries). A later row is the server's word again.
+     */
+    const ticksWritten = new Map<string, { exactSentence: boolean; updatedAt: string }>()
+    function keepTickWritten(entry: MyEntry): MyEntry {
+      const tick = ticksWritten.get(entry.uuid)
+      return tick && !(Date.parse(entry.updatedAt ?? '') >= Date.parse(tick.updatedAt))
+        ? { ...entry, exactSentence: tick.exactSentence }
+        : entry
+    }
 
     /**
      * An entry of mine that has no words yet, asked about until it has them.
@@ -409,7 +427,7 @@ export const MatchingMap = defineComponent({
       const keyBefore = entryKey(myEntries.value)
       const keyedBefore = keyedKey(myEntries.value)
       const exactBefore = entryKey(exactOf(myEntries.value))
-      myEntries.value = (list ?? []).filter((entry) => entry.active)
+      myEntries.value = (list ?? []).filter((entry) => entry.active).map(keepTickWritten)
       askAgainForWords()
       // A remembered choice can outlive what it points at: the entry may have been
       // deleted or paused since. Left standing it would show as "all my entries" in the
@@ -434,8 +452,8 @@ export const MatchingMap = defineComponent({
       // asked before them found nothing with it (askAgainForWords). That search is a later one, not
       // the arrival's: a window left open last time is not brought back by it (arrivalOver).
       //
-      // And where an entry gains or loses its "genau" (a link healed it, an edit took it back):
-      // the same entries, another question.
+      // And where an entry gains or loses its "genau" (a link healed it, an edit took it back, the
+      // member ticked it under the search field): the same entries, another question.
       if (openWideOnce()) {
         return
       }
@@ -558,9 +576,92 @@ export const MatchingMap = defineComponent({
       }
     }
 
-    // What the search asks for beyond the place: nothing for "everything" and for a
-    // single entry of mine (the entry only narrows what is SHOWN, the search is the
-    // same), and the typed sentence when there is one.
+    const { mutate: writeExact } = useMutation(setMatchingEntryExactSentence)
+    // The tick on its way to the server: one at a time, so two quick taps cannot reach it in the
+    // wrong order.
+    const exactWriting = ref<{ uuid: string; value: boolean } | null>(null)
+
+    /**
+     * The tick under the search field, where one entry of mine is chosen: "Genau dieser Eintrag"
+     * (KA-020 point 3, KA-023). It stands for every chosen entry, also at no people and where the GMS
+     * does not answer the question (KA-023 point 3) -- it comes and goes with the choice, not with
+     * the result. The number stands while the tick does and its question answered in the search on
+     * screen: how many people in the circle carry the sentence, also past those the map draws.
+     * `busy` while a tick is on its way to the server.
+     */
+    const exactRow = computed(() => {
+      const chosen = selection.value
+      if (chosen.kind !== 'entry') {
+        return null
+      }
+      const entry = myEntries.value.find((mine) => mine.uuid === chosen.uuid)
+      if (!entry) {
+        return null
+      }
+      const writing = exactWriting.value
+      const on = writing?.uuid === entry.uuid ? writing.value : Boolean(entry.exactSentence)
+      const total = on ? sentenceTotals.value[entry.uuid] : undefined
+      return { on, busy: writing !== null, total: typeof total === 'number' ? total : null }
+    })
+
+    /**
+     * A tap on the tick (KA-023 points 4 and 5). The box changes under the finger and is held until
+     * the server answers. The entry, the reach and the search follow the answer, through takeEntries
+     * as a list with the change would: where the reach was never chosen on this device, the first map
+     * opens wide for an entry released for the wide search (openWideOnce), else the search asks the
+     * new sentences. A write that fails moves nothing but the box back, and the member is told. The
+     * answer goes into the cached list as well, so "Meine Einträge" shows the mark straight away.
+     */
+    async function toggleExact(value: boolean) {
+      const chosen = selection.value
+      if (exactWriting.value || chosen.kind !== 'entry') {
+        return
+      }
+      const uuid = chosen.uuid
+      exactWriting.value = { uuid, value }
+      closeCluster()
+      try {
+        const answer = await writeExact({ uuid, exactSentence: value })
+        const written = answer?.data?.setMatchingEntryExactSentence
+        if (!written) {
+          throw new Error('setMatchingEntryExactSentence: no answer')
+        }
+        if (pageAlive) {
+          ticksWritten.set(uuid, {
+            exactSentence: written.exactSentence,
+            updatedAt: written.updatedAt,
+          })
+        }
+        apolloClient.cache.updateQuery({ query: listMatchingEntries }, (cached) =>
+          cached?.listMatchingEntries
+            ? {
+                listMatchingEntries: cached.listMatchingEntries.map((entry: MyEntry) =>
+                  entry.uuid === uuid
+                    ? {
+                        ...entry,
+                        exactSentence: written.exactSentence,
+                        updatedAt: written.updatedAt,
+                      }
+                    : entry,
+                ),
+              }
+            : cached,
+        )
+        if (pageAlive) {
+          takeEntries(myEntries.value)
+        }
+      } catch (error) {
+        if (pageAlive) {
+          toastError((error as Error).message)
+        }
+      } finally {
+        exactWriting.value = null
+      }
+    }
+
+    // What the search asks for beyond the place: the typed sentence when there is one, else
+    // nothing -- the topic search is the same for "everything" and for a single entry of mine.
+    // The sentence questions are not (sentencesAsked).
     const searchQuery = computed(() =>
       selection.value.kind === 'typed'
         ? { text: selection.value.text, matchingType: selection.value.matchingType }
@@ -618,10 +719,12 @@ export const MatchingMap = defineComponent({
     /**
      * The focus lens: only what answers ONE entry of mine.
      *
-     * Pure display. The search asked the very same question of the server; this narrows
-     * what came back, so switching between my entries costs nothing and changes nothing
-     * out there. The scores are rebuilt from the narrowed entries, or a person would
-     * keep glowing for an entry the member just filtered away.
+     * The topic search is the same for every choice, and this narrows what came back. The
+     * sentence questions are not: a chosen entry with its "genau" is the only one asked about, so
+     * that it gets all the people the map draws (KA-023 point 2) -- switching to or from it asks
+     * again, and the answer on screen is taken down meanwhile (useMatches). The scores are rebuilt
+     * from the narrowed entries, or a person would keep glowing for an entry the member just
+     * filtered away.
      */
     const focusedMatches = computed(() => {
       if (selection.value.kind !== 'entry') {
@@ -643,6 +746,16 @@ export const MatchingMap = defineComponent({
       }
       return narrowed
     })
+
+    /**
+     * A chosen entry with its "genau" shows only the people of its sentence: no grey rings, no boxes
+     * for them, and in the list nobody "nearby" (KA-017, KA-020). Only where its question answered in
+     * the search on screen: a GMS without the question (404, 400) lets the entry search as without
+     * its "genau", rings and all (KA-023 point 3).
+     */
+    const sentenceOnly = computed(
+      () => selection.value.kind === 'entry' && selection.value.uuid in sentenceTotals.value,
+    )
 
     // The matches the map is showing right now. Drawing and counting both read this
     // one list, so the heading can never claim a person the map does not draw.
@@ -676,8 +789,10 @@ export const MatchingMap = defineComponent({
     // controls at that very moment. Everything that shows a ring reads this one computed
     // (the map's drawPresence, foundCount, the list's sortedPresence), so saying it once
     // here covers all three.
+    //
+    // Empty as well where the chosen entry shows only the people of its sentence (sentenceOnly).
     const visiblePresence = computed(() =>
-      reach.value === 'fern'
+      reach.value === 'fern' || sentenceOnly.value
         ? []
         : presence.value.filter((person) =>
             person.hasEntries ? visible.andereMit : visible.andereOhne,
@@ -1404,6 +1519,19 @@ export const MatchingMap = defineComponent({
       runSearch()
     }
 
+    /**
+     * The entries whose sentence the search asks about (KA-023 point 2): one entry chosen, its own
+     * alone where it has the "genau" -- it then takes all the people the map draws --, and none where
+     * it has not; for "all my entries", every entry of mine with it.
+     */
+    function sentencesAsked() {
+      const chosen = selection.value
+      const exact = exactOf(myEntries.value)
+      return (
+        chosen.kind === 'entry' ? exact.filter((entry) => entry.uuid === chosen.uuid) : exact
+      ).map((entry) => entry.uuid)
+    }
+
     /** The one place a search is actually asked for. */
     function runSearch() {
       if (!searchCenter.value) {
@@ -1416,7 +1544,7 @@ export const MatchingMap = defineComponent({
         radius: radius.value,
         query: searchQuery.value,
         mineUuids: myEntries.value.map((entry) => entry.uuid),
-        exactUuids: exactOf(myEntries.value).map((entry) => entry.uuid),
+        exactUuids: sentencesAsked(),
         remoteOnly: reach.value === 'fern',
       })
     }
@@ -1745,10 +1873,14 @@ export const MatchingMap = defineComponent({
         return
       }
       // A match or a ring: the window was left open on one of them (GMS-111), and both are
-      // opened again the same way, the profile route asked once more.
+      // opened again the same way, the profile route asked once more. Through the lens, as the map
+      // shows them: an answer for "all my entries" holds the topic matches of other entries, and a
+      // chosen entry with its "genau" shows no rings.
       const found =
-        matches.value.find((entry) => entry.uuid === savedUuid) ??
-        presence.value.find((person) => person.uuid === savedUuid)
+        focusedMatches.value.find((entry) => entry.uuid === savedUuid) ??
+        (sentenceOnly.value
+          ? undefined
+          : presence.value.find((person) => person.uuid === savedUuid))
       if (found) {
         openProfile(found)
       }
@@ -2252,6 +2384,10 @@ export const MatchingMap = defineComponent({
       syncProfile()
       syncCluster()
     })
+    // The rings are drawn by hand. Where the choice changes and the sentences asked stay the same
+    // (all my entries, one of them with the "genau", and then that one), no search takes the answer
+    // down, and the rings have to be told.
+    watch(sentenceOnly, drawPresence)
     watch(breite, drawMatches)
     watch(breite, (value) => writePref('breite', value))
     watch(visible, redraw, { deep: true })
@@ -2281,6 +2417,42 @@ export const MatchingMap = defineComponent({
         {` ${t(`matching.map.channels.${channel}`)}`}
       </label>
     )
+
+    // The tick under the search field (exactRow), in the form of the boxes under the map: a real
+    // checkbox inside its words, so a tap on the words ticks it as well. Held, not disabled, while a
+    // tick is on its way: a disabled box would drop the keyboard's focus each time.
+    const exactTick = () => {
+      const row = exactRow.value
+      if (!row) {
+        return null
+      }
+      return (
+        <label class={['map-check', classes['map-check'], 'exact-check', classes['exact-check']]}>
+          <input
+            type='checkbox'
+            checked={row.on}
+            aria-disabled={row.busy ? 'true' : undefined}
+            onClick={(event: MouseEvent) => {
+              if (row.busy) {
+                event.preventDefault()
+                return
+              }
+              toggleExact((event.target as HTMLInputElement).checked)
+            }}
+          />
+          <span class={['box', classes.box]} />
+          <span>{t('matching.query.exact')}</span>
+          {row.total !== null ? (
+            <>
+              <span class={['radius-dot', classes['radius-dot']]} aria-hidden='true' />
+              <span class='exact-count'>
+                {t('matching.query.exactPeople', { n: n(row.total) }, row.total)}
+              </span>
+            </>
+          ) : null}
+        </label>
+      )
+    }
 
     return () => (
       /* No mt--3 here, unlike the other pages: that negative margin exists to pull
@@ -2317,6 +2489,7 @@ export const MatchingMap = defineComponent({
               selection={selection.value}
               suggest={suggest}
               onUpdate:selection={onSelection}
+              v-slots={{ below: exactTick }}
             />
           </div>
 
@@ -2376,6 +2549,7 @@ export const MatchingMap = defineComponent({
                 sortMode={sortMode.value}
                 lensMode={lensMode.value}
                 showLens={showLens.value}
+                waiting={askingAnew.value}
                 onOpen={openProfile}
                 onOpenContact={openShown}
                 onSort={setSort}
@@ -2544,8 +2718,9 @@ export const MatchingMap = defineComponent({
                   {/* The two grey buckets are the presence rings, and the wide search
                       draws none: a ring is the neighbour you could walk up to. They step
                       back rather than sit there dead - and rather than being unticked,
-                      which would make the way back a chore nobody performs. */}
-                  {reach.value === 'regional' ? OTHERS.map(checkbox) : null}
+                      which would make the way back a chore nobody performs. The same
+                      where a chosen entry shows only the people of its sentence. */}
+                  {reach.value === 'regional' && !sentenceOnly.value ? OTHERS.map(checkbox) : null}
                 </div>
                 {/* Explanation, not instruction — the first thing to give up for room. */}
                 {reach.value === 'fern' ? (

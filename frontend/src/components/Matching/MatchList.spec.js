@@ -306,6 +306,13 @@ describe('MatchList', () => {
     expect(wrapper.find('.list-empty').text()).toBe('Hier ist gerade niemand.')
   })
 
+  // The page took the answer on screen down for a search that asks other sentences (useMatches,
+  // `askingAnew`): the list is empty for that moment only, and says nothing about who is here.
+  it('says nothing about nobody while the answer to other sentences is on its way', () => {
+    const wrapper = mountList({ waiting: true })
+    expect(wrapper.find('.list-empty').exists()).toBe(false)
+  })
+
   // Somebody the page was asked to show (Bernd, 09.10.2026): a contact, from the pin in the
   // contact window. In the list they could not be found at all -- the map is inert under it --,
   // so they stand first, under a heading of their own.

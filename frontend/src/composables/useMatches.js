@@ -53,12 +53,19 @@ import { isPlace } from '@/utils/matchingPosition'
  * only the entries their owners released for the wide search answer. The circle
  * still holds; the wide search has its own, wider radius (MatchingMap keeps two).
  *
- * `exactUuids` — my live entries with the "genau" (KA-020): each asks a third route,
- * GET community-user/sentence-matches, for the people who carry the very same sentence,
- * with the same circle, reach and token. Those people come in as the brightest matches,
- * and the topic matches of such an entry are left out ("genau" means only). A GMS that
- * does not know the entry (404) or the route (400) leaves that one entry as without its
- * "genau", silently. A typed question asks none of this.
+ * `exactUuids` — the entries of mine with the "genau" whose sentence the map asks about
+ * (KA-020): all of them for "all my entries", the chosen one alone where one is chosen
+ * (KA-023 point 2). Each asks a third route, GET community-user/sentence-matches, for the
+ * people who carry the very same sentence, with the same circle, reach and token. Those
+ * people come in as the brightest matches, and the topic matches of such an entry are left
+ * out ("genau" means only). How many people in the circle carry it comes back beside them
+ * (`sentenceTotals`), for the tick at the map. A GMS that does not know the entry (404) or
+ * the route (400) leaves that one entry as without its "genau", silently. A typed question
+ * asks none of this.
+ *
+ * A search that asks other sentences than the one whose answer is on screen takes that
+ * answer down at once (`askingAnew` until the new one is there): the markers are drawn by
+ * hand, and nothing of an answer to other sentences fits what the member now asks for.
  *
  * The rings do not depend on the question — but in the wide search they are not
  * asked for at all: a ring is the neighbour you could walk up to, and eight hundred
@@ -443,7 +450,8 @@ export function withoutMatched(people, matched) {
  * entries whose sentence answered (KA-022: two entries take 150 each). Matches are single elements
  * on the map, and the sentence route answers up to a thousand: measured on 15.11.2026, a graphics
  * card with a fourfold slower CPU pans 300 at about 40 frames a second and 1,000 at about 20. The
- * true number is Scheibe 2's.
+ * true number stands beside the tick at the map (`sentenceTotals`). One entry chosen on its own is
+ * the only one asked, and takes all of them (KA-023 point 2).
  */
 export const SENTENCE_PEOPLE_MAX = 300
 
@@ -613,18 +621,23 @@ async function gmsGet(base, route, params, token) {
 }
 
 /**
- * Who carries the sentence of one entry of mine: `{ entry, users }`, or null where this GMS says
- * nothing about it -- 404, the entry is not there (paused since, the member left the GMS, a hand-over
- * that failed); 400, a GMS without the route reads the address as `/community-user/:id`. That entry
- * then searches as without its "genau", and the member is told nothing. Anything else -- the token
- * refused, the GMS down -- fails the search as the matches route does.
+ * Who carries the sentence of one entry of mine: `{ entry, users, total }`, or null where this GMS
+ * says nothing about it -- 404, the entry is not there (paused since, the member left the GMS, a
+ * hand-over that failed); 400, a GMS without the route reads the address as `/community-user/:id`.
+ * That entry then searches as without its "genau", and the member is told nothing. Anything else --
+ * the token refused, the GMS down -- fails the search as the matches route does.
+ *
+ * `total` is how many people in the circle carry the sentence, also past the thousand `users` holds
+ * at most. It comes from a foreign system, so only a whole number not below zero is taken; anything
+ * else is null, and the tick at the map then shows no number.
  */
 async function sameSentenceOf(base, search, entry, token) {
   const params = matchParams(search)
   params.set('entry', entry)
   try {
     const answer = await gmsGet(base, 'community-user/sentence-matches', params, token)
-    return { entry, users: answer.users }
+    const total = Number.isSafeInteger(answer.total) && answer.total >= 0 ? answer.total : null
+    return { entry, users: answer.users, total }
   } catch (err) {
     if (err.status === 404 || err.status === 400) return null
     throw err
@@ -656,6 +669,25 @@ export function useMatches() {
   // member moves the centre twice; only the last one asked for may write, or the
   // older answer could land after the newer one and overwrite it.
   let latest = 0
+  /**
+   * The sentence questions of the search whose answer is on screen, by my entry: `{ [uuid]: total }`
+   * for each one that answered, total being how many people in the circle carry that sentence (null
+   * where the GMS gave no usable number). Written with `matches` and `presence`, under the same
+   * `latest`, and emptied wherever they are.
+   * @type {import('vue').Ref<Record<string, number | null>>}
+   */
+  const sentenceTotals = ref({})
+  /** True from the moment a search took an answer to other sentences down until its own is there. */
+  const askingAnew = ref(false)
+  // The sentences asked by the search whose answer is on screen, as one key; null while nothing
+  // is on screen, which fits any question.
+  let shownSentences = null
+  const takeDown = () => {
+    matches.value = []
+    presence.value = []
+    sentenceTotals.value = {}
+    shownSentences = null
+  }
 
   /**
    * @param {object} search
@@ -667,8 +699,8 @@ export function useMatches() {
    *   GMS knows them from the token
    * @param {boolean} [search.remoteOnly] the reach: ask only for the entries released
    *   for the wide search, and draw no rings
-   * @param {string[]} [search.exactUuids] my live entries with the "genau": who carries the
-   *   same sentence is asked for each, beside the matches (not for a typed question)
+   * @param {string[]} [search.exactUuids] the entries of mine with the "genau" to ask about: who
+   *   carries the same sentence is asked for each, beside the matches (not for a typed question)
    */
   async function load(search) {
     if (!search?.center || !(search.radius > 0)) return
@@ -683,8 +715,8 @@ export function useMatches() {
     // failure takes: supersede, clear, say so.
     if (!isPlace(search.center)) {
       latest++
-      matches.value = []
-      presence.value = []
+      takeDown()
+      askingAnew.value = false
       error.value = failure(GMS_REJECTED, 'search centre is not a pair of numbers')
       loading.value = false
       return
@@ -692,10 +724,20 @@ export function useMatches() {
     const request = ++latest
     loading.value = true
     error.value = null
+    const exact = search.query ? [] : (search.exactUuids ?? []).slice(0, SENTENCE_QUESTIONS_MAX)
+    // Other sentences than the answer on screen was for: down with it at once, before asking. A
+    // filter over the old answer would not do -- the markers are drawn by hand, and an answer to
+    // other sentences holds the topic matches of an entry that now has its "genau", or lacks the
+    // people of one that just got it. The same sentences take nothing down, so for a member
+    // without a "genau" a search is what it always was.
+    const asked = [...exact].sort().join()
+    if (shownSentences !== null && shownSentences !== asked) {
+      takeDown()
+      askingAnew.value = true
+    }
     try {
       const { url, token } = await gmsAccess(client)
       const base = apiBaseOf(url)
-      const exact = search.query ? [] : (search.exactUuids ?? []).slice(0, SENTENCE_QUESTIONS_MAX)
       const [people, others, ...sentences] = await Promise.all([
         search.query
           ? gmsGet(base, 'community-user/typed-matches', typedParams(search), token)
@@ -722,14 +764,20 @@ export function useMatches() {
       // ⚠️ And a test can be green for the wrong reason here: `&&` checks the alias first,
       // so an unplaceable person only reaches `location[0]` when some OTHER person shares
       // their alias. The case below is built that way on purpose.
-      const placeable = withSameSentence(people, sentences.filter(Boolean)).filter(hasUsablePoint)
+      const answered = sentences.filter(Boolean)
+      const placeable = withSameSentence(people, answered).filter(hasUsablePoint)
+      // With the people, never after them: the map redraws when they change, and a number of
+      // the last answer would stand beside the people of this one.
+      sentenceTotals.value = Object.fromEntries(answered.map(({ entry, total }) => [entry, total]))
       matches.value = placeable.map(toMatch)
       presence.value = withoutMatched(others.filter(hasUsablePoint), placeable).map(toPresence)
+      shownSentences = asked
+      askingAnew.value = false
     } catch (err) {
       if (request !== latest) return
       error.value = err.code ? err : failure(GMS_UNAVAILABLE, err.message)
-      matches.value = []
-      presence.value = []
+      takeDown()
+      askingAnew.value = false
     } finally {
       if (request === latest) loading.value = false
     }
@@ -810,5 +858,15 @@ export function useMatches() {
     return toProfile(await askKept('community-user/profile', params))
   }
 
-  return { matches, presence, loading, error, load, suggest, profile }
+  return {
+    matches,
+    presence,
+    sentenceTotals,
+    askingAnew,
+    loading,
+    error,
+    load,
+    suggest,
+    profile,
+  }
 }

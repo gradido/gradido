@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { h } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { MatchQuery } from './MatchQuery'
 import { LABEL_COLORS } from './displayCore'
@@ -237,6 +238,53 @@ describe('MatchQuery', () => {
 
       expect(last(wrapper)).toEqual({ kind: 'all' })
       expect(wrapper.find('.typed-input').exists()).toBe(false)
+    })
+  })
+
+  // The page sets the tick of a chosen entry under the bar (MatchingMap). Typing does not change the
+  // choice, so it steps back while a sentence is typed -- the field would no longer name what stood
+  // under it --, and the open menu lies over it.
+  describe('what the page sets under the bar', () => {
+    const mountWithBelow = () => {
+      const wrapper = mount(MatchQuery, {
+        props: { entries, selection: { kind: 'entry', uuid: 'e1' } },
+        slots: { below: () => h('p', { class: 'below-stub' }, 'Genau dieser Eintrag') },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
+        },
+      })
+      standing.push(wrapper)
+      return wrapper
+    }
+    const below = (wrapper) => wrapper.find('.below-stub')
+
+    it('stands under the closed bar', () => {
+      expect(below(mountWithBelow()).text()).toBe('Genau dieser Eintrag')
+    })
+
+    it('stands after the open menu in the page, so the menu lies over it', async () => {
+      const wrapper = mountWithBelow()
+      await wrapper.find('.query-bar').trigger('click')
+
+      const menu = wrapper.find('.query-menu').element
+      expect(below(wrapper).exists()).toBe(true)
+      expect(
+        menu.compareDocumentPosition(below(wrapper).element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+    })
+
+    it('steps back while a sentence is typed, and comes back when the field is cleared', async () => {
+      const wrapper = mountWithBelow()
+      await wrapper.find('.query-bar').trigger('click')
+      await wrapper.findAll('.query-option').at(-1).trigger('click')
+      expect(below(wrapper).exists()).toBe(false)
+
+      await wrapper.find('.typed-input').setValue('Fahrrad')
+      expect(below(wrapper).exists()).toBe(false)
+
+      await wrapper.find('.typed-clear').trigger('click')
+      expect(below(wrapper).exists()).toBe(true)
     })
   })
 

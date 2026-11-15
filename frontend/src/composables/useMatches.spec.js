@@ -1035,6 +1035,229 @@ describe('useMatches', () => {
         await first
         expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
       })
+
+      /**
+       * How many people in the circle carry each sentence (`sentenceTotals`), for the tick at the
+       * map: written with the people of the same answer, under the same `latest`, and emptied
+       * wherever they are (Falle 10).
+       */
+      describe('how many carry it', () => {
+        const held = (total) => {
+          let release
+          sentenceAnswer = () =>
+            new Promise((resolve) => {
+              release = () => resolve(okJson({ total, users: [sentenceUser()] }))
+            })
+          return () => release
+        }
+
+        it('hands back the number of each sentence that answered, by entry', async () => {
+          sentenceAnswer = async (url) =>
+            url.includes(`entry=${UUID.mine}`)
+              ? { ok: false, status: 404, json: async () => ({}) }
+              : okJson({ total: 1500, users: [sentenceUser()] })
+          const { load, sentenceTotals } = useMatches()
+          await load({ ...SEARCH, exactUuids: [UUID.mine, UUID.mineToo] })
+
+          // The entry answered 404 searches as without its "genau": no number for it.
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 1500 })
+        })
+
+        it('takes nobody as a number too', async () => {
+          sentenceAnswer = async () => okJson({ total: 0, users: [] })
+          const { load, sentenceTotals } = useMatches()
+          await load(EXACT)
+
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 0 })
+        })
+
+        it.each([
+          ['below zero', -1],
+          ['a fraction', 2.5],
+          ['text', '12'],
+          ['missing', undefined],
+          ['null', null],
+          ['too big to count', 2 ** 53],
+        ])('takes no number that is %s, and the people all the same', async (_what, total) => {
+          sentenceAnswer = async () => okJson({ total, users: [sentenceUser()] })
+          const { load, sentenceTotals, matches } = useMatches()
+          await load(EXACT)
+
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: null })
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta', 'Paul'])
+        })
+
+        it('has none for a typed question', async () => {
+          const { load, sentenceTotals } = useMatches()
+          await load(EXACT)
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 1 })
+
+          await load({ ...EXACT, query: { text: 'Klavier', matchingType: 'gesuch' } })
+          expect(sentenceTotals.value).toEqual({})
+        })
+
+        it('keeps none where the search fails', async () => {
+          const { load, sentenceTotals } = useMatches()
+          await load(EXACT)
+          sentenceAnswer = async () => ({ ok: false, status: 500, json: async () => ({}) })
+
+          await load(EXACT)
+          expect(sentenceTotals.value).toEqual({})
+        })
+
+        it('keeps none where the centre is no place', async () => {
+          const { load, sentenceTotals } = useMatches()
+          await load(EXACT)
+
+          await load({ ...EXACT, center: {} })
+          expect(sentenceTotals.value).toEqual({})
+        })
+
+        it('lets a search that was overtaken write no number', async () => {
+          const releaseOf = held(7)
+          const { load, sentenceTotals } = useMatches()
+          const first = load(EXACT)
+          await vi.waitFor(() => expect(releaseOf()).toBeTypeOf('function'))
+          const firstRelease = releaseOf()
+          sentenceAnswer = async () => okJson({ total: 3, users: [] })
+          await load(EXACT)
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 3 })
+
+          firstRelease()
+          await first
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 3 })
+        })
+      })
+
+      /**
+       * A search that asks other sentences than the answer on screen was for takes that answer
+       * down at once (Falle 15): the markers are drawn by hand, and nothing of an answer to other
+       * sentences fits what the member now asks for. `askingAnew` says so until its own is there.
+       */
+      describe('a search that asks other sentences', () => {
+        it('takes the answer on screen down at once, and says so until its own is there', async () => {
+          const { load, matches, presence, sentenceTotals, askingAnew } = useMatches()
+          await load(SEARCH)
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
+          expect(presence.value.map((person) => person.name)).toEqual(['Paul'])
+          let release
+          sentenceAnswer = () =>
+            new Promise((resolve) => {
+              release = () => resolve(okJson({ total: 1, users: [sentenceUser()] }))
+            })
+
+          const asking = load(EXACT)
+          expect(matches.value).toEqual([])
+          expect(presence.value).toEqual([])
+          expect(sentenceTotals.value).toEqual({})
+          expect(askingAnew.value).toBe(true)
+
+          await vi.waitFor(() => expect(release).toBeTypeOf('function'))
+          release()
+          await asking
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta', 'Paul'])
+          expect(sentenceTotals.value).toEqual({ [UUID.mineToo]: 1 })
+          expect(askingAnew.value).toBe(false)
+        })
+
+        it('takes it down as well where the sentences go', async () => {
+          const { load, matches, sentenceTotals, askingAnew } = useMatches()
+          await load(EXACT)
+
+          const asking = load(SEARCH)
+          expect(matches.value).toEqual([])
+          expect(sentenceTotals.value).toEqual({})
+          expect(askingAnew.value).toBe(true)
+
+          await asking
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta'])
+          expect(askingAnew.value).toBe(false)
+        })
+
+        it('takes nothing down for the same sentences, in whatever order', async () => {
+          const { load, matches, askingAnew } = useMatches()
+          await load({ ...SEARCH, exactUuids: [UUID.mine, UUID.mineToo] })
+          const before = matches.value
+
+          const asking = load({ ...SEARCH, radius: 30, exactUuids: [UUID.mineToo, UUID.mine] })
+          expect(matches.value).toBe(before)
+          expect(askingAnew.value).toBe(false)
+          await asking
+        })
+
+        // A member without a "genau" anywhere: a search is what it always was.
+        it('takes nothing down where no sentence is asked, before or now', async () => {
+          const { load, matches, presence, askingAnew } = useMatches()
+          await load(SEARCH)
+          const [before, ringsBefore] = [matches.value, presence.value]
+
+          const asking = load({ ...SEARCH, radius: 30 })
+          expect(matches.value).toBe(before)
+          expect(presence.value).toBe(ringsBefore)
+          expect(askingAnew.value).toBe(false)
+          await asking
+        })
+
+        // Compared is what is asked after the cut to the limit, not what the page named.
+        it('takes nothing down where only entries past the limit differ', async () => {
+          const many = Array.from({ length: SENTENCE_QUESTIONS_MAX }, (_, i) => `entry-${i}`)
+          const { load, matches, askingAnew } = useMatches()
+          await load({ ...SEARCH, exactUuids: [...many, 'beyond-one'] })
+          const before = matches.value
+
+          const asking = load({ ...SEARCH, exactUuids: [...many, 'beyond-two'] })
+          expect(matches.value).toBe(before)
+          expect(askingAnew.value).toBe(false)
+          await asking
+        })
+
+        it('stops saying so where that search fails', async () => {
+          const { load, askingAnew, error } = useMatches()
+          await load(EXACT)
+          fetchMock.mockImplementation(async () => ({
+            ok: false,
+            status: 500,
+            json: async () => ({}),
+          }))
+
+          await load(SEARCH)
+          expect(error.value?.code).toBe(GMS_UNAVAILABLE)
+          expect(askingAnew.value).toBe(false)
+        })
+
+        // Tick, untick, tick again in quick succession: the answer on screen is down after the
+        // first change, so the third question takes nothing more down -- and its answer is the one
+        // that ends the waiting, not the overtaken one before it.
+        it('keeps saying so through an overtaken search, until the last one answers', async () => {
+          const { load, matches, askingAnew } = useMatches()
+          await load(EXACT)
+          // Both topic answers held, and let go one after the other, in the order they were asked.
+          const releases = []
+          const others = fetchMock.getMockImplementation()
+          fetchMock.mockImplementation((url) =>
+            url.includes('community-user/matches')
+              ? new Promise((resolve) => {
+                  releases.push(() => resolve(others(url)))
+                })
+              : others(url),
+          )
+
+          const untick = load(SEARCH)
+          const tickAgain = load(EXACT)
+          expect(askingAnew.value).toBe(true)
+          await vi.waitFor(() => expect(releases).toHaveLength(2))
+
+          releases[0]()
+          await untick
+          expect(askingAnew.value).toBe(true)
+          expect(matches.value).toEqual([])
+
+          releases[1]()
+          await tickAgain
+          expect(askingAnew.value).toBe(false)
+          expect(matches.value.map((match) => match.name)).toEqual(['Marta', 'Paul'])
+        })
+      })
     })
 
     it('asks nothing without a centre or a radius', async () => {

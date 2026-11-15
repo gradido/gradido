@@ -114,6 +114,7 @@ export const listMatchingEntries = gql`
       remote
       active
       createdAt
+      updatedAt
       keyed
       exactSentence
     }
