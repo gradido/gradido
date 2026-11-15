@@ -4150,5 +4150,29 @@ describe('MatchingMap, the "genau" of my entries', () => {
       expect(remembered('reach')).toBe('regional')
       expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
     })
+
+    // A storage that refuses writes keeps no reach, so the stored one reads as never chosen while the
+    // member has tapped "wide" on this visit: nothing to switch, and the list still asks the sentence.
+    it('asks the sentence where the reach is wide already and storage kept nothing of it', async () => {
+      const page = await withMap()
+      const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError')
+      })
+      try {
+        await page.findAll('.reach-btn')[1].trigger('click')
+        await flushPromises()
+        expect(window.localStorage.getItem(`${KEY}reach`)).toBeNull()
+        const asked = load.mock.calls.length
+
+        list(project('a'))
+        await flushPromises()
+
+        expect(load).toHaveBeenCalledTimes(asked + 1)
+        expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true, exactUuids: ['a'] })
+        expect(page.findAll('.reach-btn')[1].attributes('aria-pressed')).toBe('true')
+      } finally {
+        setItem.mockRestore()
+      }
+    })
   })
 })

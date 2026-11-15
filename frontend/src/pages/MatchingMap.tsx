@@ -471,6 +471,11 @@ export const MatchingMap = defineComponent({
         return false
       }
       openedWide = true
+      // Wide already: the member tapped it on this visit, and a storage that refuses writes kept
+      // nothing of it. There is nothing to switch, so the list's own search below asks the sentence.
+      if (reach.value === 'fern') {
+        return false
+      }
       writePref('view', null)
       if (map) {
         setReach('fern')
