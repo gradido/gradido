@@ -98,6 +98,18 @@
   }
 
   @media (width >= 992px) {
+    /* The moderator's menu follows the pages instead of standing in the window's upper right
+       corner, where the admin's own messages and the computer's notifications come down over it
+       (Bernd, 15.11.2026): the pages no longer take up the free width, the row packs from the
+       start. Where the pages fill the bar, nothing moves. */
+    .navbar > .container-fluid {
+      justify-content: flex-start;
+    }
+
+    .navbar-collapse {
+      flex-grow: 0;
+    }
+
     .navbar-home {
       flex: 0 1 auto;
       margin-right: 0.5rem;
