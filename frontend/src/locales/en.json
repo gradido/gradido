@@ -1063,6 +1063,7 @@
         "w": "west"
       },
       "empty": "No one here right now. Widen the radius or search another place.",
+      "emptyExact": "No one here has entered exactly this sentence. Widen the radius or search another place.",
       "fromHome": "from your home",
       "heading": "People nearby",
       "kmEtwa": "about {n} km",

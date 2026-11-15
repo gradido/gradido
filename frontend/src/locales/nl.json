@@ -1063,6 +1063,7 @@
         "w": "ten westen"
       },
       "empty": "Hier is op dit moment niemand. Vergroot de straal of zoek een andere plek.",
+      "emptyExact": "Hier heeft niemand precies deze zin ingevuld. Vergroot de straal of zoek een andere plek.",
       "fromHome": "vanaf je huis",
       "heading": "Mensen in de buurt",
       "kmEtwa": "ongeveer {n} km",

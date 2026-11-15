@@ -1063,6 +1063,7 @@
         "w": "à l'ouest"
       },
       "empty": "Il n'y a personne ici pour le moment. Élargis le rayon ou cherche un autre endroit.",
+      "emptyExact": "Ici, personne n'a saisi exactement cette phrase. Élargis le rayon ou cherche un autre endroit.",
       "fromHome": "depuis chez toi",
       "heading": "Des personnes à proximité",
       "kmEtwa": "environ {n} km",

@@ -4819,6 +4819,18 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(listed()).toEqual([])
     })
 
+    it('tells the list where only the people of the sentence are shown', async () => {
+      remember('mode', 'liste')
+      const shown = await page([mine('a')])
+      const only = () => shown.findComponent({ name: 'MatchList' }).props('sentenceOnly')
+      expect(only()).toBe(false)
+
+      sentenceTotals.value = { a: 0 }
+      await flushPromises()
+
+      expect(only()).toBe(true)
+    })
+
     it('tells the list while an answer to other sentences is on its way', async () => {
       remember('mode', 'liste')
       const shown = await page([mine('a')])

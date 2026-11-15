@@ -1063,6 +1063,7 @@
         "w": "batıda"
       },
       "empty": "Şu anda burada kimse yok. Yarıçapı büyüt ya da başka bir yer ara.",
+      "emptyExact": "Burada kimse tam olarak bu cümleyi eklememiş. Yarıçapı büyüt ya da başka bir yer ara.",
       "fromHome": "senin evinden",
       "heading": "Yakındaki insanlar",
       "kmEtwa": "yaklaşık {n} km",

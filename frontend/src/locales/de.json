@@ -1063,6 +1063,7 @@
         "w": "westlich"
       },
       "empty": "Hier ist gerade niemand. Vergrößere den Radius oder such einen anderen Ort.",
+      "emptyExact": "Hier hat niemand genau diesen Satz eingetragen. Vergrößere den Radius oder such einen anderen Ort.",
       "fromHome": "von Deinem Zuhause aus",
       "heading": "Menschen in der Nähe",
       "kmEtwa": "etwa {n} km",

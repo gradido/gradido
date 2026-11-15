@@ -2638,6 +2638,7 @@ export const MatchingMap = defineComponent({
                 lensMode={lensMode.value}
                 showLens={showLens.value}
                 waiting={askingAnew.value}
+                sentenceOnly={sentenceOnly.value}
                 onOpen={openProfile}
                 onOpenContact={openShown}
                 onSort={setSort}

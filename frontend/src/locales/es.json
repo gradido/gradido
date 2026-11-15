@@ -1063,6 +1063,7 @@
         "w": "al oeste"
       },
       "empty": "Ahora mismo no hay nadie aquí. Amplía el radio o busca en otro lugar.",
+      "emptyExact": "Aquí nadie ha puesto esta misma frase. Amplía el radio o busca en otro lugar.",
       "fromHome": "desde tu casa",
       "heading": "Personas en los alrededores",
       "kmEtwa": "unos {n} km",

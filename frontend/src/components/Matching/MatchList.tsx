@@ -85,6 +85,9 @@ export const MatchList = defineComponent({
     // True while the answer on screen was taken down for a search that asks other sentences and has
     // not answered yet: the list is empty for that moment, and says nothing about who is here.
     waiting: { type: Boolean, default: false },
+    // True where a chosen entry with its "genau" shows only the people of its sentence: the
+    // neighbours are hidden then, not gone, and "nobody here" would say otherwise (KA-024).
+    sentenceOnly: { type: Boolean, default: false },
   },
   emits: ['open', 'openContact', 'sort', 'lens', 'recenter'],
   setup(props, { emit }) {
@@ -496,7 +499,9 @@ export const MatchList = defineComponent({
           {/* Not under somebody the page shows: "nobody here" would stand under a name. Nor while
               the answer to other sentences is on its way: the list is empty only for that moment. */}
           {!contact && !props.waiting && !props.matches.length && !props.silent.length ? (
-            <p class={['list-empty', classes['list-empty']]}>{t('matching.list.empty')}</p>
+            <p class={['list-empty', classes['list-empty']]}>
+              {props.sentenceOnly ? t('matching.list.emptyExact') : t('matching.list.empty')}
+            </p>
           ) : null}
         </div>
       )
