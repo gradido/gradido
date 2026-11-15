@@ -553,7 +553,7 @@ describe('MatchingMap', () => {
       ]
       await page.vm.$nextTick()
       // The control: regional, and the ring is counted and listed.
-      expect(page.text()).toContain(de.matching.map.found.replace('{n}', '1'))
+      expect(page.text()).toContain('1 Mensch gefunden')
       expect(page.findComponent({ name: 'MatchList' }).props('silent')).toHaveLength(1)
 
       await reachButtons(page)[1].trigger('click')
@@ -563,7 +563,25 @@ describe('MatchingMap', () => {
       // that never answers at all. The page must not be showing him all the same.
       expect(presence.value).toHaveLength(1)
       expect(page.findComponent({ name: 'MatchList' }).props('silent')).toEqual([])
-      expect(page.text()).toContain(de.matching.map.found.replace('{n}', '0'))
+      expect(page.text()).toContain('0 Menschen gefunden')
+    })
+
+    // The line counts like the row of the tick: grouped, and in the singular for one (side finding
+    // of the language reader, 15.11.2026).
+    it('groups the thousands in the line of the people found', async () => {
+      const page = await settle(mountMap())
+      presence.value = Array.from({ length: 1000 }, (_, i) => ({
+        id: i + 1,
+        uuid: `r-${i}`,
+        name: `Ring ${i}`,
+        community: { uuid: 'c-1', name: 'Muenchen' },
+        hasEntries: false,
+        position: { lat: 48.2 + i / 10000, lng: 11.6 },
+        precision: 'ungefaehr',
+      }))
+      await page.vm.$nextTick()
+
+      expect(page.text()).toContain('1.000 Menschen gefunden')
     })
 
     // Today the number has to be deleted by hand before a new one can be typed.

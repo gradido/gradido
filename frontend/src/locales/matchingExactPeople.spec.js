@@ -74,6 +74,33 @@ describe('the number beside the tick at the map', () => {
     expect(people('ru', count)).toBe(`${grouped('ru', count)} ${word}`)
   })
 
+  // The line under the map, "n Menschen gefunden": the same number grouped the same way, and in
+  // the singular for one where the number stands in front of the word.
+  describe('the line under the map', () => {
+    const found = (locale, count) =>
+      i18n.global.t(
+        'matching.map.found',
+        { n: i18n.global.n(count, { locale }) },
+        { plural: count, locale },
+      )
+
+    it.each([
+      ['de', 0, '0 Menschen gefunden'],
+      ['de', 1, '1 Mensch gefunden'],
+      ['de', 1500, '1.500 Menschen gefunden'],
+      ['en', 1, '1 person found'],
+      ['en', 2, '2 people found'],
+    ])('says in %s for %i: %s', (locale, count, said) => {
+      expect(found(locale, count)).toBe(said)
+    })
+
+    it.each(LANGUAGES)('shows the grouped number in %s, and no form separator', (locale) => {
+      const said = found(locale, 1500)
+      expect(said).toContain(grouped(locale, 1500))
+      expect(said).not.toMatch(/[|{}]/)
+    })
+  })
+
   // Rendered, not reasoned about: a form separator or a placeholder left open shows here.
   describe.each(LANGUAGES)('in %s', (locale) => {
     it('leaves neither a form separator nor a placeholder open, and starts with the number', () => {

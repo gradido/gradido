@@ -2792,7 +2792,11 @@ export const MatchingMap = defineComponent({
                     <span>{t('matching.map.km')}</span>
                   </span>
                   <span class={['radius-dot', classes['radius-dot']]} aria-hidden='true' />
-                  <span>{t('matching.map.found', { n: foundCount.value })}</span>
+                  {/* Grouped like the number beside the tick, and in the singular for one: in
+                      German and English the number stands in front of the word. */}
+                  <span>
+                    {t('matching.map.found', { n: n(foundCount.value) }, foundCount.value)}
+                  </span>
                 </div>
                 <div class='d-flex flex-wrap gap-3'>
                   {/* All five boxes, always. They used to step back while a typed question

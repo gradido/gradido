@@ -1101,7 +1101,7 @@
         "interesse": "Interessen"
       },
       "contactNotOnMap": "Dieser Kontakt steht gerade nicht auf der Karte.",
-      "found": "{n} Menschen gefunden",
+      "found": "{n} Mensch gefunden | {n} Menschen gefunden",
       "home": "Zu meinem Zuhause",
       "km": "km",
       "look": {
