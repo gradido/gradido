@@ -8,6 +8,7 @@ import {
 } from '@admin/graphql/creationGroups.graphql'
 import { setCreationAllowed } from '@admin/graphql/setCreationAllowed'
 import { setUserRole } from '@admin/graphql/setUserRole'
+import { adminSetSupportDuty } from '@admin/graphql/supportTickets.graphql'
 import { creationGroupOption } from '@admin/utils/creationGroupLabel'
 import m, { type ClassComponent, type Vnode } from 'mithril'
 import * as v from 'valibot'
@@ -53,11 +54,15 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
   private creationAllowed = true
   // one switch at a time: an older answer must not win over a newer flip
   private savingCreationAllowed = false
+  // the tick "may handle support requests" (Support-Anfragen K6), as the member's row has it
+  private supportDuty = false
+  private savingSupportDuty = false
 
   oninit({ attrs: { member } }: Vnode<Attrs>) {
     this.role = member.role ?? 'USER'
     this.selected = this.role
     this.creationAllowed = member.creationAllowed
+    this.supportDuty = member.supportDuty ?? false
     if (this.formShown(member)) {
       this.loadGroups(member.userId)
       if (this.scopeShown()) {
@@ -73,6 +78,12 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
   // both moderator kinds see a scope: a KI-Moderator is a moderator who may also use Crea
   private scopeShown() {
     return this.selected === 'MODERATOR' || this.selected === 'MODERATOR_AI'
+  }
+
+  // The tick stands for both moderator kinds as well, but by the role SAVED, not the one chosen in
+  // the list: the server writes it on a moderator's row only, and a chosen role is not on it yet.
+  private supportDutyShown() {
+    return this.role === 'MODERATOR' || this.role === 'MODERATOR_AI'
   }
 
   private async loadGroups(userId: number) {
@@ -119,6 +130,12 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
     }
     this.role = role
     member.role = value
+    // The tick lives on the role row: it goes along to another role -- and back to a moderator,
+    // also by way of administrator --, and goes with the row where the role is taken away.
+    if (value === null) {
+      this.supportDuty = false
+      member.supportDuty = false
+    }
     const text = ROLES.find(([key]) => key === role)?.[1] ?? ''
     toastSuccess(t('userRole.successfullyChangedTo', { role: t(text) }))
   }
@@ -176,6 +193,32 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
     )
   }
 
+  // as "may create": written on the flip, the switch then shows what the server answers
+  private async saveSupportDuty(member: SearchedMember, supportDuty: boolean) {
+    this.supportDuty = supportDuty
+    this.savingSupportDuty = true
+    const answer = await graphqlRequest<{ adminSetSupportDuty: boolean }>(adminSetSupportDuty, {
+      userId: member.userId,
+      supportDuty,
+    })
+    this.savingSupportDuty = false
+    if (!answer.success) {
+      this.supportDuty = !supportDuty
+      // the role was taken away or changed meanwhile, in another window
+      toastError(
+        answer.error.messages.includes('SUPPORT_DUTY_NOT_A_MODERATOR')
+          ? t('userRole.supportDuty.notAModerator')
+          : t('support.failed'),
+      )
+      return
+    }
+    this.supportDuty = answer.value.adminSetSupportDuty
+    member.supportDuty = this.supportDuty
+    toastSuccess(
+      t(this.supportDuty ? 'userRole.supportDuty.switchedOn' : 'userRole.supportDuty.switchedOff'),
+    )
+  }
+
   private roleForm(member: SearchedMember) {
     if (adminStore.moderator?.role !== 'ADMIN') {
       return m('.m-3.mb-4')
@@ -186,6 +229,7 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
     const { userId } = member
     const roleId = `role-${userId}`
     const scopeId = `scope-${userId}`
+    const supportDutyId = `support-duty-${userId}`
     return m('.m-3', [
       m('label.me-3', { for: roleId }, t('userRole.selectLabel')),
       m(
@@ -251,6 +295,24 @@ export class ChangeUserRoleFormular implements ClassComponent<Attrs> {
               ),
             ),
             m('small.d-block.text-muted.mt-1', t('userRole.scope.help')),
+          ])
+        : null,
+      this.supportDutyShown()
+        ? m('.mb-3', { 'data-test': 'support-duty' }, [
+            m('.form-check.form-switch', [
+              m('input.form-check-input', {
+                id: supportDutyId,
+                type: 'checkbox',
+                role: 'switch',
+                'data-test': 'support-duty-switch',
+                checked: this.supportDuty,
+                disabled: this.savingSupportDuty,
+                onchange: (event: Event) =>
+                  this.saveSupportDuty(member, (event.target as HTMLInputElement).checked),
+              }),
+              m('label.form-check-label', { for: supportDutyId }, t('userRole.supportDuty.label')),
+            ]),
+            m('small.d-block.text-muted.mt-1', t('userRole.supportDuty.help')),
           ])
         : null,
       this.asking

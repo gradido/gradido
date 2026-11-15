@@ -3,7 +3,7 @@ import { chatMailWentOut, databaseErrorCode, sendNewSupportTicketEmail } from 'c
 import { dbSelectRoleHoldersWithContact, RoleHolderWithContact, RoleNames } from 'database'
 import { getLogger } from 'log4js'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { roleByName } from '@/auth/ROLES'
+import { roleOfHolder } from '@/auth/ROLES'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { supportTicketMailRecipients, supportTicketMailsAllowed } from '@/data/SupportTicket.logic'
 import { describeModeratorCreationGroups } from './moderatorCreationGroupScope'
@@ -15,8 +15,10 @@ const createLogger = () =>
  * Who hears of a request by mail (SUA-018, SUA-024) -- a new one, or one handed on to the group of
  * `groupTag` (null: no group): the members with a role, in one query, each with their scope as
  * describeModeratorCreationGroups reads it, through the rule (supportTicketMailRecipients).
- * Whether a role may handle requests is asked of its right MANAGE_SUPPORT_TICKETS, not of its
- * name; nobody in `notFor` -- the asking member, who handed on -- gets a mail.
+ * Whether a member may handle requests is asked of the right MANAGE_SUPPORT_TICKETS of their row
+ * as isAuthorized reads it (roleOfHolder: an administrator always, a moderator with the tick of
+ * K6), not of the name of the role; nobody in `notFor` -- the asking member, who handed on -- gets
+ * a mail.
  *
  * Read before the request is filed or handed on, and awaited: what follows the write without
  * being waited for is the sending alone. ⛔ Never throws: where the reading fails, nobody is
@@ -33,7 +35,7 @@ export async function readSupportTicketMailRecipients(
         ...holder,
         ...describeModeratorCreationGroups(holder),
         id: holder.userId,
-        handlesSupportTickets: roleByName(holder.role).hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS),
+        handlesSupportTickets: roleOfHolder(holder).hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS),
         isAdmin: holder.role === RoleNames.ADMIN,
       })),
       groupTag,

@@ -102,6 +102,11 @@ export class User {
       this.seesAllCreationGroups = true
       this.seesUntagged = true
     }
+    // No by default, for everybody -- also for a member built without a row (the sender of a link
+    // from another community): the field is not nullable. verifyLogin answers it for the
+    // signed-in member alone.
+    // ⛔ Never read off the role row here: this type leaves with every member a query hands out.
+    this.handlesSupportTickets = false
   }
 
   @Field(() => Int)
@@ -324,6 +329,12 @@ export class User {
   // reaches those contributions.
   @Field(() => Boolean)
   seesUntagged: boolean
+
+  // Whether the signed-in member handles support requests (Support-Anfragen K6): an administrator,
+  // or a moderator with the tick. The admin shows "Support" by it. Filled in by verifyLogin from
+  // the rights isAuthorized gave the request; no for every other member a query hands out.
+  @Field(() => Boolean)
+  handlesSupportTickets: boolean
 
   @Field(() => UserContact, { nullable: true })
   emailContact: UserContact | null

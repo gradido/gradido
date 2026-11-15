@@ -110,9 +110,9 @@ export const supportAnswerMailDecision = (
 
 /**
  * A member with a role as the mail about a new request reads them (K5, SUA-018, SUA-024): whether
- * they may handle requests at all -- today the right MANAGE_SUPPORT_TICKETS of their role, with
- * the tick of K6 (SUA-025) more --, whether their role is ADMIN, and their scope as
- * describeModeratorCreationGroups reads it.
+ * they may handle requests at all -- the right MANAGE_SUPPORT_TICKETS of their role row, which an
+ * administrator always holds and a moderator with the tick of K6 (SUA-025, roleOfHolder) --,
+ * whether their role is ADMIN, and their scope as describeModeratorCreationGroups reads it.
  */
 export interface SupportTicketMailCandidate {
   id: number
@@ -221,6 +221,9 @@ export const SUPPORT_TICKET_NOT_STORED = 'SUPPORT_TICKET_NOT_STORED'
 export const SUPPORT_TICKET_NOT_READ = 'SUPPORT_TICKET_NOT_READ'
 // New requests are switched off in this community (K5, SUA-019); what runs, runs on.
 export const SUPPORT_TICKETS_OFF = 'SUPPORT_TICKETS_OFF'
+// The tick "may handle support requests" is a moderator's (K6): the member holds no moderator role,
+// or no longer -- the admin words it in the reader's language.
+export const SUPPORT_DUTY_NOT_A_MODERATOR = 'SUPPORT_DUTY_NOT_A_MODERATOR'
 
 /** A write in a thread that was not done, by its code. */
 export class SupportTicketRefused extends DomainError {

@@ -139,3 +139,9 @@ query supportTicketsMenu {
 mutation adminSetSupportTicketsActive($active: Boolean!) {
   adminSetSupportTicketsActive(active: $active)
 }
+
+# Sets or takes away a moderator's tick "may handle support requests" (K6), for administrators;
+# answers what holds afterwards.
+mutation adminSetSupportDuty($userId: Int!, $supportDuty: Boolean!) {
+  adminSetSupportDuty(userId: $userId, supportDuty: $supportDuty)
+}

@@ -9,6 +9,7 @@ import {
   dbCountOpenSupportTicketsInScope,
   dbFindMemberAvatarTimestamps,
   dbFindUsersWithEmailContactByIds,
+  dbInsertEvent,
   dbIsSupportTicketsActive,
   dbSelectCreationGroupByTag,
   dbSelectNewestSupportTicketDialogs,
@@ -18,19 +19,24 @@ import {
   dbSelectSupportTicketThread,
   dbUpdateHomeCommunity,
   dbUpdateSupportTicketOfModerator,
+  dbUpdateUserRoleSupportDuty,
+  EventType,
   findUserNamesByIds,
   SupportTicketFilter,
   SupportTicketThreadMessage,
 } from 'database'
+import { getLogger } from 'log4js'
 import { avatarColorIndex, searchWords } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   closingOf,
   MODERATOR_CLOSES_FROM,
   moderatorMessageKind,
   reassignedLine,
+  SUPPORT_DUTY_NOT_A_MODERATOR,
   SUPPORT_TICKET_INVALID,
   SUPPORT_TICKET_NOT_FOUND,
   SUPPORT_TICKET_NOT_READ,
@@ -96,7 +102,8 @@ const messageOf = (
 /**
  * The moderation's side of support requests (SUA-005): the list under the admin's tabs and the
  * thread of an opened request (K2); answering, notes, closing with the tick, deleting, and the
- * count of the open tab (K3); search, group filter, resubmission and handing on (K4).
+ * count of the open tab (K3); search, group filter, resubmission and handing on (K4); the switch
+ * of new requests (K5); and who of the moderators is part of it (K6).
  *
  * A moderator reaches what their creation groups cover -- the list, its count, the thread and
  * every act on a request through one condition (supportTicketsInScope), read off their role and
@@ -421,6 +428,42 @@ export class SupportTicketModerationResolver {
       await dbUpdateHomeCommunity({ supportTicketsActive: active })
       return dbIsSupportTicketsActive()
     })
+  }
+
+  /**
+   * Sets or takes away a moderator's tick "may handle support requests" (K6, SUA-025), for
+   * administrators only: with it, a moderator or KI-moderator handles the requests of their scope
+   * and hears of new ones. Written where the member's role row holds one of the two moderator
+   * kinds, the role the condition of the very write: a member without one -- or no longer with one
+   * -- is refused with a code of its own, and nothing is written. Answers what holds afterwards.
+   * The tick gives a member a right, as a role does: an event, and a line in the log, numbers
+   * only. Not counted in the support's budget: it writes no request.
+   */
+  @Authorized([RIGHTS.SET_SUPPORT_DUTY])
+  @Mutation(() => Boolean)
+  async adminSetSupportDuty(
+    @Arg('userId', () => Int) userId: number,
+    @Arg('supportDuty', () => Boolean) supportDuty: boolean,
+    @Ctx() context: Context,
+  ): Promise<boolean> {
+    const administrator = getUser(context)
+    const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      dbUpdateUserRoleSupportDuty(userId, supportDuty),
+    )
+    if (!written.success) {
+      throw new LogError(SUPPORT_DUTY_NOT_A_MODERATOR, userId)
+    }
+    await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
+      dbInsertEvent({
+        type: EventType.ADMIN_USER_SUPPORT_DUTY_SET,
+        affectedUserId: userId,
+        actingUserId: administrator.id,
+      }),
+    )
+    getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.SupportTicketModerationResolver`).info(
+      `support duty of user ${userId} set to ${supportDuty} by ${administrator.id}`,
+    )
+    return supportDuty
   }
 
   /**

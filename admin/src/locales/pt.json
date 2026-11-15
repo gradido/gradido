@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Uma conta de projeto (associação, projeto, negócio) não cria, recebe agradecimentos. O próprio membro pode desativar; só um administrador pode voltar a ativar.",
+      "label": "Pode criar",
+      "no": "não",
+      "switchedOff": "Criação desativada – esta conta é agora uma conta de projeto.",
+      "switchedOn": "Criação ativada – esta conta pode voltar a criar.",
+      "yes": "sim"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Pré-selecionado ao submeter.",
+      "label": "Grupo de criação principal do utilizador",
+      "none": "(sem grupo)"
     },
     "notChangeYourSelf": "Como administrador/moderador, não podes alterar a tua própria função.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Grupos de criação guardados.",
+    "savedScope": "Visibilidade guardada.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "todos os grupos",
+      "help": "Vazio = todas as contribuições.",
+      "label": "Grupos de criação visíveis",
+      "untagged": "sem grupo"
     },
     "selectLabel": "Função:",
     "selectRoles": {
@@ -788,6 +788,13 @@
       "user": "utilizador comum"
     },
     "successfullyChangedTo": "O utilizador é agora «{role}».",
+    "supportDuty": {
+      "help": "Trata os pedidos dos grupos visíveis. Os administradores podem sempre.",
+      "label": "Pode tratar pedidos de suporte",
+      "notAModerator": "Só um moderador pode tratar pedidos de suporte.",
+      "switchedOff": "Este membro já não trata pedidos de suporte.",
+      "switchedOn": "Este membro trata agora pedidos de suporte."
+    },
     "tabTitle": "Função do utilizador"
   },
   "userSearch": {

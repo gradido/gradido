@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Ένας λογαριασμός έργου (σύλλογος, έργο, επιχείρηση) δεν δημιουργεί, δέχεται ευχαριστίες. Την απενεργοποίηση μπορεί να την κάνει το ίδιο το μέλος· την ενεργοποίηση μόνο ένας διαχειριστής.",
+      "label": "Μπορεί να δημιουργεί",
+      "no": "όχι",
+      "switchedOff": "Η δημιουργία απενεργοποιήθηκε – αυτός ο λογαριασμός είναι πλέον λογαριασμός έργου.",
+      "switchedOn": "Η δημιουργία ενεργοποιήθηκε – αυτός ο λογαριασμός μπορεί πάλι να δημιουργεί.",
+      "yes": "ναι"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Προεπιλέγεται κατά την υποβολή.",
+      "label": "Κύρια ομάδα δημιουργίας του χρήστη",
+      "none": "(χωρίς ομάδα)"
     },
     "notChangeYourSelf": "Ως διαχειριστής/συντονιστής, δεν μπορείς να αλλάξεις τον δικό σου ρόλο.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Οι ομάδες δημιουργίας αποθηκεύτηκαν.",
+    "savedScope": "Η ορατότητα αποθηκεύτηκε.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "όλες οι ομάδες",
+      "help": "Κενό = όλες οι συνεισφορές.",
+      "label": "Ορατές ομάδες δημιουργίας",
+      "untagged": "χωρίς ομάδα"
     },
     "selectLabel": "Ρόλος:",
     "selectRoles": {
@@ -788,6 +788,13 @@
       "user": "απλός χρήστης"
     },
     "successfullyChangedTo": "Ο χρήστης είναι τώρα «{role}».",
+    "supportDuty": {
+      "help": "Χειρίζεται τα αιτήματα των ορατών ομάδων. Οι διαχειριστές μπορούν πάντα.",
+      "label": "Μπορεί να χειρίζεται αιτήματα υποστήριξης",
+      "notAModerator": "Μόνο ένας συντονιστής μπορεί να χειρίζεται αιτήματα υποστήριξης.",
+      "switchedOff": "Αυτό το μέλος δεν χειρίζεται πλέον αιτήματα υποστήριξης.",
+      "switchedOn": "Αυτό το μέλος χειρίζεται τώρα αιτήματα υποστήριξης."
+    },
     "tabTitle": "Ρόλος χρήστη"
   },
   "userSearch": {

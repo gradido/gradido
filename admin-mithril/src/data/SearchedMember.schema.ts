@@ -15,6 +15,8 @@ export const searchedMemberSchema = v.object({
   deletedAt: v.nullable(v.string()),
   createdAt: v.string(),
   role: v.nullable(v.string()),
+  // the tick "may handle support requests" on a moderator (K6): null for whom it is not to know
+  supportDuty: v.nullable(v.boolean()),
   creationAllowed: v.boolean(),
   gradidoID: v.string(),
   communityUuid: v.nullable(v.string()),

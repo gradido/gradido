@@ -425,6 +425,53 @@ test('offers no page of the tab before while the next tab loads', async ({
   await expect(rows(page)).toHaveCount(2)
 })
 
+// K6: a refused count takes the support away only where it is the question last asked, as only
+// the last answer sets the badges. The start page asks, the support page asks again and is told,
+// and the start page's refusal arrives after that.
+test('lets a refusal of an earlier count, arriving late, take nothing away', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', ONLY_NEW)
+  const withTick = { ...moderator, role: 'MODERATOR', handlesSupportTickets: true }
+  let release!: () => void
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  let asks = 0
+  let refused = false
+  graphql.answer({
+    ...signedInAnswers(withTick),
+    // the start page's lines of the creation
+    waitingForModeration: { contributionCount: 0 },
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    adminCountOpenSupportTickets: async () => {
+      asks += 1
+      if (asks > 1) {
+        return OPEN
+      }
+      await held
+      refused = true
+      return new Failure('401 Unauthorized')
+    },
+  })
+  const supportLink = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
+  await signIn(page, '/', withTick)
+  await expect(page.getByText(de.dashboard.welcome)).toBeVisible()
+  await expect.poll(() => asks).toBe(1)
+  await supportLink.click()
+  await expect(rows(page)).toHaveCount(6)
+  await expect(supportLink.locator('.badge')).toHaveText('6')
+
+  release()
+  await expect.poll(() => refused).toBe(true)
+  // Taking nothing away shows nothing: give a wrong taking-away the time to show.
+  await page.waitForTimeout(300)
+  await expect(supportLink).toBeVisible()
+  await expect(supportLink.locator('.badge')).toHaveText('6')
+})
+
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 390, height: 1200 } })
 
