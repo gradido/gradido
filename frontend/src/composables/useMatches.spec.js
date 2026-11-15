@@ -887,6 +887,55 @@ describe('useMatches', () => {
         expect(withSameSentence([], answered, 7)).toHaveLength(7)
       })
 
+      // Second reader, 15.11.2026: the rounds stopped at the number, and Paul lost the channel of
+      // the answer that met him later.
+      it('gives somebody already drawn the channel of a later answer, also past the number', () => {
+        const merged = withSameSentence(
+          [],
+          [
+            {
+              entry: UUID.mine,
+              users: [sentenceUser({ uuid: UUID.paul, alias: 'Paul' }, UUID.mine), ...of('1', 4)],
+            },
+            {
+              entry: UUID.mineToo,
+              users: [
+                ...of('2', 3, UUID.mineToo),
+                sentenceUser({ uuid: UUID.paul, alias: 'Paul' }),
+              ],
+            },
+          ],
+          2,
+        )
+        expect(aliases(merged)).toEqual(['Paul', '20'])
+        expect(entriesOf(merged)[0].entries).toEqual([
+          [UUID.mine, true],
+          [UUID.mineToo, true],
+        ])
+      })
+
+      it('marks a topic match of another entry who carries the sentence past the number', () => {
+        const merged = withSameSentence(
+          [withTopics([topicFor(UUID.other)], { uuid: UUID.paul, alias: 'Paul' })],
+          [
+            {
+              entry: UUID.mineToo,
+              users: [
+                ...of('2', 3, UUID.mineToo),
+                sentenceUser({ uuid: UUID.paul, alias: 'Paul' }),
+              ],
+            },
+          ],
+          2,
+        )
+        // Nobody new past the two; Paul is drawn anyway, and he carries the sentence.
+        expect(aliases(merged)).toEqual(['Paul', '20', '21'])
+        expect(entriesOf(merged)[0].entries).toEqual([
+          [UUID.other, false],
+          [UUID.mineToo, true],
+        ])
+      })
+
       it('counts somebody in two answers once, and keeps the channels of both', () => {
         const both = sentenceUser({ uuid: UUID.paul, alias: 'Paul' }, UUID.mineToo)
         const merged = withSameSentence(

@@ -4516,8 +4516,30 @@ describe('MatchingMap, the tick under the search field', () => {
           mine('b', { exactSentence: false }),
         ],
       })
-      // Nothing in the cache: nothing to write into.
-      expect(update(null)).toBeNull()
+      // Nothing in the cache, or nothing older there: nothing is written.
+      expect(update(null)).toBeUndefined()
+      expect(
+        update({ listMatchingEntries: [mine('a', { exactSentence: true, updatedAt: WRITTEN })] }),
+      ).toBeUndefined()
+    })
+
+    // Second reader, 15.11.2026: a list read before the write and answered after it lands in the
+    // cache as well, and the next visit would start from it.
+    it('tells the cache the tick again where a list older than it came in', async () => {
+      const shown = await page([mine('a', { exactSentence: false })])
+      writeExact.mockResolvedValueOnce(written('a', true))
+      await tap(shown)
+      await flushPromises()
+      updateCachedQuery.mockClear()
+
+      list(mine('a', { exactSentence: false }))
+      await flushPromises()
+
+      expect(updateCachedQuery).toHaveBeenCalledTimes(1)
+      const [, update] = updateCachedQuery.mock.calls[0]
+      expect(update({ listMatchingEntries: [mine('a', { exactSentence: false })] })).toEqual({
+        listMatchingEntries: [mine('a', { exactSentence: true, updatedAt: WRITTEN })],
+      })
     })
 
     it('takes the tick off, and the search asks no sentence any more', async () => {
@@ -4535,6 +4557,7 @@ describe('MatchingMap, the tick under the search field', () => {
 
     it('takes the box back where the write fails, says so, and moves nothing else', async () => {
       const shown = await page([mine('a', { exactSentence: false })])
+      remember('cluster', ['somebody', 'somebody-else'])
       const asked = load.mock.calls.length
       writeExact.mockRejectedValueOnce(new Error('Could not change MatchingEntry state'))
 
@@ -4546,6 +4569,8 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(toastError).toHaveBeenCalledWith('Could not change MatchingEntry state')
       expect(load).toHaveBeenCalledTimes(asked)
       expect(updateCachedQuery).not.toHaveBeenCalled()
+      // Second reader, 15.11.2026: the window for several people stays as it was.
+      expect(remembered('cluster')).toEqual(['somebody', 'somebody-else'])
     })
 
     it('takes an answer without the entry for a write that failed', async () => {
@@ -4586,13 +4611,16 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(box(shown).element.checked).toBe(false)
     })
 
-    it('closes the window for several people, as a change of the choice does', async () => {
+    it('closes the window for several people once the server has it, as a change of the choice does', async () => {
       const shown = await page([mine('a', { exactSentence: false })])
       remember('cluster', ['somebody', 'somebody-else'])
-      held()
+      const write = held()
 
       await tap(shown)
+      expect(remembered('cluster')).toEqual(['somebody', 'somebody-else'])
 
+      write.answer(written('a', true))
+      await flushPromises()
       expect(remembered('cluster')).toBeNull()
     })
   })
@@ -4921,6 +4949,10 @@ describe('MatchingMap, the tick under the search field', () => {
 // A single choice remembered from the last visit, on a cold load of the map (KA-023 point 7): the
 // query answers first from an empty cache, without data, and that is no list.
 describe('MatchingMap, a remembered entry on a cold load', () => {
+  beforeAll(async () => {
+    await import('@/utils/mapEngine/maplibre')
+  })
+
   const mine = (uuid, over = {}) => ({
     ...entry(uuid),
     matchingType: 'interest',
@@ -4965,6 +4997,7 @@ describe('MatchingMap, a remembered entry on a cold load', () => {
 
   afterEach(() => {
     load.mockReset()
+    vi.useRealTimers()
   })
 
   it('keeps the remembered entry through an answer without data, and the list brings it back', async () => {
@@ -4974,8 +5007,10 @@ describe('MatchingMap, a remembered entry on a cold load', () => {
     noData()
     await flushPromises()
 
+    // Remembered, and until the list knows it, the field is handed what the page shows: all my
+    // entries -- the bar and the open menu say so alike (second reader, 15.11.2026).
     expect(remembered('query')).toEqual(chosen('a'))
-    expect(query(page)).toEqual(chosen('a'))
+    expect(query(page)).toEqual({ kind: 'all' })
 
     list(mine('a'), mine('b'))
     await flushPromises()
@@ -5015,6 +5050,26 @@ describe('MatchingMap, a remembered entry on a cold load', () => {
     list(mine('a'), mine('b'))
     await flushPromises()
     expect(listed()).toBe(1)
+  })
+
+  it('draws the lens of the remembered entry as soon as the list brings it, before a new answer', async () => {
+    remember('query', chosen('a'))
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const page = mountMap()
+    located()
+    await page.vm.$nextTick()
+    vi.advanceTimersByTime(250)
+    vi.useRealTimers()
+    await flushPromises()
+    await flushPromises()
+    matches.value = [somebody('anna', 'a'), somebody('ben', 'b')]
+    await flushPromises()
+    expect(page.findAll('.gk-clickable')).toHaveLength(2)
+
+    list(mine('a'), mine('b'))
+    await flushPromises()
+
+    expect(page.findAll('.gk-clickable')).toHaveLength(1)
   })
 
   it('keeps the place of its row, unseen, while the list is on its way, and none for all my entries', async () => {
@@ -5448,9 +5503,9 @@ describe('MatchingMap, the tick with the real search', () => {
 
     const answer = hold()
     await choose(page, chosen('a'))
-    // The markers of the answer on screen stay until the new one (they are drawn by hand); the
-    // rings step back at once, as the entry shows only its sentence.
-    expect(onScreen(page)).toMatchObject({ markers: [48, 130, 130], rings: 0, waiting: false })
+    // Nothing is taken down: the lens of the new choice shows at once, on the markers too (second
+    // reader, 15.11.2026), and the rings step back, as the entry shows only its sentence.
+    expect(onScreen(page)).toMatchObject({ markers: [130, 130], rings: 0, waiting: false })
     await answer()
     expect(onScreen(page)).toMatchObject({ markers: [130, 130], rings: 0, number: '2 Menschen' })
   })

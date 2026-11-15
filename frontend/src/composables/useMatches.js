@@ -521,18 +521,20 @@ export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) 
     )
   }
   // In turns. Somebody met again in a later answer brings that channel along and takes no second
-  // place: skipped, they would lose it.
+  // place: skipped, they would lose it. So the rounds go on past the limit -- nobody new comes in
+  // then, but somebody already drawn (from an earlier answer, or as a topic match of another entry)
+  // still gets the sentence they carry (second reader, 15.11.2026).
   const queues = answered.map(({ users }) => users.filter(hasUsablePoint))
   const taken = new Set()
   const longest = Math.max(...queues.map((queue) => queue.length))
-  for (let round = 0; round < longest && taken.size < limit; round++) {
+  for (let round = 0; round < longest; round++) {
     for (const queue of queues) {
       const user = queue[round]
       if (!user) continue
       const key = personKey(user)
       if (!taken.has(key)) {
-        if (taken.size >= limit) continue
-        taken.add(key)
+        if (taken.size >= limit && !byPerson.has(key)) continue
+        if (taken.size < limit) taken.add(key)
       }
       add(
         user,

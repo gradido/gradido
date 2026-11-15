@@ -344,8 +344,25 @@ export const MatchingMap = defineComponent({
     function keepTickWritten(entry: MyEntry): MyEntry {
       const tick = ticksWritten.get(entry.uuid)
       return tick && !(Date.parse(entry.updatedAt ?? '') >= Date.parse(tick.updatedAt))
-        ? { ...entry, exactSentence: tick.exactSentence }
+        ? { ...entry, exactSentence: tick.exactSentence, updatedAt: tick.updatedAt }
         : entry
+    }
+
+    /**
+     * The cached list of my entries with the ticks this page wrote: a row older than a tick takes it,
+     * with the tick's stand. Written after each tick, so "Meine Einträge" shows it at once -- and again
+     * where a list older than a tick came in after it: Apollo keeps that list as well (the arrival's
+     * network answer, askForWords), and the next visit would start from it (second reader,
+     * 15.11.2026). Nothing is written where nothing is older.
+     */
+    function writeTicksToCache() {
+      apolloClient.cache.updateQuery({ query: listMatchingEntries }, (cached) => {
+        const rows: MyEntry[] | undefined = cached?.listMatchingEntries
+        const healed = rows?.map(keepTickWritten)
+        return healed?.some((row, index) => row !== rows?.[index])
+          ? { listMatchingEntries: healed }
+          : undefined
+      })
     }
 
     /**
@@ -456,7 +473,15 @@ export const MatchingMap = defineComponent({
       const keyBefore = entryKey(myEntries.value)
       const keyedBefore = keyedKey(myEntries.value)
       const exactBefore = entryKey(exactOf(myEntries.value))
-      myEntries.value = (list ?? []).filter((entry) => entry.active).map(keepTickWritten)
+      const fresh = (list ?? []).filter((entry) => entry.active)
+      const kept = fresh.map(keepTickWritten)
+      myEntries.value = kept
+      // A list older than a tick came in: the cache holds it now as well, and is told the tick.
+      // After this list is through -- writing the cache here would hand it back to onEntries at once.
+      // Compared before the list is stored: read back from the ref, every entry is a reactive copy.
+      if (kept.some((entry, index) => entry !== fresh[index])) {
+        queueMicrotask(writeTicksToCache)
+      }
       askAgainForWords()
       // A remembered choice can outlive what it points at: the entry may have been
       // deleted or paused since. Left standing it would show as "all my entries" in the
@@ -648,36 +673,24 @@ export const MatchingMap = defineComponent({
       }
       const uuid = chosen.uuid
       exactWriting.value = { uuid, value }
-      closeCluster()
       try {
         const answer = await writeExact({ uuid, exactSentence: value })
         const written = answer?.data?.setMatchingEntryExactSentence
         if (!written) {
           throw new Error('setMatchingEntryExactSentence: no answer')
         }
+        ticksWritten.set(uuid, {
+          exactSentence: written.exactSentence,
+          updatedAt: written.updatedAt,
+        })
         if (pageAlive) {
-          ticksWritten.set(uuid, {
-            exactSentence: written.exactSentence,
-            updatedAt: written.updatedAt,
-          })
-        }
-        apolloClient.cache.updateQuery({ query: listMatchingEntries }, (cached) =>
-          cached?.listMatchingEntries
-            ? {
-                listMatchingEntries: cached.listMatchingEntries.map((entry: MyEntry) =>
-                  entry.uuid === uuid
-                    ? {
-                        ...entry,
-                        exactSentence: written.exactSentence,
-                        updatedAt: written.updatedAt,
-                      }
-                    : entry,
-                ),
-              }
-            : cached,
-        )
-        if (pageAlive) {
+          // Like a change of the choice, and only once the server has it: a write that fails moves
+          // nothing but the box (second reader, 15.11.2026). The list of the page is older than the
+          // tick now, and takeEntries tells the cache.
+          closeCluster()
           takeEntries(myEntries.value)
+        } else {
+          writeTicksToCache()
         }
       } catch (error) {
         if (pageAlive) {
@@ -2426,9 +2439,23 @@ export const MatchingMap = defineComponent({
       syncProfile()
       syncCluster()
     })
-    // The rings are drawn by hand. Where the choice changes and the sentences asked stay the same
-    // (all my entries, one of them with the "genau", and then that one), no search takes the answer
-    // down, and the rings have to be told.
+    // The markers and the rings are drawn by hand. Where the choice changes and the sentences asked
+    // stay the same -- all my entries, one of them with the "genau", and then that one; or the list
+    // bringing a remembered entry -- no search takes the answer down, and the map is told here: it
+    // shows the lens of the new choice at once, as the list does (second reader, 15.11.2026).
+    const choiceKey = computed(() => {
+      const chosen = choiceInEffect.value
+      if (chosen.kind === 'entry') {
+        return `entry:${chosen.uuid}`
+      }
+      return chosen.kind === 'typed' ? `typed:${chosen.matchingType}:${chosen.text}` : 'all'
+    })
+    watch(choiceKey, () => {
+      drawPresence()
+      drawMatches()
+    })
+    // And the rings wherever "only its sentence" changes: with the answer the matches watcher draws
+    // anyway, and on its own if ever the numbers come without new people.
     watch(sentenceOnly, drawPresence)
     watch(breite, drawMatches)
     watch(breite, (value) => writePref('breite', value))
@@ -2545,7 +2572,7 @@ export const MatchingMap = defineComponent({
             <MatchQuery
               class={['query-field', classes['query-field']]}
               entries={myEntries.value}
-              selection={selection.value}
+              selection={choiceInEffect.value}
               suggest={suggest}
               onUpdate:selection={onSelection}
               v-slots={{ below: exactTick }}
