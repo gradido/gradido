@@ -554,6 +554,7 @@ export const acceptEventMatchingEntry = gql`
         details
         remote
         active
+        exactSentence
       }
     }
   }

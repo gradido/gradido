@@ -35,16 +35,22 @@ export const readBackMatchingEntry = async (uuid: string): Promise<MatchingEntry
   return result.value
 }
 
+/**
+ * What a new entry is made of: what the member may set, and -- where a project link makes it --
+ * the "genau" (KA-020). One made by hand leaves it never decided.
+ */
+type NewMatchingEntry = MatchingEntryContent & { exactSentence?: true }
+
 /** The row of a new entry of this member's: under a uuid of its own, and live. */
 export const newMatchingEntryRow = (
   userId: number,
-  content: MatchingEntryContent,
+  content: NewMatchingEntry,
 ): MatchingEntryInsert => ({ uuid: uuidv4(), userId, ...content, active: true })
 
 /** A new, live entry of this member's: stored, handed to the GMS, and the keying run told. */
 export async function createMatchingEntryFor(
   user: DbUser,
-  content: MatchingEntryContent,
+  content: NewMatchingEntry,
 ): Promise<MatchingEntrySelect> {
   const row = newMatchingEntryRow(user.id, content)
   const inserted = await dbInsertMatchingEntry(row)

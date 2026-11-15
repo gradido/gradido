@@ -6,11 +6,13 @@ import {
   dbInsertMatchingEntry,
   dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
+  dbSetUndecidedExactSentence,
   dbTakeEventMatchingEntry,
   driverCodeOfFailedQuery,
   drizzleDb,
 } from 'database'
 import { getLogger } from 'log4js'
+import { sameWords } from 'shared'
 import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { newMatchingEntryRow, readBackMatchingEntry } from './createMatchingEntryFor'
@@ -31,13 +33,6 @@ export const EVENT_ENTRY_KIND = 'interest'
  */
 const EVENT_ENTRY_KEPT_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
-
-// The member's own sentence counts as this one where it has the same words, whatever their
-// case and the blanks around them. One comparison for both ways an event link makes an entry:
-// here, at the confirmation, and when a signed-in member opens the link
-// (MatchingEntryResolver, `acceptEventMatchingEntry`).
-export const sameWords = (a: string, b: string): boolean =>
-  a.trim().toLowerCase() === b.trim().toLowerCase()
 
 // What is logged of a failure: its driver code or its kind, never the error itself. A failed
 // statement carries its parameters in the message, and here those are the words of the entry.
@@ -71,13 +66,18 @@ async function entryOfTheNote(userId: number): Promise<string | null> {
       // the link again, which makes the entry at once (acceptEventMatchingEntry). The note then
       // has nothing left to make -- also where the member has paused that entry since: paused,
       // it was taken out of the search on purpose, and the link must not put it back live.
+      // Same words, whatever their case and the blanks around them, as the signed-in way asks.
       const own = await dbSelectMatchingEntriesByUserId(userId, tx)
-      if (
-        own.some(
-          (entry) =>
-            entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, noted.summary),
-        )
-      ) {
+      const there = own.find(
+        (entry) =>
+          entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, noted.summary),
+      )
+      if (there) {
+        // The link decides its "genau" where it was never decided (KA-020), and leaves one the
+        // member took off alone -- paused or live, in this transaction.
+        if (there.exactSentence === null) {
+          await dbSetUndecidedExactSentence(there, tx)
+        }
         logger.info(`user ${userId} has the entry an event link noted already; the note is let go`)
         return null
       }
@@ -86,6 +86,7 @@ async function entryOfTheNote(userId: number): Promise<string | null> {
         summary: noted.summary,
         details: noted.details,
         remote: noted.remote,
+        exactSentence: true,
       })
       const inserted = await dbInsertMatchingEntry(row, tx)
       if (!inserted.success) {

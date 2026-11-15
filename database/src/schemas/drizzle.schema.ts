@@ -521,6 +521,10 @@ export const matchingEntriesTable = mysqlTable(
     instructionVersion: varchar('instruction_version', { length: 32 }).default(sql`NULL`),
     keyedAt: datetime('keyed_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     // --- end of the keying -----------------------------------------------------
+    // The "genau" of an entry (KA-020): it finds only the members with the same sentence.
+    // NULL where it was never decided -- every entry from before migration 0176, and one made
+    // by hand --, true where a project link set it, false where the member took it off.
+    exactSentence: boolean('exact_sentence'),
   },
   (table) => [
     unique('uniq_matching_entries_uuid').on(table.uuid),

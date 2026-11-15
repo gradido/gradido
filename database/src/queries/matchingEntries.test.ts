@@ -2,7 +2,7 @@
 import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { matchingEntriesTable, usersTable } from '../schemas'
+import { MatchingEntrySelect, matchingEntriesTable, usersTable } from '../schemas'
 import { createCommunity } from '../seeds/community'
 import { userFactoryDrizzle } from '../seeds/factory/user'
 import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
@@ -23,8 +23,10 @@ import {
   dbSelectMatchingEntryByUuid,
   dbSelectPublishableMatchingEntry,
   dbSetMatchingEntryActive,
+  dbSetUndecidedExactSentence,
   dbUpdateMatchingEntry,
   dbWriteMatchingEntryKeying,
+  type MatchingEntryContent,
   type MatchingEntryKeying,
 } from './matchingEntries'
 import { dbUserUpdateField } from './user'
@@ -752,6 +754,124 @@ describe('the keying of a matching entry', () => {
 
       const pending = await dbSelectMatchingEntriesNeedingKeying('gms176-1', 1)
       expect(pending.map((row) => row.entry.uuid)).toEqual(['uuid-key-1'])
+    })
+  })
+})
+
+// The "genau" of an entry (KA-020): three states, and the two writes that move it -- a project
+// link sets it where it was never decided, an edit to the sentence or the kind takes it back.
+describe('the "genau" of a matching entry', () => {
+  const MEMBER = 905
+  const SENTENCE = 'Ich liebe Kongress Frequency Healing'
+
+  const anInterest = async (
+    uuid: string,
+    exactSentence?: boolean | null,
+  ): Promise<MatchingEntrySelect> => {
+    await dbInsertMatchingEntry({
+      uuid,
+      userId: MEMBER,
+      matchingType: 'interest',
+      summary: SENTENCE,
+      details: null,
+      remote: true,
+      active: true,
+      ...(exactSentence === undefined ? {} : { exactSentence }),
+    })
+    return (await rowOf(uuid))!
+  }
+
+  const edit = (stored: MatchingEntrySelect, change: Partial<MatchingEntryContent>) =>
+    dbUpdateMatchingEntry(stored, {
+      matchingType: stored.matchingType,
+      summary: stored.summary,
+      details: stored.details,
+      remote: stored.remote,
+      ...change,
+    })
+
+  afterEach(async () => {
+    await db.delete(matchingEntriesTable)
+  })
+
+  it('is never decided for an entry made without it, and reads true and false back as such', async () => {
+    expect((await anInterest('uuid-exact-none')).exactSentence).toBeNull()
+    expect((await anInterest('uuid-exact-on', true)).exactSentence).toBe(true)
+    expect((await anInterest('uuid-exact-off', false)).exactSentence).toBe(false)
+  })
+
+  describe('dbSetUndecidedExactSentence', () => {
+    it('sets it where it was never decided, and says so', async () => {
+      const found = await anInterest('uuid-exact-1')
+      expect(await dbSetUndecidedExactSentence(found)).toBe(true)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBe(true)
+    })
+
+    it.each([[true], [false]])('leaves it at %s, and says it set nothing', async (decided) => {
+      const found = await anInterest('uuid-exact-1', decided)
+      expect(await dbSetUndecidedExactSentence(found)).toBe(false)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBe(decided)
+    })
+
+    it('sets nothing for an entry that is not there, and touches no other', async () => {
+      const other = await anInterest('uuid-exact-1')
+      expect(await dbSetUndecidedExactSentence({ ...other, uuid: 'uuid-exact-gone' })).toBe(false)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+
+    // The row as the link read it was live; the member paused it in between.
+    it('keeps a pause made after the link found the entry', async () => {
+      const found = await anInterest('uuid-exact-1')
+      await dbSetMatchingEntryActive('uuid-exact-1', false)
+      expect(await dbSetUndecidedExactSentence(found)).toBe(true)
+      expect(await rowOf('uuid-exact-1')).toMatchObject({ exactSentence: true, active: false })
+    })
+
+    it.each<[string, Partial<MatchingEntryContent>]>([
+      ['the sentence', { summary: 'Ich liebe Kongress Heilung' }],
+      ['only the case of the sentence', { summary: SENTENCE.toUpperCase() }],
+      ['the kind', { matchingType: 'offer' }],
+    ])('sets nothing where %s changed after the link found the entry', async (_what, change) => {
+      const found = await anInterest('uuid-exact-1')
+      await edit(found, change)
+      expect(await dbSetUndecidedExactSentence(found)).toBe(false)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+
+    it("writes in the caller's transaction, and goes back with it", async () => {
+      const found = await anInterest('uuid-exact-1')
+      await expect(
+        db.transaction(async (tx: DrizzleTransaction) => {
+          expect(await dbSetUndecidedExactSentence(found, tx)).toBe(true)
+          throw new Error('rolled back')
+        }),
+      ).rejects.toThrow('rolled back')
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+  })
+
+  describe('dbUpdateMatchingEntry and the "genau"', () => {
+    it.each<[boolean, string, Partial<MatchingEntryContent>]>([
+      [true, 'another sentence', { summary: 'Ich liebe Kongress Heilung' }],
+      [false, 'another sentence', { summary: 'Ich liebe Kongress Heilung' }],
+      [true, 'another kind', { matchingType: 'offer' }],
+      [false, 'another kind', { matchingType: 'offer' }],
+    ])('takes it from %s back to never decided on %s', async (decided, _what, change) => {
+      const stored = await anInterest('uuid-exact-1', decided)
+      expect((await edit(stored, change)).success).toBe(true)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+
+    it.each<[string, Partial<MatchingEntryContent>]>([
+      ['only the case of the sentence', { summary: SENTENCE.toUpperCase() }],
+      ['only blanks around the sentence', { summary: `  ${SENTENCE} ` }],
+      ['only the details', { details: 'Online, 1.-10. November' }],
+      ['only the reach', { remote: false }],
+      ['nothing', {}],
+    ])('keeps it on %s', async (_what, change) => {
+      const stored = await anInterest('uuid-exact-1', true)
+      expect((await edit(stored, change)).success).toBe(true)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBe(true)
     })
   })
 })

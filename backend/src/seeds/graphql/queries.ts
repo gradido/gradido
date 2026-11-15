@@ -638,6 +638,7 @@ export const listMatchingEntries = gql`
       details
       remote
       active
+      exactSentence
     }
   }
 `

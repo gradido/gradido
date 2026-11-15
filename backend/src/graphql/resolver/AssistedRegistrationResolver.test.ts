@@ -397,6 +397,8 @@ describe('AssistedRegistrationResolver', () => {
             details: 'Selbstheilung, Biohacking',
             remote: true,
             active: true,
+            // The link made it: it finds the members with the same sentence (KA-020).
+            exactSentence: true,
           },
         ])
       })

@@ -8,6 +8,7 @@ import {
   dbMarkEventMatchingArrival,
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
+  dbSetUndecidedExactSentence,
   dbTakeEventMatchingEntry,
   drizzleDb,
   EventMatchingEntrySelect,
@@ -35,6 +36,7 @@ jest.mock('database', () => ({
   dbMarkEventMatchingArrival: jest.fn(),
   dbSelectMatchingEntriesByUserId: jest.fn(),
   dbSelectMatchingEntryByUuid: jest.fn(),
+  dbSetUndecidedExactSentence: jest.fn(),
   dbTakeEventMatchingEntry: jest.fn(),
   drizzleDb: jest.fn(),
 }))
@@ -49,6 +51,7 @@ const ownMock = dbSelectMatchingEntriesByUserId as jest.Mock
 const insertMock = dbInsertMatchingEntry as jest.Mock
 const markArrivalMock = dbMarkEventMatchingArrival as jest.Mock
 const selectMock = dbSelectMatchingEntryByUuid as jest.Mock
+const decideMock = dbSetUndecidedExactSentence as jest.Mock
 const usersMock = dbFindUsersWithEmailContactByIds as jest.Mock
 const syncMock = syncMatchingEntryToGms as jest.Mock
 const nudgeMock = matchingKeyingRun.nudge as jest.Mock
@@ -86,6 +89,8 @@ const own = (changed: Partial<MatchingEntrySelect> = {}): MatchingEntrySelect =>
     details: null,
     remote: false,
     active: true,
+    // As every entry from before the "genau" stands: never decided (KA-020).
+    exactSentence: null,
     ...changed,
   }) as unknown as MatchingEntrySelect
 
@@ -147,6 +152,7 @@ beforeEach(() => {
   insertMock.mockResolvedValue({ success: true })
   markArrivalMock.mockResolvedValue(undefined)
   selectMock.mockImplementation(async () => ({ success: true, value: stored(storedRow()) }))
+  decideMock.mockResolvedValue(true)
   usersMock.mockResolvedValue([maren])
   syncMock.mockResolvedValue(undefined)
 })
@@ -259,6 +265,8 @@ describe('makeEventMatchingEntry', () => {
         details: 'Selbstheilung, Biohacking',
         remote: true,
         active: true,
+        // It finds the members with the same sentence (KA-020).
+        exactSentence: true,
       })
     })
 
@@ -433,6 +441,39 @@ describe('makeEventMatchingEntry', () => {
       await makeEventMatchingEntry(MAREN)
 
       expect(insertMock).toHaveBeenCalledTimes(1)
+    })
+
+    // KA-020 point 4: the link decides the "genau" of its entry where nobody did -- an entry from
+    // before the column, or one typed by hand --, in the transaction that lets the note go.
+    it('decides the "genau" of that entry where it was never decided, in the transaction', async () => {
+      const there = own({ summary: '  kongress frequency HEALING ' })
+      ownMock.mockResolvedValue([there])
+
+      await makeEventMatchingEntry(MAREN)
+
+      expect(decideMock).toHaveBeenCalledTimes(1)
+      expect(decideMock).toHaveBeenCalledWith(there, tx)
+      expect(insertMock).not.toHaveBeenCalled()
+      expect(transactions).toEqual(['committed'])
+    })
+
+    it('decides it for a paused entry too, which stays paused', async () => {
+      ownMock.mockResolvedValue([own({ active: false })])
+
+      await makeEventMatchingEntry(MAREN)
+
+      expect(decideMock).toHaveBeenCalledWith(expect.objectContaining({ active: false }), tx)
+      expect(insertMock).not.toHaveBeenCalled()
+    })
+
+    it.each([[true], [false]])('leaves a "genau" decided as %s alone', async (decided) => {
+      ownMock.mockResolvedValue([own({ exactSentence: decided })])
+
+      await makeEventMatchingEntry(MAREN)
+
+      expect(decideMock).not.toHaveBeenCalled()
+      expect(insertMock).not.toHaveBeenCalled()
+      expect(transactions).toEqual(['committed'])
     })
 
     // Asked in the transaction that holds the note: the member's list as it stands then.
