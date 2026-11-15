@@ -823,6 +823,26 @@ describe('useMatches', () => {
       const merged = withSameSentence([], [{ entry: UUID.mineToo, users: people }], 2)
       expect(merged.map((person) => person.alias)).toEqual(['a', 'c'])
     })
+
+    // KA-022: three projects draw no more than one; the number is shared, rounded down.
+    it('shares the number equally between the sentences that answered', () => {
+      const of = (prefix, count) =>
+        Array.from({ length: count }, (_, index) =>
+          sentenceUser({
+            uuid: `5b1f0a1e-0000-4000-8000-000000000${prefix}0${index}`,
+            alias: `${prefix}${index}`,
+          }),
+        )
+      const merged = withSameSentence(
+        [],
+        [
+          { entry: UUID.mine, users: of('1', 4) },
+          { entry: UUID.mineToo, users: of('2', 4) },
+        ],
+        5,
+      )
+      expect(merged.map((person) => person.alias)).toEqual(['10', '11', '20', '21'])
+    })
   })
 
   describe('load', () => {

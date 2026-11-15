@@ -439,8 +439,11 @@ export function withoutMatched(people, matched) {
 }
 
 /**
- * How many people of one sentence the map draws, nearest first: matches are single elements on
- * the map, and the sentence route answers up to a thousand. The true number is Scheibe 2's.
+ * How many people of the sentences one search draws, nearest first, shared equally between the
+ * entries whose sentence answered (KA-022: two entries take 150 each). Matches are single elements
+ * on the map, and the sentence route answers up to a thousand: measured on 15.11.2026, a graphics
+ * card with a fourfold slower CPU pans 300 at about 40 frames a second and 1,000 at about 20. The
+ * true number is Scheibe 2's.
  */
 export const SENTENCE_PEOPLE_MAX = 300
 
@@ -457,8 +460,10 @@ const personKey = (user) =>
  *
  * - For an entry of mine whose sentence question answered, its topic matches go: "genau" means
  *   only. A person left with no channel goes with them.
- * - The people of each answered sentence come in, the nearest `perEntry` of them, each of their
- *   entries marked `exact`. Somebody without a usable point is not counted among them.
+ * - The people of each answered sentence come in, the nearest of them, each of their entries
+ *   marked `exact`. `limit` is shared equally between the answered sentences, so a member with
+ *   three projects draws no more than one with one. Somebody without a usable point is not
+ *   counted among them.
  * - Somebody in two answers -- a topic match and a sentence, or two sentences -- is one person,
  *   by community and uuid, with the channels of both laid together.
  *
@@ -467,10 +472,11 @@ const personKey = (user) =>
  *
  * @param {object[]} people the matches route's answer
  * @param {{ entry: string, users: object[] }[]} answered the sentence questions answered 200
- * @param {number} [perEntry] how many of one sentence's people to take
+ * @param {number} [limit] how many people of all the sentences together to take
  */
-export function withSameSentence(people, answered, perEntry = SENTENCE_PEOPLE_MAX) {
+export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) {
   if (!answered.length) return people
+  const perEntry = Math.floor(limit / answered.length)
   const only = new Set(answered.map(({ entry }) => entry))
   const byPerson = new Map()
   const add = (user, channels) => {
