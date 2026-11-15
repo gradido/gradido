@@ -1168,6 +1168,8 @@
     "query": {
       "all": "Tüm girişlerim",
       "clear": "Aramayı sıfırla",
+      "exact": "Tam olarak bu giriş",
+      "exactPeople": "{n} kişi",
       "keep": "Giriş olarak sakla",
       "keepAsk": "Bundan böyle “{text}” ile bulunmak?",
       "keepNever": "Bir daha sorma",

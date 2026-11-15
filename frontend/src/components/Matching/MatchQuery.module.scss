@@ -79,6 +79,10 @@
   opacity: 0.7;
 }
 
+.match-query :global(.option-exact) {
+  flex: none;
+}
+
 .match-query :global(.option-dot) {
   flex: none;
   width: 0.6rem;

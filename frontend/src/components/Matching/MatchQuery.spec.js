@@ -12,6 +12,7 @@ const i18n = createI18n({
   messages: {
     de: {
       matching: {
+        entries: { exactSentence: 'Genau' },
         query: {
           all: 'Alle meine Einträge',
           clear: 'Suche zurücksetzen',
@@ -61,7 +62,7 @@ const mountQuery = (selection = { kind: 'all' }) => {
     props: { entries, selection },
     global: {
       plugins: [i18n],
-      stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg'],
+      stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
     },
   })
   standing.push(wrapper)
@@ -133,6 +134,45 @@ describe('MatchQuery', () => {
 
       expect(dots[0]).toContain(asRgb(LABEL_COLORS.gesuch))
       expect(dots[1]).toContain(asRgb(LABEL_COLORS.angebot))
+    })
+
+    // KA-023 point 6: the sign of "Meine Einträge" behind the sentence of an entry with the "genau".
+    it('marks an entry with the "genau", behind its sentence and outside what is cut short', async () => {
+      const wrapper = mount(MatchQuery, {
+        props: {
+          entries: [{ ...entries[0], exactSentence: true }, entries[1]],
+          selection: { kind: 'all' },
+        },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
+        },
+      })
+      standing.push(wrapper)
+      await wrapper.find('.query-bar').trigger('click')
+
+      const [, marked, unmarked] = wrapper.findAll('.query-option')
+      const sign = marked.find('.option-exact')
+      expect(sign.exists()).toBe(true)
+      expect(sign.attributes('aria-label')).toBe('Genau')
+      expect(sign.attributes('role')).toBe('img')
+      expect(marked.find('.option-text .option-exact').exists()).toBe(false)
+      expect(unmarked.find('.option-exact').exists()).toBe(false)
+    })
+
+    it('marks nothing in the closed bar', () => {
+      const wrapper = mount(MatchQuery, {
+        props: {
+          entries: [{ ...entries[0], exactSentence: true }],
+          selection: { kind: 'entry', uuid: 'e1' },
+        },
+        global: {
+          plugins: [i18n],
+          stubs: ['BiSearch', 'BiChevronDown', 'BiCheck', 'BiPencil', 'BiXLg', 'BiBullseye'],
+        },
+      })
+      standing.push(wrapper)
+      expect(wrapper.find('.option-exact').exists()).toBe(false)
     })
 
     it('asks straight away when the question is one of my entries', async () => {

@@ -1168,6 +1168,8 @@
     "query": {
       "all": "Al mijn vermeldingen",
       "clear": "Zoekopdracht wissen",
+      "exact": "Precies deze vermelding",
+      "exactPeople": "{n} persoon | {n} mensen",
       "keep": "Als vermelding bewaren",
       "keepAsk": "Voortaan gevonden worden voor ‘{text}’?",
       "keepNever": "Niet meer vragen",

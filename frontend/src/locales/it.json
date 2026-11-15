@@ -1168,6 +1168,8 @@
     "query": {
       "all": "Tutte le mie voci",
       "clear": "Reimposta la ricerca",
+      "exact": "Esattamente questa voce",
+      "exactPeople": "{n} persona | {n} persone",
       "keep": "Conserva come voce",
       "keepAsk": "Farsi trovare per «{text}» d'ora in poi?",
       "keepNever": "Non chiedere più",

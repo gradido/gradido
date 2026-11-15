@@ -1168,6 +1168,8 @@
     "query": {
       "all": "Todas mis entradas",
       "clear": "Restablecer la búsqueda",
+      "exact": "Exactamente esta entrada",
+      "exactPeople": "{n} persona | {n} personas",
       "keep": "Conservar como entrada",
       "keepAsk": "¿Que te encuentren por «{text}» a partir de ahora?",
       "keepNever": "No preguntar más",

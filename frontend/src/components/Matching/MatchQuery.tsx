@@ -12,6 +12,7 @@ import {
   withKeys,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import IBiBullseye from '~icons/bi/bullseye'
 import IBiCheck from '~icons/bi/check'
 import IBiChevronDown from '~icons/bi/chevron-down'
 import IBiPencil from '~icons/bi/pencil'
@@ -23,7 +24,13 @@ import classes from './MatchQuery.module.scss'
 type Channel = keyof typeof LABEL_COLORS
 
 /** One of the member's own entries, as far as the question needs it. */
-export type QueryEntry = { uuid: string; matchingType: string; summary: string }
+// `exactSentence`: the entry has the "genau" (KA-020); the menu marks it (KA-023 point 6).
+export type QueryEntry = {
+  uuid: string
+  matchingType: string
+  summary: string
+  exactSentence?: boolean
+}
 
 /** What the map is asked for. */
 export type QuerySelection =
@@ -297,6 +304,17 @@ export const MatchQuery = defineComponent({
                 <span class='option-text'>
                   {`${t(`matching.type.${displayType(entry.matchingType)}.prefix`)} ${entry.summary}`}
                 </span>
+                {/* The sign of "Meine Einträge", behind the sentence and not inside it: a long
+                    sentence is cut short, the sign is not. Named for a screen reader, as the
+                    picture alone says nothing there. The closed bar has none -- the tick under it
+                    says how the chosen entry stands. */}
+                {entry.exactSentence ? (
+                  <IBiBullseye
+                    class='option-exact'
+                    role='img'
+                    aria-label={t('matching.entries.exactSentence')}
+                  />
+                ) : null}
               </li>
             ))}
 
