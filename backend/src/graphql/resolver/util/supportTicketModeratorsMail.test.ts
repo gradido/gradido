@@ -46,22 +46,26 @@ type MailModule = typeof import('./supportTicketModeratorsMail')
 let readSupportTicketMailRecipients: MailModule['readSupportTicketMailRecipients']
 let mailModeratorsOfSupportTicket: MailModule['mailModeratorsOfSupportTicket']
 
+// the moderators with the tick "may handle support requests" (K6), the administrator without it:
+// an administrator handles requests anyway
 const holder = (
   userId: number,
   role: string,
   visibleCreationGroups: string | null,
   firstName: string,
   language = 'de',
+  supportDuty = true,
 ): RoleHolderWithContact => ({
   userId,
   role,
   visibleCreationGroups,
+  supportDuty,
   firstName,
   lastName: 'Test',
   language,
   email: `${firstName.toLowerCase()}@example.org`,
 })
-const peter = holder(1, 'ADMIN', null, 'Peter')
+const peter = holder(1, 'ADMIN', null, 'Peter', 'de', false)
 const bob = holder(11, 'MODERATOR', '["garden"]', 'Bob', 'fr')
 const raeuber = holder(12, 'MODERATOR', '["*untagged"]', 'Raeuber')
 const dora = holder(13, 'MODERATOR', '["choir","*untagged"]', 'Dora')
@@ -128,12 +132,36 @@ describe('readSupportTicketMailRecipients', () => {
     expect(ids(await readSupportTicketMailRecipients('garden', [11]))).toEqual([14])
   })
 
-  it('asks the right of a role, not its name: a role without it finds nobody', async () => {
+  it('asks the right of a role, not its name: a role without it finds nobody, ticked or not', async () => {
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
       holder(21, 'USER', null, 'Uta'),
       holder(22, 'DLT_CONNECTOR_ROLE', null, 'Dirk'),
     ])
     expect(await readSupportTicketMailRecipients('garden', [])).toEqual([])
+  })
+
+  // the tick of K6 (SUA-025): a moderator without it handles no request, so no mail reaches them --
+  // the step goes on as if they were not there
+  it('finds no moderator without the tick, also where the group is theirs', async () => {
+    const bobWithout = { ...bob, supportDuty: false }
+    const carlaWithout = { ...carla, supportDuty: false }
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
+      peter,
+      bobWithout,
+      raeuber,
+      dora,
+      carla,
+    ])
+    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([14])
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bobWithout, carlaWithout])
+    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([1])
+  })
+
+  it('finds an administrator without the tick', async () => {
+    // The fixture proves itself: peter's row carries no tick.
+    expect(peter.supportDuty).toBe(false)
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter])
+    expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([1])
   })
 
   it('throws not where the reading fails: nobody, and the code in the log', async () => {

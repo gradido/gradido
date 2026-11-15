@@ -28,6 +28,16 @@ export class UserRole extends BaseEntity {
   @Column({ name: 'visible_creation_groups', type: 'text', nullable: true, default: null })
   visibleCreationGroups: string | null
 
+  // Support-Anfragen K6: the tick "may handle support requests" (see the schema). Read here for
+  // the rights of every signed-in request (isAuthorized) and for the member search; written only by
+  // a query of its own in queries/userRoles.ts, never through this entity.
+  //
+  // ⛔ `update: false`: TypeORM's save() of a row it loaded earlier writes back each column that
+  // differs from the row as it stands by then (saveModeratorScope, the renaming of a group), so a
+  // tick set between that load and that save would be taken back. An insert still writes it.
+  @Column({ name: 'support_duty', type: 'bool', nullable: false, default: false, update: false })
+  supportDuty: boolean
+
   @Column({
     name: 'created_at',
     type: 'datetime',

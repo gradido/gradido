@@ -10,14 +10,16 @@ import {
 } from '../schemas/drizzle.schema'
 
 /**
- * A member with a role, as a mail to the moderation needs them: their role and their scope as
- * stored (`visibleCreationGroups`, the JSON text describeModeratorCreationGroups reads), their
- * name and language for the mail, and their confirmed address in force.
+ * A member with a role, as a mail to the moderation needs them: their role, their scope and their
+ * tick as stored (`visibleCreationGroups`, the JSON text describeModeratorCreationGroups reads;
+ * `supportDuty`, which roleOfHolder reads), their name and language for the mail, and their
+ * confirmed address in force.
  */
 export interface RoleHolderWithContact {
   userId: number
   role: string
   visibleCreationGroups: string | null
+  supportDuty: boolean
   firstName: string | null
   lastName: string | null
   language: string
@@ -39,6 +41,7 @@ export async function dbSelectRoleHoldersWithContact(): Promise<RoleHolderWithCo
       userId: userRolesTable.userId,
       role: userRolesTable.role,
       visibleCreationGroups: userRolesTable.visibleCreationGroups,
+      supportDuty: userRolesTable.supportDuty,
       firstName: usersTable.firstName,
       lastName: usersTable.lastName,
       language: usersTable.language,
@@ -68,9 +71,10 @@ export async function dbSelectRoleHoldersWithContact(): Promise<RoleHolderWithCo
  * row, both inserted, and the member ended up with two -- which the readers then
  * interpreted in three different ways. Now the second write updates the first.
  *
- * ⛔ `visible_creation_groups` is left as it is on a change. That is what setUserRole did
- * before this query existed (it saved `userRoles[0]` with a new role and nothing else),
- * and removing a role is what resets the scope -- see deleteUserRole.
+ * ⛔ `visible_creation_groups` and `support_duty` are left as they are on a change. That is what
+ * setUserRole did before this query existed (it saved `userRoles[0]` with a new role and nothing
+ * else): scope and tick go along from moderator to KI-moderator and back, also by way of
+ * administrator. Removing a role is what resets them -- see deleteUserRole.
  *
  * No affectedRows check, for the reason dbUpsertUserAvatar gives: INSERT .. ON DUPLICATE
  * KEY UPDATE answers 1, 2 or 0 depending on what was there, so the count cannot tell

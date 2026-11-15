@@ -1,4 +1,3 @@
-import { RoleNames } from '@enum/RoleNames'
 import { User } from 'database'
 import { AuthChecker } from 'type-graphql'
 
@@ -7,14 +6,7 @@ import { decode, encode } from '@/auth/JWT'
 import { RESTRICTED_FOR_PROJECT_ACCOUNT } from '@/auth/RESTRICTED_FOR_PROJECT_ACCOUNT'
 import { RESTRICTED_WHILE_UNCONFIRMED } from '@/auth/RESTRICTED_WHILE_UNCONFIRMED'
 import { RIGHTS } from '@/auth/RIGHTS'
-import {
-  ROLE_ADMIN,
-  ROLE_DLT_CONNECTOR,
-  ROLE_MODERATOR,
-  ROLE_MODERATOR_AI,
-  ROLE_UNAUTHORIZED,
-  ROLE_USER,
-} from '@/auth/ROLES'
+import { ROLE_DLT_CONNECTOR, ROLE_UNAUTHORIZED, roleOfHolder } from '@/auth/ROLES'
 import { isConfirmationOverdue } from '@/data/EmailConfirmation.logic'
 import { Context } from '@/server/context'
 import { LogError } from '@/server/LogError'
@@ -52,19 +44,8 @@ export const isAuthorized: AuthChecker<Context> = async ({ context }, rights) =>
         relations: ['emailContact', 'userRole'],
       })
       context.user = user
-      switch (user.userRole?.role) {
-        case RoleNames.ADMIN:
-          context.role = ROLE_ADMIN
-          break
-        case RoleNames.MODERATOR:
-          context.role = ROLE_MODERATOR
-          break
-        case RoleNames.MODERATOR_AI:
-          context.role = ROLE_MODERATOR_AI
-          break
-        default:
-          context.role = ROLE_USER
-      }
+      // the role row loaded above: its name, and for a moderator their tick (K6)
+      context.role = roleOfHolder(user.userRole)
     } catch {
       // in case the database query fails (user deleted)
       throw new LogError('401 Unauthorized')

@@ -224,6 +224,9 @@ export class UserResolver {
     user.visibleCreationGroups = moderatorCreationGroups.tags
     user.seesAllCreationGroups = moderatorCreationGroups.seesAllCreationGroups
     user.seesUntagged = moderatorCreationGroups.seesUntagged
+    // Support-Anfragen K6: whether they handle support requests, as isAuthorized decided it for
+    // this very request (roleOfHolder) -- the admin shows "Support" by it.
+    user.handlesSupportTickets = context.role?.hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS) ?? false
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 

@@ -23,4 +23,7 @@ export const ADMIN_RIGHTS = [
   RIGHTS.MANAGE_CHAT_VIDEO_SERVERS,
   // the switch of the support requests (K5): a moderator reads it, an administrator sets it
   RIGHTS.SET_SUPPORT_TICKETS_ACTIVE,
+  // The support requests (SUA-005): an administrator handles them always, a moderator with the
+  // tick on their role row (K6, SUA-025, roleOfHolder in ROLES.ts).
+  RIGHTS.MANAGE_SUPPORT_TICKETS,
 ]

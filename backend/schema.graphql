@@ -199,6 +199,7 @@ type User {
   visibleCreationGroups: [String!]!
   seesAllCreationGroups: Boolean!
   seesUntagged: Boolean!
+  handlesSupportTickets: Boolean!
   emailContact: UserContact
   userLocation: Location
   findableOnMap: Boolean

@@ -68,4 +68,24 @@ describe('User', () => {
       expect(new User(null).findableOnMap).toBeUndefined()
     })
   })
+
+  // Support-Anfragen K6: whether a member handles support requests is told to the signed-in member
+  // alone, by verifyLogin. Every other query that hands out a member builds it here, with the role
+  // row where its loader brought one -- and the tick on that row must not come along.
+  describe('handlesSupportTickets', () => {
+    it('is no for a moderator whose role row carries the tick', () => {
+      const user = new User(
+        row({ userRole: { role: 'MODERATOR', supportDuty: true } as DbUser['userRole'] }),
+      )
+      // The fixture proves itself: the role row did reach the constructor.
+      expect(user.role).toBe('MODERATOR')
+      expect(user.handlesSupportTickets).toBe(false)
+    })
+
+    it('is no for an administrator', () => {
+      const user = new User(row({ userRole: { role: 'ADMIN' } as DbUser['userRole'] }))
+      expect(user.role).toBe('ADMIN')
+      expect(user.handlesSupportTickets).toBe(false)
+    })
+  })
 })

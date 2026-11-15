@@ -18,12 +18,15 @@ import {
   supportTicketsTable,
   UserRole,
   userContactsTable,
+  userRolesTable,
   usersTable,
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX } from 'shared'
+import { RIGHTS } from '@/auth/RIGHTS'
+import { roleOfHolder } from '@/auth/ROLES'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { SUPPORT_TICKET_READS_MAX_PER_REQUEST } from '@/data/SupportTicket.logic'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
@@ -181,13 +184,23 @@ const writes = async (
   return row.insertId
 }
 
-const moderate = async (user: DbUser, visibleCreationGroups: string[]) => {
-  const role = UserRole.create()
-  role.createdAt = new Date()
-  role.userId = user.id
-  role.role = RoleNames.MODERATOR
-  role.visibleCreationGroups = JSON.stringify(visibleCreationGroups)
-  await role.save()
+// A moderator here handles support requests -- they carry the tick (K6) -- unless a test says
+// otherwise. Written on the insert, which the tick's column takes (UserRole: `update: false`).
+const moderate = async (
+  user: DbUser,
+  visibleCreationGroups: string[],
+  {
+    role = RoleNames.MODERATOR,
+    supportDuty = true,
+  }: { role?: RoleNames; supportDuty?: boolean } = {},
+) => {
+  const row = UserRole.create()
+  row.createdAt = new Date()
+  row.userId = user.id
+  row.role = role
+  row.visibleCreationGroups = JSON.stringify(visibleCreationGroups)
+  row.supportDuty = supportDuty
+  await row.save()
 }
 
 // the requests, the newest last
@@ -1644,6 +1657,9 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
 // those who see everything, else the administrators.
 describe('SupportTicketModerationResolver, the mail and the list agree (K5)', () => {
   let alma: DbUser
+  // a moderator of the garden without the tick (K6): she handles no request, so neither the mail
+  // nor the list knows her, and the staircase below stays as it was
+  let gunda: DbUser
 
   beforeAll(async () => {
     alma = await userFactoryDrizzle({
@@ -1653,6 +1669,13 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
       firstName: 'Alma',
     })
     await moderate(alma, [])
+    gunda = await userFactoryDrizzle({
+      ...bobBaumeister,
+      alias: 'GundaGarten',
+      email: 'gunda@garten.de',
+      firstName: 'Gunda',
+    })
+    await moderate(gunda, ['garden'], { supportDuty: false })
   })
 
   const holderId = async (email: string): Promise<number> => {
@@ -1663,11 +1686,15 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     return holder.userId
   }
 
-  // the moderators -- not the administrators -- whose list holds this request
+  // the moderators -- not the administrators -- whose list holds this request; who has no list at
+  // all, because they handle no request (K6), finds nothing
   const findersOf = async (ticketId: number, word: string): Promise<number[]> => {
     const finders: number[] = []
     for (const holder of await dbSelectRoleHoldersWithContact()) {
-      if (holder.role === RoleNames.ADMIN) {
+      if (
+        holder.role === RoleNames.ADMIN ||
+        !roleOfHolder(holder).hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS)
+      ) {
         continue
       }
       const { tickets } = await dbSelectSupportTicketsInScope(
@@ -1706,6 +1733,10 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     const carla = await holderId('carla@sonne.de')
     const recipientsOf = async (tag: string | null, notFor: number[] = []) =>
       (await readSupportTicketMailRecipients(tag, notFor)).map(({ userId }) => userId)
+    // The fixture proves itself: gunda moderates the garden, a holder the mail reads, no tick.
+    expect(
+      (await dbSelectRoleHoldersWithContact()).find(({ userId }) => userId === gunda.id),
+    ).toMatchObject({ role: 'MODERATOR', visibleCreationGroups: '["garden"]', supportDuty: false })
     expect(await recipientsOf('garden')).toEqual([bob.id])
     expect(await recipientsOf('choir')).toEqual([carla])
     expect(await recipientsOf(null)).toEqual([raeuber.id, carla])
@@ -1718,8 +1749,9 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
 
 // The mail when a request is handed on (K5, SUA-024 point 6): the moderators of the group it goes
 // to hear of it as of a new one, with who handed it on -- never that one, never the member. Who
-// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all);
-// the staircase of SUA-027 mails alma only where the group has nobody left.
+// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all),
+// and gunda (garden, without the tick of K6: never mailed); the staircase of SUA-027 mails alma
+// only where the group has nobody left.
 describe('SupportTicketModerationResolver, the mail when a request is handed on (K5)', () => {
   const adminReassignSupportTicket = gql`
     mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
@@ -1915,4 +1947,175 @@ describe('SupportTicketModerationResolver, the switch of new requests (K5)', () 
     await loginAs('bob@baumeister.de')
     expect((await list(OPEN_TAB)).errors).toBeUndefined()
   })
+})
+
+// The tick "may handle support requests" (K6, SUA-025): a moderator and a KI-moderator reach the
+// support's operations only with it, an administrator always. ole moderates the garden without the
+// tick, kira is a KI-moderator of the garden with it; bob carries it (moderate), peter is an
+// administrator without one, bibi a member.
+describe('SupportTicketModerationResolver, the tick "may handle support requests" (K6)', () => {
+  const adminCountOpenSupportTickets = gql`
+    query {
+      adminCountOpenSupportTickets {
+        forModeration
+      }
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+      }
+    }
+  `
+  const adminCloseSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminCloseSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminDeleteSupportTicket = gql`
+    mutation ($supportTicketId: Int!) {
+      adminDeleteSupportTicket(supportTicketId: $supportTicketId)
+    }
+  `
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const verifyLogin = gql`
+    query {
+      verifyLogin {
+        role
+        handlesSupportTickets
+      }
+    }
+  `
+  let ole: DbUser
+  let inGarden: number
+
+  const statusOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+  const messagesIn = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+  const roleRowOf = async (userId: number) =>
+    (await drizzleDb().select().from(userRolesTable).where(eq(userRolesTable.userId, userId)))[0]
+  const idsOnTheOpenTab = async (): Promise<number[]> =>
+    (await listed(OPEN_TAB)).tickets.map(({ id }: { id: number }) => id)
+
+  beforeAll(async () => {
+    ole = await userFactoryDrizzle({
+      ...bobBaumeister,
+      alias: 'OleOhne',
+      email: 'ole@ohne.de',
+      firstName: 'Ole',
+    })
+    await moderate(ole, ['garden'], { supportDuty: false })
+    const kira = await userFactoryDrizzle({
+      ...bobBaumeister,
+      alias: 'KiraKi',
+      email: 'kira@ki.de',
+      firstName: 'Kira',
+    })
+    await moderate(kira, ['garden'], { role: RoleNames.MODERATOR_AI })
+    // the newest request of all: the first page of every list holds it
+    inGarden = await file(bibi.id, 'Wo finde ich die Harke?', 700, gardenId)
+  })
+
+  it('lets a moderator without the tick reach none of the seven operations, also in the group they see', async () => {
+    // The fixture proves itself: the request lies in ole's scope, and her row carries no tick.
+    const row = await roleRowOf(ole.id)
+    expect(row).toMatchObject({ role: 'MODERATOR', supportDuty: false })
+    expect(describeModeratorCreationGroups(row).tags).toEqual(['garden'])
+    await loginAs('ole@ohne.de')
+    await expect(list(ALL)).resolves.toEqual(unauthorized)
+    await expect(threadOf(inGarden)).resolves.toEqual(unauthorized)
+    await expect(query({ query: adminCountOpenSupportTickets })).resolves.toEqual(unauthorized)
+    await expect(
+      mutate({
+        mutation: adminCreateSupportTicketMessage,
+        variables: {
+          supportTicketId: inGarden,
+          message: 'Im Schuppen.',
+          type: 'DIALOG',
+          close: false,
+        },
+      }),
+    ).resolves.toEqual(unauthorized)
+    await expect(
+      mutate({ mutation: adminCloseSupportTicket, variables: { supportTicketId: inGarden } }),
+    ).resolves.toEqual(unauthorized)
+    await expect(
+      mutate({ mutation: adminDeleteSupportTicket, variables: { supportTicketId: inGarden } }),
+    ).resolves.toEqual(unauthorized)
+    await expect(
+      mutate({
+        mutation: adminReassignSupportTicket,
+        variables: { supportTicketId: inGarden, creationGroupTag: 'choir' },
+      }),
+    ).resolves.toEqual(unauthorized)
+    expect(await statusOf(inGarden)).toMatchObject({
+      status: 'OPEN',
+      creationGroupId: gardenId,
+      deletedAt: null,
+    })
+    expect(await messagesIn(inGarden)).toEqual([])
+  })
+
+  it('lets a KI-moderator with the tick reach the requests of the scope', async () => {
+    await loginAs('kira@ki.de')
+    expect(await idsOnTheOpenTab()).toContain(inGarden)
+    expect((await threadOf(inGarden)).errors).toBeUndefined()
+    expect((await query({ query: adminCountOpenSupportTickets })).errors).toBeUndefined()
+    const noted = await mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: {
+        supportTicketId: inGarden,
+        message: 'Sie fragt zum ersten Mal.',
+        type: 'MODERATOR',
+        close: false,
+      },
+    })
+    expect(noted.errors).toBeUndefined()
+    expect(await messagesIn(inGarden)).toHaveLength(1)
+  })
+
+  it('lets an administrator reach them without a tick', async () => {
+    expect(await roleRowOf(peter.id)).toMatchObject({ role: 'ADMIN', supportDuty: false })
+    await loginAs('peter@lustig.de')
+    expect(await idsOnTheOpenTab()).toContain(inGarden)
+    expect((await query({ query: adminCountOpenSupportTickets })).errors).toBeUndefined()
+  })
+
+  it.each([
+    ['a moderator with the tick', 'bob@baumeister.de', 'MODERATOR', true],
+    ['a moderator without it', 'ole@ohne.de', 'MODERATOR', false],
+    ['a KI-moderator with it', 'kira@ki.de', 'MODERATOR_AI', true],
+    ['an administrator, who carries none', 'peter@lustig.de', 'ADMIN', true],
+    ['a member', 'bibi@bloxberg.de', null, false],
+  ])(
+    'tells %s through verifyLogin whether they handle support requests',
+    async (_who, email, role, handles) => {
+      await loginAs(email)
+      const res = await query({ query: verifyLogin })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.verifyLogin).toEqual({ role, handlesSupportTickets: handles })
+    },
+  )
 })
