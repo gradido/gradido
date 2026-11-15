@@ -11,3 +11,27 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* "Erledigt, danke" wears the house button of "Abschicken" (SUA-030). Its 50px at each side want
+   up to 277px for the label (Turkish), which two thirds of the row hold from 576px of screen
+   upwards. Below, 1rem at each side keeps the German label on one line down to 320px and all ten
+   languages down to 390px; a longer label breaks into two even lines rather than out of its
+   column (measured in the built wallet, 15.11.2026). On the row and :global, because the button
+   is the library's element, as on the overview's matching tile. */
+.actions :global(.btn-gradido) {
+  text-wrap: balance;
+}
+
+@media (width < 576px) {
+  .actions :global(.btn-gradido) {
+    padding-right: 1rem !important;
+    padding-left: 1rem !important;
+  }
+}
+
+/* The house button takes its outline off as well; a key on it shows where it is, as on the
+   row's other actions -- in the colour of the text, since its own is white. */
+.actions :global(.btn-gradido):focus-visible {
+  outline: 2px solid var(--bs-body-color);
+  outline-offset: 2px;
+}

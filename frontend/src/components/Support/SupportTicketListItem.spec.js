@@ -251,37 +251,53 @@ describe('SupportTicketListItem', () => {
   describe('from the keyboard', () => {
     it('offers its actions as buttons that a key can reach', () => {
       const wrapper = mountRow({ status: 'IN_PROGRESS' })
-      for (const test of [
-        'support-ticket-done',
-        'support-ticket-chat',
-        'support-answer-question',
-      ]) {
+      for (const test of ['support-ticket-chat', 'support-answer-question']) {
         const action = wrapper.find(`[data-test="${test}"]`)
         expect(action.attributes('role')).toBe('button')
         expect(action.attributes('tabindex')).toBe('0')
       }
+      // "Erledigt, danke" is a button of its own: a key reaches it, and Enter and the space bar
+      // press it, without help
+      expect(wrapper.find('[data-test="support-ticket-done"]').element.tagName).toBe('BUTTON')
     })
 
-    it('closes with Enter, and opens the thread with the space bar', async () => {
-      mockMutate.mockResolvedValue({ data: { closeSupportTicket: true } })
+    it('opens the thread with Enter and with the space bar', async () => {
       const wrapper = mountRow()
-      await wrapper.find('[data-test="support-ticket-done"]').trigger('keydown', { key: 'Enter' })
-      await flushPromises()
-      expect(mockMutate).toHaveBeenCalledWith({ supportTicketId: 12 })
-      await wrapper.find('[data-test="support-ticket-chat"]').trigger('keydown', { key: ' ' })
-      expect(wrapper.emitted('toggle-messages-visible')).toHaveLength(1)
+      const chat = wrapper.find('[data-test="support-ticket-chat"]')
+      await chat.trigger('keydown', { key: 'Enter' })
+      await chat.trigger('keydown', { key: ' ' })
+      expect(wrapper.emitted('toggle-messages-visible')).toHaveLength(2)
     })
 
     it('does nothing on another key', async () => {
       const wrapper = mountRow()
-      await wrapper.find('[data-test="support-ticket-done"]').trigger('keydown', { key: 'a' })
+      await wrapper.find('[data-test="support-ticket-chat"]').trigger('keydown', { key: 'a' })
       await wrapper.find('[data-test="support-ticket-chat"]').trigger('keydown', { key: 'Tab' })
-      expect(mockMutate).not.toHaveBeenCalled()
       expect(wrapper.emitted('toggle-messages-visible')).toBeUndefined()
     })
   })
 
   describe('"Erledigt, danke"', () => {
+    // as a check with a word beneath it, it read as the request's state (SUA-030)
+    it('wears the button of "Abschicken"', () => {
+      const done = mountRow().find('[data-test="support-ticket-done"]')
+      expect(done.element.tagName).toBe('BUTTON')
+      expect(done.classes()).toContain('btn-gradido')
+      expect(done.text()).toBe('support.done')
+    })
+
+    it('holds the button while it closes, and gives it back where it did not close', async () => {
+      let refuse
+      mockMutate.mockImplementation(() => new Promise((_resolve, reject) => (refuse = reject)))
+      const wrapper = mountRow()
+      const done = () => wrapper.find('[data-test="support-ticket-done"]')
+      await done().trigger('click')
+      expect(done().attributes('disabled')).toBeDefined()
+      refuse(new Error('SUPPORT_TICKET_NOT_FOUND'))
+      await flushPromises()
+      expect(done().attributes('disabled')).toBeUndefined()
+    })
+
     it('closes the request, says so and draws it green', async () => {
       mockMutate.mockResolvedValue({ data: { closeSupportTicket: true } })
       const wrapper = mountRow()
