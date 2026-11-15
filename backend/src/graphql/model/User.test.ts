@@ -87,5 +87,11 @@ describe('User', () => {
       expect(user.role).toBe('ADMIN')
       expect(user.handlesSupportTickets).toBe(false)
     })
+
+    // The field is not nullable: a member object without a row -- the sender of a link from
+    // another community -- answers no as well, never nothing.
+    it('is no for a member object without a row', () => {
+      expect(new User(null).handlesSupportTickets).toBe(false)
+    })
   })
 })
