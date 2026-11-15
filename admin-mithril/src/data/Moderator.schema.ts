@@ -15,6 +15,10 @@ export const moderatorSchema = v.object({
   visibleCreationGroups: v.array(v.string()),
   seesAllCreationGroups: v.boolean(),
   seesUntagged: v.boolean(),
+  // Support-Anfragen K6: an administrator, or a moderator with the tick (supportIsTheirs).
+  // ⛔ Optional: a state kept from before K6 carries no such field, and a schema that refused it
+  // would throw the whole kept state away, the token with it.
+  handlesSupportTickets: v.optional(v.boolean(), false),
 })
 
 export type Moderator = v.InferOutput<typeof moderatorSchema>

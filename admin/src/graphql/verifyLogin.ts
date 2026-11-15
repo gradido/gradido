@@ -16,6 +16,7 @@ export const verifyLogin = gql`
       visibleCreationGroups
       seesAllCreationGroups
       seesUntagged
+      handlesSupportTickets
     }
   }
 `

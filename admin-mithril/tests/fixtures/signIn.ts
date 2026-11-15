@@ -15,6 +15,9 @@ export const moderator = {
   visibleCreationGroups: [] as string[],
   seesAllCreationGroups: true,
   seesUntagged: true,
+  // an administrator handles support requests; a copy with role MODERATOR keeps it, as a
+  // moderator with the tick (Support-Anfragen K6)
+  handlesSupportTickets: true,
 }
 
 const base64Url = (value: object) => Buffer.from(JSON.stringify(value)).toString('base64url')

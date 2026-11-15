@@ -11,6 +11,7 @@ import m, { type Children, type ClassComponent } from 'mithril'
 import { Dropdown } from '@/components/bootstrap/Dropdown'
 import { icon } from '@/components/icon'
 import { MemberAvatar } from '@/components/MemberAvatar'
+import { supportIsTheirs } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import { adminStore, logout } from '@/store/admin.store'
@@ -247,15 +248,17 @@ export class NavBar implements ClassComponent {
                   'bg-color-creation',
                 ),
                 // the requests of the moderator's groups (Support-Anfragen), with the count of the
-                // open tab as for the creation
-                navItem({
-                  to: '/support',
-                  label: t('navbar.support'),
-                  after:
-                    openSupportTickets > 0
-                      ? m('span.badge.text-bg-danger', openSupportTickets)
-                      : null,
-                }),
+                // open tab as for the creation -- for an administrator, or with the tick (K6)
+                supportIsTheirs(adminStore.moderator)
+                  ? navItem({
+                      to: '/support',
+                      label: t('navbar.support'),
+                      after:
+                        openSupportTickets > 0
+                          ? m('span.badge.text-bg-danger', openSupportTickets)
+                          : null,
+                    })
+                  : null,
                 // A moderator sees one of the settings pages, and may only look there: it stands
                 // in the bar itself rather than alone in a menu.
                 isAdmin
