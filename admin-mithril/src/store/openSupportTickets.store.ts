@@ -27,7 +27,9 @@ export const askOpenSupportTickets = async () => {
   const asked = ++lastAsked
   const answer = await graphqlRequest(adminCountOpenSupportTickets)
   if (!answer.success) {
-    if (answer.error.messages.includes(NO_RIGHT) && adminStore.moderator) {
+    // only the question last asked decides, as for the count: an earlier refusal that arrives
+    // after a later answer takes nothing away
+    if (asked === lastAsked && answer.error.messages.includes(NO_RIGHT) && adminStore.moderator) {
       setModerator({ ...adminStore.moderator, handlesSupportTickets: false })
       setOpenSupportTickets(0)
     }

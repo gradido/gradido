@@ -22,3 +22,5 @@ export const moderatorSchema = v.object({
 })
 
 export type Moderator = v.InferOutput<typeof moderatorSchema>
+/** What the schema takes: a state kept from before K6 may lack `handlesSupportTickets`. */
+export type ModeratorInput = v.InferInput<typeof moderatorSchema>
