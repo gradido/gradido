@@ -204,6 +204,124 @@ test.describe('the role', () => {
   })
 })
 
+// The tick "may handle support requests" on a moderator (Support-Anfragen K6): the Mithril admin
+// alone (AGENTS.md, SUA-002) -- the old admin has no such switch.
+test.describe('the tick "may handle support requests"', () => {
+  const OLD = 'only the Mithril admin has the tick (Support-Anfragen K6)'
+  const ticked = member(6, { role: 'MODERATOR_AI', supportDuty: true })
+  const anAdmin = member(7, { role: 'ADMIN' })
+  const supportSwitch = (page: Page) => details(page).getByTestId('support-duty-switch')
+  const changeRoleTo = async (page: Page, role: string) => {
+    await roleSelect(page).selectOption(role)
+    await details(page).getByRole('button', { name: de.change_user_role }).click()
+    await dialog(page).getByRole('button', { name: de.overlay.changeUserRole.yes }).click()
+    await expect(dialog(page)).toBeHidden()
+  }
+
+  test.beforeEach(({ graphql }, info) => {
+    test.skip(info.project.name === 'old', OLD)
+    graphql.answer({ searchUsers: searchUsers([user, aModerator, ticked, anAdmin]) })
+  })
+
+  test('switches whether a moderator handles support requests, and says so', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({ adminSetSupportDuty: ({ supportDuty }: Variables) => supportDuty })
+    await signIn(page, '/user')
+    await openTab(page, 1, de.userRole.tabTitle)
+    await expect(details(page).getByTestId('support-duty')).toContainText(
+      de.userRole.supportDuty.help,
+    )
+    const toggle = supportSwitch(page)
+    await expect(toggle).not.toBeChecked()
+    await toggle.click()
+
+    await expect(page.getByRole('alert')).toContainText(de.userRole.supportDuty.switchedOn)
+    await expect(toggle).toBeChecked()
+    expect(graphql.sentFor('adminSetSupportDuty').map((sent) => sent.variables)).toEqual([
+      { userId: 2, supportDuty: true },
+    ])
+  })
+
+  test('shows the tick of a KI-moderator as the row has it, and takes it away', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({ adminSetSupportDuty: false })
+    await signIn(page, '/user')
+    await openTab(page, 2, de.userRole.tabTitle)
+    const toggle = supportSwitch(page)
+    await expect(toggle).toBeChecked()
+    await toggle.click()
+
+    await expect(page.getByRole('alert')).toContainText(de.userRole.supportDuty.switchedOff)
+    await expect(toggle).not.toBeChecked()
+  })
+
+  test('puts the switch back where it fails, and says where the role has gone', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({ adminSetSupportDuty: new Failure('SUPPORT_DUTY_NOT_A_MODERATOR') })
+    await signIn(page, '/user')
+    await openTab(page, 1, de.userRole.tabTitle)
+    const toggle = supportSwitch(page)
+    await toggle.click()
+
+    await expect(page.getByRole('alert')).toContainText(de.userRole.supportDuty.notAModerator)
+    await expect(toggle).not.toBeChecked()
+  })
+
+  test('words any other failure as the support page does', async ({ page, graphql }) => {
+    graphql.answer({ adminSetSupportDuty: new Failure('SUPPORT_TICKET_NOT_STORED') })
+    await signIn(page, '/user')
+    await openTab(page, 1, de.userRole.tabTitle)
+    await supportSwitch(page).click()
+
+    await expect(page.getByRole('alert')).toContainText(de.support.failed)
+    await expect(supportSwitch(page)).not.toBeChecked()
+  })
+
+  test('shows no tick for a usual member, also with the moderator role chosen and not saved', async ({
+    page,
+  }) => {
+    await signIn(page, '/user')
+    await openTab(page, 0, de.userRole.tabTitle)
+    await roleSelect(page).selectOption('MODERATOR')
+    // the scope follows the role chosen, the tick the role saved
+    await expect(details(page).getByTestId('moderator-scope')).toBeVisible()
+    await expect(details(page).getByTestId('support-duty')).toHaveCount(0)
+  })
+
+  test('shows no tick for an administrator: they handle the requests anyway', async ({ page }) => {
+    await signIn(page, '/user')
+    await openTab(page, 3, de.userRole.tabTitle)
+    await expect(roleSelect(page)).toHaveValue('ADMIN')
+    await expect(details(page).getByTestId('support-duty')).toHaveCount(0)
+  })
+
+  test('keeps the tick to administrator and back, and drops it with the role', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({ setUserRole: ({ role }: Variables) => role })
+    await signIn(page, '/user')
+    await openTab(page, 2, de.userRole.tabTitle)
+    await expect(supportSwitch(page)).toBeChecked()
+
+    await changeRoleTo(page, 'ADMIN')
+    await expect(details(page).getByTestId('support-duty')).toHaveCount(0)
+    await changeRoleTo(page, 'MODERATOR')
+    await expect(supportSwitch(page)).toBeChecked()
+    await changeRoleTo(page, 'USER')
+    await expect(details(page).getByTestId('support-duty')).toHaveCount(0)
+    await changeRoleTo(page, 'MODERATOR_AI')
+    await expect(supportSwitch(page)).not.toBeChecked()
+    expect(graphql.sentFor('adminSetSupportDuty')).toEqual([])
+  })
+})
+
 test.describe('deleting', () => {
   test('deletes a member once asked, and shows them deleted', async ({ page, graphql }) => {
     graphql.answer({ deleteUser: '2026-11-09T10:00:00.000Z' })

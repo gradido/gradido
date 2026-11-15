@@ -1648,7 +1648,7 @@
     "placeholder": "Waarmee kunnen we je helpen?",
     "question": "Je vraag",
     "readBy": {
-      "group": "Je vraag gaat naar de moderators van de groep “{group}”. Andere leden kunnen je vraag niet zien.",
+      "group": "Je vraag gaat naar de support van de groep “{group}”. Andere leden kunnen je vraag niet zien.",
       "none": "Je vraag gaat naar de support van de gemeenschap. Andere leden kunnen je vraag niet zien."
     },
     "reassigned": "De support heeft je vraag doorgegeven",

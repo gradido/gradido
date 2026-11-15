@@ -1648,7 +1648,7 @@
     "placeholder": "¿En qué podemos ayudarte?",
     "question": "Tu pregunta",
     "readBy": {
-      "group": "Tu consulta llega a los moderadores del grupo «{group}». Los demás miembros no pueden verla.",
+      "group": "Tu consulta llega al soporte del grupo «{group}». Los demás miembros no pueden verla.",
       "none": "Tu consulta llega al soporte de la comunidad. Los demás miembros no pueden verla."
     },
     "reassigned": "El soporte ha derivado tu consulta",

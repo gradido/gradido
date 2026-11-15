@@ -2,10 +2,11 @@
 import { adminOpenCreationCounts } from '@admin/graphql/adminListContributions.graphql'
 import m, { type ClassComponent } from 'mithril'
 import { toastError } from '@/components/Toasts'
+import { supportIsTheirs } from '@/data/Moderator.logic'
 import { type OpenCreationCounts, openCreationsOf } from '@/data/OpenCreations.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { setOpenCreations } from '@/store/admin.store'
+import { adminStore, setOpenCreations } from '@/store/admin.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 
 type SupportCounts = NonNullable<Awaited<ReturnType<typeof askOpenSupportTickets>>>
@@ -23,9 +24,12 @@ export class Dashboard implements ClassComponent {
   private support: SupportCounts | null = null
 
   oninit() {
-    // Two questions side by side: neither waits for the other, and either may fail alone.
+    // Two questions side by side: neither waits for the other, and either may fail alone. The
+    // support's only where it is theirs (K6): nobody else is asked for it, and nobody shown it.
     this.askCreations()
-    this.askSupport()
+    if (supportIsTheirs(adminStore.moderator)) {
+      this.askSupport()
+    }
   }
 
   private async askCreations() {
@@ -45,7 +49,9 @@ export class Dashboard implements ClassComponent {
     // The support's open tab in the moderator's groups (Support-Anfragen K3); the badges count
     // the same.
     this.support = await askOpenSupportTickets()
-    if (!this.support) {
+    // where the server refused, the support is no longer theirs (askOpenSupportTickets): nothing
+    // to report then -- any other failure is
+    if (!this.support && supportIsTheirs(adminStore.moderator)) {
       toastError(t('support.loadFailed'))
     }
   }

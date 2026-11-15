@@ -1006,6 +1006,11 @@ export const userRolesTable = mysqlTable(
     // every moderator from before the column had. Read through
     // describeModeratorCreationGroups, never on its own.
     visibleCreationGroups: text('visible_creation_groups').default(sql`NULL`),
+    // The tick "may handle support requests" (Support-Anfragen K6, SUA-025): a moderator or
+    // KI-moderator handles the requests of their scope only with it. Read through roleOfHolder,
+    // which alone turns it into a right -- for an administrator it decides nothing, and for any
+    // other role neither. Off for everybody from the start (migration 0175).
+    supportDuty: boolean('support_duty').default(false).notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

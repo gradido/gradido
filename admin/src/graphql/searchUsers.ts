@@ -29,6 +29,7 @@ export const searchUsers = gql`
         deletedAt
         createdAt
         role
+        supportDuty
         creationAllowed
         gradidoID
         communityUuid

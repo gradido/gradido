@@ -1648,7 +1648,7 @@
     "placeholder": "Come possiamo aiutarti?",
     "question": "La tua domanda",
     "readBy": {
-      "group": "La tua richiesta va ai moderatori del gruppo «{group}». Gli altri membri non possono vederla.",
+      "group": "La tua richiesta va al supporto del gruppo «{group}». Gli altri membri non possono vederla.",
       "none": "La tua richiesta va al supporto della comunità. Gli altri membri non possono vederla."
     },
     "reassigned": "Il supporto ha inoltrato la tua richiesta",

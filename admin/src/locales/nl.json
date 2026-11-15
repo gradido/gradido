@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Een projectaccount (vereniging, project, bedrijf) creëert niet, het ontvangt dank. Uitzetten kan het lid zelf; aanzetten alleen een beheerder.",
+      "label": "Kan creëren",
+      "no": "nee",
+      "switchedOff": "Creëren uitgezet – dit account is nu een projectaccount.",
+      "switchedOn": "Creëren aangezet – dit account kan weer creëren.",
+      "yes": "ja"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Wordt bij het indienen vooraf gekozen.",
+      "label": "Hoofd-creatiegroep van de gebruiker",
+      "none": "(zonder groep)"
     },
     "notChangeYourSelf": "Als admin/moderator kun je je eigen rol niet wijzigen.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Creatiegroepen opgeslagen.",
+    "savedScope": "Zichtbaarheid opgeslagen.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "alle groepen",
+      "help": "Leeg = alle bijdragen.",
+      "label": "Zichtbare creatiegroepen",
+      "untagged": "zonder groep"
     },
     "selectLabel": "Rol:",
     "selectRoles": {
@@ -788,6 +788,13 @@
       "user": "gewone gebruiker"
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
+    "supportDuty": {
+      "help": "Behandelt de vragen van de zichtbare groepen. Beheerders kunnen dat altijd.",
+      "label": "Kan supportvragen behandelen",
+      "notAModerator": "Alleen een moderator kan supportvragen behandelen.",
+      "switchedOff": "Dit lid behandelt geen supportvragen meer.",
+      "switchedOn": "Dit lid behandelt nu supportvragen."
+    },
     "tabTitle": "Gebruikersrol"
   },
   "userSearch": {

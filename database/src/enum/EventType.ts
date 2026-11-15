@@ -14,6 +14,9 @@ export enum EventType {
   ADMIN_USER_ROLE_SET = 'ADMIN_USER_ROLE_SET',
   // ES-021: an administrator switched an account's creation right on or off.
   ADMIN_USER_CREATION_ALLOWED_SET = 'ADMIN_USER_CREATION_ALLOWED_SET',
+  // Support-Anfragen K6: an administrator set or took away a moderator's tick "may handle support
+  // requests". Affected = the moderator, acting = the administrator.
+  ADMIN_USER_SUPPORT_DUTY_SET = 'ADMIN_USER_SUPPORT_DUTY_SET',
   ADMIN_USER_SALUTATION_SET = 'ADMIN_USER_SALUTATION_SET',
   // The community figures (the admin's start page): four moments no other table records. Account
   // numbers and time only, as every event here -- never a text, a code or a room name.

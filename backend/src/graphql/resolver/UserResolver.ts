@@ -224,6 +224,9 @@ export class UserResolver {
     user.visibleCreationGroups = moderatorCreationGroups.tags
     user.seesAllCreationGroups = moderatorCreationGroups.seesAllCreationGroups
     user.seesUntagged = moderatorCreationGroups.seesUntagged
+    // Support-Anfragen K6: whether they handle support requests, as isAuthorized decided it for
+    // this very request (roleOfHolder) -- the admin shows "Support" by it.
+    user.handlesSupportTickets = context.role?.hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS) ?? false
     // Elopage Status & Stored PublisherId
     user.hasElopage = await this.hasElopage(context)
 
@@ -1512,6 +1515,8 @@ export class UserResolver {
       clientTimezoneOffset,
     )
 
+    // the tick "may handle support requests" (K6) goes to who may set it, and to nobody else
+    const readsSupportDuty = context.role?.hasRight(RIGHTS.SET_SUPPORT_DUTY) ?? false
     const adminUsers = users.map((user) => {
       let emailConfirmationSend = ''
       if (!user.emailContact?.emailChecked) {
@@ -1526,6 +1531,7 @@ export class UserResolver {
         user,
         userCreations ? userCreations.creations : getFullUserCreation(),
         emailConfirmationSend,
+        readsSupportDuty,
       )
     })
     return {

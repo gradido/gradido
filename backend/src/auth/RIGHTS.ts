@@ -125,13 +125,17 @@ export enum RIGHTS {
   // The moderation's side of the support (SUA-005, SupportTicketModerationResolver): the list of the
   // requests and their threads, the internal notes in them. Every call reaches what the caller's
   // creation groups cover and no other request (describeModeratorCreationGroups), and never the
-  // caller's own request: there they are the member. ⛔ Moderator list only -- the member must not
-  // read the notes on their request.
+  // caller's own request: there they are the member. In ADMIN_RIGHTS, and for a moderator or
+  // KI-moderator only with the tick "may handle support requests" (K6, SUA-025, roleOfHolder).
+  // ⛔ Never in a member's set -- the member must not read the notes on their request.
   MANAGE_SUPPORT_TICKETS = 'MANAGE_SUPPORT_TICKETS',
   // Whether the members of this community file support requests in the wallet (K5, SUA-019): the
   // switch on the admin's support page. ⛔ Administrator list only, and not COMMUNITY_UPDATE --
   // that one the DLT connector holds as well.
   SET_SUPPORT_TICKETS_ACTIVE = 'SET_SUPPORT_TICKETS_ACTIVE',
+  // The tick "may handle support requests" on a moderator (K6, SUA-025): setting it, and reading it
+  // in the member search. ⛔ Administrator list only: the tick gives a member a right, as a role does.
+  SET_SUPPORT_DUTY = 'SET_SUPPORT_DUTY',
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the

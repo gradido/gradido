@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Un compte projet (association, projet, commerce) ne crée pas, il reçoit des remerciements. Le membre peut le désactiver lui-même ; seul un administrateur peut le réactiver.",
+      "label": "Peut créer",
+      "no": "non",
+      "switchedOff": "Création désactivée – ce compte est désormais un compte projet.",
+      "switchedOn": "Création activée – ce compte peut de nouveau créer.",
+      "yes": "oui"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Présélectionné lors de la déclaration.",
+      "label": "Groupe de création principal de l'utilisateur",
+      "none": "(sans groupe)"
     },
     "notChangeYourSelf": "En tant qu'administrateur/modérateur, tu ne peux pas changer ton propre rôle.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Groupes de création enregistrés.",
+    "savedScope": "Visibilité enregistrée.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "tous les groupes",
+      "help": "Vide = toutes les contributions.",
+      "label": "Groupes de création visibles",
+      "untagged": "sans groupe"
     },
     "selectLabel": "Rôle :",
     "selectRoles": {
@@ -788,6 +788,13 @@
       "user": "utilisateur ordinaire"
     },
     "successfullyChangedTo": "L'utilisateur est maintenant « {role} ».",
+    "supportDuty": {
+      "help": "Traite les demandes des groupes visibles. Les administrateurs le peuvent toujours.",
+      "label": "Peut traiter les demandes d'assistance",
+      "notAModerator": "Seul un modérateur peut traiter les demandes d'assistance.",
+      "switchedOff": "Ce membre ne traite plus les demandes d'assistance.",
+      "switchedOn": "Ce membre traite désormais les demandes d'assistance."
+    },
     "tabTitle": "Rôle de l'utilisateur"
   },
   "userSearch": {

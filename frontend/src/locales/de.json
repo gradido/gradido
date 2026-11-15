@@ -1648,7 +1648,7 @@
     "placeholder": "Wobei können wir Dir helfen?",
     "question": "Deine Frage",
     "readBy": {
-      "group": "Deine Anfrage geht an die Moderatoren der Gruppe „{group}“. Andere Mitglieder sehen sie nicht.",
+      "group": "Deine Anfrage geht an den Support der Gruppe „{group}“. Andere Mitglieder sehen sie nicht.",
       "none": "Deine Anfrage geht an den Support der Gemeinschaft. Andere Mitglieder sehen sie nicht."
     },
     "reassigned": "Der Support hat Deine Anfrage weitergereicht",

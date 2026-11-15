@@ -17,6 +17,7 @@ import {
   dbInsertUserRoles,
   dbRemoveUserRoles,
   dbSelectRoleHoldersWithContact,
+  dbUpdateUserRoleSupportDuty,
   dbUpsertUserRole,
 } from './userRoles'
 
@@ -64,17 +65,19 @@ describe('userRoles query test', () => {
   })
 
   // What setUserRole did before it went through this query: saved the row with a new role
-  // and nothing else. Removing the role is what resets a moderator's scope.
-  it("leaves a moderator's group scope alone when the role changes", async () => {
+  // and nothing else. Removing the role is what resets a moderator's scope -- and their tick
+  // "may handle support requests" (K6), which lives on the same row.
+  it("leaves a moderator's group scope and tick alone when the role changes", async () => {
     await db
       .update(userRolesTable)
-      .set({ visibleCreationGroups: '["garden"]' })
+      .set({ visibleCreationGroups: '["garden"]', supportDuty: true })
       .where(eq(userRolesTable.userId, MEMBER))
 
     await dbUpsertUserRole(MEMBER, 'MODERATOR')
 
     const [row] = await rolesOf(MEMBER)
     expect(row.visibleCreationGroups).toBe('["garden"]')
+    expect(row.supportDuty).toBe(true)
   })
 
   // ⛔ The race this query exists for: two admins granting a role to the same member at the
@@ -115,6 +118,74 @@ describe('userRoles query test', () => {
 
     expect(await rolesOf(BYSTANDER)).toHaveLength(1)
   })
+
+  // The tick went with the row MEMBER had, three tests up: whoever is given a role anew begins
+  // without it.
+  it('writes a first role without the tick', async () => {
+    await dbUpsertUserRole(MEMBER, 'MODERATOR')
+
+    const [row] = await rolesOf(MEMBER)
+    expect(row.supportDuty).toBe(false)
+  })
+})
+
+// The tick "may handle support requests" (Support-Anfragen K6): set and taken away on a row of one
+// of the two moderator kinds only, the role checked by the very statement that writes.
+describe('dbUpdateUserRoleSupportDuty', () => {
+  const MODERATOR = 9201
+  const MODERATOR_AI = 9202
+  const ADMIN = 9203
+  const USER = 9204
+  const NOBODY = 9205
+  const tickOf = async (userId: number) => (await rolesOf(userId))[0]?.supportDuty
+
+  beforeAll(async () => {
+    await db.delete(userRolesTable)
+    await db.insert(userRolesTable).values([
+      { userId: MODERATOR, role: 'MODERATOR' },
+      { userId: MODERATOR_AI, role: 'MODERATOR_AI' },
+      { userId: ADMIN, role: 'ADMIN' },
+      // rows with USER existed (migration 0136)
+      { userId: USER, role: 'USER' },
+    ])
+  })
+  afterAll(async () => {
+    await db.delete(userRolesTable)
+  })
+
+  it('sets the tick of either moderator kind, and takes it away again', async () => {
+    for (const userId of [MODERATOR, MODERATOR_AI]) {
+      expect(await dbUpdateUserRoleSupportDuty(userId, true)).toEqual({ success: true })
+      const [row] = await rolesOf(userId)
+      expect(row.supportDuty).toBe(true)
+      expect(row.updatedAt).toBeInstanceOf(Date)
+      expect(await dbUpdateUserRoleSupportDuty(userId, false)).toEqual({ success: true })
+      expect(await tickOf(userId)).toBe(false)
+    }
+  })
+
+  it('finds a tick set twice, and writes it as it was', async () => {
+    expect(await dbUpdateUserRoleSupportDuty(MODERATOR, true)).toEqual({ success: true })
+    expect(await dbUpdateUserRoleSupportDuty(MODERATOR, true)).toEqual({ success: true })
+    expect(await tickOf(MODERATOR)).toBe(true)
+  })
+
+  it.each([
+    ['an administrator', ADMIN],
+    ['a row with USER', USER],
+    ['a member without a role', NOBODY],
+  ])('writes nothing for %s, and says so', async (_name, userId) => {
+    const answer = await dbUpdateUserRoleSupportDuty(userId, true)
+    expect(answer.success).toBe(false)
+    expect(await tickOf(userId)).toBe(userId === NOBODY ? undefined : false)
+  })
+
+  // the role is the condition of the write: one turned into ADMIN meanwhile keeps its tick as it was
+  it('writes nothing where the moderator became an administrator', async () => {
+    await dbUpsertUserRole(MODERATOR_AI, 'ADMIN')
+    expect((await dbUpdateUserRoleSupportDuty(MODERATOR_AI, true)).success).toBe(false)
+    expect(await tickOf(MODERATOR_AI)).toBe(false)
+  })
 })
 
 describe('dbInsertUserRoles', () => {
@@ -154,8 +225,12 @@ describe('dbInsertUserRoles', () => {
 // The members a mail to the moderation may go to (Support-Anfragen K5): a role a row may hold,
 // an account of this community that is not deleted, a confirmed address in force.
 describe('dbSelectRoleHoldersWithContact', () => {
-  const withRole = (userId: number, role: string, visibleCreationGroups: string | null = null) =>
-    db.insert(userRolesTable).values({ userId, role, visibleCreationGroups })
+  const withRole = (
+    userId: number,
+    role: string,
+    visibleCreationGroups: string | null = null,
+    supportDuty = false,
+  ) => db.insert(userRolesTable).values({ userId, role, visibleCreationGroups, supportDuty })
   const heldBy = async () => (await dbSelectRoleHoldersWithContact()).map(({ userId }) => userId)
 
   let peter: number
@@ -169,19 +244,21 @@ describe('dbSelectRoleHoldersWithContact', () => {
     peter = (await userFactoryDrizzle(peterLustig)).id
     bob = (await userFactoryDrizzle(bobBaumeister)).id
     raeuber = (await userFactoryDrizzle(raeuberHotzenplotz)).id
-    await withRole(bob, 'MODERATOR', '["garden","*untagged"]')
+    // bob with the tick (K6), räuber without: the column is read, not assumed
+    await withRole(bob, 'MODERATOR', '["garden","*untagged"]', true)
     await withRole(raeuber, 'MODERATOR_AI')
   })
   afterAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
   })
 
-  it('answers each of them with role, scope, name, language and address, by number', async () => {
+  it('answers each of them with role, scope, tick, name, language and address, by number', async () => {
     expect(await dbSelectRoleHoldersWithContact()).toEqual([
       {
         userId: peter,
         role: 'ADMIN',
         visibleCreationGroups: null,
+        supportDuty: false,
         firstName: 'Peter',
         lastName: 'Lustig',
         language: 'de',
@@ -191,6 +268,7 @@ describe('dbSelectRoleHoldersWithContact', () => {
         userId: bob,
         role: 'MODERATOR',
         visibleCreationGroups: '["garden","*untagged"]',
+        supportDuty: true,
         firstName: 'Bob',
         lastName: 'der Baumeister',
         language: 'de',
@@ -200,6 +278,7 @@ describe('dbSelectRoleHoldersWithContact', () => {
         userId: raeuber,
         role: 'MODERATOR_AI',
         visibleCreationGroups: null,
+        supportDuty: false,
         firstName: 'Räuber',
         lastName: 'Hotzenplotz',
         language: 'de',

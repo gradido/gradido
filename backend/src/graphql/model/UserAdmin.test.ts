@@ -31,7 +31,8 @@ describe('UserAdmin', () => {
       creationAllowed: true,
       ...more,
     }) as User
-  const row = (more: Partial<User> = {}) => new UserAdmin(member(more), [], '')
+  const row = (more: Partial<User> = {}, readsSupportDuty = false) =>
+    new UserAdmin(member(more), [], '', readsSupportDuty)
 
   beforeEach(() => {
     CONFIG.GMS_ACTIVE = true
@@ -77,5 +78,27 @@ describe('UserAdmin', () => {
     expect(JSON.stringify(row())).not.toContain('9.495606')
     expect(Object.keys(row())).not.toContain('location')
     expect(Object.keys(row())).not.toContain('userLocation')
+  })
+
+  // Support-Anfragen K6: the tick "may handle support requests" goes to whoever may set it -- the
+  // raw column, on every role row -- and to no other caller of the search.
+  describe('supportDuty', () => {
+    const ticked = { userRole: { role: 'MODERATOR', supportDuty: true } as User['userRole'] }
+
+    it('tells whoever may set it the tick on the row, and no where there is no row', () => {
+      expect(row(ticked, true).supportDuty).toBe(true)
+      expect(
+        row({ userRole: { role: 'ADMIN', supportDuty: false } as User['userRole'] }, true)
+          .supportDuty,
+      ).toBe(false)
+      expect(row({ userRole: null }, true).supportDuty).toBe(false)
+    })
+
+    it('tells no other caller, also of a row with the tick', () => {
+      const answer = row(ticked, false)
+      // The fixture proves itself: the row is the moderator's.
+      expect(answer.role).toBe('MODERATOR')
+      expect(answer.supportDuty).toBeNull()
+    })
   })
 })

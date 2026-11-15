@@ -788,6 +788,13 @@
       "user": "usual user"
     },
     "successfullyChangedTo": "User is now \"{role}\".",
+    "supportDuty": {
+      "help": "Handles the requests of the visible groups. Administrators always can.",
+      "label": "Can handle support requests",
+      "notAModerator": "Only a moderator can handle support requests.",
+      "switchedOff": "This member no longer handles support requests.",
+      "switchedOn": "This member now handles support requests."
+    },
     "tabTitle": "User Role"
   },
   "userSearch": {

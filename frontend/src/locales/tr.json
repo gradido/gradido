@@ -1648,7 +1648,7 @@
     "placeholder": "Sana nasıl yardımcı olabiliriz?",
     "question": "Soru",
     "readBy": {
-      "group": "Talebin «{group}» grubunun moderatörlerine gider. Diğer üyeler onu göremez.",
+      "group": "Talebin «{group}» grubunun destek ekibine gider. Diğer üyeler onu göremez.",
       "none": "Talebin topluluğun destek ekibine gider. Diğer üyeler onu göremez."
     },
     "reassigned": "Talebin destek ekibi tarafından aktarıldı",
