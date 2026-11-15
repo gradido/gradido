@@ -95,6 +95,14 @@ describe('MatchQuery', () => {
       expect(wrapper.text()).toContain('Ich suche einen Klavierlehrer')
     })
 
+    // A remembered entry the list has not brought yet (a cold load): the bar says what the map
+    // shows meanwhile (MatchingMap, `choiceInEffect`).
+    it('says all my entries for an entry it does not know', () => {
+      expect(mountQuery({ kind: 'entry', uuid: 'not-there' }).text()).toContain(
+        'Alle meine Einträge',
+      )
+    })
+
     it('shows the words themselves when the question was typed', () => {
       const wrapper = mountQuery({ kind: 'typed', text: 'Fahrrad', matchingType: 'gesuch' })
 

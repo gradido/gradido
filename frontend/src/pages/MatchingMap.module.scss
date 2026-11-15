@@ -582,6 +582,11 @@
   }
 }
 
+/* The place of the row while a remembered entry waits for the list (exactTick, a cold load). */
+.exact-pending {
+  visibility: hidden;
+}
+
 /* The cluster overlay covers the map while the mode is still "karte", so is-list
    does not apply — hide the map controls while it shows, so nothing sits over the
    overlay or its close cross. Placed last, after the plain control selectors, to

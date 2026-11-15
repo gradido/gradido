@@ -120,6 +120,8 @@ const presence = ref([])
 // useMatches.spec.js -- a test here sets them as an answer would.
 const sentenceTotals = ref({})
 const askingAnew = ref(false)
+// Whether the search asked last is on its way. A window left open last time waits for it.
+const searchLoading = ref(false)
 const searchError = ref(null)
 // The profile route. Held out like `load`, so a test can see what the window asks for
 // and hand it an answer - or none.
@@ -139,6 +141,7 @@ vi.mock('@/composables/useMatches', async () => {
             presence,
             sentenceTotals,
             askingAnew,
+            loading: searchLoading,
             error: searchError,
             load,
             suggest,
@@ -264,6 +267,7 @@ beforeEach(() => {
   presence.value = []
   sentenceTotals.value = {}
   askingAnew.value = false
+  searchLoading.value = false
   searchError.value = null
   writeExact.mockReset()
   updateCachedQuery.mockReset()
@@ -1202,6 +1206,7 @@ describe('MatchingMap', () => {
     it('opens the saved profile when it is in the first results', async () => {
       window.localStorage.setItem(`${KEY}profile`, JSON.stringify('u-1'))
       const page = mountMap()
+      fire(listMatchingEntries, { listMatchingEntries: [] })
 
       matches.value = [person('u-1')]
       await page.vm.$nextTick()
@@ -1231,6 +1236,7 @@ describe('MatchingMap', () => {
     it('opens a saved ring again, with no match in the results', async () => {
       window.localStorage.setItem(`${KEY}profile`, JSON.stringify('r-1'))
       const page = mountMap()
+      fire(listMatchingEntries, { listMatchingEntries: [] })
 
       presence.value = [
         {
@@ -3651,6 +3657,7 @@ describe('MatchingMap, asked to show somebody', () => {
     it('opens on an ordinary visit', async () => {
       remember('profile', 'u-1')
       const page = await arrive(null)
+      fire(listMatchingEntries, { listMatchingEntries: [] })
       matches.value = [anna()]
       await flushPromises()
 
@@ -4403,17 +4410,19 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(box(shown).element.checked).toBe(true)
     })
 
-    // Before the list the page does not know the chosen entry.
+    // Before the list the page does not know the chosen entry: its place is kept meanwhile.
     it('comes with the list', async () => {
       remember('query', chosen('a'))
       const shown = mountMap()
       located()
       await flushPromises()
-      expect(row(shown).exists()).toBe(false)
+      expect(box(shown).exists()).toBe(false)
+      expect(shown.find('.exact-pending').exists()).toBe(true)
 
       list(mine('a'))
       await flushPromises()
-      expect(row(shown).exists()).toBe(true)
+      expect(box(shown).exists()).toBe(true)
+      expect(shown.find('.exact-pending').exists()).toBe(false)
     })
 
     it.each([
@@ -4905,6 +4914,189 @@ describe('MatchingMap, the tick under the search field', () => {
 
       expect(remembered('reach')).toBe('fern')
       expect(lastSearch()).toMatchObject({ radius: 500, remoteOnly: true, exactUuids: [] })
+    })
+  })
+})
+
+// A single choice remembered from the last visit, on a cold load of the map (KA-023 point 7): the
+// query answers first from an empty cache, without data, and that is no list.
+describe('MatchingMap, a remembered entry on a cold load', () => {
+  const mine = (uuid, over = {}) => ({
+    ...entry(uuid),
+    matchingType: 'interest',
+    summary: `Kongress ${uuid}`,
+    remote: false,
+    exactSentence: false,
+    updatedAt: '2026-11-15T10:00:00.000Z',
+    ...over,
+  })
+  const remember = (name, value) => window.localStorage.setItem(KEY + name, JSON.stringify(value))
+  const remembered = (name) => JSON.parse(window.localStorage.getItem(KEY + name))
+  const lastSearch = () => load.mock.calls.at(-1)[0]
+  const list = (...entries) => fire(listMatchingEntries, { listMatchingEntries: entries })
+  const noData = () => fire(listMatchingEntries, undefined)
+  const located = () => fire(userLocationQuery, { userLocation: location })
+  const chosen = (uuid) => ({ kind: 'entry', uuid })
+  const somebody = (uuid, of, { exact = false } = {}) => {
+    const channels = {
+      interesse: [
+        {
+          uuid: `${uuid}-entry`,
+          matchedEntryUuid: of,
+          matchedSubject: 'thema',
+          strength: 0.46,
+          exact,
+        },
+      ],
+    }
+    return {
+      uuid,
+      name: uuid,
+      position: { lat: 48.2, lng: 11.6 },
+      community: { uuid: 'cccccccc-0000-4000-8000-cccccccccccc', name: 'Muenchen' },
+      aboutMe: '',
+      precision: 'genau',
+      channels,
+      scores: scoresOf(channels),
+    }
+  }
+  const query = (page) => page.findComponent({ name: 'MatchQuery' }).props('selection')
+  const windowOpen = (page) => page.findComponent({ name: 'MatchProfile' }).props('modelValue')
+
+  afterEach(() => {
+    load.mockReset()
+  })
+
+  it('keeps the remembered entry through an answer without data, and the list brings it back', async () => {
+    remember('query', chosen('a'))
+    const page = mountMap()
+    located()
+    noData()
+    await flushPromises()
+
+    expect(remembered('query')).toEqual(chosen('a'))
+    expect(query(page)).toEqual(chosen('a'))
+
+    list(mine('a'), mine('b'))
+    await flushPromises()
+
+    expect(query(page)).toEqual(chosen('a'))
+    expect(page.find('.exact-check input').exists()).toBe(true)
+  })
+
+  it('still sets it back to all my entries where the list does not hold the entry', async () => {
+    remember('query', chosen('a'))
+    const page = mountMap()
+    located()
+    noData()
+    list(mine('b'))
+    await flushPromises()
+
+    expect(remembered('query')).toEqual({ kind: 'all' })
+    expect(query(page)).toEqual({ kind: 'all' })
+    expect(page.find('.exact-check').exists()).toBe(false)
+  })
+
+  // The bar of the search field names "all my entries" for an entry it does not know (MatchQuery):
+  // the lens says the same until the list brings the entry.
+  it('shows all my entries until the list brings the remembered one', async () => {
+    remember('mode', 'liste')
+    remember('query', chosen('a'))
+    const page = mountMap()
+    located()
+    await flushPromises()
+    const listed = () => page.findComponent({ name: 'MatchList' }).props('matches').length
+
+    matches.value = [somebody('anna', 'a'), somebody('ben', 'b')]
+    await flushPromises()
+    expect(listed()).toBe(2)
+    expect(lastSearch().exactUuids).toEqual([])
+
+    list(mine('a'), mine('b'))
+    await flushPromises()
+    expect(listed()).toBe(1)
+  })
+
+  it('keeps the place of its row, unseen, while the list is on its way, and none for all my entries', async () => {
+    remember('query', chosen('a'))
+    const page = mountMap()
+    located()
+    noData()
+    await flushPromises()
+
+    const place = page.find('.exact-pending')
+    expect(place.exists()).toBe(true)
+    expect(place.attributes('aria-hidden')).toBe('true')
+    expect(page.find('.exact-check input').exists()).toBe(false)
+    page.unmount()
+    wrapper = null
+
+    remember('query', { kind: 'all' })
+    const all = mountMap()
+    located()
+    await flushPromises()
+    expect(all.find('.exact-pending').exists()).toBe(false)
+  })
+
+  it('gives the place back where the list does not come, and keeps the remembered entry', async () => {
+    remember('query', chosen('a'))
+    const page = mountMap()
+    located()
+    handlers.get(listMatchingEntries).error(new Error('Failed to fetch'))
+    await flushPromises()
+
+    expect(page.find('.exact-pending').exists()).toBe(false)
+    expect(remembered('query')).toEqual(chosen('a'))
+  })
+
+  // A window left open last time waits for the list (second reader of Scheibe 1, F2).
+  describe('a window left open last time', () => {
+    it('opens once the list is in, where the list asks nothing anew', async () => {
+      remember('profile', 'anna')
+      const page = mountMap()
+      located()
+      await flushPromises()
+      matches.value = [somebody('anna', 'x')]
+      await flushPromises()
+      expect(windowOpen(page)).toBe(false)
+      const asked = load.mock.calls.length
+
+      // A member without entries: the list changes nothing, and asks no new search.
+      list()
+      await flushPromises()
+
+      expect(load).toHaveBeenCalledTimes(asked)
+      expect(windowOpen(page)).toBe(true)
+    })
+
+    it('waits for the answer of the search the list asked, and opens from that one', async () => {
+      load.mockImplementation(() => {
+        searchLoading.value = true
+      })
+      remember('profile', 'ben')
+      remember('query', chosen('a'))
+      const page = mountMap()
+      located()
+      await flushPromises()
+      // The search before the list: no "genau" asked, Ben a topic match of a.
+      matches.value = [somebody('ben', 'a')]
+      searchLoading.value = false
+      await flushPromises()
+      expect(windowOpen(page)).toBe(false)
+
+      // The list: a has its "genau", and the search asks its sentence.
+      list(mine('a', { exactSentence: true }))
+      await flushPromises()
+      expect(searchLoading.value).toBe(true)
+      expect(windowOpen(page)).toBe(false)
+
+      // Its answer: only the people of the sentence. Ben is not among them, and no window opens.
+      sentenceTotals.value = { a: 1 }
+      matches.value = [somebody('anna', 'a', { exact: true })]
+      searchLoading.value = false
+      await flushPromises()
+      expect(profile).not.toHaveBeenCalled()
+      expect(windowOpen(page)).toBe(false)
     })
   })
 })

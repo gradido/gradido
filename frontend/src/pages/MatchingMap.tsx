@@ -253,6 +253,7 @@ export const MatchingMap = defineComponent({
       presence,
       sentenceTotals,
       askingAnew,
+      loading: searchLoading,
       error: searchError,
       load,
       suggest,
@@ -303,7 +304,7 @@ export const MatchingMap = defineComponent({
     // cache-and-network, not cache-first: the entries tab writes this same list, and a
     // member who adds an entry and comes straight here would otherwise not find it in
     // the menu - the one thing they just made.
-    const { onResult: onEntries } = useQuery(listMatchingEntries, null, {
+    const { onResult: onEntries, onError: onEntriesError } = useQuery(listMatchingEntries, null, {
       fetchPolicy: 'cache-and-network',
     })
     const { client: apolloClient } = useApolloClient()
@@ -318,6 +319,20 @@ export const MatchingMap = defineComponent({
     const keyedKey = (entries: MyEntry[]) => entryKey(entries.filter((entry) => entry.keyed))
     // The entries with the "genau" (KA-020): each asks who carries its sentence (useMatches).
     const exactOf = (entries: MyEntry[]) => entries.filter((entry) => entry.exactSentence)
+    // Whether a list of my entries has come in on this visit.
+    const entriesKnown = ref(false)
+    /**
+     * The choice as the page acts on it. A remembered entry the page does not know -- the list has not
+     * come in yet on a cold load, or it never comes -- counts as "all my entries": the bar of the search
+     * field names it so (MatchQuery), and the lens, the sentences asked and the rings must not say
+     * otherwise. The remembered choice itself stays, and the list that brings the entry brings it back.
+     */
+    const choiceInEffect = computed<QuerySelection>(() => {
+      const chosen = selection.value
+      return chosen.kind === 'entry' && !myEntries.value.some((entry) => entry.uuid === chosen.uuid)
+        ? { kind: 'all' }
+        : chosen
+    })
 
     /**
      * The ticks this page wrote and the server took, by entry, with the stand (`updatedAt`) the
@@ -421,9 +436,23 @@ export const MatchingMap = defineComponent({
       }
     }
 
-    onEntries((result) => takeEntries(result.data?.listMatchingEntries))
+    // Without data is no list: on a cold load the query answers first from an empty cache, and taken
+    // for an empty list it would set a remembered single choice back to "all my entries" (KA-023
+    // point 7). The list that follows decides, as on any visit.
+    onEntries((result) => {
+      if (!result.data?.listMatchingEntries) {
+        return
+      }
+      takeEntries(result.data.listMatchingEntries)
+    })
+    // A list that does not come gives the place of the row back (exactTick): the page shows all my
+    // entries meanwhile, as the bar of the search field says, and the next visit asks again.
+    onEntriesError(() => {
+      entriesKnown.value = true
+    })
     function takeEntries(list: MyEntry[] | undefined) {
       listsTaken++
+      entriesKnown.value = true
       const keyBefore = entryKey(myEntries.value)
       const keyedBefore = keyedKey(myEntries.value)
       const exactBefore = entryKey(exactOf(myEntries.value))
@@ -727,10 +756,11 @@ export const MatchingMap = defineComponent({
      * filtered away.
      */
     const focusedMatches = computed(() => {
-      if (selection.value.kind !== 'entry') {
+      const chosen = choiceInEffect.value
+      if (chosen.kind !== 'entry') {
         return matches.value
       }
-      const wanted = selection.value.uuid
+      const wanted = chosen.uuid
       const narrowed: MapMatch[] = []
       for (const match of matches.value) {
         const channels: Record<string, MapMatch['channels'][string]> = {}
@@ -753,9 +783,10 @@ export const MatchingMap = defineComponent({
      * the search on screen: a GMS without the question (404, 400) lets the entry search as without
      * its "genau", rings and all (KA-023 point 3).
      */
-    const sentenceOnly = computed(
-      () => selection.value.kind === 'entry' && selection.value.uuid in sentenceTotals.value,
-    )
+    const sentenceOnly = computed(() => {
+      const chosen = choiceInEffect.value
+      return chosen.kind === 'entry' && chosen.uuid in sentenceTotals.value
+    })
 
     // The matches the map is showing right now. Drawing and counting both read this
     // one list, so the heading can never claim a person the map does not draw.
@@ -1525,7 +1556,7 @@ export const MatchingMap = defineComponent({
      * it has not; for "all my entries", every entry of mine with it.
      */
     function sentencesAsked() {
-      const chosen = selection.value
+      const chosen = choiceInEffect.value
       const exact = exactOf(myEntries.value)
       return (
         chosen.kind === 'entry' ? exact.filter((entry) => entry.uuid === chosen.uuid) : exact
@@ -2370,8 +2401,19 @@ export const MatchingMap = defineComponent({
     }
     // Matches or rings: the window may have been left open on either, and a search can
     // bring rings and no match at all.
-    watch([matches, presence], () => {
-      if (restoreDone || (!matches.value.length && !presence.value.length)) {
+    //
+    // And only once the list of my entries is in and no search is on its way: the search asked
+    // before the list knows no "genau" and no single choice, and a window opened from its answer
+    // would name pairs the next answer takes back -- the topic matches of an entry with the
+    // "genau" (second reader of Scheibe 1, F2). Where the list asks nothing anew, the answer on
+    // screen is the one, and the list arriving is what opens the window.
+    watch([matches, presence, entriesKnown, searchLoading], () => {
+      if (
+        restoreDone ||
+        !entriesKnown.value ||
+        searchLoading.value ||
+        (!matches.value.length && !presence.value.length)
+      ) {
         return
       }
       restoreDone = true
@@ -2424,7 +2466,24 @@ export const MatchingMap = defineComponent({
     const exactTick = () => {
       const row = exactRow.value
       if (!row) {
-        return null
+        // A remembered entry on a cold load: its row comes with the list. Its place is kept meanwhile
+        // (unseen, out of the way of a screen reader), or the map below would jump down when it comes.
+        return selection.value.kind === 'entry' && !entriesKnown.value ? (
+          <span
+            class={[
+              'map-check',
+              classes['map-check'],
+              'exact-check',
+              classes['exact-check'],
+              'exact-pending',
+              classes['exact-pending'],
+            ]}
+            aria-hidden='true'
+          >
+            <span class={['box', classes.box]} />
+            <span>{t('matching.query.exact')}</span>
+          </span>
+        ) : null
       }
       return (
         <label class={['map-check', classes['map-check'], 'exact-check', classes['exact-check']]}>
