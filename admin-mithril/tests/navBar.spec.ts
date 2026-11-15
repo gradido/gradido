@@ -215,6 +215,18 @@ test('signs out, and goes to the login of the wallet', async ({ page, graphql })
   expect(storage['gradido-admin']).toBeUndefined()
 })
 
+// In the window's upper right corner the face lay under what comes down there: the admin's own
+// messages and the notifications of the computer (Bernd, 15.11.2026).
+test('puts the moderator’s menu right after the pages at the desk', async ({ page }) => {
+  await signIn(page, '/contribution-links')
+  const pages = await page.locator('#nav-collapse > .navbar-nav').boundingBox()
+  const account = await page.getByTestId('navbar-account').boundingBox()
+  if (!pages || !account) {
+    throw new Error('the bar is not drawn')
+  }
+  expect(Math.abs(account.x - (pages.x + pages.width))).toBeLessThan(1)
+})
+
 test('on a phone, folds the pages into a list that a choice closes', async ({ page }) => {
   await page.setViewportSize(phone)
   await signIn(page, '/contribution-links')
