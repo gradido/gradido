@@ -23,6 +23,7 @@ import {
   dbSelectMatchingEntryByUuid,
   dbSelectPublishableMatchingEntry,
   dbSetMatchingEntryActive,
+  dbSetMatchingEntryExactSentence,
   dbSetUndecidedExactSentence,
   dbUpdateMatchingEntry,
   dbWriteMatchingEntryKeying,
@@ -846,6 +847,81 @@ describe('the "genau" of a matching entry', () => {
           throw new Error('rolled back')
         }),
       ).rejects.toThrow('rolled back')
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+  })
+
+  describe('dbSetMatchingEntryExactSentence', () => {
+    it.each<[boolean | null, boolean]>([
+      [null, true],
+      [null, false],
+      [true, true],
+      [true, false],
+      [false, true],
+      [false, false],
+    ])('writes it from %s to %s', async (before, after) => {
+      await anInterest('uuid-exact-1', before)
+      expect((await dbSetMatchingEntryExactSentence('uuid-exact-1', after)).success).toBe(true)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBe(after)
+    })
+
+    it('reports an entry that is not there, and touches no other', async () => {
+      await anInterest('uuid-exact-1')
+      const result = await dbSetMatchingEntryExactSentence('uuid-exact-gone', true)
+      expect(result.success).toBe(false)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
+    })
+
+    // A pause, the sentence and the words worked out for it stand beside the tick.
+    it('writes nothing else of the row', async () => {
+      await anInterest('uuid-exact-1')
+      await dbSetMatchingEntryActive('uuid-exact-1', false)
+      await db
+        .update(matchingEntriesTable)
+        .set({ keyWords: ['kongress', 'healing'], instructionVersion: 'gms176-1' })
+        .where(eq(matchingEntriesTable.uuid, 'uuid-exact-1'))
+      const before = (await rowOf('uuid-exact-1'))!
+
+      await dbSetMatchingEntryExactSentence('uuid-exact-1', true)
+      const after = (await rowOf('uuid-exact-1'))!
+      expect(after.exactSentence).toBe(true)
+      expect({ ...after, exactSentence: null, updatedAt: before.updatedAt }).toEqual(before)
+    })
+
+    it.each([[true], [false]])(
+      "moves the entry up in the member's list, also where it was %s already",
+      async (value) => {
+        await anInterest('uuid-exact-1', value)
+        const backdated = new Date('2024-01-01T00:00:00.000Z')
+        await db
+          .update(matchingEntriesTable)
+          .set({ updatedAt: backdated })
+          .where(eq(matchingEntriesTable.uuid, 'uuid-exact-1'))
+        await dbSetMatchingEntryExactSentence('uuid-exact-1', value)
+        expect((await rowOf('uuid-exact-1'))!.updatedAt.getTime()).toBeGreaterThan(
+          backdated.getTime(),
+        )
+      },
+    )
+
+    // KA-020 point 4: the member's "no" is the state a project link respects.
+    it('keeps the project link away once taken off', async () => {
+      const found = await anInterest('uuid-exact-1', true)
+      await dbSetMatchingEntryExactSentence('uuid-exact-1', false)
+      expect(await dbSetUndecidedExactSentence(found)).toBe(false)
+      expect((await rowOf('uuid-exact-1'))!.exactSentence).toBe(false)
+    })
+
+    it.each<[boolean, string, Partial<MatchingEntryContent>]>([
+      [true, 'another sentence', { summary: 'Ich liebe Kongress Heilung' }],
+      [false, 'another sentence', { summary: 'Ich liebe Kongress Heilung' }],
+      [true, 'another kind', { matchingType: 'offer' }],
+      [false, 'another kind', { matchingType: 'offer' }],
+    ])('set to %s by hand, it falls back to never decided on %s', async (value, _what, change) => {
+      await anInterest('uuid-exact-1')
+      await dbSetMatchingEntryExactSentence('uuid-exact-1', value)
+      const stored = (await rowOf('uuid-exact-1'))!
+      expect((await edit(stored, change)).success).toBe(true)
       expect((await rowOf('uuid-exact-1'))!.exactSentence).toBeNull()
     })
   })

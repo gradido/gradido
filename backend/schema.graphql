@@ -1177,6 +1177,7 @@ type Mutation {
   settleEventMatchingArrival: Boolean!
   updateMatchingEntry(input: MatchingEntryInput!, uuid: String!): MatchingEntry!
   setMatchingEntryActive(active: Boolean!, uuid: String!): MatchingEntry!
+  setMatchingEntryExactSentence(exactSentence: Boolean!, uuid: String!): MatchingEntry!
   deleteMatchingEntry(uuid: String!): Boolean!
   declareProjectAccount: Boolean!
   requestCreationRight: Boolean!

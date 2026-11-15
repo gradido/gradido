@@ -52,9 +52,10 @@ export class MatchingEntry {
 
   /**
    * The "genau" of the entry (KA-020): it finds only the members with the same sentence, and the
-   * map asks the GMS for them (`sentence-matches`). Set by a project link; it falls when the
-   * member changes the sentence or the kind. False also where it was never decided -- the column
-   * tells the two apart, for the link, which sets it only where nobody decided.
+   * map asks the GMS for them (`sentence-matches`). Set by a project link, or by the member's tick
+   * at the map (setMatchingEntryExactSentence); it falls when the member changes the sentence or
+   * the kind. False also where it was never decided -- the column tells the two apart, for the
+   * link, which sets it only where nobody decided.
    */
   @Field(() => Boolean)
   exactSentence: boolean

@@ -470,6 +470,36 @@ export async function dbSetMatchingEntryActive(
   return { success: false, error: MatchingEntryNotFound(`uuid = ${uuid}`) }
 }
 
+/**
+ * The "genau" set or taken off by the member's own hand (KA-023 point 5): true or false, never
+ * NULL. False is the member's "no", which a project link leaves alone (dbSetUndecidedExactSentence);
+ * NULL belongs to the edit that changed the sentence (dbUpdateMatchingEntry), and a link may set it
+ * again.
+ *
+ * This one field and the stamp, nothing else of the row: a pause or an edit made beside it stays.
+ * No sentence is compared, unlike the link's healing -- the tick is for the entry as it stands. A
+ * device with an older list can so set it on a sentence another device has changed in between; then
+ * a "no" keeps the link of that sentence away until the member ticks it themselves. Taken as it is.
+ *
+ * `updatedAt` is stamped by hand, as for a pause: the entry rises in the member's list whenever the
+ * tick is written, also where the value was already there.
+ */
+export async function dbSetMatchingEntryExactSentence(
+  uuid: string,
+  exactSentence: boolean,
+): Promise<VoidResult<DBNotFoundError>> {
+  const result = await drizzleDb()
+    .update(matchingEntriesTable)
+    .set({ exactSentence, updatedAt: new Date() })
+    .where(eq(matchingEntriesTable.uuid, uuid))
+
+  const firstRow = result[0]
+  if (firstRow && firstRow.affectedRows === 1) {
+    return { success: true }
+  }
+  return { success: false, error: MatchingEntryNotFound(`uuid = ${uuid}`) }
+}
+
 /** Removes one entry for good. The GMS copy is the caller's business, not the table's. */
 export async function dbDeleteMatchingEntryByUuid(
   uuid: string,
