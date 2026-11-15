@@ -93,6 +93,37 @@ export const sendAddedSupportTicketMessageEmail = (
   })
 }
 
+/**
+ * The mail to a moderator about a support request (Support-Anfragen K5): a member asked one, or a
+ * moderator handed one on (`reassigned`). Who did it by username (`actorAlias`, null where they
+ * have none), the request's number and its group by name (null: no group) -- never a word of the
+ * request: the mail is the nudge, the admin's list the content (MAIL-008). The button leads to
+ * the account; the mail says where the request stands.
+ *
+ * Who gets it is the caller's: the moderators who find the request in their list, else the
+ * administrators, to a confirmed address only (SUA-018, SUA-024).
+ */
+export const sendNewSupportTicketEmail = (
+  data: EmailCommonData & {
+    actorAlias: string | null
+    supportTicketNumber: number
+    groupName: string | null
+    reassigned: boolean
+  },
+): Promise<Record<string, unknown> | boolean | null | Error> => {
+  // The moderator's name in quotes, as in the answer mail: a comma or an angle bracket in it
+  // starts no other recipient.
+  const name = `${data.firstName} ${data.lastName}`.replace(/[\\"]/g, '\\$&')
+  return sendEmailTranslated({
+    receiver: { to: `"${name}" <${data.email}>` },
+    template: 'newSupportTicket',
+    locals: {
+      ...data,
+      ...getEmailCommonLocales(),
+    },
+  })
+}
+
 export const sendAccountActivationEmail = (
   data: EmailCommonData & {
     activationLink: string

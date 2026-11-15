@@ -188,6 +188,15 @@ query newChatMessagesSince(
     unreadTransfers
     latestUnreadTransferId
   }
+  # The support's beside it (Support-Anfragen K5), nothing of the chat: whether new requests are
+  # switched on, and how many of the member's own requests have a question back or are not
+  # closed -- for the menu. The SECOND field: the specs read the first one as the chat's. Null
+  # where the server could not count; it never fails the question.
+  supportTicketsMenu {
+    active
+    inProgress
+    unfinished
+  }
 }
 
 # Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server

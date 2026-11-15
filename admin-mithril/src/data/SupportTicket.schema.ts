@@ -58,3 +58,13 @@ export const openSupportTicketsSchema = v.object({
     onResubmission: v.number(),
   }),
 })
+
+/** Whether members file new requests (supportTicketsMenu, K5); null where the server could not say. */
+export const supportSwitchSchema = v.object({
+  supportTicketsMenu: v.nullable(v.object({ active: v.boolean() })),
+})
+
+/** What holds after the administrator switched (adminSetSupportTicketsActive, K5). */
+export const supportSwitchedSchema = v.object({
+  adminSetSupportTicketsActive: v.boolean(),
+})

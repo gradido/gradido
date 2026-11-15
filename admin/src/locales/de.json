@@ -693,6 +693,16 @@
     "resubmissionLine": "Wiedervorlage: {day}, {time}",
     "searchMember": "Nach diesem Mitglied suchen",
     "sent": "Gesendet",
+    "switch": {
+      "confirmBody": "Mitglieder können dann keine neue Anfrage mehr stellen. Offene Anfragen bleiben in dieser Liste; wer eine offene Anfrage hat, kann darin weiterschreiben.",
+      "confirmOpen": "Noch offen: {open}",
+      "confirmTitle": "Neue Anfragen ausschalten",
+      "confirmYes": "Ja, ausschalten",
+      "hint": "Sind neue Anfragen ausgeschaltet, zeigt das Wallet wieder „Information“. Offene Anfragen bleiben, bis sie geschlossen sind.",
+      "label": "Mitglieder können neue Anfragen stellen",
+      "off": "Neue Anfragen sind ausgeschaltet.",
+      "on": "Neue Anfragen sind eingeschaltet."
+    },
     "tab": {
       "all": "Alle",
       "closed": "Geschlossen",

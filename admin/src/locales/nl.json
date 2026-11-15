@@ -693,6 +693,16 @@
     "resubmissionLine": "Herinnering: {day}, {time}",
     "searchMember": "Naar dit lid zoeken",
     "sent": "Verzonden",
+    "switch": {
+      "confirmBody": "Leden kunnen dan geen nieuwe vraag meer stellen. Open vragen blijven in deze lijst; wie een open vraag heeft, kan daarin verder schrijven.",
+      "confirmOpen": "Nog open: {open}",
+      "confirmTitle": "Nieuwe vragen uitschakelen",
+      "confirmYes": "Ja, uitschakelen",
+      "hint": "Als nieuwe vragen uitgeschakeld zijn, toont de wallet weer ‘Informatie’. Open vragen blijven staan tot ze gesloten zijn.",
+      "label": "Leden kunnen nieuwe vragen stellen",
+      "off": "Nieuwe vragen zijn uitgeschakeld.",
+      "on": "Nieuwe vragen zijn ingeschakeld."
+    },
     "tab": {
       "all": "Alle",
       "closed": "Gesloten",

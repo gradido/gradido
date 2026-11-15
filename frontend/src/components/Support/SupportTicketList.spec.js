@@ -8,6 +8,7 @@ import { listSupportTickets } from '@/graphql/supportTickets.graphql'
 import { SupportTicketList } from './SupportTicketList'
 
 const mockRefetch = vi.fn()
+const mockPollChatNow = vi.fn()
 
 vi.mock('@vue/apollo-composable', () => ({ useQuery: vi.fn() }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
@@ -23,6 +24,9 @@ vi.mock('@/components/Support/SupportTicketListItem', () => ({
     emits: ['toggle-messages-visible', 'ticket-changed'],
     template: '<div class="row-stub" />',
   },
+}))
+vi.mock('@/composables/useChatUpdates', () => ({
+  pollChatNow: (...args) => mockPollChatNow(...args),
 }))
 vi.mock('@/components/PaginatorRouteParamsPage.vue', () => ({
   default: { name: 'PaginatorRouteParamsPage', props: ['totalCount'], template: '<div />' },
@@ -88,6 +92,8 @@ describe('SupportTicketList', () => {
     const wrapper = mount(SupportTicketList)
     await rows(wrapper)[0].vm.$emit('ticket-changed')
     expect(mockRefetch).toHaveBeenCalledTimes(1)
+    // and the mark in the menu with it, not with the next beat (K5)
+    expect(mockPollChatNow).toHaveBeenCalledTimes(1)
   })
 
   it('says so where the member has asked nothing yet', () => {

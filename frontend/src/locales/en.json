@@ -592,7 +592,8 @@
     "resendTooSoon": "The confirmation e-mail has only just gone out. Please wait a few minutes before asking for it again.",
     "resent": "The confirmation mail is on its way again.",
     "strip": "A confirmation e-mail is on its way to you — please click the link in it. Until {deadline}, you can already use your account in full.",
-    "title": "Confirm your e-mail address"
+    "title": "Confirm your e-mail address",
+    "writeSupport": "Is the mail not arriving? Write to the support team."
   },
   "emoji": {
     "choice": "Emoji",
@@ -1613,12 +1614,15 @@
   "success": "Success",
   "support": {
     "answerQuestion": "There is a new message for this request.",
+    "badge": "{n} request with a question for you | {n} requests with a question for you",
     "changed": "This request has changed in the meantime.",
     "closed": "The request is closed.",
     "done": "Done, thanks",
+    "dot": "A question about one of your requests",
     "failed": "Unfortunately, that did not work. Please try again.",
     "info": {
       "information": "Here is what matters for your community and who looks after it. The easiest way to ask your question is under “Write”.",
+      "informationOff": "Here is what matters for your community and who looks after it.",
       "myRequests": "Here are your requests and the answers to them. If you write again, the request is open again.",
       "write": {
         "answer": "You will receive the answer by e-mail. You will also find it here under “My requests”.",
@@ -1633,9 +1637,11 @@
       "open": "sent, waiting for an answer"
     },
     "messagesReached": "This request already has {max} messages. Please start a new request.",
+    "messagesReachedOff": "This request already has {max} messages. You can reach the support team at {mail}.",
     "myRequests": "My requests",
     "noRequests": "You have not made a request yet.",
     "number": "Request no. {number}",
+    "off": "New requests are switched off in your community at the moment. You can reach the support team at {mail}.",
     "perDayReached": "You have already made {max} requests in the last 24 hours. Please continue in one of them.",
     "placeholder": "What can we help you with?",
     "question": "Your question",

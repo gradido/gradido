@@ -4,6 +4,11 @@ import { BTab, BTabs } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { Support } from './Support'
+import {
+  firstLoginWindow,
+  forgetFirstLoginWindows,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
 
 const mockRoute = reactive({ params: { tab: 'write' } })
 const mockReplace = vi.fn()
@@ -72,5 +77,37 @@ describe('Support', () => {
     const wrapper = mountAt('information')
     await flushPromises()
     expect(wrapper.findComponent({ name: 'InfoStatistic' }).exists()).toBe(true)
+  })
+
+  /**
+   * While the page stands, no window of the first logins opens over it (SUA-016): whoever came
+   * here wants to ask something -- also an account whose address did not arrive, whose window
+   * cannot be closed and leads here (K5). They come back in their order when it goes.
+   */
+  describe('and the windows of the first logins', () => {
+    beforeEach(() => {
+      forgetFirstLoginWindows()
+    })
+
+    it('holds them while it stands, and lets them come when it goes', () => {
+      setFirstLoginWindowWanted('email', true)
+      expect(firstLoginWindow.value).toBe('email')
+
+      const wrapper = mountAt('write')
+      expect(firstLoginWindow.value).toBe('support')
+
+      wrapper.unmount()
+      expect(firstLoginWindow.value).toBe('email')
+    })
+
+    it('holds them on every tab', () => {
+      setFirstLoginWindowWanted('alias', true)
+      for (const tab of ['write', 'my-requests', 'information']) {
+        const wrapper = mountAt(tab)
+        expect([tab, firstLoginWindow.value]).toEqual([tab, 'support'])
+        wrapper.unmount()
+      }
+      expect(firstLoginWindow.value).toBe('alias')
+    })
   })
 })

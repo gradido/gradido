@@ -3,8 +3,22 @@ import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { isDuplicateEntry } from '../errorTypes'
-import { userRolesTable } from '../schemas'
-import { dbInsertUserRoles, dbRemoveUserRoles, dbUpsertUserRole } from './userRoles'
+import { userContactsTable, userRolesTable, usersTable } from '../schemas'
+import { createCommunity } from '../seeds/community'
+import { userFactoryDrizzle } from '../seeds/factory/user'
+import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
+import { bobBaumeister } from '../seeds/users/bob-baumeister'
+import { garrickOllivander } from '../seeds/users/garrick-ollivander'
+import { peterLustig } from '../seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '../seeds/users/raeuber-hotzenplotz'
+import { stephenHawking } from '../seeds/users/stephen-hawking'
+import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
+import {
+  dbInsertUserRoles,
+  dbRemoveUserRoles,
+  dbSelectRoleHoldersWithContact,
+  dbUpsertUserRole,
+} from './userRoles'
 
 const appDB = AppDatabase.getInstance()
 let db: MySql2Database
@@ -134,5 +148,124 @@ describe('dbInsertUserRoles', () => {
     await dbInsertUserRoles([])
 
     expect(await countFrom(FIRST)).toBe(0)
+  })
+})
+
+// The members a mail to the moderation may go to (Support-Anfragen K5): a role a row may hold,
+// an account of this community that is not deleted, a confirmed address in force.
+describe('dbSelectRoleHoldersWithContact', () => {
+  const withRole = (userId: number, role: string, visibleCreationGroups: string | null = null) =>
+    db.insert(userRolesTable).values({ userId, role, visibleCreationGroups })
+  const heldBy = async () => (await dbSelectRoleHoldersWithContact()).map(({ userId }) => userId)
+
+  let peter: number
+  let bob: number
+  let raeuber: number
+
+  beforeAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+    await createCommunity(false)
+    // an administrator, written with the role by the factory
+    peter = (await userFactoryDrizzle(peterLustig)).id
+    bob = (await userFactoryDrizzle(bobBaumeister)).id
+    raeuber = (await userFactoryDrizzle(raeuberHotzenplotz)).id
+    await withRole(bob, 'MODERATOR', '["garden","*untagged"]')
+    await withRole(raeuber, 'MODERATOR_AI')
+  })
+  afterAll(async () => {
+    await dbDeleteAllRowsExceptMigrations()
+  })
+
+  it('answers each of them with role, scope, name, language and address, by number', async () => {
+    expect(await dbSelectRoleHoldersWithContact()).toEqual([
+      {
+        userId: peter,
+        role: 'ADMIN',
+        visibleCreationGroups: null,
+        firstName: 'Peter',
+        lastName: 'Lustig',
+        language: 'de',
+        email: 'peter@lustig.de',
+      },
+      {
+        userId: bob,
+        role: 'MODERATOR',
+        visibleCreationGroups: '["garden","*untagged"]',
+        firstName: 'Bob',
+        lastName: 'der Baumeister',
+        language: 'de',
+        email: 'bob@baumeister.de',
+      },
+      {
+        userId: raeuber,
+        role: 'MODERATOR_AI',
+        visibleCreationGroups: null,
+        firstName: 'Räuber',
+        lastName: 'Hotzenplotz',
+        language: 'de',
+        email: 'raeuber@hotzenplotz.de',
+      },
+    ])
+  })
+
+  it('leaves out a member without a role, and a row with a role no row may hold', async () => {
+    const bibi = (await userFactoryDrizzle(bibiBloxberg)).id
+    const garrick = (await userFactoryDrizzle({ ...garrickOllivander, emailChecked: true })).id
+    await withRole(garrick, 'USER')
+    const dlt = (
+      await userFactoryDrizzle({ ...garrickOllivander, alias: 'DltRole', email: 'dlt@role.de' })
+    ).id
+    await db
+      .update(userContactsTable)
+      .set({ emailChecked: true })
+      .where(eq(userContactsTable.userId, dlt))
+    await withRole(dlt, 'DLT_CONNECTOR_ROLE')
+
+    const held = await heldBy()
+    expect(held).not.toContain(bibi)
+    expect(held).not.toContain(garrick)
+    expect(held).not.toContain(dlt)
+    expect(held).toEqual([peter, bob, raeuber])
+  })
+
+  it('leaves out an address not confirmed', async () => {
+    const unconfirmed = (
+      await userFactoryDrizzle({ ...garrickOllivander, alias: 'NotYet', email: 'not@yet.de' })
+    ).id
+    await withRole(unconfirmed, 'MODERATOR')
+
+    expect(await heldBy()).not.toContain(unconfirmed)
+  })
+
+  it('leaves out a deleted account and a member of another community', async () => {
+    const deleted = (await userFactoryDrizzle(stephenHawking)).id
+    await withRole(deleted, 'ADMIN')
+    const foreign = (
+      await userFactoryDrizzle({ ...bobBaumeister, alias: 'ForeignBob', email: 'bob@far.away' })
+    ).id
+    await db.update(usersTable).set({ foreign: true }).where(eq(usersTable.id, foreign))
+    await withRole(foreign, 'MODERATOR')
+
+    const held = await heldBy()
+    expect(held).not.toContain(deleted)
+    expect(held).not.toContain(foreign)
+  })
+
+  it('leaves out a member whose address in force is deleted, or who has none', async () => {
+    const goneAddress = (
+      await userFactoryDrizzle({ ...bobBaumeister, alias: 'GoneMail', email: 'gone@mail.de' })
+    ).id
+    await db
+      .update(userContactsTable)
+      .set({ deletedAt: new Date() })
+      .where(eq(userContactsTable.userId, goneAddress))
+    await withRole(goneAddress, 'MODERATOR')
+    const noAddress = (
+      await userFactoryDrizzle({ ...bobBaumeister, alias: 'NoMail', email: 'no@mail.de' })
+    ).id
+    await db.update(usersTable).set({ emailId: null }).where(eq(usersTable.id, noAddress))
+    await withRole(noAddress, 'MODERATOR')
+
+    expect(await heldBy()).toEqual([peter, bob, raeuber])
   })
 })

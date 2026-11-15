@@ -24,6 +24,15 @@
       <p v-if="resent" class="small text-success mt-3 mb-0" data-test="email-confirmation-resent">
         {{ $t('emailConfirmation.resent') }}
       </p>
+      <!-- A third way, while the support is on (K5, SUA-016): an account whose address did not
+           arrive may ask. The page "Support" holds this window back while it stands
+           (useFirstLoginWindow) -- without this line it is out of reach at the desk, where the
+           window lies over every menu. -->
+      <p v-if="store.supportTicketsActive !== false" class="mt-3 mb-0">
+        <router-link to="/support/write" data-test="email-confirmation-support">
+          {{ $t('emailConfirmation.writeSupport') }}
+        </router-link>
+      </p>
     </div>
 
     <template #footer>
@@ -51,6 +60,7 @@ import { computed, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { BButton, BModal } from 'bootstrap-vue-next'
 import { useEmailConfirmation } from '@/composables/useEmailConfirmation'
+import { useWalletStore } from '@/store/useWalletStore'
 import {
   firstLoginWindowOnScreen,
   setFirstLoginWindowWanted,
@@ -58,6 +68,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const store = useWalletStore()
 const { unconfirmed, overdue, resend, resending, resent } = useEmailConfirmation()
 
 // Whether this window has something to say -- not the same as being on screen. It is FIRST

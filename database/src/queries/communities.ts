@@ -161,6 +161,18 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
   return homeCom.matchingKeyingActive
 }
 
+/**
+ * Whether members of the home community file support requests in the wallet (K5, SUA-019).
+ *
+ * Read through the cached home community, as dbIsMatchingKeyingActive: a switch is seen in this
+ * process on the next call, in the others once the Redis message arrives, else after
+ * `DEFAULT_CACHE_TIMEOUT_MS`. Throws where there is no home community, or where the reading fails.
+ */
+export async function dbIsSupportTicketsActive(): Promise<boolean> {
+  const homeCom = await getHomeCommunityDrizzle()
+  return homeCom.supportTicketsActive
+}
+
 export async function getHomeCommunityWithFederatedCommunityOrFail(
   apiVersion: string,
 ): Promise<DbCommunity> {

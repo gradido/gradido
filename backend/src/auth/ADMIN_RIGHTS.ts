@@ -21,4 +21,6 @@ export const ADMIN_RIGHTS = [
   RIGHTS.FUNCTION_TESTS,
   RIGHTS.SET_CREATION_ALLOWED,
   RIGHTS.MANAGE_CHAT_VIDEO_SERVERS,
+  // the switch of the support requests (K5): a moderator reads it, an administrator sets it
+  RIGHTS.SET_SUPPORT_TICKETS_ACTIVE,
 ]

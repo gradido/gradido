@@ -59,12 +59,17 @@ import { computed, reactive } from 'vue'
  * conversation through that address, and what they came for is the conversation -- the others
  * wait, and come in their order once it is closed. `'contact'` takes part in the same rule instead of a rule of its own, so "only one
  * at a time" still stands in this one line. Nothing shows by it: no component binds to it.
+ *
+ * And so does the page "Support" (`'support'`, pages/Support.tsx, SUA-016), for as long as it
+ * stands: whoever opened it wants to ask something -- also an account whose address did not
+ * arrive, which is why the address's window, that cannot be closed, has a way there.
  */
-const ORDER = ['contact', 'email', 'alias', 'home', 'firstCreation']
+const ORDER = ['contact', 'support', 'email', 'alias', 'home', 'firstCreation']
 
-/** Which windows would show if nothing else were in the way. Only these five keys exist. */
+/** Which windows would show if nothing else were in the way. Only these six keys exist. */
 const wanted = reactive({
   contact: false,
+  support: false,
   email: false,
   alias: false,
   home: false,
@@ -106,7 +111,7 @@ const held = reactive({ alias: false, firstCreation: false })
 
 /**
  * The window that has the screen, or null.
- * `'contact' | 'email' | 'alias' | 'home' | 'firstCreation' | null`.
+ * `'contact' | 'support' | 'email' | 'alias' | 'home' | 'firstCreation' | null`.
  */
 export const firstLoginWindow = computed(() => {
   for (const name of ORDER) {
@@ -129,7 +134,7 @@ export const firstLoginWindowOnScreen = (name) => computed(() => firstLoginWindo
  * computed getter -- a getter that writes runs an unknown number of times and in an order
  * nobody controls.
  *
- * @param {'contact'|'email'|'alias'|'home'|'firstCreation'} name
+ * @param {'contact'|'support'|'email'|'alias'|'home'|'firstCreation'} name
  * @param {boolean} value
  */
 export const setFirstLoginWindowWanted = (name, value) => {

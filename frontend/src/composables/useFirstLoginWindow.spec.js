@@ -76,9 +76,36 @@ describe('useFirstLoginWindow', () => {
     expect(email.value).toBe(false)
   })
 
+  /**
+   * The page "Support" takes part in the same rule (K5, SUA-016): while it stands, no window
+   * opens over it -- also not the address's, which cannot be closed and leads there -- and they
+   * come in their order once it is gone. Nothing binds to it.
+   */
+  it('shows none of the windows while the page "Support" stands, and all in order after it', () => {
+    const onScreen = ['email', 'alias', 'home', 'firstCreation'].map(firstLoginWindowOnScreen)
+    wants('email', 'alias', 'home', 'firstCreation')
+    expect(firstLoginWindow.value).toBe('email')
+
+    wants('support')
+
+    expect(firstLoginWindow.value).toBe('support')
+    expect(onScreen.map((window) => window.value)).toEqual([false, false, false, false])
+
+    setFirstLoginWindowWanted('support', false)
+    expect(firstLoginWindow.value).toBe('email')
+  })
+
+  // A conversation opened through an address has its own reason: it stays first.
+  it('lets the conversation an address opened go before the page "Support"', () => {
+    wants('support', 'contact')
+    expect(firstLoginWindow.value).toBe('contact')
+    setFirstLoginWindowWanted('contact', false)
+    expect(firstLoginWindow.value).toBe('support')
+  })
+
   // Logging out does not reload the page: the next member on this browser meets their own.
-  it('forgets all five on logout', () => {
-    wants('contact', 'email', 'alias', 'home', 'firstCreation')
+  it('forgets all six on logout', () => {
+    wants('contact', 'support', 'email', 'alias', 'home', 'firstCreation')
 
     forgetFirstLoginWindows()
 

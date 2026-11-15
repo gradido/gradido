@@ -74,7 +74,8 @@ export interface RequestBudget {
   // Lists, threads and counts of support requests read (listSupportTickets,
   // listSupportTicketMessages, adminListSupportTickets, adminListSupportTicketMessages,
   // adminCountOpenSupportTickets), capped together at SUPPORT_TICKET_READS_MAX_PER_REQUEST. The
-  // answer of a request that read one stays out of the log.
+  // answer of a request that read one stays out of the log. ⚠️ Not supportTicketsMenu (K5): it
+  // rides in the chat's beat and carries no words, see SUPPORT_TICKET_READS_MAX_PER_REQUEST.
   supportTicketReadsServed: number
   // Writes of the support (createSupportTicket, createSupportTicketMessage, closeSupportTicket,
   // adminCreateSupportTicketMessage, adminCloseSupportTicket, adminDeleteSupportTicket), capped

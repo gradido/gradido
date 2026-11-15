@@ -63,6 +63,34 @@ export async function dbCountSupportTicketsOfUserSince(
   return row.filed
 }
 
+/**
+ * Of the member's own requests, how many wait for them -- a question back (IN_PROGRESS) -- and how
+ * many are not closed (OPEN or IN_PROGRESS): the wallet's menu (K5, SUA-017). One query, on the
+ * member's index; nothing of a closed or a deleted request.
+ */
+export async function dbCountUnfinishedSupportTicketsOfUser(
+  userId: number,
+): Promise<{ inProgress: number; unfinished: number }> {
+  const [row] = await drizzleDb()
+    .select({
+      inProgress: count(
+        sql`case when ${eq(supportTicketsTable.status, SupportTicketStatus.IN_PROGRESS)} then 1 end`,
+      ),
+      unfinished: count(),
+    })
+    .from(supportTicketsTable)
+    .where(
+      and(
+        eq(supportTicketsTable.userId, userId),
+        inArray(supportTicketsTable.status, [
+          SupportTicketStatus.OPEN,
+          SupportTicketStatus.IN_PROGRESS,
+        ]),
+      ),
+    )
+  return row
+}
+
 /** A page of the member's own requests, the newest first, and how many they have in all. */
 export async function dbSelectSupportTicketsOfUser(
   userId: number,

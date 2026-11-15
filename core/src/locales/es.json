@@ -173,6 +173,17 @@
       "transactionDetails": "Detalles de la transacción",
       "yourGradidoTeam": "tu equipo de Gradido"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias} ha hecho una consulta (n.º {supportTicketNumber}).",
+      "filedByMember": "Un miembro ha hecho una consulta (n.º {supportTicketNumber}).",
+      "group": "Grupo: {groupName}",
+      "noGroup": "Sin grupo",
+      "reassigned": "{actorAlias} ha derivado la consulta n.º {supportTicketNumber}.",
+      "reassignedBySomebody": "La consulta n.º {supportTicketNumber} se ha derivado.",
+      "subject": "Nueva consulta de soporte",
+      "title": "Nueva consulta de soporte",
+      "whereToFind": "La encontrarás en el área de administración, en «Soporte»."
+    },
     "resetPassword": {
       "pleaseClickLink": "Si has sido tú, haz clic aquí.",
       "subject": "Restablecer contraseña",

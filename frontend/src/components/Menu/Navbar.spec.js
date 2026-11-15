@@ -572,6 +572,70 @@ describe('Navbar', () => {
     })
 
     /**
+     * One dot for both (K5): a question back to one of the member's support requests sits on
+     * the opener as unread conversations do -- the menu behind it shows which. The line for the
+     * ear says the support's case in its own words.
+     */
+    describe('and the support (K5)', () => {
+      const serverSaysSupport = async (unreadConversations, inProgress) => {
+        startChatUpdates({
+          query: vi.fn(async () => ({
+            data: {
+              newChatMessagesSince: {
+                latestId: 1,
+                unreadConversations,
+                messages: [],
+                hasMore: false,
+              },
+              supportTicketsMenu: { active: true, inProgress, unfinished: inProgress },
+            },
+          })),
+        })
+        await flushPromises()
+      }
+
+      it('sits on the opener while a question back waits in a request, with its own line', async () => {
+        await serverSaysSupport(0, 1)
+        wrapper = mountComponent()
+
+        expect(opener().find('.navbar-toggler-icon [data-test="chat-unread-dot"]').exists()).toBe(
+          true,
+        )
+        const label = opener().find('[data-test="support-dot-label"]')
+        expect(label.classes()).toContain('visually-hidden')
+        expect(label.text()).toBe('support.dot')
+        expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(false)
+      })
+
+      it('is one dot for the chat and the support, with both lines', async () => {
+        await serverSaysSupport(2, 1)
+        wrapper = mountComponent()
+
+        expect(opener().findAll('[data-test="chat-unread-dot"]')).toHaveLength(1)
+        expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(true)
+        expect(opener().find('[data-test="support-dot-label"]').exists()).toBe(true)
+      })
+
+      it('is not there for requests that are only open', async () => {
+        await serverSaysSupport(0, 0)
+        wrapper = mountComponent()
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="support-dot-label"]').exists()).toBe(false)
+      })
+
+      it("goes with the beat: the numbers were the member's", async () => {
+        await serverSaysSupport(0, 1)
+        wrapper = mountComponent()
+        stopChatUpdates()
+        await flushPromises()
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="support-dot-label"]').exists()).toBe(false)
+      })
+    })
+
+    /**
      * ⛔ Laid over the symbol's corner: the bar must not move when the dot comes and goes. jsdom
      * lays nothing out, so the stylesheet says it -- read without its comments.
      */

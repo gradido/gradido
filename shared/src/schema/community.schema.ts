@@ -56,6 +56,7 @@ export const homeCommunityUpdateSchema = v.partial(
     ),
     hieroTopicId: v.nullable(hieroIdSchema),
     matchingKeyingActive: v.boolean(),
+    supportTicketsActive: v.boolean(),
   }),
 )
 

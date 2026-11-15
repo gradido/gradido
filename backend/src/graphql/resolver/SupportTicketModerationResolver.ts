@@ -9,12 +9,14 @@ import {
   dbCountOpenSupportTicketsInScope,
   dbFindMemberAvatarTimestamps,
   dbFindUsersWithEmailContactByIds,
+  dbIsSupportTicketsActive,
   dbSelectCreationGroupByTag,
   dbSelectNewestSupportTicketDialogs,
   dbSelectSupportTicketGroupInScope,
   dbSelectSupportTicketOwnerInScope,
   dbSelectSupportTicketsInScope,
   dbSelectSupportTicketThread,
+  dbUpdateHomeCommunity,
   dbUpdateSupportTicketOfModerator,
   findUserNamesByIds,
   SupportTicketFilter,
@@ -34,6 +36,7 @@ import {
   SUPPORT_TICKET_NOT_READ,
   SUPPORT_TICKET_NOT_STORED,
   SUPPORT_TICKET_UNKNOWN_GROUP,
+  supportTicketGroupName,
 } from '@/data/SupportTicket.logic'
 import {
   adminSupportTicketsPageSchema,
@@ -52,6 +55,10 @@ import { GROUPED_FILTER, UNTAGGED_FILTER } from './util/findContributions'
 import { fromDatabase } from './util/fromDatabase'
 import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
 import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
+import {
+  mailModeratorsOfSupportTicket,
+  readSupportTicketMailRecipients,
+} from './util/supportTicketModeratorsMail'
 
 /**
  * The group filter as the admin's choice sends it, the creation page's tokens (findContributions):
@@ -399,13 +406,32 @@ export class SupportTicketModerationResolver {
     return true
   }
   /**
+   * Switches whether the members of this community file new support requests (K5, SUA-019), for
+   * administrators only: off, no new request is filed, and what runs, runs to its end; a moderator
+   * reads the switch through supportTicketsMenu. Answers what holds afterwards, read back through
+   * the cached home community the wallet's menu reads, not the argument. Not counted in the
+   * support's budget: it writes no request, so there are no words to keep out of the log.
+   */
+  @Authorized([RIGHTS.SET_SUPPORT_TICKETS_ACTIVE])
+  @Mutation(() => Boolean)
+  async adminSetSupportTicketsActive(
+    @Arg('active', () => Boolean) active: boolean,
+  ): Promise<boolean> {
+    return fromDatabase(SUPPORT_TICKET_NOT_STORED, async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: active })
+      return dbIsSupportTicketsActive()
+    })
+  }
+
+  /**
    * Hands a request the moderator reaches on to another group, or to no group (`creationGroupTag`
    * '', K4, SUA-018): an open one or one with a question back, never the moderator's own. The
    * target is not checked against the scope -- handing on is out of the own groups --, and the
    * request may leave the moderator's reach with it: nothing of it is answered, the page asks for
    * its list anew. The thread gets a line of its own kind with the two groups as they are named
    * now, which the member reads too; the text is the server's, from no argument. A resubmission
-   * goes with it; no mail.
+   * goes with it. The member gets no mail; the moderators of the group it goes to hear of it as of
+   * a new request, with who handed it on (K5) -- the answer does not wait for those mails.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Mutation(() => Boolean)
@@ -446,6 +472,12 @@ export class SupportTicketModerationResolver {
       { tag: ticket.creationGroupTag, name: ticket.creationGroupName },
       { tag: target?.tag ?? null, name: target?.name ?? null },
     )
+    // who hears of it in the group it goes to (K5, SUA-024 point 6): read before the write and
+    // never throwing -- neither who hands it on nor the member who asked
+    const recipients = await readSupportTicketMailRecipients(target?.tag ?? null, [
+      moderator.id,
+      ticket.userId,
+    ])
     const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       writeSupportTicketMessage(
         moderatorReassigner({
@@ -463,6 +495,14 @@ export class SupportTicketModerationResolver {
     if (!written.success) {
       throw new LogError(written.error.code, supportTicketId)
     }
+    // biome-ignore lint/complexity/noVoid: the mails follow, the handing on does not wait for them
+    void mailModeratorsOfSupportTicket({
+      supportTicketId,
+      recipients,
+      actorAlias: moderator.alias || null,
+      groupName: supportTicketGroupName(target),
+      reassigned: true,
+    })
     return true
   }
 }

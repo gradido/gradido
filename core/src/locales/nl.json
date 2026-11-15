@@ -173,6 +173,17 @@
       "transactionDetails": "Transactiedetails",
       "yourGradidoTeam": "je Gradido-team"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias} heeft een vraag gesteld (nr. {supportTicketNumber}).",
+      "filedByMember": "Een lid heeft een vraag gesteld (nr. {supportTicketNumber}).",
+      "group": "Groep: {groupName}",
+      "noGroup": "Zonder groep",
+      "reassigned": "{actorAlias} heeft vraag nr. {supportTicketNumber} doorgegeven.",
+      "reassignedBySomebody": "Vraag nr. {supportTicketNumber} is doorgegeven.",
+      "subject": "Nieuwe supportvraag",
+      "title": "Nieuwe supportvraag",
+      "whereToFind": "Je vindt de vraag in het beheergedeelte onder ‘Support’."
+    },
     "resetPassword": {
       "pleaseClickLink": "Als jij het was, klik dan hier.",
       "subject": "Wachtwoord resetten",

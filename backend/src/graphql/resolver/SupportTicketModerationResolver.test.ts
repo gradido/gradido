@@ -2,11 +2,15 @@
 import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
-import { sendAddedSupportTicketMessageEmail } from 'core'
+import { sendAddedSupportTicketMessageEmail, sendNewSupportTicketEmail } from 'core'
 import {
   AppDatabase,
+  communitiesTable,
   creationGroupsTable,
   DbUser,
+  dbSelectRoleHoldersWithContact,
+  dbSelectSupportTicketsInScope,
+  dbUpdateHomeCommunity,
   drizzleDb,
   SupportTicketMessageType,
   SupportTicketStatus,
@@ -30,6 +34,8 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 import { stephenHawking } from '@/seeds/users/stephen-hawking'
+import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
+import { readSupportTicketMailRecipients } from './util/supportTicketModeratorsMail'
 
 // The moderation's side of support requests (K2, K3), through the schema: `@Authorized` and the
 // request's budget live at the GraphQL layer, the scope in the database. bibi asks, peter is an
@@ -44,6 +50,7 @@ jest.mock('core', () => {
     __esModule: true,
     ...original,
     sendAddedSupportTicketMessageEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+    sendNewSupportTicketEmail: jest.fn(async () => ({ accepted: ['watched'] })),
   }
 })
 
@@ -1473,7 +1480,7 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     expect(await linesOf(id)).toEqual([])
   })
 
-  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail', async () => {
+  it('hands a request on to no group: the group, the line in the thread, the state, no resubmission, no mail to the member', async () => {
     await loginAs('peter@lustig.de')
     const id = await file(bibi.id, 'Wer kümmert sich?', 401, gardenId, {
       status: 'IN_PROGRESS',
@@ -1627,5 +1634,285 @@ describe('SupportTicketModerationResolver, handing on (K4)', () => {
     expect(res.data.listSupportTicketMessages).toEqual([
       { message: 'Garten\nChor', type: 'REASSIGNED', userAlias: peter.alias },
     ])
+  })
+})
+
+// SUA-024, point 3, SUA-027 and Falle 18 of K5: who hears of a request by mail finds it in their
+// list -- the rule of the mail and the list's condition (supportTicketsInScope) held against each
+// other, for every kind of scope: a group (bob), "no group" (räuber), both (carla, from the search
+// above), everything (alma, new here). The rule is a staircase: the group's own moderators, else
+// those who see everything, else the administrators.
+describe('SupportTicketModerationResolver, the mail and the list agree (K5)', () => {
+  let alma: DbUser
+
+  beforeAll(async () => {
+    alma = await userFactoryDrizzle({
+      ...bobBaumeister,
+      alias: 'AlmaAll',
+      email: 'alma@all.de',
+      firstName: 'Alma',
+    })
+    await moderate(alma, [])
+  })
+
+  const holderId = async (email: string): Promise<number> => {
+    const holder = (await dbSelectRoleHoldersWithContact()).find((row) => row.email === email)
+    if (!holder) {
+      throw new Error(`no role holder ${email}`)
+    }
+    return holder.userId
+  }
+
+  // the moderators -- not the administrators -- whose list holds this request
+  const findersOf = async (ticketId: number, word: string): Promise<number[]> => {
+    const finders: number[] = []
+    for (const holder of await dbSelectRoleHoldersWithContact()) {
+      if (holder.role === RoleNames.ADMIN) {
+        continue
+      }
+      const { tickets } = await dbSelectSupportTicketsInScope(
+        ['OPEN'],
+        describeModeratorCreationGroups(holder),
+        { words: [word], group: null, hideResubmissionsAfter: null },
+        0,
+        25,
+      )
+      if (tickets.some(({ id }) => id === ticketId)) {
+        finders.push(holder.userId)
+      }
+    }
+    return finders
+  }
+
+  it.each([
+    ['garden', 'Gartenprobe'],
+    ['choir', 'Chorprobe'],
+    [null, 'Ohneprobe'],
+  ])('mails for a request of %s only those who find it in their list', async (tag, word) => {
+    const groupId = tag === 'garden' ? gardenId : tag === 'choir' ? choirId : null
+    const id = await file(bibi.id, `Eine ${word}`, 500, groupId)
+    const recipients = (await readSupportTicketMailRecipients(tag, [bibi.id])).map(
+      ({ userId }) => userId,
+    )
+    const finders = await findersOf(id, word)
+    expect(recipients.length).toBeGreaterThan(0)
+    expect(finders).toEqual(expect.arrayContaining(recipients))
+    // who sees everything finds it too, and is the next step only (SUA-027)
+    expect(finders).toContain(alma.id)
+    expect(recipients).not.toContain(alma.id)
+  })
+
+  it("names the group's own, else who sees everything, else the administrators (SUA-027)", async () => {
+    const carla = await holderId('carla@sonne.de')
+    const recipientsOf = async (tag: string | null, notFor: number[] = []) =>
+      (await readSupportTicketMailRecipients(tag, notFor)).map(({ userId }) => userId)
+    expect(await recipientsOf('garden')).toEqual([bob.id])
+    expect(await recipientsOf('choir')).toEqual([carla])
+    expect(await recipientsOf(null)).toEqual([raeuber.id, carla])
+    // a group without moderators of its own, and one whose only moderator asks
+    expect(await recipientsOf('orchard')).toEqual([alma.id])
+    expect(await recipientsOf('garden', [bob.id])).toEqual([alma.id])
+    expect(await recipientsOf('garden', [bob.id, alma.id])).toEqual([peter.id])
+  })
+})
+
+// The mail when a request is handed on (K5, SUA-024 point 6): the moderators of the group it goes
+// to hear of it as of a new one, with who handed it on -- never that one, never the member. Who
+// is there by now: bob (garden), räuber ("no group"), carla (choir and "no group"), alma (all);
+// the staircase of SUA-027 mails alma only where the group has nobody left.
+describe('SupportTicketModerationResolver, the mail when a request is handed on (K5)', () => {
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const handOn = (supportTicketId: number, creationGroupTag: string): Promise<any> =>
+    mutate({
+      mutation: adminReassignSupportTicket,
+      variables: { supportTicketId, creationGroupTag },
+    })
+  const moderatorsMail = sendNewSupportTicketEmail as jest.Mock
+  const memberMail = sendAddedSupportTicketMessageEmail as jest.Mock
+  /** Waits for what the handing on does not wait for: the mails it started. */
+  const mailsSent = async (): Promise<void> => {
+    for (let turn = 0; turn < 5; turn++) {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+  }
+  const mailedTo = () => moderatorsMail.mock.calls.map(([data]) => data.email)
+  const linesOf = (id: number) =>
+    drizzleDb()
+      .select()
+      .from(supportTicketMessagesTable)
+      .where(eq(supportTicketMessagesTable.supportTicketId, id))
+
+  beforeEach(() => {
+    moderatorsMail.mockClear()
+    memberMail.mockClear()
+  })
+
+  it('mails the moderators of the group it goes to: who handed it on, its number and group', async () => {
+    const id = await file(bibi.id, 'Eher etwas für den Chor', 600, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'choir')).data.adminReassignSupportTicket).toBe(true)
+    await mailsSent()
+    // the group's own; not bob, whose garden it left, and not alma, the next step only
+    expect(mailedTo()).toEqual(['carla@sonne.de'])
+    for (const [data] of moderatorsMail.mock.calls) {
+      expect(data).toMatchObject({
+        actorAlias: peter.alias,
+        supportTicketNumber: id,
+        groupName: 'Chor',
+        reassigned: true,
+      })
+      expect(JSON.stringify(data)).not.toContain('Eher etwas')
+    }
+    expect(memberMail).not.toHaveBeenCalled()
+  })
+
+  it('mails those with "no group" for a request handed on to no group', async () => {
+    const id = await file(bibi.id, 'Wohin damit?', 601, choirId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, '')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['raeuber@hotzenplotz.de', 'carla@sonne.de'])
+    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({ groupName: null, reassigned: true })
+  })
+
+  it('never mails who handed it on, also where they would be the next step', async () => {
+    // bob asks in the choir, and alma hands it on to his garden: bob is the member who asked and
+    // alma who handed on, so the staircase goes on to the administrators
+    const id = await file(bob.id, 'Eher etwas für den Garten', 602, choirId)
+    await loginAs('alma@all.de')
+    expect((await handOn(id, 'garden')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['peter@lustig.de'])
+    expect(moderatorsMail.mock.calls[0][0]).toMatchObject({
+      actorAlias: 'AlmaAll',
+      groupName: 'Garten',
+      reassigned: true,
+    })
+  })
+
+  it('never mails the member who asked, also where they moderate the new group', async () => {
+    const carla = (await dbSelectRoleHoldersWithContact()).find(
+      ({ email }) => email === 'carla@sonne.de',
+    )
+    if (!carla) {
+      throw new Error('no carla')
+    }
+    const id = await file(carla.userId, 'Meine eigene Frage', 603, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'choir')).errors).toBeUndefined()
+    await mailsSent()
+    expect(mailedTo()).toEqual(['alma@all.de'])
+  })
+
+  it('hands it on all the same where the mail fails', async () => {
+    const id = await file(bibi.id, 'Und ohne Mail?', 604, gardenId)
+    await loginAs('peter@lustig.de')
+    moderatorsMail.mockRejectedValueOnce(new Error('the mail server is gone'))
+    const res = await handOn(id, 'choir')
+    await mailsSent()
+    expect(res.errors).toBeUndefined()
+    expect(res.data.adminReassignSupportTicket).toBe(true)
+    expect(moderatorsMail).toHaveBeenCalledTimes(1)
+    expect((await linesOf(id)).map(({ message }) => message)).toEqual(['Garten\nChor'])
+  })
+
+  it('mails nobody where the handing on is refused', async () => {
+    const id = await file(bibi.id, 'Bleibt im Garten', 605, gardenId)
+    await loginAs('peter@lustig.de')
+    expect((await handOn(id, 'garden')).errors?.[0].message).toBe('SUPPORT_TICKET_INVALID')
+    expect((await handOn(id, 'nowhere')).errors?.[0].message).toBe('SUPPORT_TICKET_UNKNOWN_GROUP')
+    await mailsSent()
+    expect(moderatorsMail).not.toHaveBeenCalled()
+  })
+})
+
+// The switch of new requests (K5, SUA-019): an administrator's, on the support page. Off, nothing
+// new is filed (SupportTicketResolver.test.ts); all the moderation does runs on.
+describe('SupportTicketModerationResolver, the switch of new requests (K5)', () => {
+  const adminSetSupportTicketsActive = gql`
+    mutation ($active: Boolean!) {
+      adminSetSupportTicketsActive(active: $active)
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation (
+      $supportTicketId: Int!
+      $message: String!
+      $type: SupportTicketMessageType!
+      $close: Boolean!
+    ) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: $type
+        close: $close
+      ) {
+        id
+      }
+    }
+  `
+  const switchTo = (active: boolean): Promise<any> =>
+    mutate({ mutation: adminSetSupportTicketsActive, variables: { active } })
+  // what the database holds, not what the mutation answered (Falle 13)
+  const stored = async (): Promise<boolean> =>
+    (
+      await drizzleDb()
+        .select({ active: communitiesTable.supportTicketsActive })
+        .from(communitiesTable)
+        .where(eq(communitiesTable.foreign, false))
+    )[0].active
+  const statusOf = async (id: number) =>
+    (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
+
+  afterAll(async () => {
+    await dbUpdateHomeCommunity({ supportTicketsActive: true })
+  })
+
+  it('switches nothing without a login, for a member, or for a moderator', async () => {
+    resetToken()
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    await loginAs('bibi@bloxberg.de')
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    await loginAs('bob@baumeister.de')
+    await expect(switchTo(false)).resolves.toEqual(unauthorized)
+    expect(await stored()).toBe(true)
+  })
+
+  it('lets an administrator switch new requests off and on again, and answers what holds', async () => {
+    await loginAs('peter@lustig.de')
+    expect((await switchTo(false)).data.adminSetSupportTicketsActive).toBe(false)
+    expect(await stored()).toBe(false)
+    expect((await switchTo(true)).data.adminSetSupportTicketsActive).toBe(true)
+    expect(await stored()).toBe(true)
+  })
+
+  it('lets the moderation act on with new requests off: an answer opens a closed request again', async () => {
+    await loginAs('peter@lustig.de')
+    const id = await file(bibi.id, 'Längst geschlossen', 600, gardenId, {
+      status: 'CLOSED',
+      closedAt: at(601),
+      closedBy: bibi.id,
+    })
+    expect((await switchTo(false)).errors).toBeUndefined()
+    const res: any = await mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: {
+        supportTicketId: id,
+        message: 'Noch eine Rückfrage',
+        type: 'DIALOG',
+        close: false,
+      },
+    })
+    expect(res.errors).toBeUndefined()
+    expect(await statusOf(id)).toMatchObject({ status: 'IN_PROGRESS' })
+    await loginAs('bob@baumeister.de')
+    expect((await list(OPEN_TAB)).errors).toBeUndefined()
   })
 })

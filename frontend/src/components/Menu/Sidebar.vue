@@ -109,7 +109,47 @@
         </BNav>
         <hr class="m-3" />
         <BNav vertical class="w-100">
-          <BNavItem to="/information" class="mb-3" active-class="active-route">
+          <!-- "Support" in the place of "Information" (Support-Anfragen K5, SUA-009), with the
+               question mark in a circle: while the community lets its members file requests --
+               not known reads as on --, and while the member has a request not closed, also with
+               the switch off (SUA-024, 1 b). The page "Information" is the third tab of it.
+               ⚠️ To /support: its redirect picks the tab ("Meine Anfragen" for a question back
+               or with the switch off, else "Schreiben"), and syncNavActive lights it on every
+               address under it.
+
+               The mark counts the member's requests with a question back (SUA-017), in the form
+               of the chat's mark and on the corner of the symbol for the same reason. -->
+          <BNavItem
+            v-if="supportInMenu"
+            ref="supportLink"
+            to="/support"
+            class="mb-3"
+            active-class="active-route"
+            data-test="support-menu"
+          >
+            <div class="sidebar-menu-item-wrapper chat-menu-item">
+              <span class="chat-menu-icon">
+                <i-mdi-help-circle class="svg-icon" data-test="support-menu-icon" />
+                <span
+                  v-if="supportTicketsInProgress > 0"
+                  class="chat-unread-badge"
+                  aria-hidden="true"
+                  data-test="support-badge"
+                >
+                  {{ supportBadgeFigure }}
+                </span>
+              </span>
+              <span class="ms-2 chat-menu-label">{{ $t('navigation.support') }}</span>
+              <span
+                v-if="supportTicketsInProgress > 0"
+                class="visually-hidden"
+                data-test="support-badge-label"
+              >
+                {{ $t('support.badge', { n: supportTicketsInProgress }, supportTicketsInProgress) }}
+              </span>
+            </div>
+          </BNavItem>
+          <BNavItem v-else to="/information" class="mb-3" active-class="active-route">
             <div class="sidebar-menu-item-wrapper">
               <i-mdi-information class="svg-icon" />
               <span class="ms-2">{{ $t('info') }}</span>
@@ -174,9 +214,13 @@
 </template>
 <script setup>
 import { useRoute } from 'vue-router'
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import CONFIG from '@/config'
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
+import {
+  supportTicketsInProgress,
+  supportTicketsUnfinished,
+} from '@/composables/useSupportTicketsMenu'
 import { useWalletStore } from '@/store/useWalletStore'
 
 // Read once: the flag is baked in at build time, it cannot change while the app runs.
@@ -198,6 +242,12 @@ const route = useRoute()
 const store = useWalletStore()
 const contributionsLink = ref(null)
 const matchingLink = ref(null)
+const supportLink = ref(null)
+
+/** "Support" or "Information" in the menu (K5, SUA-024 point 1 b). */
+const supportInMenu = computed(
+  () => store.supportTicketsActive !== false || supportTicketsUnfinished.value > 0,
+)
 
 /**
  * The figure on the mark: the number up to 99, then "99+". The menu is narrow, and past that
@@ -205,6 +255,9 @@ const matchingLink = ref(null)
  */
 const chatUnreadFigure = computed(() =>
   chatUnreadConversations.value > 99 ? '99+' : String(chatUnreadConversations.value),
+)
+const supportBadgeFigure = computed(() =>
+  supportTicketsInProgress.value > 99 ? '99+' : String(supportTicketsInProgress.value),
 )
 
 const transactionClass = computed(() => {
@@ -214,11 +267,12 @@ const transactionClass = computed(() => {
   return 'mb-3'
 })
 
-// BNavItem lights active-route only on an exact route match. Two items span more
+// BNavItem lights active-route only on an exact route match. Three items span more
 // than one route — contributions its sub-pages, matching its tabs and the map
-// (/matching redirects to /matching/entries, the map is /matching/karte) — so their
-// own link element is lit by hand from the path, on a route change and on first
-// mount alike (a fresh load has no change to react to).
+// (/matching redirects to /matching/entries, the map is /matching/karte), the support its
+// tabs (/support redirects to one of them) — so their own link element is lit by hand from
+// the path, on a route change and on first mount alike (a fresh load has no change to react
+// to), and when "Support" takes the place of "Information" or gives it back.
 function setLinkActive(navRef, on) {
   const link = navRef.value?.$el?.children?.[0]
   if (!link) return
@@ -229,7 +283,15 @@ function setLinkActive(navRef, on) {
 function syncNavActive() {
   setLinkActive(contributionsLink, route.path.includes('contributions'))
   setLinkActive(matchingLink, route.path.startsWith('/matching'))
+  // by the route's record, not the address as it was typed: vue-router takes /Support/Write too
+  setLinkActive(
+    supportLink,
+    route.matched.some((record) => record.path.startsWith('/support')),
+  )
 }
+
+// the entry that comes is drawn after this tick, and has had no route change to react to
+watch(supportInMenu, () => nextTick(syncNavActive))
 
 watch(
   () => route.path,

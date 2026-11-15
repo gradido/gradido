@@ -5,6 +5,7 @@ import { Kind, type OperationDefinitionNode, parse, type SelectionSetNode } from
 import type * as v from 'valibot'
 import {
   openSupportTicketsSchema,
+  supportSwitchSchema,
   supportThreadSchema,
   supportTicketListSchema,
 } from './SupportTicket.schema'
@@ -71,6 +72,10 @@ describe('the support documents and the schemas that read their answers', () => 
     expect(notAsked(openSupportTicketsSchema, operation('adminCountOpenSupportTickets'))).toEqual(
       [],
     )
+  })
+
+  it('asks for the switch the switch schema reads (K5)', () => {
+    expect(notAsked(supportSwitchSchema, operation('supportTicketsMenu'))).toEqual([])
   })
 
   it('notices a key the document does not ask for', () => {

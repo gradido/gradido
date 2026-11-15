@@ -173,6 +173,17 @@
       "transactionDetails": "İşlem ayrıntıları",
       "yourGradidoTeam": "Gradido ekibin"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias}, {supportTicketNumber} numaralı bir talep gönderdi.",
+      "filedByMember": "Bir üye {supportTicketNumber} numaralı bir talep gönderdi.",
+      "group": "Grup: {groupName}",
+      "noGroup": "Grupsuz",
+      "reassigned": "{actorAlias}, {supportTicketNumber} numaralı talebi aktardı.",
+      "reassignedBySomebody": "{supportTicketNumber} numaralı talep aktarıldı.",
+      "subject": "Yeni destek talebi",
+      "title": "Yeni destek talebi",
+      "whereToFind": "Talebi yönetim alanında “Destek” bölümünde bulabilirsin."
+    },
     "resetPassword": {
       "pleaseClickLink": "Eğer sendin, lütfen buraya tıkla.",
       "subject": "Şifreyi sıfırla",

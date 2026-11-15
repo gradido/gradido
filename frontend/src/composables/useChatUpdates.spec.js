@@ -16,6 +16,11 @@ import {
   stopChatUpdates,
 } from './useChatUpdates'
 import { newChatMessagesSince } from '@/graphql/chat.graphql'
+import {
+  supportTicketsActiveNow,
+  supportTicketsInProgress,
+  supportTicketsUnfinished,
+} from '@/composables/useSupportTicketsMenu'
 
 const { refreshContactsPanel } = vi.hoisted(() => ({ refreshContactsPanel: vi.fn() }))
 vi.mock('@/composables/useContactsPanel', () => ({ refreshContactsPanel }))
@@ -892,6 +897,163 @@ describe('useChatUpdates', () => {
 
       expect(server.reactedCursors()).toEqual([null, null])
       expect(chatUnreadConversations.value).toBe(3)
+    })
+  })
+
+  /**
+   * The support's field rides in the chat's question (Support-Anfragen K5): no question and no
+   * timer of its own. What it brings goes on to useSupportTicketsMenu as it came; it is nothing
+   * to the chat, and the chat is nothing to it.
+   */
+  describe('the support beside it (K5)', () => {
+    const withSupport = (answer, supportTicketsMenu) => ({
+      data: { ...answer.data, supportTicketsMenu },
+    })
+    const menu = () => ({
+      active: supportTicketsActiveNow.value,
+      inProgress: supportTicketsInProgress.value,
+      unfinished: supportTicketsUnfinished.value,
+    })
+    const NOTHING = { active: null, inProgress: 0, unfinished: 0 }
+
+    // The SECOND root field: the answers of the chat are read by the first one.
+    it("asks the support's field beside the chat's, second, with its three answers", () => {
+      const [operation] = newChatMessagesSince.definitions
+      const fields = operation.selectionSet.selections.map((field) => field.name.value)
+      expect(fields).toEqual(['newChatMessagesSince', 'supportTicketsMenu'])
+      expect(
+        operation.selectionSet.selections[1].selectionSet.selections.map(
+          (field) => field.name.value,
+        ),
+      ).toEqual(['active', 'inProgress', 'unfinished'])
+    })
+
+    it('hands what the field brings to the menu, with every answer', async () => {
+      server.answer(
+        withSupport(update(), { active: true, inProgress: 2, unfinished: 3 }),
+        withSupport(update(), { active: false, inProgress: 0, unfinished: 1 }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(menu()).toEqual({ active: true, inProgress: 2, unfinished: 3 })
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(menu()).toEqual({ active: false, inProgress: 0, unfinished: 1 })
+    })
+
+    // null: the server could not count; missing: a server from before K5. Neither takes back
+    // what the menu shows, and neither stops the chat.
+    it('keeps what was shown where the field comes null or not at all, and the chat goes on', async () => {
+      server.answer(
+        withSupport(update(), { active: true, inProgress: 2, unfinished: 3 }),
+        withSupport(update({ unread: 4 }), null),
+        update({ unread: 5 }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(menu()).toEqual({ active: true, inProgress: 2, unfinished: 3 })
+      expect(chatUnreadConversations.value).toBe(4)
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(menu()).toEqual({ active: true, inProgress: 2, unfinished: 3 })
+      expect(chatUnreadConversations.value).toBe(5)
+    })
+
+    it("starts from nothing, and forgets the member's numbers when the beat stops", async () => {
+      expect(menu()).toEqual(NOTHING)
+      server.answer(withSupport(update(), { active: false, inProgress: 2, unfinished: 3 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(menu()).toEqual({ active: false, inProgress: 2, unfinished: 3 })
+
+      stopChatUpdates()
+      expect(menu()).toEqual(NOTHING)
+    })
+
+    // ⛔ An answer still on its way at a sign-out was the member's before: the next one on this
+    // device must not read their numbers.
+    it('takes nothing from an answer that arrives after the beat stopped', async () => {
+      const release = server.hold()
+      server.answer(withSupport(update(), { active: true, inProgress: 2, unfinished: 3 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      stopChatUpdates()
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(menu()).toEqual(NOTHING)
+    })
+
+    /**
+     * The support's field has an authorization check of its own on the server. Where only that
+     * check fails, the answer carries the chat's part and an error for the support's field: the
+     * beat keeps the chat's part and goes on at its pace. The fake client throws as Apollo does
+     * for an answer with errors, unless the question asked for them (`errorPolicy: 'all'`).
+     */
+    describe("an error in the support's field alone", () => {
+      const withErrors = (answer, errors) => ({ ...answer, errors })
+      const apolloLike = (answers) => {
+        const query = vi.fn(async (options) => {
+          const answer = answers.shift() ?? update()
+          if (answer.errors && options.errorPolicy !== 'all') {
+            throw new Error(answer.errors[0].message)
+          }
+          return answer
+        })
+        return { query }
+      }
+      const ERROR = [{ message: '401 Unauthorized', path: ['supportTicketsMenu'] }]
+
+      it('asks with the errors handed back, not thrown', async () => {
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        expect(server.query.mock.calls[0][0].errorPolicy).toBe('all')
+      })
+
+      it("keeps the chat's answer and its pace, and the support's numbers as they were", async () => {
+        const client = apolloLike([
+          withSupport(update({ latestId: 20 }), { active: true, inProgress: 2, unfinished: 2 }),
+          withErrors(withSupport(update({ latestId: 22, unread: 4 }), null), ERROR),
+        ])
+        startChatUpdates(client)
+        await vi.advanceTimersByTimeAsync(0)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+        expect(chatUnreadConversations.value).toBe(4)
+        expect(menu()).toEqual({ active: true, inProgress: 2, unfinished: 2 })
+        // no pause of an error: the next question comes after the usual fifteen seconds
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(3)
+        expect(client.query.mock.calls[2][0].variables.afterId).toBe(22)
+      })
+
+      it("still counts it as a failed question where the chat's part is missing", async () => {
+        const client = apolloLike([
+          update({ latestId: 20 }),
+          withErrors({ data: null }, [
+            { message: 'database gone', path: ['newChatMessagesSince'] },
+          ]),
+        ])
+        startChatUpdates(client)
+        await vi.advanceTimersByTimeAsync(0)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(2)
+
+        // the pause of an error is longer than the usual fifteen seconds
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(client.query).toHaveBeenCalledTimes(2)
+      })
+    })
+
+    it("asks it at once with pollChatNow, as the chat's", async () => {
+      server.answer(update(), withSupport(update(), { active: true, inProgress: 1, unfinished: 1 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(menu()).toEqual(NOTHING)
+
+      await pollChatNow()
+      expect(server.query).toHaveBeenCalledTimes(2)
+      expect(menu()).toEqual({ active: true, inProgress: 1, unfinished: 1 })
     })
   })
 

@@ -1,11 +1,15 @@
 // AI-GENERATED — not an architecture reference
 import { SupportTicket, SupportTicketList } from '@model/SupportTicket'
 import { SupportTicketMessage } from '@model/SupportTicketMessage'
+import { SupportTicketsMenu } from '@model/SupportTicketsMenu'
+import { databaseErrorCode } from 'core'
 import {
   DrizzleTransaction,
   dbCountSupportTicketsOfUserSince,
+  dbCountUnfinishedSupportTicketsOfUser,
   dbFindMemberAvatarTimestamps,
   dbInsertSupportTicket,
+  dbIsSupportTicketsActive,
   dbLockUserRowDrizzle,
   dbSelectCreationGroupByTag,
   dbSelectSupportTicketDialogOfOwner,
@@ -16,10 +20,12 @@ import {
   SupportTicketMessageType,
   SupportTicketStatus,
 } from 'database'
+import { getLogger } from 'log4js'
 import { avatarColorIndex, SUPPORT_TICKETS_PER_DAY_MAX } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import * as v from 'valibot'
 import { RIGHTS } from '@/auth/RIGHTS'
+import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
   MEMBER_CLOSES_FROM,
   SUPPORT_TICKET_INVALID,
@@ -27,7 +33,9 @@ import {
   SUPPORT_TICKET_NOT_READ,
   SUPPORT_TICKET_NOT_STORED,
   SUPPORT_TICKET_UNKNOWN_GROUP,
+  SUPPORT_TICKETS_OFF,
   SUPPORT_TICKETS_PER_DAY_REACHED,
+  supportTicketGroupName,
   supportTicketsWindowStart,
 } from '@/data/SupportTicket.logic'
 import {
@@ -41,6 +49,13 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { countSupportTicketRead, countSupportTicketWrite } from './util/countSupportTicket'
 import { fromDatabase } from './util/fromDatabase'
+import {
+  mailModeratorsOfSupportTicket,
+  readSupportTicketMailRecipients,
+} from './util/supportTicketModeratorsMail'
+
+const createLogger = () =>
+  getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.SupportTicketResolver`)
 
 /** A message of the thread as the member reads it; the date of the author's picture beside it. */
 const messageOf = (
@@ -98,7 +113,13 @@ const ticketFiled = (
  */
 @Resolver()
 export class SupportTicketResolver {
-  /** Files a request in the group of this tag, or in none; the words without their blanks. */
+  /**
+   * Files a request in the group of this tag, or in none; the words without their blanks. The
+   * moderators who find it in their list hear of it by mail (K5), and the answer does not wait
+   * for the mails. Refused, SUPPORT_TICKETS_OFF, where the community switched new requests off
+   * (SUA-019) -- the one place that switch is checked: writing in a request, closing it and all
+   * the moderation does run on.
+   */
   @Authorized([RIGHTS.USE_SUPPORT_TICKETS])
   @Mutation(() => SupportTicket)
   async createSupportTicket(
@@ -108,6 +129,9 @@ export class SupportTicketResolver {
   ): Promise<SupportTicket> {
     const member = getUser(context)
     countSupportTicketWrite(context)
+    if (!(await fromDatabase(SUPPORT_TICKET_NOT_STORED, dbIsSupportTicketsActive))) {
+      throw new LogError(SUPPORT_TICKETS_OFF)
+    }
     const words = v.safeParse(supportTicketTextSchema, text)
     if (!words.success) {
       throw new LogError(SUPPORT_TICKET_INVALID)
@@ -120,6 +144,9 @@ export class SupportTicketResolver {
     if (creationGroupTag && !group) {
       throw new LogError(SUPPORT_TICKET_UNKNOWN_GROUP)
     }
+    // Who hears of it, read before it is filed (never throws): what follows the filing without
+    // being waited for is the sending alone.
+    const recipients = await readSupportTicketMailRecipients(group?.tag ?? null, [member.id])
     const createdAt = new Date()
     const id = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       ticketFiled(member.id, group?.id ?? null, words.output, createdAt),
@@ -127,6 +154,14 @@ export class SupportTicketResolver {
     if (id === null) {
       throw new LogError(SUPPORT_TICKETS_PER_DAY_REACHED)
     }
+    // biome-ignore lint/complexity/noVoid: the mails follow, the request does not wait for them
+    void mailModeratorsOfSupportTicket({
+      supportTicketId: id,
+      recipients,
+      actorAlias: member.alias || null,
+      groupName: supportTicketGroupName(group),
+      reassigned: false,
+    })
     return {
       id,
       text: words.output,
@@ -134,6 +169,34 @@ export class SupportTicketResolver {
       creationGroupTag: group?.tag ?? null,
       creationGroupName: group?.name ?? null,
       createdAt,
+    }
+  }
+
+  /**
+   * What the wallet's menu needs (K5), asked with the chat's beat, and what the admin's support page
+   * reads of the switch: whether new requests are switched on (SUA-019), and of the member's own
+   * requests how many have a question back (the mark, SUA-017) and how many are not closed (with
+   * the switch off, "Support" stays in the menu for them).
+   *
+   * ⛔ Nullable, and its whole body caught, the reading of the switch as well: it rides in the
+   * document of the chat's beat, and any entry in `errors` makes the wallet throw the chat's
+   * answer away too. Where anything fails it answers null and logs the code; for a signed-in
+   * member it never throws. Not counted in the support's read budget, the named exception (see
+   * SUPPORT_TICKET_READS_MAX_PER_REQUEST).
+   */
+  @Authorized([RIGHTS.USE_SUPPORT_TICKETS])
+  @Query(() => SupportTicketsMenu, { nullable: true })
+  async supportTicketsMenu(@Ctx() context: Context): Promise<SupportTicketsMenu | null> {
+    try {
+      const member = getUser(context)
+      const [active, counts] = await Promise.all([
+        dbIsSupportTicketsActive(),
+        dbCountUnfinishedSupportTicketsOfUser(member.id),
+      ])
+      return { active, ...counts }
+    } catch (error) {
+      createLogger().error(`support tickets menu not read (${databaseErrorCode(error)})`)
+      return null
     }
   }
 

@@ -21,6 +21,10 @@ export const SUPPORT_TICKET_WRITES_MAX_PER_REQUEST = 1
  * adminCountOpenSupportTickets counted together). A thread may hold SUPPORT_TICKET_MESSAGES_MAX
  * dialog messages of MESSAGE_MAX_CHARS each, and the moderation's thread as many notes besides;
  * the wallet and the admin read one list or one thread at a time.
+ *
+ * ⚠️ The one named exception: supportTicketsMenu (K5) counts in neither budget. It rides in the
+ * chat's beat, and a count here would keep the chat's answer out of the log; it carries two
+ * numbers and a truth value, no words, and the cap of root fields bounds its aliases.
  */
 export const SUPPORT_TICKET_READS_MAX_PER_REQUEST = 5
 
@@ -105,6 +109,87 @@ export const supportAnswerMailDecision = (
 }
 
 /**
+ * A member with a role as the mail about a new request reads them (K5, SUA-018, SUA-024): whether
+ * they may handle requests at all -- today the right MANAGE_SUPPORT_TICKETS of their role, with
+ * the tick of K6 (SUA-025) more --, whether their role is ADMIN, and their scope as
+ * describeModeratorCreationGroups reads it.
+ */
+export interface SupportTicketMailCandidate {
+  id: number
+  handlesSupportTickets: boolean
+  isAdmin: boolean
+  tags: string[]
+  seesAllCreationGroups: boolean
+  seesUntagged: boolean
+}
+
+/** The most moderators one request mails (SUA-018, point 3). */
+export const SUPPORT_TICKET_MAIL_RECIPIENTS_MAX = 20
+
+/** A scope's tag against a request's group, ignoring case and accents as the column's collation does. */
+const sameTag = (a: string, b: string): boolean =>
+  a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
+
+/**
+ * Who hears of a request by mail -- a new one, or one handed on to `groupTag` (null: no group): a
+ * staircase (SUA-027), each step among those who find the request in their list
+ * (supportTicketsInScope). First the moderators its group is assigned to (for one without a group:
+ * those with "no group"); only where none is left, the moderators who see everything; only where
+ * none of them is left either, the administrators, whatever their scope says. Each step by their
+ * number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests gets nothing, and
+ * neither does anybody in `notFor` -- the asking member, who handed on: they fall out first, so the
+ * request of a group's only moderator still reaches somebody.
+ */
+export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate>(
+  candidates: T[],
+  groupTag: string | null,
+  notFor: number[],
+): T[] => {
+  const left = candidates
+    .filter(({ id, handlesSupportTickets }) => handlesSupportTickets && !notFor.includes(id))
+    .sort((a, b) => a.id - b.id)
+  const assigned = left.filter(
+    ({ isAdmin, seesAllCreationGroups, tags, seesUntagged }) =>
+      !isAdmin &&
+      !seesAllCreationGroups &&
+      (groupTag === null ? seesUntagged : tags.some((tag) => sameTag(tag, groupTag))),
+  )
+  const seeEverything = left.filter(
+    ({ isAdmin, seesAllCreationGroups }) => !isAdmin && seesAllCreationGroups,
+  )
+  const administrators = left.filter(({ isAdmin }) => isAdmin)
+  const step = [assigned, seeEverything, administrators].find((each) => each.length > 0) ?? []
+  return step.slice(0, SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
+}
+
+/**
+ * A request's group as the mail to the moderation names it (K5): by its name, without one by
+ * `#tag`, as everywhere in the admin; null for no group.
+ */
+export const supportTicketGroupName = (
+  group: { tag: string; name: string | null } | null,
+): string | null => (group ? group.name || `#${group.tag}` : null)
+
+/** How many requests within an hour start mails to the moderation (SUA-024, point 7). */
+export const SUPPORT_TICKET_MAILED_PER_HOUR_MAX = 20
+const SUPPORT_TICKET_MAIL_HOUR_MS = 60 * 60 * 1000
+
+/**
+ * Whether a request at `now` may start mails, given when the earlier ones did (milliseconds):
+ * under SUPPORT_TICKET_MAILED_PER_HOUR_MAX in the hour before. Answers the moments that still
+ * count, `now` among them where it may.
+ */
+export const supportTicketMailsAllowed = (
+  mailedAt: number[],
+  now: number,
+): { allowed: boolean; mailedAt: number[] } => {
+  const recent = mailedAt.filter((at) => at > now - SUPPORT_TICKET_MAIL_HOUR_MS)
+  return recent.length < SUPPORT_TICKET_MAILED_PER_HOUR_MAX
+    ? { allowed: true, mailedAt: [...recent, now] }
+    : { allowed: false, mailedAt: recent }
+}
+
+/**
  * When and by whom a request was closed, as the moderation's list shows it (SUA-008): a deleted
  * one by when and by whom it was deleted, as for contributions; an open one by nobody, whatever
  * an earlier closing left in its row.
@@ -134,6 +219,8 @@ export const SUPPORT_TICKET_NOT_FOUND = 'SUPPORT_TICKET_NOT_FOUND'
 export const SUPPORT_TICKET_MESSAGES_REACHED = 'SUPPORT_TICKET_MESSAGES_REACHED'
 export const SUPPORT_TICKET_NOT_STORED = 'SUPPORT_TICKET_NOT_STORED'
 export const SUPPORT_TICKET_NOT_READ = 'SUPPORT_TICKET_NOT_READ'
+// New requests are switched off in this community (K5, SUA-019); what runs, runs on.
+export const SUPPORT_TICKETS_OFF = 'SUPPORT_TICKETS_OFF'
 
 /** A write in a thread that was not done, by its code. */
 export class SupportTicketRefused extends DomainError {

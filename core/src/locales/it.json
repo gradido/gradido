@@ -173,6 +173,17 @@
       "transactionDetails": "Dettagli della transazione",
       "yourGradidoTeam": "il tuo team Gradido"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias} ha inviato una richiesta (n. {supportTicketNumber}).",
+      "filedByMember": "Un membro ha inviato una richiesta (n. {supportTicketNumber}).",
+      "group": "Gruppo: {groupName}",
+      "noGroup": "Senza gruppo",
+      "reassigned": "{actorAlias} ha inoltrato la richiesta n. {supportTicketNumber}.",
+      "reassignedBySomebody": "La richiesta n. {supportTicketNumber} è stata inoltrata.",
+      "subject": "Nuova richiesta di supporto",
+      "title": "Nuova richiesta di supporto",
+      "whereToFind": "La trovi nell'area di amministrazione, alla voce «Supporto»."
+    },
     "resetPassword": {
       "pleaseClickLink": "Se sei stato tu, clicca qui.",
       "subject": "Reimposta la password",

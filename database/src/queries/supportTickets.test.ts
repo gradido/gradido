@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { DbUser } from '../data'
@@ -13,6 +13,7 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import {
   dbCountOpenSupportTicketsInScope,
   dbCountSupportTicketsOfUserSince,
+  dbCountUnfinishedSupportTicketsOfUser,
   dbInsertSupportTicket,
   dbReassignSupportTicketOfModerator,
   dbSelectSupportTicketGroupInScope,
@@ -73,6 +74,53 @@ afterEach(async () => {
 })
 
 describe('supportTickets query test', () => {
+  it("counts the member's own requests with a question back, and those not closed (K5)", async () => {
+    await file(bibi.id, 'Offen', MORNING)
+    const asked = await file(bibi.id, 'Mit Rückfrage', MORNING, gardenId)
+    const askedToo = await file(bibi.id, 'Noch eine Rückfrage', MORNING)
+    const closed = await file(bibi.id, 'Geschlossen', MORNING)
+    const deleted = await file(bibi.id, 'Gelöscht', MORNING)
+    await file(peter.id, 'Die Anfrage eines anderen', MORNING)
+    const peters = await file(peter.id, 'Seine Rückfrage', MORNING)
+    await db
+      .update(supportTicketsTable)
+      .set({ status: 'IN_PROGRESS' })
+      .where(inArray(supportTicketsTable.id, [asked, askedToo, peters]))
+    await db
+      .update(supportTicketsTable)
+      .set({ status: 'CLOSED' })
+      .where(eq(supportTicketsTable.id, closed))
+    await db
+      .update(supportTicketsTable)
+      .set({ status: 'DELETED' })
+      .where(eq(supportTicketsTable.id, deleted))
+
+    expect(await dbCountUnfinishedSupportTicketsOfUser(bibi.id)).toEqual({
+      inProgress: 2,
+      unfinished: 3,
+    })
+    expect(await dbCountUnfinishedSupportTicketsOfUser(peter.id)).toEqual({
+      inProgress: 1,
+      unfinished: 2,
+    })
+  })
+
+  it('counts nothing for a member without a request, nor for one with only closed ones', async () => {
+    const closed = await file(bibi.id, 'Geschlossen', MORNING)
+    await db
+      .update(supportTicketsTable)
+      .set({ status: 'CLOSED' })
+      .where(eq(supportTicketsTable.id, closed))
+    expect(await dbCountUnfinishedSupportTicketsOfUser(bibi.id)).toEqual({
+      inProgress: 0,
+      unfinished: 0,
+    })
+    expect(await dbCountUnfinishedSupportTicketsOfUser(peter.id)).toEqual({
+      inProgress: 0,
+      unfinished: 0,
+    })
+  })
+
   it('files a request as an open one and answers its number', async () => {
     const id = await file(bibi.id, 'Wie schöpfe ich?', MORNING, gardenId)
     expect(await rowOf(id)).toMatchObject({

@@ -1,7 +1,13 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
 import router from './router'
 import routes from './routes'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import {
+  forgetSupportTicketsMenu,
+  setSupportTicketsMenu,
+} from '@/composables/useSupportTicketsMenu'
+import { useWalletStore } from '@/store/useWalletStore'
 
 // This file checks the full route table, matching included, so it needs the flag
 // on — routes.js reads it when the module loads, which is why this has to be a
@@ -332,6 +338,68 @@ describe('router', () => {
       it('redirects to contribute tab', () => {
         const route = routes.find((r) => r.path === '/contributions')
         expect(route.redirect()).toEqual({ path: '/contributions/contribute' })
+      })
+    })
+
+    /**
+     * "Support" in the menu leads to /support, and the tab is chosen there (K5, SUA-024 1 b):
+     * "Meine Anfragen" where a question back waits for the member or where new requests are
+     * switched off, else "Schreiben". The switch not known yet reads as on.
+     */
+    describe('support without tab parameter', () => {
+      const redirectOf = () => routes.find((r) => r.path === '/support').redirect()
+
+      beforeEach(() => {
+        setActivePinia(createPinia())
+      })
+      afterEach(() => {
+        forgetSupportTicketsMenu()
+      })
+
+      it('goes to "Schreiben" while nothing waits and the switch is not known yet', () => {
+        expect(redirectOf()).toEqual({ path: '/support/write' })
+      })
+
+      it('goes to "Schreiben" while new requests are on and a request is only open', () => {
+        useWalletStore().setSupportTicketsActive(true)
+        setSupportTicketsMenu({ active: true, inProgress: 0, unfinished: 2 })
+        expect(redirectOf()).toEqual({ path: '/support/write' })
+      })
+
+      it('goes to "Meine Anfragen" where a question back waits', () => {
+        setSupportTicketsMenu({ active: true, inProgress: 1, unfinished: 1 })
+        expect(redirectOf()).toEqual({ path: '/support/my-requests' })
+      })
+
+      it('goes to "Meine Anfragen" while new requests are switched off', () => {
+        useWalletStore().setSupportTicketsActive(false)
+        expect(redirectOf()).toEqual({ path: '/support/my-requests' })
+      })
+    })
+
+    /**
+     * The old address of "Information" leads to the third tab of "Support" while the menu says
+     * "Support", and stays the page it was while new requests are switched off (K5).
+     */
+    describe('the old address of "Information"', () => {
+      const enter = () => routes.find((r) => r.path === '/information').beforeEnter()
+
+      beforeEach(() => {
+        setActivePinia(createPinia())
+      })
+
+      it('leads to the tab while the switch is not known yet', () => {
+        expect(enter()).toEqual({ path: '/support/information' })
+      })
+
+      it('leads to the tab while new requests are on', () => {
+        useWalletStore().setSupportTicketsActive(true)
+        expect(enter()).toEqual({ path: '/support/information' })
+      })
+
+      it('stays the page it was while they are off', () => {
+        useWalletStore().setSupportTicketsActive(false)
+        expect(enter()).toBe(true)
       })
     })
 

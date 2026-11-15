@@ -592,7 +592,8 @@
     "resendTooSoon": "O e-mail de confirmação acabou de ser enviado. Aguarda alguns minutos antes de o pedires de novo.",
     "resent": "O e-mail de confirmação vai de novo a caminho.",
     "strip": "Um e-mail de confirmação vai a caminho de ti — clica na ligação que ele contém. Já podes usar a tua conta por completo até {deadline}.",
-    "title": "Confirma o teu endereço de e-mail"
+    "title": "Confirma o teu endereço de e-mail",
+    "writeSupport": "O e-mail não chega? Escreve ao suporte."
   },
   "emoji": {
     "choice": "Emojis",
@@ -1613,12 +1614,15 @@
   "success": "Sucesso",
   "support": {
     "answerQuestion": "Existe uma nova mensagem para este pedido.",
+    "badge": "{n} pedido com uma questão para ti | {n} pedidos com uma questão para ti",
     "changed": "Este pedido mudou entretanto.",
     "closed": "O pedido está fechado.",
     "done": "Resolvido, agradeço",
+    "dot": "Uma questão sobre um dos teus pedidos",
     "failed": "Infelizmente, não resultou. Tenta outra vez, por favor.",
     "info": {
       "information": "Aqui está o que é importante para a tua comunidade e quem cuida dela. A forma mais simples de fazeres a tua pergunta é em «Escrever».",
+      "informationOff": "Aqui está o que é importante para a tua comunidade e quem cuida dela.",
       "myRequests": "Aqui estão os teus pedidos e as respostas. Se voltares a escrever, o pedido fica novamente aberto.",
       "write": {
         "answer": "Recebes a resposta por e-mail. Também a encontras aqui, em «Os meus pedidos».",
@@ -1633,9 +1637,11 @@
       "open": "enviado, à espera de resposta"
     },
     "messagesReached": "Este pedido já tem {max} mensagens. Faz um novo pedido, por favor.",
+    "messagesReachedOff": "Este pedido já tem {max} mensagens. Podes contactar o suporte através de {mail}.",
     "myRequests": "Os meus pedidos",
     "noRequests": "Ainda não fizeste nenhum pedido.",
     "number": "Pedido n.º {number}",
+    "off": "De momento, os novos pedidos estão desativados na tua comunidade. Podes contactar o suporte através de {mail}.",
     "perDayReached": "Nas últimas 24 horas já fizeste {max} pedidos. Continua a escrever num deles, por favor.",
     "placeholder": "Em que te podemos ajudar?",
     "question": "A tua pergunta",

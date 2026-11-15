@@ -1,14 +1,19 @@
 // AI-GENERATED — not an architecture reference
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { clearLogs, getLogger, printLogs } from 'config-schema/test/testSetup'
+import { sendNewSupportTicketEmail } from 'core'
 import {
   AppDatabase,
   creationGroupsTable,
   DbUser,
+  dbCountUnfinishedSupportTicketsOfUser,
+  dbUpdateHomeCommunity,
   drizzleDb,
   SupportTicketMessageType,
   supportTicketMessagesTable,
   supportTicketsTable,
+  userContactsTable,
+  usersTable,
 } from 'database'
 import { eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
@@ -20,12 +25,37 @@ import { userFactoryDrizzle } from '@/seeds/factory/user'
 import { login } from '@/seeds/graphql/mutations'
 import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
+import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
+import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
 // The member's side of support requests, through the schema: `@Authorized` and the request's
 // budget live at the GraphQL layer, and the owner in every query's condition lives in the
 // database. bibi asks, bob is another member, peter answers as the moderation (written straight
 // into the tables: the moderation's side comes with K2 and K3).
+
+// The mail to the moderation about a new request (K5) is caught here: what it says is core's
+// (sendEmailVariants.newSupportTicket), who gets it the rule's (SupportTicket.logic) -- and here
+// peter, the one administrator, is everybody with a role.
+jest.mock('core', () => {
+  const original = jest.requireActual('core')
+  return {
+    __esModule: true,
+    ...original,
+    sendNewSupportTicketEmail: jest.fn(async () => ({ accepted: ['watched'] })),
+  }
+})
+
+// The count of the wallet's menu passes through to the database, and can be made to fail once:
+// the menu answers null then, and the chat's beat beside it goes on (K5, Falle 2).
+jest.mock('database', () => {
+  const original = jest.requireActual('database')
+  return {
+    __esModule: true,
+    ...original,
+    dbCountUnfinishedSupportTicketsOfUser: jest.fn(original.dbCountUnfinishedSupportTicketsOfUser),
+  }
+})
 
 const logErrorLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.server.LogError`)
 
@@ -168,6 +198,56 @@ describe('SupportTicketResolver', () => {
       await expect(
         mutate({ mutation: closeSupportTicket, variables: { supportTicketId: 1 } }),
       ).resolves.toEqual(unauthorized)
+    })
+  })
+
+  // First among the tests that file: the mails of an hour are capped per process (SUA-024).
+  describe('the mail to the moderation (K5)', () => {
+    const mail = sendNewSupportTicketEmail as jest.Mock
+    /** Waits for what a request does not wait for: the mails it started. */
+    const mailsSent = async (): Promise<void> => {
+      for (let turn = 0; turn < 5; turn++) {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      }
+    }
+
+    beforeEach(() => mail.mockClear())
+    afterEach(clearTickets)
+
+    it('mails the moderation once the request is filed: who asked, its number and group, no word of it', async () => {
+      await loginAs('bibi@bloxberg.de')
+      const id = await fileOk('Wie giesse ich den Garten?', 'garden')
+      await mailsSent()
+      expect(mail.mock.calls).toEqual([
+        [
+          {
+            firstName: 'Peter',
+            lastName: 'Lustig',
+            email: 'peter@lustig.de',
+            language: 'de',
+            actorAlias: 'BBB',
+            supportTicketNumber: id,
+            groupName: 'Garten',
+            reassigned: false,
+          },
+        ],
+      ])
+    })
+
+    it('files the request all the same where the mail fails', async () => {
+      await loginAs('bibi@bloxberg.de')
+      mail.mockRejectedValueOnce(new Error('the mail server is gone'))
+      const id = await fileOk('Und ohne Mail?')
+      await mailsSent()
+      expect(mail).toHaveBeenCalledTimes(1)
+      expect(await statusOf(id)).toMatchObject({ status: 'OPEN', text: 'Und ohne Mail?' })
+    })
+
+    it('mails nobody about the own request of the only one there is to mail', async () => {
+      await loginAs('peter@lustig.de')
+      await fileOk('Ich frage selbst.')
+      await mailsSent()
+      expect(mail).not.toHaveBeenCalled()
     })
   })
 
@@ -417,6 +497,161 @@ describe('SupportTicketResolver', () => {
         'CLOSED',
         'OPEN',
       ])
+    })
+  })
+
+  describe('with new requests switched off (K5)', () => {
+    beforeAll(() => loginAs('bibi@bloxberg.de'))
+    afterEach(async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: true })
+      await clearTickets()
+    })
+
+    it('files no new request, and says so', async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+      await expect(file('Geht das noch?', 'garden')).resolves.toEqual(
+        refusedWith('SUPPORT_TICKETS_OFF'),
+      )
+      expect(await drizzleDb().select().from(supportTicketsTable)).toEqual([])
+    })
+
+    it('lets the member write in a request, open a closed one again by writing, and close it', async () => {
+      const open = await fileOk('Schon vorher gestellt')
+      const closed = await fileOk('Schon geschlossen')
+      await drizzleDb()
+        .update(supportTicketsTable)
+        .set({ status: 'CLOSED', closedAt: new Date(), closedBy: bibi.id })
+        .where(eq(supportTicketsTable.id, closed))
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+
+      expect((await write(open, 'Noch eine Frage')).errors).toBeUndefined()
+      expect((await write(closed, 'Doch noch etwas')).errors).toBeUndefined()
+      expect(await statusOf(closed)).toMatchObject({ status: 'OPEN', closedAt: null })
+      expect(await thread(closed)).toHaveLength(1)
+      const res = await mutate({
+        mutation: closeSupportTicket,
+        variables: { supportTicketId: open },
+      })
+      expect(res.errors).toBeUndefined()
+      expect(await statusOf(open)).toMatchObject({ status: 'CLOSED' })
+    })
+
+    it('files again once switched on', async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+      await dbUpdateHomeCommunity({ supportTicketsActive: true })
+      await fileOk('Wieder offen?')
+    })
+  })
+
+  describe("the wallet's menu (K5)", () => {
+    const supportTicketsMenu = gql`
+      query {
+        supportTicketsMenu {
+          active
+          inProgress
+          unfinished
+        }
+      }
+    `
+    // the document of the chat's beat as the wallet sends it, the menu as its second field
+    const chatBeat = gql`
+      query {
+        newChatMessagesSince {
+          latestId
+          unreadConversations
+        }
+        supportTicketsMenu {
+          active
+          inProgress
+          unfinished
+        }
+      }
+    `
+    const menu = async () => {
+      const res: any = await query({ query: supportTicketsMenu })
+      expect(res.errors).toBeUndefined()
+      return res.data.supportTicketsMenu
+    }
+    const setStatus = (id: number, status: 'IN_PROGRESS' | 'CLOSED' | 'DELETED') =>
+      drizzleDb().update(supportTicketsTable).set({ status }).where(eq(supportTicketsTable.id, id))
+
+    afterEach(async () => {
+      await dbUpdateHomeCommunity({ supportTicketsActive: true })
+      await clearTickets()
+    })
+
+    it("counts the member's own requests with a question back and those not closed, none of another's", async () => {
+      await loginAs('bob@baumeister.de')
+      await setStatus(await fileOk('Bobs Rückfrage'), 'IN_PROGRESS')
+      await loginAs('bibi@bloxberg.de')
+      await fileOk('Offen')
+      await setStatus(await fileOk('Mit Rückfrage'), 'IN_PROGRESS')
+      await setStatus(await fileOk('Geschlossen'), 'CLOSED')
+      await setStatus(await fileOk('Gelöscht'), 'DELETED')
+
+      expect(await menu()).toEqual({ active: true, inProgress: 1, unfinished: 2 })
+    })
+
+    it('says whether new requests are switched on', async () => {
+      await loginAs('bibi@bloxberg.de')
+      await dbUpdateHomeCommunity({ supportTicketsActive: false })
+      expect(await menu()).toEqual({ active: false, inProgress: 0, unfinished: 0 })
+    })
+
+    it('answers nothing where it cannot count, and the chat beside it goes on', async () => {
+      await loginAs('bibi@bloxberg.de')
+      ;(dbCountUnfinishedSupportTicketsOfUser as jest.Mock).mockRejectedValueOnce(
+        Object.assign(new Error('the database is gone'), { code: 'ECONNRESET' }),
+      )
+      const res: any = await query({ query: chatBeat })
+      expect(res.errors).toBeUndefined()
+      expect(res.data.supportTicketsMenu).toBeNull()
+      expect(res.data.newChatMessagesSince).toEqual(
+        expect.objectContaining({ unreadConversations: 0 }),
+      )
+    })
+
+    it("counts in no budget of the support: the chat's beat may ask it beside a list", async () => {
+      await loginAs('bibi@bloxberg.de')
+      const res: any = await query({
+        query: gql`
+          query {
+            a: supportTicketsMenu { active }
+            b: supportTicketsMenu { active }
+            c: supportTicketsMenu { active }
+            d: supportTicketsMenu { active }
+            e: supportTicketsMenu { active }
+            f: supportTicketsMenu { active }
+            listSupportTickets(currentPage: 1, pageSize: 25) { count }
+          }
+        `,
+      })
+      expect(res.errors).toBeUndefined()
+    })
+
+    it("reaches an account unconfirmed past its grace period, and a project account, in the chat's beat", async () => {
+      // confirmed so that a password exists, then unconfirmed and two days old (as in the chat)
+      const garrick = await userFactoryDrizzle({ ...garrickOllivander, emailChecked: true })
+      await drizzleDb()
+        .update(usersTable)
+        .set({ createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) })
+        .where(eq(usersTable.id, garrick.id))
+      await drizzleDb()
+        .update(userContactsTable)
+        .set({ emailChecked: false })
+        .where(eq(userContactsTable.userId, garrick.id))
+      const raeuber = await userFactoryDrizzle(raeuberHotzenplotz)
+      await drizzleDb()
+        .update(usersTable)
+        .set({ creationAllowed: false })
+        .where(eq(usersTable.id, raeuber.id))
+
+      for (const email of ['garrick@ollivander.com', 'raeuber@hotzenplotz.de']) {
+        await loginAs(email)
+        const res: any = await query({ query: chatBeat })
+        expect([email, res.errors]).toEqual([email, undefined])
+        expect(res.data.supportTicketsMenu).toEqual({ active: true, inProgress: 0, unfinished: 0 })
+      }
     })
   })
 

@@ -592,7 +592,8 @@
     "resendTooSoon": "El correo de confirmación acaba de salir. Espera unos minutos antes de volver a pedirlo.",
     "resent": "El correo de confirmación va de camino otra vez.",
     "strip": "Un correo de confirmación va de camino hacia ti — haz clic en el enlace que contiene. Ya puedes usar tu cuenta plenamente hasta el {deadline}.",
-    "title": "Confirma tu dirección de correo"
+    "title": "Confirma tu dirección de correo",
+    "writeSupport": "¿No te llega el correo? Escribe al soporte."
   },
   "emoji": {
     "choice": "Emojis",
@@ -1613,12 +1614,15 @@
   "success": "Lo lograste",
   "support": {
     "answerQuestion": "Hay un nuevo mensaje sobre esta consulta.",
+    "badge": "{n} consulta con una pregunta para ti | {n} consultas con una pregunta para ti",
     "changed": "Esta consulta ha cambiado mientras tanto.",
     "closed": "La consulta está cerrada.",
     "done": "Resuelto, gracias",
+    "dot": "Una pregunta sobre una de tus consultas",
     "failed": "Lamentablemente, no ha funcionado. Inténtalo de nuevo, por favor.",
     "info": {
       "information": "Aquí verás qué es importante para tu comunidad y quién se ocupa de ella. La forma más sencilla de hacer tu pregunta es en «Escribir».",
+      "informationOff": "Aquí verás qué es importante para tu comunidad y quién se ocupa de ella.",
       "myRequests": "Aquí están tus consultas y las respuestas. Si vuelves a escribir, la consulta se abre de nuevo.",
       "write": {
         "answer": "Recibirás la respuesta por correo electrónico. También la encontrarás aquí, en «Mis consultas».",
@@ -1633,9 +1637,11 @@
       "open": "enviada, esperando respuesta"
     },
     "messagesReached": "Esta consulta ya tiene {max} mensajes. Haz una nueva consulta, por favor.",
+    "messagesReachedOff": "Esta consulta ya tiene {max} mensajes. Puedes contactar con el soporte en {mail}.",
     "myRequests": "Mis consultas",
     "noRequests": "Aún no has hecho ninguna consulta.",
     "number": "Consulta n.º {number}",
+    "off": "Las nuevas consultas están desactivadas en tu comunidad por ahora. Puedes contactar con el soporte en {mail}.",
     "perDayReached": "En las últimas 24 horas ya has hecho {max} consultas. Sigue escribiendo en una de ellas, por favor.",
     "placeholder": "¿En qué podemos ayudarte?",
     "question": "Tu pregunta",

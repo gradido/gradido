@@ -173,6 +173,17 @@
       "transactionDetails": "Transaction details",
       "yourGradidoTeam": "your Gradido team"
     },
+    "newSupportTicket": {
+      "filed": "{actorAlias} has made a request (no. {supportTicketNumber}).",
+      "filedByMember": "A member has made a request (no. {supportTicketNumber}).",
+      "group": "Group: {groupName}",
+      "noGroup": "No group",
+      "reassigned": "{actorAlias} has handed on request no. {supportTicketNumber}.",
+      "reassignedBySomebody": "Request no. {supportTicketNumber} has been handed on.",
+      "subject": "New support request",
+      "title": "New support request",
+      "whereToFind": "You will find it in the admin area under “Support”."
+    },
     "resetPassword": {
       "pleaseClickLink": "If it was you, please click here.",
       "subject": "Reset password",

@@ -132,6 +132,7 @@ describe('homeCommunityUpdateSchema', () => {
       location: { type: 'Point' as const, coordinates: [13.4, 52.5] },
       hieroTopicId: null,
       matchingKeyingActive: true,
+      supportTicketsActive: false,
     }
     expect(v.parse(homeCommunityUpdateSchema, input)).toEqual(input)
   })

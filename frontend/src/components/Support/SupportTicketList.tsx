@@ -8,6 +8,7 @@ import {
   SupportTicketListItem,
   type SupportTicketRow,
 } from '@/components/Support/SupportTicketListItem'
+import { pollChatNow } from '@/composables/useChatUpdates'
 import CONFIG from '@/config'
 import { PAGE_SIZE } from '@/constants'
 import { listSupportTickets } from '@/graphql/supportTickets.graphql'
@@ -69,7 +70,11 @@ export const SupportTicketList = defineComponent({
                   {...ticket}
                   messagesVisible={openTicketId.value === ticket.id}
                   onToggle-messages-visible={() => toggle(ticket.id)}
-                  onTicket-changed={() => refetch()}
+                  onTicket-changed={() => {
+                    refetch()
+                    // the mark in the menu as the member's write leaves it, not with the next beat
+                    pollChatNow()
+                  }}
                 />
               </div>
             ))}

@@ -86,6 +86,8 @@ test.beforeEach(async ({ graphql }) => {
     adminListSupportTicketMessages: [],
     // the groups of the filter and of handing a request on (K4)
     creationGroups: groups,
+    // the switch of new requests (K5), on as it comes
+    supportTicketsMenu: { active: true },
   })
 })
 
@@ -1551,4 +1553,135 @@ test('loads the thread of an opened request anew once it comes back in another g
   await expect.poll(() => asked(graphql, 'adminListSupportTicketMessages').length).toBe(2)
   // the row stays open
   await expect(card(page)).toBeVisible()
+})
+
+// The switch of new requests (K5, SUA-019): an administrator's box above the list -- off only after
+// a question that names all requests still open --, a moderator's line while it is off.
+test.describe('the switch of new requests (K5)', () => {
+  const box = (page: Page) => page.getByLabel(de.support.switch.label)
+  const asModerator = { ...moderator, role: 'MODERATOR' }
+  const openAsModerator = async (page: Page) => {
+    await signIn(page, '/support', asModerator)
+    await expect(rows(page)).toHaveCount(6)
+  }
+
+  test('stands ticked above the search for an administrator, with its hint', async ({
+    page,
+  }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    await open(page)
+    await expect(box(page)).toBeChecked()
+    await expect(page.locator('.support-switch')).toContainText(de.support.switch.hint)
+    const switchRow = await page.locator('.support-switch').boundingBox()
+    const search = await page.locator('.creation-filters').boundingBox()
+    expect(switchRow && search && switchRow.y + switchRow.height <= search.y).toBe(true)
+  })
+
+  test('asks before switching off and names all requests still open, the waiting ones too', async ({
+    page,
+    graphql,
+  }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer({
+      adminCountOpenSupportTickets: { forModeration: 5, forMember: 1, onResubmission: 2 },
+      adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
+    })
+    await open(page)
+    await box(page).click()
+    await expect(dialog(page)).toContainText(de.support.switch.confirmTitle)
+    await expect(dialog(page)).toContainText(de.support.switch.confirmBody)
+    await expect(dialog(page)).toContainText(de.support.switch.confirmOpen.replace('{open}', '8'))
+    // still on while asked
+    await expect(box(page)).toBeChecked()
+    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
+    await dialog(page).getByRole('button', { name: de.support.switch.confirmYes }).click()
+    await expect(box(page)).not.toBeChecked()
+    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([{ active: false }])
+    await expect(toast(page, de.support.switch.off)).toBeVisible()
+  })
+
+  test('switches on again without asking', async ({ page, graphql }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer({
+      supportTicketsMenu: { active: false },
+      adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
+    })
+    await open(page)
+    await expect(box(page)).not.toBeChecked()
+    await box(page).click()
+    await expect(box(page)).toBeChecked()
+    await expect(dialog(page)).toHaveCount(0)
+    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([{ active: true }])
+    await expect(toast(page, de.support.switch.on)).toBeVisible()
+  })
+
+  test('stays on where the administrator says no, and where the switch is refused', async ({
+    page,
+    graphql,
+  }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer({ adminSetSupportTicketsActive: new Failure('no database') })
+    await open(page)
+    await box(page).click()
+    await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
+    await expect(dialog(page)).toHaveCount(0)
+    await expect(box(page)).toBeChecked()
+    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
+    await box(page).click()
+    await dialog(page).getByRole('button', { name: de.support.switch.confirmYes }).click()
+    await expect(toast(page, de.support.failed)).toBeVisible()
+    await expect(box(page)).toBeChecked()
+  })
+
+  test('shows a moderator a line while new requests are off, and no box', async ({
+    page,
+    graphql,
+  }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer({ ...signedInAnswers(asModerator), supportTicketsMenu: { active: false } })
+    await openAsModerator(page)
+    await expect(page.locator('.support-switch-off')).toHaveText(de.support.switch.off)
+    await expect(box(page)).toHaveCount(0)
+  })
+
+  test('shows a moderator nothing while new requests are on', async ({ page, graphql }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer(signedInAnswers(asModerator))
+    await openAsModerator(page)
+    await expect(page.locator('.support-switch-off')).toHaveCount(0)
+    await expect(box(page)).toHaveCount(0)
+  })
+
+  test('shows nothing where the server could not say', async ({ page, graphql }, info) => {
+    test.skip(info.project.name === 'old', ONLY_NEW)
+    graphql.answer({ supportTicketsMenu: null })
+    await open(page)
+    await expect(box(page)).toHaveCount(0)
+    await expect(page.locator('.support-switch-off')).toHaveCount(0)
+  })
+
+  test.describe('on a phone', () => {
+    test.use({ viewport: { width: 320, height: 900 } })
+
+    // The word fits one line at 375 px in Chrome on a Mac and on an iPhone (measured in the built
+    // admin, 14.11.2026); with a wider font -- the Linux runner's, a narrow Android -- it breaks
+    // into two, as the row "Wiedervorlage verbergen" of the same form does. At 320 px it breaks on
+    // any font, so that is where it is held: the box stands beside its word, also over two lines,
+    // and the row stays inside the window.
+    test('keeps the box beside its word, and the row inside the window', async ({ page }, info) => {
+      test.skip(info.project.name === 'old', ONLY_NEW)
+      await open(page)
+      const box = await page.locator('#support-tickets-active').boundingBox()
+      const word = await page.locator('label[for="support-tickets-active"]').boundingBox()
+      if (!box || !word) {
+        throw new Error('the switch row is not drawn')
+      }
+      expect(word.x).toBeGreaterThan(box.x + box.width)
+      expect(word.y).toBeLessThan(box.y + box.height)
+      expect(word.x + word.width).toBeLessThanOrEqual(320)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+        375,
+      )
+    })
+  })
 })

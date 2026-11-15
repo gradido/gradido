@@ -45,6 +45,38 @@ describe('the texts of support requests', () => {
     expect(support.messagesReached).toContain('{max}')
   })
 
+  /**
+   * Opening the support (K5): the mark at "Support" counts in the forms the chat's mark counts
+   * in, language by language (utils/pluralRules), and the sentences of the switched-off state
+   * keep the support's address and the number in them.
+   */
+  it.each(languages)(
+    'count the requests with a question back as the chat counts, in %s',
+    (file) => {
+      const texts = read(file)
+      const forms = (sentence) => sentence.split('|').length
+      expect(forms(texts.support.badge)).toBe(forms(texts.chatThread.unreadBadge))
+      expect(texts.support.badge).toContain('{n}')
+    },
+  )
+
+  it.each(languages)(
+    'keep the address and the number in the switched-off sentences, in %s',
+    (file) => {
+      const { support } = read(file)
+      expect(support.off).toContain('{mail}')
+      expect(support.messagesReachedOff).toContain('{max}')
+      expect(support.messagesReachedOff).toContain('{mail}')
+    },
+  )
+
+  it.each(languages)('have the words outside the support block that K5 reads, in %s', (file) => {
+    const texts = read(file)
+    for (const value of [texts.navigation.support, texts.emailConfirmation.writeSupport]) {
+      expect(value).toMatch(/\S/)
+    }
+  })
+
   it.each(languages)(
     'name the button that folds a thread away, a word of its own beside "close", in %s',
     (file) => {

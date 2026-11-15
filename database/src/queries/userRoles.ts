@@ -1,7 +1,63 @@
-import { inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { UserRoleInsert, userRolesTable } from '../schemas/drizzle.schema'
+import { ASSIGNABLE_ROLE_NAMES } from '../enum'
+import {
+  UserRoleInsert,
+  userContactsTable,
+  userRolesTable,
+  usersTable,
+} from '../schemas/drizzle.schema'
+
+/**
+ * A member with a role, as a mail to the moderation needs them: their role and their scope as
+ * stored (`visibleCreationGroups`, the JSON text describeModeratorCreationGroups reads), their
+ * name and language for the mail, and their confirmed address in force.
+ */
+export interface RoleHolderWithContact {
+  userId: number
+  role: string
+  visibleCreationGroups: string | null
+  firstName: string | null
+  lastName: string | null
+  language: string
+  email: string
+}
+
+/**
+ * Everybody with a role who can be mailed from here (Support-Anfragen K5, the mail about a new
+ * request to the moderation): every row with one of ASSIGNABLE_ROLE_NAMES -- the column is free
+ * text, and rows with USER existed --, its member not deleted and of this community, their
+ * address in force not deleted and confirmed. By the member's number.
+ *
+ * All rows of the table on purpose, and no filter by group: only members with a role have a
+ * row, and who sees which request stands as JSON text in it, which only the backend reads.
+ */
+export async function dbSelectRoleHoldersWithContact(): Promise<RoleHolderWithContact[]> {
+  return drizzleDb()
+    .select({
+      userId: userRolesTable.userId,
+      role: userRolesTable.role,
+      visibleCreationGroups: userRolesTable.visibleCreationGroups,
+      firstName: usersTable.firstName,
+      lastName: usersTable.lastName,
+      language: usersTable.language,
+      email: userContactsTable.email,
+    })
+    .from(userRolesTable)
+    .innerJoin(usersTable, eq(usersTable.id, userRolesTable.userId))
+    .innerJoin(userContactsTable, eq(userContactsTable.id, usersTable.emailId))
+    .where(
+      and(
+        inArray(userRolesTable.role, ASSIGNABLE_ROLE_NAMES),
+        isNull(usersTable.deletedAt),
+        eq(usersTable.foreign, false),
+        isNull(userContactsTable.deletedAt),
+        eq(userContactsTable.emailChecked, true),
+      ),
+    )
+    .orderBy(asc(userRolesTable.userId))
+}
 
 /**
  * Give the member this role: the one row they have is changed, or their first is written.

@@ -3,6 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import VariantIcon from '@/components/VariantIcon.vue'
+import CONFIG from '@/config'
 import { SupportTicketListItem } from './SupportTicketListItem'
 
 const mockQuery = vi.fn()
@@ -10,6 +11,8 @@ const mockMutate = vi.fn()
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
 const mockFetchMemberAvatars = vi.fn()
+// the switch as the store holds it (K5): null -- not known yet --, true or false
+const mockStore = { supportTicketsActive: null }
 
 vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: () => ({ client: { query: mockQuery } }),
@@ -24,6 +27,7 @@ vi.mock('vue-i18n', () => ({
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: mockToastSuccess, toastError: mockToastError }),
 }))
+vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => mockStore }))
 vi.mock('@/composables/useMemberAvatars', () => ({
   fetchMemberAvatars: (...args) => mockFetchMemberAvatars(...args),
 }))
@@ -70,6 +74,7 @@ describe('SupportTicketListItem', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockQuery.mockResolvedValue(answering([MODERATION]))
+    mockStore.supportTicketsActive = null
   })
 
   it('heads the request with its number, its group and its words', () => {
@@ -183,6 +188,15 @@ describe('SupportTicketListItem', () => {
       mockMutate.mockRejectedValue(new Error('SUPPORT_TICKET_MESSAGES_REACHED'))
       await expect(thread(mountRow()).props('send')('Danke!')).rejects.toThrow(
         'support.messagesReached {"max":100}',
+      )
+    })
+
+    // a full thread cannot ask for a new request where new ones are switched off (K5)
+    it("names the support's address for a full thread while new requests are switched off", async () => {
+      mockStore.supportTicketsActive = false
+      mockMutate.mockRejectedValue(new Error('SUPPORT_TICKET_MESSAGES_REACHED'))
+      await expect(thread(mountRow()).props('send')('Danke!')).rejects.toThrow(
+        `support.messagesReachedOff ${JSON.stringify({ max: 100, mail: CONFIG.COMMUNITY_SUPPORT_MAIL })}`,
       )
     })
 
