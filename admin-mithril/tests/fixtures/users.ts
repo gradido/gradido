@@ -17,6 +17,8 @@ export const member = (id: number, more: Record<string, unknown> = {}) => ({
   deletedAt: null,
   createdAt: '2026-01-15T10:00:00.000Z',
   role: null,
+  // the tick of a moderator (K6), as an administrator reads it: no where there is no role row
+  supportDuty: false,
   creationAllowed: true,
   gradidoID: `00000000-0000-4000-8000-${String(id).padStart(12, '0')}`,
   communityUuid: COMMUNITY,

@@ -1,6 +1,12 @@
 import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase, CreationGroup, UserCreationGroup, UserRole } from 'database'
+import {
+  AppDatabase,
+  CreationGroup,
+  dbUpdateUserRoleSupportDuty,
+  UserCreationGroup,
+  UserRole,
+} from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { parseModeratorScope } from './util/findContributions'
 import { saveModeratorScope } from './util/moderatorCreationGroupScope'
@@ -151,5 +157,23 @@ describe("a moderator's visibility scope", () => {
     await makeModerator(7104)
 
     expect(await saveModeratorScope(7104, ['Alesund'])).toEqual(['Ålesund'])
+  })
+
+  // Support-Anfragen K6: the tick "may handle support requests" lives on the row the scope is
+  // saved on, and TypeORM's save() of a row it loaded writes back each column that differs from
+  // the row as it stands by then -- as saveModeratorScope and the renaming of a group do. The
+  // entity never writes the tick (update: false), so one set between that load and that save stays.
+  it('keeps a tick that was set between loading the row and saving its scope', async () => {
+    await makeModerator(7105)
+    const loaded = await UserRole.findOneOrFail({ where: { userId: 7105 } })
+    expect(loaded.supportDuty).toBe(false)
+
+    expect(await dbUpdateUserRoleSupportDuty(7105, true)).toEqual({ success: true })
+    loaded.visibleCreationGroups = JSON.stringify(['*untagged'])
+    await loaded.save()
+
+    const row = await UserRole.findOneOrFail({ where: { userId: 7105 } })
+    expect(row.visibleCreationGroups).toBe('["*untagged"]')
+    expect(row.supportDuty).toBe(true)
   })
 })

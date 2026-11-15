@@ -788,6 +788,13 @@
       "user": "gewone gebruiker"
     },
     "successfullyChangedTo": "Gebruiker is nu «{role}».",
+    "supportDuty": {
+      "help": "Behandelt de vragen van de zichtbare groepen. Beheerders kunnen dat altijd.",
+      "label": "Kan supportvragen behandelen",
+      "notAModerator": "Alleen een moderator kan supportvragen behandelen.",
+      "switchedOff": "Dit lid behandelt geen supportvragen meer.",
+      "switchedOn": "Dit lid behandelt nu supportvragen."
+    },
     "tabTitle": "Gebruikersrol"
   },
   "userSearch": {

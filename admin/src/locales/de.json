@@ -788,6 +788,13 @@
       "user": "einfacher Nutzer"
     },
     "successfullyChangedTo": "Nutzer ist jetzt „{role}“.",
+    "supportDuty": {
+      "help": "Bearbeitet die Anfragen der sichtbaren Gruppen. Administratoren können das immer.",
+      "label": "Kann Support-Anfragen bearbeiten",
+      "notAModerator": "Nur ein Moderator kann Support-Anfragen bearbeiten.",
+      "switchedOff": "Dieses Mitglied bearbeitet keine Support-Anfragen mehr.",
+      "switchedOn": "Dieses Mitglied bearbeitet jetzt Support-Anfragen."
+    },
     "tabTitle": "Nutzer-Rolle"
   },
   "userSearch": {

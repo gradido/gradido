@@ -788,6 +788,13 @@
       "user": "utente normale"
     },
     "successfullyChangedTo": "L'utente è ora «{role}».",
+    "supportDuty": {
+      "help": "Gestisce le richieste dei gruppi visibili. Gli amministratori possono sempre.",
+      "label": "Può gestire le richieste di supporto",
+      "notAModerator": "Solo un moderatore può gestire le richieste di supporto.",
+      "switchedOff": "Questo membro non gestisce più le richieste di supporto.",
+      "switchedOn": "Questo membro ora gestisce le richieste di supporto."
+    },
     "tabTitle": "Ruolo dell'utente"
   },
   "userSearch": {

@@ -1,7 +1,9 @@
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
+import { VoidResult } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { ASSIGNABLE_ROLE_NAMES } from '../enum'
+import { ASSIGNABLE_ROLE_NAMES, RoleNames } from '../enum'
+import { DBNotFoundError } from '../errorTypes'
 import {
   UserRoleInsert,
   userContactsTable,
@@ -85,6 +87,34 @@ export async function dbUpsertUserRole(userId: number, role: string): Promise<vo
     .insert(userRolesTable)
     .values({ userId, role })
     .onDuplicateKeyUpdate({ set: { role, updatedAt: new Date() } })
+}
+
+/**
+ * Sets or takes away the tick "may handle support requests" (Support-Anfragen K6) on the member's
+ * role row -- where that row holds one of the two moderator kinds, and the role is the condition
+ * of the very statement: a role taken away or turned into ADMIN in the meantime gets nothing
+ * written, and answers like a missing row. A tick set twice is found the second time too (the
+ * pool counts the rows found, not the rows changed: mysql2 connects with FOUND_ROWS).
+ */
+export async function dbUpdateUserRoleSupportDuty(
+  userId: number,
+  supportDuty: boolean,
+): Promise<VoidResult<DBNotFoundError>> {
+  const [result] = await drizzleDb()
+    .update(userRolesTable)
+    .set({ supportDuty, updatedAt: new Date() })
+    .where(
+      and(
+        eq(userRolesTable.userId, userId),
+        inArray(userRolesTable.role, [RoleNames.MODERATOR, RoleNames.MODERATOR_AI]),
+      ),
+    )
+  return result.affectedRows === 1
+    ? { success: true }
+    : {
+        success: false,
+        error: new DBNotFoundError('user_roles', `user_id = ${userId} with a moderator role`),
+      }
 }
 
 /**

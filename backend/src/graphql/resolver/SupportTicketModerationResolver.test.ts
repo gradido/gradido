@@ -12,6 +12,8 @@ import {
   dbSelectSupportTicketsInScope,
   dbUpdateHomeCommunity,
   drizzleDb,
+  EventType,
+  eventsTable,
   SupportTicketMessageType,
   SupportTicketStatus,
   supportTicketMessagesTable,
@@ -21,7 +23,7 @@ import {
   userRolesTable,
   usersTable,
 } from 'database'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX } from 'shared'
@@ -2004,8 +2006,38 @@ describe('SupportTicketModerationResolver, the tick "may handle support requests
       }
     }
   `
+  const adminSetSupportDuty = gql`
+    mutation ($userId: Int!, $supportDuty: Boolean!) {
+      adminSetSupportDuty(userId: $userId, supportDuty: $supportDuty)
+    }
+  `
+  const searchUsers = gql`
+    query ($query: String!) {
+      searchUsers(query: $query) {
+        userList {
+          userId
+          role
+          supportDuty
+        }
+      }
+    }
+  `
   let ole: DbUser
+  let kira: DbUser
   let inGarden: number
+
+  const setDuty = (userId: number, supportDuty: boolean): Promise<any> =>
+    mutate({ mutation: adminSetSupportDuty, variables: { userId, supportDuty } })
+  const eventsOf = (userId: number) =>
+    drizzleDb()
+      .select()
+      .from(eventsTable)
+      .where(
+        and(
+          eq(eventsTable.type, EventType.ADMIN_USER_SUPPORT_DUTY_SET),
+          eq(eventsTable.affectedUserId, userId),
+        ),
+      )
 
   const statusOf = async (id: number) =>
     (await drizzleDb().select().from(supportTicketsTable).where(eq(supportTicketsTable.id, id)))[0]
@@ -2027,7 +2059,7 @@ describe('SupportTicketModerationResolver, the tick "may handle support requests
       firstName: 'Ole',
     })
     await moderate(ole, ['garden'], { supportDuty: false })
-    const kira = await userFactoryDrizzle({
+    kira = await userFactoryDrizzle({
       ...bobBaumeister,
       alias: 'KiraKi',
       email: 'kira@ki.de',
@@ -2118,4 +2150,72 @@ describe('SupportTicketModerationResolver, the tick "may handle support requests
       expect(res.data.verifyLogin).toEqual({ role, handlesSupportTickets: handles })
     },
   )
+
+  it('lets nobody but an administrator set the tick: no member, no moderator with it', async () => {
+    const events = (await eventsOf(ole.id)).length
+    resetToken()
+    await expect(setDuty(ole.id, true)).resolves.toEqual(unauthorized)
+    await loginAs('bibi@bloxberg.de')
+    await expect(setDuty(ole.id, true)).resolves.toEqual(unauthorized)
+    await loginAs('bob@baumeister.de')
+    await expect(setDuty(ole.id, true)).resolves.toEqual(unauthorized)
+    expect(await roleRowOf(ole.id)).toMatchObject({ supportDuty: false })
+    expect(await eventsOf(ole.id)).toHaveLength(events)
+  })
+
+  it('lets an administrator tick a moderator, who reaches the requests at once, and take it away again', async () => {
+    await loginAs('peter@lustig.de')
+    expect((await setDuty(ole.id, true)).data.adminSetSupportDuty).toBe(true)
+    expect(await roleRowOf(ole.id)).toMatchObject({ role: 'MODERATOR', supportDuty: true })
+    // a second time is found and answers alike
+    expect((await setDuty(ole.id, true)).data.adminSetSupportDuty).toBe(true)
+    await loginAs('ole@ohne.de')
+    expect((await threadOf(inGarden)).errors).toBeUndefined()
+    await loginAs('peter@lustig.de')
+    expect((await setDuty(ole.id, false)).data.adminSetSupportDuty).toBe(false)
+    expect(await roleRowOf(ole.id)).toMatchObject({ supportDuty: false })
+    await loginAs('ole@ohne.de')
+    await expect(threadOf(inGarden)).resolves.toEqual(unauthorized)
+    // one event each time, the administrator acting
+    expect(await eventsOf(ole.id)).toEqual([
+      expect.objectContaining({ actingUserId: peter.id }),
+      expect.objectContaining({ actingUserId: peter.id }),
+      expect.objectContaining({ actingUserId: peter.id }),
+    ])
+  })
+
+  it('refuses the tick for a member without a moderator role and for an administrator, writing nothing', async () => {
+    await loginAs('peter@lustig.de')
+    await expect(setDuty(bibi.id, true)).resolves.toEqual(
+      refusedWith('SUPPORT_DUTY_NOT_A_MODERATOR'),
+    )
+    await expect(setDuty(peter.id, true)).resolves.toEqual(
+      refusedWith('SUPPORT_DUTY_NOT_A_MODERATOR'),
+    )
+    expect(await roleRowOf(bibi.id)).toBeUndefined()
+    expect(await roleRowOf(peter.id)).toMatchObject({ role: 'ADMIN', supportDuty: false })
+    expect(await eventsOf(bibi.id)).toEqual([])
+    expect(await eventsOf(peter.id)).toEqual([])
+  })
+
+  it('tells the tick in the member search to an administrator, and to no moderator', async () => {
+    const kiraIn = async (email: string) => {
+      await loginAs(email)
+      const res = await query({ query: searchUsers, variables: { query: 'KiraKi' } })
+      expect(res.errors).toBeUndefined()
+      return res.data.searchUsers.userList.find(
+        ({ userId }: { userId: number }) => userId === kira.id,
+      )
+    }
+    expect(await kiraIn('peter@lustig.de')).toEqual({
+      userId: kira.id,
+      role: 'MODERATOR_AI',
+      supportDuty: true,
+    })
+    expect(await kiraIn('bob@baumeister.de')).toEqual({
+      userId: kira.id,
+      role: 'MODERATOR_AI',
+      supportDuty: null,
+    })
+  })
 })

@@ -788,6 +788,13 @@
       "user": "sıradan kullanıcı"
     },
     "successfullyChangedTo": "Kullanıcı artık «{role}».",
+    "supportDuty": {
+      "help": "Görünür grupların taleplerini işler. Yöneticiler bunu her zaman yapabilir.",
+      "label": "Destek taleplerini işleyebilir",
+      "notAModerator": "Destek taleplerini yalnızca bir moderatör işleyebilir.",
+      "switchedOff": "Bu üye artık destek taleplerini işlemiyor.",
+      "switchedOn": "Bu üye artık destek taleplerini işliyor."
+    },
     "tabTitle": "Kullanıcı rolü"
   },
   "userSearch": {

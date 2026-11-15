@@ -788,6 +788,13 @@
       "user": "utilisateur ordinaire"
     },
     "successfullyChangedTo": "L'utilisateur est maintenant « {role} ».",
+    "supportDuty": {
+      "help": "Traite les demandes des groupes visibles. Les administrateurs le peuvent toujours.",
+      "label": "Peut traiter les demandes d'assistance",
+      "notAModerator": "Seul un modérateur peut traiter les demandes d'assistance.",
+      "switchedOff": "Ce membre ne traite plus les demandes d'assistance.",
+      "switchedOn": "Ce membre traite désormais les demandes d'assistance."
+    },
     "tabTitle": "Rôle de l'utilisateur"
   },
   "userSearch": {

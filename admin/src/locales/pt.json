@@ -788,6 +788,13 @@
       "user": "utilizador comum"
     },
     "successfullyChangedTo": "O utilizador é agora «{role}».",
+    "supportDuty": {
+      "help": "Trata os pedidos dos grupos visíveis. Os administradores podem sempre.",
+      "label": "Pode tratar pedidos de suporte",
+      "notAModerator": "Só um moderador pode tratar pedidos de suporte.",
+      "switchedOff": "Este membro já não trata pedidos de suporte.",
+      "switchedOn": "Este membro trata agora pedidos de suporte."
+    },
     "tabTitle": "Função do utilizador"
   },
   "userSearch": {

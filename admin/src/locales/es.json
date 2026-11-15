@@ -788,6 +788,13 @@
       "user": "usuario normal"
     },
     "successfullyChangedTo": "El usuario es ahora «{role}».",
+    "supportDuty": {
+      "help": "Atiende las consultas de los grupos visibles. Los administradores siempre pueden.",
+      "label": "Puede atender consultas de soporte",
+      "notAModerator": "Solo un moderador puede atender consultas de soporte.",
+      "switchedOff": "Este miembro ya no atiende consultas de soporte.",
+      "switchedOn": "Este miembro atiende ahora consultas de soporte."
+    },
     "tabTitle": "Rol del usuario"
   },
   "userSearch": {

@@ -1515,6 +1515,8 @@ export class UserResolver {
       clientTimezoneOffset,
     )
 
+    // the tick "may handle support requests" (K6) goes to who may set it, and to nobody else
+    const readsSupportDuty = context.role?.hasRight(RIGHTS.SET_SUPPORT_DUTY) ?? false
     const adminUsers = users.map((user) => {
       let emailConfirmationSend = ''
       if (!user.emailContact?.emailChecked) {
@@ -1529,6 +1531,7 @@ export class UserResolver {
         user,
         userCreations ? userCreations.creations : getFullUserCreation(),
         emailConfirmationSend,
+        readsSupportDuty,
       )
     })
     return {

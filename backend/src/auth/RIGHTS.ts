@@ -133,6 +133,9 @@ export enum RIGHTS {
   // switch on the admin's support page. ⛔ Administrator list only, and not COMMUNITY_UPDATE --
   // that one the DLT connector holds as well.
   SET_SUPPORT_TICKETS_ACTIVE = 'SET_SUPPORT_TICKETS_ACTIVE',
+  // The tick "may handle support requests" on a moderator (K6, SUA-025): setting it, and reading it
+  // in the member search. ⛔ Administrator list only: the tick gives a member a right, as a role does.
+  SET_SUPPORT_DUTY = 'SET_SUPPORT_DUTY',
   // The chat (E-023): reading the messages of a conversation the caller is a member of, and
   // writing two marks on the caller's own member row in it -- the read pointer and the mute
   // mark (E-024). It reaches no conversation the caller is not in -- ChatResolver finds the

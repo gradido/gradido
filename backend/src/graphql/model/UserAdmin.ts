@@ -6,7 +6,13 @@ import { isFindableOnMap } from '@/graphql/resolver/util/findableOnMap'
 
 @ObjectType()
 export class UserAdmin {
-  constructor(user: User, creation: GradidoUnit[], emailConfirmationSend: string) {
+  constructor(
+    user: User,
+    creation: GradidoUnit[],
+    emailConfirmationSend: string,
+    // whether the caller may set the tick "may handle support requests" (SET_SUPPORT_DUTY)
+    readsSupportDuty: boolean,
+  ) {
     this.userId = user.id
     this.email = user.emailContact?.email
     this.firstName = user.firstName
@@ -18,6 +24,7 @@ export class UserAdmin {
     this.createdAt = user.createdAt
     this.emailConfirmationSend = emailConfirmationSend
     this.role = user.userRole?.role ?? null
+    this.supportDuty = readsSupportDuty ? (user.userRole?.supportDuty ?? false) : null
     this.creationAllowed = user.creationAllowed
     this.gradidoID = user.gradidoID
     this.communityUuid = user.communityUuid
@@ -59,6 +66,13 @@ export class UserAdmin {
   // 0..1 role: user_roles.user_id is UNIQUE (migration 0135). Null for a usual member.
   @Field(() => String, { nullable: true })
   role: string | null
+
+  // Support-Anfragen K6: the tick "may handle support requests" on the member's role row as it is
+  // stored -- no where there is no row --, for an administrator, who sets it in the role form.
+  // ⛔ Null for every other caller: this type leaves through `searchUsers`, which every moderator
+  // may ask (SEARCH_USERS), and who handles support is the administrators' to know.
+  @Field(() => Boolean, { nullable: true })
+  supportDuty: boolean | null
 
   // ES-021: the admin's "may create" switch reads its position from here.
   @Field(() => Boolean)
