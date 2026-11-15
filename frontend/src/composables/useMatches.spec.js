@@ -777,6 +777,17 @@ describe('useMatches', () => {
       ])
     })
 
+    // coderabbit (#4296): the filter after the merge drops a person without a usable point.
+    it('keeps the usable point of the second answer where the first came without one', () => {
+      const sentence = sentenceUser({ uuid: UUID.marta, alias: 'Marta' })
+      const merged = withSameSentence(
+        [withTopics([topicFor(UUID.mine)], { location: null })],
+        [{ entry: UUID.mineToo, users: [sentence] }],
+      )
+      expect(merged).toHaveLength(1)
+      expect(merged[0].location).toEqual(sentence.location)
+    })
+
     it('makes one person of two sentences, whatever the case of the uuids', () => {
       const merged = withSameSentence(
         [],

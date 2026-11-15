@@ -483,8 +483,14 @@ export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) 
     if (!channels.length) return
     const key = personKey(user)
     const known = byPerson.get(key)
-    if (known) known.channels = known.channels.concat(channels)
-    else byPerson.set(key, { ...user, channels })
+    if (!known) {
+      byPerson.set(key, { ...user, channels })
+      return
+    }
+    known.channels = known.channels.concat(channels)
+    // One person in two answers: where the first came without a usable point and the second with
+    // one, the second's counts -- the filter after the merge would drop them (coderabbit, #4296).
+    if (!hasUsablePoint(known) && hasUsablePoint(user)) known.location = user.location
   }
   for (const user of people) {
     add(
