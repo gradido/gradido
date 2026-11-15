@@ -475,6 +475,121 @@ describe('MatchingEntryResolver', () => {
       const res = await accept({ ...offered, summary: words })
       expect(res.errors[0].message).not.toContain('Geheimnis')
     })
+
+    /**
+     * KA-020: the entry a link makes finds only the members with the same sentence. A link
+     * decides it for an entry the member had already, where nobody decided it, and leaves it
+     * alone where the member took it off. An edit to the sentence or the kind takes it back.
+     */
+    describe('the "genau"', () => {
+      const exactOf = async (uuid: string) => (await entryByUuid(uuid)).exactSentence
+      // Taken off by hand in the database: no call does it before the switch on the map comes.
+      const takeOff = (uuid: string) =>
+        db
+          .getDataSource()
+          .query('UPDATE matching_entries SET exact_sentence = 0 WHERE uuid = ?', [uuid])
+      const rewrite = (uuid: string, summary: string) =>
+        mutate({
+          mutation: updateMatchingEntry,
+          variables: { uuid, input: { matchingType: 'interest', summary, remote: true } },
+        })
+
+      it('is set on the entry the link makes, and left undecided on one made by hand', async () => {
+        const made = await accept(offered)
+        expect(made.data.acceptEventMatchingEntry.entry.exactSentence).toBe(true)
+        expect(await exactOf(made.data.acceptEventMatchingEntry.entry.uuid)).toBe(true)
+
+        const byHand = await seedEntry({ matchingType: 'interest', summary: 'Ich liebe Brot' })
+        expect(await exactOf(byHand)).toBeNull()
+      })
+
+      it('is decided by the link where the member had the entry undecided, silently', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+        syncSpy.mockClear()
+        nudgeSpy.mockClear()
+
+        const res = await accept(offered)
+
+        expect(res.errors).toBeUndefined()
+        expect(res.data.acceptEventMatchingEntry).toMatchObject({
+          created: false,
+          entry: { uuid, exactSentence: true },
+        })
+        expect(await exactOf(uuid)).toBe(true)
+        // Nothing for the GMS and nothing for the keying: the "genau" stays on this server.
+        expect(syncSpy).not.toHaveBeenCalled()
+        expect(nudgeSpy).not.toHaveBeenCalled()
+      })
+
+      it('leaves one the member took off alone', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+        await takeOff(uuid)
+
+        const res = await accept(offered)
+
+        expect(res.data.acceptEventMatchingEntry.entry.exactSentence).toBe(false)
+        expect(await exactOf(uuid)).toBe(false)
+      })
+
+      it('decides it for a paused entry, which stays paused', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+        await mutate({ mutation: setMatchingEntryActive, variables: { uuid, active: false } })
+
+        const res = await accept(offered)
+
+        expect(res.data.acceptEventMatchingEntry).toMatchObject({
+          created: false,
+          entry: { uuid, active: false, exactSentence: true },
+        })
+        expect(await entryByUuid(uuid)).toMatchObject({ active: false, exactSentence: true })
+      })
+
+      it('decides it for the same link opened twice at once, and answers both', async () => {
+        const uuid = await seedEntry({ matchingType: 'interest', summary: SENTENCE })
+
+        const answers = await Promise.all([accept(offered), accept(offered)])
+
+        expect(answers.map((res) => res.errors)).toEqual([undefined, undefined])
+        expect(answers.map((res) => res.data.acceptEventMatchingEntry.entry)).toEqual([
+          expect.objectContaining({ uuid, exactSentence: true }),
+          expect.objectContaining({ uuid, exactSentence: true }),
+        ])
+        expect(await exactOf(uuid)).toBe(true)
+        expect(await bibisWith(SENTENCE)).toHaveLength(1)
+      })
+
+      it('falls when the member writes another sentence, and only the link sets it again', async () => {
+        const made = await accept(offered)
+        const uuid = made.data.acceptEventMatchingEntry.entry.uuid
+
+        await rewrite(uuid, 'Ich liebe Kongress Heilung')
+        expect(await exactOf(uuid)).toBeNull()
+        // Back to the link's words: an edit never sets it ...
+        await rewrite(uuid, SENTENCE)
+        expect(await exactOf(uuid)).toBeNull()
+        // ... the link does, once the entry is the link's again.
+        const again = await accept(offered)
+        expect(again.data.acceptEventMatchingEntry).toMatchObject({
+          created: false,
+          entry: { uuid, exactSentence: true },
+        })
+      })
+
+      it('stays when the member changes only the case of the sentence or the reach', async () => {
+        const made = await accept(offered)
+        const uuid = made.data.acceptEventMatchingEntry.entry.uuid
+
+        await mutate({
+          mutation: updateMatchingEntry,
+          variables: {
+            uuid,
+            input: { matchingType: 'interest', summary: SENTENCE.toLowerCase(), remote: false },
+          },
+        })
+
+        expect(await exactOf(uuid)).toBe(true)
+      })
+    })
   })
 
   /**

@@ -224,6 +224,65 @@ describe('Matching', () => {
       expect(page.text()).toContain('Am liebsten samstags')
     })
 
+    // The "genau" (KA-020): set by a project link, shown beside "Überregional" and "Pausiert".
+    it('marks an entry with the "genau", and no other', async () => {
+      const page = mountPage('entries')
+      fire(listMatchingEntries, {
+        listMatchingEntries: [
+          { ...entry('a', 'Kongress Frequency Healing', ''), exactSentence: true },
+          { ...entry('b', 'Fahrrad', ''), exactSentence: false },
+        ],
+      })
+      await page.vm.$nextTick()
+
+      const cards = page.findAll('.entry-title').map((title) => title.element.closest('.row'))
+      const badges = cards.map((card) => card.textContent)
+      expect(badges[0]).toContain(de.matching.entries.exactSentence)
+      expect(badges[1]).not.toContain(de.matching.entries.exactSentence)
+    })
+
+    // Said before saving: another sentence, or another kind, takes the "genau".
+    it.each([
+      [true, true],
+      [false, false],
+    ])(
+      'says in the form what a new sentence does, for an entry with the "genau": %s',
+      async (exact, said) => {
+        const page = mountPage('entries', shownModal)
+        fire(listMatchingEntries, {
+          listMatchingEntries: [
+            { ...entry('a', 'Kongress Frequency Healing', ''), exactSentence: exact },
+          ],
+        })
+        await page.vm.$nextTick()
+
+        const edit = page.findAll('.pointer').find((el) => el.text() === de.matching.entries.edit)
+        await edit.trigger('click')
+
+        expect(page.find('[data-test="matching-entry-exact-hint"]').exists()).toBe(said)
+        if (said) {
+          expect(page.find('[data-test="matching-entry-exact-hint"]').text()).toBe(
+            de.matching.new.exactSentenceHint,
+          )
+        }
+      },
+    )
+
+    it('says nothing of the "genau" in the form for a new entry', async () => {
+      const page = mountPage('entries', shownModal)
+      fire(listMatchingEntries, {
+        listMatchingEntries: [
+          { ...entry('a', 'Kongress Frequency Healing', ''), exactSentence: true },
+        ],
+      })
+      await page.vm.$nextTick()
+
+      await openNewEntry(page)
+      await pick(page, 'interesse')
+
+      expect(page.find('[data-test="matching-entry-exact-hint"]').exists()).toBe(false)
+    })
+
     it('starts an entry it has not seen before closed', async () => {
       const page = mountPage('entries')
       fire(listMatchingEntries, {
@@ -1165,7 +1224,9 @@ describe('Matching', () => {
       })
 
       describe('where the member had it already', () => {
-        it('says nothing, opens nothing, and fetches nothing', async () => {
+        // The link may have given that entry its "genau" just now (KA-020), and the device learns
+        // it only from the list: read anew, still without a word.
+        it('says nothing, opens nothing, and reads the list anew', async () => {
           kept.draft = offered()
           mutate.mockResolvedValueOnce(answer(false))
           const page = mountPage('entries', shownModal)
@@ -1175,8 +1236,32 @@ describe('Matching', () => {
           expect(toast.success).not.toHaveBeenCalled()
           expect(toast.error).not.toHaveBeenCalled()
           expect(formOpen(page)).toBe(false)
-          expect(refetch()).not.toHaveBeenCalled()
+          expect(refetch()).toHaveBeenCalledTimes(1)
           expect(told()).toBe('1')
+        })
+
+        it('reads nothing anew for whoever is there once the member has signed out', async () => {
+          kept.draft = offered()
+          let answered
+          mutate.mockReturnValueOnce(new Promise((resolve) => (answered = resolve)))
+          mountPage('entries', shownModal)
+          list({ ...entry('b', 'Kongress Frequency Healing', ''), matchingType: 'interest' })
+          store.gradidoID = null
+
+          answered(answer(false))
+          await flushPromises()
+
+          expect(refetch()).not.toHaveBeenCalled()
+        })
+
+        it('keeps quiet where the list cannot be read anew', async () => {
+          kept.draft = offered()
+          mutate.mockResolvedValueOnce(answer(false))
+          mountPage('entries', shownModal)
+          refetch().mockRejectedValueOnce(new Error('no list'))
+          await flushPromises()
+
+          expect(toast.error).not.toHaveBeenCalled()
         })
 
         // The line "you have this one already" is gone: nothing stands above the list.

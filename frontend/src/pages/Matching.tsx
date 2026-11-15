@@ -31,6 +31,7 @@ import { mapPrefPrefix } from '@/utils/matchingPrefs'
 import { asksForNewEntry } from '@/utils/newMatchingEntry'
 import { SHOW_ME_ON_THE_MAP, saidShowMe } from '@/utils/showMeOnTheMap'
 import IBiBoxSeam from '~icons/bi/box-seam'
+import IBiBullseye from '~icons/bi/bullseye'
 import IBiCardList from '~icons/bi/card-list'
 import IBiChevronDown from '~icons/bi/chevron-down'
 import IBiChevronUp from '~icons/bi/chevron-up'
@@ -60,6 +61,8 @@ type Entry = {
   details: string
   active: boolean
   remote: boolean
+  // The "genau" (KA-020): it finds only the members with the same sentence.
+  exactSentence: boolean
   open: boolean
   date: string
 }
@@ -133,6 +136,7 @@ export const Matching = defineComponent({
           details: string | null
           active: boolean
           remote: boolean
+          exactSentence: boolean
           createdAt: string | null
         }) => ({
           uuid: e.uuid,
@@ -141,6 +145,7 @@ export const Matching = defineComponent({
           details: e.details || '',
           active: e.active,
           remote: e.remote,
+          exactSentence: e.exactSentence === true,
           open: openBefore.get(e.uuid) ?? false,
           date: formatDate(e.createdAt),
         }),
@@ -190,6 +195,10 @@ export const Matching = defineComponent({
     const entryDraft = useEntryDraft()
     const showNew = ref(false)
     const editUuid = ref<string | null>(null)
+    // Whether the entry being edited has the "genau": the form says what a new sentence does to it.
+    const editsExact = computed(() =>
+      entries.value.some((e) => e.uuid === editUuid.value && e.exactSentence),
+    )
     // null until the member picks one. A search kept from the map and an entry being edited
     // bring theirs along.
     const newType = ref<string | null>(null)
@@ -282,6 +291,15 @@ export const Matching = defineComponent({
       }
       if (!accepted?.created || store.gradidoID !== member) {
         answered(null)
+        // The member had the entry: the link may have given it its "genau" just now (KA-020), and
+        // this device learns that only from the list. Still without a word (KA-014).
+        if (accepted && store.gradidoID === member) {
+          try {
+            await refetchEntries()
+          } catch {
+            // The list stays as it was; the next visit reads it anew.
+          }
+        }
         return
       }
       answered(accepted.entry.summary)
@@ -809,6 +827,11 @@ export const Matching = defineComponent({
             </div>
             <div class={['entry-title word-break', classes['entry-title']]}>{e.summary}</div>
             <div class='mt-2'>
+              {e.exactSentence ? (
+                <span class={['badge-soft me-2', classes['badge-soft']]}>
+                  <IBiBullseye /> {t('matching.entries.exactSentence')}
+                </span>
+              ) : null}
               {e.remote ? (
                 <span class={['badge-soft me-2', classes['badge-soft']]}>
                   <IBiGlobe2 /> {t('matching.entries.remote')}
@@ -1188,6 +1211,12 @@ export const Matching = defineComponent({
                   placeholder={t(`matching.type.${newType.value}.placeholder`)}
                 />
               </div>
+              {/* Said before saving: another sentence, or another kind, takes the "genau" (KA-020). */}
+              {editsExact.value ? (
+                <div class='small text-muted mt-1' data-test='matching-entry-exact-hint'>
+                  {t('matching.new.exactSentenceHint')}
+                </div>
+              ) : null}
 
               <div class='mt-3'>
                 <label class='small fw-bold d-block mb-1'>{t('matching.new.detailsHeading')}</label>

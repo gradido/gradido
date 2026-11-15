@@ -15,7 +15,7 @@ import {
   sql,
 } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { Result, VoidResult } from 'shared'
+import { Result, sameWords, VoidResult } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { DBInsertFailed, DBNotFoundError } from '../errorTypes'
 import {
@@ -184,6 +184,15 @@ export async function dbUpdateMatchingEntry(
       // as the assignments below stay in the right order, and nothing in the file
       // would say so.
       ...(keyingDescribes(stored, content) ? {} : NO_KEYING),
+      // The "genau" belongs to the sentence (KA-020): another sentence, or another kind --
+      // the GMS asks the answering kind, and an offer finds no interest --, and it falls back
+      // to never decided, where a project link may set it again. Case and blanks around the
+      // words do not count (`sameWords`, the comparison the link finds its entry by), so an
+      // edit that only changes those keeps it -- and loses the keying above, which is compared
+      // byte for byte. Both on purpose: the GMS folds the case itself.
+      ...(stored.matchingType === content.matchingType && sameWords(stored.summary, content.summary)
+        ? {}
+        : { exactSentence: null }),
       updatedAt: new Date(),
     })
     .where(eq(matchingEntriesTable.uuid, stored.uuid))
@@ -407,6 +416,38 @@ export async function dbSelectPublishableMatchingEntry(
     .where(and(eq(matchingEntriesTable.uuid, uuid), mayReachTheGms()))
     .limit(1)
   return rows.at(0)
+}
+
+/**
+ * A project link decides the "genau" of the entry it stands for (KA-020), where it was never
+ * decided: the member had the entry already -- from a link before the column existed, or typed by
+ * hand. True where it was set, false where there was nothing to set.
+ *
+ * ⛔ A conditional UPDATE, never the row as read written back. `IS NULL` leaves an entry the
+ * member took off alone (`= NULL` is never true in SQL), and nothing else of the row is written,
+ * so a pause made beside it stays a pause. The sentence and the kind have to be the ones the link
+ * found, byte for byte: an edit in between made it another entry, and that edit left the field
+ * undecided, which this must not take for the link's.
+ *
+ * The value changes, so ON UPDATE moves `updated_at`: the entry rises in the member's list, as
+ * after a keying. Nothing is read back -- what the statement matched says how the entry stands.
+ */
+export async function dbSetUndecidedExactSentence(
+  asFound: Pick<MatchingEntrySelect, 'uuid' | 'matchingType' | 'summary'>,
+  tx?: DrizzleTransaction | MySql2Database,
+): Promise<boolean> {
+  const result = await (tx ?? drizzleDb())
+    .update(matchingEntriesTable)
+    .set({ exactSentence: true })
+    .where(
+      and(
+        eq(matchingEntriesTable.uuid, asFound.uuid),
+        isNull(matchingEntriesTable.exactSentence),
+        sql`BINARY ${matchingEntriesTable.summary} = ${asFound.summary}`,
+        eq(matchingEntriesTable.matchingType, asFound.matchingType),
+      ),
+    )
+  return result[0]?.affectedRows === 1
 }
 
 /**

@@ -15,6 +15,7 @@ import { isPlace } from '@/utils/matchingPosition'
  *     radius,                            // km
  *     query?: { text, matchingType },    // a question typed instead of stored
  *     mineUuids?: string[],              // my entries — accepted, not sent (below)
+ *     exactUuids?: string[],             // my live entries with the "genau" (below)
  *   }
  *
  * The centre is the deliberate one, not the map's — panning around is looking, and
@@ -51,6 +52,13 @@ import { isPlace } from '@/utils/matchingPosition'
  * entry: it puts `remote=true` on whichever of the two match routes is asked, and
  * only the entries their owners released for the wide search answer. The circle
  * still holds; the wide search has its own, wider radius (MatchingMap keeps two).
+ *
+ * `exactUuids` — my live entries with the "genau" (KA-020): each asks a third route,
+ * GET community-user/sentence-matches, for the people who carry the very same sentence,
+ * with the same circle, reach and token. Those people come in as the brightest matches,
+ * and the topic matches of such an entry are left out ("genau" means only). A GMS that
+ * does not know the entry (404) or the route (400) leaves that one entry as without its
+ * "genau", silently. A typed question asks none of this.
  *
  * The rings do not depend on the question — but in the wide search they are not
  * asked for at all: a ring is the neighbour you could walk up to, and eight hundred
@@ -114,8 +122,8 @@ import { isPlace } from '@/utils/matchingPosition'
  * @typedef {{ uuid: string, name: string }} MapCommunity
  * @typedef {{ uuid: string, matchedEntryUuid: ?string, matchedSubject: ?string, summary: string,
  *   details: ?string, remote: boolean, strength: ?number, score: ?number, coreWord: ?string,
- *   mine?: string[] }} MapEntry
- * @typedef {{ strength: number, entry: ?string, subject: ?string }} MapScore
+ *   exact?: boolean, mine?: string[] }} MapEntry
+ * @typedef {{ strength: number, entry: ?string, subject: ?string, exact?: boolean }} MapScore
  * @typedef {{ uuid: string, name: string, position: MapPoint, community: MapCommunity,
  *   aboutMe: ?string, precision: string, channels: Record<string, MapEntry[]>,
  *   scores: Record<string, MapScore[]> }} MapMatch
@@ -245,6 +253,8 @@ function toEntry(entry) {
     strength: entry.strength,
     score: entry.score,
     coreWord: entry.coreWord,
+    // Whether this person carries my sentence (sentence-matches, withSameSentence).
+    exact: entry.exact === true,
   }
 }
 
@@ -428,6 +438,89 @@ export function withoutMatched(people, matched) {
   )
 }
 
+/**
+ * How many people of the sentences one search draws, nearest first, shared equally between the
+ * entries whose sentence answered (KA-022: two entries take 150 each). Matches are single elements
+ * on the map, and the sentence route answers up to a thousand: measured on 15.11.2026, a graphics
+ * card with a fourfold slower CPU pans 300 at about 40 frames a second and 1,000 at about 20. The
+ * true number is Scheibe 2's.
+ */
+export const SENTENCE_PEOPLE_MAX = 300
+
+/** How many entries with the "genau" one search asks about; the rest search as without it. */
+export const SENTENCE_QUESTIONS_MAX = 5
+
+/** One person, however a server spells the pair: a uuid names somebody only within one community. */
+const personKey = (user) =>
+  `${String(user.community?.uuid ?? '').toLowerCase()}/${String(user.uuid ?? '').toLowerCase()}`
+
+/**
+ * The topic search and the sentence questions, as one list of people in the matches route's
+ * shape (KA-018, KA-020).
+ *
+ * - For an entry of mine whose sentence question answered, its topic matches go: "genau" means
+ *   only. A person left with no channel goes with them.
+ * - The people of each answered sentence come in, the nearest of them, each of their entries
+ *   marked `exact`. `limit` is shared equally between the answered sentences, so a member with
+ *   three projects draws no more than one with one. Somebody without a usable point is not
+ *   counted among them.
+ * - Somebody in two answers -- a topic match and a sentence, or two sentences -- is one person,
+ *   by community and uuid, with the channels of both laid together.
+ *
+ * Without an answered sentence the topic answer passes untouched: for a member without the
+ * "genau" nothing changes.
+ *
+ * @param {object[]} people the matches route's answer
+ * @param {{ entry: string, users: object[] }[]} answered the sentence questions answered 200
+ * @param {number} [limit] how many people of all the sentences together to take
+ */
+export function withSameSentence(people, answered, limit = SENTENCE_PEOPLE_MAX) {
+  if (!answered.length) return people
+  const perEntry = Math.floor(limit / answered.length)
+  const only = new Set(answered.map(({ entry }) => entry))
+  const byPerson = new Map()
+  const add = (user, channels) => {
+    if (!channels.length) return
+    const key = personKey(user)
+    const known = byPerson.get(key)
+    if (!known) {
+      byPerson.set(key, { ...user, channels })
+      return
+    }
+    known.channels = known.channels.concat(channels)
+    // One person in two answers: where the first came without a usable point and the second with
+    // one, the second's counts -- the filter after the merge would drop them -- and its precision
+    // with it, which `type` carries (precisionOf; coderabbit, #4296).
+    if (!hasUsablePoint(known) && hasUsablePoint(user)) {
+      known.location = user.location
+      known.type = user.type
+    }
+  }
+  for (const user of people) {
+    add(
+      user,
+      (user.channels ?? [])
+        .map((channel) => ({
+          ...channel,
+          matches: (channel.matches ?? []).filter((match) => !only.has(match.matchedEntryUuid)),
+        }))
+        .filter((channel) => channel.matches.length),
+    )
+  }
+  for (const { users } of answered) {
+    for (const user of users.filter(hasUsablePoint).slice(0, perEntry)) {
+      add(
+        user,
+        (user.channels ?? []).map((channel) => ({
+          ...channel,
+          matches: (channel.matches ?? []).map((match) => ({ ...match, exact: true })),
+        })),
+      )
+    }
+  }
+  return [...byPerson.values()]
+}
+
 function whereParams({ center, radius }) {
   return new URLSearchParams({
     latitude: String(center.lat),
@@ -519,6 +612,25 @@ async function gmsGet(base, route, params, token) {
   return response.json()
 }
 
+/**
+ * Who carries the sentence of one entry of mine: `{ entry, users }`, or null where this GMS says
+ * nothing about it -- 404, the entry is not there (paused since, the member left the GMS, a hand-over
+ * that failed); 400, a GMS without the route reads the address as `/community-user/:id`. That entry
+ * then searches as without its "genau", and the member is told nothing. Anything else -- the token
+ * refused, the GMS down -- fails the search as the matches route does.
+ */
+async function sameSentenceOf(base, search, entry, token) {
+  const params = matchParams(search)
+  params.set('entry', entry)
+  try {
+    const answer = await gmsGet(base, 'community-user/sentence-matches', params, token)
+    return { entry, users: answer.users }
+  } catch (err) {
+    if (err.status === 404 || err.status === 400) return null
+    throw err
+  }
+}
+
 async function gmsAccess(client) {
   const { data } = await client.query({
     query: authenticateGmsUserSearch,
@@ -555,6 +667,8 @@ export function useMatches() {
    *   GMS knows them from the token
    * @param {boolean} [search.remoteOnly] the reach: ask only for the entries released
    *   for the wide search, and draw no rings
+   * @param {string[]} [search.exactUuids] my live entries with the "genau": who carries the
+   *   same sentence is asked for each, beside the matches (not for a typed question)
    */
   async function load(search) {
     if (!search?.center || !(search.radius > 0)) return
@@ -581,7 +695,8 @@ export function useMatches() {
     try {
       const { url, token } = await gmsAccess(client)
       const base = apiBaseOf(url)
-      const [people, others] = await Promise.all([
+      const exact = search.query ? [] : (search.exactUuids ?? []).slice(0, SENTENCE_QUESTIONS_MAX)
+      const [people, others, ...sentences] = await Promise.all([
         search.query
           ? gmsGet(base, 'community-user/typed-matches', typedParams(search), token)
           : gmsGet(base, 'community-user/matches', matchParams(search), token),
@@ -593,6 +708,9 @@ export function useMatches() {
         search.remoteOnly
           ? Promise.resolve([])
           : gmsGet(base, 'community-user/user-locations', whereParams(search), token),
+        // All at once, in the same round as the matches, and under the same `latest`: a late
+        // answer of a search that was overtaken writes nothing.
+        ...exact.map((entry) => sameSentenceOf(base, search, entry, token)),
       ])
       if (request !== latest) return
       // ⛔ Filtered before withoutMatched, not after. That function reads `location[0]` on
@@ -604,7 +722,7 @@ export function useMatches() {
       // ⚠️ And a test can be green for the wrong reason here: `&&` checks the alias first,
       // so an unplaceable person only reaches `location[0]` when some OTHER person shares
       // their alias. The case below is built that way on purpose.
-      const placeable = people.filter(hasUsablePoint)
+      const placeable = withSameSentence(people, sentences.filter(Boolean)).filter(hasUsablePoint)
       matches.value = placeable.map(toMatch)
       presence.value = withoutMatched(others.filter(hasUsablePoint), placeable).map(toPresence)
     } catch (err) {

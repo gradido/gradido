@@ -1003,6 +1003,7 @@
       "edit": "Düzenle",
       "emptyText": "Bir şey sun, bir şey ara ya da bir ilgi alanı paylaş ve bulunmanı sağla.",
       "emptyTitle": "Henüz giriş yok.",
+      "exactSentence": "Tam eşleşme",
       "new": "Yeni giriş",
       "noDetails": "(ayrıntı yok)",
       "pause": "Duraklat",
@@ -1133,6 +1134,7 @@
       "choose": "Lütfen seç:",
       "completeSentence": "Bu cümleyi tamamla:",
       "detailsHeading": "Ayrıntılar — doğru kişiler seni bulsun:",
+      "exactSentenceHint": "Bu giriş sana tam olarak bu cümleyi eklemiş kişileri gösterir. Cümleyi değiştirirsen giriş yeniden benzer konuları arar.",
       "remote": "Bölge üstü / çevrimiçi de mevcut",
       "remoteHint": "O zaman bölge üstü aramada da görünürsün.",
       "sentenceStart": "{start} …"

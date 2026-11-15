@@ -95,8 +95,10 @@ type MyEntry = {
   uuid: string
   matchingType: string
   summary: string
+  remote?: boolean
   active?: boolean
   keyed?: boolean
+  exactSentence?: boolean
 }
 type View = { lat: number; lng: number; zoom: number }
 
@@ -310,6 +312,8 @@ export const MatchingMap = defineComponent({
     // has handed the words over, a moment later -- or, where that send failed, not before the
     // member's next edit: `keyed` says "worked out", not "arrived over there".
     const keyedKey = (entries: MyEntry[]) => entryKey(entries.filter((entry) => entry.keyed))
+    // The entries with the "genau" (KA-020): each asks who carries its sentence (useMatches).
+    const exactOf = (entries: MyEntry[]) => entries.filter((entry) => entry.exactSentence)
 
     /**
      * An entry of mine that has no words yet, asked about until it has them.
@@ -404,6 +408,7 @@ export const MatchingMap = defineComponent({
       listsTaken++
       const keyBefore = entryKey(myEntries.value)
       const keyedBefore = keyedKey(myEntries.value)
+      const exactBefore = entryKey(exactOf(myEntries.value))
       myEntries.value = (list ?? []).filter((entry) => entry.active)
       askAgainForWords()
       // A remembered choice can outlive what it points at: the entry may have been
@@ -428,11 +433,57 @@ export const MatchingMap = defineComponent({
       // And once an entry of mine has its words: the GMS finds with it from then on, and the search
       // asked before them found nothing with it (askAgainForWords). That search is a later one, not
       // the arrival's: a window left open last time is not brought back by it (arrivalOver).
-      if (entryKey(myEntries.value) !== keyBefore) {
+      //
+      // And where an entry gains or loses its "genau" (a link healed it, an edit took it back):
+      // the same entries, another question.
+      if (openWideOnce()) {
+        return
+      }
+      if (
+        entryKey(myEntries.value) !== keyBefore ||
+        entryKey(exactOf(myEntries.value)) !== exactBefore
+      ) {
         searchUnasked()
       } else if (keyedKey(myEntries.value) !== keyedBefore) {
         searchAfterWords()
       }
+    }
+
+    /**
+     * The first map of a member with a "genau" entry released for the wide search opens wide
+     * (KA-021 point 1): the people of a project live far apart, and the 25 km circle would show
+     * none of them. Once, and only where the reach was never chosen on this device -- from then on
+     * it is the member's choice, kept like one. Not during a visit to a contact: that search stands
+     * on the contact; the next ordinary visit switches.
+     *
+     * The way a tap on the switch goes (setReach: the circle jumps, the map frames it, the search
+     * runs) where the map stands; before it does, the reach is set and the view of the old circle
+     * forgotten, and the map opens on the wide circle when it comes. True where it searched.
+     */
+    let openedWide = false
+    function openWideOnce() {
+      if (
+        openedWide ||
+        readPref<unknown>('reach', null) !== null ||
+        askedPerson.value ||
+        !exactOf(myEntries.value).some((entry) => entry.remote)
+      ) {
+        return false
+      }
+      openedWide = true
+      // Wide already: the member tapped it on this visit, and a storage that refuses writes kept
+      // nothing of it. There is nothing to switch, so the list's own search below asks the sentence.
+      if (reach.value === 'fern') {
+        return false
+      }
+      writePref('view', null)
+      if (map) {
+        setReach('fern')
+        return true
+      }
+      reach.value = 'fern'
+      writePref('reach', 'fern')
+      return false
     }
 
     /**
@@ -1365,6 +1416,7 @@ export const MatchingMap = defineComponent({
         radius: radius.value,
         query: searchQuery.value,
         mineUuids: myEntries.value.map((entry) => entry.uuid),
+        exactUuids: exactOf(myEntries.value).map((entry) => entry.uuid),
         remoteOnly: reach.value === 'fern',
       })
     }

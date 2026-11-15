@@ -20,6 +20,7 @@ import {
   scoresOf,
   stagesOf,
   topScore,
+  EXACT_STAGE,
 } from './displayCore'
 
 // These tests pin the calibration. They are not here to prove the arithmetic —
@@ -28,7 +29,12 @@ import {
 describe('displayCore', () => {
   // One score as scoresOf builds it: how brightly, which entry of mine it answers, and
   // what that entry of mine is about. By default every score answers an entry of its own.
-  const score = (strength, subject, entry = `mine-${subject}`) => ({ strength, entry, subject })
+  const score = (strength, subject, entry = `mine-${subject}`, exact = false) => ({
+    strength,
+    entry,
+    subject,
+    exact,
+  })
 
   describe('scoreToStage', () => {
     it('leaves anything below the cut dark', () => {
@@ -118,6 +124,18 @@ describe('displayCore', () => {
     it('leaves a perfect single match at step 4 - the fifth is breadth, not strength', () => {
       expect(channelStage([score(0.89, 'fahrrad')], DEFAULTS, true)).toBe(4)
     })
+
+    // Somebody who carries the sentence of one of my entries with the "genau" (KA-018): "hellrot",
+    // whatever breadth is switched to, and beside a topic match of theirs on the same channel.
+    it.each([[false], [true]])(
+      'lifts somebody who carries my sentence to the "genau" step, breadth %s',
+      (breadth) => {
+        const sentence = score(0.865, 'my-project', 'my-project', true)
+        expect(channelStage([sentence], DEFAULTS, breadth)).toBe(EXACT_STAGE)
+        expect(channelStage([score(0.46, 'geige'), sentence], DEFAULTS, breadth)).toBe(EXACT_STAGE)
+        expect(channelStage([score(0.865, 'my-project', 'my-project')], DEFAULTS, false)).toBe(4)
+      },
+    )
 
     // The brightest move when "Wer mehrfach passt" is switched on (GMS-184).
     it('lifts a perfect match to the fifth step once a second thing is answered', () => {
@@ -371,6 +389,21 @@ describe('displayCore', () => {
     // then rebuilds their scores from what is left. If this ever read anything but
     // the entries handed to it, a person would keep glowing for an entry the member
     // just filtered away.
+    it('carries the mark of somebody who carries my sentence into the score', () => {
+      const channels = {
+        interesse: [
+          { strength: 0.865, matchedEntryUuid: 'my-project', matchedSubject: null, exact: true },
+          { strength: 0.46, matchedEntryUuid: 'my-interest', matchedSubject: 'geige' },
+        ],
+      }
+      expect(scoresOf(channels)).toEqual({
+        interesse: [
+          score(0.865, 'my-project', 'my-project', true),
+          score(0.46, 'geige', 'my-interest'),
+        ],
+      })
+    })
+
     it('reads one strength per matched entry, per channel, with what it answers', () => {
       const channels = {
         angebot: [

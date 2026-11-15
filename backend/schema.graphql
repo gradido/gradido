@@ -823,6 +823,7 @@ type MatchingEntry {
   createdAt: DateTime!
   updatedAt: DateTime!
   keyed: Boolean!
+  exactSentence: Boolean!
 }
 
 type ProjectBranding {

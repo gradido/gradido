@@ -1003,6 +1003,7 @@
       "edit": "Edit",
       "emptyText": "Offer something, look for something, or share an interest — and get found.",
       "emptyTitle": "No entries yet.",
+      "exactSentence": "Exact",
       "new": "New entry",
       "noDetails": "(no details)",
       "pause": "Pause",
@@ -1133,6 +1134,7 @@
       "choose": "Please choose:",
       "completeSentence": "Complete this sentence:",
       "detailsHeading": "Details — so the right people find you:",
+      "exactSentenceHint": "This entry shows you the people with exactly this sentence. If you change the sentence, the entry looks for similar topics again.",
       "remote": "Also available supra-regionally / online",
       "remoteHint": "You then also appear in the supra-regional search.",
       "sentenceStart": "{start} …"

@@ -60,6 +60,11 @@ function entry(overrides: Partial<MatchingEntrySelect> = {}): MatchingEntrySelec
     summary: 'Lastenrad zum Ausleihen',
     details: null,
     remote: false,
+    // Carried so that the payload assertions below can see it leave: the "genau" of an entry is
+    // the member's own view (KA-020) and stays on this server -- the GMS finds the same sentence
+    // for anyone who asks. Without the field here, a leak would be `undefined`, which the
+    // serialised comparison drops.
+    exactSentence: true,
     ...overrides,
   } as unknown as MatchingEntrySelect
 }

@@ -6,10 +6,11 @@ import {
   dbSelectMatchingEntriesByUserId,
   dbSelectMatchingEntryByUuid,
   dbSetMatchingEntryActive,
+  dbSetUndecidedExactSentence,
   dbUpdateMatchingEntry,
   MatchingEntrySelect,
 } from 'database'
-import { parseOrThrowFirstIssue } from 'shared'
+import { parseOrThrowFirstIssue, sameWords } from 'shared'
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
 import { matchingKeyingRun } from '@/apis/anthropic/matching/keyingRun'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -22,7 +23,7 @@ import { eventMatchingEntrySchema } from '@/interactions/registerUser'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { createMatchingEntryFor, readBackMatchingEntry } from './util/createMatchingEntryFor'
-import { EVENT_ENTRY_KIND, sameWords } from './util/makeEventMatchingEntry'
+import { EVENT_ENTRY_KIND } from './util/makeEventMatchingEntry'
 import { removeMatchingEntryFromGms, syncMatchingEntryToGms } from './util/syncMatchingEntryToGms'
 
 /**
@@ -86,6 +87,11 @@ export class MatchingEntryResolver {
    * ⛔ One call after another per member (`inMemberLine`): the same link opened twice at once --
    * two tabs, a sign-in and a session running beside it -- must not read "not there" twice and
    * make two entries.
+   *
+   * The entry the link makes finds only the members with the same sentence ("genau", KA-020).
+   * One the member had already gets it here where it was never decided -- still silently -- and
+   * keeps it where the member took it off. That is one more statement on the way "there already",
+   * and only for an entry never decided: two in all, the read of the member's entries included.
    */
   @Authorized([RIGHTS.CREATE_MATCHING_ENTRY])
   @Mutation(() => EventMatchingEntryAccepted)
@@ -102,13 +108,18 @@ export class MatchingEntryResolver {
           entry.matchingType === EVENT_ENTRY_KIND && sameWords(entry.summary, offered.summary),
       )
       if (there) {
-        return new EventMatchingEntryAccepted(false, there)
+        const decided = there.exactSentence === null && (await dbSetUndecidedExactSentence(there))
+        return new EventMatchingEntryAccepted(
+          false,
+          decided ? { ...there, exactSentence: true } : there,
+        )
       }
       const made = await createMatchingEntryFor(user, {
         matchingType: EVENT_ENTRY_KIND,
         summary: offered.summary,
         details: offered.details ?? null,
         remote: offered.remote,
+        exactSentence: true,
       })
       return new EventMatchingEntryAccepted(true, made)
     })
