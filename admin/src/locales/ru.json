@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Аккаунт проекта (объединение, проект, предприятие) не создаёт Gradido, он получает благодарность. Выключить может сам участник; включить — только администратор.",
+      "label": "Может создавать",
+      "no": "нет",
+      "switchedOff": "Создание выключено – теперь это аккаунт проекта.",
+      "switchedOn": "Создание включено – этот аккаунт снова может создавать.",
+      "yes": "да"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Подставляется при внесении вклада.",
+      "label": "Основная группа созидания пользователя",
+      "none": "(без группы)"
     },
     "notChangeYourSelf": "Будучи администратором/модератором, вы не можете изменить свою собственную роль.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Группы созидания сохранены.",
+    "savedScope": "Видимость сохранена.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "все группы",
+      "help": "Пусто = все вклады.",
+      "label": "Видимые группы созидания",
+      "untagged": "без группы"
     },
     "selectLabel": "Роль:",
     "selectRoles": {

@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
-      "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "help": "Bir proje hesabı (dernek, proje, işletme) yaratım yapmaz, teşekkür alır. Kapatmayı üye kendisi yapabilir; açmayı yalnızca bir yönetici.",
+      "label": "Yaratım yapabilir",
+      "no": "hayır",
+      "switchedOff": "Yaratım kapatıldı – bu hesap artık bir proje hesabı.",
+      "switchedOn": "Yaratım açıldı – bu hesap yeniden yaratım yapabilir.",
+      "yes": "evet"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Gönderirken önceden seçilir.",
+      "label": "Kullanıcının ana yaratım grubu",
+      "none": "(grupsuz)"
     },
     "notChangeYourSelf": "Yönetici/moderatör olarak kendi rolünü değiştiremezsin.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Yaratım grupları kaydedildi.",
+    "savedScope": "Görünürlük kaydedildi.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "tüm gruplar",
+      "help": "Boş = tüm katkılar.",
+      "label": "Görünür yaratım grupları",
+      "untagged": "grupsuz"
     },
     "selectLabel": "Rol:",
     "selectRoles": {

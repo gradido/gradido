@@ -759,26 +759,26 @@
   },
   "userRole": {
     "creationAllowed": {
-      "help": "A project account (association, project, business) does not create, it receives thanks. The member can switch it off; only an administrator switches it back on.",
-      "label": "May create",
+      "help": "Un account di progetto (associazione, progetto, attività commerciale) non crea, riceve ringraziamenti. Il membro può disattivarlo da solo; solo un amministratore può riattivarlo.",
+      "label": "Può creare",
       "no": "no",
-      "switchedOff": "Creation switched off – this account is now a project account.",
-      "switchedOn": "Creation switched on – this account can create again.",
-      "yes": "yes"
+      "switchedOff": "Creazione disattivata – questo account ora è un account di progetto.",
+      "switchedOn": "Creazione attivata – questo account può di nuovo creare.",
+      "yes": "sì"
     },
     "creationGroups": {
-      "help": "Pre-filled on submission.",
-      "label": "User's main creation group",
-      "none": "(no group)"
+      "help": "Preselezionato all'invio.",
+      "label": "Gruppo di creazione principale dell'utente",
+      "none": "(senza gruppo)"
     },
     "notChangeYourSelf": "Come amministratore/moderatore, non puoi cambiare il tuo ruolo.",
-    "savedCreationGroups": "Creation groups saved.",
-    "savedScope": "Visibility saved.",
+    "savedCreationGroups": "Gruppi di creazione salvati.",
+    "savedScope": "Visibilità salvata.",
     "scope": {
-      "all": "all groups",
-      "help": "Empty = all contributions.",
-      "label": "Visible creation groups",
-      "untagged": "no group"
+      "all": "tutti i gruppi",
+      "help": "Vuoto = tutti i contributi.",
+      "label": "Gruppi di creazione visibili",
+      "untagged": "senza gruppo"
     },
     "selectLabel": "Ruolo:",
     "selectRoles": {
