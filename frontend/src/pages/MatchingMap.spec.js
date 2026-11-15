@@ -4174,5 +4174,29 @@ describe('MatchingMap, the "genau" of my entries', () => {
         setItem.mockRestore()
       }
     })
+
+    // Where storage keeps nothing, the stored reach reads as never chosen on every list: only the
+    // page's own memory keeps the switch to once (the counter-check of 15.11.2026 found no test).
+    it('switches once also where storage keeps nothing: back to regional stays regional', async () => {
+      const page = await withMap()
+      const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError')
+      })
+      try {
+        list(project('a'))
+        await flushPromises()
+        expect(page.findAll('.reach-btn')[1].attributes('aria-pressed')).toBe('true')
+
+        await page.findAll('.reach-btn')[0].trigger('click')
+        await flushPromises()
+        list(project('a'), project('b'))
+        await flushPromises()
+
+        expect(page.findAll('.reach-btn')[0].attributes('aria-pressed')).toBe('true')
+        expect(lastSearch()).toMatchObject({ radius: 25, remoteOnly: false })
+      } finally {
+        setItem.mockRestore()
+      }
+    })
   })
 })
