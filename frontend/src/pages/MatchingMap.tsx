@@ -794,11 +794,13 @@ export const MatchingMap = defineComponent({
      * A chosen entry with its "genau" shows only the people of its sentence: no grey rings, no boxes
      * for them, and in the list nobody "nearby" (KA-017, KA-020). Only where its question answered in
      * the search on screen: a GMS without the question (404, 400) lets the entry search as without
-     * its "genau", rings and all (KA-023 point 3).
+     * its "genau", rings and all (KA-023 point 3). And not during a visit to a contact (KA-024): the
+     * member came to see who lives around them, and those are the rings; the people of the sentence
+     * glow all the same.
      */
     const sentenceOnly = computed(() => {
       const chosen = choiceInEffect.value
-      return chosen.kind === 'entry' && chosen.uuid in sentenceTotals.value
+      return chosen.kind === 'entry' && chosen.uuid in sentenceTotals.value && !askedPerson.value
     })
 
     // The matches the map is showing right now. Drawing and counting both read this

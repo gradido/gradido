@@ -4777,6 +4777,18 @@ describe('MatchingMap, the tick under the search field', () => {
       expect(greyBoxes(shown)).toHaveLength(2)
     })
 
+    // KA-024: during a visit to a contact the rings stay -- they are the people around them.
+    it('keeps the rings during a visit to a contact', async () => {
+      route.current.query = CONTACT
+      const shown = await withMap([mine('a')])
+      presence.value = [ring(1), ring(2)]
+      sentenceTotals.value = { a: 3 }
+      await flushPromises()
+
+      expect(rings()).toBe(2)
+      expect(greyBoxes(shown)).toHaveLength(2)
+    })
+
     // The rings are drawn by hand, and a change of the choice asks no new answer where the
     // sentences asked stay the same.
     it('keeps them for all my entries, and tells the map where only the choice changes', async () => {
