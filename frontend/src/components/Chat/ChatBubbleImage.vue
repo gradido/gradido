@@ -106,9 +106,10 @@ onBeforeUnmount(() => watcher?.disconnect())
 
 <style lang="scss" scoped>
 /* As large as the picture of a greeting stands (Bernd, 17.10.2026): as wide as a bubble may be,
-   80 % of the thread (ChatBubble), and whole -- no higher than `--chat-image-height`, which is
-   22rem in the usual window and up to a greeting's height in the large one (ChatWindowSizeToggle).
-   A picture higher than wide stands at that height and is narrower.
+   its share of the thread (ChatBubble's `--chat-bubble-share`), and whole -- no higher than
+   `--chat-image-height`, which is 22rem in the usual window and up to a greeting's height in the
+   large one (ChatWindowSizeToggle). A picture higher than wide stands at that height and is
+   narrower.
 
    Only a picture that would then be narrower than 16rem -- a long screenshot -- stays 16rem wide
    and is cut at the bottom, its top in sight (E-044 F5). And at most twice its own size, as in the
@@ -117,9 +118,9 @@ onBeforeUnmount(() => watcher?.disconnect())
    did. The floor wins over the cap (`max` outside `min`).
 
    ⛔ The width is a length, never a percentage. It is what the picture asks of the bubble while
-   the bubble works out how wide it wants to be, and the bubble grows to it -- up to its 80 %,
-   where `max-width` takes the picture in (a percentage there does not count while the bubble is
-   measured). A width in percent would count as `auto`, and the picture would ask for its own
+   the bubble works out how wide it wants to be, and the bubble grows to it -- up to its share of
+   the thread, where `max-width` takes the picture in (a percentage there does not count while the
+   bubble is measured). A width in percent would count as `auto`, and the picture would ask for its own
    pixels. A long caption makes the bubble wider than its picture; the picture stays at the top,
    at the bubble's start (Bernd, 17.10.2026, in the morning).
 

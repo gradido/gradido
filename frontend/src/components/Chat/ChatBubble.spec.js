@@ -1746,8 +1746,9 @@ describe('ChatBubble', () => {
 
     /**
      * What only the stylesheet holds (jsdom lays nothing out): the bubble at least 16.5rem wide and
-     * never more than 80 %, little room around the picture -- no fixed width: a long caption takes
-     * the width any message may have (Bernd, 17.10.2026, in the morning).
+     * never more than a bubble's share of the thread (`--chat-bubble-share`, ChatBubble's layout
+     * spec), little room around the picture -- no fixed width: a long caption takes the width any
+     * message may have (Bernd, 17.10.2026, in the morning).
      *
      * The picture as large as a greeting's (Bernd, 17.10.2026): as wide as the bubble may be and
      * whole, no higher than `--chat-image-height` (22rem where nothing sets it), so a picture
@@ -1760,10 +1761,10 @@ describe('ChatBubble', () => {
     it('draws the bubble and the picture as the mockup has them', () => {
       const bubbleCode = style('ChatBubble.vue')
       const bubble = rule(bubbleCode, '\\.chat-bubble\\.has-image')
-      expect(bubble).toMatch(/min-width:\s*min\(16\.5rem,\s*80%\)/)
+      expect(bubble).toMatch(/min-width:\s*min\(16\.5rem,\s*var\(--chat-bubble-share\)\)/)
       expect(bubble).not.toMatch(/(^|[\s;])width\s*:/)
       expect(bubble).toMatch(/padding:\s*0\.25rem/)
-      expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*80%/)
+      expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*var\(--chat-bubble-share\)/)
 
       const pictureCode = style('ChatBubbleImage.vue')
       const button = rule(pictureCode, '\\.chat-bubble-image').replace(/\s+/g, ' ')

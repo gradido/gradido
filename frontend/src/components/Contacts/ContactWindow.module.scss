@@ -378,8 +378,17 @@
    the sheet has to spare stays empty below the bar. It took what was left before, grew
    upwards from the bar, and one message stood at the bottom under a gap the height of the
    screen (Bernd, 24.09.2026, at the device). A long thread shrinks to what is left and scrolls
-   inside, the bar at the bottom. */
+   inside, the bar at the bottom.
+
+   And the sheet's body stands 1rem from the screen's sides, not a dialog's 1.5rem (Bernd,
+   15.11.2026): on a phone those 16 px go to the conversation. The body is BModal's own element,
+   named with BModal's class beside ours -- on its own, ours would stand level with Bootstrap's
+   rule for it. The group window has the same rule (ChatGroupWindow's spec holds the two). */
 @media (width <= 575.98px) {
+  :global(.modal .modal-body.contact-window-body) {
+    padding-inline: 1rem;
+  }
+
   .contact-window-inner {
     display: flex;
     flex-direction: column;

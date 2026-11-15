@@ -837,3 +837,16 @@ watch(
   }
 }
 </style>
+
+<style lang="scss">
+/* Not scoped: the body is BModal's own element and carries no scope of this file. As in
+   ChatImageView, the rule names BModal's class beside ours.
+
+   The sheet's body stands 1rem from the screen's sides, not a dialog's 1.5rem -- the contact
+   window's measure, and it says why (ContactWindow.module.scss). */
+@media (width <= 575.98px) {
+  .modal .modal-body.chat-group-window-body {
+    padding-inline: 1rem;
+  }
+}
+</style>
