@@ -30,7 +30,9 @@ import { MESSAGE_MAX_CHARS, supportTicketText } from '@/validationSchemas'
  * While the community has new requests switched off (K5, SUA-024 1 b), a sentence with the
  * support's address stands in the form's place; a request the server refuses for the switch --
  * a form that was open before -- says the same, and the chat's beat is asked at once, which
- * brings the switch and puts the sentence there.
+ * brings the switch and puts the sentence there. Where the member had typed something when the
+ * switch went off, the form stays under the sentence, without a way to send: the words stay in
+ * reach, to copy them into a mail, until "Abbrechen" empties the field.
  */
 export const SupportForm = defineComponent({
   name: 'SupportForm',
@@ -48,7 +50,11 @@ export const SupportForm = defineComponent({
     // member has typed in it.
     const field = ref(0)
 
-    const disabled = computed(() => sending.value || !supportTicketText.isValidSync(text.value))
+    // new requests switched off (K5): the server would refuse a request, so nothing is sent
+    const off = computed(() => store.supportTicketsActive === false)
+    const disabled = computed(
+      () => off.value || sending.value || !supportTicketText.isValidSync(text.value),
+    )
     const readBy = computed(() =>
       selectedLabel.value
         ? t('support.readBy.group', { group: selectedLabel.value })
@@ -57,7 +63,7 @@ export const SupportForm = defineComponent({
 
     const submit = async (event: Event) => {
       event.preventDefault()
-      if (sending.value) {
+      if (sending.value || off.value) {
         return
       }
       sending.value = true
@@ -85,13 +91,13 @@ export const SupportForm = defineComponent({
 
     expose({ text, selected, submit })
 
-    return () =>
-      store.supportTicketsActive === false ? (
-        <div class='support-form'>
+    return () => (
+      <div class='support-form'>
+        {off.value ? (
           <I18nText
             keypath='support.off'
             tag='p'
-            class='p-3 bg-white app-box-shadow gradido-border-radius'
+            class={['p-3 bg-white app-box-shadow gradido-border-radius', text.value ? 'mb-3' : '']}
             data-test='support-off'
           >
             {{
@@ -102,9 +108,8 @@ export const SupportForm = defineComponent({
               ),
             }}
           </I18nText>
-        </div>
-      ) : (
-        <div class='support-form'>
+        ) : null}
+        {off.value && !text.value ? null : (
           <BForm
             class='form-style p-3 bg-white app-box-shadow gradido-border-radius'
             onSubmit={submit}
@@ -159,7 +164,8 @@ export const SupportForm = defineComponent({
               </BCol>
             </BRow>
           </BForm>
-        </div>
-      )
+        )}
+      </div>
+    )
   },
 })

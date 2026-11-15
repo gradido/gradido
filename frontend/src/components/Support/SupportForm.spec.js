@@ -216,5 +216,39 @@ describe('SupportForm', () => {
       expect(wrapper.find('form').exists()).toBe(false)
       expect(wrapper.find('[data-test="support-off"]').exists()).toBe(true)
     })
+
+    // A member who was typing when the switch went off keeps the words in reach, to copy them
+    // into a mail; nothing can be sent, and "Abbrechen" leaves the sentence alone.
+    it('keeps words typed before the switch under the sentence, with no way to send them', async () => {
+      const wrapper = mountForm()
+      await wrapper.find('textarea').setValue('Wie schöpfe ich?')
+      __store.supportTicketsActive = false
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="support-off"]').exists()).toBe(true)
+      expect(wrapper.find('textarea').element.value).toBe('Wie schöpfe ich?')
+      expect(sendButton(wrapper).attributes('disabled')).toBeDefined()
+      await wrapper.find('form').trigger('submit')
+      await flushPromises()
+      expect(mockMutate).not.toHaveBeenCalled()
+
+      await wrapper.find('form').trigger('reset')
+      await flushPromises()
+      expect(wrapper.find('form').exists()).toBe(false)
+      expect(wrapper.find('[data-test="support-off"]').exists()).toBe(true)
+    })
+
+    it('gives the form back, words and all, where the switch goes on again', async () => {
+      const wrapper = mountForm()
+      await wrapper.find('textarea').setValue('Wie schöpfe ich?')
+      __store.supportTicketsActive = false
+      await flushPromises()
+      __store.supportTicketsActive = true
+      await flushPromises()
+
+      expect(wrapper.find('[data-test="support-off"]').exists()).toBe(false)
+      expect(wrapper.find('textarea').element.value).toBe('Wie schöpfe ich?')
+      expect(sendButton(wrapper).attributes('disabled')).toBeUndefined()
+    })
   })
 })
