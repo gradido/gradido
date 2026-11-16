@@ -1229,8 +1229,25 @@ const copyText = async () => {
 
   .chat-bubble-in-group .chat-bubble-writer {
     max-width: calc(100% - var(--chat-bubble-face) - 0.45rem);
-    margin: 0 0 0.2rem calc(var(--chat-bubble-face) + 0.45rem);
+    margin: 0 0 0.25rem calc(var(--chat-bubble-face) + 0.45rem);
     line-height: var(--chat-bubble-face);
+  }
+
+  /* A face with a picture opens it, and a tap finds it from 44 px, the least this wallet gives a
+     control (Bernd, 16.11.2026): an invisible border of 0.25rem around the 36 px face takes the
+     tap. The picture keeps its circle -- the avatar clips at the inside of the border -- and the
+     face is pulled out by as much, so it stands where it stood. Between it and the name are
+     3.2 px; under it, to the bubble, nothing (the name's line keeps 0.25rem below). */
+  .chat-bubble-face.app-avatar-zoomable {
+    top: -0.25rem;
+    left: -0.25rem;
+    box-sizing: content-box;
+    border: 0.25rem solid transparent;
+  }
+
+  /* The keyboard's ring at the face, not around the border nobody sees. */
+  .chat-bubble-face.app-avatar-zoomable:focus-visible {
+    outline-offset: -0.125rem;
   }
 }
 
