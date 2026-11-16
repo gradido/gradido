@@ -9,7 +9,7 @@ import {
   listedContribution,
 } from './fixtures/contributions'
 import { type Answer, expect, Failure, test } from './fixtures/graphql'
-import { signedInAnswers, signIn } from './fixtures/signIn'
+import { signedInAnswers, signIn, WALLET_NEWS_FIELDS } from './fixtures/signIn'
 
 type Variables = Record<string, unknown>
 type Listed = ReturnType<typeof listedContribution>
@@ -294,6 +294,7 @@ test.describe('with a remark on the member', () => {
       graphql
         .sent()
         .map((sent) => sent.field)
+        .filter((field) => !WALLET_NEWS_FIELDS.includes(field))
         .slice(-2),
     ).toEqual(['setUserRemark', 'creaEvaluateContribution'])
   })

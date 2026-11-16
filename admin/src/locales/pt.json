@@ -571,7 +571,8 @@
       "light": "Claro",
       "system": "Seguir a configuração do sistema (padrão)"
     },
-    "user_search": "Pesquisa de utilizadores"
+    "user_search": "Pesquisa de utilizadores",
+    "walletNews": "{n} novidade na tua carteira | {n} novidades na tua carteira"
   },
   "notice": "Aviso",
   "open": "aberta",

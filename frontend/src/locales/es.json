@@ -495,6 +495,7 @@
       "myContributionNoteList": "Puedes editar o eliminar las contribuciones enviadas que aún no han sido confirmadas en cualquier momento.",
       "pending": "Enviado y a la espera de confirmación"
     },
+    "badge": "{n} contribución con una pregunta para ti | {n} contribuciones con una pregunta para ti",
     "communityWindow": "Aportaciones de los últimos {months} meses",
     "creationGroup": {
       "help": "Opcional. También funciona sin grupo. Una #palabra en el texto no asigna un grupo — para eso está este campo.",
@@ -503,6 +504,7 @@
     },
     "delete": "¿Eliminar realmente la contribución? Después solo será visible para ti y los moderadores, invisible para la comunidad.",
     "deleted": "La contribución ha sido eliminada. Ahora solo es visible para ti y los moderadores, invisible para la comunidad.",
+    "dot": "Una pregunta sobre una de tus contribuciones",
     "filter": {
       "all": "(todas)",
       "byGroup": "Filtrar por grupo de creación",

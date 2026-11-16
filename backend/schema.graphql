@@ -35,7 +35,7 @@ type Query {
   adminListContributionMessages(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC, contributionId: Int!): ContributionMessageListResult!
   contribution(id: Int!): Contribution!
   listContributions(filter: ContributionFilterArgs, pagination: Paginated!): ContributionListResult!
-  countContributionsInProgress: Int!
+  countContributionsInProgress: Int
   listAllContributions(filter: ContributionFilterArgs, pagination: Paginated!): CommunityContributionListResult!
   adminListContributions(paginated: Paginated! = {currentPage: 1, pageSize: 3, order: DESC}, filter: SearchContributionsFilterArgs! = {}): ContributionListResult!
   openCreations: [OpenCreation!]!

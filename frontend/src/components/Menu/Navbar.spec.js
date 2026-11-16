@@ -636,6 +636,80 @@ describe('Navbar', () => {
     })
 
     /**
+     * One dot for all three (Bernd, 16.11.2026): a question back to one of the member's
+     * contributions sits on the opener as the support's does, with a line of its own.
+     */
+    describe('and the contributions with a question back', () => {
+      const serverSaysContributions = async (unreadConversations, inProgress) => {
+        startChatUpdates({
+          query: vi.fn(async () => ({
+            data: {
+              newChatMessagesSince: {
+                latestId: 1,
+                unreadConversations,
+                messages: [],
+                hasMore: false,
+              },
+              supportTicketsMenu: { active: true, inProgress: 0, unfinished: 0 },
+              countContributionsInProgress: inProgress,
+            },
+          })),
+        })
+        await flushPromises()
+      }
+
+      it('sits on the opener while a question back waits at a contribution, with its own line', async () => {
+        await serverSaysContributions(0, 1)
+        wrapper = mountComponent()
+
+        expect(opener().find('.navbar-toggler-icon [data-test="chat-unread-dot"]').exists()).toBe(
+          true,
+        )
+        const label = opener().find('[data-test="creation-dot-label"]')
+        expect(label.classes()).toContain('visually-hidden')
+        expect(label.text()).toBe('contribution.dot')
+        expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(false)
+        expect(opener().find('[data-test="support-dot-label"]').exists()).toBe(false)
+      })
+
+      it('is one dot for the chat and the contributions, with both lines', async () => {
+        await serverSaysContributions(2, 1)
+        wrapper = mountComponent()
+
+        expect(opener().findAll('[data-test="chat-unread-dot"]')).toHaveLength(1)
+        expect(opener().find('[data-test="chat-unread-dot-label"]').exists()).toBe(true)
+        expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(true)
+      })
+
+      it('is not there while no contribution waits for an answer', async () => {
+        await serverSaysContributions(0, 0)
+        wrapper = mountComponent()
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
+      })
+
+      // ES-021: a project account's menu has no "Schöpfen", so no dot for a question it cannot follow
+      it('is not there for a project account', async () => {
+        await serverSaysContributions(0, 1)
+        wrapper = mountComponent({ creationAllowed: false })
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
+      })
+
+      it("goes with the beat: the number was the member's", async () => {
+        await serverSaysContributions(0, 1)
+        wrapper = mountComponent()
+        stopChatUpdates()
+        await flushPromises()
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
+      })
+    })
+
+    /**
      * ⛔ Laid over the symbol's corner: the bar must not move when the dot comes and goes. jsdom
      * lays nothing out, so the stylesheet says it -- read without its comments.
      */

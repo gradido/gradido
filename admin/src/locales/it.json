@@ -571,7 +571,8 @@
       "light": "Chiaro",
       "system": "Segui l'impostazione del sistema (predefinito)"
     },
-    "user_search": "Ricerca utenti"
+    "user_search": "Ricerca utenti",
+    "walletNews": "{n} novità nel tuo portafoglio"
   },
   "notice": "Avviso",
   "open": "aperto",

@@ -36,9 +36,31 @@
             active-class="active-route"
             data-test="creation-menu"
           >
-            <div class="sidebar-menu-item-wrapper">
-              <i-mdi-people-group class="svg-icon" />
-              <span class="ms-2">{{ $t('creation') }}</span>
+            <!-- The mark counts the member's contributions with a question back from the
+                 moderation, as the support's counts its requests (Bernd, 16.11.2026): in the form
+                 of the chat's mark and on the corner of the symbol for the same reason. -->
+            <div class="sidebar-menu-item-wrapper chat-menu-item">
+              <span class="chat-menu-icon">
+                <i-mdi-people-group class="svg-icon" data-test="creation-menu-icon" />
+                <span
+                  v-if="contributionsInProgress > 0"
+                  class="chat-unread-badge"
+                  aria-hidden="true"
+                  data-test="creation-badge"
+                >
+                  {{ creationBadgeFigure }}
+                </span>
+              </span>
+              <span class="ms-2 chat-menu-label">{{ $t('creation') }}</span>
+              <span
+                v-if="contributionsInProgress > 0"
+                class="visually-hidden"
+                data-test="creation-badge-label"
+              >
+                {{
+                  $t('contribution.badge', { n: contributionsInProgress }, contributionsInProgress)
+                }}
+              </span>
             </div>
           </BNavItem>
           <BNavItem to="/send" class="mb-3" active-class="active-route">
@@ -217,6 +239,7 @@ import { useRoute } from 'vue-router'
 import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import CONFIG from '@/config'
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
+import { contributionsInProgress } from '@/composables/useContributionsInProgress'
 import {
   supportTicketsInProgress,
   supportTicketsUnfinished,
@@ -258,6 +281,9 @@ const chatUnreadFigure = computed(() =>
 )
 const supportBadgeFigure = computed(() =>
   supportTicketsInProgress.value > 99 ? '99+' : String(supportTicketsInProgress.value),
+)
+const creationBadgeFigure = computed(() =>
+  contributionsInProgress.value > 99 ? '99+' : String(contributionsInProgress.value),
 )
 
 const transactionClass = computed(() => {

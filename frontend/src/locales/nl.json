@@ -495,6 +495,7 @@
       "myContributionNoteList": "Ingediende bijdragen, die nog niet bevestigd zijn, kun je op elk moment wijzigen of verwijderen.",
       "pending": "Ingediend en wacht op bevestiging"
     },
+    "badge": "{n} bijdrage wacht op je antwoord | {n} bijdragen wachten op je antwoord",
     "communityWindow": "Bijdragen van de laatste {months} maanden",
     "creationGroup": {
       "help": "Optioneel. Het werkt ook zonder groep. Een #woord in de tekst stelt geen groep in — daarvoor is dit veld.",
@@ -503,6 +504,7 @@
     },
     "delete": "Bijdrage echt verwijderen? Daarna is ze alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
     "deleted": "De bijdrage is verwijderd. Ze is nu alleen nog zichtbaar voor jou en de moderatoren, onzichtbaar voor de gemeenschap.",
+    "dot": "Een van je bijdragen wacht op je antwoord",
     "filter": {
       "all": "(alle)",
       "byGroup": "Filteren op creatiegroep",

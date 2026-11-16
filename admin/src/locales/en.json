@@ -571,7 +571,8 @@
       "light": "Light",
       "system": "Follow system setting (default)"
     },
-    "user_search": "User search"
+    "user_search": "User search",
+    "walletNews": "{n} new item in your wallet | {n} new items in your wallet"
   },
   "notice": "Notice",
   "open": "open",

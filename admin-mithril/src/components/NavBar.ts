@@ -12,9 +12,11 @@ import { Dropdown } from '@/components/bootstrap/Dropdown'
 import { icon } from '@/components/icon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { supportIsTheirs } from '@/data/Moderator.logic'
+import { markFigure } from '@/data/WalletNews.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import { adminStore, logout } from '@/store/admin.store'
+import { startWalletNews, stopWalletNews, walletNewsCount } from '@/store/walletNews.store'
 import { type ThemeMode, themeMode, writeThemeMode } from '@/theme'
 import externalIcon from '~icons/bi/box-arrow-up-right'
 
@@ -67,6 +69,15 @@ export class NavBar implements ClassComponent {
   // below the breakpoint the entries are a list that covers the page
   private menuOpen = false
 
+  // what waits in the moderator's own wallet, asked while the bar stands (walletNews.store)
+  oncreate() {
+    startWalletNews()
+  }
+
+  onremove() {
+    stopWalletNews()
+  }
+
   private async signOut() {
     redirectTo(CONFIG.WALLET_LOGIN_URL)
     logout()
@@ -90,6 +101,13 @@ export class NavBar implements ClassComponent {
       moderator?.alias ||
       ''
     const role = moderator?.role && ROLE_NAMES[moderator.role]
+    // What waits in the moderator's own wallet (Bernd, 16.11.2026): the wallet's mark on the
+    // corner of the face, and again behind "Mein Konto", which leads there. The figure is for the
+    // eye; a screen reader hears the sentence, after the name and after the entry.
+    const news = walletNewsCount()
+    const newsSentence = news > 0 ? t('navbar.walletNews', { n: news }, news) : ''
+    const newsMark = (where: string) =>
+      m('span.navbar-news-mark', { 'aria-hidden': 'true', 'data-test': where }, markFigure(news))
     const menuItem = (attrs: object, label: string) =>
       m(
         'li',
@@ -111,16 +129,19 @@ export class NavBar implements ClassComponent {
         m(
           Dropdown,
           {
-            label: name,
+            label: news > 0 ? `${name}, ${newsSentence}` : name,
             end: true,
             offset: ACCOUNT_MENU_OFFSET,
-            toggle: m(MemberAvatar, {
-              size: NAV_AVATAR_SIZE,
-              initials: letters,
-              colorSeed,
-              colorIndex,
-              src: moderator?.avatar ? `data:image/jpeg;base64,${moderator.avatar}` : '',
-            }),
+            toggle: m('span.navbar-face', [
+              m(MemberAvatar, {
+                size: NAV_AVATAR_SIZE,
+                initials: letters,
+                colorSeed,
+                colorIndex,
+                src: moderator?.avatar ? `data:image/jpeg;base64,${moderator.avatar}` : '',
+              }),
+              news > 0 ? newsMark('navbar-face-news') : null,
+            ]),
           },
           [
             m('li.navbar-account-head', { role: 'presentation' }, [
@@ -142,9 +163,27 @@ export class NavBar implements ClassComponent {
               ),
             ),
             divider,
-            menuItem(
-              { role: 'menuitem', 'data-test': 'navbar-wallet', onclick: () => this.toWallet() },
-              t('navbar.my-account'),
+            m(
+              'li',
+              { role: 'presentation' },
+              m(
+                'button.dropdown-item',
+                {
+                  type: 'button',
+                  role: 'menuitem',
+                  'data-test': 'navbar-wallet',
+                  onclick: () => this.toWallet(),
+                },
+                [
+                  t('navbar.my-account'),
+                  news > 0
+                    ? [
+                        newsMark('navbar-wallet-news'),
+                        m('span.visually-hidden', `, ${newsSentence}`),
+                      ]
+                    : null,
+                ],
+              ),
             ),
             menuItem(
               { role: 'menuitem', 'data-test': 'navbar-logout', onclick: () => this.signOut() },

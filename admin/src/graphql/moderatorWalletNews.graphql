@@ -1,0 +1,14 @@
+# AI-GENERATED — not an architecture reference
+# What waits in the moderator's own wallet, for the number at their face in the bar (Bernd,
+# 16.11.2026): the wallet's three marks -- conversations with something unread, support requests
+# and contributions with a question back. Under aliases of their own: the support page asks
+# supportTicketsMenu for its switch, and the tests answer each question by the name it asks.
+query moderatorWalletNews {
+  walletChat: newChatMessagesSince {
+    unreadConversations
+  }
+  walletSupport: supportTicketsMenu {
+    inProgress
+  }
+  walletContributions: countContributionsInProgress
+}

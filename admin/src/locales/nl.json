@@ -571,7 +571,8 @@
       "light": "Licht",
       "system": "Systeeminstelling volgen (standaard)"
     },
-    "user_search": "Gebruikers zoeken"
+    "user_search": "Gebruikers zoeken",
+    "walletNews": "{n} nieuwtje in je wallet | {n} nieuwtjes in je wallet"
   },
   "notice": "Melding",
   "open": "open",

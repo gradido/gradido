@@ -21,6 +21,7 @@ import {
   supportTicketsInProgress,
   supportTicketsUnfinished,
 } from '@/composables/useSupportTicketsMenu'
+import { contributionsInProgress } from '@/composables/useContributionsInProgress'
 
 const { refreshContactsPanel } = vi.hoisted(() => ({ refreshContactsPanel: vi.fn() }))
 vi.mock('@/composables/useContactsPanel', () => ({ refreshContactsPanel }))
@@ -920,7 +921,11 @@ describe('useChatUpdates', () => {
     it("asks the support's field beside the chat's, second, with its three answers", () => {
       const [operation] = newChatMessagesSince.definitions
       const fields = operation.selectionSet.selections.map((field) => field.name.value)
-      expect(fields).toEqual(['newChatMessagesSince', 'supportTicketsMenu'])
+      expect(fields).toEqual([
+        'newChatMessagesSince',
+        'supportTicketsMenu',
+        'countContributionsInProgress',
+      ])
       expect(
         operation.selectionSet.selections[1].selectionSet.selections.map(
           (field) => field.name.value,
@@ -1054,6 +1059,88 @@ describe('useChatUpdates', () => {
       await pollChatNow()
       expect(server.query).toHaveBeenCalledTimes(2)
       expect(menu()).toEqual({ active: true, inProgress: 1, unfinished: 1 })
+    })
+  })
+
+  /**
+   * The mark at "Schöpfen" (Bernd, 16.11.2026): the member's contributions with a question back
+   * ride in the same question, as the support's field does. What the field brings goes on to
+   * useContributionsInProgress as it came; it is nothing to the chat, and the chat is nothing
+   * to it.
+   */
+  describe('the contributions beside it', () => {
+    const withCount = (answer, countContributionsInProgress) => ({
+      data: { ...answer.data, countContributionsInProgress },
+    })
+
+    it('asks the count as the third root field, after the chat and the support', () => {
+      const [operation] = newChatMessagesSince.definitions
+      const third = operation.selectionSet.selections[2]
+      expect(third.name.value).toBe('countContributionsInProgress')
+      // a number, no fields of its own
+      expect(third.selectionSet).toBeUndefined()
+    })
+
+    it('hands what the field brings to the mark, with every answer', async () => {
+      server.answer(withCount(update(), 2), withCount(update(), 0))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(contributionsInProgress.value).toBe(2)
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(contributionsInProgress.value).toBe(0)
+    })
+
+    // null: the server could not count; missing: an answer without the field. Neither takes back
+    // what the menu shows, and neither stops the chat.
+    it('keeps what was shown where the field comes null or not at all, and the chat goes on', async () => {
+      server.answer(
+        withCount(update(), 2),
+        withCount(update({ unread: 4 }), null),
+        update({ unread: 5 }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(contributionsInProgress.value).toBe(2)
+      expect(chatUnreadConversations.value).toBe(4)
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(contributionsInProgress.value).toBe(2)
+      expect(chatUnreadConversations.value).toBe(5)
+    })
+
+    it("forgets the member's number when the beat stops", async () => {
+      server.answer(withCount(update(), 3))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(contributionsInProgress.value).toBe(3)
+
+      stopChatUpdates()
+      expect(contributionsInProgress.value).toBe(0)
+    })
+
+    // ⛔ An answer still on its way at a sign-out was the member's before.
+    it('takes nothing from an answer that arrives after the beat stopped', async () => {
+      const release = server.hold()
+      server.answer(withCount(update(), 3))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      stopChatUpdates()
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(contributionsInProgress.value).toBe(0)
+    })
+
+    it("asks it at once with pollChatNow, as the chat's", async () => {
+      server.answer(update(), withCount(update(), 1))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(contributionsInProgress.value).toBe(0)
+
+      await pollChatNow()
+      expect(server.query).toHaveBeenCalledTimes(2)
+      expect(contributionsInProgress.value).toBe(1)
     })
   })
 

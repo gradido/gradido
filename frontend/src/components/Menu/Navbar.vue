@@ -90,10 +90,15 @@
             >
               <span class="visually-hidden">{{ $t('navigation.menu') }}</span>
               <span class="navbar-toggler-icon h2">
-                <!-- one dot for both: something unread in the chat, a question back to one of
-                     the member's support requests (K5) -- the line beside it says which -->
+                <!-- one dot for all three: something unread in the chat, a question back to one
+                     of the member's support requests (K5) or to one of their contributions
+                     (Bernd, 16.11.2026) -- the lines beside it say which -->
                 <span
-                  v-if="chatUnreadConversations > 0 || supportTicketsInProgress > 0"
+                  v-if="
+                    chatUnreadConversations > 0 ||
+                    supportTicketsInProgress > 0 ||
+                    creationQuestions > 0
+                  "
                   class="chat-unread-dot"
                   aria-hidden="true"
                   data-test="chat-unread-dot"
@@ -112,6 +117,13 @@
                 data-test="support-dot-label"
               >
                 {{ $t('support.dot') }}
+              </span>
+              <span
+                v-if="creationQuestions > 0"
+                class="visually-hidden"
+                data-test="creation-dot-label"
+              >
+                {{ $t('contribution.dot') }}
               </span>
             </button>
           </div>
@@ -202,6 +214,7 @@ import QuickCodeIcon from '@/components/Menu/QuickCodeIcon'
 // How many conversations hold something unread, from the chat's beat -- for the dot.
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
 import { supportTicketsInProgress } from '@/composables/useSupportTicketsMenu'
+import { contributionsInProgress } from '@/composables/useContributionsInProgress'
 
 defineProps({
   balance: { type: Number, required: true },
@@ -211,6 +224,13 @@ defineProps({
 defineEmits(['toggle-menu'])
 
 const store = useWalletStore()
+
+// A project account does not create (ES-021): its menu has no "Schöpfen" and the page leads
+// home, so a question back to one of its contributions -- left from before the switch -- lights
+// no dot it could follow. `!== false` as the menu reads it: not known is a person.
+const creationQuestions = computed(() =>
+  store.creationAllowed !== false ? contributionsInProgress.value : 0,
+)
 
 const root = ref(null)
 const home = ref(null)

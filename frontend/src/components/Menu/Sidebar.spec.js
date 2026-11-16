@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest'
 import Sidebar from './Sidebar.vue'
-import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
+import { pollChatNow, startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '../../config'
@@ -47,6 +47,9 @@ const i18n = createI18n({
         badge: '{n} request with a question back | {n} requests with a question back',
       },
       creation: 'Creation',
+      contribution: {
+        badge: '{n} contribution with a question back | {n} contributions with a question back',
+      },
       chatThread: {
         unreadBadge: '{n} conversation with new messages | {n} conversations with new messages',
       },
@@ -615,5 +618,116 @@ describe('Sidebar and the support (K5)', () => {
 
     expect(supportEntry(wrapper).exists()).toBe(true)
     expect(lit(wrapper)).toBe(true)
+  })
+})
+
+/**
+ * The mark at "Schöpfen" (Bernd, 16.11.2026): the member's contributions with a question back
+ * from the moderation, as the support's mark counts its requests -- in the form of the chat's
+ * mark, on the corner of the symbol. The number comes through the real beat (useChatUpdates).
+ */
+describe('Sidebar and the contributions with a question back', () => {
+  const answer = (countContributionsInProgress) => ({
+    data: {
+      newChatMessagesSince: { latestId: 1, unreadConversations: 0, messages: [], hasMore: false },
+      countContributionsInProgress,
+    },
+  })
+  const beatBrings = async (count) => {
+    startChatUpdates({ query: vi.fn(async () => answer(count)) })
+    await flushPromises()
+  }
+  const mountSidebar = (state = {}) =>
+    mount(Sidebar, {
+      global: {
+        plugins: [createWalletStore(state), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+  const creationEntry = (wrapper) => wrapper.find('[data-test="creation-menu"]')
+  const badge = (wrapper) => wrapper.find('[data-test="creation-badge"]')
+  const sentence = (wrapper) => wrapper.find('[data-test="creation-badge-label"]')
+
+  afterEach(() => {
+    stopChatUpdates()
+  })
+
+  it('shows no mark while no contribution waits for an answer', async () => {
+    await beatBrings(0)
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).exists()).toBe(false)
+    expect(sentence(wrapper).exists()).toBe(false)
+    expect(creationEntry(wrapper).text()).toBe('Creation')
+  })
+
+  it('shows the number on the symbol of the entry', async () => {
+    await beatBrings(2)
+    const wrapper = mountSidebar()
+    const holder = creationEntry(wrapper).find('.chat-menu-icon')
+    expect(holder.find('[data-test="creation-menu-icon"]').classes()).toContain('svg-icon')
+    expect(holder.find('[data-test="creation-badge"]').exists()).toBe(true)
+    expect(badge(wrapper).text()).toBe('2')
+    expect(badge(wrapper).attributes('aria-hidden')).toBe('true')
+    expect(badge(wrapper).classes()).toContain('chat-unread-badge')
+    // symbol and word in a row, the word on one line, as the chat's and the support's entries
+    expect(creationEntry(wrapper).find('.sidebar-menu-item-wrapper').classes()).toContain(
+      'chat-menu-item',
+    )
+  })
+
+  it('says the number as a sentence after the word, for the ear', async () => {
+    await beatBrings(2)
+    const wrapper = mountSidebar()
+    const word = creationEntry(wrapper).find('.chat-menu-label')
+    expect(word.text()).toBe('Creation')
+    expect(sentence(wrapper).classes()).toContain('visually-hidden')
+    expect(sentence(wrapper).text()).toBe('2 contributions with a question back')
+    expect(
+      word.element.compareDocumentPosition(sentence(wrapper).element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
+  it('says one contribution in the singular', async () => {
+    await beatBrings(1)
+    expect(sentence(mountSidebar()).text()).toBe('1 contribution with a question back')
+  })
+
+  it('stops the figure at 99+', async () => {
+    await beatBrings(120)
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).text()).toBe('99+')
+    expect(sentence(wrapper).text()).toBe('120 contributions with a question back')
+  })
+
+  it('keeps what it showed where the server could not count', async () => {
+    const query = vi.fn().mockResolvedValueOnce(answer(2)).mockResolvedValueOnce(answer(null))
+    startChatUpdates({ query })
+    await flushPromises()
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).text()).toBe('2')
+
+    await pollChatNow()
+    await flushPromises()
+
+    expect(query).toHaveBeenCalledTimes(2)
+    expect(badge(wrapper).text()).toBe('2')
+  })
+
+  it("goes when the beat stops: the number was the member's", async () => {
+    await beatBrings(2)
+    const wrapper = mountSidebar()
+    expect(badge(wrapper).exists()).toBe(true)
+    stopChatUpdates()
+    await flushPromises()
+    expect(badge(wrapper).exists()).toBe(false)
+  })
+
+  it('is not there for a project account, whose menu has no "Schöpfen"', async () => {
+    await beatBrings(1)
+    const wrapper = mountSidebar({ creationAllowed: false })
+    expect(creationEntry(wrapper).exists()).toBe(false)
+    expect(badge(wrapper).exists()).toBe(false)
   })
 })

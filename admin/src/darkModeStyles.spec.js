@@ -280,8 +280,9 @@ describe('the dark mode of the admin', () => {
       [SWEEP.creaWindow]: 4,
       // The shadow of the window, Crea's bubble, the error's ground and its red, the opener's edge.
       [SWEEP.creaChat]: 5,
-      // The top bar: the black of the window's bar, and the light line below it.
-      [join(here, 'components', 'NavBar.scss')]: 2,
+      // The top bar: the black of the window's bar, and the light line below it; the black once
+      // more as the ground the ring of the mark at the face takes (16.11.2026).
+      [join(here, 'components', 'NavBar.scss')]: 3,
     }
     const counted = Object.fromEntries(
       stylesheetsBelow(here).map((sheet) => {

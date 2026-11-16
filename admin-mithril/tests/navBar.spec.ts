@@ -4,7 +4,7 @@ import adminPackage from '../../admin/package.json' with { type: 'json' }
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
 import en from '../../admin/src/locales/en.json' with { type: 'json' }
 import { listContributionLinks } from './fixtures/contributionLinks'
-import { expect, test } from './fixtures/graphql'
+import { expect, Failure, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn, tokenFor } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
@@ -268,3 +268,194 @@ test('names the year, the community site and the version below the page', async 
     }),
   ).toHaveAttribute('href', /^https:\/\/github\.com\/gradido\/gradido\/commit\/[0-9a-f]{40}$/)
 })
+
+/**
+ * What waits in the moderator's own wallet (Bernd, 16.11.2026): the wallet's three marks together,
+ * a gold number on the corner of the face and behind "Mein Konto" -- asked by the bar every fifteen
+ * seconds while the admin is in sight, without renewing the session. Only the Mithril admin.
+ */
+const OLD_HAS_NO_NEWS = 'only the Mithril admin asks what waits in the wallet'
+const news = (page: Page) => page.getByTestId('navbar-face-news')
+const newsSentence = (n: number) => de.navbar.walletNews.split(' | ')[1].replace('{n}', String(n))
+const setHidden = (page: Page, hidden: boolean) =>
+  page.evaluate((value) => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => value })
+    document.dispatchEvent(new Event('visibilitychange'))
+  }, hidden)
+
+test('carries what waits in the wallet at the face, and behind "Mein Konto"', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  graphql.answer({
+    walletChat: { unreadConversations: 2 },
+    walletSupport: { inProgress: 1 },
+    walletContributions: 1,
+  })
+  await signIn(page, '/contribution-links')
+  const account = page.getByTestId('navbar-account')
+
+  // the figure is for the eye; the button is called by the name and the sentence
+  await expect(news(page)).toHaveText('4')
+  await expect(news(page)).toHaveAttribute('aria-hidden', 'true')
+  await expect(account.getByTestId('member-avatar')).toHaveText('PE')
+  const button = account.getByRole('button', { name: `Peter Lustig, ${newsSentence(4)}` })
+  await expect(button).toBeVisible()
+
+  await button.click()
+  const entry = page.getByTestId('navbar-wallet')
+  await expect(entry.getByTestId('navbar-wallet-news')).toHaveText('4')
+  await expect(entry.locator('.visually-hidden')).toHaveText(`, ${newsSentence(4)}`)
+})
+
+test('carries no number while nothing waits in the wallet', async ({ page, graphql }, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  await signIn(page, '/contribution-links')
+  const account = page.getByTestId('navbar-account')
+
+  // asked and answered with nothing waiting
+  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+  await page.waitForTimeout(250)
+  await expect(account.getByRole('button', { name: 'Peter Lustig', exact: true })).toBeVisible()
+  await expect(news(page)).toHaveCount(0)
+  await account.getByRole('button').click()
+  await expect(page.getByTestId('navbar-wallet')).toHaveText(de.navbar['my-account'])
+})
+
+test('asks every fifteen seconds while in sight, and at once when it comes back', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  await page.clock.install()
+  // the bar sets its next question only after the answer: the figure says it has taken it
+  graphql.answer({ walletContributions: 1 })
+  await signIn(page, '/contribution-links')
+  await expect(news(page)).toHaveText('1')
+
+  graphql.answer({ walletContributions: 2 })
+  await page.clock.runFor(15000)
+  await expect(news(page)).toHaveText('2')
+  expect(graphql.sentFor('walletChat')).toHaveLength(2)
+
+  // out of sight it rests
+  await setHidden(page, true)
+  await page.clock.runFor(60000)
+  expect(graphql.sentFor('walletChat')).toHaveLength(2)
+
+  // back in sight it asks at once
+  graphql.answer({ walletContributions: 0 })
+  await setHidden(page, false)
+  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(3)
+  await expect(news(page)).toHaveCount(0)
+})
+
+test('asks nothing while the admin opens out of sight, and at once in sight', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+  })
+  await signIn(page, '/contribution-links')
+  await expect(page.getByTestId('navbar-account')).toBeVisible()
+  expect(graphql.sentFor('walletChat')).toHaveLength(0)
+
+  await setHidden(page, false)
+  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+})
+
+// ⛔ The bar's question is not the moderator doing something: ten minutes without a click of
+// their own must still end the session. The moderator's own question renews it, the bar's not.
+test("keeps the session's clock: the token of the bar's answer is not taken", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  const renewed = (by: string) => tokenFor(moderator.gradidoID).replace(/signature$/, by)
+  await page.route('**/graphql', async (route) => {
+    const { query } = route.request().postDataJSON()
+    if (query.includes('moderatorWalletNews')) {
+      await route.fulfill({
+        json: {
+          data: {
+            walletChat: { unreadConversations: 1 },
+            walletSupport: { inProgress: 0 },
+            walletContributions: 0,
+          },
+        },
+        headers: { token: renewed('bar') },
+      })
+    } else if (query.includes('verifyLogin')) {
+      await route.fulfill({
+        json: { data: { verifyLogin: moderator } },
+        headers: { token: renewed('moderator') },
+      })
+    } else {
+      await route.fallback()
+    }
+  })
+  await signIn(page, '/contribution-links')
+  await expect(news(page)).toHaveText('1')
+
+  expect(JSON.parse((await adminStorage(page))['auth-token']).token).toBe(renewed('moderator'))
+})
+
+// A sign-out in another window of the origin -- the wallet, or its session clock -- signs this
+// admin out without leaving the page (authToken.ts): the number goes at once, and the bar asks
+// nothing without a token.
+test('goes quiet when the moderator signs out in another window', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  graphql.answer({ walletContributions: 2 })
+  await page.clock.install()
+  await signIn(page, '/contribution-links')
+  await expect(news(page)).toHaveText('2')
+
+  await page.evaluate(() => {
+    localStorage.removeItem('auth-token')
+    window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+  })
+  await expect(news(page)).toHaveCount(0)
+  const asked = graphql.sentFor('walletChat').length
+  for (let step = 0; step < 4; step++) {
+    await page.clock.runFor(15000)
+    await page.waitForTimeout(250)
+  }
+  expect(graphql.sentFor('walletChat')).toHaveLength(asked)
+})
+
+// An ended session answers the bar's question too: the bar stops asking and signs nobody out --
+// the moderator's next click of their own finds the end, as before.
+// The same for an account that is gone, which the server answers with 401.
+for (const [kind, message] of [
+  ['has ended', '403.13 - Client certificate revoked'],
+  ['is gone', '401 Unauthorized'],
+]) {
+  test(`stops asking when the session ${kind}, and leaves the page as it is`, async ({
+    page,
+    graphql,
+  }, info) => {
+    test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+    graphql.answer({ walletChat: new Failure(message) })
+    await serveWallet(page)
+    await page.clock.install()
+    await signIn(page, '/contribution-links')
+    await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+
+    // the server would answer now: a bar that went on would ask, and its question needs a moment
+    // of real time to reach the test's server after each step of the clock
+    graphql.answer({ walletChat: { unreadConversations: 3 } })
+    for (let step = 0; step < 4; step++) {
+      await page.clock.runFor(15000)
+      await page.waitForTimeout(250)
+    }
+    expect(graphql.sentFor('walletChat')).toHaveLength(1)
+    await expect(news(page)).toHaveCount(0)
+    await expect(page).toHaveURL(/\/admin\/contribution-links$/)
+    expect((await adminStorage(page))['auth-token']).toBeDefined()
+  })
+}

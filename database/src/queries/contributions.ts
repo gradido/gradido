@@ -52,6 +52,25 @@ export async function dbCountOpenContributionsByUserId(userId: number): Promise<
   return rows[0]?.n ?? 0
 }
 
+/**
+ * How many of this member's contributions wait for their answer: a moderator asked back
+ * (IN_PROGRESS) and nothing deleted them. The mark at "Schöpfen" in the wallet, asked with the
+ * chat's beat, and a part of the number at the moderator's face in the admin.
+ */
+export async function dbCountContributionsInProgressByUserId(userId: number): Promise<number> {
+  const rows = await drizzleDb()
+    .select({ n: count() })
+    .from(contributionsTable)
+    .where(
+      and(
+        eq(contributionsTable.userId, userId),
+        eq(contributionsTable.status, ContributionStatus.IN_PROGRESS),
+        isNull(contributionsTable.deletedAt),
+      ),
+    )
+  return rows[0]?.n ?? 0
+}
+
 /** The slice of a contribution the first-creation window shows: the sentence and its tick. */
 export interface FirstCreationEntryRow {
   id: number

@@ -70,7 +70,9 @@ const FIXED_COLOURS_AT_MOST = {
   [STYLES.app]: 1,
   // 25.10.2026: the four bubbles' colours went; every bubble takes the grey of a field.
   [STYLES.messages]: 0,
-  [join(here, 'components', 'NavBar.scss')]: 3,
+  // 16.11.2026: the gold of the wallet's marks, on the mark at the face of what waits in the
+  // moderator's own wallet -- the same in both modes, as in the wallet.
+  [join(here, 'components', 'NavBar.scss')]: 4,
   [STYLES.memberTable]: 0,
   [STYLES.creationForm]: 0,
   [STYLES.mailForm]: 1,

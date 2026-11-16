@@ -197,6 +197,10 @@ query newChatMessagesSince(
     inProgress
     unfinished
   }
+  # How many of the member's contributions have a question back from the moderation (the mark at
+  # "Schöpfen", as the support's at "Support"). The THIRD field, for the same reason; null where
+  # the server could not count, it never fails the question either.
+  countContributionsInProgress
 }
 
 # Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server

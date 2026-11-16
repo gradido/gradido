@@ -2,7 +2,7 @@
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
 import { communityFigureSeries, communityFigures, communityStatistics } from './fixtures/figures'
 import { expect, Failure, test } from './fixtures/graphql'
-import { signedInAnswers, signIn } from './fixtures/signIn'
+import { signedInAnswers, signIn, WALLET_NEWS_FIELDS } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
 // Berlin: the first moment of a day there lies on the evening before in UTC
@@ -56,6 +56,7 @@ test('asks for the figures of the last four weeks, and shows them in their group
       graphql
         .sent()
         .map(({ field }) => field)
+        .filter((field) => !WALLET_NEWS_FIELDS.includes(field))
         .sort(),
     )
     .toEqual(['communityFigureSeries', 'communityFigures', 'communityStatistics', 'verifyLogin'])
@@ -152,12 +153,15 @@ test('asks anew for another day, and keeps the day on this device', async ({ pag
 test('asks nothing while the field holds no day', async ({ page, graphql }) => {
   await signIn(page, '/statistic')
   await expect(page.getByTestId('figures-weeks')).toBeVisible()
-  const asked = graphql.sent().length
+  // the page's own questions: the bar's in the background come at their own beat
+  const pageAsked = () =>
+    graphql.sent().filter(({ field }) => !WALLET_NEWS_FIELDS.includes(field)).length
+  const asked = pageAsked()
 
   await page.getByTestId('figures-since').fill('')
   await expect(page.getByTestId('figure-accountsNew')).toBeVisible()
   await expect(page.getByTestId('figures').locator('thead th').nth(1)).toHaveText('seit 12.10.2026')
-  expect(graphql.sent().length).toBe(asked)
+  expect(pageAsked()).toBe(asked)
 })
 
 // The block for the weekly mail: what the tables say, as lines of text.
