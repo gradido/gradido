@@ -156,12 +156,13 @@ export const Contacts = defineComponent({
     /**
      * A member named in a group -- in its list of members, or over their message (E-053) -- and
      * a first word to them in one tap (Bernd, 30.09.2026, E-055). Their contact window opens
-     * OVER the group's: closing it leads back into the group.
+     * OVER the group's: closing it leads back into the group, and so does the send form's
+     * "Zurück" (E-092), with the group's uuid handed to the window.
      * - A contact: the window as always; where the two have never written, "Hallo …" stands in
      *   the field.
-     * - Nobody's contact yet: the window in its first form -- only the text, "Hallo …" in the
-     *   field. The first message goes by mail as every first one does (E-024) and makes them a
-     *   contact; the window then becomes the whole one (`contactMade`). No send form any more.
+     * - Nobody's contact yet: the window in its first form -- the text, "Hallo …" in the field,
+     *   and "Gradido senden" (E-092). The first message goes by mail as every first one does
+     *   (E-024) and makes them a contact; the window then becomes the whole one (`contactMade`).
      *
      * Who is a contact is this page's list, by the pair without regard to case -- the group's
      * members are all of this community in P5 (E-026), and a missing community is this one.
@@ -176,8 +177,9 @@ export const Contacts = defineComponent({
       const home = store.communityUuid as string | null
       const key = chatMemberKey(user, home)
       const contact = contacts.value.find((held) => chatMemberKey(held.user, home) === key)
+      const group = openedGroupUuid.value
       if (contact) {
-        open(contact, { fromGroup: true })
+        open(contact, { group })
         return
       }
       const communityUuid = user.communityUuid ?? home
@@ -185,7 +187,7 @@ export const Contacts = defineComponent({
         return
       }
       const homeCommunity = !!home && communityUuid.toLowerCase() === home.toLowerCase()
-      open({ user: { ...user, communityUuid }, homeCommunity }, { fromGroup: true, known: false })
+      open({ user: { ...user, communityUuid }, homeCommunity }, { group, known: false })
     }
 
     /**
@@ -284,7 +286,7 @@ export const Contacts = defineComponent({
     // A tap on a row opens the contact window; the ways on from there live inside it (KF-010).
     // The state machine is shared with the column and the phone strip, so the release-on-close
     // rule is written once.
-    const { windowOpen, selected, greet, firstContact, open, openKnownMember, fillIn } =
+    const { windowOpen, selected, fromGroup, firstContact, open, openKnownMember, fillIn } =
       useContactWindow(apolloClient)
 
     /**
@@ -657,7 +659,7 @@ export const Contacts = defineComponent({
         <ContactWindow
           modelValue={windowOpen.value}
           contact={selected.value}
-          greet={greet.value}
+          fromGroup={fromGroup.value}
           firstContact={firstContact.value}
           onUpdate:modelValue={(isOpen: boolean) => {
             windowOpen.value = isOpen

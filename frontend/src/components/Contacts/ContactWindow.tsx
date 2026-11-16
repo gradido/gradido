@@ -73,13 +73,15 @@ export const ContactWindow = defineComponent({
     /** What contactListQuery delivers: `{ user, firstAt, lastAt, bookings }`. */
     contact: { type: Object as PropType<Contact | null>, default: null },
     /**
-     * Opened from a group (E-055): "Hallo …" stands in the field while the two have no
-     * conversation yet -- a first word is one tap on the arrow.
+     * The group the window was opened over, by its uuid (E-055): "Hallo …" stands in the field
+     * while the two have no conversation yet -- a first word is one tap on the arrow -- and the
+     * send form's "Zurück" leads back into the group (E-092).
      */
-    greet: { type: Boolean, default: false },
+    fromGroup: { type: String as PropType<string | null>, default: null },
     /**
-     * Opened from a group for somebody who is no contact yet (E-055): the window's first form,
-     * only the text, until the first message makes them a contact.
+     * Opened from a group for somebody who is no contact yet (E-055): the window's first form --
+     * the text and "Gradido senden" (E-092), nothing else -- until the first message makes them a
+     * contact.
      */
     firstContact: { type: Boolean, default: false },
   },
@@ -313,9 +315,13 @@ export const ContactWindow = defineComponent({
      * the federation branch, and a second way of reaching it here would be a second place for
      * that knowledge to drift.
      *
-     * The form's "Zurück" leads back into this conversation (E-043): the window hands its place
-     * over (useSendReturn) -- the address the reply button of a chat mail has (P4c), which opens
-     * the conversation on the contacts page. Where the form is not reached, it is taken back.
+     * The form's "Zurück" leads back to where the window stood (E-043): the window hands its place
+     * over (useSendReturn). That is the conversation -- the address the reply button of a chat
+     * mail has (P4c), which opens it on the contacts page -- or, for a window opened over a group,
+     * the group (Bernd, 16.11.2026, E-092), the address the group's mails have, as "Danke sagen"
+     * in the group leads there (ChatGroupWindow `toSendMember`). The conversation could not take
+     * somebody who is no contact yet: that address opens a window only for a contact. Where the
+     * form is not reached, the way back is taken back.
      */
     const sendReturn = useSendReturn()
     const toSend = async () => {
@@ -328,7 +334,10 @@ export const ContactWindow = defineComponent({
       const to = `/send/${community}/${user}`
       const handed = sendReturn.put({
         to,
-        back: { path: '/contacts', query: { with: user, community } },
+        back: {
+          path: '/contacts',
+          query: props.fromGroup ? { group: props.fromGroup } : { with: user, community },
+        },
       })
       let reached = false
       try {
@@ -398,19 +407,20 @@ export const ContactWindow = defineComponent({
 
     /**
      * The window's first form (Bernd, 30.09.2026, E-055): somebody met in a group who is no
-     * contact yet, and no conversation between the two. Only the text is offered -- no Gradido,
-     * no camera, no bell, no heart, no paperclip --, and "Hallo …" stands in the field: the first
-     * message goes by mail as every first one does (E-024) and makes them a contact. With it the
-     * whole window is there, without closing: the row comes in, the paperclip too, and the page
-     * puts the server's contact row in (`contactMade`).
+     * contact yet, and no conversation between the two. Only the text and "Gradido senden" are
+     * offered (Bernd, 16.11.2026, E-092: Gradido sent on the spur of the moment, from the group)
+     * -- no camera, no bell, no heart, no paperclip --, and "Hallo …" stands in the field: the
+     * first message goes by mail as every first one does (E-024) and makes them a contact. With
+     * it the whole window is there, without closing: the marks come in beside the button, the
+     * paperclip too, and the page puts the server's contact row in (`contactMade`).
      */
     const firstForm = computed(() => props.firstContact && !chatConversation.value.exists)
 
     // Asked when the window opens on a person, and anew for another one -- the pair the thread is
     // keyed by, so a community the lookup fills in later is no other person and no second
     // question. A closed window knows nobody: what was said about the last person is let go with
-    // it. Not in the window's first form (E-055): the row the pin stands in comes with the first
-    // message, and with it the question.
+    // it. Not in the window's first form (E-055): the marks the pin stands among come with the
+    // first message, and with them the question.
     watch(
       () =>
         props.modelValue && props.contact?.user?.gradidoID && !firstForm.value
@@ -422,7 +432,7 @@ export const ContactWindow = defineComponent({
 
     /** "Hallo …", where the window was opened from a group; the thread puts it in an empty field. */
     const greeting = computed(() =>
-      props.greet ? t('chatThread.firstContactGreeting', { name: alias.value }) : '',
+      props.fromGroup ? t('chatThread.firstContactGreeting', { name: alias.value }) : '',
     )
 
     /** Nothing known about a conversation: the window came to another person. */
@@ -907,49 +917,50 @@ export const ContactWindow = defineComponent({
                 on the whitespace between the elements. The spec reads the rendered text back for
                 exactly that.
 
-                Not in the window's first form (E-055): no figures can come for somebody who is no
-                contact yet, and the line's reserved height would stand as an empty band under the
-                head (measured). It comes with the first message, together with the row below. */}
-            {!firstForm.value ? (
-              <div
-                class={['contact-window-meta', classes['contact-window-meta']]}
-                data-test='contact-window-meta'
-              >
-                {counted.value ? (
-                  <>
-                    <span>{metaSince.value}</span>
-                    {/* ⛔ Only where there are bookings. Somebody who came here over this member
-                        is a contact from that moment, and the list behind this link would be
-                        EMPTY -- a door onto nothing, under a number that would have read "0
-                        bookings". The server agrees: narrowed to that person the booking list has
-                        no rows. */}
-                    {hasBookings.value ? (
-                      <>
-                        <span>{CONTACT_META_SEPARATOR}</span>
-                        <RouterLink
-                          to={bookingsRoute.value}
-                          class={['contact-window-bookings', classes['contact-window-bookings']]}
-                          data-test='contact-window-bookings'
-                          onClick={closeWhenNavigating}
-                        >
-                          {metaBookings.value}
-                        </RouterLink>
-                      </>
-                    ) : null}
-                  </>
-                ) : null}
-                {/* What made the two of them contacts, where it was not a booking -- a quiet line
-                    of its own UNDER the figures, not instead of them. A contact can have both. */}
-                {originLine.value ? (
-                  <div
-                    class={['contact-window-origin', classes['contact-window-origin']]}
-                    data-test='contact-window-origin'
-                  >
-                    {originLine.value}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+                In the window's first form too, empty (Bernd, 16.11.2026, E-092): no figures can
+                come for somebody who is no contact yet, but "Kontakt seit …" comes with the first
+                message, and the line holds its place for it, so that "Gradido senden" under it
+                does not move then. Without the button (E-055) the line stood out as an empty band
+                under the head and was left away; with the button it is the window's own measure,
+                as while a booking row's figures are on their way. */}
+            <div
+              class={['contact-window-meta', classes['contact-window-meta']]}
+              data-test='contact-window-meta'
+            >
+              {counted.value ? (
+                <>
+                  <span>{metaSince.value}</span>
+                  {/* ⛔ Only where there are bookings. Somebody who came here over this member
+                      is a contact from that moment, and the list behind this link would be
+                      EMPTY -- a door onto nothing, under a number that would have read "0
+                      bookings". The server agrees: narrowed to that person the booking list has
+                      no rows. */}
+                  {hasBookings.value ? (
+                    <>
+                      <span>{CONTACT_META_SEPARATOR}</span>
+                      <RouterLink
+                        to={bookingsRoute.value}
+                        class={['contact-window-bookings', classes['contact-window-bookings']]}
+                        data-test='contact-window-bookings'
+                        onClick={closeWhenNavigating}
+                      >
+                        {metaBookings.value}
+                      </RouterLink>
+                    </>
+                  ) : null}
+                </>
+              ) : null}
+              {/* What made the two of them contacts, where it was not a booking -- a quiet line
+                  of its own UNDER the figures, not instead of them. A contact can have both. */}
+              {originLine.value ? (
+                <div
+                  class={['contact-window-origin', classes['contact-window-origin']]}
+                  data-test='contact-window-origin'
+                >
+                  {originLine.value}
+                </div>
+              ) : null}
+            </div>
 
             {/* Sending Gradido, the one way out of this window: the map profile's button
                 (MatchProfile) with its word and its white coin, in the flat gold of the compose
@@ -964,156 +975,174 @@ export const ContactWindow = defineComponent({
                 320px in the languages of the long words, the button gives up its coin and the
                 marks stand closer still (Bernd, 09.10.2026). See `fitSendRow`.
 
-                Not in the window's first form (E-055): somebody met in a group who is no contact
-                yet gets a first word, and only that -- the row comes with the first message. */}
-            {!firstForm.value ? (
-              <div
-                ref={sendRow}
-                class={[
-                  'contact-window-send',
-                  classes['contact-window-send'],
-                  sendTight.value ? stateClass('is-tight') : '',
-                  sendTighter.value ? stateClass('is-tighter') : '',
-                ]}
+                In the window's first form too (Bernd, 16.11.2026, E-092: Gradido sent on the
+                spur of the moment, from the group), with the button alone: the marks come with
+                the first message (below). */}
+            <div
+              ref={sendRow}
+              class={[
+                'contact-window-send',
+                classes['contact-window-send'],
+                sendTight.value ? stateClass('is-tight') : '',
+                sendTighter.value ? stateClass('is-tighter') : '',
+              ]}
+            >
+              <button
+                type='button'
+                class={['send-btn', classes['send-btn'], 'send-gradido', classes['send-gradido']]}
+                data-test='contact-window-send'
+                onClick={toSend}
               >
-                <button
-                  type='button'
-                  class={['send-btn', classes['send-btn'], 'send-gradido', classes['send-gradido']]}
-                  data-test='contact-window-send'
-                  onClick={toSend}
-                >
-                  <img
-                    src='/img/svg/gdd_coin_sw.svg'
-                    class={['send-coin', classes['send-coin']]}
-                    alt=''
-                    aria-hidden='true'
-                  />{' '}
-                  {t('contacts.sendGradido')}
-                </button>
-                {/* The marks, at the right end of the button's row with an empty stretch before
-                    them (Bernd, 26.09.2026): the pin, the camera, the bell, the heart -- in this
-                    order. The heart at the very right, where it stands in every list; the bell
-                    next to it, the two of them marks of one's own on this person that say how they
-                    stand; the camera next, since it too is a way of getting in touch, and at the
-                    left end, beside the camera, the pin for somebody who stands on the find map
-                    (09.10.2026). Before, they stood behind the name and took a long name's room on
-                    a phone.
+                <img
+                  src='/img/svg/gdd_coin_sw.svg'
+                  class={['send-coin', classes['send-coin']]}
+                  alt=''
+                  aria-hidden='true'
+                />{' '}
+                {t('contacts.sendGradido')}
+              </button>
+              {/* The marks, at the right end of the button's row with an empty stretch before
+                  them (Bernd, 26.09.2026): the pin, the camera, the bell, the heart -- in this
+                  order. The heart at the very right, where it stands in every list; the bell
+                  next to it, the two of them marks of one's own on this person that say how they
+                  stand; the camera next, since it too is a way of getting in touch, and at the
+                  left end, beside the camera, the pin for somebody who stands on the find map
+                  (09.10.2026). Before, they stood behind the name and took a long name's room on
+                  a phone.
 
-                    ⛔ The marks hang at the right end, so one that comes later pushes everything
-                    to its left one place further left. The order they stand in is therefore the
-                    order they come in, read from the right: the heart at once, camera and bell
-                    with the thread's first word, the pin last. Nothing that already stands there
-                    moves under a finger on its way to it.
+                  ⛔ The marks hang at the right end, so one that comes later pushes everything
+                  to its left one place further left. The order they stand in is therefore the
+                  order they come in, read from the right: the heart at once, camera and bell
+                  with the thread's first word, the pin last. Nothing that already stands there
+                  moves under a finger on its way to it.
 
-                    They keep their measure from the name line: the booking row's `gap-2` between
-                    them, the heart the one of every list -- the same component, the same look, the
-                    same question before it is taken away (E-030). */}
-                <div
-                  class={['contact-window-marks', classes['contact-window-marks']]}
-                  data-test='contact-window-marks'
-                >
-                  {/* The pin: this person on the find map (Bernd, 09.10.2026). There only for
-                      somebody who stands on the map -- a home set and "findable" -- and only for a
-                      member who may open the map themselves (useContactOnMap): a way that would end
-                      in "not on the map" is not offered. Beside the camera: both lead to the
-                      person, the bell and the heart are marks of one's own on them. No word beside
-                      it; its name says whom the map will show.
+                  They keep their measure from the name line: the booking row's `gap-2` between
+                  them, the heart the one of every list -- the same component, the same look, the
+                  same question before it is taken away (E-030). */}
+              <div
+                class={['contact-window-marks', classes['contact-window-marks']]}
+                data-test='contact-window-marks'
+              >
+                {/* Not in the window's first form (E-055): somebody met in a group who is no
+                    contact yet gets the button alone -- camera, bell and heart come with the first
+                    message, and with it the question for the pin. The box stays, empty: it is what
+                    `fitSendRow` measures beside the button, and the row's observer watches it from
+                    the moment the row is there, so the marks that come into it later are measured
+                    too. */}
+                {firstForm.value ? null : (
+                  <>
+                    {/* The pin: this person on the find map (Bernd, 09.10.2026). There only for
+                        somebody who stands on the map -- a home set and "findable" -- and only for a
+                        member who may open the map themselves (useContactOnMap): a way that would end
+                        in "not on the map" is not offered. Beside the camera: both lead to the
+                        person, the bell and the heart are marks of one's own on them. No word beside
+                        it; its name says whom the map will show.
 
-                      ⛔ At the left end, and not before the thread has spoken -- that is, never
-                      before the camera: see the note on the marks above. The GMS's answer may come
-                      before the thread's or after it; standing between camera and bell, the pin
-                      came to stand exactly where the camera had stood a moment before, and a
-                      finger on its way to a video call opened the map instead (found by the second
-                      reader, 09.10.2026). */}
-                  {onMap.value && chatConversationKnown.value ? (
-                    <button
-                      type='button'
-                      class={[
-                        'contact-window-mark',
-                        classes['contact-window-mark'],
-                        'contact-window-map',
-                        classes['contact-window-map'],
-                      ]}
-                      aria-label={mapName.value}
-                      title={mapName.value}
-                      data-test='contact-window-map'
-                      onClick={toMap}
-                    >
-                      <MdiMapMarkerOutline
-                        class={['contact-window-map-icon', classes['contact-window-map-icon']]}
-                        aria-hidden='true'
-                      />
-                    </button>
-                  ) : null}
-                  {/* The camera: a video call with this person (V2). A room on a checked Jitsi
-                      server, whose address goes to them as an ordinary chat message. There once
-                      the thread has said what it knows -- and, unlike the bell, also where there
-                      is no conversation yet: a call may be how one begins (its message is then the
-                      first, and goes by mail, E-024). No word beside it: the question it opens
-                      carries the words. */}
-                  {chatConversationKnown.value ? (
-                    <button
-                      type='button'
-                      class={[
-                        'contact-window-mark',
-                        classes['contact-window-mark'],
-                        'contact-window-video',
-                        classes['contact-window-video'],
-                      ]}
-                      aria-label={videoCallName.value}
-                      title={videoCallName.value}
-                      data-test='contact-window-video'
-                      onClick={askVideoCall}
-                    >
-                      <MdiVideoOutline
-                        class={['contact-window-video-icon', classes['contact-window-video-icon']]}
-                        aria-hidden='true'
-                      />
-                    </button>
-                  ) : null}
-                  {/* The bell: mutes this conversation for oneself -- no mails about their chat
-                      messages; the thread shows them as before (E-024). A letter written with the
-                      form "send an e-mail" still comes as a mail, and the hint says so (E-034,
-                      A3). Only where there is a conversation: before the first message there is
-                      nothing to mute, and the thread says when there is one. No question before
-                      switching, in either direction: nothing is lost either way, and it switches
-                      back as easily (unlike the heart, KF-003). */}
-                  {chatConversation.value.exists ? (
-                    <button
-                      type='button'
-                      class={[
-                        'contact-window-mark',
-                        classes['contact-window-mark'],
-                        'contact-window-bell',
-                        classes['contact-window-bell'],
-                        muted.value ? stateClass('is-muted') : '',
-                      ]}
-                      aria-pressed={muted.value ? 'true' : 'false'}
-                      aria-label={bellName.value}
-                      title={bellName.value}
-                      data-test='contact-window-bell'
-                      onClick={toggleMute}
-                    >
-                      {muted.value ? (
-                        <MdiBellOffOutline
-                          class={['contact-window-bell-icon', classes['contact-window-bell-icon']]}
+                        ⛔ At the left end, and not before the thread has spoken -- that is, never
+                        before the camera: see the note on the marks above. The GMS's answer may come
+                        before the thread's or after it; standing between camera and bell, the pin
+                        came to stand exactly where the camera had stood a moment before, and a
+                        finger on its way to a video call opened the map instead (found by the second
+                        reader, 09.10.2026). */}
+                    {onMap.value && chatConversationKnown.value ? (
+                      <button
+                        type='button'
+                        class={[
+                          'contact-window-mark',
+                          classes['contact-window-mark'],
+                          'contact-window-map',
+                          classes['contact-window-map'],
+                        ]}
+                        aria-label={mapName.value}
+                        title={mapName.value}
+                        data-test='contact-window-map'
+                        onClick={toMap}
+                      >
+                        <MdiMapMarkerOutline
+                          class={['contact-window-map-icon', classes['contact-window-map-icon']]}
                           aria-hidden='true'
                         />
-                      ) : (
-                        <MdiBellOutline
-                          class={['contact-window-bell-icon', classes['contact-window-bell-icon']]}
+                      </button>
+                    ) : null}
+                    {/* The camera: a video call with this person (V2). A room on a checked Jitsi
+                        server, whose address goes to them as an ordinary chat message. There once
+                        the thread has said what it knows -- and, unlike the bell, also where there
+                        is no conversation yet: a call may be how one begins (its message is then the
+                        first, and goes by mail, E-024). No word beside it: the question it opens
+                        carries the words. */}
+                    {chatConversationKnown.value ? (
+                      <button
+                        type='button'
+                        class={[
+                          'contact-window-mark',
+                          classes['contact-window-mark'],
+                          'contact-window-video',
+                          classes['contact-window-video'],
+                        ]}
+                        aria-label={videoCallName.value}
+                        title={videoCallName.value}
+                        data-test='contact-window-video'
+                        onClick={askVideoCall}
+                      >
+                        <MdiVideoOutline
+                          class={[
+                            'contact-window-video-icon',
+                            classes['contact-window-video-icon'],
+                          ]}
                           aria-hidden='true'
                         />
-                      )}
-                    </button>
-                  ) : null}
-                  <FavoriteHeart
-                    class={['contact-window-heart', classes['contact-window-heart']]}
-                    member={props.contact.user}
-                  />
-                </div>
+                      </button>
+                    ) : null}
+                    {/* The bell: mutes this conversation for oneself -- no mails about their chat
+                        messages; the thread shows them as before (E-024). A letter written with the
+                        form "send an e-mail" still comes as a mail, and the hint says so (E-034,
+                        A3). Only where there is a conversation: before the first message there is
+                        nothing to mute, and the thread says when there is one. No question before
+                        switching, in either direction: nothing is lost either way, and it switches
+                        back as easily (unlike the heart, KF-003). */}
+                    {chatConversation.value.exists ? (
+                      <button
+                        type='button'
+                        class={[
+                          'contact-window-mark',
+                          classes['contact-window-mark'],
+                          'contact-window-bell',
+                          classes['contact-window-bell'],
+                          muted.value ? stateClass('is-muted') : '',
+                        ]}
+                        aria-pressed={muted.value ? 'true' : 'false'}
+                        aria-label={bellName.value}
+                        title={bellName.value}
+                        data-test='contact-window-bell'
+                        onClick={toggleMute}
+                      >
+                        {muted.value ? (
+                          <MdiBellOffOutline
+                            class={[
+                              'contact-window-bell-icon',
+                              classes['contact-window-bell-icon'],
+                            ]}
+                            aria-hidden='true'
+                          />
+                        ) : (
+                          <MdiBellOutline
+                            class={[
+                              'contact-window-bell-icon',
+                              classes['contact-window-bell-icon'],
+                            ]}
+                            aria-hidden='true'
+                          />
+                        )}
+                      </button>
+                    ) : null}
+                    <FavoriteHeart
+                      class={['contact-window-heart', classes['contact-window-heart']]}
+                      member={props.contact.user}
+                    />
+                  </>
+                )}
               </div>
-            ) : null}
+            </div>
 
             {/* The conversation, where "conversation history -- comes with the chat" stood
                 (E-023, KF-010), with the line to write in under it (P3). There as soon as the pair
