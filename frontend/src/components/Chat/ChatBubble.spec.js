@@ -10,7 +10,8 @@ import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatIma
 import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
-import { LIST_AVATAR_SIZE } from '@/constants'
+import { forgetSheet, SHEET_QUERY } from '@/composables/useSheet'
+import { LIST_AVATAR_SIZE, SHEET_FACE_SIZE } from '@/constants'
 
 /**
  * The client a picture is asked for with (ChatBubbleImage, useChatImages): each question waits for
@@ -1864,6 +1865,37 @@ describe('ChatBubble', () => {
       expect(name().text()).toBe('Carla-Sonne')
       expect(bubble().classes()).toContain('chat-bubble-in-group')
       expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${LIST_AVATAR_SIZE}px`)
+    })
+
+    // Bernd, 16.11.2026: on a phone the face stands over the message, the smaller one -- the
+    // stylesheet places it there by the size the bubble hands on (ChatBubble.layout.spec.js).
+    describe('on a phone', () => {
+      const onThe = (sheet) => {
+        forgetSheet()
+        vi.stubGlobal('matchMedia', (query) => ({ matches: query === SHEET_QUERY && sheet }))
+      }
+      afterEach(() => {
+        forgetSheet()
+        vi.unstubAllGlobals()
+      })
+
+      it('is the smaller face, and hands its size to the stylesheet', () => {
+        onThe(true)
+        mountInGroup(GROUP_THEIRS)
+        expect(face().attributes('style')).toContain(`width: ${SHEET_FACE_SIZE}px`)
+        expect(face().attributes('style')).toContain(`height: ${SHEET_FACE_SIZE}px`)
+        expect(SHEET_FACE_SIZE).toBe(36)
+        expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${SHEET_FACE_SIZE}px`)
+        expect(name().text()).toBe('Carla-Sonne')
+      })
+
+      // Gegenprobe: the same answer of the browser for the desk keeps a list's face.
+      it("is a list's face at the desk", () => {
+        onThe(false)
+        mountInGroup(GROUP_THEIRS)
+        expect(face().attributes('style')).toContain(`width: ${LIST_AVATAR_SIZE}px`)
+        expect(bubble().attributes('style')).toContain(`--chat-bubble-face: ${LIST_AVATAR_SIZE}px`)
+      })
     })
 
     // The ear hears the writer inside the bubble, as in a thread of two -- not the group's name.

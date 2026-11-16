@@ -93,9 +93,20 @@ export const LIST_AVATAR_SIZE = 48
  * A small face that is part of a control (P5), in pixels: the strip in a group window's members
  * button, the chips of the chosen in the group picker. Not zoomable there -- the control takes the
  * tap. The face beside a message in a group is a list's (LIST_AVATAR_SIZE): Bernd, 29.09.2026,
- * "48 px wie jede Liste".
+ * "48 px wie jede Liste" -- and on a phone the smaller one over the message (SHEET_FACE_SIZE).
  */
 export const SMALL_FACE_SIZE = 28
+
+/**
+ * The face over somebody else's message in a group on a phone, in pixels: on the sheet (below
+ * `sm`) it stands in the line of the writer's name instead of beside the bubble, so the bubble
+ * takes the line's whole start. Bernd's choice from a sketch of the three sizes, 16.11.2026
+ * ("Gesicht 36 px über der Blase"); at the desk the face stays a list's, beside the bubble.
+ *
+ * Smaller than the 44 px this wallet otherwise gives a control to tap (LIST_AVATAR_SIZE) -- a face
+ * with a picture opens it. The name beside it, the other way to the writer, is as high there.
+ */
+export const SHEET_FACE_SIZE = 36
 
 /**
  * Where this wallet's layout changes from a phone to a desk, in pixels.

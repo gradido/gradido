@@ -16,7 +16,7 @@
         'is-shown': shown,
       },
     ]"
-    :style="face ? { '--chat-bubble-face': `${LIST_AVATAR_SIZE}px` } : undefined"
+    :style="face ? { '--chat-bubble-face': `${faceSize}px` } : undefined"
     data-test="chat-bubble"
   >
     <!-- One message, one list item: the thread is a list (ChatThread). Own messages on the
@@ -26,12 +26,13 @@
 
          In a group (P5) the side no longer says who: somebody else's message has their face at
          its left and their name over it -- over the first of a run of theirs, as messengers do,
-         the bubbles after it in line with it (the mockup). The name is for the eye: the ear hears
+         the bubbles after it in line with it (the mockup). On a phone the face stands in the line
+         of the name, over the bubble (Bernd, 16.11.2026). The name is for the eye: the ear hears
          it inside the bubble, as in a thread of two. -->
     <template v-if="face && showWriter">
       <app-avatar
         class="chat-bubble-face"
-        :size="LIST_AVATAR_SIZE"
+        :size="faceSize"
         :color="'#fff'"
         v-bind="face"
         data-test="chat-bubble-face"
@@ -375,8 +376,9 @@ import MemoText from '@/components/TransactionRows/MemoText'
 import Name from '@/components/TransactionRows/Name.vue'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'
+import { useSheet } from '@/composables/useSheet'
 import { useAppToast } from '@/composables/useToast'
-import { LIST_AVATAR_SIZE } from '@/constants'
+import { LIST_AVATAR_SIZE, SHEET_FACE_SIZE } from '@/constants'
 import { CHAT_MENU_GAP_PX, chatMenuSpot } from '@/utils/chatMenuSpot'
 import { ownChatReaction } from '@/utils/chatReactions'
 import { memberAlias } from '@/utils/gradidoAddress'
@@ -556,6 +558,13 @@ const face = computed(() => {
   const base = memberAvatarProps(user)
   return { ...base, ...avatarZoomBindings(user, base) }
 })
+
+/**
+ * The face's size: a list's at the desk, beside the bubble; on a phone the smaller one over it, in
+ * the line of the name (Bernd, 16.11.2026) -- the stylesheet places it by `--chat-bubble-face`.
+ */
+const sheet = useSheet()
+const faceSize = computed(() => (sheet.value ? SHEET_FACE_SIZE : LIST_AVATAR_SIZE))
 
 /**
  * Whether the writer's name stands over this bubble as the control that leads to them (E-053):
@@ -1206,6 +1215,23 @@ const copyText = async () => {
   line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* On a phone (the sheet, below `sm`) the face stands over the message, in the line of the writer's
+   name, and the bubbles take the line from its start (Bernd, 16.11.2026, from a sketch). Beside
+   the face somebody else's bubble began 55 px in, and one's own reached further left than that;
+   now both take the same share of the line, each from its own end. The face is the smaller one
+   there (SHEET_FACE_SIZE); the name is as high and centred beside it -- its button too. */
+@media (width <= 575.98px) {
+  .chat-bubble-in-group {
+    padding-left: 0;
+  }
+
+  .chat-bubble-in-group .chat-bubble-writer {
+    max-width: calc(100% - var(--chat-bubble-face) - 0.45rem);
+    margin: 0 0 0.2rem calc(var(--chat-bubble-face) + 0.45rem);
+    line-height: var(--chat-bubble-face);
+  }
 }
 
 /* "Ankündigung" over somebody else's announcement: a small pill in the gold of one's own bubbles,

@@ -105,6 +105,31 @@ describe('ChatBubble, what only a browser lays out', () => {
   })
 
   /**
+   * On a phone the face stands over somebody else's message, in the line of the writer's name, and
+   * the bubble takes the line from its start (Bernd, 16.11.2026): beside the face it began 55 px in,
+   * and one's own reached further left than that. The name as high as the face, beside it.
+   */
+  describe('the face over the message on a phone', () => {
+    it('takes away the room beside the bubble on the sheet, and keeps it at the desk', () => {
+      expect(ruleOf('.chat-bubble-in-group')).toContainEqual(
+        expect.stringMatching(/padding-left: calc\(var\(--chat-bubble-face, 48px\) \+ 0\.45rem\);/),
+      )
+      expect(mediaRuleOf(SHEET, '.chat-bubble-in-group')).toEqual(['padding-left: 0;'])
+    })
+
+    it("puts the writer's name beside the face, as high as the face", () => {
+      expect(mediaRuleOf(SHEET, '.chat-bubble-in-group .chat-bubble-writer')).toEqual([
+        'max-width: calc(100% - var(--chat-bubble-face) - 0.45rem); margin: 0 0 0.2rem calc(var(--chat-bubble-face) + 0.45rem); line-height: var(--chat-bubble-face);',
+      ])
+    })
+
+    // The face stays where the name's line begins: at the row's top and start, at every width.
+    it('keeps the face at the top of the row, at its start', () => {
+      expect(ruleOf('.chat-bubble-face')).toEqual(['position: absolute; top: 0; left: 0;'])
+    })
+  })
+
+  /**
    * A touch screen shows no sign beside the bubble -- a tap on the message opens its menu --, but
    * the sign stays for a screen reader and a keyboard, and what is out of sight still counts for
    * how far the thread scrolls.
