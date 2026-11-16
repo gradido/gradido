@@ -329,8 +329,10 @@ test('asks every fifteen seconds while in sight, and at once when it comes back'
 }, info) => {
   test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
   await page.clock.install()
+  // the bar sets its next question only after the answer: the figure says it has taken it
+  graphql.answer({ walletContributions: 1 })
   await signIn(page, '/contribution-links')
-  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+  await expect(news(page)).toHaveText('1')
 
   graphql.answer({ walletContributions: 2 })
   await page.clock.runFor(15000)
