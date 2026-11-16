@@ -19,21 +19,28 @@ export class GraphqlRequestError extends Error {
 
 type Answer<T> = { data?: T; errors?: { message: string; extensions?: { code?: unknown } }[] }
 
-// The certificate of the session was revoked: the session is over, in both apps.
-const REVOKED = '403.13 - Client certificate revoked'
+// The certificate of the session was revoked, or it ran out: the session is over, in both apps.
+export const REVOKED = '403.13 - Client certificate revoked'
 
 /**
  * Sends `document` to the backend, as the moderator signed in. A token the server renews in the
  * `token` header is kept. m.request redraws once the answer is handled.
+ *
+ * `background`: a question the moderator did not ask (the number at the face, walletNews.store).
+ * It keeps the session's clock where the moderator left it -- the renewed token is not taken, as
+ * the wallet's beat does not take it (`renewSession: false`) -- and leaves an ended session to the
+ * moderator's next own request, as before; nor does it redraw.
  *
  * As Apollo did before: an answer with errors is a failure, whatever data it carries.
  */
 export const graphqlRequest = async <T>(
   document: DocumentNode,
   variables: Record<string, unknown> = {},
+  { background = false }: { background?: boolean } = {},
 ): Promise<Result<T, GraphqlRequestError>> => {
   try {
     const { answer, token } = await m.request({
+      background,
       method: 'POST',
       url: CONFIG.GRAPHQL_URI,
       body: { query: print(document), variables },
@@ -51,10 +58,12 @@ export const graphqlRequest = async <T>(
     if (isSchemaMismatch(answer.errors ?? [])) {
       markAppOutdated()
     }
-    if (answer.errors?.[0]?.message === REVOKED) {
+    // in the background the moderator did nothing: neither the session's end nor its renewal is
+    // this answer's
+    if (!background && answer.errors?.[0]?.message === REVOKED) {
       logout()
       redirectTo(CONFIG.WALLET_LOGIN_URL)
-    } else if (token) {
+    } else if (!background && token) {
       setToken(token)
     }
     return answer.errors || !answer.data

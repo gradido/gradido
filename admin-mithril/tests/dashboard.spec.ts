@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test'
 import de from '../../admin/src/locales/de.json' with { type: 'json' }
 import { expect, Failure, test } from './fixtures/graphql'
-import { moderator, signedInAnswers, signIn } from './fixtures/signIn'
+import { moderator, signedInAnswers, signIn, WALLET_NEWS_FIELDS } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
 const counts = (forModeration: number, forMember: number, allOpen: number) => ({
@@ -55,7 +55,7 @@ test('counts what is open today, and what waits for whom', async ({ page, graphq
     graphql
       .sent()
       .map(({ field }) => field)
-      .filter((field) => field !== supportCount),
+      .filter((field) => field !== supportCount && !WALLET_NEWS_FIELDS.includes(field)),
   ).toEqual(['verifyLogin', 'waitingForModeration', 'waitingForMember', 'allOpen'])
   expect(graphql.sentFor(supportCount)).toHaveLength(info.project.name === 'old' ? 0 : 1)
 })

@@ -571,7 +571,8 @@
       "light": "Açık",
       "system": "Sistem ayarını izle (varsayılan)"
     },
-    "user_search": "Kullanıcı arama"
+    "user_search": "Kullanıcı arama",
+    "walletNews": "Cüzdanında {n} yenilik var"
   },
   "notice": "Bildirim",
   "open": "açık",

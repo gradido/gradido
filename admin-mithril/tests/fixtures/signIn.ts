@@ -26,9 +26,24 @@ const base64Url = (value: object) => Buffer.from(JSON.stringify(value)).toString
 export const tokenFor = (gradidoID: string) =>
   `${base64Url({ alg: 'HS256', typ: 'JWT' })}.${base64Url({ sub: gradidoID })}.signature`
 
-/** The answers every page needs once signed in: the moderator's own login. */
+/**
+ * The questions the bar asks on every page of the Mithril admin, in the background and every
+ * fifteen seconds: what waits in the moderator's own wallet (walletNews.store). A test that names
+ * the questions of its page leaves these out.
+ */
+export const WALLET_NEWS_FIELDS = ['walletChat', 'walletSupport', 'walletContributions']
+
+/** Nothing waits in the moderator's own wallet: the face carries no number. */
+export const noWalletNews = (): Record<string, Answer> => ({
+  walletChat: { unreadConversations: 0 },
+  walletSupport: { inProgress: 0 },
+  walletContributions: 0,
+})
+
+/** The answers every page needs once signed in: the moderator's own login, and the bar's question. */
 export const signedInAnswers = (who = moderator): Record<string, Answer> => ({
   verifyLogin: who,
+  ...noWalletNews(),
 })
 
 /**

@@ -571,7 +571,8 @@
       "light": "Clair",
       "system": "Suivre le réglage du système (par défaut)"
     },
-    "user_search": "Recherche d'utilisateurs"
+    "user_search": "Recherche d'utilisateurs",
+    "walletNews": "{n} nouveauté dans ton portefeuille | {n} nouveautés dans ton portefeuille"
   },
   "notice": "Notification",
   "open": "ouverte",

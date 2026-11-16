@@ -571,7 +571,8 @@
       "light": "Claro",
       "system": "Seguir la configuración del sistema (predeterminado)"
     },
-    "user_search": "Búsqueda de usuarios"
+    "user_search": "Búsqueda de usuarios",
+    "walletNews": "{n} novedad en tu cartera | {n} novedades en tu cartera"
   },
   "notice": "Aviso",
   "open": "abierta",

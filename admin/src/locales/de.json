@@ -571,7 +571,8 @@
       "light": "Hell",
       "system": "Systemeinstellung folgen (Standard)"
     },
-    "user_search": "Nutzersuche"
+    "user_search": "Nutzersuche",
+    "walletNews": "{n} Neuigkeit in Deinem Wallet | {n} Neuigkeiten in Deinem Wallet"
   },
   "notice": "Hinweis",
   "open": "offen",
