@@ -346,6 +346,22 @@ test('asks every fifteen seconds while in sight, and at once when it comes back'
   await expect(news(page)).toHaveCount(0)
 })
 
+test('asks nothing while the admin opens out of sight, and at once in sight', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+  })
+  await signIn(page, '/contribution-links')
+  await expect(page.getByTestId('navbar-account')).toBeVisible()
+  expect(graphql.sentFor('walletChat')).toHaveLength(0)
+
+  await setHidden(page, false)
+  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+})
+
 // ⛔ The bar's question is not the moderator doing something: ten minutes without a click of
 // their own must still end the session. The moderator's own question renews it, the bar's not.
 test("keeps the session's clock: the token of the bar's answer is not taken", async ({
@@ -394,8 +410,15 @@ test('stops asking when the session has ended, and leaves the page as it is', as
   await signIn(page, '/contribution-links')
   await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
 
-  await page.clock.runFor(60000)
+  // the server would answer now: a bar that went on would ask, and its question needs a moment
+  // of real time to reach the test's server after each step of the clock
+  graphql.answer({ walletChat: { unreadConversations: 3 } })
+  for (let step = 0; step < 4; step++) {
+    await page.clock.runFor(15000)
+    await page.waitForTimeout(250)
+  }
   expect(graphql.sentFor('walletChat')).toHaveLength(1)
+  await expect(news(page)).toHaveCount(0)
   await expect(page).toHaveURL(/\/admin\/contribution-links$/)
   expect((await adminStorage(page))['auth-token']).toBeDefined()
 })

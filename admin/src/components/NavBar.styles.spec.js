@@ -106,6 +106,25 @@ describe('the stylesheet of the top bar', () => {
     expect(declarationsOf(desk, '.component-nabvar .navbar-account .dropdown-item')).toEqual({})
   })
 
+  // What waits in the moderator's own wallet (16.11.2026): the wallet's mark on the corner of the
+  // face. It takes no room in the bar, so nothing moves when it comes and goes, and its ring is the
+  // bar's own ground in both modes.
+  it("hangs the wallet's mark on the corner of the face, ringed in the bar's ground", () => {
+    expect(declarationsOf(desk, '.component-nabvar .navbar-face').position).toBe('relative')
+    const onFace = declarationsOf(desk, '.component-nabvar .navbar-face .navbar-news-mark')
+    expect(onFace.position).toBe('absolute')
+    expect(onFace['box-shadow']).toBe('0 0 0 2px var(--bar-ground, var(--bs-gray-800))')
+    // the light bar is Bootstrap's gray-800; the dark bar hands its own black down
+    expect(declarationsOf(desk, '.bg-light-dark')['background-color']).toBe('#343a40')
+    expect(bootstrap).toMatch(/--bs-gray-800:\s*#343a40/)
+    const dark = declarationsOf(desk, ':root[data-bs-theme=dark] .bg-light-dark')
+    expect(dark['--bar-ground']).toBe(dark['background-color'])
+    // gold with white figures, as the wallet's marks (frontend Sidebar.vue, .chat-unread-badge)
+    const mark = declarationsOf(desk, '.component-nabvar .navbar-news-mark')
+    expect(mark.background).toBe('#c08935')
+    expect(mark.color).toBe('var(--bs-white)')
+  })
+
   // Bernd (24.10.2026): in the dark the grey bar made the top restless. It takes the black of the
   // window's bar above it, and a thin light line parts it from the page, which has that dark too.
   it("in the dark mode, takes the black of the window's bar and a thin light line below it", () => {

@@ -64,6 +64,10 @@ vi.mock('@/composables/useMemberAvatars', () => ({
   fetchMemberAvatars: mockFetchMemberAvatars,
 }))
 
+// The mark at "Schöpfen" rides in the chat's beat; a change of a contribution asks it at once.
+const { mockPollChatNow } = vi.hoisted(() => ({ mockPollChatNow: vi.fn() }))
+vi.mock('@/composables/useChatUpdates', () => ({ pollChatNow: mockPollChatNow }))
+
 describe('ContributionList', () => {
   let wrapper
 
@@ -128,6 +132,7 @@ describe('ContributionList', () => {
 
   describe('mount', () => {
     const mockListContributionsQuery = vi.fn()
+    const mockRefetch = vi.fn()
 
     beforeEach(() => {
       vi.mocked(useQuery).mockImplementation((query) => {
@@ -141,7 +146,7 @@ describe('ContributionList', () => {
           result: contributions,
           loading,
           onResult: mockListContributionsQuery,
-          refetch: vi.fn(),
+          refetch: mockRefetch,
         }
       })
 
@@ -155,6 +160,18 @@ describe('ContributionList', () => {
     describe('mount as user contributions list', () => {
       it('fetches initial data', () => {
         expect(mockListContributionsQuery).toHaveBeenCalled()
+      })
+
+      // an answer, a deletion: the list asked again, and the mark at "Schöpfen" with it, as the
+      // member's write leaves it, not with the next beat
+      it('asks the list and the chat beat again when a contribution changed', async () => {
+        expect(mockPollChatNow).not.toHaveBeenCalled()
+        wrapper
+          .findAllComponents({ name: 'ContributionListItem' })[0]
+          .vm.$emit('contribution-changed')
+        await wrapper.vm.$nextTick()
+        expect(mockRefetch).toHaveBeenCalledTimes(1)
+        expect(mockPollChatNow).toHaveBeenCalledTimes(1)
       })
 
       /**

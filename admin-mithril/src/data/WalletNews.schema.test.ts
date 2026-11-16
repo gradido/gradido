@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { Kind, type OperationDefinitionNode, parse } from 'graphql'
+import * as v from 'valibot'
 import { walletNewsSchema } from './WalletNews.schema'
 
 // The schema is the reader of the answer, by the aliases the document gives its fields: a key it
@@ -35,6 +36,17 @@ const read = Object.entries(walletNewsSchema.entries).map(([key, entry]) => {
 describe('moderatorWalletNews and its reader', () => {
   it('ask for what the reader reads, and read what they ask for', () => {
     expect(asked).toEqual(read)
+  })
+
+  // supportTicketsMenu and countContributionsInProgress answer null where the server could not
+  // count: the reader takes that, or the number at the face would stop for good
+  it('read an answer whose support and contributions the server could not count', () => {
+    const answer = {
+      walletChat: { unreadConversations: 1 },
+      walletSupport: null,
+      walletContributions: null,
+    }
+    expect(v.parse(walletNewsSchema, answer)).toEqual(answer)
   })
 
   it('ask the three marks of the wallet, under aliases of their own', () => {

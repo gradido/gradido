@@ -35,6 +35,13 @@ vi.mock('vue-i18n', () => ({
   })),
 }))
 
+// The mark at "Schöpfen" rides in the chat's beat; a saved change of a contribution asks it at once.
+const { mockPollChatNow } = vi.hoisted(() => ({ mockPollChatNow: vi.fn() }))
+vi.mock('@/composables/useChatUpdates', async (importOriginal) => ({
+  ...(await importOriginal()),
+  pollChatNow: mockPollChatNow,
+}))
+
 vi.mock('@/components/Contributions/ContributionEdit', () => ({
   ContributionEdit: {
     name: 'ContributionEdit',
@@ -111,6 +118,16 @@ describe('Contributions', () => {
     it('initializes with correct data', () => {
       expect(wrapper.vm.tabIndex).toBe(0)
     })
+  })
+
+  // a changed contribution waits for the moderation again: the mark at "Schöpfen" at once
+  it('asks the chat beat at once when a change of a contribution was saved', async () => {
+    wrapper.vm.handleUpdateContributionForm({ item: { id: 7, memo: 'x' }, page: 1 })
+    await wrapper.vm.$nextTick()
+    expect(mockPollChatNow).not.toHaveBeenCalled()
+    wrapper.findComponent({ name: 'ContributionEdit' }).vm.$emit('contribution-updated')
+    await wrapper.vm.$nextTick()
+    expect(mockPollChatNow).toHaveBeenCalledTimes(1)
   })
 
   describe('tabs', () => {
