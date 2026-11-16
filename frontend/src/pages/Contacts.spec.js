@@ -176,13 +176,13 @@ describe('Contacts page', () => {
           // does (useChatForwardTargets, E-059): what this page hands down, a test can read here.
           ContactWindow: {
             name: 'ContactWindow',
-            props: ['modelValue', 'contact', 'greet', 'firstContact'],
+            props: ['modelValue', 'contact', 'fromGroup', 'firstContact'],
             emits: ['contactMade'],
             setup() {
               return { targets: useChatForwardTargets({ query: forwardAsks }) }
             },
             template:
-              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-greet="String(greet)" :data-first="String(firstContact)" :data-forward-contacts="targets.contacts.value.length" :data-forward-groups="targets.groups.value.length" :data-forward-loading="String(targets.loading.value)" :data-forward-failed="[targets.contactsFailed.value, targets.groupsFailed.value].join()" @click="targets.load()" />',
+              '<div data-test="contact-window" :data-open="String(modelValue)" :data-who="contact?.user?.gradidoID ?? \'\'" :data-community="contact?.user?.communityUuid ?? \'\'" :data-home="String(contact?.homeCommunity)" :data-counted="String(Boolean(contact?.firstAt))" :data-from-group="fromGroup ?? \'\'" :data-first="String(firstContact)" :data-forward-contacts="targets.contacts.value.length" :data-forward-groups="targets.groups.value.length" :data-forward-loading="String(targets.loading.value)" :data-forward-failed="[targets.contactsFailed.value, targets.groupsFailed.value].join()" @click="targets.load()" />',
           },
         },
       },
@@ -1128,7 +1128,8 @@ describe('Contacts page', () => {
       // E-053: a member named in the group -- in its list or over a message. Their window opens
       // over the group's, so closing it leads back. E-055 (Bernd, 30.09.2026): a first word is one
       // tap -- "Hallo …" in the field where the two have never written, and for somebody who is no
-      // contact yet the window's first form instead of the send form.
+      // contact yet the window's first form instead of the send form. E-092: the window is handed
+      // the group, which the send form's "Zurück" leads back into.
       describe('a member named in it', () => {
         const nameIt = async (user) => {
           await wrapper.findComponent({ name: 'ChatGroupWindow' }).vm.$emit('openMember', user)
@@ -1152,7 +1153,7 @@ describe('Contacts page', () => {
           expect(contactWindow().attributes('data-open')).toBe('true')
           expect(contactWindow().attributes('data-who')).toBe('id-2')
           expect(contactWindow().attributes('data-counted')).toBe('true')
-          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-from-group')).toBe('group-2')
           expect(contactWindow().attributes('data-first')).toBe('false')
           expect(groupWindow().attributes('data-open')).toBe('true')
           expect(routerPush).not.toHaveBeenCalled()
@@ -1173,7 +1174,7 @@ describe('Contacts page', () => {
           expect(contactWindow().attributes('data-open')).toBe('true')
           expect(contactWindow().attributes('data-who')).toBe('stranger-id')
           expect(contactWindow().attributes('data-counted')).toBe('false')
-          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-from-group')).toBe('group-2')
           expect(contactWindow().attributes('data-first')).toBe('true')
           expect(contactWindow().attributes('data-home')).toBe('true')
           expect(groupWindow().attributes('data-open')).toBe('true')
@@ -1277,7 +1278,7 @@ describe('Contacts page', () => {
           answer()
           await flushPromises()
           expect(contactWindow().attributes('data-who')).toBe('id-2')
-          expect(contactWindow().attributes('data-greet')).toBe('true')
+          expect(contactWindow().attributes('data-from-group')).toBe('group-2')
         })
 
         // Closing lets the group's way of opening go: a row opened next is the window as always.
@@ -1288,7 +1289,7 @@ describe('Contacts page', () => {
             .findComponent({ name: 'ContactWindow' })
             .vm.$emit('update:modelValue', false)
           await nextTick()
-          expect(contactWindow().attributes('data-greet')).toBe('false')
+          expect(contactWindow().attributes('data-from-group')).toBe('')
           expect(contactWindow().attributes('data-first')).toBe('false')
         })
       })

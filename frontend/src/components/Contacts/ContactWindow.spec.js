@@ -171,6 +171,9 @@ const STRANGER = {
   homeCommunity: false,
 }
 
+/** The group a window is opened over (E-055), by its uuid, as the contacts page hands it. */
+const GROUP = 'cafe-group-uuid'
+
 /**
  * Every thread the window made, in order -- one entry per MOUNT, so a test can tell a thread
  * that was kept from one that was made anew.
@@ -598,7 +601,7 @@ describe('ContactWindow', () => {
     it('has no magnifier in the first form', async () => {
       mountWindow(
         { user: { ...CONTACT.user }, homeCommunity: true },
-        { greet: true, firstContact: true },
+        { fromGroup: GROUP, firstContact: true },
       )
       expect(magnifier().exists()).toBe(false)
       await threadSays({ exists: true, mutedByMe: false })
@@ -609,46 +612,59 @@ describe('ContactWindow', () => {
   /**
    * E-055 (Bernd, 30.09.2026): opened from a group, a first word is one tap on the arrow --
    * "Hallo …" in the field where the two have never written. For somebody who is no contact yet
-   * the window's first form: only the text, until the first message makes them a contact.
+   * the window's first form: the text and "Gradido senden" (Bernd, 16.11.2026, E-092), until the
+   * first message makes them a contact.
    */
   describe("the window's first form, and the greeting", () => {
     // A member of a group as the page hands them over: the pair and the name, no figures.
     const MEMBER = { user: { ...CONTACT.user }, homeCommunity: true }
     const thread = () => wrapper.find('[data-test="chat-thread"]')
     const marks = () =>
-      ['contact-window-video', 'contact-window-bell', 'heart'].filter((hook) =>
-        wrapper.find(`[data-test="${hook}"]`).exists(),
+      ['contact-window-map', 'contact-window-video', 'contact-window-bell', 'heart'].filter(
+        (hook) => wrapper.find(`[data-test="${hook}"]`).exists(),
       )
+    const marksBox = () => wrapper.find('[data-test="contact-window-marks"]')
 
-    it('offers only the text to somebody who is no contact yet, "Hallo …" in the field', async () => {
-      mountWindow(MEMBER, { greet: true, firstContact: true })
+    it('offers the text and "Gradido senden" to somebody who is no contact yet', async () => {
+      mountWindow(MEMBER, { fromGroup: GROUP, firstContact: true })
 
       expect(wrapper.find('[data-test="contact-window-name"]').text()).toBe('Carla-Sonne')
       expect(wrapper.find('[data-test="contact-window-community"]').text()).toBe('Gradido-Akademie')
-      // No meta line either: no figures can come before the first message (and its reserved
-      // height stood as an empty band under the head).
-      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(false)
-      expect(sendButton().exists()).toBe(false)
-      expect(marks()).toEqual([])
+      // The line for the figures is there and empty: no figures can come before the first
+      // message, and "Kontakt seit …" comes with it -- into a place held for it, over the button,
+      // which does not move then (E-092).
+      const meta = wrapper.find('[data-test="contact-window-meta"]')
+      expect(meta.exists()).toBe(true)
+      expect(meta.text()).toBe('')
+      expect(meta.element.nextElementSibling?.classList.contains('contact-window-send')).toBe(true)
+      // The button alone in its row: the box of the marks is there, and empty.
+      expect(sendButton().text()).toBe('contacts.sendGradido')
+      expect(marksBox().element.children).toHaveLength(0)
       expect(thread().attributes('data-text-only')).toBe('true')
       expect(thread().attributes('data-greeting')).toBe(
         'chatThread.firstContactGreeting {"name":"Carla-Sonne"}',
       )
 
-      // The thread found no conversation: still only the text, and nothing to say.
+      // The thread found no conversation: still the text and the button, and nothing to say --
+      // the camera would come now in the whole window.
       await threadSays({ exists: false, mutedByMe: false })
-      expect(sendButton().exists()).toBe(false)
+      expect(sendButton().exists()).toBe(true)
       expect(marks()).toEqual([])
+      expect(marksBox().element.children).toHaveLength(0)
       expect(wrapper.emitted('contactMade')).toBeUndefined()
     })
 
     it('becomes the whole window with the first message, and says so once', async () => {
-      mountWindow(MEMBER, { greet: true, firstContact: true })
+      mountWindow(MEMBER, { fromGroup: GROUP, firstContact: true })
       await threadSays({ exists: false, mutedByMe: false })
+      const button = sendButton().element
+      const meta = wrapper.find('[data-test="contact-window-meta"]').element
 
       await threadSays({ exists: true, mutedByMe: false })
-      expect(sendButton().exists()).toBe(true)
-      expect(wrapper.find('[data-test="contact-window-meta"]').exists()).toBe(true)
+      // The same button and the same line over it, where they stood: the marks come in beside it,
+      // the figures into the line once the page has the contact's row.
+      expect(sendButton().element).toBe(button)
+      expect(wrapper.find('[data-test="contact-window-meta"]').element).toBe(meta)
       expect(marks()).toEqual(['contact-window-video', 'contact-window-bell', 'heart'])
       expect(thread().attributes('data-text-only')).toBe('false')
       expect(wrapper.emitted('contactMade')).toHaveLength(1)
@@ -660,7 +676,7 @@ describe('ContactWindow', () => {
     // The page's list was behind: the two have written already. The whole window at once, and the
     // page is told, so that it puts the server's row in.
     it('is the whole window at once where a conversation is there already', async () => {
-      mountWindow(MEMBER, { greet: true, firstContact: true })
+      mountWindow(MEMBER, { fromGroup: GROUP, firstContact: true })
       await threadSays({ exists: true, mutedByMe: false })
 
       expect(sendButton().exists()).toBe(true)
@@ -668,7 +684,7 @@ describe('ContactWindow', () => {
     })
 
     it('greets from a group a contact too, in the whole window', async () => {
-      mountWindow(CONTACT, { greet: true })
+      mountWindow(CONTACT, { fromGroup: GROUP })
 
       expect(sendButton().exists()).toBe(true)
       expect(thread().attributes('data-text-only')).toBe('false')
@@ -1144,6 +1160,42 @@ describe('ContactWindow', () => {
       expect(sendReturn.put).toHaveBeenCalledWith({
         to: '/send/provence-uuid/sarah-id',
         back: { path: '/contacts', query: { with: 'sarah-id', community: 'provence-uuid' } },
+      })
+    })
+
+    /**
+     * E-092 (Bernd, 16.11.2026): opened over a group, "Zurück" leads into the group -- for
+     * somebody who is no contact yet, whom the conversation's address would not open, and for a
+     * contact as well, as "Danke sagen" in the group does.
+     */
+    it('leads into the group from the window`s first form', async () => {
+      mountWindow(
+        { user: { ...CONTACT.user }, homeCommunity: true },
+        { fromGroup: GROUP, firstContact: true },
+      )
+      await threadSays({ exists: false, mutedByMe: false })
+      await sendButton().trigger('click')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/home-uuid/carla-id',
+        back: { path: '/contacts', query: { group: GROUP } },
+      })
+      expect(pushSpy).toHaveBeenCalledWith({
+        path: '/send/home-uuid/carla-id',
+        query: { art: 'send' },
+      })
+      expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    })
+
+    it('leads into the group from a contact opened over it, "Danke sagen" too', async () => {
+      mountWindow(STRANGER, { fromGroup: GROUP })
+      await wrapper.findComponent({ name: 'ChatThread' }).vm.$emit('thank')
+      await flushPromises()
+
+      expect(sendReturn.put).toHaveBeenCalledWith({
+        to: '/send/provence-uuid/sarah-id',
+        back: { path: '/contacts', query: { group: GROUP } },
       })
     })
 
@@ -4933,6 +4985,33 @@ describe('ContactWindow', () => {
       await wrapper.setProps({ modelValue: false })
       await flushPromises()
       expect(observers.size).toBe(0)
+    })
+
+    /**
+     * E-092: in the window's first form the row holds the button and the marks' box, empty. The
+     * box that is watched from the start is the one the marks come into with the first message --
+     * so they are measured beside the button, and the row set closer where they do not fit.
+     */
+    it('watches the empty box of the first form, which the marks then come into', async () => {
+      mountWindow(
+        { user: { ...CONTACT.user }, homeCommunity: true },
+        { fromGroup: GROUP, firstContact: true },
+      )
+      await threadSays({ exists: false, mutedByMe: false })
+      const row = wrapper.find('.contact-window-send').element
+      const box = row.querySelector('.contact-window-marks')
+      const [observer] = observers
+      expect(box.children).toHaveLength(0)
+      expect(observer.watched).toEqual([row, ...row.children])
+      expect(observer.watched).toContain(box)
+
+      await threadSays({ exists: true, mutedByMe: false })
+      expect(wrapper.find('.contact-window-marks').element).toBe(box)
+      expect(box.children.length).toBeGreaterThan(0)
+      layOut({ row: 272 })
+      sizesChanged()
+      await nextFrame()
+      expect(tight()).toBe(true)
     })
   })
 

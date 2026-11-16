@@ -57,19 +57,27 @@ export const useContactWindow = (apolloClient = null) => {
   /**
    * How the window was opened from a group (Bernd, 30.09.2026, E-055) -- a first word to a member
    * of the group should be one tap on the arrow:
-   * - `greet`: "Hallo …" stands in the field while there is no conversation yet, contact or not;
-   * - `firstContact`: for somebody who is no contact yet, only the text -- no Gradido, no camera,
-   *   no bell, no heart, no paperclip -- until the first message makes them one (`fillIn`).
+   * - `fromGroup`: the group's uuid. "Hallo …" stands in the field while there is no conversation
+   *   yet, contact or not, and the send form's "Zurück" leads back into the group (E-092);
+   * - `firstContact`: for somebody who is no contact yet, only the text and "Gradido senden"
+   *   (E-092) -- no camera, no bell, no heart, no paperclip -- until the first message makes them
+   *   one (`fillIn`).
    * Both belong to the opening: the next one sets them anew, closing lets them go.
    */
-  const greet = ref(false)
+  /** @type {import('vue').Ref<string | null>} */
+  const fromGroup = ref(null)
   const firstContact = ref(false)
 
-  const open = (contact, { fromGroup = false, known = true } = {}) => {
+  /**
+   * @param {*} contact
+   * @param {{ group?: string | null, known?: boolean }} [options] `group`: the uuid of the group the
+   *   window opens over; `known`: whether the person is a contact already
+   */
+  const open = (contact, { group = null, known = true } = {}) => {
     opening += 1
     selected.value = contact
-    greet.value = fromGroup
-    firstContact.value = fromGroup && !known
+    fromGroup.value = group
+    firstContact.value = Boolean(group) && !known
     windowOpen.value = true
     return opening
   }
@@ -159,7 +167,7 @@ export const useContactWindow = (apolloClient = null) => {
   watch(windowOpen, (isOpen) => {
     if (!isOpen) {
       selected.value = null
-      greet.value = false
+      fromGroup.value = null
       firstContact.value = false
     }
   })
@@ -167,7 +175,7 @@ export const useContactWindow = (apolloClient = null) => {
   return {
     windowOpen,
     selected,
-    greet,
+    fromGroup,
     firstContact,
     open,
     openMember,
