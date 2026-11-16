@@ -12,6 +12,7 @@ import {
 import { ContributionList } from '@/components/Contributions/ContributionList'
 import { ContributionListAll } from '@/components/Contributions/ContributionListAll'
 import { NavContributions } from '@/components/Contributions/NavContributions'
+import { pollChatNow } from '@/composables/useChatUpdates'
 import { endFirstLoginHolds } from '@/composables/useFirstLoginWindow'
 import { useAppToast } from '@/composables/useToast'
 import { countContributionsInProgress } from '@/graphql/contributions.graphql'
@@ -76,6 +77,8 @@ export const Contributions = defineComponent({
     const handleContributionUpdated = () => {
       const contributionItemId = itemData.value?.id
       itemData.value = null
+      // a changed contribution waits for the moderation again: the mark at "Schöpfen" now
+      pollChatNow()
       tabIndex.value = tabRouteToIndex(tabRoutes.ownContributions)
       router.push({
         params: { tab: tabRoutes.ownContributions, page: editContributionPage.value },

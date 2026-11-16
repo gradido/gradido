@@ -495,6 +495,7 @@
       "myContributionNoteList": "You can edit or delete entries that have not yet been confirmed at any time.",
       "pending": "Submitted and waiting for confirmation"
     },
+    "badge": "{n} contribution with a question for you | {n} contributions with a question for you",
     "communityWindow": "Contributions from the last {months} months",
     "creationGroup": {
       "help": "Optional. It works without a group, too. A #word in the text does not set a group — this field does.",
@@ -503,6 +504,7 @@
     },
     "delete": "Really delete this contribution? Afterwards it is visible only to you and the moderators, invisible to the community.",
     "deleted": "The contribution has been deleted. It is now visible only to you and the moderators, invisible to the community.",
+    "dot": "A question about one of your contributions",
     "filter": {
       "all": "(all)",
       "byGroup": "Filter by creation group",

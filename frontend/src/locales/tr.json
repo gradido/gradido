@@ -495,6 +495,7 @@
       "myContributionNoteList": "Bildirmiş olduğun henüz onaylanmamış olan  faaliyetleri istediğin zaman düzenleyebilir veya silebilirsin.",
       "pending": "Gönderildi ve onay bekleniyor"
     },
+    "badge": "{n} katkında sana bir soru var",
     "communityWindow": "Son {months} ayın katkıları",
     "creationGroup": {
       "help": "İsteğe bağlı. Grupsuz da olur. Metindeki bir #kelime grup belirlemez — bunun için bu alan var.",
@@ -503,6 +504,7 @@
     },
     "delete": "Hizmet gerçekten silinsin mi? Bundan sonra onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
     "deleted": "Hizmet silindi. Artık onu yalnızca sen ve moderatörler görebilir, topluluk göremez.",
+    "dot": "Katkılarından biri hakkında bir soru",
     "filter": {
       "all": "(tümü)",
       "byGroup": "Yaratım grubuna göre filtrele",

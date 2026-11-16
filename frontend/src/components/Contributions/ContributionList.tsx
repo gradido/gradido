@@ -12,6 +12,7 @@ import {
 } from '@/components/Contributions/ContributionListItem'
 import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
 import ThemedSelect from '@/components/ThemedSelect.vue'
+import { pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'
 import { PAGE_SIZE } from '@/constants'
@@ -212,7 +213,11 @@ export const ContributionList = defineComponent({
                     messagesVisible={openMessagesListId.value === item.id}
                     onToggle-messages-visible={() => toggleMessagesVisible(item.id)}
                     onUpdate-contribution-form={updateContributionForm}
-                    onContribution-changed={() => refetch()}
+                    onContribution-changed={() => {
+                      refetch()
+                      // the mark at "Schöpfen" as the member's answer leaves it, not with the next beat
+                      pollChatNow()
+                    }}
                   />
                 </div>
               </div>

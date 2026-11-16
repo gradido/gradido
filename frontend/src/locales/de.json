@@ -495,6 +495,7 @@
       "myContributionNoteList": "Eingereichte Beiträge, die noch nicht bestätigt wurden, kannst Du jederzeit bearbeiten oder löschen.",
       "pending": "Eingereicht und wartet auf Bestätigung"
     },
+    "badge": "{n} Beitrag mit Rückfrage | {n} Beiträge mit Rückfrage",
     "communityWindow": "Beiträge der letzten {months} Monate",
     "creationGroup": {
       "help": "Optional. Ohne Gruppe geht es auch. Ein #Wort im Text setzt keine Gruppe — dafür ist dieses Feld da.",
@@ -503,6 +504,7 @@
     },
     "delete": "Beitrag wirklich löschen? Danach ist er nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
     "deleted": "Der Beitrag wurde gelöscht. Er ist nur noch für Dich und die Moderatoren sichtbar, für die Gemeinschaft unsichtbar.",
+    "dot": "Rückfrage zu einem Beitrag",
     "filter": {
       "all": "(alle)",
       "byGroup": "Nach Schöpfungsgruppe filtern",

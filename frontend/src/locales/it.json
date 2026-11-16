@@ -495,6 +495,7 @@
       "myContributionNoteList": "Puoi modificare o eliminare in qualsiasi momento i contributi inviati che non sono ancora stati confermati.",
       "pending": "Inviato e in attesa di conferma"
     },
+    "badge": "{n} contributo con una domanda per te | {n} contributi con una domanda per te",
     "communityWindow": "Contributi degli ultimi {months} mesi",
     "creationGroup": {
       "help": "Facoltativo. Funziona anche senza gruppo. Una #parola nel testo non imposta un gruppo — a questo serve questo campo.",
@@ -503,6 +504,7 @@
     },
     "delete": "Eliminare davvero il contributo? Dopo sarà visibile solo a te e ai moderatori, invisibile alla comunità.",
     "deleted": "Il contributo è stato eliminato. Ora è visibile solo a te e ai moderatori, invisibile alla comunità.",
+    "dot": "Una domanda su uno dei tuoi contributi",
     "filter": {
       "all": "(tutte)",
       "byGroup": "Filtra per gruppo di creazione",

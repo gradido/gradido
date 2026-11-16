@@ -495,6 +495,7 @@
       "myContributionNoteList": "À tout moment tu peux éditer ou supprimer les données qui n'ont pas été confirmées.",
       "pending": "Inscription en attente de validation"
     },
+    "badge": "{n} contribution avec une question pour toi | {n} contributions avec une question pour toi",
     "communityWindow": "Contributions des {months} derniers mois",
     "creationGroup": {
       "help": "Facultatif. Cela fonctionne aussi sans groupe. Un #mot dans le texte ne définit pas de groupe — c’est le rôle de ce champ.",
@@ -503,6 +504,7 @@
     },
     "delete": "Vraiment supprimer la contribution ? Elle ne sera alors visible que pour toi et les modérateurs, invisible pour la communauté.",
     "deleted": "La contribution a été supprimée. Elle n'est désormais visible que pour toi et les modérateurs, invisible pour la communauté.",
+    "dot": "Une question sur l'une de tes contributions",
     "filter": {
       "all": "(toutes)",
       "byGroup": "Filtrer par groupe de création",
