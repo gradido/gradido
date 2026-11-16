@@ -309,11 +309,14 @@ test('carries what waits in the wallet at the face, and behind "Mein Konto"', as
   await expect(entry.locator('.visually-hidden')).toHaveText(`, ${newsSentence(4)}`)
 })
 
-test('carries no number while nothing waits in the wallet', async ({ page }, info) => {
+test('carries no number while nothing waits in the wallet', async ({ page, graphql }, info) => {
   test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
   await signIn(page, '/contribution-links')
   const account = page.getByTestId('navbar-account')
 
+  // asked and answered with nothing waiting
+  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+  await page.waitForTimeout(250)
   await expect(account.getByRole('button', { name: 'Peter Lustig', exact: true })).toBeVisible()
   await expect(news(page)).toHaveCount(0)
   await account.getByRole('button').click()
@@ -397,28 +400,60 @@ test("keeps the session's clock: the token of the bar's answer is not taken", as
   expect(JSON.parse((await adminStorage(page))['auth-token']).token).toBe(renewed('moderator'))
 })
 
-// An ended session answers the bar's question too: the bar stops asking and signs nobody out --
-// the moderator's next click of their own finds the end, as before.
-test('stops asking when the session has ended, and leaves the page as it is', async ({
+// A sign-out in another window of the origin -- the wallet, or its session clock -- signs this
+// admin out without leaving the page (authToken.ts): the number goes at once, and the bar asks
+// nothing without a token.
+test('goes quiet when the moderator signs out in another window', async ({
   page,
   graphql,
 }, info) => {
   test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
-  graphql.answer({ walletChat: new Failure('403.13 - Client certificate revoked') })
-  await serveWallet(page)
+  graphql.answer({ walletContributions: 2 })
   await page.clock.install()
   await signIn(page, '/contribution-links')
-  await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+  await expect(news(page)).toHaveText('2')
 
-  // the server would answer now: a bar that went on would ask, and its question needs a moment
-  // of real time to reach the test's server after each step of the clock
-  graphql.answer({ walletChat: { unreadConversations: 3 } })
+  await page.evaluate(() => {
+    localStorage.removeItem('auth-token')
+    window.dispatchEvent(new StorageEvent('storage', { key: 'auth-token' }))
+  })
+  await expect(news(page)).toHaveCount(0)
+  const asked = graphql.sentFor('walletChat').length
   for (let step = 0; step < 4; step++) {
     await page.clock.runFor(15000)
     await page.waitForTimeout(250)
   }
-  expect(graphql.sentFor('walletChat')).toHaveLength(1)
-  await expect(news(page)).toHaveCount(0)
-  await expect(page).toHaveURL(/\/admin\/contribution-links$/)
-  expect((await adminStorage(page))['auth-token']).toBeDefined()
+  expect(graphql.sentFor('walletChat')).toHaveLength(asked)
 })
+
+// An ended session answers the bar's question too: the bar stops asking and signs nobody out --
+// the moderator's next click of their own finds the end, as before.
+// The same for an account that is gone, which the server answers with 401.
+for (const [kind, message] of [
+  ['has ended', '403.13 - Client certificate revoked'],
+  ['is gone', '401 Unauthorized'],
+]) {
+  test(`stops asking when the session ${kind}, and leaves the page as it is`, async ({
+    page,
+    graphql,
+  }, info) => {
+    test.skip(info.project.name === 'old', OLD_HAS_NO_NEWS)
+    graphql.answer({ walletChat: new Failure(message) })
+    await serveWallet(page)
+    await page.clock.install()
+    await signIn(page, '/contribution-links')
+    await expect.poll(() => graphql.sentFor('walletChat').length).toBe(1)
+
+    // the server would answer now: a bar that went on would ask, and its question needs a moment
+    // of real time to reach the test's server after each step of the clock
+    graphql.answer({ walletChat: { unreadConversations: 3 } })
+    for (let step = 0; step < 4; step++) {
+      await page.clock.runFor(15000)
+      await page.waitForTimeout(250)
+    }
+    expect(graphql.sentFor('walletChat')).toHaveLength(1)
+    await expect(news(page)).toHaveCount(0)
+    await expect(page).toHaveURL(/\/admin\/contribution-links$/)
+    expect((await adminStorage(page))['auth-token']).toBeDefined()
+  })
+}

@@ -1091,8 +1091,8 @@ describe('useChatUpdates', () => {
       expect(contributionsInProgress.value).toBe(0)
     })
 
-    // null: the server could not count; missing: a server from before the mark. Neither takes
-    // back what the menu shows, and neither stops the chat.
+    // null: the server could not count; missing: an answer without the field. Neither takes back
+    // what the menu shows, and neither stops the chat.
     it('keeps what was shown where the field comes null or not at all, and the chat goes on', async () => {
       server.answer(
         withCount(update(), 2),

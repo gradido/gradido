@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
@@ -66,18 +68,24 @@ const chatBeat = gql`
     countContributionsInProgress
   }
 `
-// the admin's question for the number at the moderator's face
-const moderatorWalletNews = gql`
-  query {
-    newChatMessagesSince {
-      unreadConversations
-    }
-    supportTicketsMenu {
-      inProgress
-    }
-    countContributionsInProgress
-  }
-`
+// the admin's question for the number at the moderator's face, as the admin sends it: the
+// document itself, with its aliases, through the server's own rules
+const moderatorWalletNews = gql(
+  readFileSync(
+    join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      'admin',
+      'src',
+      'graphql',
+      'moderatorWalletNews.graphql',
+    ),
+    'utf8',
+  ),
+)
 
 const loginAs = async (email: string): Promise<void> => {
   resetToken()
@@ -185,9 +193,9 @@ describe('countContributionsInProgress', () => {
     const res: any = await query({ query: moderatorWalletNews })
     expect(res.errors).toBeUndefined()
     expect(res.data).toEqual({
-      newChatMessagesSince: { unreadConversations: 0 },
-      supportTicketsMenu: { inProgress: 0 },
-      countContributionsInProgress: 1,
+      walletChat: { unreadConversations: 0 },
+      walletSupport: { inProgress: 0 },
+      walletContributions: 1,
     })
   })
 })

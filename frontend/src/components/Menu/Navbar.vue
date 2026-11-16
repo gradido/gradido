@@ -97,7 +97,7 @@
                   v-if="
                     chatUnreadConversations > 0 ||
                     supportTicketsInProgress > 0 ||
-                    contributionsInProgress > 0
+                    creationQuestions > 0
                   "
                   class="chat-unread-dot"
                   aria-hidden="true"
@@ -119,7 +119,7 @@
                 {{ $t('support.dot') }}
               </span>
               <span
-                v-if="contributionsInProgress > 0"
+                v-if="creationQuestions > 0"
                 class="visually-hidden"
                 data-test="creation-dot-label"
               >
@@ -224,6 +224,13 @@ defineProps({
 defineEmits(['toggle-menu'])
 
 const store = useWalletStore()
+
+// A project account does not create (ES-021): its menu has no "Schöpfen" and the page leads
+// home, so a question back to one of its contributions -- left from before the switch -- lights
+// no dot it could follow. `!== false` as the menu reads it: not known is a person.
+const creationQuestions = computed(() =>
+  store.creationAllowed !== false ? contributionsInProgress.value : 0,
+)
 
 const root = ref(null)
 const home = ref(null)

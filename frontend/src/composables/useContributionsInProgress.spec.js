@@ -29,7 +29,7 @@ describe('useContributionsInProgress', () => {
 
   it.each([
     [null, 'the server could not count'],
-    [undefined, 'a server from before the mark'],
+    [undefined, 'an answer without the field'],
   ])('keeps what was shown where the answer is %s (%s)', (answer) => {
     setContributionsInProgress(2)
     setContributionsInProgress(answer)

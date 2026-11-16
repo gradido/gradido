@@ -689,6 +689,15 @@ describe('Navbar', () => {
         expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
       })
 
+      // ES-021: a project account's menu has no "Schöpfen", so no dot for a question it cannot follow
+      it('is not there for a project account', async () => {
+        await serverSaysContributions(0, 1)
+        wrapper = mountComponent({ creationAllowed: false })
+
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+        expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
+      })
+
       it("goes with the beat: the number was the member's", async () => {
         await serverSaysContributions(0, 1)
         wrapper = mountComponent()
