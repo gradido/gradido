@@ -1,10 +1,12 @@
 // AI-GENERATED — not an architecture reference
+import { eq } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { ContributionStatus } from '../enum/ContributionStatus'
 import { ContributionType } from '../enum/ContributionType'
 import { contributionsTable } from '../schemas'
 import {
+  dbCountContributionsInProgressByUserId,
   dbCountOpenContributionsByUserId,
   dbCountUserTypedContributionsByUserId,
   dbSelectContributionUserId,
@@ -100,6 +102,25 @@ describe('contributions query test', () => {
     // Bob: one PENDING, one IN_PROGRESS, one DENIED -> 2.
     expect(await dbCountOpenContributionsByUserId(BOB)).toBe(2)
     expect(await dbCountOpenContributionsByUserId(999)).toBe(0)
+  })
+
+  it('counts the contributions of a member that wait for their answer, of no other member', async () => {
+    // Bob: one IN_PROGRESS among a PENDING and a DENIED one -> 1. Alice has none in progress.
+    expect(await dbCountContributionsInProgressByUserId(BOB)).toBe(1)
+    expect(await dbCountContributionsInProgressByUserId(ALICE)).toBe(0)
+    expect(await dbCountContributionsInProgressByUserId(999)).toBe(0)
+  })
+
+  it('leaves a deleted contribution out of those that wait for an answer', async () => {
+    const asked = await insert(BOB, 'Gefragt und dann gelöscht', ContributionType.USER, {
+      status: ContributionStatus.IN_PROGRESS,
+      deletedAt: new Date(),
+    })
+    try {
+      expect(await dbCountContributionsInProgressByUserId(BOB)).toBe(1)
+    } finally {
+      await db.delete(contributionsTable).where(eq(contributionsTable.id, asked))
+    }
   })
 
   it('returns the entries of a first creation in the order they were filed, with tick and deletion visible', async () => {

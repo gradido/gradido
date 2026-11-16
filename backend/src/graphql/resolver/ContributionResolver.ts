@@ -16,6 +16,7 @@ import {
 import { OpenCreation } from '@model/OpenCreation'
 import { UnconfirmedContribution } from '@model/UnconfirmedContribution'
 import {
+  databaseErrorCode,
   sendContributionChangedByModeratorEmail,
   sendContributionDeletedEmail,
   sendContributionDeniedEmail,
@@ -24,6 +25,7 @@ import {
   AppDatabase,
   Contribution as DbContribution,
   User as DbUser,
+  dbCountContributionsInProgressByUserId,
   dbFindMemberAvatarTimestamps,
   dbFindUserContactWithUserByEmail,
   dbInsertEvent,
@@ -215,15 +217,24 @@ export class ContributionResolver {
     return result
   }
 
+  /**
+   * How many of the member's contributions wait for their answer: a moderator asked back
+   * (IN_PROGRESS). The contribution page asks it to open on "Meine Beiträge"; the chat's beat asks
+   * it for the mark at "Schöpfen", and the admin for the number at the moderator's face.
+   *
+   * ⛔ Nullable, and its body caught, as supportTicketsMenu: it rides in the document of the
+   * chat's beat, and a non-null root field that fails takes the chat's answer with it. Where the
+   * count fails it answers null and logs the code; for a signed-in member it never throws.
+   */
   @Authorized([RIGHTS.LIST_CONTRIBUTIONS])
-  @Query(() => Int)
-  async countContributionsInProgress(@Ctx() context: Context): Promise<number> {
-    const user = getUser(context)
-    const count = await DbContribution.count({
-      select: { id: true },
-      where: { userId: user.id, contributionStatus: ContributionStatus.IN_PROGRESS },
-    })
-    return count
+  @Query(() => Int, { nullable: true })
+  async countContributionsInProgress(@Ctx() context: Context): Promise<number | null> {
+    try {
+      return await dbCountContributionsInProgressByUserId(getUser(context).id)
+    } catch (error) {
+      createLogger().error(`contributions in progress not counted (${databaseErrorCode(error)})`)
+      return null
+    }
   }
 
   @Authorized([RIGHTS.LIST_ALL_CONTRIBUTIONS])
