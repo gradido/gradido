@@ -1111,18 +1111,18 @@ describe('ChatGroupWindow', () => {
     })
 
     /**
-     * The sheet's body 1rem from the screen's sides, not a dialog's 1.5rem (Bernd, 15.11.2026): on
-     * a phone the 16 px go to the conversation. The body is BModal's own element, out of reach of
+     * The sheet's body 0.75rem from the screen's sides, not a dialog's 1.5rem (Bernd, 15.11.2026:
+     * 16 px; 16.11.2026: 12 px): on a phone the room goes to the conversation. The body is BModal's own element, out of reach of
      * the rules above: the group window names it in a block without scope -- its second --, the
      * contact window's style module with `:global(`. Each beside BModal's own class, and each
      * window hands BModal the class its rule names.
      */
-    it("keeps the sheet's body 1rem from the screen's sides, as the contact window does", () => {
+    it("keeps the sheet's body 0.75rem from the screen's sides, as the contact window does", () => {
       expect([...rulesOf('ChatGroupWindow.vue', 2)]).toEqual([
-        [`${SHEET} .modal .modal-body.chat-group-window-body`, 'padding-inline: 1rem'],
+        [`${SHEET} .modal .modal-body.chat-group-window-body`, 'padding-inline: 0.75rem'],
       ])
       expect(contact.get(`${SHEET} :deep(.modal .modal-body.contact-window-body)`)).toBe(
-        'padding-inline: 1rem',
+        'padding-inline: 0.75rem',
       )
       mountWindow()
       expect(wrapper.findComponent({ name: 'BModal' }).attributes('body-class')).toBe(

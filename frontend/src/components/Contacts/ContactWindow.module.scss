@@ -380,13 +380,14 @@
    screen (Bernd, 24.09.2026, at the device). A long thread shrinks to what is left and scrolls
    inside, the bar at the bottom.
 
-   And the sheet's body stands 1rem from the screen's sides, not a dialog's 1.5rem (Bernd,
-   15.11.2026): on a phone those 16 px go to the conversation. The body is BModal's own element,
+   And the sheet's body stands 0.75rem from the screen's sides, not a dialog's 1.5rem (Bernd,
+   15.11.2026: 16 px; 16.11.2026, from a sketch: 12 px): on a phone the room goes to the
+   conversation. The body is BModal's own element,
    named with BModal's class beside ours -- on its own, ours would stand level with Bootstrap's
    rule for it. The group window has the same rule (ChatGroupWindow's spec holds the two). */
 @media (width <= 575.98px) {
   :global(.modal .modal-body.contact-window-body) {
-    padding-inline: 1rem;
+    padding-inline: 0.75rem;
   }
 
   .contact-window-inner {
