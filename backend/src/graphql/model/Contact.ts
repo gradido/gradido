@@ -122,7 +122,8 @@ export class Contact {
    * conversation.
    *
    * ⛔ About the asking member only. Nothing on this type says whether the other side has
-   * read anything -- their pointer is their own (E-008, invariant 2: no read receipt).
+   * read anything: that shows in the open conversation only (Chat E-093,
+   * ChatMessagePage.partnerReadUpTo and ChatUpdate.readUpTo), not in the list.
    */
   @Field(() => Int)
   unreadChatMessages: number

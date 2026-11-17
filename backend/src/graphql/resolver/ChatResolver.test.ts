@@ -314,8 +314,9 @@ describe('ChatResolver', () => {
       })
 
       it('answers an empty page about the reader themselves, and about nobody written with', async () => {
-        expect(await threadWith(bibi)).toEqual({ messages: [], hasMore: false, mutedByMe: false })
-        expect(await threadWith(peter)).toEqual({ messages: [], hasMore: false, mutedByMe: false })
+        const empty = { messages: [], hasMore: false, mutedByMe: false, partnerReadUpTo: 0 }
+        expect(await threadWith(bibi)).toEqual(empty)
+        expect(await threadWith(peter)).toEqual(empty)
       })
     })
 
@@ -343,8 +344,9 @@ describe('ChatResolver', () => {
       beforeAll(() => loginAs('peter@lustig.de'))
 
       it('hands out nothing of it', async () => {
-        expect(await threadWith(bibi)).toEqual({ messages: [], hasMore: false, mutedByMe: false })
-        expect(await threadWith(bob)).toEqual({ messages: [], hasMore: false, mutedByMe: false })
+        const nothing = { messages: [], hasMore: false, mutedByMe: false, partnerReadUpTo: 0 }
+        expect(await threadWith(bibi)).toEqual(nothing)
+        expect(await threadWith(bob)).toEqual(nothing)
       })
 
       it('marks nothing read in it', async () => {

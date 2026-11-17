@@ -6,7 +6,7 @@ import {
   DBNotFoundError,
   User as DbUser,
   dbFindDirectChatConversation,
-  dbSelectChatConversationMember,
+  dbSelectChatConversationMembers,
   dbSelectChatMessageImageForMember,
   dbSelectChatMessageImageInfos,
   dbSelectChatMessagesPage,
@@ -24,7 +24,7 @@ jest.mock('database', () => {
     __esModule: true,
     ...originalModule,
     dbFindDirectChatConversation: jest.fn(),
-    dbSelectChatConversationMember: jest.fn(),
+    dbSelectChatConversationMembers: jest.fn(),
     dbSelectChatMessagesPage: jest.fn(),
     dbSelectChatMessageImageInfos: jest.fn(),
     // No group among these conversations: the messages here are between two members (P5 asks
@@ -42,8 +42,8 @@ const PICTURE = '40000000-0000-4000-8000-000000000001'
 const findConversation = dbFindDirectChatConversation as jest.MockedFunction<
   typeof dbFindDirectChatConversation
 >
-const member = dbSelectChatConversationMember as jest.MockedFunction<
-  typeof dbSelectChatConversationMember
+const members = dbSelectChatConversationMembers as jest.MockedFunction<
+  typeof dbSelectChatConversationMembers
 >
 const page = dbSelectChatMessagesPage as jest.MockedFunction<typeof dbSelectChatMessagesPage>
 const infos = dbSelectChatMessageImageInfos as jest.MockedFunction<
@@ -97,7 +97,7 @@ const pictureOf = (
 beforeEach(() => {
   jest.clearAllMocks()
   findConversation.mockResolvedValue({ id: 3 } as ChatConversationSelect)
-  member.mockResolvedValue(null)
+  members.mockResolvedValue([])
   infos.mockResolvedValue([])
 })
 

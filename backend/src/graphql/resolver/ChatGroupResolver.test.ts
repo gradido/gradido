@@ -555,6 +555,12 @@ describe('reading a group', () => {
     expect((await pageOf(cafe.groupUuid)).mutedByMe).toBe(false)
   })
 
+  // Chat E-093 gives the two ticks to a conversation of two only: in a group every pointer stays
+  // its member's own (E-008, invariant 2).
+  it("names nobody's read pointer", async () => {
+    expect((await pageOf(cafe.groupUuid)).partnerReadUpTo).toBeNull()
+  })
+
   it('pages backwards from the newest', async () => {
     const newest = await pageOf(cafe.groupUuid, { limit: 2 })
     expect(newest.messages.map((message: any) => message.body)).toEqual([
