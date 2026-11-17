@@ -2,7 +2,7 @@
 // ⛔ All of the runner's functions from here, not only `spyOn`: a file that imports from bun:test
 // gets none of them as globals (CI, 08.11.2026: "beforeAll is not defined").
 import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
-import { eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { v4 as uuidv4 } from 'uuid'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
@@ -30,6 +30,7 @@ import {
   dbSelectChatGroupsByMember,
   dbSelectChatGroupUuids,
   dbSelectDirectChatContactsByMember,
+  dbSelectDirectChatPartnersLastRead,
   dbSelectLastOwnDirectMessageAtByPartner,
   dbUpdateChatGroupTitle,
   directChatPairKey,
@@ -573,6 +574,142 @@ describe('dbSelectLastOwnDirectMessageAtByPartner', () => {
       expect(asked).not.toHaveBeenCalled()
       // The spy sees the statement where there is one to send.
       await dbSelectLastOwnDirectMessageAtByPartner(TOM, [UTE])
+      expect(asked).toHaveBeenCalled()
+    } finally {
+      asked.mockRestore()
+    }
+  })
+})
+
+/**
+ * How far a partner has read in the direct conversation with the member (Chat E-093): the
+ * partner's pointer there and nobody else's -- not the member's own, not one in a conversation the
+ * member is not in, not one in a group.
+ */
+describe('dbSelectDirectChatPartnersLastRead', () => {
+  // Letters in every pair, not digits only: the capitals below have to change something.
+  const COMMUNITY = 'cafecafe-cafe-4afe-8afe-cafecafecafe'
+  const pairOf = (gradidoId: string): ChatMemberRef => ({ communityUuid: COMMUNITY, gradidoId })
+  // Whose question it is. Has read Bibi's messages up to 12.
+  const PETER = pairOf('fefefefe-fefe-4efe-8efe-fefefefefefe')
+  // Has read Peter's messages up to 17 -- and further in a group with him.
+  const BIBI = pairOf('bdbdbdbd-bdbd-4dbd-8dbd-bdbdbdbdbdbd')
+  // In a conversation with Peter, has read nothing yet.
+  const DORA = pairOf('dadadada-dada-4ada-8ada-dadadadadada')
+  // In no conversation with Bibi; asks about her all the same.
+  const CARLA = pairOf('cacacaca-caca-4aca-8aca-cacacacacaca')
+  // No conversation with Peter; the two are in a group that carries the key theirs would have.
+  const EMIL = pairOf('ebebebeb-ebeb-4beb-8beb-ebebebebebeb')
+
+  const conversationIds: number[] = []
+  const pointTo = (conversationId: number, who: ChatMemberRef, upTo: number) =>
+    db
+      .update(chatConversationMembersTable)
+      .set({ lastReadMessageId: upTo })
+      .where(
+        and(
+          eq(chatConversationMembersTable.conversationId, conversationId),
+          eq(chatConversationMembersTable.communityUuid, who.communityUuid),
+          eq(chatConversationMembersTable.gradidoId, who.gradidoId),
+        ),
+      )
+  /** Each entry as [partner, pointer], in a fixed order -- a second entry for a partner shows. */
+  const readOf = async (who: ChatMemberRef, partners: ChatMemberRef[]) =>
+    (await dbSelectDirectChatPartnersLastRead(who, partners))
+      .map((entry) => [entry.partner.gradidoId.toLowerCase(), entry.lastReadMessageId])
+      .sort()
+
+  beforeAll(async () => {
+    const withBibi = await dbEnsureDirectChatConversation(PETER, BIBI)
+    const withDora = await dbEnsureDirectChatConversation(DORA, PETER)
+    conversationIds.push(withBibi.id, withDora.id)
+    await pointTo(withBibi.id, BIBI, 17)
+    await pointTo(withBibi.id, PETER, 12)
+
+    const group = await dbInsertChatGroup({
+      groupUuid: uuidv4(),
+      title: 'Read receipts',
+      homeCommunityUuid: COMMUNITY,
+      createdBy: PETER,
+    })
+    conversationIds.push(group.id)
+    await dbInsertChatConversationMembers(group.id, [PETER, BIBI])
+    await pointTo(group.id, BIBI, 40)
+
+    // A group with the key Peter's direct conversation with Emil would have -- a key no writer
+    // gives a group, and the schema does not refuse.
+    await db.insert(chatConversationsTable).values({
+      conversationUuid: uuidv4(),
+      kind: 'group',
+      homeCommunityUuid: COMMUNITY,
+      directPairKey: directChatPairKey(PETER, EMIL),
+      title: 'Keyed like a pair',
+      createdByCommunityUuid: PETER.communityUuid,
+      createdByGradidoId: PETER.gradidoId,
+    })
+    const [keyed] = await db
+      .select()
+      .from(chatConversationsTable)
+      .where(eq(chatConversationsTable.title, 'Keyed like a pair'))
+    conversationIds.push(keyed.id)
+    await dbInsertChatConversationMembers(keyed.id, [PETER, EMIL])
+    await pointTo(keyed.id, EMIL, 50)
+  })
+
+  afterAll(async () => {
+    await db
+      .delete(chatConversationMembersTable)
+      .where(inArray(chatConversationMembersTable.conversationId, conversationIds))
+    await db
+      .delete(chatConversationsTable)
+      .where(inArray(chatConversationsTable.id, conversationIds))
+  })
+
+  it("gives each partner's pointer in the conversation with the member, null where they read nothing", async () => {
+    expect(await readOf(PETER, [BIBI, DORA])).toEqual([
+      [BIBI.gradidoId, 17],
+      [DORA.gradidoId, null],
+    ])
+  })
+
+  it("never the member's own: from the other side, the other one's", async () => {
+    expect(await readOf(BIBI, [PETER])).toEqual([[PETER.gradidoId, 12]])
+  })
+
+  it('leaves out a partner without a conversation, whatever they read with somebody else', async () => {
+    expect(await readOf(CARLA, [BIBI])).toEqual([])
+  })
+
+  it('takes nothing from a group with both in it, also from one that carries their key', async () => {
+    expect(await readOf(PETER, [EMIL])).toEqual([])
+    expect(await readOf(PETER, [BIBI])).toEqual([[BIBI.gradidoId, 17]])
+  })
+
+  it('finds a partner named in capitals, and hands back the partner as it was handed in', async () => {
+    const shouting = {
+      communityUuid: COMMUNITY.toUpperCase(),
+      gradidoId: BIBI.gradidoId.toUpperCase(),
+    }
+    const found = await dbSelectDirectChatPartnersLastRead(PETER, [shouting])
+    expect(found).toEqual([{ partner: shouting, lastReadMessageId: 17 }])
+    expect(found[0].partner).toBe(shouting)
+  })
+
+  it("never the member's own for the member named in capitals, as the columns compare", async () => {
+    const shouting = {
+      communityUuid: COMMUNITY.toUpperCase(),
+      gradidoId: PETER.gradidoId.toUpperCase(),
+    }
+    expect(await readOf(shouting, [BIBI])).toEqual([[BIBI.gradidoId, 17]])
+  })
+
+  it('asks nothing for no partner', async () => {
+    const asked = spyOn(AppDatabase.getInstance(), 'getDrizzleDataSource')
+    try {
+      expect(await dbSelectDirectChatPartnersLastRead(PETER, [])).toEqual([])
+      expect(asked).not.toHaveBeenCalled()
+      // The spy sees the statement where there is one to send.
+      await dbSelectDirectChatPartnersLastRead(PETER, [BIBI])
       expect(asked).toHaveBeenCalled()
     } finally {
       asked.mockRestore()

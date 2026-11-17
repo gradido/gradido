@@ -1018,6 +1018,7 @@ export const chatMessagesWithMember = gql`
     chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
       hasMore
       mutedByMe
+      partnerReadUpTo
       messages {
         id
         messageUuid
@@ -1070,6 +1071,16 @@ export const newChatMessagesSince = gql`
           height
         }
       }
+    }
+  }
+`
+
+/** The beat with how far the members named in `readBy` have read (Chat E-093). */
+export const newChatMessagesAndReadSince = gql`
+  query ($afterId: Int, $readBy: [MemberAvatarRefInput!]) {
+    newChatMessagesSince(afterId: $afterId, readBy: $readBy) {
+      latestId
+      readUpTo
     }
   }
 `
@@ -1209,6 +1220,7 @@ export const chatGroupMessages = gql`
     chatGroupMessages(groupUuid: $groupUuid, before: $before, limit: $limit) {
       hasMore
       mutedByMe
+      partnerReadUpTo
       messages {
         id
         messageUuid

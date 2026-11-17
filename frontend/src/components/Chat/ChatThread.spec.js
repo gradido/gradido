@@ -40,6 +40,8 @@ const beat = vi.hoisted(() => ({
   listeners: new Set(),
   editedListeners: new Set(),
   reactedListeners: new Set(),
+  // Who wants to know how far whom has read (Chat E-093): `{ ref, listener }`.
+  readWatchers: new Set(),
   pollNow: vi.fn(async () => {}),
 }))
 vi.mock('@/composables/useChatUpdates', () => ({
@@ -56,7 +58,17 @@ vi.mock('@/composables/useChatUpdates', () => ({
     return () => beat.reactedListeners.delete(listener)
   },
   pollChatNow: (...args) => beat.pollNow(...args),
+  watchChatRead: (ref, listener) => {
+    const watcher = { ref, listener }
+    beat.readWatchers.add(watcher)
+    return () => beat.readWatchers.delete(watcher)
+  },
 }))
+/** An answer of the beat about how far the member watched has read. */
+const beatReads = async (upTo) => {
+  for (const watcher of [...beat.readWatchers]) watcher.listener(upTo)
+  await flushPromises()
+}
 const beatBrings = async (...chatMessages) => {
   for (const listener of [...beat.listeners]) listener(chatMessages)
   await flushPromises()
@@ -2107,6 +2119,141 @@ describe('ChatThread', () => {
       pageHidden(false)
       await flushPromises()
       expect(markRead).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  /**
+   * The ticks behind one's own messages (Chat E-093): how far the other member has read comes with
+   * the first page and is raised by the beat; the thread says per message which tick it carries.
+   */
+  describe('the two ticks', () => {
+    const receipts = () =>
+      Object.fromEntries(
+        wrapper
+          .findAllComponents({ name: 'ChatBubble' })
+          .map((bubble) => [
+            bubble.props('message').key ?? bubble.props('message').id,
+            bubble.props('receipt'),
+          ]),
+      )
+    const withRead = (ids, partnerReadUpTo) => ({ ...page(ids), partnerReadUpTo })
+
+    it("ticks one's own messages up to how far the other one read as read, above it as delivered, and theirs not", async () => {
+      mountThread()
+      await arrive(withRead([1, 2, 3, 4, 5, 6], 4))
+
+      expect(receipts()).toEqual({
+        1: null,
+        2: 'read',
+        3: null,
+        4: 'read',
+        5: null,
+        6: 'delivered',
+      })
+    })
+
+    it('ticks no transfer: it has no message id', async () => {
+      bookingsAsked.mockImplementation(async () =>
+        bookingsPage([booking(70, { at: '2026-09-22T10:03:30.000Z', sent: true })]),
+      )
+      mountThread()
+      await arrive(withRead([2, 4], 100))
+
+      expect(receipts()).toEqual({ 2: 'read', 'transfer-70': null, 4: 'read' })
+    })
+
+    it('ticks nothing and watches nobody where the page says the server cannot know', async () => {
+      mountThread()
+      await arrive(withRead([1, 2], null))
+
+      expect(receipts()).toEqual({ 1: null, 2: null })
+      expect(beat.readWatchers.size).toBe(0)
+    })
+
+    it('watches the member of the thread and takes what the beat says', async () => {
+      mountThread()
+      await arrive(withRead([2, 4, 6], 2))
+      expect([...beat.readWatchers].map((watcher) => watcher.ref)).toEqual([
+        { gradidoID: LENA.gradidoID, communityUuid: LENA.communityUuid },
+      ])
+
+      await beatReads(4)
+      expect(receipts()).toEqual({ 2: 'read', 4: 'read', 6: 'delivered' })
+
+      // And an answer that says nothing for the member changes nothing.
+      await beatReads(6)
+      await beatReads(null)
+      expect(receipts()).toEqual({ 2: 'read', 4: 'read', 6: 'read' })
+    })
+
+    it('stops watching when the thread goes', async () => {
+      mountThread()
+      await arrive(withRead([2], 0))
+      expect(beat.readWatchers.size).toBe(1)
+
+      wrapper.unmount()
+      wrapper = null
+
+      expect(beat.readWatchers.size).toBe(0)
+    })
+
+    it('ticks the first message of an empty thread as delivered the moment it is there', async () => {
+      serverSends.mockResolvedValue(ownCopy(12, 'Hallo Lena'))
+      mountThread()
+      await arrive(withRead([], 0))
+
+      await write('Hallo Lena')
+
+      expect(receipts()).toEqual({ 12: 'delivered' })
+    })
+
+    // ⛔ Every writer of the page keeps its field: a page the cache holds without a field its
+    // document asks reads as incomplete, and the thread would stand empty.
+    describe('the page in the cache keeps how far the other one read', () => {
+      const held = () => server.result.value.chatMessagesWithMember.partnerReadUpTo
+
+      beforeEach(async () => {
+        mountThread()
+        await arrive({ ...withRead([9, 10], 10), hasMore: true })
+        expect(held()).toBe(10)
+      })
+
+      it('with an arrival', async () => {
+        await beatBrings(message(11))
+        expect(server.result.value.chatMessagesWithMember.messages).toHaveLength(3)
+        expect(held()).toBe(10)
+      })
+
+      it('with an older page', async () => {
+        server.olderPages.push(page([7, 8]))
+        await older().trigger('click')
+        await flushPromises()
+        expect(server.result.value.chatMessagesWithMember.messages).toHaveLength(4)
+        expect(held()).toBe(10)
+      })
+
+      it('with a changed text', async () => {
+        await beatChanges({ ...message(10), body: 'changed', editedAt: '2026-09-22T11:00:00.000Z' })
+        expect(server.result.value.chatMessagesWithMember.messages[1].body).toBe('changed')
+        expect(held()).toBe(10)
+      })
+
+      it('with a reaction', async () => {
+        await beatReacts({
+          ...message(9),
+          reactions: [{ emoji: '👍', count: 1, mine: false }],
+          reactedAt: '2026-09-22T11:00:00.000Z',
+        })
+        expect(server.result.value.chatMessagesWithMember.messages[0].reactions).toHaveLength(1)
+        expect(held()).toBe(10)
+      })
+
+      it("with one's own copy", async () => {
+        serverSends.mockResolvedValue(ownCopy(12, 'Bis gleich'))
+        await write('Bis gleich')
+        expect(server.result.value.chatMessagesWithMember.messages).toHaveLength(3)
+        expect(held()).toBe(10)
+      })
     })
   })
 

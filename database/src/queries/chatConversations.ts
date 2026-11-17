@@ -237,6 +237,61 @@ export async function dbSelectLastOwnDirectMessageAtByPartner(
 }
 
 /**
+ * How far each of these partners has read in their direct conversation with this member (Chat
+ * E-093, the two ticks): the partner's read pointer there, null where they have read nothing yet
+ * -- one entry per partner who has a conversation with the member, each with the partner as it
+ * was handed in. A partner without one has none.
+ *
+ * ⛔ The partner's row of THAT conversation and no other. The conversation is found by the pair
+ * key of the two, so a conversation the member is not in has another key and is never found; in
+ * it, the row that is not the member's own -- compared the way the columns compare, so the
+ * member's own pointer never comes back, however their pair is written. Direct conversations
+ * only: the pointers of a group stay its members' own (E-008, invariant 2).
+ *
+ * One statement for all partners, as dbSelectLastOwnDirectMessageAtByPartner finds them: the
+ * conversations by the unique pair key, their members by the primary key. An empty list of
+ * partners asks nothing.
+ */
+export async function dbSelectDirectChatPartnersLastRead(
+  member: ChatMemberRef,
+  partners: ChatMemberRef[],
+): Promise<Array<{ partner: ChatMemberRef; lastReadMessageId: number | null }>> {
+  if (partners.length === 0) {
+    return []
+  }
+  const partnerByKey = new Map(
+    partners.map((partner) => [directChatPairKey(member, partner), partner] as const),
+  )
+  const rows = await drizzleDb()
+    .select({
+      directPairKey: chatConversationsTable.directPairKey,
+      lastReadMessageId: chatConversationMembersTable.lastReadMessageId,
+    })
+    .from(chatConversationsTable)
+    .innerJoin(
+      chatConversationMembersTable,
+      and(
+        eq(chatConversationMembersTable.conversationId, chatConversationsTable.id),
+        or(
+          ne(chatConversationMembersTable.communityUuid, member.communityUuid),
+          ne(chatConversationMembersTable.gradidoId, member.gradidoId),
+        ),
+      ),
+    )
+    .where(
+      and(
+        eq(chatConversationsTable.kind, 'direct'),
+        inArray(chatConversationsTable.directPairKey, [...partnerByKey.keys()]),
+      ),
+    )
+  return rows.flatMap((row) => {
+    // The key as it is stored, matched without regard to case the way the column compares.
+    const partner = row.directPairKey ? partnerByKey.get(row.directPairKey.toLowerCase()) : null
+    return partner ? [{ partner, lastReadMessageId: row.lastReadMessageId }] : []
+  })
+}
+
+/**
  * A group (P5) by the uuid it is known by -- to the wallet, and in the links of its mails -- or
  * null: no such conversation, or one that is not a group. The uuid of a direct conversation does
  * not make it a group.

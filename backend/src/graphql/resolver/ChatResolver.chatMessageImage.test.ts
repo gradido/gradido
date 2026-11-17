@@ -1,12 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import {
+  ChatConversationMemberSelect,
   ChatConversationSelect,
   ChatMessageImageInfo,
   ChatMessageSelect,
   DBNotFoundError,
   User as DbUser,
   dbFindDirectChatConversation,
-  dbSelectChatConversationMember,
+  dbSelectChatConversationMembers,
   dbSelectChatMessageImageForMember,
   dbSelectChatMessageImageInfos,
   dbSelectChatMessagesPage,
@@ -24,7 +25,7 @@ jest.mock('database', () => {
     __esModule: true,
     ...originalModule,
     dbFindDirectChatConversation: jest.fn(),
-    dbSelectChatConversationMember: jest.fn(),
+    dbSelectChatConversationMembers: jest.fn(),
     dbSelectChatMessagesPage: jest.fn(),
     dbSelectChatMessageImageInfos: jest.fn(),
     // No group among these conversations: the messages here are between two members (P5 asks
@@ -42,8 +43,8 @@ const PICTURE = '40000000-0000-4000-8000-000000000001'
 const findConversation = dbFindDirectChatConversation as jest.MockedFunction<
   typeof dbFindDirectChatConversation
 >
-const member = dbSelectChatConversationMember as jest.MockedFunction<
-  typeof dbSelectChatConversationMember
+const members = dbSelectChatConversationMembers as jest.MockedFunction<
+  typeof dbSelectChatConversationMembers
 >
 const page = dbSelectChatMessagesPage as jest.MockedFunction<typeof dbSelectChatMessagesPage>
 const infos = dbSelectChatMessageImageInfos as jest.MockedFunction<
@@ -97,7 +98,7 @@ const pictureOf = (
 beforeEach(() => {
   jest.clearAllMocks()
   findConversation.mockResolvedValue({ id: 3 } as ChatConversationSelect)
-  member.mockResolvedValue(null)
+  members.mockResolvedValue([])
   infos.mockResolvedValue([])
 })
 
@@ -154,6 +155,55 @@ describe('chatMessagesWithMember, the pictures of a page', () => {
       [{ imageUuid: '40000000-0000-4000-8000-00000000000a', width: 800, height: 600 }],
       [{ imageUuid: '40000000-0000-4000-8000-00000000000b', width: 800, height: 600 }],
     ])
+  })
+})
+
+/**
+ * How far the other member has read (Chat E-093), on the page: from the OTHER member's row, the
+ * mute mark from the caller's own (E-024) -- both rows come in the one read, in whatever order.
+ */
+describe('chatMessagesWithMember, how far the other member has read', () => {
+  const OTHER = 'cafecafe-cafe-4afe-8afe-cafecafecafe'
+  const ask = (communityUuid = HOME) =>
+    new ChatResolver().chatMessagesWithMember(
+      { ref: { communityUuid, gradidoID: MAX }, before: null, limit: 50 },
+      lenasRequest(),
+    )
+  const row = (
+    gradidoId: string,
+    lastReadMessageId: number | null,
+    mutedAt: Date | null = null,
+    communityUuid = HOME,
+  ): ChatConversationMemberSelect => ({
+    conversationId: 3,
+    communityUuid,
+    gradidoId,
+    role: 'member',
+    joinedAt: new Date('2026-09-27T06:00:00.000Z'),
+    lastReadMessageId,
+    mutedAt,
+  })
+
+  beforeEach(() => {
+    page.mockResolvedValue({ messages: [], hasMore: false })
+  })
+
+  it("takes the pointer from the other member's row and the mute mark from the caller's", async () => {
+    members.mockResolvedValue([row(LENA, 12, new Date()), row(MAX, 17)])
+    expect(await ask()).toMatchObject({ partnerReadUpTo: 17, mutedByMe: true })
+
+    members.mockResolvedValue([row(MAX, 17, new Date()), row(LENA, 12)])
+    expect(await ask()).toMatchObject({ partnerReadUpTo: 17, mutedByMe: false })
+  })
+
+  it('says 0 where the other member has read nothing', async () => {
+    members.mockResolvedValue([row(LENA, 12), row(MAX, null)])
+    expect((await ask()).partnerReadUpTo).toBe(0)
+  })
+
+  it('says null for a member of another community, whatever their row says', async () => {
+    members.mockResolvedValue([row(LENA, 12), row(MAX, 17, null, OTHER)])
+    expect((await ask(OTHER)).partnerReadUpTo).toBeNull()
   })
 })
 

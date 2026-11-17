@@ -9,7 +9,7 @@ type Query {
   chatGroupMembers(groupUuid: String!): [ChatGroupMember!]!
   chatGroupMessages(groupUuid: String!, before: Int, limit: Int = 50): ChatMessagePage!
   chatMessagesWithMember(ref: MemberAvatarRefInput!, before: Int, limit: Int = 50): ChatMessagePage!
-  newChatMessagesSince(afterId: Int, limit: Int = 50, editedCursor: String, reactedCursor: String): ChatUpdate!
+  newChatMessagesSince(afterId: Int, limit: Int = 50, editedCursor: String, reactedCursor: String, readBy: [MemberAvatarRefInput!]): ChatUpdate!
   chatMessageImage(imageUuid: String!): String
   chatVideoRoom(serverId: Int): ChatVideoRoom!
   chatVideoServerChoices: [ChatVideoServerChoice!]!
@@ -276,6 +276,7 @@ type ChatMessagePage {
   messages: [ChatMessage!]!
   hasMore: Boolean!
   mutedByMe: Boolean!
+  partnerReadUpTo: Int
 }
 
 type ChatMessage {
@@ -366,6 +367,7 @@ type ChatUpdate {
   reactedCursor: String!
   unreadTransfers: Int!
   latestUnreadTransferId: Int
+  readUpTo: [Int]!
 }
 
 type ChatVideoRoom {

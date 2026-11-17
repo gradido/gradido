@@ -102,6 +102,7 @@
               "
               :thanks-after-call="!message.transfer && thanksDue.has(message.id)"
               :thanks-members="inGroup ? (thanksDue.get(message.id) ?? null) : null"
+              :receipt="receiptOf(message)"
               @open-image="openImage"
               @open-member="emit('openMember', $event)"
               @duplicate-video="emit('duplicateVideo', $event)"
@@ -188,6 +189,7 @@ import {
   onChatMessagesEdited,
   onChatMessagesReacted,
   pollChatNow,
+  watchChatRead,
 } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars, memberAvatarProps } from '@/composables/useMemberAvatars'
 import {
@@ -1067,11 +1069,43 @@ const openingText = computed(() => (state.value === 'empty' ? props.greeting : '
  * the moment it is there.
  */
 let marked = false
+
+/**
+ * How far the other member of a conversation of two has read it (Chat E-093, the two ticks): the
+ * id of the message up to which, 0 where nothing yet -- null where it is not known: before the
+ * first page, in a group, and with a member of another community, where the server cannot know.
+ * The latest number is the one: the beat names the member only after the page landed, asks one
+ * question at a time, and the server's pointer only grows.
+ */
+const partnerReadUpTo = ref(null)
+const takeReadUpTo = (upTo) => {
+  if (typeof upTo === 'number') partnerReadUpTo.value = upTo
+}
+let stopReadWatch = null
+onBeforeUnmount(() => stopReadWatch?.())
+
+/**
+ * The ticks behind the time of a message (E-093): 'read' up to where the other member has read,
+ * 'delivered' above it -- on one's own messages, where it is known. None on a transfer: it has no
+ * message id.
+ */
+const receiptOf = (message) => {
+  if (!message.mine || message.transfer || partnerReadUpTo.value === null) return null
+  return message.id <= partnerReadUpTo.value ? 'read' : 'delivered'
+}
+
 watch(page, (firstPage) => {
   if (marked || !firstPage) return
   marked = true
   if (firstPage.messages.length > 0) {
     markShown(Math.max(...firstPage.messages.map((message) => message.id)))
+  }
+  // The ticks from the first page on, and from then on with every answer of the beat. Where the
+  // server cannot know -- a group, a member of another community -- the page says null, and that
+  // stays so for the life of the thread: nothing is watched.
+  if (typeof firstPage.partnerReadUpTo === 'number') {
+    partnerReadUpTo.value = firstPage.partnerReadUpTo
+    stopReadWatch = watchChatRead(memberRef, takeReadUpTo)
   }
   // Whatever arrived while the page was on its way -- and whatever was changed.
   takeWaitingArrivals()

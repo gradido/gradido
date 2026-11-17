@@ -360,6 +360,8 @@
     "reactionMine": "your reaction",
     "reactionTakenBack": "Reaction removed",
     "reactionsLead": "Reactions:",
+    "receiptDelivered": "Delivered",
+    "receiptRead": "Read",
     "remaining": "{n} character left | {n} characters left",
     "reply": "Reply",
     "replyCancel": "Cancel reply",

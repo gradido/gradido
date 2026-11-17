@@ -9,6 +9,7 @@ import {
   dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
+  dbSelectDirectChatPartnersLastRead,
   dbSelectDirectChatPartnersWithUnread,
   dbSelectUnreadReceivedTransfers,
 } from 'database'
@@ -40,6 +41,8 @@ jest.mock('database', () => {
     // The transfers the caller has not seen (Chat E-086): none unless a test says so.
     dbSelectUnreadReceivedTransfers: jest.fn(async () => []),
     dbSelectDirectChatPartnersWithUnread: jest.fn(async () => []),
+    // How far the members named in `readBy` have read (Chat E-093): nobody unless a test says so.
+    dbSelectDirectChatPartnersLastRead: jest.fn(async () => []),
   }
 })
 
@@ -76,6 +79,9 @@ const unreadTransfers = dbSelectUnreadReceivedTransfers as jest.MockedFunction<
 >
 const partnersWithUnread = dbSelectDirectChatPartnersWithUnread as jest.MockedFunction<
   typeof dbSelectDirectChatPartnersWithUnread
+>
+const partnersLastRead = dbSelectDirectChatPartnersLastRead as jest.MockedFunction<
+  typeof dbSelectDirectChatPartnersLastRead
 >
 
 /** A request of Lena's, with a budget of its own. */
@@ -160,8 +166,10 @@ beforeEach(() => {
   reactionRows.mockReset()
   unreadTransfers.mockReset()
   partnersWithUnread.mockReset()
+  partnersLastRead.mockReset()
   unreadTransfers.mockResolvedValue([])
   partnersWithUnread.mockResolvedValue([])
+  partnersLastRead.mockResolvedValue([])
   infos.mockResolvedValue([])
   reactionRows.mockResolvedValue([])
   since.mockResolvedValue({ messages: [], hasMore: false })
@@ -217,6 +225,7 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       reactedCursor: SETTLED_CURSOR,
       unreadTransfers: 0,
       latestUnreadTransferId: null,
+      readUpTo: [],
     })
   })
 
@@ -234,6 +243,7 @@ describe('newChatMessagesSince, what the resolver decides itself', () => {
       reactedCursor: SETTLED_CURSOR,
       unreadTransfers: 0,
       latestUnreadTransferId: null,
+      readUpTo: [],
     })
     expect(since).not.toHaveBeenCalled()
     expect(editedAfter).not.toHaveBeenCalled()
@@ -639,5 +649,111 @@ describe('newChatMessagesSince, the transfers not seen', () => {
     expect(update.unreadConversations).toBe(1)
     expect(update).toMatchObject({ unreadTransfers: 0, latestUnreadTransferId: null })
     expect(unreadTransfers).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * How far the members named in `readBy` have read in their conversation with the caller (Chat
+ * E-093, the two ticks): in the order they were named, 0 where nothing is read, null where this
+ * server cannot know.
+ */
+describe('newChatMessagesSince, how far the members named have read', () => {
+  // Letters in the uuids, not digits only: the capitals below have to change something.
+  const HERE = 'cafecafe-cafe-4afe-8afe-cafecafecafe'
+  const ELSEWHERE = 'beefbeef-beef-4eef-8eef-beefbeefbeef'
+  const PAUL = 'dededede-dede-4ede-8ede-dededededede'
+  const RITA = 'fafafafa-fafa-4afa-8afa-fafafafafafa'
+
+  const ritasRequest = (): Context => ({
+    token: null,
+    setHeaders: [],
+    requestBudget: newRequestBudget(),
+    user: { communityUuid: HERE, gradidoID: RITA } as unknown as DbUser,
+  })
+  const askAbout = (readBy: { communityUuid?: string | null; gradidoID: string }[] | null) =>
+    new ChatResolver().newChatMessagesSince(
+      { afterId: 60, limit: null, editedCursor: null, reactedCursor: null, readBy },
+      ritasRequest(),
+    )
+
+  beforeEach(() => {
+    summary.mockResolvedValue(standing(60, 0))
+  })
+
+  it('answers each member in the order named, whatever order the rows come in', async () => {
+    partnersLastRead.mockImplementation(async (_member, partners) => [
+      { partner: partners[2], lastReadMessageId: null },
+      { partner: partners[1], lastReadMessageId: 99 },
+      { partner: partners[0], lastReadMessageId: 17 },
+    ])
+
+    const update = await askAbout([
+      { communityUuid: HERE, gradidoID: PAUL },
+      { communityUuid: ELSEWHERE, gradidoID: MAX },
+      { communityUuid: HERE, gradidoID: LENA },
+    ])
+
+    // Paul read up to 17; a member of another community cannot be known here, whatever their
+    // row would say; Lena has a row and has read nothing.
+    expect(update.readUpTo).toEqual([17, null, 0])
+  })
+
+  it('asks for the pairs of the caller with each member named, in one read', async () => {
+    await askAbout([
+      { communityUuid: HERE, gradidoID: PAUL },
+      { communityUuid: ELSEWHERE, gradidoID: MAX },
+    ])
+
+    expect(partnersLastRead.mock.calls).toEqual([
+      [
+        { communityUuid: HERE, gradidoId: RITA },
+        [
+          { communityUuid: HERE, gradidoId: PAUL },
+          { communityUuid: ELSEWHERE, gradidoId: MAX },
+        ],
+      ],
+    ])
+  })
+
+  // A member's community is the caller's where the wallet names none (MemberAvatarRefInput).
+  it("reads a member named without a community as one of the caller's", async () => {
+    partnersLastRead.mockImplementation(async (_member, partners) => [
+      { partner: partners[0], lastReadMessageId: 23 },
+    ])
+
+    const update = await askAbout([{ communityUuid: null, gradidoID: PAUL }])
+
+    expect(partnersLastRead.mock.calls[0][1]).toEqual([{ communityUuid: HERE, gradidoId: PAUL }])
+    expect(update.readUpTo).toEqual([23])
+  })
+
+  it('finds the row of a member named in capitals, and of one named twice for both', async () => {
+    partnersLastRead.mockImplementation(async () => [
+      { partner: { communityUuid: HERE, gradidoId: PAUL }, lastReadMessageId: 31 },
+    ])
+
+    const update = await askAbout([
+      { communityUuid: HERE.toUpperCase(), gradidoID: PAUL.toUpperCase() },
+      { communityUuid: HERE, gradidoID: PAUL },
+    ])
+
+    expect(update.readUpTo).toEqual([31, 31])
+  })
+
+  it('answers nobody where nobody is named', async () => {
+    expect((await askAbout([])).readUpTo).toEqual([])
+    expect((await askAbout(null)).readUpTo).toEqual([])
+  })
+
+  // ⛔ A wallet from before the ticks -- a tab kept open across the deploy -- does not name the
+  // argument at all: it is `undefined` there, not null.
+  it('answers nobody for a wallet that does not know the argument, and answers as before', async () => {
+    const update = await new ChatResolver().newChatMessagesSince(
+      { afterId: 60, limit: null, editedCursor: null, reactedCursor: null },
+      ritasRequest(),
+    )
+
+    expect(update.readUpTo).toEqual([])
+    expect(update.latestId).toBe(60)
   })
 })

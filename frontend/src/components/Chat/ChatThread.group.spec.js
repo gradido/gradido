@@ -26,6 +26,7 @@ const beat = vi.hoisted(() => ({
   listeners: new Set(),
   editedListeners: new Set(),
   reactedListeners: new Set(),
+  readWatchers: new Set(),
   pollNow: vi.fn(async () => {}),
 }))
 vi.mock('@/composables/useChatUpdates', () => ({
@@ -42,6 +43,11 @@ vi.mock('@/composables/useChatUpdates', () => ({
     return () => beat.reactedListeners.delete(listener)
   },
   pollChatNow: (...args) => beat.pollNow(...args),
+  watchChatRead: (ref, listener) => {
+    const watcher = { ref, listener }
+    beat.readWatchers.add(watcher)
+    return () => beat.readWatchers.delete(watcher)
+  },
 }))
 const beatBrings = async (...chatMessages) => {
   for (const listener of [...beat.listeners]) listener(chatMessages)
@@ -613,6 +619,18 @@ describe('ChatThread in a group', () => {
       mountThread({ role: 'OWNER', memberCount: 1 })
       await arrive(page([]))
       expect(bar().props('canAnnounce')).toBe(false)
+    })
+  })
+
+  // Chat E-093 gives the two ticks to a conversation of two only: in a group every pointer stays
+  // its member's own (E-008, invariant 2), and the group's page names none.
+  describe('the ticks', () => {
+    it("ticks none of one's own messages and watches nobody", async () => {
+      mountThread()
+      await arrive(page([message(1, { writer: 'me' }), message(2), message(3, { writer: 'me' })]))
+
+      expect(bubbles().map((bubble) => bubble.props('receipt'))).toEqual([null, null, null])
+      expect(beat.readWatchers.size).toBe(0)
     })
   })
 

@@ -8,8 +8,11 @@ import { ChatMessage } from './ChatMessage'
  * how many conversations hold something unread -- and the messages whose text was changed
  * (E-060) and those whose reactions were (migration 0158), each with where to go on from next.
  *
- * It tells the caller nothing about another member beyond their messages: no read pointer of
- * anybody else, no "online", no "typing", no read receipt (E-016, E-008 invariant 2).
+ * And how far the members named in `readBy` -- the wallet names those whose conversation of two
+ * it has open -- have read their conversation with the caller (Chat E-093, the two ticks). No
+ * field says when, and none says "online" or "typing"; but who keeps asking sees the number move
+ * within one question of the reading, so roughly when the other member had the conversation open
+ * and in sight. Of a group nobody's pointer, which stays its members' own (E-008, invariant 2).
  */
 @ObjectType()
 export class ChatUpdate {
@@ -24,6 +27,7 @@ export class ChatUpdate {
     reactedCursor: string,
     unreadTransfers: number,
     latestUnreadTransferId: number | null,
+    readUpTo: Array<number | null>,
   ) {
     this.latestId = latestId
     this.unreadConversations = unreadConversations
@@ -35,6 +39,7 @@ export class ChatUpdate {
     this.reactedCursor = reactedCursor
     this.unreadTransfers = unreadTransfers
     this.latestUnreadTransferId = latestUnreadTransferId
+    this.readUpTo = readUpTo
   }
 
   /**
@@ -111,4 +116,13 @@ export class ChatUpdate {
   /** The newest transfer the caller received and has not seen, by its id; null where none waits. */
   @Field(() => Int, { nullable: true })
   latestUnreadTransferId: number | null
+
+  /**
+   * How far each member named in `readBy` has read in their conversation with the caller (Chat
+   * E-093), in the order they were named: their read pointer, 0 where they have read nothing or
+   * there is no conversation, and null where this server cannot know -- a member of another
+   * community (partnerReadUpTo). Empty without `readBy`.
+   */
+  @Field(() => [Int], { nullable: 'items' })
+  readUpTo: Array<number | null>
 }

@@ -360,6 +360,8 @@
     "reactionMine": "ваша реакция",
     "reactionTakenBack": "Реакция убрана",
     "reactionsLead": "Реакции:",
+    "receiptDelivered": "Доставлено",
+    "receiptRead": "Прочитано",
     "remaining": "Остался {n} символ | Осталось {n} символа | Осталось {n} символов",
     "reply": "Ответить",
     "replyCancel": "Отменить ответ",

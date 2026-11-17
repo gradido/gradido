@@ -25,13 +25,14 @@ import {
   dbInsertEvent,
   dbMarkReceivedTransferSeen,
   dbMarkReceivedTransfersSeen,
-  dbSelectChatConversationMember,
+  dbSelectChatConversationMembers,
   dbSelectChatMessageImageForMember,
   dbSelectChatMessagesEditedAfter,
   dbSelectChatMessagesPage,
   dbSelectChatMessagesReactedAfter,
   dbSelectChatMessagesSince,
   dbSelectChatUnreadSummary,
+  dbSelectDirectChatPartnersLastRead,
   dbSelectDirectChatPartnersWithUnread,
   dbUpdateChatConversationMemberLastRead,
   dbUpdateChatConversationMemberMuted,
@@ -56,6 +57,7 @@ import {
   chatEditsPosition,
   isSameChatMember,
   nextChatEditsPosition,
+  partnerReadUpTo,
 } from '@/data/ChatConversation.logic'
 import { personsWithOnlyTransfersUnread, unreadTransfersSummary } from '@/data/ChatTransfers.logic'
 import {
@@ -148,6 +150,10 @@ export class ChatResolver {
    * The messages the caller and one other member wrote each other, a page at a time, oldest
    * first (E-018). The other member is named by their pair, as the contact window knows them
    * (KF-004). No conversation, or the caller asking about themselves: an empty page.
+   *
+   * With it how far the other member has read (Chat E-093): their pointer, 0 where there is none
+   * yet -- also on an empty page, where the first message will show one tick -- and null for a
+   * member of another community (partnerReadUpTo).
    */
   @Authorized([RIGHTS.READ_OWN_CHAT])
   @Query(() => ChatMessagePage)
@@ -164,21 +170,30 @@ export class ChatResolver {
       throw new LogError('Too many chat pages requested at once', served)
     }
     const caller = callerOf(context)
+    // A community left empty is the caller's: a member signs in on their own community's server.
+    const partner = {
+      communityUuid: ref.communityUuid || caller.communityUuid,
+      gradidoId: ref.gradidoID,
+    }
     const conversation = await directChatConversationWith(caller, ref)
     if (!conversation) {
-      return new ChatMessagePage([], false, false)
+      return new ChatMessagePage([], false, false, partnerReadUpTo(caller, partner, undefined))
     }
     const page = await dbSelectChatMessagesPage(conversation.id, {
       before: before ?? undefined,
       limit: limit ?? CHAT_MESSAGES_PAGE_DEFAULT,
     })
-    // The caller's own mark, read from the caller's own row: whether the OTHER member muted the
-    // conversation is nobody's business but theirs (E-024).
-    const me = await dbSelectChatConversationMember(conversation.id, caller)
+    // Both rows in one statement, each read for its own: the caller's mark from the caller's row --
+    // whether the OTHER member muted the conversation is nobody's business but theirs (E-024) --
+    // and how far the other member has read from theirs (E-093).
+    const members = await dbSelectChatConversationMembers(conversation.id)
+    const mine = members.find((member) => isSameChatMember(member, caller))
+    const theirs = members.find((member) => !isSameChatMember(member, caller))
     return new ChatMessagePage(
       await chatMessagesOf(page.messages, caller),
       page.hasMore,
-      Boolean(me?.mutedAt),
+      Boolean(mine?.mutedAt),
+      partnerReadUpTo(caller, partner, theirs?.lastReadMessageId),
     )
   }
 
@@ -227,11 +242,20 @@ export class ChatResolver {
    * place it names, and `reactedCursor` in the answer -- the same way by the other clock
    * (`reacted_at`), with the same room to spare and the same going on over the cap. A cursor of
    * its own: a wallet from before the reactions sends none and is handed none.
+   *
+   * With `readBy` (Chat E-093): how far each member named there has read in their conversation of
+   * two with the caller, in `readUpTo`, in the order they were named -- read in one statement for
+   * all of them, each conversation found by the pair of the caller and that member
+   * (dbSelectDirectChatPartnersLastRead), so no pair the caller is not part of is ever read. A
+   * community left empty is the caller's, without a read of its own: a member signs in on their own
+   * community's server. A member of another community gets null (partnerReadUpTo). Without
+   * `readBy` -- a wallet from before the ticks sends none -- `readUpTo` is empty and nothing is
+   * read.
    */
   @Authorized([RIGHTS.READ_OWN_CHAT])
   @Query(() => ChatUpdate)
   async newChatMessagesSince(
-    @Args() { afterId, limit, editedCursor, reactedCursor }: NewChatMessagesSinceArgs,
+    @Args() { afterId, limit, editedCursor, reactedCursor, readBy }: NewChatMessagesSinceArgs,
     @Ctx() context: Context,
   ): Promise<ChatUpdate> {
     // ⛔ Counted in the HTTP request's budget before anything is looked up, as the pages are: a
@@ -281,6 +305,11 @@ export class ChatResolver {
             after: chatEditsPosition(reactedCursor),
             limit: cap,
           })
+    const partners = (readBy ?? []).map((ref) => ({
+      communityUuid: ref.communityUuid || caller.communityUuid,
+      gradidoId: ref.gradidoID,
+    }))
+    const read = await dbSelectDirectChatPartnersLastRead(caller, partners)
     const last = news.messages[news.messages.length - 1]
     const lastChanged = changes.messages[changes.messages.length - 1]
     const lastReacted = reactions.messages[reactions.messages.length - 1]
@@ -313,6 +342,13 @@ export class ChatResolver {
       ),
       unreadTransfers.count,
       unreadTransfers.latestId,
+      partners.map((partner) =>
+        partnerReadUpTo(
+          caller,
+          partner,
+          read.find((entry) => isSameChatMember(entry.partner, partner))?.lastReadMessageId,
+        ),
+      ),
     )
   }
 
