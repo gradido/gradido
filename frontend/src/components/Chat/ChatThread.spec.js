@@ -2170,18 +2170,18 @@ describe('ChatThread', () => {
       expect(beat.readWatchers.size).toBe(0)
     })
 
-    it('watches the member of the thread, raises with the beat, and takes no tick back', async () => {
+    it('watches the member of the thread and takes what the beat says', async () => {
       mountThread()
       await arrive(withRead([2, 4, 6], 2))
       expect([...beat.readWatchers].map((watcher) => watcher.ref)).toEqual([
         { gradidoID: LENA.gradidoID, communityUuid: LENA.communityUuid },
       ])
 
-      await beatReads(6)
-      expect(receipts()).toEqual({ 2: 'read', 4: 'read', 6: 'read' })
-
-      // An answer that left before a later one, and one that says nothing.
       await beatReads(4)
+      expect(receipts()).toEqual({ 2: 'read', 4: 'read', 6: 'delivered' })
+
+      // And an answer that says nothing for the member changes nothing.
+      await beatReads(6)
       await beatReads(null)
       expect(receipts()).toEqual({ 2: 'read', 4: 'read', 6: 'read' })
     })

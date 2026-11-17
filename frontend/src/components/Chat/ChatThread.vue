@@ -1074,12 +1074,12 @@ let marked = false
  * How far the other member of a conversation of two has read it (Chat E-093, the two ticks): the
  * id of the message up to which, 0 where nothing yet -- null where it is not known: before the
  * first page, in a group, and with a member of another community, where the server cannot know.
- * Raised, never lowered: an answer of the beat that left before a later one may land after it.
+ * The latest number is the one: the beat names the member only after the page landed, asks one
+ * question at a time, and the server's pointer only grows.
  */
 const partnerReadUpTo = ref(null)
-const raise = (upTo) => {
-  if (typeof upTo !== 'number') return
-  if (partnerReadUpTo.value === null || upTo > partnerReadUpTo.value) partnerReadUpTo.value = upTo
+const takeReadUpTo = (upTo) => {
+  if (typeof upTo === 'number') partnerReadUpTo.value = upTo
 }
 let stopReadWatch = null
 onBeforeUnmount(() => stopReadWatch?.())
@@ -1104,8 +1104,8 @@ watch(page, (firstPage) => {
   // server cannot know -- a group, a member of another community -- the page says null, and that
   // stays so for the life of the thread: nothing is watched.
   if (typeof firstPage.partnerReadUpTo === 'number') {
-    raise(firstPage.partnerReadUpTo)
-    stopReadWatch = watchChatRead(memberRef, raise)
+    partnerReadUpTo.value = firstPage.partnerReadUpTo
+    stopReadWatch = watchChatRead(memberRef, takeReadUpTo)
   }
   // Whatever arrived while the page was on its way -- and whatever was changed.
   takeWaitingArrivals()
