@@ -159,6 +159,9 @@ describe('the two ticks in a conversation of two', () => {
   })
 
   it("keeps the mute mark the reader's own beside it", async () => {
+    await loginAs('peter@lustig.de')
+    await markRead(ref(bibi), second)
+
     await loginAs('bibi@bloxberg.de')
     const muted: any = await mutate({
       mutation: setChatConversationMuted,
