@@ -7,6 +7,7 @@ import {
   chatQuoteExcerpt,
   isSameChatMember,
   nextChatEditsPosition,
+  partnerReadUpTo,
 } from './ChatConversation.logic'
 
 const HOME = '11111111-1111-4111-8111-111111111111'
@@ -44,6 +45,34 @@ describe('isSameChatMember', () => {
         { communityUuid: HOME.toUpperCase(), gradidoId: ANNA.toUpperCase() },
       ),
     ).toBe(true)
+  })
+})
+
+/** How far the partner has read, as the two ticks show it (Chat E-093). */
+describe('partnerReadUpTo', () => {
+  // Letters in the uuid, not digits only: the capitals below have to change something.
+  const HERE = 'cafecafe-cafe-4afe-8afe-cafecafecafe'
+  const caller = { communityUuid: HERE, gradidoId: ANNA }
+  const partnerHere = { communityUuid: HERE, gradidoId: BEN }
+  const partnerElsewhere = { communityUuid: OTHER, gradidoId: BEN }
+
+  it("gives a partner of this community's pointer, and 0 where they have read nothing", () => {
+    expect(partnerReadUpTo(caller, partnerHere, 17)).toBe(17)
+    expect(partnerReadUpTo(caller, partnerHere, null)).toBe(0)
+    expect(partnerReadUpTo(caller, partnerHere, undefined)).toBe(0)
+  })
+
+  it('cannot know for a partner of another community, whatever their row says', () => {
+    expect(partnerReadUpTo(caller, partnerElsewhere, 17)).toBeNull()
+    expect(partnerReadUpTo(caller, partnerElsewhere, undefined)).toBeNull()
+  })
+
+  it('reads the community in capitals as the same community, as the columns compare', () => {
+    const shouting = { communityUuid: HERE.toUpperCase(), gradidoId: BEN }
+    expect(partnerReadUpTo(caller, shouting, 17)).toBe(17)
+    expect(partnerReadUpTo({ ...caller, communityUuid: HERE.toUpperCase() }, partnerHere, 17)).toBe(
+      17,
+    )
   })
 })
 

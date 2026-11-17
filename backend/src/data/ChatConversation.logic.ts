@@ -51,6 +51,14 @@ export const CHAT_UPDATE_MESSAGES_MAX = 100
 export const CHAT_UPDATES_MAX_PER_REQUEST = 5
 
 /**
+ * How many members one beat may ask the read state of (`readBy`, Chat E-093): those whose
+ * conversation the wallet has open -- the contact window, at most one more over a group's window;
+ * five leaves room. More is refused, not cut. With CHAT_UPDATES_MAX_PER_REQUEST that is at most
+ * 25 pairs in one HTTP request, in five statements.
+ */
+export const CHAT_UPDATE_READ_BY_MAX = 5
+
+/**
  * How far behind the database's clock a beat goes on from for changed messages (E-060): up to
  * that moment the changes count as settled. A change is stamped when its statement starts and
  * seen when it is committed; one still on its way while a beat reads would lie before the beat's
@@ -134,6 +142,23 @@ export const CHAT_FORWARD_MAX_TARGETS = 5
 export const isSameChatMember = (a: ChatMemberRef, b: ChatMemberRef): boolean =>
   a.communityUuid.toLowerCase() === b.communityUuid.toLowerCase() &&
   a.gradidoId.toLowerCase() === b.gradidoId.toLowerCase()
+
+/**
+ * How far `partner` has read in their conversation with `caller`, as the two ticks show it (Chat
+ * E-093): the partner's read pointer -- 0 where there is none, no conversation yet or nothing read.
+ *
+ * Null for a partner of another community, whatever their row here says: their pointer never
+ * moves on this server -- only a member's own wallet moves it, and a member of another community
+ * asks their own server -- so this server cannot know (E-093, point 3). A way for the pointer
+ * across the border changes this line. The community compared without regard to case, as
+ * isSameChatMember compares.
+ */
+export const partnerReadUpTo = (
+  caller: ChatMemberRef,
+  partner: ChatMemberRef,
+  pointer: number | null | undefined,
+): number | null =>
+  partner.communityUuid.toLowerCase() === caller.communityUuid.toLowerCase() ? (pointer ?? 0) : null
 
 /**
  * How much of a quoted message's text goes with an answer: a quotation is one line in the
