@@ -1211,7 +1211,8 @@ describe('useChatUpdates', () => {
 
     it('hands nothing to a watcher that went while the answer was on its way, and the others their places', async () => {
       const anna = watch(ANNA)
-      const stopBen = watchChatRead(BEN, vi.fn())
+      const ben = vi.fn()
+      const stopBen = watchChatRead(BEN, ben)
       const carl = watch(CARL)
       const release = server.hold()
       server.answer(update({ readUpTo: [3, 4, 5] }))
@@ -1223,6 +1224,7 @@ describe('useChatUpdates', () => {
       await vi.advanceTimersByTimeAsync(0)
 
       expect(anna.mock.calls).toEqual([[3]])
+      expect(ben).not.toHaveBeenCalled()
       expect(carl.mock.calls).toEqual([[5]])
     })
 
