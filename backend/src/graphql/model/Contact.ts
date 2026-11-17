@@ -122,7 +122,7 @@ export class Contact {
    * conversation.
    *
    * ⛔ About the asking member only. Nothing on this type says whether the other side has
-   * read anything: that shows in the open conversation only (Chat E-093,
+   * read anything: that is on the thread's page and on the beat (Chat E-093,
    * ChatMessagePage.partnerReadUpTo and ChatUpdate.readUpTo), not in the list.
    */
   @Field(() => Int)

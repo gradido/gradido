@@ -8,10 +8,11 @@ import { ChatMessage } from './ChatMessage'
  * how many conversations hold something unread -- and the messages whose text was changed
  * (E-060) and those whose reactions were (migration 0158), each with where to go on from next.
  *
- * And how far the members named in `readBy` -- those whose conversation of two the wallet has
- * open -- have read their conversation with the caller (Chat E-093, the two ticks). Of another
- * member nothing else: no moment of reading, no "online", no "typing"; and of a group nobody's
- * pointer, which stays its members' own (E-008, invariant 2).
+ * And how far the members named in `readBy` -- the wallet names those whose conversation of two
+ * it has open -- have read their conversation with the caller (Chat E-093, the two ticks). No
+ * field says when, and none says "online" or "typing"; but who keeps asking sees the number move
+ * within one question of the reading, so roughly when the other member had the conversation open
+ * and in sight. Of a group nobody's pointer, which stays its members' own (E-008, invariant 2).
  */
 @ObjectType()
 export class ChatUpdate {

@@ -21,8 +21,8 @@ import { User } from './User'
  * and fills all three only where the reader wrote the message (`mine`); on the other side's
  * messages they are null (E-019, E-024). Nothing here says whether or when the other side read
  * it: in a conversation of two the page and the beat say up to which message the other member has
- * read (Chat E-093: ChatMessagePage.partnerReadUpTo, ChatUpdate.readUpTo), never when; a group has
- * no read receipt (E-008, invariant 2).
+ * read (Chat E-093: ChatMessagePage.partnerReadUpTo, ChatUpdate.readUpTo) -- no field says when,
+ * though who keeps asking sees the number move; a group has no read receipt (E-008, invariant 2).
  */
 @ObjectType()
 export class ChatMessage {

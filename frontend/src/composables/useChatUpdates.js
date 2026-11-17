@@ -44,7 +44,8 @@ import {
  * And how far the other member of an open conversation of two has read (Chat E-093, the two
  * ticks): a thread that wants to know names the member (`watchChatRead`), the question carries
  * the members named (`readBy`), and each watcher is handed its place in the answer (`readUpTo`).
- * Nothing of it is kept: no store, nothing on the device.
+ * Nothing of it is kept here: no store, nothing on the device -- only the thread's page holds the
+ * number it came with, in Apollo's cache, which the logout clears.
  */
 
 /** The beat while all is well. A constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). */
@@ -65,8 +66,8 @@ const CHAT_POLL_PAGE = 50
 
 /**
  * How many members one question asks the read state of -- the server's CHAT_UPDATE_READ_BY_MAX,
- * which refuses more (a drift spec holds the two together). The ones named last count: the window
- * opened last is the one in front.
+ * which refuses more (a drift spec holds the two together). The ones named last count: the
+ * threads whose first page landed last.
  */
 export const CHAT_READ_WATCH_MAX = 5
 
