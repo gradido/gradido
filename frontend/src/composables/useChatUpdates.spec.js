@@ -7,6 +7,7 @@ import {
   CHAT_POLL_BACKOFF_MAX_MS,
   CHAT_POLL_INTERVAL_MS,
   CHAT_POLL_ROUNDS_MAX,
+  CHAT_READ_WATCH_MAX,
   chatUnreadConversations,
   onChatMessages,
   onChatMessagesEdited,
@@ -14,6 +15,7 @@ import {
   pollChatNow,
   startChatUpdates,
   stopChatUpdates,
+  watchChatRead,
 } from './useChatUpdates'
 import { newChatMessagesSince } from '@/graphql/chat.graphql'
 import {
@@ -53,6 +55,7 @@ const update = ({
   reactedCursor = '1759309220000-0',
   unreadTransfers = 0,
   latestUnreadTransferId = null,
+  readUpTo,
 } = {}) => ({
   data: {
     newChatMessagesSince: {
@@ -66,6 +69,8 @@ const update = ({
       reactedCursor,
       unreadTransfers,
       latestUnreadTransferId,
+      // Only where a test names it: an answer without it is one of the cases.
+      ...(readUpTo === undefined ? {} : { readUpTo }),
     },
   },
 })
@@ -104,6 +109,7 @@ const makeServer = () => {
     afterIds: () => query.mock.calls.map(([options]) => options.variables.afterId),
     editedCursors: () => query.mock.calls.map(([options]) => options.variables.editedCursor),
     reactedCursors: () => query.mock.calls.map(([options]) => options.variables.reactedCursor),
+    readBys: () => query.mock.calls.map(([options]) => options.variables.readBy),
   }
 }
 
@@ -143,6 +149,7 @@ describe('useChatUpdates', () => {
         limit: 50,
         editedCursor: null,
         reactedCursor: null,
+        readBy: null,
       })
     })
 
@@ -1151,6 +1158,148 @@ describe('useChatUpdates', () => {
    * source can say both -- read with the comments taken out, because the comments name the very
    * words (skill null-af2).
    */
+  /**
+   * How far the other member of an open conversation of two has read (Chat E-093): the members the
+   * watchers name go with the question, and each watcher is handed its own place of the answer --
+   * the answer to the question that named it.
+   */
+  describe('how far the members watched have read', () => {
+    const ANNA = { gradidoID: 'anna-id', communityUuid: 'home-uuid' }
+    const BEN = { gradidoID: 'ben-id', communityUuid: null }
+    const CARL = { gradidoID: 'carl-id', communityUuid: 'other-uuid' }
+    let stops = []
+    const watch = (ref, listener = vi.fn()) => {
+      stops.push(watchChatRead(ref, listener))
+      return listener
+    }
+
+    afterEach(() => {
+      for (const stop of stops) stop()
+      stops = []
+    })
+
+    it('names the pairs of the watchers in the order they came, and only the pair', async () => {
+      watch({ ...ANNA, alias: 'anna', avatar: 'a picture' })
+      watch(BEN)
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(server.readBys()).toEqual([[ANNA, BEN]])
+    })
+
+    it('names nobody while nobody watches, and nobody once the last one went', async () => {
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      const stop = watchChatRead(ANNA, vi.fn())
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      stop()
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+
+      expect(server.readBys()).toEqual([null, [ANNA], null])
+    })
+
+    it('hands each watcher its own place of the answer', async () => {
+      const anna = watch(ANNA)
+      const ben = watch(BEN)
+      server.answer(update({ readUpTo: [7, null] }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(anna.mock.calls).toEqual([[7]])
+      expect(ben.mock.calls).toEqual([[null]])
+    })
+
+    it('hands nothing to a watcher that went while the answer was on its way, and the others their places', async () => {
+      const anna = watch(ANNA)
+      const stopBen = watchChatRead(BEN, vi.fn())
+      const carl = watch(CARL)
+      const release = server.hold()
+      server.answer(update({ readUpTo: [3, 4, 5] }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      stopBen()
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(anna.mock.calls).toEqual([[3]])
+      expect(carl.mock.calls).toEqual([[5]])
+    })
+
+    it('hands nothing of an answer to a watcher that came while it was on its way, and names it next', async () => {
+      const anna = watch(ANNA)
+      const release = server.hold()
+      server.answer(update({ readUpTo: [3] }), update({ readUpTo: [3, 9] }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      const ben = watch(BEN)
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(anna.mock.calls).toEqual([[3]])
+      expect(ben).not.toHaveBeenCalled()
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(server.readBys()[1]).toEqual([ANNA, BEN])
+      expect(ben.mock.calls).toEqual([[9]])
+    })
+
+    it('names only the last ones that came, as many as the server takes', async () => {
+      const first = watch({ gradidoID: 'first-id', communityUuid: 'home-uuid' })
+      const later = Array.from({ length: CHAT_READ_WATCH_MAX }, (_, n) =>
+        watch({ gradidoID: `later-${n}`, communityUuid: 'home-uuid' }),
+      )
+      server.answer(update({ readUpTo: later.map((_, n) => n + 1) }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(server.readBys()[0].map((pair) => pair.gradidoID)).toEqual(
+        later.map((_, n) => `later-${n}`),
+      )
+      expect(first).not.toHaveBeenCalled()
+      expect(later.map((listener) => listener.mock.calls)).toEqual(later.map((_, n) => [[n + 1]]))
+    })
+
+    // An answer that lands after the member signed out belongs to them, not to whoever is next.
+    it('hands an answer that lands after the stop to nobody', async () => {
+      const anna = watch(ANNA)
+      const release = server.hold()
+      server.answer(update({ readUpTo: [3] }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      stopChatUpdates()
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(anna).not.toHaveBeenCalled()
+    })
+
+    it('lets a watcher that throws hold up neither the beat nor the others', async () => {
+      watch(ANNA, () => {
+        throw new Error('broken')
+      })
+      const ben = watch(BEN)
+      server.answer(update({ readUpTo: [3, 4] }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(ben.mock.calls).toEqual([[4]])
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(server.query).toHaveBeenCalledTimes(2)
+    })
+
+    // A server from before the ticks answers without the field.
+    it('hands null where the answer says nothing', async () => {
+      const anna = watch(ANNA)
+      server.answer(update())
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(anna.mock.calls).toEqual([[null]])
+    })
+  })
+
   describe('the source', () => {
     const source = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), 'useChatUpdates.js'),
@@ -1162,6 +1311,20 @@ describe('useChatUpdates', () => {
       expect(code.match(/export const CHAT_POLL_INTERVAL_MS = 15000\b/g)).toHaveLength(1)
       expect(CHAT_POLL_INTERVAL_MS).toBe(15000)
       expect(code).not.toMatch(/AUTO_POLL_INTERVAL/)
+    })
+
+    // The server refuses a question naming more members than its CHAT_UPDATE_READ_BY_MAX: every beat
+    // with more watchers would fail.
+    it('names as many members as the server takes', () => {
+      const server = readFileSync(
+        join(
+          dirname(fileURLToPath(import.meta.url)),
+          '../../../backend/src/data/ChatConversation.logic.ts',
+        ),
+        'utf8',
+      )
+      const [, serverMax] = server.match(/export const CHAT_UPDATE_READ_BY_MAX = (\d+)\b/)
+      expect(CHAT_READ_WATCH_MAX).toBe(Number(serverMax))
     })
 
     it('touches neither the store nor any storage of the browser', () => {

@@ -40,6 +40,11 @@ import {
  * mark at "Schöpfen", Bernd 16.11.2026), which goes on to useContributionsInProgress. Neither is
  * anything to the chat, and neither fails a question (the server answers them null where it
  * cannot count), so the beat stays the chat's.
+ *
+ * And how far the other member of an open conversation of two has read (Chat E-093, the two
+ * ticks): a thread that wants to know names the member (`watchChatRead`), the question carries
+ * the members named (`readBy`), and each watcher is handed its place in the answer (`readUpTo`).
+ * Nothing of it is kept: no store, nothing on the device.
  */
 
 /** The beat while all is well. A constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). */
@@ -58,6 +63,13 @@ export const CHAT_POLL_ROUNDS_MAX = 5
 /** Messages per answer, the server's own default, written out. */
 const CHAT_POLL_PAGE = 50
 
+/**
+ * How many members one question asks the read state of -- the server's CHAT_UPDATE_READ_BY_MAX,
+ * which refuses more (a drift spec holds the two together). The ones named last count: the window
+ * opened last is the one in front.
+ */
+export const CHAT_READ_WATCH_MAX = 5
+
 const unread = ref(0)
 
 /**
@@ -70,6 +82,8 @@ export const chatUnreadConversations = readonly(unread)
 const listeners = new Set()
 const editedListeners = new Set()
 const reactedListeners = new Set()
+/** Who wants to know how far whom has read: `{ ref, listener }`, in the order they came. */
+const readWatchers = new Set()
 
 const idle = () => ({
   /** The client the questions go through; null while the beat does not run. */
@@ -133,10 +147,10 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  * Apollo's default to throw the chat's answer away with it. Now only the chat's own part decides:
  * where it is missing, the question failed, whatever the errors say.
  */
-const ask = async (afterId, editedCursor, reactedCursor) => {
+const ask = async (afterId, editedCursor, reactedCursor, readBy) => {
   const { data } = await beat.client.query({
     query: newChatMessagesSince,
-    variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor, reactedCursor },
+    variables: { afterId, limit: CHAT_POLL_PAGE, editedCursor, reactedCursor, readBy },
     fetchPolicy: 'no-cache',
     errorPolicy: 'all',
     context: { renewSession: false },
@@ -165,6 +179,23 @@ const handOn = (to, chatMessages) => {
 }
 
 /**
+ * Hands each watcher the read state at its place in the answer (Chat E-093). `asked` are the
+ * watchers the question named, in its order: the answer is theirs. One that went while the answer
+ * was on its way gets nothing, and one that came meanwhile gets nothing of it -- the next question
+ * names it. One that fails must not stop the beat for the others.
+ */
+const handOnRead = (asked, readUpTo) => {
+  asked.forEach((watcher, place) => {
+    if (!readWatchers.has(watcher)) return
+    try {
+      watcher.listener(readUpTo?.[place] ?? null)
+    } catch {
+      // The watcher's own business; the beat and the other watchers go on.
+    }
+  })
+}
+
+/**
  * One round of questions: the first one says where one stands (no `afterId`), every later one
  * brings what arrived since the marker -- again at once while the server says there is more, at
  * most `CHAT_POLL_ROUNDS_MAX` times.
@@ -177,10 +208,14 @@ const cycle = async (mine) => {
     let rounds = 0
     let more = false
     do {
+      // ⛔ Taken before the question leaves: the places of its answer belong to these watchers,
+      // whoever comes or goes while it is on its way.
+      const asked = [...readWatchers].slice(-CHAT_READ_WATCH_MAX)
       const { update, supportTicketsMenu, contributionsInProgress } = await ask(
         beat.marker,
         beat.editedCursor,
         beat.reactedCursor,
+        asked.length > 0 ? asked.map(({ ref }) => ref) : null,
       )
       if (mine !== generation) return
       setSupportTicketsMenu(supportTicketsMenu)
@@ -218,6 +253,7 @@ const cycle = async (mine) => {
       // asked again for them either: a reaction moves no order, no dot and no number.
       if (update.reactedCursor) beat.reactedCursor = update.reactedCursor
       if (update.reacted?.length > 0) handOn(reactedListeners, update.reacted)
+      handOnRead(asked, update.readUpTo)
       more = update.hasMore
       rounds += 1
     } while (more && rounds < CHAT_POLL_ROUNDS_MAX)
@@ -354,5 +390,25 @@ export const onChatMessagesReacted = (listener) => {
   reactedListeners.add(listener)
   return () => {
     reactedListeners.delete(listener)
+  }
+}
+
+/**
+ * Tells `listener` how far the member `ref` names -- `{ gradidoID, communityUuid }` -- has read in
+ * the conversation of two with the member signed in (Chat E-093), with every answer of the beat:
+ * up to which message id, 0 where nothing, null where the server cannot know (a member of another
+ * community). Returns the function that ends it. Asked for nobody while nobody watches.
+ *
+ * Only the pair goes into the question: a field the server's input type does not name would fail
+ * the whole beat.
+ */
+export const watchChatRead = (ref, listener) => {
+  const watcher = {
+    ref: { gradidoID: ref.gradidoID, communityUuid: ref.communityUuid ?? null },
+    listener,
+  }
+  readWatchers.add(watcher)
+  return () => {
+    readWatchers.delete(watcher)
   }
 }

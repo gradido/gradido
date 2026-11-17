@@ -360,6 +360,8 @@
     "reactionMine": "η αντίδρασή σου",
     "reactionTakenBack": "Η αντίδραση αφαιρέθηκε",
     "reactionsLead": "Αντιδράσεις:",
+    "receiptDelivered": "Παραδόθηκε",
+    "receiptRead": "Διαβάστηκε",
     "remaining": "Απομένει {n} χαρακτήρας | Απομένουν {n} χαρακτήρες",
     "reply": "Απάντηση",
     "replyCancel": "Ακύρωση απάντησης",

@@ -107,10 +107,15 @@ fragment chatMessageFields on ChatMessage {
 # `groupUuid`, `senderUser`, `announcement` (P5): null, null and false in a conversation of two --
 # asked all the same, so that every document of a message asks the one shape a group's message has
 # too (`chatGroupMessageFields`, chatGroups.graphql): the beat's arrivals go into either thread.
+#
+# `partnerReadUpTo` (Chat E-093, the two ticks): up to which message the OTHER member has read the
+# conversation -- 0 where they have read nothing yet, null where the server cannot know (a member of
+# another community). The thread takes it once, from the first page, and the beat raises it.
 query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $limit: Int) {
   chatMessagesWithMember(ref: $ref, before: $before, limit: $limit) {
     hasMore
     mutedByMe
+    partnerReadUpTo
     messages {
       ...chatMessageFields
     }
@@ -157,17 +162,24 @@ query chatMessagesWithMemberQuery($ref: MemberAvatarRefInput!, $before: Int, $li
 # it came; without it the answer brings none and says where to go on from. ⚠️ It can come twice as
 # well, and an answer can arrive after a later one: `reactedAt` says which holds the reactions as
 # they stand.
+#
+# `readBy` (Chat E-093, the two ticks): the members whose conversation of two is open right now,
+# by the pair -- at most five, the server refuses more. `readUpTo` answers in their order: how far
+# each has read in the conversation with oneself, 0 where nothing, null where the server cannot
+# know. Null `readBy` asks about nobody.
 query newChatMessagesSince(
   $afterId: Int
   $limit: Int
   $editedCursor: String
   $reactedCursor: String
+  $readBy: [MemberAvatarRefInput!]
 ) {
   newChatMessagesSince(
     afterId: $afterId
     limit: $limit
     editedCursor: $editedCursor
     reactedCursor: $reactedCursor
+    readBy: $readBy
   ) {
     latestId
     unreadConversations
@@ -187,6 +199,7 @@ query newChatMessagesSince(
     # its booking's id. The lists are asked again when either moves (useChatUpdates).
     unreadTransfers
     latestUnreadTransferId
+    readUpTo
   }
   # The support's beside it (Support-Anfragen K5), nothing of the chat: whether new requests are
   # switched on, and how many of the member's own requests have a question back or are not

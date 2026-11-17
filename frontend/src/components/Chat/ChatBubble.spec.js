@@ -92,6 +92,8 @@ describe('ChatBubble', () => {
       global: {
         stubs: {
           IMdiEmailOutline: { template: '<i data-test="envelope" />' },
+          IMdiCheck: { template: '<i data-test="tick" />' },
+          IMdiCheckAll: { template: '<i data-test="ticks" />' },
           IMdiCalendarPlusOutline: true,
           IMdiContentDuplicate: true,
           IMdiFileDocumentOutline: true,
@@ -1132,6 +1134,74 @@ describe('ChatBubble', () => {
     expect(code).toMatch(
       /\.chat-bubble-row\.is-editing \.chat-bubble\s*\{[^}]*box-shadow:\s*0 0 0 2px var\(--success/,
     )
+  })
+
+  /** The ticks behind the time (Chat E-093); the thread decides which, the bubble draws them. */
+  describe('the ticks', () => {
+    const receipt = () => wrapper.find('[data-test="chat-bubble-receipt"]')
+
+    it('draws one tick named delivered, and two named read', async () => {
+      mountBubble(OWN, 'Lena', { receipt: 'delivered' })
+      expect(receipt().attributes('role')).toBe('img')
+      expect(receipt().attributes('aria-label')).toBe('chatThread.receiptDelivered')
+      expect(receipt().attributes('title')).toBe('chatThread.receiptDelivered')
+      expect(receipt().find('[data-test="tick"]').exists()).toBe(true)
+      expect(receipt().find('[data-test="ticks"]').exists()).toBe(false)
+
+      await wrapper.setProps({ receipt: 'read' })
+      expect(receipt().attributes('aria-label')).toBe('chatThread.receiptRead')
+      expect(receipt().attributes('title')).toBe('chatThread.receiptRead')
+      expect(receipt().find('[data-test="ticks"]').exists()).toBe(true)
+      expect(receipt().find('[data-test="tick"]').exists()).toBe(false)
+    })
+
+    it('draws none where the thread names none', () => {
+      mountBubble(OWN)
+      expect(receipt().exists()).toBe(false)
+    })
+
+    // E-093: where a word says the message has not arrived, no tick says it has.
+    it('draws none beside "not delivered" or "not delivered yet"', () => {
+      mountBubble({ ...OWN, deliveryState: 'PENDING' }, 'Lena', { receipt: 'delivered' })
+      expect(receipt().exists()).toBe(false)
+      wrapper.unmount()
+      mountBubble({ ...OWN, deliveryState: 'FAILED' }, 'Lena', { receipt: 'read' })
+      expect(receipt().exists()).toBe(false)
+    })
+
+    it('stands right behind the time', () => {
+      mountBubble(
+        { ...OWN, notify: 'EMAIL', mailState: 'MAILED', editedAt: OWN.createdAt },
+        'Lena',
+        {
+          receipt: 'read',
+        },
+      )
+      const line = wrapper.find('.chat-bubble-meta').element
+      const order = [...line.children].map((child) => child.dataset.test)
+      expect(order.slice(-2)).toEqual(['chat-bubble-time', 'chat-bubble-receipt'])
+    })
+
+    // ⛔ The form tells the states apart, not a colour (Bernd sees red and green badly): no rule
+    // gives the ticks a colour of their own, and both signs share the envelope's box.
+    it('takes the colour of the time and the box of the envelope', () => {
+      const code = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rules = [...code.matchAll(/([^{}]*)\{([^}]*)\}/g)].filter(([, selectors]) =>
+        selectors.includes('.chat-bubble-receipt'),
+      )
+      expect(rules.length).toBeGreaterThan(0)
+      for (const [, , body] of rules) expect(body).not.toMatch(/(^|[;\s])color\s*:/)
+      const sharedBox = rules.some(
+        ([, selectors, body]) =>
+          selectors.includes('.chat-bubble-mailed') &&
+          /display:\s*inline-flex/.test(body) &&
+          /font-size:\s*0\.85rem/.test(body),
+      )
+      expect(sharedBox).toBe(true)
+    })
   })
 
   const envelope = () => wrapper.find('[data-test="chat-bubble-mailed"]')

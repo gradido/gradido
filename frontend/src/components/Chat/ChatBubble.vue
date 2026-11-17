@@ -303,6 +303,21 @@
         <time class="chat-bubble-time" :datetime="arrivedIso" data-test="chat-bubble-time">
           {{ d(arrived, 'time') }}
         </time>
+        <!-- The ticks (Chat E-093): one where the other member has not read the message yet, two
+             where they have -- behind the time, on one's own message of a conversation of two.
+             The thread decides which (`receipt`). Not beside a word that says the message has not
+             arrived. The two signs share one box: when one tick becomes two, nothing moves. -->
+        <span
+          v-if="receipt && !stateWord"
+          class="chat-bubble-receipt"
+          role="img"
+          :aria-label="receiptWords"
+          :title="receiptWords"
+          data-test="chat-bubble-receipt"
+        >
+          <i-mdi-check-all v-if="receipt === RECEIPT_READ" aria-hidden="true" />
+          <i-mdi-check v-else aria-hidden="true" />
+        </span>
       </div>
       <!-- "Options for this message" (E-059 F1): beside the bubble while the pointer is over the
            message or the keyboard is on it; on a phone out of sight, for the ear -- the tap on the
@@ -472,6 +487,12 @@ const props = defineProps({
    * person.
    */
   thanksMembers: { type: Array, default: null },
+  /**
+   * The ticks behind the time (Chat E-093): 'read' where the other member of a conversation of
+   * two has read the message, 'delivered' where not yet, null for none -- somebody else's message,
+   * a transfer, a group, or where it is not known. The thread decides it.
+   */
+  receipt: { type: String, default: null },
 })
 
 /**
@@ -619,6 +640,14 @@ const mailed = computed(() => {
  */
 const mailedWords = computed(() =>
   props.inGroup ? t('chatGroup.announced') : t('chatThread.mailed'),
+)
+
+/** The receipt of a message the other member has read (Chat E-093), as the thread names it. */
+const RECEIPT_READ = 'read'
+
+/** What the ticks say, for the ear and under the pointer: the sign alone carries the state. */
+const receiptWords = computed(() =>
+  props.receipt === RECEIPT_READ ? t('chatThread.receiptRead') : t('chatThread.receiptDelivered'),
 )
 
 /**
@@ -1585,12 +1614,17 @@ const copyText = async () => {
    way to them and broke between its digits (measured 11.10.2026, a group at 320 px). */
 .chat-bubble-mailed,
 .chat-bubble-edited,
-.chat-bubble-time {
+.chat-bubble-time,
+.chat-bubble-receipt {
   flex: 0 0 auto;
   white-space: nowrap;
 }
 
-.chat-bubble-mailed {
+/* The ticks as large as the envelope, in the colour of the time: no colour tells the two states
+   apart, the form does (one tick, two) -- a colour would not carry for everybody's eyes. Both
+   signs are drawn in the same 24-unit box, so the box keeps its size when one becomes two. */
+.chat-bubble-mailed,
+.chat-bubble-receipt {
   display: inline-flex;
   font-size: 0.85rem;
 }

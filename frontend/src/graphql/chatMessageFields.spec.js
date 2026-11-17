@@ -113,6 +113,7 @@ describe('the fields of a chat message', () => {
       'limit',
       'editedCursor',
       'reactedCursor',
+      'readBy',
     ])
     const answer = operation.selectionSet.selections[0]
     expect(answer.arguments.map((argument) => argument.name.value)).toEqual([
@@ -120,6 +121,7 @@ describe('the fields of a chat message', () => {
       'limit',
       'editedCursor',
       'reactedCursor',
+      'readBy',
     ])
     expect(answer.selectionSet.selections.map((selection) => selection.name.value)).toEqual([
       'latestId',
@@ -132,6 +134,7 @@ describe('the fields of a chat message', () => {
       'reactedCursor',
       'unreadTransfers',
       'latestUnreadTransferId',
+      'readUpTo',
     ])
   })
 

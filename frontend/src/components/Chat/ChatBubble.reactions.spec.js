@@ -1024,8 +1024,10 @@ describe('ChatBubble, the reactions to a message', () => {
 
     // ⛔ Measured at 320 px in a group: with the reactions beside it the hour gave way and broke
     // between its digits.
-    it('keeps the hour, the word "bearbeitet" and the mail sign whole beside the reactions', () => {
-      const kept = rule('.chat-bubble-mailed,\n.chat-bubble-edited,\n.chat-bubble-time')
+    it('keeps the hour, the word "bearbeitet", the mail sign and the ticks whole beside the reactions', () => {
+      const kept = rule(
+        '.chat-bubble-mailed,\n.chat-bubble-edited,\n.chat-bubble-time,\n.chat-bubble-receipt',
+      )
       expect(kept).toMatch(/flex:\s*0 0 auto/)
       expect(kept).toMatch(/white-space:\s*nowrap/)
     })
