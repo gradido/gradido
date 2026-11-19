@@ -35,14 +35,13 @@ turbo admin#lint
 ```
 turbo test
 ```
-For filtering out single tests: 
-```
-turbo test -- <test_name>
-```
-Everything after -- will be passed to vitest.
-
 or from root folder: 
 
 ```
 turbo admin#test
+```
+
+### Browser tests (Playwright)
+```
+bun run test:e2e
 ```

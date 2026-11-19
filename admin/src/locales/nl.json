@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Acties",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Chatgeschiedenis wissen",
     "chat-open": "Chat openen",
     "chat-placeholder": "Schrijf een bericht...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Gebruikersrol wijzigen",
   "chatAdmin": {
-    "adminOnly": "Alleen voor beheerders.",
     "created": "Server toegevoegd.",
     "edit": "Bewerken",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Naam",
     "newContributionLink": "Nieuwe bijdragelink",
     "noContributionLinks": "Er is geen bijdragelink aangemaakt.",
-    "noDateSelected": "Geen datum geselecteerd",
-    "noEndDate": "Geen einddatum gekozen.",
-    "noStartDate": "Geen startdatum gekozen.",
     "options": {
       "cycle": {
         "daily": "dagelijks",
@@ -160,7 +155,6 @@
     "validTo": "Einddatum"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "heeft zich op {createdAt} geregistreerd.",
     "noteWakesResubmission": "Je notitie haalt de herinnering van {name} weg.",
     "noteWakesResubmissionPlain": "Je notitie haalt de herinnering weg.",
     "resubmissionDateInPast": "De herinneringsdatum ligt in het verleden!"
@@ -361,9 +355,7 @@
     "toasted": "De openstaande creatie ({value} GDD) voor {email} is opgeslagen en staat klaar voor bevestiging.",
     "toasted_created": "De creatie is succesvol opgeslagen",
     "toasted_delete": "De openstaande creatie is verwijderd",
-    "toasted_denied": "De openstaande creatie is afgewezen",
-    "toasted_update": "De openstaande creatie ({value} GDD) voor {email} is gewijzigd en staat klaar voor bevestiging.",
-    "update_creation": "Creatie bijwerken"
+    "toasted_denied": "De openstaande creatie is afgewezen"
   },
   "dashboard": {
     "resubmission": "Daarnaast: {n} met herinnering",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Gradido-beheergedeelte",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Annuleren"
@@ -530,7 +521,6 @@
   "longitude": "Lengtegraad:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Geselecteerde space: {spaceId} (Geen toegangsrechten)",
     "openSpaceInHumhub": "Openen in Humhub",
     "selectSpace": "Humhub-space selecteren",
-    "spaceId": "Humhub-space-ID",
     "title": "Projectbranding",
     "updated": "De projectbranding-vermelding is bijgewerkt."
   },

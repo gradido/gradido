@@ -37,13 +37,12 @@ Migrating queries proceeds in four separate steps, never merged into one:
 
 Transaction safety while both ORMs coexist: `AppDatabase` holds a TypeORM `DataSource` and a separate Drizzle pool — two connection pools, so **a TypeORM transaction does not cover Drizzle writes**. Anything that must be atomic has to sit on one ORM. Migrate along transaction boundaries, not table by table.
 
-## The admin exists twice
+## The admin
 
-The admin interface is in the middle of a rewrite: `admin/` (Vue) and `admin-mithril/` (Mithril) coexist. The bare-metal deployment serves `admin-mithril/build`. The Docker Compose setup still serves `admin/`. **Changes to the admin's behaviour are made in `admin-mithril/` only** — a fix, a new field, a new page. `admin/` is no longer brought along; it stays as it is until it is removed.
+The admin interface (`admin/`) is written in Mithril and built with Vite; nginx serves `admin/build`.
 
-- **Shared files:** `admin-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `admin/src` through the `@admin` alias. They still live there and are changed there.
-- **Specs:** the Playwright specs in `admin-mithril/tests` run against the old admin (project `old`), and against the Mithril admin (project `new`) only once their file is listed in `PORTED_TO_MITHRIL` in `admin-mithril/playwright.config.ts`. A spec for something only the Mithril admin has goes into that list and skips the old one with `test.skip(info.project.name === 'old', '<reason>')`; otherwise it runs in no project at all.
-- **Running the specs:** `cd admin-mithril && bun run test:compare`. The old admin's own Vitest suite (`bunx turbo test --filter=admin`) keeps running as well.
+- **Unit tests:** `bun test` files next to the code (`src/**/*.test.ts`), run with `bunx turbo test --filter=admin`.
+- **Browser tests:** the Playwright specs in `admin/tests` run against the built admin, with the backend answered by the specs: `cd admin && bun run test:e2e`.
 
 # Running builds, tests and checks
 
@@ -84,9 +83,9 @@ As long as no other workspace has been modified and no new database migration ha
 
 Different workspaces use different test frameworks internally:
 
-- `shared`, `core`, `database`, `federation` → Bun
+- `shared`, `core`, `database`, `federation`, `admin` → Bun
 - `backend`, `dht-node` → Jest
-- `frontend`, `admin` → Vitest
+- `frontend` → Vitest
 
 `backend` runs its tests as two kinds (`backend/jest.config.js`). A file that calls `testEnvironment…()` or `cleanDB()` from `test/helpers.ts`, or that carries a line `// jest: serial` with its reason, runs one at a time (`test:serial`). Every other file runs in parallel, with the database and Redis unreachable (`test:parallel`). A test that needs the database therefore sets it up through those helpers — reaching for it any other way fails in the parallel run.
 

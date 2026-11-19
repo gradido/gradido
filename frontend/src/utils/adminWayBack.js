@@ -63,7 +63,7 @@ export const forgetWayBack = (win = window) => {
 
 /**
  * The address that signs this moderator in to the admin interface and lands them on `back`.
- * The admin interface takes the page after the sign-in (`redirect`, admin/src/router/guards.ts).
+ * The admin interface takes the page after the sign-in (`redirect`, admin/src/router/pageAfterSignIn.ts).
  * Where the two apps share no origin the token ends the address (`?token=` + token), so the page
  * goes behind it.
  */

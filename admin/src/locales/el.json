@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Ενέργειες",
   "ai": {
-    "chat": "Συνομιλία",
     "chat-clear": "Διαγραφή ιστορικού συνομιλίας",
     "chat-open": "Άνοιγμα συνομιλίας",
     "chat-placeholder": "Γράψε ένα μήνυμα...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Αλλαγή ρόλου χρήστη",
   "chatAdmin": {
-    "adminOnly": "Μόνο για διαχειριστές.",
     "created": "Ο διακομιστής προστέθηκε.",
     "edit": "Επεξεργασία",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Όνομα",
     "newContributionLink": "Νέος σύνδεσμος συνεισφοράς",
     "noContributionLinks": "Δεν έχει δημιουργηθεί κανένας σύνδεσμος συνεισφοράς.",
-    "noDateSelected": "Δεν επιλέχθηκε ημερομηνία",
-    "noEndDate": "Δεν επιλέχθηκε ημερομηνία λήξης.",
-    "noStartDate": "Δεν επιλέχθηκε ημερομηνία έναρξης.",
     "options": {
       "cycle": {
         "daily": "καθημερινά",
@@ -160,7 +155,6 @@
     "validTo": "Ημερομηνία λήξης"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "εγγράφηκε στις {createdAt}.",
     "noteWakesResubmission": "Η σημείωσή σου αφαιρεί την υπενθύμιση που όρισε {name}.",
     "noteWakesResubmissionPlain": "Η σημείωσή σου αφαιρεί την υπενθύμιση.",
     "resubmissionDateInPast": "Η ημερομηνία υπενθύμισης είναι στο παρελθόν!"
@@ -361,9 +355,7 @@
     "toasted": "Η ανοιχτή δημιουργία ({value} GDD) για {email} αποθηκεύτηκε και είναι έτοιμη για επιβεβαίωση.",
     "toasted_created": "Η δημιουργία αποθηκεύτηκε με επιτυχία",
     "toasted_delete": "Η ανοιχτή δημιουργία διαγράφηκε",
-    "toasted_denied": "Η ανοιχτή δημιουργία απορρίφθηκε",
-    "toasted_update": "Η ανοιχτή δημιουργία ({value} GDD) για {email} τροποποιήθηκε και είναι έτοιμη για επιβεβαίωση.",
-    "update_creation": "Ενημέρωση δημιουργίας"
+    "toasted_denied": "Η ανοιχτή δημιουργία απορρίφθηκε"
   },
   "dashboard": {
     "resubmission": "Επιπλέον: {n} με υπενθύμιση",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Χώρος διαχείρισης Gradido",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Άκυρο"
@@ -530,7 +521,6 @@
   "longitude": "Γεωγραφικό μήκος:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Επιλεγμένος χώρος: {spaceId} (Χωρίς δικαιώματα πρόσβασης)",
     "openSpaceInHumhub": "Άνοιγμα στο Humhub",
     "selectSpace": "Επιλογή χώρου Humhub",
-    "spaceId": "ID χώρου Humhub",
     "title": "Επωνυμία έργου",
     "updated": "Η καταχώριση επωνυμίας έργου ενημερώθηκε."
   },

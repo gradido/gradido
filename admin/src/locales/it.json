@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Azioni",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Cancella la cronologia della chat",
     "chat-open": "Apri la chat",
     "chat-placeholder": "Scrivi un messaggio...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Cambia il ruolo dell'utente",
   "chatAdmin": {
-    "adminOnly": "Solo per amministratori.",
     "created": "Server aggiunto.",
     "edit": "Modifica",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Nome",
     "newContributionLink": "Nuovo link di contributo",
     "noContributionLinks": "Non è stato creato alcun link di contributo.",
-    "noDateSelected": "Nessuna data selezionata",
-    "noEndDate": "Nessuna data di fine scelta.",
-    "noStartDate": "Nessuna data di inizio scelta.",
     "options": {
       "cycle": {
         "daily": "giornaliero",
@@ -160,7 +155,6 @@
     "validTo": "Data di fine"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "si è registrato il {createdAt}.",
     "noteWakesResubmission": "La tua nota toglie il promemoria impostato da {name}.",
     "noteWakesResubmissionPlain": "La tua nota toglie il promemoria.",
     "resubmissionDateInPast": "La data di promemoria è nel passato!"
@@ -361,9 +355,7 @@
     "toasted": "La creazione aperta ({value} GDD) per {email} è stata salvata ed è pronta per la conferma.",
     "toasted_created": "La creazione è stata salvata con successo",
     "toasted_delete": "La creazione aperta è stata eliminata",
-    "toasted_denied": "La creazione aperta è stata rifiutata",
-    "toasted_update": "La creazione aperta ({value} GDD) per {email} è stata modificata ed è pronta per la conferma.",
-    "update_creation": "Aggiorna la creazione"
+    "toasted_denied": "La creazione aperta è stata rifiutata"
   },
   "dashboard": {
     "resubmission": "Inoltre: {n} con promemoria",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Area di amministrazione Gradido",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Annulla"
@@ -530,7 +521,6 @@
   "longitude": "Longitudine:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Spazio selezionato: {spaceId} (Nessun diritto di accesso)",
     "openSpaceInHumhub": "Apri in Humhub",
     "selectSpace": "Seleziona lo spazio Humhub",
-    "spaceId": "ID dello spazio Humhub",
     "title": "Branding del progetto",
     "updated": "La voce di branding del progetto è stata aggiornata."
   },

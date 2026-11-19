@@ -13,13 +13,13 @@
     // no light flash. On the root element: color-scheme has to reach it, and the windows hung on
     // the body sit below it. In the dark the window's bar too: as an installed app the admin runs
     // in the wallet's window, whose bar would otherwise keep the wallet's light. Its colour is
-    // DARK_BAR_COLOUR there; src/composables/useTheme.ts follows every change after this.
+    // DARK_BAR_COLOUR there; src/theme.ts follows every change after this.
     ;(function () {
       var mode = null
       try {
         mode = window.localStorage.getItem('gradido-theme-mode')
       } catch (e) {
-        // A private window may refuse the storage: then the system decides, as in useTheme.ts.
+        // A private window may refuse the storage: then the system decides, as in src/theme.ts.
       }
       if (mode !== 'light' && mode !== 'dark') mode = 'system'
       if (

@@ -10,7 +10,7 @@
  * declares Open Sans, the admin's pages do not know the family. So this one declares it first.
  *
  * - The declaration is a copy of the wallet's (assets/fonts/open-sans/open-sans.css, kept
- *   byte-identical by printFont.spec.js). Its addresses are /fonts/open-sans/..., the files
+ *   byte-identical by printFont.test.ts). Its addresses are /fonts/open-sans/..., the files
  *   the wallet serves from its root -- where the cheque fetches its pictures as well.
  * - ⛔ Imported with `?raw` and hung in as a <style>, not imported as a stylesheet: vite cannot
  *   resolve those addresses in the admin (base '/admin/', no public folder) and warns once

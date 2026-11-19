@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Aktionen",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Chat-Verlauf löschen",
     "chat-open": "Chat öffnen",
     "chat-placeholder": "Schreibe eine Nachricht...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Nutzerrolle ändern",
   "chatAdmin": {
-    "adminOnly": "Nur für Administratoren.",
     "created": "Server eingetragen.",
     "edit": "Bearbeiten",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Name",
     "newContributionLink": "Neuer Beitragslink",
     "noContributionLinks": "Es sind keine Beitragslinks angelegt.",
-    "noDateSelected": "Kein Datum ausgewählt",
-    "noEndDate": "Kein Enddatum gewählt.",
-    "noStartDate": "Kein Startdatum gewählt.",
     "options": {
       "cycle": {
         "daily": "täglich",
@@ -160,7 +155,6 @@
     "validTo": "Enddatum"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "hat sich am {createdAt} registriert.",
     "noteWakesResubmission": "Deine Notiz nimmt die Wiedervorlage von {name} zurück.",
     "noteWakesResubmissionPlain": "Deine Notiz nimmt die Wiedervorlage zurück.",
     "resubmissionDateInPast": "Wiedervorlage Datum befindet sich in der Vergangenheit!"
@@ -361,9 +355,7 @@
     "toasted": "Offene Schöpfung ({value} GDD) für {email} wurde gespeichert und liegt zur Bestätigung bereit",
     "toasted_created": "Schöpfung wurde erfolgreich gespeichert",
     "toasted_delete": "Offene Schöpfung wurde gelöscht",
-    "toasted_denied": "Offene Schöpfung wurde abgelehnt",
-    "toasted_update": "`Offene Schöpfung {value} GDD) für {email} wurde geändert und liegt zur Bestätigung bereit",
-    "update_creation": "Schöpfung aktualisieren"
+    "toasted_denied": "Offene Schöpfung wurde abgelehnt"
   },
   "dashboard": {
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Gradido Admin-Bereich",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Abbrechen"
@@ -530,7 +521,6 @@
   "longitude": "Längengrad:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Gewählter Space: {spaceId} (Keine Zugriffsrechte)",
     "openSpaceInHumhub": "In Humhub öffnen",
     "selectSpace": "Humhub Space auswählen",
-    "spaceId": "Humhub Space ID",
     "title": "Projekt-Branding",
     "updated": "Projekt-Branding-Eintrag wurde aktualisiert."
   },

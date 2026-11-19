@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 // that only holds while the settings in both files stay the same.
 //
 // What the functions actually do is tested next to the admin copy, in
-// admin/src/utils/qrCode.spec.js. Running the same cases twice would only mean two
+// admin/src/utils/qrCode.test.ts. Running the same cases twice would only mean two
 // places to change.
 
 // fileURLToPath is handed the string import.meta.url, never a URL object built here.

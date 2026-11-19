@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "İşlemler",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Sohbet geçmişini temizle",
     "chat-open": "Sohbeti aç",
     "chat-placeholder": "Bir mesaj yaz...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Kullanıcı rolünü değiştir",
   "chatAdmin": {
-    "adminOnly": "Yalnızca yöneticiler için.",
     "created": "Sunucu eklendi.",
     "edit": "Düzenle",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Ad",
     "newContributionLink": "Yeni katkı bağlantısı",
     "noContributionLinks": "Hiç katkı bağlantısı oluşturulmadı.",
-    "noDateSelected": "Tarih seçilmedi",
-    "noEndDate": "Bitiş tarihi seçilmedi.",
-    "noStartDate": "Başlangıç tarihi seçilmedi.",
     "options": {
       "cycle": {
         "daily": "günlük",
@@ -160,7 +155,6 @@
     "validTo": "Bitiş tarihi"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "{createdAt} tarihinde kaydoldu.",
     "noteWakesResubmission": "Notun, {name} tarafından kurulan hatırlatmayı kaldırır.",
     "noteWakesResubmissionPlain": "Notun hatırlatmayı kaldırır.",
     "resubmissionDateInPast": "Hatırlatma tarihi geçmişte!"
@@ -361,9 +355,7 @@
     "toasted": "{email} için açık oluşturma ({value} GDD) kaydedildi ve onaya hazır.",
     "toasted_created": "Oluşturma başarıyla kaydedildi",
     "toasted_delete": "Açık oluşturma silindi",
-    "toasted_denied": "Açık oluşturma reddedildi",
-    "toasted_update": "{email} için açık oluşturma ({value} GDD) değiştirildi ve onaya hazır.",
-    "update_creation": "Oluşturmayı güncelle"
+    "toasted_denied": "Açık oluşturma reddedildi"
   },
   "dashboard": {
     "resubmission": "Ayrıca hatırlatmalı: {n}",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Gradido Yönetim Alanı",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "İptal"
@@ -530,7 +521,6 @@
   "longitude": "Boylam:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Seçilen alan: {spaceId} (Erişim hakkı yok)",
     "openSpaceInHumhub": "Humhub'da aç",
     "selectSpace": "Humhub alanı seç",
-    "spaceId": "Humhub Alan ID",
     "title": "Proje markalaması",
     "updated": "Proje markalama girişi güncellendi."
   },

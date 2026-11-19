@@ -41,7 +41,7 @@ describe('FigureQrCode', () => {
     wrapper.unmount()
   })
 
-  // The same settings are asserted in admin/src/utils/qrCode.spec.js. Together they are
+  // The same settings are asserted in admin/src/utils/qrCode.test.ts. Together they are
   // what keeps the code on screen and the code on a printed cheque the same code.
   it('has options filled', () => {
     expect(wrapper.vm.options).toEqual({

@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Ações",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Limpar o histórico do chat",
     "chat-open": "Abrir o chat",
     "chat-placeholder": "Escreve uma mensagem...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Alterar a função do utilizador",
   "chatAdmin": {
-    "adminOnly": "Apenas para administradores.",
     "created": "Servidor adicionado.",
     "edit": "Editar",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Nome",
     "newContributionLink": "Novo link de contribuição",
     "noContributionLinks": "Não foi criado nenhum link de contribuição.",
-    "noDateSelected": "Nenhuma data selecionada",
-    "noEndDate": "Nenhuma data de fim escolhida.",
-    "noStartDate": "Nenhuma data de início escolhida.",
     "options": {
       "cycle": {
         "daily": "diário",
@@ -160,7 +155,6 @@
     "validTo": "Data de fim"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "registou-se em {createdAt}.",
     "noteWakesResubmission": "A tua nota retira o lembrete definido por {name}.",
     "noteWakesResubmissionPlain": "A tua nota retira o lembrete.",
     "resubmissionDateInPast": "A data de lembrete está no passado!"
@@ -361,9 +355,7 @@
     "toasted": "A criação aberta ({value} GDD) para {email} foi guardada e está pronta para confirmação.",
     "toasted_created": "A criação foi guardada com sucesso",
     "toasted_delete": "A criação aberta foi eliminada",
-    "toasted_denied": "A criação aberta foi rejeitada",
-    "toasted_update": "A criação aberta ({value} GDD) para {email} foi alterada e está pronta para confirmação.",
-    "update_creation": "Atualizar a criação"
+    "toasted_denied": "A criação aberta foi rejeitada"
   },
   "dashboard": {
     "resubmission": "Além disso: {n} com lembrete",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Área de administração Gradido",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Cancelar"
@@ -530,7 +521,6 @@
   "longitude": "Longitude:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Espaço selecionado: {spaceId} (Sem direitos de acesso)",
     "openSpaceInHumhub": "Abrir no Humhub",
     "selectSpace": "Selecionar o espaço Humhub",
-    "spaceId": "ID do espaço Humhub",
     "title": "Marca do projeto",
     "updated": "A entrada de marca do projeto foi atualizada."
   },

@@ -314,9 +314,8 @@ MODULES=(
   database
   backend
   frontend
-  # the admin interface, served by nginx from admin-mithril/build (the Vue admin in admin/ is no
-  # longer deployed; admin-mithril still reads its GraphQL documents, locales and styles)
-  admin-mithril
+  # the admin interface, served by nginx from admin/build
+  admin
   dht-node
   federation
 )
@@ -350,6 +349,9 @@ if [ "$FAST_MODE" = false ] ; then
   done
 fi
 
+# what git leaves of the folder the admin interface was built in up to v3.2.0 (.env, build)
+rm -rf "$PROJECT_ROOT/admin-mithril"
+
 # Regenerate .env files for all modules
 log_step 'Regenerate .env files'
 for dir in "${MODULES[@]}"; do
@@ -367,7 +369,6 @@ bun install --frozen-lockfile
 
 # build all modules
 log_step 'build all modules'
-# without the Vue admin: admin-mithril is served in its place, and reads its sources, not its build
 # Parallel builds are about 30% faster, but peak at roughly 2.2 GB of RAM (one build at a time:
 # roughly 1.7 GB, measured on 16 cores). On a small server without swap that fills the memory and
 # freezes the machine, so build in parallel only if enough memory (RAM + swap) is free right now.
@@ -379,7 +380,7 @@ else
   BUILD_CONCURRENCY=1
 fi
 echo "${BUILD_FREE_MB} MB memory free, build with concurrency ${BUILD_CONCURRENCY}"
-if [ "$BUILD_CONCURRENCY" -gt 1 ] && bunx turbo build --env-mode=loose --concurrency="$BUILD_CONCURRENCY" --filter='!admin'; then
+if [ "$BUILD_CONCURRENCY" -gt 1 ] && bunx turbo build --env-mode=loose --concurrency="$BUILD_CONCURRENCY"; then
   :
 else
   # either too little memory, or the parallel build failed, maybe killed for lack of memory:
@@ -387,7 +388,7 @@ else
   if [ "$BUILD_CONCURRENCY" -gt 1 ]; then
     echo 'parallel build failed, retry with concurrency 1'
   fi
-  bunx turbo build --env-mode=loose --concurrency=1 --filter='!admin'
+  bunx turbo build --env-mode=loose --concurrency=1
 fi
 
 # build inspector and dlt-connector
