@@ -3,20 +3,29 @@
     "target": "es2022",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "lib": ["es2022", "dom", "dom.iterable"],
-    "jsx": "preserve",
-    "jsxImportSource": "vue",
+    "lib": [
+      "es2022",
+      "dom",
+      "dom.iterable"
+    ],
     "strict": true,
     "noEmit": true,
-    "allowJs": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
-    "types": ["vite/client", "vitest/globals", "unplugin-icons/types/vue"]
+    "types": [
+      "vite/client",
+      "bun",
+      "unplugin-icons/types/raw"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.ts"
+  ]
 }

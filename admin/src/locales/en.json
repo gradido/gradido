@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Actions",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Clear chat",
     "chat-open": "Open chat",
     "chat-placeholder": "Type your message here...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Change user role",
   "chatAdmin": {
-    "adminOnly": "Administrators only.",
     "created": "Server added.",
     "edit": "Edit",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Name",
     "newContributionLink": "New contribution link",
     "noContributionLinks": "No contribution link has been created.",
-    "noDateSelected": "No date selected",
-    "noEndDate": "No end-date",
-    "noStartDate": "No start-date",
     "options": {
       "cycle": {
         "daily": "daily",
@@ -160,7 +155,6 @@
     "validTo": "End-Date"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "registered on {createdAt}.",
     "noteWakesResubmission": "Your note removes the reminder set by {name}.",
     "noteWakesResubmissionPlain": "Your note removes the reminder.",
     "resubmissionDateInPast": "Resubmission date is in the past!"
@@ -361,9 +355,7 @@
     "toasted": "Open creation ({value} GDD) for {email} has been saved and is ready for confirmation.",
     "toasted_created": "Creation has been successfully saved",
     "toasted_delete": "Open creation has been deleted",
-    "toasted_denied": "Open creation has been rejected",
-    "toasted_update": "Open creation {value} GDD) for {email} has been changed and is ready for confirmation.",
-    "update_creation": "Creation update"
+    "toasted_denied": "Open creation has been rejected"
   },
   "dashboard": {
     "resubmission": "Also: {n} on resubmission",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Gradido Admin Area",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Cancel"
@@ -530,7 +521,6 @@
   "longitude": "Longitude:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
     "openSpaceInHumhub": "Open in Humhub",
     "selectSpace": "Select Humhub Space",
-    "spaceId": "Humhub Space ID",
     "title": "Project Branding",
     "updated": "Project branding entry has been updated."
   },

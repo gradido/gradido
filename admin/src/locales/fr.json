@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Actions",
   "ai": {
-    "chat": "Chat",
     "chat-clear": "Effacer l'historique du chat",
     "chat-open": "Ouvrir le chat",
     "chat-placeholder": "Écris un message...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Changer le rôle de l'utilisateur",
   "chatAdmin": {
-    "adminOnly": "Réservé aux administrateurs.",
     "created": "Serveur ajouté.",
     "edit": "Modifier",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Nom",
     "newContributionLink": "Nouveau lien de contribution",
     "noContributionLinks": "Aucun lien de contribution n'a été créé.",
-    "noDateSelected": "Aucune date sélectionnée",
-    "noEndDate": "Aucune date de fin choisie.",
-    "noStartDate": "Aucune date de début choisie.",
     "options": {
       "cycle": {
         "daily": "quotidien",
@@ -160,7 +155,6 @@
     "validTo": "Date de fin"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "s'est inscrit le {createdAt}.",
     "noteWakesResubmission": "Ta note retire le rappel posé par {name}.",
     "noteWakesResubmissionPlain": "Ta note retire le rappel.",
     "resubmissionDateInPast": "La date de rappel est dans le passé !"
@@ -361,9 +355,7 @@
     "toasted": "La création ouverte ({value} GDD) pour {email} a été enregistrée et est prête à être confirmée.",
     "toasted_created": "La création a été enregistrée avec succès",
     "toasted_delete": "La création ouverte a été supprimée",
-    "toasted_denied": "La création ouverte a été refusée",
-    "toasted_update": "La création ouverte ({value} GDD) pour {email} a été modifiée et est prête à être confirmée.",
-    "update_creation": "Mettre à jour la création"
+    "toasted_denied": "La création ouverte a été refusée"
   },
   "dashboard": {
     "resubmission": "En plus : {n} avec rappel",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Espace d'administration Gradido",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Annuler"
@@ -530,7 +521,6 @@
   "longitude": "Longitude :",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Espace sélectionné : {spaceId} (Aucun droit d'accès)",
     "openSpaceInHumhub": "Ouvrir dans Humhub",
     "selectSpace": "Sélectionner l'espace Humhub",
-    "spaceId": "ID de l'espace Humhub",
     "title": "Image du projet",
     "updated": "L'entrée d'image du projet a été mise à jour."
   },

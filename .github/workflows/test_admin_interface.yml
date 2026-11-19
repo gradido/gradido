@@ -4,11 +4,14 @@ on:
   push:
     paths:
       - 'admin/**'
+      # the answers the Playwright specs make up are held against it (admin/tests/fixtures/graphql.ts)
+      - 'backend/schema.graphql'
       - 'config-schema/**'
+      - 'shared/**'
       - '.bun-version'
       - '.nvmrc'
       - '.github/workflows/test_admin_interface.yml'
-      # Wallet files the admin's specs hold their own copies against (admin/src/workflowPaths.spec.js)
+      # Wallet files the admin's tests hold their own copies against (admin/src/workflowPaths.test.ts)
       - 'frontend/src/assets/scss/gradido-template-dark.scss'
       - 'frontend/src/assets/fonts/open-sans/open-sans.css'
       - 'frontend/src/utils/avatarColor.ts'
@@ -31,26 +34,25 @@ jobs:
     steps:
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Admin Interface | Build 'test' image
         run: docker build -f ./admin/Dockerfile --target production -t "gradido/admin:production" --build-arg NODE_ENV="production" --build-arg BUILD_COMMIT=$(git rev-parse HEAD) --build-arg BUILD_COMMIT_SHORT=$(git rev-parse --short HEAD) .
 
+  # The name is a required status check: it stays as it is, whatever the job runs.
   unit_test_lint:
     name: Unit Tests & Lint & Stylelint & Locales - Admin Interface
     runs-on: ubuntu-latest
-    outputs:
-      test-success: ${{ steps.test.outputs.success }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set Node.js version
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
 
-      - name: install bun 
+      - name: install bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: '.bun-version'
@@ -60,7 +62,76 @@ jobs:
           bun install --filter admin --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      - name: Admin Interface | Unit tests
-        id: test
+      # Only config-schema: of shared the admin takes a type alone (Result), and turbo's ^build
+      # would build shared-native, a Zig addon, for it.
+      - name: build what the admin imports
+        run: turbo build --filter=config-schema
+
+      - name: Admin Interface | Unit tests, lint, stylelint, locales, typecheck
+        working-directory: admin
         run: |
-          turbo admin#test admin#lint admin#locales
+          bun run test
+          bun run lint
+          bun run stylelint
+          bun run locales
+          bun run typecheck
+
+  e2e:
+    name: Playwright - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: install bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter admin --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      # Only config-schema: of shared the admin takes a type alone (Result), and turbo's ^build
+      # would build shared-native, a Zig addon, for it.
+      - name: build what the admin imports
+        run: turbo build --filter=config-schema
+
+      # The browser moves with the Playwright version, and so does the key.
+      - name: Cache Playwright's Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('admin/package.json') }}
+
+      - name: install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        working-directory: admin
+        run: bunx playwright install --with-deps chromium
+
+      - name: install Chromium's system libraries
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        working-directory: admin
+        run: bunx playwright install-deps chromium
+
+      # A test that passes only on its retry fails the run: the retry is there for the trace.
+      - name: Admin Interface | Playwright
+        id: playwright
+        working-directory: admin
+        run: bunx playwright test --fail-on-flaky-tests
+
+      # traces of the failed tests (trace: on-first-retry in CI)
+      - name: upload traces of failed tests
+        if: ${{ failure() && steps.playwright.conclusion == 'failure' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-test-results
+          path: admin/test-results
+          retention-days: 7

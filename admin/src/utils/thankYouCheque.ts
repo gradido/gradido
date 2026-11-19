@@ -24,7 +24,7 @@
  *
  * This file exists twice, once in the wallet and once in the admin, because the
  * two applications share no code. The copies are byte-identical and a test keeps
- * them that way: admin/src/utils/thankYouCheque.spec.js fails as soon as they
+ * them that way: admin/src/utils/thankYouCheque.test.ts fails as soon as they
  * drift apart. Change the cheque here and copy the file over, or the printed
  * starting bonus stops looking like the printed thank-you cheque.
  */

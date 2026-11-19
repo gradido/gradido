@@ -2,7 +2,6 @@
   "GDD": "GDD",
   "actions": "Действия",
   "ai": {
-    "chat": "Чат",
     "chat-clear": "Очистить историю чата",
     "chat-open": "Открыть чат",
     "chat-placeholder": "Напишите сообщение...",
@@ -43,7 +42,6 @@
   },
   "change_user_role": "Изменить роль пользователя",
   "chatAdmin": {
-    "adminOnly": "Только для администраторов.",
     "created": "Сервер добавлен.",
     "edit": "Изменить",
     "errors": {
@@ -145,9 +143,6 @@
     "name": "Название",
     "newContributionLink": "Новая ссылка на вклад",
     "noContributionLinks": "Ссылки на вклады не созданы.",
-    "noDateSelected": "Дата не выбрана",
-    "noEndDate": "Дата окончания не выбрана.",
-    "noStartDate": "Дата начала не выбрана.",
     "options": {
       "cycle": {
         "daily": "ежедневно",
@@ -160,7 +155,6 @@
     "validTo": "Дата окончания"
   },
   "contributionMessagesForm": {
-    "hasRegisteredAt": "зарегистрировался {createdAt}.",
     "noteWakesResubmission": "Ваша заметка снимает напоминание модератора {name}.",
     "noteWakesResubmissionPlain": "Ваша заметка снимает напоминание.",
     "resubmissionDateInPast": "Дата напоминания в прошлом!"
@@ -361,9 +355,7 @@
     "toasted": "Открытое создание ({value} GDD) для {email} сохранено и готово к подтверждению.",
     "toasted_created": "Создание успешно сохранено",
     "toasted_delete": "Открытое создание удалено",
-    "toasted_denied": "Открытое создание отклонено",
-    "toasted_update": "Открытое создание ({value} GDD) для {email} изменено и готово к подтверждению.",
-    "update_creation": "Обновить создание"
+    "toasted_denied": "Открытое создание отклонено"
   },
   "dashboard": {
     "resubmission": "Кроме того, с напоминанием: {n}",
@@ -488,8 +480,7 @@
     "copyright": {
       "link": "Раздел администрирования Gradido",
       "year": "© {year}"
-    },
-    "short_hash": "({shortHash})"
+    }
   },
   "form": {
     "cancel": "Отмена"
@@ -530,7 +521,6 @@
   "longitude": "Долгота:",
   "math": {
     "equals": "=",
-    "pipe": "|",
     "plus": "+"
   },
   "message": {
@@ -622,7 +612,6 @@
     "noAccessRightSpace": "Выбранное пространство: {spaceId} (Нет прав доступа)",
     "openSpaceInHumhub": "Открыть в Humhub",
     "selectSpace": "Выбрать пространство Humhub",
-    "spaceId": "ID пространства Humhub",
     "title": "Брендинг проекта",
     "updated": "Запись брендинга проекта обновлена."
   },

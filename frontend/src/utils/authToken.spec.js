@@ -68,7 +68,7 @@ describe('authToken', () => {
     return win
   }
 
-  // The other app holds a test of its own with the same key (admin/src/utils/authToken.spec.js).
+  // The other app holds a test of its own with the same key (admin/src/utils/authToken.test.ts).
   it('keeps under the key both apps read', () => {
     expect(AUTH_TOKEN_KEY).toBe('auth-token')
   })

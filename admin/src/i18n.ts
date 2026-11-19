@@ -1,50 +1,79 @@
 // AI-GENERATED — not an architecture reference
-import { createI18n, type DefineDateTimeFormat, type DefineNumberFormat } from 'vue-i18n'
-import de from './locales/de.json'
-import el from './locales/el.json'
-import en from './locales/en.json'
-import es from './locales/es.json'
-import fr from './locales/fr.json'
-import it from './locales/it.json'
-import nl from './locales/nl.json'
-import pt from './locales/pt.json'
-import ru from './locales/ru.json'
-import tr from './locales/tr.json'
 
-const decimalFormat: DefineNumberFormat = {
-  decimal: {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  },
-  ungroupedDecimal: {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-    useGrouping: false,
-  },
+import { timeAgo } from '@/data/RelativeTime.logic'
+import en from '@/locales/en.json'
+
+type Messages = { [key: string]: string | Messages }
+
+// English is always here: it stands in for whatever another language lacks. Every other language
+// is fetched once it is chosen -- a session reads one, not all ten.
+const LANGUAGES: Record<string, () => Promise<{ default: Messages }>> = {
+  de: () => import('@/locales/de.json'),
+  el: () => import('@/locales/el.json'),
+  en: async () => ({ default: en }),
+  es: () => import('@/locales/es.json'),
+  fr: () => import('@/locales/fr.json'),
+  it: () => import('@/locales/it.json'),
+  nl: () => import('@/locales/nl.json'),
+  pt: () => import('@/locales/pt.json'),
+  ru: () => import('@/locales/ru.json'),
+  tr: () => import('@/locales/tr.json'),
 }
 
-const numberFormats = {
-  en: decimalFormat,
-  de: decimalFormat,
-  es: decimalFormat,
-  fr: decimalFormat,
-  nl: decimalFormat,
-  it: decimalFormat,
-  tr: decimalFormat,
-  ru: decimalFormat,
-  pt: decimalFormat,
-  el: decimalFormat,
+const messages: Record<string, Messages> = { en }
+let locale = 'en'
+
+/** The language shown. */
+export const currentLocale = () => locale
+
+/**
+ * Switches the language, once its messages are fetched; one the admin has no messages for stays
+ * English, as before -- and so does one that could not be fetched.
+ */
+export const setLocale = async (language: string) => {
+  const words = await LANGUAGES[language]?.().catch(() => undefined)
+  if (words) {
+    messages[language] = words.default
+  }
+  locale = words ? language : 'en'
 }
 
-const datetimeFormatEn: DefineDateTimeFormat = {
-  short: {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-  },
-  // The date with the time of day, as short: when the remark on a member was written last.
+const lookup = (language: string, key: string) => {
+  const found = key
+    .split('.')
+    .reduce<string | Messages | undefined>(
+      (node, part) => (typeof node === 'object' ? node[part] : undefined),
+      messages[language],
+    )
+  return typeof found === 'string' ? found : undefined
+}
+
+// Which of the forms of a message `a | b` or `a | b | c` stands for `count`, by vue-i18n's rule:
+// of two, the first for one and the second for any other count; of three, 0, 1 and more.
+const pluralForm = (message: string, count: number) => {
+  const forms = message.split(' | ')
+  const n = Math.abs(count)
+  const index = forms.length === 2 ? (n === 1 ? 0 : 1) : Math.min(n, forms.length - 1)
+  return forms[index]
+}
+
+/**
+ * The message of `key` in the current language, English where it has none, the key itself where
+ * neither has it (as vue-i18n did); `{name}` is filled from `values`. With `count`, the plural
+ * form of a message `one | many` for it.
+ */
+export const t = (key: string, values: Record<string, string | number> = {}, count?: number) => {
+  const message = lookup(locale, key) ?? lookup('en', key) ?? key
+  return (count === undefined ? message : pluralForm(message, count)).replace(
+    /\{(\w+)\}/g,
+    (placeholder, name) => (name in values ? String(values[name]) : placeholder),
+  )
+}
+
+// The date formats of the old admin (its `datetimeFormats`): the same fields in every language,
+// whose order Intl takes from the language.
+const DATE_FORMATS = {
+  short: { year: 'numeric', month: 'numeric', day: 'numeric' },
   shortTime: {
     year: 'numeric',
     month: 'numeric',
@@ -60,68 +89,32 @@ const datetimeFormatEn: DefineDateTimeFormat = {
     hour: 'numeric',
     minute: 'numeric',
   },
-  monthShort: {
-    month: 'short',
-  },
-  month: {
-    month: 'long',
-  },
-  year: {
-    year: 'numeric',
-  },
-}
+  monthShort: { month: 'short' },
+  month: { month: 'long' },
+  year: { year: 'numeric' },
+} satisfies Record<string, Intl.DateTimeFormatOptions>
 
-const datetimeFormatDayFirst: DefineDateTimeFormat = {
-  short: {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-  },
-  // The date with the time of day, as short: when the remark on a member was written last.
-  shortTime: {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-  },
-  long: {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    weekday: 'long',
-    hour: 'numeric',
-    minute: 'numeric',
-  },
-  monthShort: {
-    month: 'short',
-  },
-  month: {
-    month: 'long',
-  },
-  year: {
-    year: 'numeric',
-  },
-}
+/**
+ * `date` in the current language, in one of the old admin's formats -- `short`, the numbers of
+ * day, month and year, where none is named, as there.
+ */
+export const d = (date: Date, format: keyof typeof DATE_FORMATS = 'short', language = locale) =>
+  new Intl.DateTimeFormat(language, DATE_FORMATS[format]).format(date)
 
-const datetimeFormats = {
-  en: datetimeFormatEn,
-  de: datetimeFormatDayFirst,
-  es: datetimeFormatDayFirst,
-  fr: datetimeFormatDayFirst,
-  nl: datetimeFormatDayFirst,
-  it: datetimeFormatDayFirst,
-  tr: datetimeFormatDayFirst,
-  ru: datetimeFormatDayFirst,
-  pt: datetimeFormatDayFirst,
-  el: datetimeFormatDayFirst,
-}
+/**
+ * `value` as a number in the current language: whole as it comes, `decimal` with two places (the
+ * sums of GDD).
+ */
+export const n = (value: number, format?: 'decimal') =>
+  new Intl.NumberFormat(
+    locale,
+    format === 'decimal' ? { minimumFractionDigits: 2, maximumFractionDigits: 2 } : {},
+  ).format(value)
 
-export const i18n = createI18n({
-  locale: 'en',
-  legacy: false,
-  fallbackLocale: 'en',
-  messages: { de, en, es, fr, nl, it, tr, ru, pt, el },
-  numberFormats,
-  datetimeFormats,
-})
+/**
+ * How long ago `date` was, in words of the current language: "vor 2 Tagen". Intl knows all ten
+ * languages; date-fns, which the old admin took, only five, and it said "etwa" and "fast" around
+ * the number.
+ */
+export const distanceToNow = (date: Date) =>
+  new Intl.RelativeTimeFormat(locale, { numeric: 'always' }).format(...timeAgo(date, new Date()))

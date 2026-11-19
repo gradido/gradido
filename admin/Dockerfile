@@ -74,7 +74,8 @@ RUN apk update && apk add --no-cache git
 # Run command
 CMD /bin/sh -c "bun install --filter admin --no-cache --frozen-lockfile \
   && bun install --global --no-cache --no-save turbo@^2 \
-  && turbo admin#dev --env-mode=loose" 
+  && turbo build --filter=config-schema --env-mode=loose \
+  && cd admin && bun run dev" 
 
 
 ##################################################################################
@@ -86,7 +87,9 @@ COPY --chown=app:app . .
 RUN bun install --filter admin --no-cache --frozen-lockfile \
 && bun install --global turbo@^2
 
-RUN turbo admin#build --env-mode=loose
+# Only config-schema: of shared the admin takes a type alone, and turbo's ^build would build
+# shared-native, a Zig addon, for it.
+RUN turbo build --filter=config-schema --env-mode=loose && cd admin && bun run build
 
 ##################################################################################
 # TEST ###########################################################################
@@ -94,7 +97,7 @@ RUN turbo admin#build --env-mode=loose
 FROM build as test
 
 # Run command
-CMD /bin/sh -c "turbo admin#test --env-mode=loose"
+CMD /bin/sh -c "cd admin && bun run test"
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #

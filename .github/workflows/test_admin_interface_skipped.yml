@@ -16,11 +16,14 @@ on:
   push:
     paths-ignore:
       - 'admin/**'
+      # the answers the Playwright specs make up are held against it (admin/tests/fixtures/graphql.ts)
+      - 'backend/schema.graphql'
       - 'config-schema/**'
+      - 'shared/**'
       - '.bun-version'
       - '.nvmrc'
       - '.github/workflows/test_admin_interface.yml'
-      # Wallet files the admin's specs hold their own copies against (admin/src/workflowPaths.spec.js)
+      # Wallet files the admin's tests hold their own copies against (admin/src/workflowPaths.test.ts)
       - 'frontend/src/assets/scss/gradido-template-dark.scss'
       - 'frontend/src/assets/fonts/open-sans/open-sans.css'
       - 'frontend/src/utils/avatarColor.ts'
@@ -45,6 +48,12 @@ jobs:
 
   unit_test_lint:
     name: Unit Tests & Lint & Stylelint & Locales - Admin Interface
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test_admin_interface.yml not affected by this change - reporting success so the required check does not hang."
+
+  e2e:
+    name: Playwright - Admin Interface
     runs-on: ubuntu-latest
     steps:
       - run: echo "test_admin_interface.yml not affected by this change - reporting success so the required check does not hang."

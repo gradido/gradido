@@ -206,11 +206,11 @@ describe('test', () => {
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup'
 ```
-- vitest (frontend, admin): 
+- vitest (frontend): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.vitest'
 ```
-- bun (shared, core, database, federation): 
+- bun (shared, core, database, federation, admin): 
 ```ts
 import { clearLogs, printLogs } from 'config-schema/test/testSetup.bun'
 ```
