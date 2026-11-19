@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { CHAT_IMAGE_MAX_SIDE } from 'shared/browser'
 import {
   AVATAR_QUALITY_STEPS,
   AVATAR_SOURCE_MAX_BYTES,
@@ -31,10 +32,10 @@ export const CHAT_IMAGE_TARGET_BYTES = 32 * 1024
 // unreadable; by area it is 393 x 1220.
 export const CHAT_IMAGE_AREA = 800 * 600
 
-// The server's bound on each side (CHAT_IMAGE_MAX_SIDE in `shared`, held by ChatImageInput). At
-// the area above only a panorama longer than about 35 : 1 reaches it; such a one is drawn smaller
-// still, whole, rather than refused by the server.
-export const CHAT_IMAGE_MAX_SIDE = 4096
+// The server's bound on each side (held by ChatImageInput). At the area above only a panorama
+// longer than about 35 : 1 reaches it; such a one is drawn smaller still, whole, rather than
+// refused by the server.
+export { CHAT_IMAGE_MAX_SIDE }
 
 // Where even the lowest quality does not bring a picture under the target, the next size is the
 // area times 0.8 (E-041: a size smaller rather than over the limit -- the avatar sends its lowest

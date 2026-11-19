@@ -1,4 +1,4 @@
-import { GradidoUnit } from './data'
+import type { GradidoUnit } from './data/GradidoUnit'
 
 export abstract class DomainError extends Error {
   constructor(message?: string) {

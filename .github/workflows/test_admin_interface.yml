@@ -62,7 +62,7 @@ jobs:
           bun install --filter admin --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      # Only config-schema: of shared the admin takes a type alone (Result), and turbo's ^build
+      # Only config-schema: of shared the admin takes `shared/browser`, from its source, and turbo's ^build
       # would build shared-native, a Zig addon, for it.
       - name: build what the admin imports
         run: turbo build --filter=config-schema
@@ -98,7 +98,7 @@ jobs:
           bun install --filter admin --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      # Only config-schema: of shared the admin takes a type alone (Result), and turbo's ^build
+      # Only config-schema: of shared the admin takes `shared/browser`, from its source, and turbo's ^build
       # would build shared-native, a Zig addon, for it.
       - name: build what the admin imports
         run: turbo build --filter=config-schema

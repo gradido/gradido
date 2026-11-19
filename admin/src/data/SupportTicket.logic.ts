@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX } from 'shared/browser'
 import type { Option } from '@/components/ThemedSelect'
 import { t } from '@/i18n'
 import { type DetailsState, groupFilterOptions } from './Contribution.logic'
@@ -6,13 +7,10 @@ import type { Moderator } from './Moderator.schema'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
 /**
- * The bounds of a thread as the server holds them (shared/src/const/index.ts, SUA-015, SUA-020):
- * the longest message, and how many messages of one kind -- the dialog, the notes -- a request
- * takes. Copies: the admin cannot import that file, it loads the native addon. The test reads it
- * as text and holds the two numbers to it.
+ * The bounds of a thread as the server holds them (SUA-015, SUA-020): the longest message, and
+ * how many messages of one kind -- the dialog, the notes -- a request takes.
  */
-export const MESSAGE_MAX_CHARS = 5000
-export const SUPPORT_TICKET_MESSAGES_MAX = 100
+export { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX }
 
 /** The characters of a message as the server counts them: the blanks around gone, by code points. */
 export const charactersOf = (text: string) => Array.from(text.trim()).length

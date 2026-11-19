@@ -9,7 +9,8 @@
       "types": "./src/index.ts",
       "import": "./build/index.js",
       "require": "./build/index.js"
-    }
+    },
+    "./browser": "./src/browser.ts"
   },
   "repository": "https://github.com/gradido/gradido/shared",
   "author": "Gradido Academy - https://www.gradido.net",
@@ -28,8 +29,7 @@
     "@types/geojson": "^7946.0.13",
     "@types/node": "^24.9.1",
     "@types/uuid": "^10.0.0",
-    "typescript": "~5.9.3",
-    "uuid": "^8.3.2"
+    "typescript": "~5.9.3"
   },
   "dependencies": {
     "config-schema": "*",
@@ -39,6 +39,7 @@
     "jose": "^4.14.4",
     "log4js": "^6.9.1",
     "yoctocolors-cjs": "^2.1.2",
+    "uuid": "^8.3.2",
     "valibot": "1.1.0"
   },
   "engines": {

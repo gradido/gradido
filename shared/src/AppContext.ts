@@ -9,7 +9,8 @@ import {
 import { HomeCommunity, HomeCommunityKeys } from './data/HomeCommunity'
 import { PasswordHashPriority } from './enum/PasswordHashPriority'
 import { ResourceExhausted, Result } from './errorTypes'
-import { hexBytesSchema, positiveIntegerSchema } from './schema/base.schema'
+import { positiveIntegerSchema } from './schema/base.schema'
+import { hexBytesSchema } from './schema/node.schema'
 
 /**
  * What the process is configured with once, at start, and does not change while it runs.

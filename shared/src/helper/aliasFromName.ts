@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import * as v from 'valibot'
-import { ALIAS_MAX_CHARS, aliasSchema } from '../schema'
+import { ALIAS_MAX_CHARS, aliasSchema } from '../schema/user.schema'
 import { transliterateToLatin } from './transliterate'
 
 /**
