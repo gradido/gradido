@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
+import { THANK_YOU_MOTIFS } from 'shared/browser'
 
 /**
  * The motifs a thank-you greeting can carry: five pictures of one family (ZE-021), each under
- * the key the server stores (shared/src/data/ThankYouGreeting.logic.ts, held together by
- * thankYouMotifs.drift.spec.js).
+ * the key the server stores (THANK_YOU_MOTIFS in `shared`).
  *
  * ⛔ Always shown as an `<img>`, never inlined: the five files share the ids of their
  * gradients, and inlined into one page the second picture would be painted with the
@@ -12,13 +12,7 @@
  * The pictures are 360 x 250 (36 : 25), with a ground of their own, so they look the same on
  * a light and on a dark page.
  */
-export const THANK_YOU_MOTIF_KEYS = [
-  'heart-leaves',
-  'giving-hands',
-  'bouquet',
-  'glowing-swirl',
-  'morning-light',
-]
+export const THANK_YOU_MOTIF_KEYS = THANK_YOU_MOTIFS
 
 export const THANK_YOU_MOTIF_WIDTH = 360
 export const THANK_YOU_MOTIF_HEIGHT = 250

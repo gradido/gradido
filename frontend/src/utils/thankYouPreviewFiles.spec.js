@@ -4,11 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import {
-  GENERAL_PREVIEW_FILE,
-  THANK_YOU_MOTIFS,
-  thankYouMotifPreviewFile,
-} from '../../../shared/src/data/ThankYouGreeting.logic'
+import { GENERAL_PREVIEW_FILE, THANK_YOU_MOTIFS, thankYouMotifPreviewFile } from 'shared/browser'
 
 // The pictures a messenger is shown as the preview of a redeem link are NAMED by the server
 // (backend/src/server/redeemPreview.ts writes their address and their measure into the
@@ -20,9 +16,7 @@ import {
 // what it fetched. Nothing fails where that happens; so the files are held against what the
 // server names here.
 //
-// The backend file is imported directly. It is dependency-free by design, and vitest
-// transforms TypeScript on its own, the way thankYouMotifs.drift.spec.js does. ⛔ Nothing else
-// of the backend is imported here.
+// ⛔ Of the server only what `shared/browser` gives is imported here.
 
 // ⚠️ `fileURLToPath` of the string, never a URL object built here: handed to node's file
 // functions, an object of another realm's URL class is turned away.

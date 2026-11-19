@@ -4,37 +4,14 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import {
-  isOneLine,
-  memoBeginsWithLine,
-  THANK_YOU_LINE_MAX_CHARS as SERVER_LINE_MAX,
-  THANK_YOU_RECIPIENT_NAME_MAX_CHARS as SERVER_NAME_MAX,
-} from '../../../shared/src/data/ThankYouGreeting.logic'
-import {
-  greetingMemo,
-  greetingParts,
-  lineFromMemo,
-  THANK_YOU_LINE_MAX_CHARS,
-  THANK_YOU_RECIPIENT_NAME_MAX_CHARS,
-} from './thankYouGreeting'
+import { isOneLine, memoBeginsWithLine, THANK_YOU_LINE_MAX_CHARS } from 'shared/browser'
+import { greetingMemo, greetingParts, lineFromMemo } from './thankYouGreeting'
 
-// The rules of a greeting exist twice: in the backend, which refuses what breaks them, and
-// here, where the fields stop at the same lengths and the memo is put together. The wallet has
-// no dependency on the backend.
+// The memo of a greeting is put together and taken apart here, and checked by the server with
+// functions of its own (`shared`). The lengths are the server's; the functions are not.
 //
-// What drift costs: a field that lets in more than the server takes ends in an error on the
-// last step, after everything was written. A memo put together differently from what the
-// server checks is refused for every greeting with a line.
-//
-// The file in `shared` is imported directly. It is dependency-free by design, and vitest
-// transforms TypeScript on its own, the way useMemberAvatars.drift.spec.js does.
-
-describe('the lengths of a thank-you greeting on both sides', () => {
-  it('are the same numbers here and in the backend', () => {
-    expect(THANK_YOU_LINE_MAX_CHARS).toBe(SERVER_LINE_MAX)
-    expect(THANK_YOU_RECIPIENT_NAME_MAX_CHARS).toBe(SERVER_NAME_MAX)
-  })
-})
+// What drift costs: a memo put together differently from what the server checks is refused for
+// every greeting with a line.
 
 describe('the memo of a thank-you greeting on both sides', () => {
   const LINE = 'Danke für Deine Hilfe!'
@@ -79,7 +56,7 @@ describe('the line taken out of a message, on both sides', () => {
     const stored = line.trim()
     return (
       stored === line &&
-      stored.length <= SERVER_LINE_MAX &&
+      stored.length <= THANK_YOU_LINE_MAX_CHARS &&
       isOneLine(stored) &&
       memoBeginsWithLine(memo, stored)
     )

@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
-import { readFileSync } from 'node:fs'
 import { setLocale } from '@/i18n'
 import {
   answerVariables,
@@ -11,7 +10,6 @@ import {
   memberSearchOf,
   reassignedFromTo,
   refusalWords,
-  SUPPORT_TICKET_MESSAGES_MAX,
   sendable,
   supportGroupFilterOptions,
   ticketDetailsState,
@@ -22,21 +20,6 @@ import type { ListedSupportTicket } from './SupportTicket.schema'
 
 beforeEach(() => setLocale('de'))
 afterEach(() => setLocale('en'))
-
-describe('the bounds of a thread', () => {
-  // The server's file loads the native addon: read as text, the number after the name.
-  const server = readFileSync(
-    new URL('../../../shared/src/const/constants.ts', import.meta.url),
-    'utf8',
-  )
-  const serverValue = (name: string) =>
-    Number(server.match(new RegExp(`export const ${name} = (\\d+)\\n`))?.[1])
-
-  it('are those of the server', () => {
-    expect(MESSAGE_MAX_CHARS).toBe(serverValue('MESSAGE_MAX_CHARS'))
-    expect(SUPPORT_TICKET_MESSAGES_MAX).toBe(serverValue('SUPPORT_TICKET_MESSAGES_MAX'))
-  })
-})
 
 describe('sendable', () => {
   it('counts as the server counts: without the blanks around, an emoji as one', () => {

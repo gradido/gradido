@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { CHAT_IMAGE_MAX_SIDE } from './chatImage'
+import {
+  CHAT_IMAGE_MAX_BYTES,
+  CHAT_IMAGE_MAX_PIXELS,
+  THANK_YOU_PICTURE_LARGE_MAX_BYTES,
+  THANK_YOU_PICTURE_LARGE_MAX_PIXELS,
+} from 'shared/browser'
 import { THANK_YOU_MOTIF_HEIGHT, THANK_YOU_MOTIF_WIDTH } from './thankYouMotifs'
 import {
   THANK_YOU_PICTURE_FRAME,
@@ -16,8 +21,8 @@ import {
 
 // The photo of a thank-you greeting is described in three places that do not know of each other:
 // the wallet makes it (this folder), the server takes and serves it (`shared`, `backend`), and
-// the stylesheets of the places that show it give its room a colour. The wallet depends on
-// neither `shared` nor the backend.
+// the stylesheets of the places that show it give its room a colour. The wallet takes the
+// server's bounds from `shared`; its own targets below them, and the backend, it does not.
 //
 // What drift costs:
 // - a rendition made larger than the server takes is a greeting that cannot be made, or -- for
@@ -26,57 +31,31 @@ import {
 // - a ground that is not the colour of the place shows as an edge around a photo that was fitted
 //   in whole: the margin is part of the picture, and it has to vanish into the place.
 //
-// ⚠️ Read as text, not imported: `shared` loads a native binding with its first line, and the
-// backend's files reach for the database. And `fileURLToPath`, not `new URL(...)`: jsdom brings
+// ⚠️ The backend's files are read as text, not imported: they reach for the database. And `fileURLToPath`, not `new URL(...)`: jsdom brings
 // its own `URL` class, and node turns an instance of it away as coming from another realm.
 const here = dirname(fileURLToPath(import.meta.url))
 const read = (...path) => readFileSync(join(here, ...path), 'utf8')
 const repo = (...path) => read('..', '..', '..', ...path)
 
-/** `export const NAME = <product of numbers>` in a file, reckoned. */
-const numberIn = (text, name) => {
-  const [, value] = text.match(new RegExp(`^export const ${name} = ([0-9_ *]+)$`, 'm')) ?? []
-  // The fixture has to prove itself: no match would compare a number with nothing.
-  expect(value, name).toBeDefined()
-  return value
-    .replace(/_/g, '')
-    .split('*')
-    .reduce((product, factor) => product * Number(factor), 1)
-}
-
 describe('the two renditions against what the server takes', () => {
-  const shared = repo('shared', 'src', 'const', 'constants.ts')
-
   it('aims the small one below the bound of a chat picture', () => {
-    expect(THANK_YOU_PICTURE_SMALL.targetBytes).toBeLessThan(
-      numberIn(shared, 'CHAT_IMAGE_MAX_BYTES'),
-    )
-    expect(THANK_YOU_PICTURE_SMALL.area).toBeLessThanOrEqual(
-      numberIn(shared, 'CHAT_IMAGE_MAX_PIXELS'),
-    )
+    expect(THANK_YOU_PICTURE_SMALL.targetBytes).toBeLessThan(CHAT_IMAGE_MAX_BYTES)
+    expect(THANK_YOU_PICTURE_SMALL.area).toBeLessThanOrEqual(CHAT_IMAGE_MAX_PIXELS)
   })
 
   it('aims the large one below the bound the server has for it', () => {
-    expect(THANK_YOU_PICTURE_LARGE.targetBytes).toBeLessThan(
-      numberIn(shared, 'THANK_YOU_PICTURE_LARGE_MAX_BYTES'),
-    )
-    expect(THANK_YOU_PICTURE_LARGE.area).toBeLessThanOrEqual(
-      numberIn(shared, 'THANK_YOU_PICTURE_LARGE_MAX_PIXELS'),
-    )
+    expect(THANK_YOU_PICTURE_LARGE.targetBytes).toBeLessThan(THANK_YOU_PICTURE_LARGE_MAX_BYTES)
+    expect(THANK_YOU_PICTURE_LARGE.area).toBeLessThanOrEqual(THANK_YOU_PICTURE_LARGE_MAX_PIXELS)
   })
 
   // 1080 x 750 rounded up in either direction by a pixel still fits.
   it('leaves the large one room for the rounding of its sides', () => {
-    expect(1081 * 751).toBeLessThanOrEqual(numberIn(shared, 'THANK_YOU_PICTURE_LARGE_MAX_PIXELS'))
-  })
-
-  it('keeps each side within the bound both renditions share', () => {
-    expect(CHAT_IMAGE_MAX_SIDE).toBe(numberIn(shared, 'CHAT_IMAGE_MAX_SIDE'))
+    expect(1081 * 751).toBeLessThanOrEqual(THANK_YOU_PICTURE_LARGE_MAX_PIXELS)
   })
 
   // The large one as base64 has to fit into one request: the server takes up to 100 KB.
   it('makes the large one fit into one request as base64', () => {
-    const asBase64 = Math.ceil(numberIn(shared, 'THANK_YOU_PICTURE_LARGE_MAX_BYTES') / 3) * 4
+    const asBase64 = Math.ceil(THANK_YOU_PICTURE_LARGE_MAX_BYTES / 3) * 4
     expect(asBase64).toBeLessThan(100 * 1024)
   })
 })

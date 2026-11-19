@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
 import { describe, expect, it } from 'vitest'
-import { avatarColorIndex } from '../../../shared/src/data/AvatarColor.logic'
+import { avatarColorIndex } from 'shared/browser'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from './avatarColor'
 import { avatarLettering } from './avatarLettering'
 

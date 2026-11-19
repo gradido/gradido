@@ -4,11 +4,9 @@
  * The rules of a thank-you greeting: a transaction link with a motif, a first line and the
  * name of whom it is for.
  *
- * ⛔ Dependency-free on purpose. The wallet keeps the same motifs and the same two lengths
- * (frontend/src/utils/thankYouMotifs.js, frontend/src/utils/thankYouGreeting.js) and has no
- * dependency on `shared`; its drift tests import this file directly to hold the two
- * together, the way useMemberAvatars.drift.spec.js does. They can only do that as long as
- * nothing here imports anything.
+ * ⛔ Nothing of Node here: the wallet takes the motifs and the two lengths from this file,
+ * through `shared/browser` (frontend/src/utils/thankYouMotifs.js,
+ * frontend/src/utils/thankYouGreeting.js).
  */
 
 /**

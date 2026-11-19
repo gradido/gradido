@@ -1,10 +1,7 @@
 // AI-GENERATED — not an architecture reference
 
-// Constants the wallet has to agree with. It can import them from `shared/browser` now; where
-// it still keeps a copy of one, a drift spec there imports THIS FILE directly to hold the two
-// together.
-//
-// ⛔ No imports here as long as such a spec is left: it runs without `shared-native` built.
+// Constants the wallet and the admin interface have to agree with: they take them from here,
+// through `shared/browser`.
 
 // How many members one `memberAvatars` question may name: what one wallet request may name
 // in the backend, and what one `memberAvatars` field may name for kinds `small` and `dates`
@@ -26,8 +23,7 @@ export const MEMBER_AVATARS_MAX_REFS = 100
 // How many people a member may keep a picture of (AS-024): the table must not grow without end,
 // and every list of the wallet carries all of them in the small rendition -- a hundred of those are
 // about 1.3 MB. Replacing a picture already kept is not counted against it. The wallet names the
-// number where a member reaches it (useKeptPictures.js); useKeptPictures.drift.spec.js holds its
-// copy against this one.
+// number where a member reaches it (useKeptPictures.js).
 export const KEPT_PICTURES_MAX_PER_MEMBER = 100
 
 // The emoji a member may react to a chat message with (migration 0158): the wallet's own choice
@@ -38,9 +34,8 @@ export const KEPT_PICTURES_MAX_PER_MEMBER = 100
 // A sign of two code points carries the selector that asks for its coloured drawing (the heart,
 // the sun, the two fingers); the wallet sends it as it stands here, and it is compared whole.
 //
-// The wallet has no dependency on `shared`; emojiChoice.drift.spec.js holds its rows against
-// these. Whoever changes an emoji changes it in both -- and leaves the reactions filed with the
-// old one as they are: they are still read and shown.
+// The wallet's rows are these. Whoever changes an emoji leaves the reactions filed with the old
+// one as they are: they are still read and shown.
 export const CHAT_REACTION_EMOJI_ROWS: readonly (readonly string[])[] = [
   ['🙂', '😊', '😄', '😂', '🤣', '😉', '😍', '🥰'],
   ['😘', '🤗', '😎', '🤔', '😮', '😅', '😢', '😴'],
@@ -57,19 +52,15 @@ export const CHAT_REACTION_EMOJI_ROWS: readonly (readonly string[])[] = [
 // an emoji is one character, a variation selector none), the admin's field as `maxlength` counts
 // (UTF-16 code units: an emoji is two). The field is the stricter, so whatever it lets through,
 // the server takes. The `text` column holds the heaviest: 2000 emoji are some 8,000 bytes.
-//
-// The admin interface has no dependency on `shared`; userRemark.drift.spec.ts there holds its
-// copy against this one.
 export const USER_REMARK_MAX_CHARS = 2000
 
 // What the backend answers a send (sendCoins, sendEmail) to a member nobody has, here or in
 // another community, with what was looked for behind a colon: `${RECIPIENT_NOT_FOUND}: ${identifier}`.
 // The wallet tells "no such account" from every other failure of a send by this sentence
-// (frontend/src/utils/recipientNotFound.js); recipientNotFound.drift.spec.js holds its copy
-// against this one. ⛔ Across the border too: a 404 of the other community becomes this sentence
+// (frontend/src/utils/recipientNotFound.js). ⛔ Across the border too: a 404 of the other community becomes this sentence
 // in core (processXComCompleteTransaction), nothing of that community's own words reaches the wallet.
 export const RECIPIENT_NOT_FOUND = 'The recipient user was not found'
 
 // What `user` answers for a member nobody has (UserResolver): the wallet's check "Jetzt prüfen"
-// reads it whole, same file and spec as above.
+// reads it whole, same file as above.
 export const USER_NOT_FOUND = 'User not found'
