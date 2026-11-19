@@ -5,6 +5,7 @@ on:
     paths:
       - 'frontend/**'
       - 'config-schema/**'
+      - 'shared/**'
       - '.bun-version'
       - '.nvmrc'
       - '.github/workflows/test_frontend.yml'
