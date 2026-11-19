@@ -17,7 +17,7 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["compile-scss", "config-schema#build"],
+      "dependsOn": ["compile-scss", "config-schema#build", "transit"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "env": [
         "NODE_ENV",
@@ -38,7 +38,7 @@
       "dependsOn": ["config-schema#build"]
     },
     "test": {
-      "dependsOn": ["config-schema#build"],
+      "dependsOn": ["config-schema#build", "transit"],
       "env": [
         "NODE_ENV",
         "BUILD_COMMIT",
