@@ -6,6 +6,8 @@ import { samePicture } from './fixtures/picture'
 // of the backend needed. What signing in does belongs to the pull request that ports the page.
 test('offers the sign-in, and takes nothing before something is entered', async ({
   page,
+  // asked for so that it answers: a request nobody expected fails the spec
+  graphql: _backend,
 }, info) => {
   await page.goto('login')
 

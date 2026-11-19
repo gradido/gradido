@@ -106,15 +106,16 @@ jobs:
       - name: Frontend Mithril | Playwright against the old wallet
         id: old
         working-directory: frontend-mithril
-        run: bunx playwright test --project=old --project=old-phone
+        run: bunx playwright test --project=old --project=old-phone --output test-results/old
 
       # A test that passes only on its retry fails the run: the retry is there for the trace.
-      # --no-deps: the old wallet has just run.
+      # --no-deps: the old wallet has just run. An output folder of its own: Playwright empties
+      # the one it writes to, and the old wallet's traces are uploaded below as well.
       - name: Frontend Mithril | Playwright against the Mithril wallet
         id: new
         if: ${{ !cancelled() }}
         working-directory: frontend-mithril
-        run: bunx playwright test --project=new --project=new-phone --no-deps --pass-with-no-tests --fail-on-flaky-tests
+        run: bunx playwright test --project=new --project=new-phone --no-deps --pass-with-no-tests --fail-on-flaky-tests --output test-results/new
 
       # traces of the failed tests (trace: on-first-retry in CI)
       - name: upload traces of failed tests

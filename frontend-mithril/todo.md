@@ -40,8 +40,9 @@ and those two steps correct it.
 3. **Schemas, not single checks.** One valibot schema per answer of the backend and per form
    (`src/data/*.schema.ts`), parsed once where the data enters. The same for everything read
    from `localStorage`, the address bar and a QR code. No `typeof` chains, no `?? null` lists.
-   Import schemas from `shared` by subpath where they exist (`emailSchema`, `passwordSchema`,
-   `aliasSchema`, `uuidv4Schema`); the barrel pulls in `node:crypto`.
+   Take schemas and bounds from `shared/browser` where they exist (`emailSchema`,
+   `passwordSchema`, `aliasSchema`, `uuidv4Schema`): the entry of `shared` a browser can load.
+   Never from `shared` itself, which reaches Node.
 4. **Logic beside the view.** Pure logic in `src/data/*.logic.ts` with a `*.test.ts`. The 105
    pure-logic specs of the old wallet (23,000 lines) move to `bun test` with the code they test,
    in the step that takes the code; 21 of them need their `vi.mock` replaced.
@@ -125,9 +126,11 @@ No page yet; everything a page needs.
   reads, and the guard steps in their order. Keep: `/authenticate`, the first
   navigation with a running session, the event-matching link, `requiresAuth`,
   `creationAllowed`, `requiresFindable`. `guards.test.js` (1,330 lines) is the specification.
-- Not ported: the publisher id. `?pid=` in an address is ignored, the store has no field for
-  it, `login`, `createUser` and `updateUserInfos` are sent without it (the server takes it as
-  optional). Its field leaves the shared GraphQL documents in step 23.
+- Not ported: the publisher id. Elopage is gone and its code is being removed (#4309); this is
+  that issue's first step for the new wallet. `?pid=` in an address is ignored, the store has no
+  field for it, `login`, `createUser` and `updateUserInfos` are sent without it (the server
+  takes it as optional). From the switch (step 20) a link with `?pid=` stores nothing any more:
+  accepted in #4309. Its field leaves the shared GraphQL documents in step 23.
 - `every(ms, fn)`: the one helper for what runs on a clock — it pauses while the tab is hidden
   and stops with the component or store that started it. For the chat's beat (with its
   back-off), the new-version check, the session's countdown, the e-mail confirmation, and the
@@ -152,8 +155,10 @@ No page yet; everything a page needs.
   `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.
 - A test for the texts, in place of the ESLint plugin that goes with ESLint (step 22): every
   key a `t('…')` in `src` names exists in `en.json`, and every key of `en.json` is named
-  somewhere. Keys are written as literals so that it can read them. The admin has no such check
-  (its script only sorts); the test is written so that the admin can run it too.
+  somewhere — in `frontend-mithril/src` or, until the old wallet goes (step 22), in
+  `frontend/src`, whose keys the shared file still holds. Keys are written as literals so that
+  it can read them. The admin has no such check (its script only sorts); the test is written so
+  that the admin can run it too.
 - Theme, viewport, outdated bar, stale-chunk reload and new-version check
   (`reloadOnStaleChunk`, `newVersionCheck`), `nativeClipboard`.
 - Building blocks: the admin's (see the decision above), and the missing ones on Bootstrap's own
@@ -215,8 +220,9 @@ bundle compared with the old build.
 projects leave `playwright.config.ts` — from here `samePicture` compares with pictures checked
 in. Specs that read styles or the manifest as text and still say something
 (`noForeignHosts`, `webAppManifest`, `openSans`, `themeBoot`, the dark-mode and edge specs) are
-rewritten as `bun test` files against the new paths before their old file goes; the eleven
-`*.drift.spec.js` that hold a copy of `shared` in line go without a successor, the copy is gone.
+rewritten as `bun test` files against the new paths before their old file goes; the
+`*.drift.spec.js` that are left hold Vue's field names and modal props, or a copy that is gone
+by then: they go without a successor.
 
 **22. Remove the Vue wallet's code** — two pull requests
 (a) `components/**/*.tsx` (about 190), (b) pages, layouts, composables, store, routes, plugins,

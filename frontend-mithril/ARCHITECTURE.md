@@ -136,8 +136,16 @@ On every visit after the first in a session the last value is drawn at once and 
 the new answer comes, without a loading state in between. What is shown on the first visit is
 the next section.
 
-`load()` in `oninit` of whoever reads it is "cache-first"; `refresh()` is "cache-and-network";
-a page that changed the fact assigns `value` or calls `refresh()`. About 25 lines, in
+Which of the two a reader calls in `oninit` is the choice the old wallet made with its fetch
+policy:
+
+- `load()` where one answer per session is enough (the default policy of today: the reachable
+  communities, the lists of creation groups). It asks only if nobody has asked yet.
+- `refresh()` where the reader shows the last value at once and wants the current one
+  (`cache-and-network` of today: first-creation status, alias status, the balance). It always
+  asks; `value` stays on screen until the answer replaces it.
+
+A page that changed the fact assigns `value` or calls `refresh()`. About 25 lines, in
 `store/resource.ts`. Anything asked by one place only is view state and uses `request` directly.
 
 **A device value** is read through its schema and written whole:
@@ -184,9 +192,15 @@ that cannot be closed by a click beside it: the warning, the seconds counting do
 "sign out" (`SessionLogoutTimeout`, as today). Extending asks `verifyLogin`, whose answer carries
 a fresh token; if that fails, the session ends with a toast saying so.
 
-**When it ends** — the countdown ran out, "sign out", a revoked session, another member's token
-arriving from another tab — the token is removed from `localStorage` and the page is loaded
-anew at `/login`. With that every store, every resource, every timer and every request under way
+**When it ends** — the countdown ran out, "sign out", a revoked session, a sign-out in another
+tab — the token is removed from `localStorage` and the page is loaded anew at `/login`.
+
+**When another member signs in in another tab**, their token arrives in the `localStorage` both
+tabs share. This tab is loaded anew and the token is left alone: it is theirs, and removing it
+would sign them out. The wallet then starts as it does today with a token that is not the
+member's whose profile it holds.
+
+With that reload every store, every resource, every timer and every request under way
 is gone. The list of twenty `forget…` functions and the epoch counters go.
 
 **No flash of the wrong theme or language**, which the reload must not cost:
@@ -238,7 +252,7 @@ m('button.btn', { disabled: !form.valid, onclick: () => form.submit(send) })
 
 - `form.values`, `form.errors`, `form.valid`, `form.touched`; `submit` parses, and calls with
   the parsed values only where they fit.
-- The rules come from `shared` where they exist there (`emailSchema`, `passwordSchema`,
+- The rules come from `shared/browser` where they exist there (`emailSchema`, `passwordSchema`,
   `aliasSchema`), and from one `data/Form.schema.ts` for amount, memo, message.
 - A rule that asks the server (the user name is taken) is not part of the schema: the page asks
   after the schema passed, and sets the field's error.

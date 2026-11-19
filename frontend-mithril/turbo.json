@@ -2,7 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "dependsOn": ["frontend#compile-scss", "^build"],
+      "dependsOn": ["frontend#compile-scss", "config-schema#build", "transit"],
       "inputs": [
         "$TURBO_DEFAULT$",
         ".env*",
@@ -15,7 +15,11 @@
         "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL*"
       ]
     },
+    "dev": {
+      "dependsOn": ["frontend#compile-scss", "config-schema#build"]
+    },
     "test": {
+      "dependsOn": ["config-schema#build", "transit"],
       "inputs": [
         "$TURBO_DEFAULT$",
         ".env*",
