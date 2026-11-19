@@ -46,7 +46,7 @@ The admin interface (`admin/`) is written in Mithril and built with Vite; nginx 
 
 ## The wallet is being rewritten
 
-The wallet gets the same rewrite: `frontend/` (Vue) stays the wallet that is deployed, `frontend-mithril/` (Mithril) grows beside it page by page. The steps, cut into pull requests, are in `frontend-mithril/todo.md`. **Until the switch named there, changes to the wallet's behaviour are made in `frontend/`**, and in `frontend-mithril/` as well where the page is already ported.
+The wallet gets the same rewrite: `frontend/` (Vue) stays the wallet that is deployed, `frontend-mithril/` (Mithril) grows beside it page by page. The steps, cut into pull requests, are in `frontend-mithril/todo.md`. How the new wallet is built is in `frontend-mithril/ARCHITECTURE.md`; read it before writing a page. **Until the switch named there, changes to the wallet's behaviour are made in `frontend/`**, and in `frontend-mithril/` as well where the page is already ported.
 
 - **Not a 1:1 port:** before a page is ported, look at what Mithril makes unnecessary (reactivity wrappers, emit plumbing, the Apollo cache), what exists twice and what nothing uses. What the browser shows and does stays the same. Answers of the backend and forms are checked by valibot schemas (`src/data/*.schema.ts`), not value by value.
 - **Shared files:** `frontend-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `frontend/src` through the `@frontend` alias, and serves `frontend/public`. They still live there and are changed there. Its settings come from `frontend/.env`; `frontend-mithril/.env` holds only a port of its own.

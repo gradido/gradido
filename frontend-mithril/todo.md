@@ -25,6 +25,10 @@ steps, not to be kept up to date.
 
 ## Rules for every step
 
+How the new wallet is cut — folders, the way to the server, the four kinds of state, forms,
+the end of a session — is in `ARCHITECTURE.md`. It is a draft until steps 2 and 3 are merged,
+and those two steps correct it.
+
 1. **Specs first, against the old wallet.** Write the Playwright specs of the step, with
    `samePicture` at every state worth a picture (light and dark, desk and phone come for free
    through the projects; dark through `localStorage['gradido-theme-mode']`). They pass on `old`.
@@ -41,24 +45,26 @@ steps, not to be kept up to date.
 4. **Logic beside the view.** Pure logic in `src/data/*.logic.ts` with a `*.test.ts`. The 105
    pure-logic specs of the old wallet (23,000 lines) move to `bun test` with the code they test,
    in the step that takes the code; 21 of them need their `vi.mock` replaced.
-5. **Compact.** No wrapper without behaviour, no component for plain Bootstrap markup
-   (`div.row`, `button.btn`), no state copied from props, comments only for the why. Every page
-   stays its own chunk (`import()` in the route), as today.
-6. **The picture stays.** Emit the classes the styles are written for (list under step 2). A
-   style file is reused through `@frontend`; it is changed only where the markup behind it
-   really changes, and then in the same step for both wallets.
+5. **Compact.** As `ARCHITECTURE.md` says under "How the code is written": no function for
+   one line used once, no layer that only passes on, no component for plain Bootstrap markup
+   (`div.row`, `button.btn`), nothing for later, comments only for the why. The pull request
+   names the lines it replaces and the lines it adds. Every page stays its own chunk
+   (`import()` in the route), as today.
+6. **The picture stays** — but for the wait, which is shown one way everywhere
+   (`ARCHITECTURE.md`, "Waiting"); take `samePicture` once the content is there. Emit the
+   classes the styles are written for (list under step 2). A style file is reused through
+   `@frontend`; it is changed only where the markup behind it really changes, and then in the
+   same step for both wallets.
 7. **A change to the old wallet's behaviour during the rewrite** goes into `frontend/`, and into
    `frontend-mithril/` where the page is ported (`AGENTS.md`).
 
 ## Decisions to take in step 2
 
-- **Building blocks shared with the admin.** The admin already has `Modal`, `ConfirmModal`,
-  `Dropdown`, `Tabs`, `Pagination`, `Tooltip`, `Toasts`, `ThemedSelect`, `MemberAvatar`,
-  `MemberAvatarZoom`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`, `viewport.ts`,
-  `graphql/client.ts`, `RelativeTime.logic`, `AppOutdated.logic`. Recommended: import them
-  through an `@admin` alias onto `admin/src` (as the admin's tests read the wallet's files
-  today) and change them there where the wallet needs more; a copy is the second choice.
-  `tests/fixtures/graphql.ts` already comes from `admin/tests`.
+- **Building blocks shared with the admin: decided, they are imported.** `Modal`,
+  `ConfirmModal`, `Dropdown`, `Tabs`, `Pagination`, `Tooltip`, `Toasts`, `ThemedSelect`,
+  `MemberAvatar`, `MemberAvatarZoom`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`,
+  `viewport.ts`, `graphql/client.ts`, `RelativeTime.logic`, `AppOutdated.logic` come through an
+  `@admin` alias onto `admin/src`, and are changed there where the wallet needs more. No copy.
 - **Styles of bootstrap-vue-next.** The old wallet loads `bootstrap-vue-next.css`. Take over
   only the rules whose classes the Mithril wallet emits (`b-toast-*`, `b-avatar*`,
   `b-pagination-pills`, `bv-d-sm-down-none`), into one small file, and drop the import.
@@ -97,6 +103,11 @@ No page yet; everything a page needs.
   member changed meanwhile, `403.13` → sign out and `/login`, `GRAPHQL_VALIDATION_FAILED` →
   outdated. No cache: `possibleTypes`, the merge policies and the 18 field-set specs in
   `graphql/` go with it; the schema check of the fixture replaces them.
+- `resource`, `deviceValue`, `formOf` and `Field` as `ARCHITECTURE.md` describes them.
+- `Placeholder` (`line`, `block`, `row`) and the locked button with its spinner: the one way a
+  wait is shown, a deliberate change from the old wallet (`ARCHITECTURE.md`, "Waiting"). Its
+  pictures are checked in and run for `new` and `new-phone` only; `samePicture` gets a sibling
+  for that.
 - The store as a plain object (`wallet.store.ts`): the 37 fields of `useWalletStore.js` behind
   one valibot schema for the `login` / `verifyLogin` user (replaces 25 `?? null` and about 35
   one-line setters). `tokenTime`, `darkMode` are derived; `transactionToHighlightId` is not
@@ -106,12 +117,43 @@ No page yet; everything a page needs.
   in 10 composables and 9 utils), one for the four hand-overs (`useEntryDraft`, `useLinkDraft`,
   `usePassOnDraft`, `useSendReturn`), one `memberKey` (five spellings today; keep each stored
   format readable).
-- `i18n`: the admin's, lazy per language (the old wallet bundles all ten) with the number and
+- `i18n`: the admin's — English is bundled and stands in for a missing key, any other language
+  is fetched when it is asked for, and the wallet is drawn only once it is there (the old wallet
+  bundles all ten) with the number and
   date formats once (ten identical copies today, 440 lines) and one language list.
 - Routes and guards (`routes.js`, `guards.js`, 890 lines) as one table with the meta the layout
-  reads, and the seven guard steps in their order. Keep: `?pid=`, `/authenticate`, the first
+  reads, and the guard steps in their order. Keep: `/authenticate`, the first
   navigation with a running session, the event-matching link, `requiresAuth`,
   `creationAllowed`, `requiresFindable`. `guards.test.js` (1,330 lines) is the specification.
+- Not ported: the publisher id. `?pid=` in an address is ignored, the store has no field for
+  it, `login`, `createUser` and `updateUserInfos` are sent without it (the server takes it as
+  optional). Its field leaves the shared GraphQL documents in step 23.
+- `every(ms, fn)`: the one helper for what runs on a clock — it pauses while the tab is hidden
+  and stops with the component or store that started it. For the chat's beat (with its
+  back-off), the new-version check, the session's countdown, the e-mail confirmation, and the
+  lists of contributions and support requests.
+- The lists of contributions and support requests refresh on that clock, every
+  `AUTO_POLL_INTERVAL_SECONDS`: the server's dial for its load, 0 (the default) for never. The
+  config already works it out, and falls back to the older `AUTO_POLL_INTERVAL` in
+  milliseconds, which the inspector keeps (it asks twice a second). New: the clock pauses
+  while the tab is hidden, and asks at once when the tab is seen again. The chat keeps its own
+  beat of 15 s. Step 23 ends the wallet's reading of the older variable.
+- The balance as a `resource`, refreshed by whatever changes it. The counter of answers in
+  `DashboardLayout`, by which the first-creation window tells a new balance from an old one,
+  goes: the window refreshes and waits for that answer.
+- GraphQL documents that ask nearly the same become one each, with one schema: the member of
+  `login` and `verifyLogin` (one fragment), the four lists of creation groups (`{ id tag name }`),
+  `transactionsQuery` and `transactionsUserCountQuery`, `openCreations` and
+  `openCreationsAmounts`. New documents in `frontend-mithril/src/graphql`; the old wallet's stay
+  untouched until it goes. The server is not changed.
+- `jwt-decode` and `uuid` are not installed: the token is read as `authToken` already reads it,
+  a gradido ID is checked by `uuidv4Schema` of `shared`.
+- The clipboard as today: `nativeClipboard` for pictures, loaded before
+  `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.
+- A test for the texts, in place of the ESLint plugin that goes with ESLint (step 22): every
+  key a `t('…')` in `src` names exists in `en.json`, and every key of `en.json` is named
+  somewhere. Keys are written as literals so that it can read them. The admin has no such check
+  (its script only sorts); the test is written so that the admin can run it too.
 - Theme, viewport, outdated bar, stale-chunk reload and new-version check
   (`reloadOnStaleChunk`, `newVersionCheck`), `nativeClipboard`.
 - Building blocks: the admin's (see the decision above), and the missing ones on Bootstrap's own
@@ -124,8 +166,9 @@ No page yet; everything a page needs.
 - Form schemas from `validationSchemas.js` and `validation-rules.js` in valibot, with the
   bounds from `shared` (`RESERVED_ALIAS`, memo 5..512, message, support ticket). One amount
   rule for the three there are (`validationSchemas.amount`, `ContributionForm` hours,
-  `filters/amount.parseAmount`). `ContributionForm`'s `hours` measures the length of the string
-  today: decide with the specs whether the number was meant.
+  `filters/amount.parseAmount`).
+  `ContributionForm`'s hours keep their rule as it is: a number of at most two decimals, from
+  0.01 to the hours left, with a comma taken as a point.
 - Classes the styles rely on, to be emitted as they are: `.b-toast-{success,danger,warning}`,
   `.b-avatar`, `.b-avatar-custom`, `.b-pagination-pills`, `.bv-d-sm-down-none`, and Bootstrap's
   own modal, tab, dropdown, carousel, popover and navbar structure.
@@ -139,18 +182,18 @@ that click stays on `old` only.
 | # | Step | Old (files / lines) | Files in the PR | Notes |
 | --- | --- | --- | --- | --- |
 | 3 | Sign-in pages and their layout: `AuthLayout`, `Auth/*`, Login, Register, RegisterCommunity, ForgotPassword, ResetPassword, ConfirmEmail, EmailChange, PublicProfile, NotFound | 16 / 3,260 | ~60 | `NotFoundPage` is 1,200 lines of inline SVG: one `.svg` file. The two backend sentences Login matches stay pinned by a test. |
-| 4 | The shell: `DashboardLayout`, templates, `Menu/*`, `MobileSidebar`, `Breadcrumb`, footer, `ContentHeader`, `RightSide` (without the contact panels), `SessionLogoutTimeout`, `EmailConfirmation*`, `AdminWayBackBar` | 28 / 4,600 | ~90 | The menu is in the DOM twice (desk, phone) and asks once: a store, not a cache. Body scroll lock of the phone menu. |
+| 4 | The shell: `DashboardLayout`, templates, `Menu/*`, `MobileSidebar`, `Breadcrumb`, footer, `ContentHeader`, `RightSide` (without the contact panels), `SessionLogoutTimeout`, `EmailConfirmation*`, `AdminWayBackBar` | 28 / 4,600 | ~90 | The settings menu is in the DOM twice today (desk, phone): draw it once, by the width, if the picture stays the same without a change to the styles; else twice, reading one `resource`. Body scroll lock of the phone menu. |
 | 5 | First steps: `FirstCreation`, `AliasFirstChoice`, `EventMatchingHomeInvitation`, `useFirstLoginWindow` | 5 / 1,900 | ~35 | Which window comes first is the logic to keep. |
 | 6 | Contributions, support, information: three pages, `Contributions/`, `ContributionMessages/`, `Support/` | 19 / 2,960 | ~70 | Depends on the base only. The lists poll with `AUTO_POLL_INTERVAL`. |
 | 7 | Scanner and calculator: `Scanner`, `Calculator`, `QrCode/*`, `useQrScanner`, `useCalculator*`, `qrDetector` | 14 / 2,900 | ~50 | The camera is released when the page leaves (`onremove`). `qrcanvas` without `qrcanvas-vue`. |
 | 8 | Map core: `mapEngine`, `mapTiles`, `mapStyle`, `placeName`, `geoSearch*`, `GeoSearchField`, `UserLocationMap` | 16 / 1,800 | ~35 | Needed by settings and matching. maplibre lives in `oncreate` / `onremove`. |
 | 9 | Settings: `settings/*`, `MyGradidoCard`, `UserSettings/*` | 24 / 3,300 (+3,200 utils) | ~90 | `gradidoCard.js` and `thankYouCard.js` are canvas code and move as they are. |
 | 10 | Pictures: `ChatImageEditor`, `ChatImageView`, `EmojiPicker`, `ChatReactionChoice`, `AvatarZoom`, `AvatarCropper`, `ThankYouGreetingPhoto`, the image utils, and **one** picture cache for `useChatImages`, `useMemberAvatars`, `useKeptPictures`, `memoryPictures` | ~20 / 4,700 | ~60 | The admin's `memberAvatars.store` does in 72 lines what `useMemberAvatars` does in 503. |
-| 11 | Transactions: page, `GddTransactionList`, `GdtTransactionList`, `Transactions/`, `DecayInformations/` (five files → one with variants), `TransactionRows/`, `TransactionLinks/` | 22 / 3,030 | ~70 | `date-fns` (one use) → the admin's `timeAgo`. |
+| 11 | Transactions: page, `GddTransactionList`, `GdtTransactionList`, `Transactions/`, `DecayInformations/` (five files → one with variants), `TransactionRows/`, `TransactionLinks/` | 22 / 3,030 | ~70 | `date-fns` stays for its one use (`DurationRow`), so the words stay exactly as they are ("etwa 1 Monat") — in all ten languages, none reads English any more. Its English is bundled with this page; another language's locale is fetched with the page (`() => import('date-fns/locale/de')`, one loader per language), in the route's `onmatch` beside the page itself, so the row is never drawn in English first. |
 | 12 | Redeem and thanks: `TransactionLink`, `LinkInformations/*`, `ThankYouGreeting`, `MyThankYouCard`, `ThankYouCardPayment`, `ThankYouGreeting/*` | 14 / 4,340 | ~80 | The print and cheque code is canvas and moves as it is; `thankYouCheque`, `avatarColor`, `qrCode` exist a second time in the admin — one copy. |
 | 13 | Send: `Send`, `GddSend/*`, `CommunitySwitch` | 12 / 2,750 | ~50 | `Send` reads the communities the form loaded from Apollo's cache: hand them over. |
 | 14 | Overview: `Overview`, `ShowFriends`, `Overview/*`, `ThanksNudge`, the contact panels of the right side | 8 / 1,940 | ~45 | |
-| 15 | Chat, reading: `ContactWindow`, `ChatThread`, `ChatBubble`, message text, file card, search, note, unread, `useChatUpdates`, `useChatWindow*`, `chatMarkdown` | ~25 / 8,500 | ~110 | The thread lives in Apollo's cache today (five `cache.updateQuery`): a thread store. The beat: 15 s, backing off to 120 s. The openers of steps 4–14 become real; their specs join `PORTED_TO_MITHRIL`. |
+| 15 | Chat, reading: `ContactWindow`, `ChatThread`, `ChatBubble`, message text, file card, search, note, unread, `useChatUpdates`, `useChatWindow*`, `chatMarkdown` | ~25 / 8,500 | ~110 | The thread lives in Apollo's cache today (five `cache.updateQuery`) but nothing else reads it: an array in the component, patched by the pure functions that exist. The beat: 15 s, backing off to 120 s. The openers of steps 4–14 become real; their specs join `PORTED_TO_MITHRIL`. |
 | 16 | Chat, writing: `ChatComposeBar`, `ChatForwardDialog`, `ChatMessageMenu`, `ChatTransferCoin`, drafts, file links, `useFieldOutOfSight` | ~12 / 3,500 | ~60 | Android keyboard and `visualViewport`: test on a device, Playwright does not show it. |
 | 17 | Chat, video: `ChatVideoCall`, `ChatVideoApp*`, `utils/chatVideo*` | ~10 / 2,900 | ~45 | The six `provide` / `inject` become plain arguments. |
 | 18 | Contacts and groups: `Contacts`, `Contacts/*`, `ChatGroups/*` | 11 / 3,200 | ~55 | `ContactWindow` and `ChatGroupWindow` share size, note and video: one window base. One avatar row for `ContactRow`, `ChatGroupRow`, `ContactTiles`, `ContactsStrip`, `ContactsPanel`. |
