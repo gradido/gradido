@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import EmojiPicker from './EmojiPicker.vue'
+import { EmojiPicker } from './EmojiPicker'
 import { EMOJI_ROWS, emojiKeysOf } from '@/utils/emojiChoice'
 
 vi.mock('vue-i18n', () => ({
@@ -1061,13 +1061,13 @@ describe('EmojiPicker', () => {
   // jsdom lays nothing out: what the stylesheet has to say is read from it, without its comments
   // -- the comments explain the rules in the rules' own words.
   describe('the stylesheet', () => {
-    const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'EmojiPicker.vue'),
+    // The style module: each rule there stands under the root's class, its selector in `:global()`.
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'EmojiPicker.module.scss'),
       'utf8',
-    )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) => {
-      const at = style.indexOf(`${selector} {`)
+      const at = style.indexOf(`:global(${selector}) {`)
       expect(at).toBeGreaterThan(-1)
       return style.slice(at, style.indexOf('}', at))
     }

@@ -1,0 +1,153 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+
+/* The picture of a transfer or of a thank-you greeting in the opened row: as small as in the form it was chosen in, 36 : 25
+   on the card's ground, over the memo. */
+.gdd-transaction :global(.transaction-picture) {
+  margin-bottom: 0.5rem;
+}
+
+.gdd-transaction :global(.transaction-picture-image) {
+  display: block;
+  width: 132px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 10px;
+  background: #fbf3de;
+  object-fit: cover;
+}
+
+/* The reaction to a transfer, behind the time. ⛔ It takes no more of the line's height than the
+   line has: the line is 0.875em at a line height of 1.5, the reaction counts as 1.4em of its own
+   0.875em -- less than the line -- and is drawn 1.7em high: what is over hangs into the room
+   around the line. So a reaction that is set changes the height of no row. Not words of the
+   booking: marking its text takes nothing of it along. The pill of a reaction in a conversation
+   (ChatBubble). */
+.gdd-transaction :global(.transaction-reaction) {
+  display: inline-flex;
+  align-items: center;
+  height: 1.7em;
+  margin: -0.2em 0 -0.2em 0.75rem;
+  padding: 0 0.4rem;
+  border-radius: 0.85em;
+  background: rgb(127 127 127 / 16%);
+  font-size: 0.875em;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* One's own: the rim of gold one's own reaction has in a conversation, drawn inside so that it
+   adds no size -- the gold of the menus' signs, which changes with the mode. */
+.gdd-transaction :global(.transaction-reaction.is-mine) {
+  box-shadow: inset 0 0 0 1.5px var(--menu-icon, #a8732a);
+}
+
+/* The device's own coloured drawing, asked for by name (as ChatBubble has it). */
+.gdd-transaction :global(.transaction-reaction-emoji) {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+/* The choice in the opened row: the row of six and "+" on the menus' own grey, as at a message
+   -- and as wide as all forty-eight are (eight squares of 36 px, the padding, the rim: the
+   menu's own 18.825rem), so that "+" changes its height and not its width. Under a finger the
+   squares are up to 44 px (ChatReactionChoice), and the panel as wide as eight of them, where
+   the row has that room. */
+.gdd-transaction :global(.transaction-react) {
+  margin-bottom: 1.5rem;
+}
+
+.gdd-transaction :global(.transaction-react-choice) {
+  width: min(18.825rem, 100%);
+  padding: 0.35rem;
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 0.85rem;
+  background: var(--menu-surface, #dde1e6);
+}
+
+@media (hover: none) {
+  .gdd-transaction :global(.transaction-react-choice) {
+    width: min(22.825rem, 100%);
+  }
+}
+
+/* The memo, marked as something somebody wrote by italics and the muted colour of the row's
+   other secondary lines -- the heading "Nachricht" that used to stand over it is gone
+   (Bernd, 11.09.2026: variant a of three). `--bs-secondary-color` is defined in both modes. */
+.gdd-transaction :global(.transaction-memo) {
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow-wrap: anywhere;
+
+  /* ⛔ Not decoration. Closed, the memo is one unbroken line, and without this its FULL length
+     counts as the least width of every flex parent up to the layout's content column -- a
+     Bootstrap `.col` (`flex: 1 0 0%`, `min-width: auto`) that never shrinks below that. A long
+     memo pushed the content column under the menu, full width, with the right column stuck
+     underneath (Bernd, 11.09.2026; the column's own percentage width does not stop it, a
+     percentage counts as `auto` when the parents work out their least width). Measured at
+     1250 and 1025 points in the dashboard's own column structure: with this the three columns
+     keep their places. Same guard as the map's search field (`contain: inline-size`). */
+  contain: inline-size;
+}
+
+/* Closed, the first line and an ellipsis; the arrow opens the rest. The column is a fixed
+   share of the row, so the line can be cut where it ends. */
+.gdd-transaction :global(.transaction-memo-clamped) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The arrow's column gets a width of its own, so the memo below can be told where the amount
+   begins: the arrow is 1.2em of the `h1` size (48 points at most), plus the column's gutters.
+
+   The face's column is what the face needs and the gutter: `--transaction-face` comes in from
+   the template as LIST_AVATAR_SIZE, so the number lives in one place. The amount on the phone
+   and the memo on every width are indented by this, which puts them under the name. */
+.gdd-transaction :global(.gdd-transaction-row) {
+  --transaction-arrow-col: 4.5rem;
+  --transaction-face-col: calc(var(--transaction-face) + var(--bs-gutter-x, 1.5rem));
+}
+
+@media (width <= 767.98px) {
+  .gdd-transaction :global(.transaction-amount-col) {
+    margin-left: var(--transaction-face-col);
+  }
+}
+
+.gdd-transaction :global(.transaction-memo-col) {
+  margin-left: var(--transaction-face-col);
+  width: calc(100% - var(--transaction-face-col));
+}
+
+.gdd-transaction :global(.transaction-arrow-col) {
+  width: var(--transaction-arrow-col);
+}
+
+/* From `md` on -- the switch the row's own `md` columns use, 768 in this wallet's
+   `_grid-breakpoint.scss` -- the memo spans what the name column spans: the row less the face,
+   the amount (3 of 12) and the arrow. Beyond that it was as wide as the whole row, which Bernd
+   found out of balance ("nicht mehr harmonisch"). On the phone the memo stands under the
+   amount and runs to the row's end. */
+@media (width >= 768px) {
+  .gdd-transaction :global(.transaction-memo-col) {
+    width: calc(100% * 9 / 12 - var(--transaction-face-col) - var(--transaction-arrow-col));
+  }
+}
+
+.gdd-transaction :global(.b-avatar-custom > svg) {
+  height: 2em;
+  width: 2em;
+}
+
+/* See the note at the column: a Bootstrap `.col` floors at its own widest unbreakable
+   content, and the name is one unbreakable run. Without this the name decides how wide the
+   row has to be, and everything to its right is pushed off the line. */
+.gdd-transaction :global(.min-w-0) {
+  min-width: 0;
+}

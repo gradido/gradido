@@ -61,11 +61,12 @@ import { memoParts } from '@/utils/memoParts'
  *
  * @typedef {{ type: 'text', inline: ChatInline[] }
  *   | { type: 'heading', level: number, inline: ChatInline[] }
- *   | { type: 'code', lang: string, text: string }  (`lang`: what stands behind the opening fence)
+ *   | { type: 'code', lang: string, text: string }
  *   | { type: 'quote', blocks: ChatBlock[] }
  *   | { type: 'list', ordered: boolean, items: { number: number | null, task: boolean | null, blocks: ChatBlock[] }[] }
  *   | { type: 'rule' }
  *   | { type: 'table', align: ('left' | 'center' | 'right' | null)[], head: ChatInline[][], rows: ChatInline[][][] }} ChatBlock
+ *   (`lang` of a 'code' block: what stands behind the opening fence)
  */
 
 /** How deep quotes and lists may stand in one another; deeper, a line is text. */

@@ -1,7 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import ChatVideoAppMissed from './ChatVideoAppMissed.vue'
+import { describe, it, expect, vi } from 'vitest'
+import { ChatVideoAppMissed } from './ChatVideoAppMissed'
+
+// The component asks `useI18n` for its words (a template had `$t`).
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const ROOM = 'https://meet.ffmuc.net/k7m2x9q4t8wz#config.subject=%22Videoanruf%22'
 

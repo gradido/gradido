@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import { ContributionListItem } from './ContributionListItem'
 import { BRow, BCol, BCollapse, BButton, BForm, BTextArea, BFormTextarea } from 'bootstrap-vue-next'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { VariantIcon } from '@/components/VariantIcon'
 
 const i18n = createI18n({
   legacy: false,

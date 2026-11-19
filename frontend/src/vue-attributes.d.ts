@@ -24,5 +24,21 @@ declare module 'vue' {
     onInput?: HTMLAttributes['onInput']
     onMouseover?: HTMLAttributes['onMouseover']
     inputmode?: InputHTMLAttributes['inputmode']
+    // What a form sets on ValidatedInput and LabeledInput for the field inside: neither
+    // declares them, both hand them on (`textarea` and `maxRows` are LabeledInput's props,
+    // reached through ValidatedInput's attributes).
+    placeholder?: InputHTMLAttributes['placeholder'] | number
+    type?: InputHTMLAttributes['type']
+    step?: InputHTMLAttributes['step']
+    readonly?: InputHTMLAttributes['readonly']
+    autocomplete?: InputHTMLAttributes['autocomplete']
+    trim?: string
+    'no-flip'?: boolean
+    textarea?: string
+    maxRows?: number | string
+    // The send form locks its community switch with it; the switch declares no such prop.
+    disabled?: InputHTMLAttributes['disabled']
+    // `v-html` on a component: the text becomes the content of the element it renders.
+    innerHTML?: HTMLAttributes['innerHTML']
   }
 }

@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
-import ChatNote from './ChatNote.vue'
+import { ChatNote } from './ChatNote'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key) => key }),

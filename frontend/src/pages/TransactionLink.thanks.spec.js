@@ -23,10 +23,10 @@ import {
   forgetFirstLoginWindows,
   setFirstLoginWindowWanted,
 } from '@/composables/useFirstLoginWindow'
-import TransactionLink from './TransactionLink.vue'
-import RedeemThanks from '@/components/LinkInformations/RedeemThanks.vue'
-import RedeemThanksAccount from '@/components/LinkInformations/RedeemThanksAccount.vue'
-import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.vue'
+import { TransactionLink } from './TransactionLink'
+import { RedeemThanks } from '@/components/LinkInformations/RedeemThanks'
+import { RedeemThanksAccount } from '@/components/LinkInformations/RedeemThanksAccount'
+import { RedeemThanksPaper } from '@/components/LinkInformations/RedeemThanksPaper'
 
 /**
  * The redeem page and the three kinds of link that share its route: a member's redeem link is

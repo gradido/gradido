@@ -3,7 +3,7 @@ import { createI18n } from 'vue-i18n'
 import { nextTick } from 'vue'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { BDropdown, BDropdownItem } from 'bootstrap-vue-next'
-import TransactionLink from './TransactionLink.vue'
+import { TransactionLink } from './TransactionLink'
 import { createFilters } from '@/filters/amount'
 import {
   forgetAllGreetingPictures,
@@ -13,14 +13,23 @@ import {
 import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { walletStore } from '@test/walletStore'
 
+// The icons this file tells apart. The row imports them now; under the names a template gave
+// them, the stand-ins below (`IBiPrinter: true`, the dots as an svg) still take their place.
+vi.mock('~icons/bi/three-dots-vertical', () => ({
+  default: { name: 'IBiThreeDotsVertical', render: () => null },
+}))
+vi.mock('~icons/bi/printer', () => ({ default: { name: 'IBiPrinter', render: () => null } }))
+vi.mock('~icons/bi/image', () => ({ default: { name: 'IBiImage', render: () => null } }))
+vi.mock('~icons/bi/files', () => ({ default: { name: 'IBiFiles', render: () => null } }))
+
 vi.mock('@/components/AppModal', () => ({
-  default: {
+  AppModal: {
     name: 'AppModal',
     template: '<div>AppModal</div>',
   },
 }))
 vi.mock('@/components/QrCode/FigureQrCode', () => ({
-  default: {
+  FigureQrCode: {
     name: 'FigureQrCode',
     template: '<div>FigureQrCode</div>',
   },
@@ -101,7 +110,7 @@ vi.mock('vue-router', () => ({
 // The member whose list this is, as far as the row reads the store.
 const EMMA = { username: 'Oma-Emma', gradidoID: 'uuid-emma' }
 
-describe('TransactionLink.vue', () => {
+describe('TransactionLink', () => {
   let wrapper
 
   const i18n = createI18n({

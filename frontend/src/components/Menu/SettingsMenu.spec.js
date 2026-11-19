@@ -35,6 +35,12 @@ vi.mock('@vue/apollo-composable', () => ({
   },
 }))
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The list asks `useRoute()` for the path it marks; RouterLink is imported from the same module.
+const route = { path: '/settings' }
+vi.mock('vue-router', () => ({
+  useRoute: () => route,
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a :to="to"><slot /></a>' },
+}))
 // The wallet store sets the language on the app's own i18n, which this spec does not build.
 vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 
@@ -48,7 +54,8 @@ const mountMenu = async ({
   role = null,
 } = {}) => {
   vi.resetModules()
-  const { default: SettingsMenu } = await import('./SettingsMenu.vue')
+  route.path = path
+  const { SettingsMenu } = await import('./SettingsMenu')
   return mount(SettingsMenu, {
     global: {
       plugins: [
@@ -59,8 +66,8 @@ const mountMenu = async ({
           role,
         }),
       ],
-      stubs: { RouterLink: RouterLinkStub, 'settings-menu-icon': true },
-      mocks: { $t: (key) => key, $route: { path } },
+      stubs: { RouterLink: RouterLinkStub, SettingsMenuIcon: true },
+      mocks: { $t: (key) => key },
     },
   })
 }

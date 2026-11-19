@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import ChatBubble from './ChatBubble.vue'
+import { ChatBubble } from './ChatBubble'
 import { isComputer } from '@/utils/isComputer'
 
 /**
@@ -23,6 +23,14 @@ vi.mock('vue-i18n', () => ({
     d: (date, format) => `${format}(${date.toISOString()})`,
     locale: { value: 'de' },
   }),
+  // The sentence's key, and the name in its slot, as vue-i18n's <i18n-t> puts them together.
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: {
+    name: 'I18nT',
+    props: { keypath: String },
+    template: '<span :data-keypath="keypath"><slot name="name" /></span>',
+  },
 }))
 /**
  * Whether a message is a video invitation word for word (utils/chatVideoInvite, with its own
@@ -65,26 +73,19 @@ describe('ChatBubble, the menu at a message (E-059)', () => {
       props: { message, alias: 'Lena' },
       attachTo: document.body,
       global: {
-        // The sentence's key, and the name in its slot, as vue-i18n's <i18n-t> puts them together.
-        components: {
-          'i18n-t': {
-            props: { keypath: String },
-            template: '<span :data-keypath="keypath"><slot name="name" /></span>',
-          },
-        },
         stubs: {
-          IMdiDotsHorizontal: { template: '<i data-test="dots" />' },
-          IMdiShare: { template: '<i data-test="forwarded-sign" />' },
-          IMdiPencilOutline: true,
-          IMdiReplyOutline: true,
-          IMdiImageOutline: true,
-          IMdiShareOutline: true,
-          IMdiContentCopy: true,
-          IMdiEmailOutline: true,
-          IMdiCalendarPlusOutline: true,
-          IMdiContentDuplicate: true,
-          IMdiFileDocumentOutline: true,
-          IMdiOpenInNew: true,
+          MdiDotsHorizontal: { template: '<i data-test="dots" />' },
+          MdiShare: { template: '<i data-test="forwarded-sign" />' },
+          MdiPencilOutline: true,
+          MdiReplyOutline: true,
+          MdiImageOutline: true,
+          MdiShareOutline: true,
+          MdiContentCopy: true,
+          MdiEmailOutline: true,
+          MdiCalendarPlusOutline: true,
+          MdiContentDuplicate: true,
+          MdiFileDocumentOutline: true,
+          MdiOpenInNew: true,
           IBiCopy: true,
         },
       },

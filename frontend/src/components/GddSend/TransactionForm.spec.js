@@ -182,7 +182,7 @@ describe('TransactionForm', () => {
       expect(() => openedOn({ hash: '#send-form' })).not.toThrow()
     })
 
-    // Up to 450 px the navbar stays at the top of the window (Menu/Navbar.vue), and the switch
+    // Up to 450 px the navbar stays at the top of the window (Menu/Navbar.tsx), and the switch
     // between sending, link and e-mail stood under it.
     describe('under a navbar that stays at the top of the window', () => {
       let bar

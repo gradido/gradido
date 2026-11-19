@@ -34,7 +34,7 @@ const sourceFiles = (dir) => {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) {
       found.push(...sourceFiles(path))
-    } else if (/\.(vue|js)$/.test(name) && !/\.spec\.js$/.test(name)) {
+    } else if (/\.(tsx|ts|js)$/.test(name) && !/\.spec\.js$/.test(name)) {
       found.push(path)
     }
   }
@@ -51,9 +51,10 @@ const DEAD = [
   /hide-header-close/,
   /hide-header/,
   /hide-footer/,
-  /hideHeaderClose\s*:/,
-  /hideHeader\s*:/,
-  /hideFooter\s*:/,
+  // as an object key, or as a JSX attribute (`hideFooter={…}`, never `hideFooter ===`)
+  /hideHeaderClose\s*[:=](?!=)/,
+  /hideHeader\s*[:=](?!=)/,
+  /hideFooter\s*[:=](?!=)/,
 ]
 
 describe('bootstrap-vue-next modal props', () => {
@@ -63,7 +64,7 @@ describe('bootstrap-vue-next modal props', () => {
   // trap in a comment must not count as an offender.
   it('reads this package and strips its comments', () => {
     expect(files.length).toBeGreaterThan(100)
-    expect(files.some((f) => withoutComments(readFileSync(f, 'utf8')).includes('no-header'))).toBe(
+    expect(files.some((f) => withoutComments(readFileSync(f, 'utf8')).includes('noHeader'))).toBe(
       true,
     )
   })

@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { VariantIcon } from '@/components/VariantIcon'
 import CONFIG from '@/config'
 import { SupportTicketListItem } from './SupportTicketListItem'
 

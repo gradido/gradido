@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { walletStore } from '@test/walletStore'
-import EmailConfirmationStrip from './EmailConfirmationStrip.vue'
-import EmailConfirmationReminder from './EmailConfirmationReminder.vue'
+import { EmailConfirmationStrip } from './EmailConfirmationStrip'
+import { EmailConfirmationReminder } from './EmailConfirmationReminder'
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,
@@ -37,6 +37,8 @@ vi.mock('vue-router', () => ({
     },
   }),
   useRouter: () => ({ push: (to) => pushed.push(to) }),
+  // The window of the last test is TSX now and imports the link.
+  RouterLink: { name: 'RouterLink', props: ['to'], template: '<a :href="to"><slot /></a>' },
 }))
 
 const resendMock = vi.fn()

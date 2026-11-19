@@ -132,11 +132,15 @@ module.exports = {
           // (src/components/I18nText.ts) as `keypath='…'`. The plugin's key collector reads
           // `keypath` only on a template `<i18n-t>` and `t('…')` calls, never a JSX attribute,
           // so every such key has to be named here.
+          'redeem-thanks.from',
+          'showFriends.here.step1',
           'showFriends.mirror.title',
           'thanksArrival.from',
           'error.empty-transactionlist',
           'error.no-transactionlist',
           'error.session-renewal-failed',
+          'firstCreation.whyMore',
+          'chatThread.forwardedFrom',
         ],
         enableFix: false,
       },

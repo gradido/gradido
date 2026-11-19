@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { nextTick, ref } from 'vue'
-import DashboardLayout from './DashboardLayout'
+import { DashboardLayout } from './DashboardLayout'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -15,7 +15,7 @@ import { forgetAllMemberAvatars, storedMemberAvatar } from '@/composables/useMem
 import { forgetViewport } from '@/composables/useViewport'
 import { transactionsUserCountQuery } from '@/graphql/transactions.graphql'
 import { LAST_TRANSACTIONS_PAGE_SIZE } from '@/constants'
-import FirstCreation from '@/components/FirstCreation.vue'
+import { FirstCreation } from '@/components/FirstCreation'
 import { EventMatchingHomeInvitation } from '@/components/EventMatchingHomeInvitation'
 import CONFIG from '@/config'
 import { forgetWayBack, rememberWayBack, wayBackFor } from '@/utils/adminWayBack'
@@ -87,6 +87,8 @@ vi.mock('vue-i18n', () => ({
     t: (key) => key,
     d: (value) => value,
     n: (value) => value,
+    // The footer is TSX now and reads the language here, where its template read `$i18n`.
+    locale: { value: 'en' },
   }),
   // ShowFriendsTile imports the component for its sentence with a slot in it.
   I18nT: { name: 'I18nT', render: () => null },
@@ -154,6 +156,12 @@ describe('DashboardLayout', () => {
         stubs: {
           RouterLink: true,
           RouterView: true,
+          // ⚠️ The layout is TSX now and imports the grid itself. In this file a row and a column
+          // were never registered and stood in the page as `brow` and `bcol` elements carrying
+          // what they were given (`cols`, their classes) -- which the tests below read. So they
+          // stay such elements.
+          BRow: { template: '<brow><slot /></brow>' },
+          BCol: { template: '<bcol><slot /></bcol>' },
           LastTransactions: true,
           Navbar: true,
           Sidebar: true,
@@ -445,11 +453,12 @@ describe('DashboardLayout', () => {
        * from the layout's switch-over on, and by a negative margin.
        */
       it('lifts on the desk only', () => {
+        // The layout's global stylesheet, since the layout is a .tsx file.
         const source = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.vue'),
+          join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.css'),
           'utf8',
         )
-        const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+        const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
         const rules = [...style.matchAll(/\.main-content\.content-at-heading\s*\{([^}]*)\}/g)]
         expect(rules).toHaveLength(1)
         expect(rules[0][1]).toMatch(/margin-top:\s*-\d+px/)
@@ -1042,12 +1051,13 @@ describe('DashboardLayout', () => {
      * of it would be the missing gap all over again, so the two are held against each other.
      */
     it('names exactly the sections whose header slot shows something', () => {
-      const source = readFileSync(join(here, 'DashboardLayout.vue'), 'utf8')
+      const source = readFileSync(join(here, 'DashboardLayout.tsx'), 'utf8')
       // Comments out first: a slot written into a note is not a slot.
-      const template = source.replace(/<!--[\s\S]*?-->/g, '')
-      const header = template.match(/<content-header[\s\S]*?<\/content-header>/)[0]
-      const filled = [...header.matchAll(/<template #(\w+)>([\s\S]*?)<\/template>/g)]
-        .filter(([, , body]) => body.trim() !== '')
+      const template = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
+      // The slots are the entries of `v-slots` now, each `name: () => …`; an empty one gives null.
+      const header = template.match(/<ContentHeader[\s\S]*?\n\s*\}\}\n\s*\/>/)[0]
+      const filled = [...header.matchAll(/^\s*(\w+): \(\) => (\S+)/gm)]
+        .filter(([, , body]) => body !== 'null,')
         .map(([, name]) => name)
       const listed = source
         .match(/const BALANCE_SECTIONS = \[([^\]]*)\]/)[1]
@@ -1429,11 +1439,12 @@ describe('DashboardLayout', () => {
      * colour mode, and standing AFTER the hover rule so an open tool does not dim.
      */
     it('lights the tool whose page is open, in both colour modes', () => {
+      // The layout's global stylesheet, since the layout is a .tsx file.
       const source = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'DashboardLayout.css'),
         'utf8',
       )
-      const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+      const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
       const light = style.match(
         /\n\.main-page \.sidebar-quick-row > a\[aria-current='page'\],\s*\.main-page \.sidebar-quick-row > a\[aria-current='page'\]:hover\s*\{([^}]*)\}/,
       )

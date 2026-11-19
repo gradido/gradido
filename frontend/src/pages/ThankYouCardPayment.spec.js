@@ -3,7 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { BButton, BFormCheckbox, BFormInput } from 'bootstrap-vue-next'
-import ThankYouCardPayment from './ThankYouCardPayment.vue'
+import { ThankYouCardPayment } from './ThankYouCardPayment'
 import routes from '@/routes/routes'
 
 /**
@@ -53,8 +53,13 @@ const germanDecimal = new Intl.NumberFormat('de', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })
+// `t` writes the values behind the key, as the `$t` of the template did: the markup reads its
+// texts through useI18n() now.
 vi.mock('vue-i18n', () => ({
-  useI18n: vi.fn(() => ({ t: (key) => key, n: (value) => germanDecimal.format(value) })),
+  useI18n: vi.fn(() => ({
+    t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key),
+    n: (value) => germanDecimal.format(value),
+  })),
 }))
 
 const mockReadParked = vi.fn(() => null)
@@ -116,7 +121,6 @@ describe('ThankYouCardPayment', () => {
   const createWrapper = () =>
     mount(ThankYouCardPayment, {
       global: {
-        mocks: { $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key) },
         stubs: { BButton, BFormCheckbox, BFormInput },
       },
     })

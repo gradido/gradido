@@ -1,6 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import Status from './Status'
+import { Status } from './Status'
+
+// The component reads its texts through useI18n().
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (t) => t, n: (n) => n }),
+}))
 
 describe('Status', () => {
   let wrapper

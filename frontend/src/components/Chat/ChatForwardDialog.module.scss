@@ -1,0 +1,54 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the dialog had, by the same flat selectors; without the scope
+   attribute each has one level less. */
+
+/* The message it is about: two lines of it on the muted surface, who wrote it over them. */
+.chat-forward-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.85rem;
+  background: var(--surface-muted, #f2f4f6);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.chat-forward-preview-icon {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.1rem;
+  color: var(--gold, #c58d38);
+}
+
+.chat-forward-preview-words {
+  min-width: 0;
+}
+
+.chat-forward-preview-who {
+  display: block;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chat-forward-preview-text {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* ⚠️ 16 px: Safari on the iPhone zooms into any smaller field the moment it is touched. */
+.chat-forward-words {
+  font-size: 1rem;
+}
+
+.chat-forward-go[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
+}

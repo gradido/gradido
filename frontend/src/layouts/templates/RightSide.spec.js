@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import RightSide from './RightSide'
+import { RightSide } from './RightSide'
 
 vi.mock('bootstrap-vue-next', () => ({
   BContainer: {

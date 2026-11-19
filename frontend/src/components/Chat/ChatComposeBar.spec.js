@@ -6,7 +6,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { toRaw } from 'vue'
 import { BModal } from 'bootstrap-vue-next'
-import ChatComposeBar from './ChatComposeBar.vue'
+import { ChatComposeBar } from './ChatComposeBar'
 import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
 import { isComputer } from '@/utils/isComputer'
 import { CHAT_IMAGE_UNEDITED } from '@/utils/chatImageEdit'
@@ -50,20 +50,20 @@ describe('ChatComposeBar', () => {
       props: { name: 'Lena', first: false, sending: false, failed: false, ...props },
       global: {
         stubs: {
-          IMdiEmailOutline: true,
-          IMdiSend: true,
-          IMdiPaperclip: true,
-          IMdiImage: true,
-          IMdiCamera: true,
-          IMdiFileDocument: true,
-          IMdiClose: true,
-          IMdiPencil: true,
+          MdiEmailOutline: true,
+          MdiSend: true,
+          MdiPaperclip: true,
+          MdiImage: true,
+          MdiCamera: true,
+          MdiFileDocument: true,
+          MdiClose: true,
+          MdiPencil: true,
           // The strip over the field and the tick while a message is being changed (E-060).
-          IMdiPencilOutline: true,
-          IMdiCheck: true,
+          MdiPencilOutline: true,
+          MdiCheck: true,
           // The strip over the field while the next message answers one.
-          IMdiReplyOutline: true,
-          IMdiImageOutline: { template: '<i data-test="picture-sign" />' },
+          MdiReplyOutline: true,
+          MdiImageOutline: { template: '<i data-test="picture-sign" />' },
           // The editor has its own spec; here it shows what it was given and answers as a test says.
           ChatImageEditor: {
             name: 'ChatImageEditor',
@@ -71,9 +71,9 @@ describe('ChatComposeBar', () => {
             emits: ['update:modelValue', 'done'],
             template: '<div data-test="chat-image-editor-stub" />',
           },
-          IMdiCellphone: true,
-          IMdiOpenInNew: true,
-          IMdiEmoticonHappyOutline: true,
+          MdiCellphone: true,
+          MdiOpenInNew: true,
+          MdiEmoticonHappyOutline: true,
           // Shows what it holds while it is open, the footer under it. The names written on the
           // real tag are held against the installed package below.
           BModal: {
@@ -889,9 +889,10 @@ describe('ChatComposeBar', () => {
 
     describe('in the stylesheet', () => {
       const here = dirname(fileURLToPath(import.meta.url))
-      const code = readFileSync(join(here, 'ChatComposeBar.vue'), 'utf8')
-        .split('<style')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
+      const code = readFileSync(join(here, 'ChatComposeBar.module.scss'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
       const rule = (selector) =>
         code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]?.replace(/\s+/g, ' ') ?? ''
 
@@ -1368,15 +1369,15 @@ describe('ChatComposeBar', () => {
       mountBar()
       expect(button().classes()).not.toContain('is-save')
       expect(button().attributes('aria-label')).toBe('chatThread.send')
-      expect(button().find('i-mdi-send-stub').exists()).toBe(true)
+      expect(button().find('mdi-send-stub').exists()).toBe(true)
 
       await startEditing()
 
       expect(button().classes()).toContain('is-save')
       expect(button().attributes('aria-label')).toBe('chatThread.editSave')
       expect(button().attributes('title')).toBe('chatThread.editSave')
-      expect(button().find('i-mdi-check-stub').exists()).toBe(true)
-      expect(button().find('i-mdi-send-stub').exists()).toBe(false)
+      expect(button().find('mdi-check-stub').exists()).toBe(true)
+      expect(button().find('mdi-send-stub').exists()).toBe(false)
     })
 
     // Nothing else goes with a change: no picture, no mail, no announcement.
@@ -3093,7 +3094,7 @@ describe('ChatComposeBar', () => {
    */
   it('writes on its dialog only names the installed BModal declares', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatComposeBar.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatComposeBar.tsx'),
       'utf8',
     ).replace(/<!--[\s\S]*?-->/g, '')
     const tags = [...source.matchAll(/<BModal\b([\s\S]*?)>/g)]
@@ -3136,7 +3137,10 @@ describe('ChatComposeBar', () => {
   })
 
   const style = () =>
-    readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ChatComposeBar.vue'), 'utf8')
+    readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatComposeBar.module.scss'),
+      'utf8',
+    )
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/<!--[\s\S]*?-->/g, '')
 
@@ -3259,7 +3263,7 @@ describe('ChatComposeBar', () => {
     }
     const button = rule('\\.chat-compose-send')
     const light = rule('\\.chat-compose-send\\.is-save')
-    const dark = rule('\\.dark-mode \\.chat-compose-send\\.is-save')
+    const dark = rule(':global\\(\\.dark-mode\\) \\.chat-compose-send\\.is-save')
 
     // Light: the button's own white tick on the dark green.
     expect(colour(light, 'background'), 'no plain green to measure').toBeDefined()

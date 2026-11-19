@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import ChatBubble from './ChatBubble.vue'
+import { ChatBubble } from './ChatBubble'
 import { THANK_YOU_MOTIF_KEYS } from '@/utils/thankYouMotifs'
 
 /**
@@ -26,6 +26,9 @@ vi.mock('vue-i18n', () => ({
     d: (date, format) => `${format}(${date.toISOString()})`,
     locale: { value: 'de' },
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 vi.mock('@/composables/useToast', () => ({
@@ -53,11 +56,11 @@ describe('ChatBubble, a transfer with a picture', () => {
   let wrapper
 
   const stubs = {
-    IMdiEmailOutline: true,
-    IMdiCalendarPlusOutline: true,
-    IMdiContentDuplicate: true,
-    IMdiDotsHorizontal: true,
-    IMdiShare: true,
+    MdiEmailOutline: true,
+    MdiCalendarPlusOutline: true,
+    MdiContentDuplicate: true,
+    MdiDotsHorizontal: true,
+    MdiShare: true,
     I18nT: true,
     // The photo's place: what it is asked by, and whose it is said to be.
     ThankYouGreetingPhoto: {

@@ -7,7 +7,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ShowFriends from './ShowFriends.vue'
+import { ShowFriends } from './ShowFriends'
 import { OwnCodeView } from '@/components/QrCode/OwnCodeView'
 import { logout } from '@/graphql/mutations'
 import { guarantorCode as guarantorCodeQuery } from '@/graphql/guarantorCode.graphql'
@@ -137,13 +137,14 @@ const mountPage = (state = { username: 'alice', gradidoID: 'uuid-1' }) =>
     global: {
       plugins: [i18n, router, signedInAs(state)],
       stubs: {
-        IMdiCoffeeOutline: true,
-        IMdiEmailOutline: true,
-        IMdiChevronUp: true,
-        IMdiChevronDown: true,
-        IMdiArrowLeft: true,
-        IBiShare: true,
-        IBiCopy: true,
+        // under the names unplugin-icons gives the components the page imports
+        MdiCoffeeOutline: true,
+        MdiEmailOutline: true,
+        MdiChevronUp: true,
+        MdiChevronDown: true,
+        MdiArrowLeft: true,
+        BiShare: true,
+        BiCopy: true,
       },
     },
   })
@@ -600,7 +601,7 @@ describe('ShowFriends', () => {
     it('unfolds the names and the hint on a tap, and folds them away on the next', async () => {
       const { wrapper } = await mountWithCode({ unconfirmedGuests: guestsOf(2) })
       // The chevron shows the way the line goes on a tap, as on the doors.
-      const chevron = (way) => guestToggle(wrapper).find(`i-mdi-chevron-${way}-stub`).exists()
+      const chevron = (way) => guestToggle(wrapper).find(`mdi-chevron-${way}-stub`).exists()
       expect(chevron('down')).toBe(true)
 
       await tapGuests(wrapper)

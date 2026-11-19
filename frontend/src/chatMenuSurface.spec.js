@@ -19,9 +19,13 @@ const here = dirname(fileURLToPath(import.meta.url))
 const read = (path) => readFileSync(resolve(here, path), 'utf8')
 const LIGHT = read('./assets/scss/_design-tokens.scss')
 const DARK = read('./assets/scss/gradido-template-dark.scss')
-const COMPOSE = read('./components/Chat/ChatComposeBar.vue')
-const MESSAGE = read('./components/Chat/ChatMessageMenu.vue')
-const LINK = read('./components/TransactionLinks/TransactionLink.vue')
+const COMPOSE = read('./components/Chat/ChatComposeBar.module.scss')
+const MESSAGE = read('./components/Chat/ChatMessageMenu.module.scss')
+// The row of a link is a .tsx now: its unscoped block is a sheet of its own, its scoped one a
+// style module, where each rule stands under the root's class.
+const LINK =
+  read('./components/TransactionLinks/TransactionLink.scss') +
+  read('./components/TransactionLinks/TransactionLink.module.scss')
 const LANGUAGE = read('./components/LanguageSwitch2.module.css')
 
 const token = (sheet, name) =>
@@ -230,7 +234,7 @@ describe('the menu at a link and the list of languages', () => {
    * one line at every width only as long as the menu's column stays as narrow as its button.
    */
   it('lays the room that opens the menu over the row', () => {
-    const room = ruleOf(LINK, '.transaction-link-menu-reach')
+    const room = ruleOf(LINK, '.transaction-link :global(.transaction-link-menu-reach)')
     expect(room).toMatch(/position:\s*absolute/)
     expect(room).toMatch(/inset:\s*-0\.5rem -1rem -0\.25rem -1\.5rem/)
   })

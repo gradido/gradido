@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import i18n from '@/i18n'
-import RedeemThanksPaper from '@/components/LinkInformations/RedeemThanksPaper.vue'
+import { RedeemThanksPaper } from '@/components/LinkInformations/RedeemThanksPaper'
 import { canWriteByHand } from '@/utils/handwriting'
 import {
   isOneLine,

@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import flushPromises from 'flush-promises'
 import { walletStore } from '@test/walletStore'
 import { BButton, BCol, BForm, BFormInput, BRow } from 'bootstrap-vue-next'
-import Account from './Account.vue'
+import { Account } from './Account'
 
 const mockMutate = vi.fn()
 vi.mock('@vue/apollo-composable', () => ({ useMutation: () => ({ mutate: mockMutate }) }))

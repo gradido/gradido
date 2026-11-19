@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ContributionMessagesListItem } from './ContributionMessagesListItem'
-import AppAvatar from '@/components/AppAvatar.vue'
+import { AppAvatar } from '@/components/AppAvatar'
 import { Message as message } from '../Message/Message'
 import { defineComponent, nextTick } from 'vue'
 import { BCol, BRow } from 'bootstrap-vue-next'

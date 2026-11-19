@@ -10,8 +10,8 @@ import {
   type ContributionRow,
   type CreationGroup,
 } from '@/components/Contributions/ContributionListItem'
-import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
-import ThemedSelect from '@/components/ThemedSelect.vue'
+import { PaginatorRouteParamsPage } from '@/components/PaginatorRouteParamsPage'
+import { ThemedSelect } from '@/components/ThemedSelect'
 import { pollChatNow } from '@/composables/useChatUpdates'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import CONFIG from '@/config'

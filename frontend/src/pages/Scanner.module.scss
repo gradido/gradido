@@ -1,0 +1,297 @@
+/* AI-GENERATED — not an architecture reference */
+
+/*
+  No surface of its own any more: the scanner stands on the page like the member's own
+  codes do, and on the desk inside the wallet's chrome. The anthracite panel it used to
+  bring made it look like a window from somewhere else (Bernd, 08.10.2026). So the ink
+  follows the colour mode -- through the variables the colour-mode bridge switches
+  (_color-mode-bridge.scss) -- and only the two signal colours need a value per mode,
+  below. Gold is the wallet's own accent (the gradient of .btn-gradido), here on the
+  corners that say "hold it in here".
+
+  ⛔ Custom properties on the element, NOT scss variables at the top of the sheet: the
+  sheet is parsed by lightningcss when it is bundled, and a declaration outside any
+  selector fails there — which neither lint nor the tests catch, only `bun run build`.
+
+  `.scanner` is the root's class of this module; every other rule stands under it and reaches
+  the plain class the page writes through `:global(…)`: the scoped rules these were had one
+  level more (the scope attribute).
+*/
+.scanner {
+  --scan-ink: var(--bs-body-color);
+  --scan-dim: var(--bs-secondary-color);
+  --scan-card: var(--bs-secondary-bg);
+  --scan-sheet: var(--bs-body-bg);
+  --scan-gold: rgb(249 205 105);
+  --scan-green: rgb(47 110 34);
+  --scan-red: rgb(176 42 28);
+
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 24px;
+  color: var(--scan-ink);
+}
+
+/* The two signal colours for a dark page; the light ones above are darker so they hold on
+   a light one. The card is a step darker than the mode's muted surface: the dimmed text on
+   it measured 4.23:1 there, and the red 4.40:1. */
+:global(.dark-mode) .scanner {
+  --scan-card: rgb(44 45 48);
+  --scan-green: rgb(132 174 116);
+  --scan-red: rgb(240 150 140);
+}
+
+/* On a phone the scanner IS the screen (the route is bare there), and the slid-up cards
+   sit at its bottom edge -- so it has to reach that edge. The pair, not just dvh: engines
+   without dvh (iOS Safari 15.0-15.3, older Chromium) drop the second line entirely. On
+   the desk the page has the wallet around it and takes the height of its content. */
+@media (width <= 1024.98px) {
+  .scanner {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+}
+
+.scanner :global(.scanner-head) {
+  padding: 4px 8px 0;
+}
+
+/* The layout's switch-over (LG_BREAKPOINT_PX), not Bootstrap's 992. */
+@media (width >= 1025px) {
+  .scanner :global(.scanner-head) {
+    display: none;
+  }
+}
+
+/* 44px stays the target even though the icon reads small -- same rule as the calculator. */
+.scanner :global(.scanner-head-key) {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--scan-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.scanner :global(.scanner-head-key:hover) {
+  color: var(--scan-ink);
+}
+
+/* The size comes from `fs-5` in the markup, as on the own-code pages. */
+.scanner :global(.scanner-title) {
+  text-align: center;
+  padding: 0 8px 8px;
+}
+
+.scanner :global(.scanner-frame) {
+  position: relative;
+  margin: 12px 24px;
+  aspect-ratio: 1;
+}
+
+.scanner :global(.scanner-video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  background-color: rgb(20 22 18);
+}
+
+/* The four golden corners: the frame that says where the code goes. Drawn as corners
+   rather than a border so the picture stays open — a closed box reads as "too small". */
+.scanner :global(.scanner-corner) {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--scan-gold);
+  pointer-events: none;
+}
+
+.scanner :global(.scanner-corner-tl) {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 12px;
+}
+
+.scanner :global(.scanner-corner-tr) {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 12px;
+}
+
+.scanner :global(.scanner-corner-bl) {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 12px;
+}
+
+.scanner :global(.scanner-corner-br) {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 12px;
+}
+
+.scanner :global(.scanner-hint) {
+  padding: 0 24px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-manual-link) {
+  display: block;
+  margin: 14px auto 0;
+  padding: 10px;
+  font-size: 14px;
+  color: var(--scan-ink);
+  text-decoration: underline;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.scanner :global(.scanner-permission-hint) {
+  margin: 6px 24px 0;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-unknown) {
+  margin: 10px 24px 0;
+  padding: 8px 12px;
+  font-size: 14px;
+  text-align: center;
+  color: var(--scan-ink);
+  background-color: var(--scan-card);
+  border-radius: 8px;
+}
+
+.scanner :global(.scanner-denied) {
+  padding: 8px 20px;
+}
+
+.scanner :global(.scanner-denied-title) {
+  font-size: 17px;
+}
+
+.scanner :global(.scanner-denied-help) {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-way-card) {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background-color: var(--scan-card);
+  border-radius: 12px;
+}
+
+.scanner :global(.scanner-way-title) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.scanner :global(.scanner-way-icon) {
+  font-size: 20px;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-way-text) {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-way-parked) {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--scan-green);
+}
+
+/* The slid-up card at the bottom — confirmation and hand entry share the shape. */
+.scanner :global(.scanner-sheet) {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 20px 16px;
+  background-color: var(--scan-sheet);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -8px 30px rgb(0 0 0 / 45%);
+}
+
+.scanner :global(.scanner-sheet-title) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.scanner :global(.scanner-sheet-icon) {
+  font-size: 20px;
+  color: var(--scan-dim);
+}
+
+/* The host in green: it is the one thing to actually read before pressing gold. */
+.scanner :global(.scanner-sheet-host) {
+  margin: 8px 0 14px;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+  color: var(--scan-green);
+}
+
+.scanner :global(.scanner-sheet-label) {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--scan-dim);
+}
+
+.scanner :global(.scanner-sheet-dismiss) {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 14px;
+  color: var(--scan-dim);
+  text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.scanner :global(.scanner-sheet-dismiss:hover) {
+  color: var(--scan-ink);
+}
+
+.scanner :global(.scanner-manual-form) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.scanner :global(.scanner-manual-invalid) {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--scan-red);
+}

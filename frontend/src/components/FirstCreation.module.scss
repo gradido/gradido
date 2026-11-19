@@ -1,0 +1,230 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it.
+
+   Every rule stands under `.fc`, the class each screen of the window is wrapped in: the scoped
+   rules these were had one level more (the scope attribute). The rule for `.fc` itself names
+   it twice for the same reason.
+
+   The footer is no part of a screen -- BModal draws it beside the body. What stands there and
+   had a scoped rule (`fc-link`, `fc-count`) carries `fc-foot` beside its own class, and the
+   rule names both. */
+.fc:global(.fc) {
+  font-size: 0.95rem;
+}
+
+.fc :global(.fc-welcome) {
+  margin-bottom: 4px;
+  color: var(--gold, #c58d38);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+/* Plain running text, not muted: this is the sentence that says why the question is being
+   asked, and the muted grey belongs to the hint UNDER the question. */
+.fc :global(.fc-intro) {
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.fc :global(.fc-check) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 2px 0 14px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  background: var(--gradido-goldsoft, rgb(197 141 56 / 8%));
+  border: 1.5px solid var(--gold, #c58d38);
+  border-radius: 8px;
+}
+
+.fc :global(.fc-box) {
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  font-size: 0.8rem;
+  border: 1.8px solid var(--gold, #c58d38);
+  border-radius: 4px;
+}
+
+.fc :global(.fc-on .fc-box) {
+  background: var(--gold, #c58d38);
+}
+
+.fc :global(.fc-check-hint) {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.fc :global(.fc-category-title) {
+  margin: 16px 0 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fc :global(.fc-row) {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 9px 12px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 8px;
+}
+
+.fc :global(.fc-dot) {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border: 1.5px solid var(--bs-border-color, #dee2e6);
+  border-radius: 50%;
+}
+
+.fc :global(.fc-too-short) {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.fc :global(.fc-edit) {
+  margin: 0 0 10px 28px;
+  padding: 10px 12px;
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 8px;
+}
+
+.fc :global(.fc-edit-foot) {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.fc :global(.fc-link),
+.fc-foot:global(.fc-link) {
+  padding: 0;
+  color: var(--gold, #c58d38);
+  font-size: 0.8rem;
+  background: none;
+  border: 0;
+}
+
+.fc :global(.fc-again) {
+  margin-left: auto;
+}
+
+.fc :global(.fc-more) {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.fc :global(.fc-note) {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.fc :global(.fc-count),
+.fc-foot:global(.fc-count) {
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.fc :global(.fc-line) {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.fc :global(.fc-circle) {
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 50%;
+}
+
+.fc :global(.fc-circle-open) {
+  border: 1.5px dashed var(--bs-border-color, #adb5bd);
+}
+
+.fc :global(.fc-circle-done) {
+  background: var(--gold, #c58d38);
+  border: 1.5px solid var(--gold, #c58d38);
+}
+
+.fc :global(.fc-message) {
+  margin: 18px 0 6px;
+  padding: 16px 20px;
+  font-size: 1rem;
+  line-height: 1.55;
+
+  /* The message is composed on the server out of several lines (ES-006); the breaks
+     between them are part of it. */
+  white-space: pre-line;
+  background: var(--gradido-goldsoft, rgb(197 141 56 / 8%));
+  border-left: 3px solid var(--gold, #c58d38);
+  border-radius: 0 10px 10px 0;
+}
+
+.fc :global(.fc-signature) {
+  margin-bottom: 18px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.fc :global(.fc-balance) {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 10px;
+}
+
+.fc :global(.fc-balance-label) {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.fc :global(.fc-balance-amount) {
+  color: var(--gold, #c58d38);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.fc :global(.fc-why-title) {
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.fc :global(.fc-why) {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

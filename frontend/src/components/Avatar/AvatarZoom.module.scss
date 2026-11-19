@@ -1,0 +1,142 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Comments here must be block comments: lightningcss parses this sheet, and a
+   double slash is not a comment to it -- the build dies with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+
+/* ⛔ A style MODULE (what `scoped` was in AvatarZoom.vue), and it is not tidiness: every rule
+   below hangs on the hashed class only this component's overlay wears. As a plain global
+   sheet -- what the unscoped block once was -- every rule below applies to any element
+   in the wallet that happens to carry one of these class names -- and one did.
+   `AvatarCropper` names its size row `.avatar-zoom` too, so the rule directly under this
+   comment turned that row into a `position: fixed; inset: 0` layer at `z-index: 2000`,
+   over the modal's 1000. The size slider then stretched across the whole window and the
+   invisible rest of it swallowed every click on the page: the wallet looked frozen, and
+   only a reload brought it back. Live from 30.08.2026 until it was found on 03.09., because
+   opening the picture cropper is the only way to meet it.
+
+   The two rules do not even fight: the scoped one sets `display`, `color`, `gap`; this one
+   sets `position`, `inset`, `z-index`. Disjoint, so BOTH applied and neither overrode the
+   other -- which is why nothing looked wrong in either stylesheet on its own. */
+.avatar-zoom:global(.avatar-zoom) {
+  position: fixed;
+  inset: 0;
+
+  /* Above the navbar and the sidebar, below nothing else in the wallet. */
+  z-index: 2000;
+  cursor: zoom-out;
+}
+
+/* While it is shrinking the overlay is still on screen and still full-size, so without
+   this it goes on swallowing every click for a quarter of a second after the member has
+   already decided to close it -- and their next tap, on a booking row or a second face,
+   does nothing at all. */
+.avatar-zoom:global(.avatar-zoom.is-closing) {
+  pointer-events: none;
+}
+
+.avatar-zoom :global(.avatar-zoom-backdrop) {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 62%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.avatar-zoom :global(.avatar-zoom-backdrop.is-open) {
+  opacity: 1;
+}
+
+/* The growing circle. `position: fixed` and viewport coordinates, so it starts exactly
+   where getBoundingClientRect() said the small one was. */
+.avatar-zoom :global(.avatar-zoom-frame) {
+  position: fixed;
+  overflow: hidden;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 20%);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 45%);
+  transition-property: top, left, width, height;
+  transition-duration: 260ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.avatar-zoom :global(.avatar-zoom-image) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-zoom :global(.avatar-zoom-image-full) {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.avatar-zoom :global(.avatar-zoom-image-full.is-loaded) {
+  opacity: 1;
+}
+
+/* 44 points because that is a finger, not because the icon needs it -- the ring the icon
+   draws is smaller, and the rest is tap target.
+
+   ⚠️ `visibility`, not `opacity` alone. An opacity-0 button is still focusable and still
+   clickable, so before the growth and throughout the shrink a keyboard member could land
+   on an invisible control in an overlay that is already dying. */
+.avatar-zoom :global(.avatar-zoom-close) {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 260ms ease,
+    visibility 0s linear 260ms;
+  appearance: none;
+}
+
+.avatar-zoom :global(.avatar-zoom-close.is-open) {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 260ms ease,
+    visibility 0s;
+}
+
+/* ⚠️ `.icon-variant` belongs to `VariantIcon.tsx`, not to this markup: in the scoped block
+   this was it took `:deep` to reach it -- it carried THAT component's scope attribute, so a
+   plain descendant selector would have stopped matching the moment the block became scoped.
+   Under the root's class a `:global` descendant reaches it as it stands. */
+.avatar-zoom :global(.avatar-zoom-close .icon-variant) {
+  width: 28px;
+  height: 28px;
+}
+
+.avatar-zoom :global(.avatar-zoom-close:focus-visible) {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Somebody who asked their system for less motion gets the picture, not the journey. The
+   sizes and positions still apply -- only the travel between them stops. */
+@media (prefers-reduced-motion: reduce) {
+  .avatar-zoom :global(.avatar-zoom-frame),
+  .avatar-zoom :global(.avatar-zoom-backdrop),
+  .avatar-zoom :global(.avatar-zoom-close),
+  .avatar-zoom :global(.avatar-zoom-image-full) {
+    transition: none;
+  }
+}

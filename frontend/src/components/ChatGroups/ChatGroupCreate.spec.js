@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import ChatGroupCreate from './ChatGroupCreate.vue'
+import { ChatGroupCreate } from './ChatGroupCreate'
 import { createChatGroup } from '@/graphql/chatGroups.graphql'
 
 vi.mock('@/i18n', () => ({

@@ -10,19 +10,21 @@ import { describe, expect, it } from 'vitest'
  * wide as the page. jsdom lays nothing out, so this reads the source: which buttons carry the
  * class, and what the class says. Comments go first -- they name the rule in prose.
  */
-const source = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), 'ThankYouGreetingDone.vue'),
-  'utf8',
-)
-const template = source.slice(0, source.indexOf('<script')).replace(/<!--[\s\S]*?-->/g, '')
-const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+const read = (file) => readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
+// The markup stands in the render function now, its rules in the CSS module beside it.
+const source = read('ThankYouGreetingDone.module.scss')
+const template = read('ThankYouGreetingDone.tsx')
+  .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+  .replace(/^\s*\/\/.*$/gm, '')
+const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
 
 const button = (test) => {
-  const tag = template.match(new RegExp(`<BButton(?:(?!<BButton)[^>])*data-test="${test}"[^>]*>`))
+  const tag = template.match(new RegExp(`<BButton(?:(?!<BButton)[^>])*data-test='${test}'[^>]*>`))
   return tag ? tag[0] : null
 }
+// In the module every rule stands under the root's class: `… :global(.tyg-done-button) {`.
 const rule = (selector) => {
-  const found = style.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))
+  const found = style.match(new RegExp(`\\${selector}\\)\\s*\\{([^}]*)\\}`))
   return found ? found[1] : null
 }
 
@@ -33,7 +35,7 @@ describe('ThankYouGreetingDone, the width of its buttons', () => {
     'thank-you-greeting-copy',
     'thank-you-greeting-print',
   ])('%s is a button of the card', (test) => {
-    expect(button(test)).toContain('class="tyg-done-button"')
+    expect(button(test)).toContain("class='tyg-done-button'")
   })
 
   it('the line of text under them is not', () => {

@@ -275,7 +275,10 @@ describe('the two buttons, laid out as on the Gradido address', () => {
   }
 
   it('carries the same rules for them', () => {
-    const address = rulesOf('PublicProfile.vue', { from: /profile-action/g, to: 'landing-action' })
+    const address = rulesOf('PublicProfile.module.scss', {
+      from: /profile-action/g,
+      to: 'landing-action',
+    })
     const landing = rulesOf('EventMatchingLanding.module.scss', { from: /^$/, to: '' })
 
     expect(address).toContain('.landing-actions {')

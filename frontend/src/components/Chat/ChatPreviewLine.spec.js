@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import ChatPreviewLine from './ChatPreviewLine.vue'
+import { ChatPreviewLine } from './ChatPreviewLine'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -89,10 +89,11 @@ describe('ChatPreviewLine', () => {
     })
 
     it('is italics in the stylesheet', () => {
-      const styles = readFileSync(resolve(here, './ChatPreviewLine.vue'), 'utf8')
-        .split('<style scoped>')[1]
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-      const rule = styles.match(/\.chat-preview-line-words\s*\{([^}]*)\}/)[1]
+      const styles = readFileSync(resolve(here, './ChatPreviewLine.module.scss'), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+      const rule = styles.match(/\.chat-preview-line-words\)\s*\{([^}]*)\}/)[1]
       expect(rule).toMatch(/font-style:\s*italic/)
     })
   })
@@ -108,9 +109,10 @@ describe('ChatPreviewLine', () => {
 
   // One line, cut off where it ends -- and the words never become the width the row asks for.
   it('keeps to one line, and asks no width of the row', () => {
-    const styles = readFileSync(resolve(here, './ChatPreviewLine.vue'), 'utf8')
-      .split('<style scoped>')[1]
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    const styles = readFileSync(resolve(here, './ChatPreviewLine.module.scss'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
     const rule = styles.match(/\.chat-preview-line\s*\{([^}]*)\}/)[1]
     expect(rule).toMatch(/white-space:\s*nowrap/)
     expect(rule).toMatch(/text-overflow:\s*ellipsis/)

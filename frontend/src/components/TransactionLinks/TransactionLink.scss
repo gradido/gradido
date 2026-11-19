@@ -1,0 +1,32 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Not a module: these rules were the component's unscoped block and stay global. */
+.qr-button {
+  position: relative;
+  right: 20px;
+}
+
+.filter {
+  filter: opacity(0.6);
+}
+
+/* The menu of a link stands on the grey of the menus over a conversation (Bernd, 05.10.2026;
+   the tokens and their measures: _design-tokens.scss, chatMenuSurface.spec.js). Not scoped:
+   the class is handed to the library's menu. One class more than the dark stylesheet's
+   `.dark-mode .dropdown-menu` and `.dark-mode .dropdown-item:hover`, so no tie is left to the
+   order the stylesheets load in. */
+.transaction-link .dropdown-menu.transaction-link-menu {
+  border: 1px solid var(--menu-border, #b3bac2);
+  background-color: var(--menu-surface, #dde1e6) !important;
+}
+
+.transaction-link .transaction-link-menu .dropdown-item:hover,
+.transaction-link .transaction-link-menu .dropdown-item:focus {
+  background-color: var(--menu-hover, #eef0f3);
+}
+
+/* "Per E-Mail" is a real link among buttons, and links are green in the dark stylesheet
+   (`.dark-mode a:not(.btn)`): it would be the one coloured entry of the menu. */
+.dark-mode .transaction-link .transaction-link-menu a.dropdown-item {
+  color: var(--text);
+}

@@ -28,8 +28,12 @@ vi.mock('@/components/Support/SupportTicketListItem', () => ({
 vi.mock('@/composables/useChatUpdates', () => ({
   pollChatNow: (...args) => mockPollChatNow(...args),
 }))
-vi.mock('@/components/PaginatorRouteParamsPage.vue', () => ({
-  default: { name: 'PaginatorRouteParamsPage', props: ['totalCount'], template: '<div />' },
+vi.mock('@/components/PaginatorRouteParamsPage', () => ({
+  PaginatorRouteParamsPage: {
+    name: 'PaginatorRouteParamsPage',
+    props: ['totalCount'],
+    template: '<div />',
+  },
 }))
 
 const TICKETS = [

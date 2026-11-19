@@ -5,8 +5,8 @@ import { nextTick } from 'vue'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import GddTransaction from './GddTransaction.vue'
-import DecayInformation from '../DecayInformations/DecayInformation'
+import { GddTransaction } from './GddTransaction'
+import { DecayInformation } from '../DecayInformations/DecayInformation'
 import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 import { LIST_AVATAR_SIZE } from '@/constants'
@@ -29,6 +29,8 @@ vi.mock('@/store/useWalletStore', () => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+    // The row takes `d` from here now; a template's `$d` came from the mocks of the mount.
+    d: (date) => String(date),
   }),
 }))
 
@@ -381,10 +383,11 @@ describe('GddTransaction', () => {
     // jsdom lays nothing out and computes no style from a scoped block.
     it('is written in italics, in the muted colour', () => {
       const source = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'GddTransaction.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'GddTransaction.module.scss'),
         'utf8',
       )
-      const rule = /\n\.transaction-memo \{([^}]*)\}/.exec(source)
+      // The style module: every rule stands under the root's class.
+      const rule = /\n\.gdd-transaction :global\(\.transaction-memo\) \{([^}]*)\}/.exec(source)
 
       expect(rule, 'no .transaction-memo rule').not.toBeNull()
       expect(rule[1]).toContain('font-style: italic')
@@ -498,13 +501,16 @@ describe('GddTransaction', () => {
     const here = dirname(fileURLToPath(import.meta.url))
     // ⚠️ Comments out first: the rule's own comment names `contain: inline-size`, and a check
     // that reads the comment stays green with the declaration gone (it did, once).
-    const source = readFileSync(join(here, 'GddTransaction.vue'), 'utf8').replace(
+    const source = readFileSync(join(here, 'GddTransaction.module.scss'), 'utf8').replace(
       /\/\*[\s\S]*?\*\//g,
       '',
     )
     const rule = (selector) => {
       const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      return new RegExp(`\\n\\s*${escaped} \\{([^}]*)\\}`).exec(source)?.[1]
+      // The style module: every rule stands under the root's class (`:global(.transaction-memo)`).
+      return new RegExp(`\\n\\s*\\.gdd-transaction :global\\(${escaped}\\) \\{([^}]*)\\}`).exec(
+        source,
+      )?.[1]
     }
 
     it('lets no memo count for width of its own, so a long one cannot widen the page', () => {
@@ -513,9 +519,10 @@ describe('GddTransaction', () => {
 
     it('ends the memo where the amount begins, from the grid switch of the row on', () => {
       // The width: what the amount (3 of 12) leaves of the row, less the face and the arrow.
-      const query = /@media \(width >= (\d+)px\) \{\s*\.transaction-memo-col \{([^}]*)\}/.exec(
-        source,
-      )
+      const query =
+        /@media \(width >= (\d+)px\) \{\s*\.gdd-transaction :global\(\.transaction-memo-col\) \{([^}]*)\}/.exec(
+          source,
+        )
       expect(query, 'no md rule for .transaction-memo-col').not.toBeNull()
       expect(query[2]).toContain(
         'width: calc(100% * 9 / 12 - var(--transaction-face-col) - var(--transaction-arrow-col))',
@@ -546,9 +553,10 @@ describe('GddTransaction', () => {
         '--transaction-face-col: calc(var(--transaction-face) + var(--bs-gutter-x, 1.5rem))',
       )
       // On the phone the amount starts a line of its own, and there it stands under the name too.
-      const phone = /@media \(width <= 767\.98px\) \{\s*\.transaction-amount-col \{([^}]*)\}/.exec(
-        source,
-      )
+      const phone =
+        /@media \(width <= 767\.98px\) \{\s*\.gdd-transaction :global\(\.transaction-amount-col\) \{([^}]*)\}/.exec(
+          source,
+        )
       expect(phone, 'no phone rule for .transaction-amount-col').not.toBeNull()
       expect(phone[1]).toContain('margin-left: var(--transaction-face-col)')
     })

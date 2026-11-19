@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ChatVideoLinkCopy from './ChatVideoLinkCopy.vue'
+import { ChatVideoLinkCopy } from './ChatVideoLinkCopy'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 
 const mockToastSuccess = vi.fn()
@@ -27,7 +27,7 @@ let wrapper
 const mountCopy = (href) => {
   wrapper = mount(ChatVideoLinkCopy, {
     props: { href },
-    global: { stubs: { IBiCopy: { template: '<svg />' } } },
+    global: { stubs: { BiCopy: { template: '<svg />' } } },
   })
   return wrapper.find('button')
 }

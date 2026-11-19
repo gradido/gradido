@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import GddTransaction from './GddTransaction.vue'
+import { GddTransaction } from './GddTransaction'
 import { markTransferSeen } from '@/graphql/chat.graphql'
 
 /**
@@ -28,6 +28,8 @@ vi.mock('@/store/useWalletStore', () => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+    // The row takes `d` from here now; a template's `$d` came from the mocks of the mount.
+    d: (date) => String(date),
   }),
 }))
 

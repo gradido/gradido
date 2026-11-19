@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, beforeAll, vi } from 'vitest'
-import Sidebar from './Sidebar.vue'
+import { Sidebar } from './Sidebar'
 import { pollChatNow, startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
@@ -15,6 +15,8 @@ import { dirname, join } from 'node:path'
 const mockRoute = { path: '/', matched: [] }
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => mockRoute),
+  // The logo's link is imported from the same module; the mounts stub it by its name.
+  RouterLink: { name: 'RouterLink', template: '<a><slot /></a>' },
 }))
 
 // Mock Apollo
@@ -342,7 +344,9 @@ describe('Sidebar and the chat', () => {
     return mount(Sidebar, {
       global: {
         plugins: [createWalletStore(), i18n],
-        stubs: ['router-link', 'i-bi-cash'],
+        // The entry's icon is imported (`~icons/…`) and carries the icon's own name: stubbed,
+        // it shows which one it is.
+        stubs: ['router-link', 'i-bi-cash', 'MdiChatOutline'],
         components: { BNav, BBadge, BNavItem, BImg },
       },
     })
@@ -368,7 +372,7 @@ describe('Sidebar and the chat', () => {
   it('carries the speech bubble and not the contact card', async () => {
     const wrapper = await mountWithUnread(0)
     const html = contactsEntry(wrapper).html()
-    expect(html).toContain('i-mdi-chat-outline')
+    expect(html).toContain('mdi-chat-outline-stub')
     expect(html).not.toContain('account-box')
   })
 
@@ -443,10 +447,13 @@ describe('Sidebar and the chat', () => {
   }
 
   it('is gold with white figures, on the symbol, in the stylesheet', () => {
-    const style = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.vue'), 'utf8')
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/<!--[\s\S]*?-->/g, '')
-    const rule = (selector) => style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    // The style module: every rule stands under the root's class (`:global(.chat-unread-badge)`).
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.module.scss'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) =>
+      style.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
     expect(rule('\\.chat-unread-badge')).toMatch(/background:\s*#c08935/)
     expect(rule('\\.chat-unread-badge')).toMatch(/color:\s*#fff/)
@@ -484,7 +491,9 @@ describe('Sidebar and the support (K5)', () => {
     mount(Sidebar, {
       global: {
         plugins: [createWalletStore(state), i18n],
-        stubs: ['router-link', 'i-bi-cash'],
+        // The two icons are imported (`~icons/…`) and carry the icon's own name: stubbed, they
+        // show which one stands in the entry.
+        stubs: ['router-link', 'i-bi-cash', 'MdiHelpCircle', 'MdiInformation'],
         components: { BNav, BBadge, BNavItem, BImg },
       },
     })
@@ -518,8 +527,8 @@ describe('Sidebar and the support (K5)', () => {
 
   it('carries the question mark in a circle, in the tone of the others', () => {
     const wrapper = mountSidebar()
-    expect(supportEntry(wrapper).html()).toContain('i-mdi-help-circle')
-    expect(supportEntry(wrapper).html()).not.toContain('i-mdi-information')
+    expect(supportEntry(wrapper).html()).toContain('mdi-help-circle-stub')
+    expect(supportEntry(wrapper).html()).not.toContain('mdi-information-stub')
     expect(wrapper.find('[data-test="support-menu-icon"]').classes()).toContain('svg-icon')
   })
 

@@ -1,0 +1,71 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: the specs read
+   them by name. Without the scope attribute each has one level less; the state classes (`is-…`)
+   are set in the module's spelling too. */
+
+/* The contact row's measure and lines (ContactRow), so the two lists read as one. */
+.chat-group-row {
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.chat-group-row:last-child {
+  border-bottom: 0;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.chat-group-row-open {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  min-width: 0;
+}
+
+.chat-group-row-text {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+/* The dot beside the last line, the latest message: the contact row's rule (ContactRow), so the
+   dots of the two lists stand at one height. */
+.chat-group-row-dot {
+  align-self: flex-end;
+  margin-bottom: calc((1.2em - 9px) / 2);
+}
+
+/* One line, however long the name (the server allows 100 characters): cut with an ellipsis, as
+   the contact row cuts a long name. Every box up to the row lets it shrink (`min-width: 0`). */
+.chat-group-row-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The end of the row is as wide as the heart's column in a contact row -- the heart (FavoriteHeart:
+   1.35em of the button's 1rem) and the column's gutter --, so the dots of the two lists stand in
+   one line. Measured in the bundle (29.09.2026): with 2.25rem a group's dot stood 9.6 px to the
+   right of a contact's. */
+.chat-group-row-end {
+  min-width: calc(1.35rem + var(--bs-gutter-x, 1.5rem));
+  text-align: center;
+}
+
+.chat-group-row-muted {
+  display: inline-flex;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+/* The crossed bell in the heart's size, so a muted group's end is no wider than a contact's. */
+.chat-group-row-muted-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}

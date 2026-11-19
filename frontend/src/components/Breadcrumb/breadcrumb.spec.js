@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import Breadcrumb from './breadcrumb.vue'
+import { Breadcrumb } from './breadcrumb'
 import { walletStore } from '@test/walletStore'
 
 vi.mock('@/config', () => ({ default: { COMMUNITY_NAME: 'KI Playground' } }))

@@ -12,9 +12,9 @@ import {
 } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
 import { loadAllRules } from '@/validation-rules'
-import RedeemThanks from './RedeemThanks.vue'
-import RedeemThanksAccount from './RedeemThanksAccount.vue'
-import RedeemThanksPaper from './RedeemThanksPaper.vue'
+import { RedeemThanks } from './RedeemThanks'
+import { RedeemThanksAccount } from './RedeemThanksAccount'
+import { RedeemThanksPaper } from './RedeemThanksPaper'
 
 /**
  * The form an account is opened with, and the browser's way back (ZE-017 F5): the form stands

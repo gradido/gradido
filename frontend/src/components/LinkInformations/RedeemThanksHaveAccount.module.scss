@@ -1,0 +1,89 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it.
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the class names in the markup stay what they were (`:global`). The sizes are in em of the card's own size, as in RedeemThanks -- which also
+   gives every link of the view, the two of this block included, the height a thumb needs. */
+.redeem-thanks-have-account {
+  margin-top: 6px;
+}
+
+/* The line that opens the field is a button, and looks like the links around it: their
+   colour in both themes (the dark one sets the same variable), no box. */
+.redeem-thanks-have-account :global(.redeem-thanks-toggle) {
+  gap: 6px;
+  border: 0;
+  background: none;
+  color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-toggle:hover) {
+  text-decoration: underline;
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-toggle:focus-visible) {
+  border-radius: 4px;
+  outline: 2px solid currentcolor;
+  outline-offset: 2px;
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-caret.is-open) {
+  transform: rotate(180deg);
+}
+
+/* The field: a step lighter than the card in the light theme, a step above it in the dark
+   one, where the card itself has the colour of a surface. */
+.redeem-thanks-have-account :global(.redeem-thanks-account) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+:global(.dark-mode) .redeem-thanks-have-account :global(.redeem-thanks-account) {
+  background: var(--surface-muted);
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-account-title) {
+  margin: 0;
+  color: var(--bs-heading-color);
+  font-size: 0.8438em;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* As the invitation further down: a heading's colour, which the dark theme does not switch. */
+:global(.dark-mode) .redeem-thanks-have-account :global(.redeem-thanks-account-title) {
+  color: var(--text);
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-account .redeem-thanks-account-go) {
+  width: 100%;
+  padding-right: 1.25rem !important;
+  padding-left: 1.25rem !important;
+}
+
+/* The switch of communities is the wallet's own, with the house's measures for such a line
+   (App.vue: 50px high, the name on the left, the arrow on the right). In this field it takes
+   the field's width, like the button under it. */
+.redeem-thanks-have-account :global(.redeem-thanks-account .community-switch .dropdown),
+.redeem-thanks-have-account :global(.redeem-thanks-account .community-switch .dropdown-toggle) {
+  width: 100%;
+}
+
+/* With one community the switch shows its name and brings 8px above and 24px below, meant
+   for the page it used to stand on; the field has its own gaps. */
+.redeem-thanks-have-account :global(.redeem-thanks-account .community-switch > .mb-4) {
+  margin: 0 !important;
+}
+
+.redeem-thanks-have-account :global(.redeem-thanks-account-hint) {
+  margin: 0;
+  line-height: 1.5;
+  text-wrap: balance;
+}

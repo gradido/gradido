@@ -3,7 +3,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, reactive } from 'vue'
-import AvatarZoom from './AvatarZoom.vue'
+import { AvatarZoom } from './AvatarZoom'
 import { avatarZoomState, closeAvatarZoom, openAvatarZoom } from '@/composables/useAvatarZoom'
 import {
   forgetAllMemberAvatars,
@@ -19,6 +19,13 @@ vi.mock('@vue/apollo-composable', () => ({
 // change would make the "closes when the page underneath changes" case unwritable.
 const mockRoute = reactive({ path: '/transactions' })
 vi.mock('vue-router', () => ({ useRoute: () => mockRoute }))
+
+// The component translates through `useI18n()`, so the composable is replaced, not `$t`. The
+// rest of vue-i18n stays: useAvatarZoom builds the wallet's own i18n instance with it.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 const SMALL = 'data:image/jpeg;base64,SMALL'
 const FULL_BASE64 = 'FULLPICTURE'
@@ -82,7 +89,6 @@ describe('AvatarZoom', () => {
     mockRoute.path = '/transactions'
     wrapper = mount(AvatarZoom, {
       global: {
-        mocks: { $t: (key) => key },
         stubs: { VariantIcon: { props: ['icon'], template: '<i :data-icon="icon" />' } },
       },
     })

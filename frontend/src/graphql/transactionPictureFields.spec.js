@@ -87,17 +87,17 @@ describe('the picture of a transfer, as the wallet asks for it', () => {
   })
 
   it('reaches the bubble: the thread hands the booking’s picture and its id on', () => {
-    const thread = code('../components/Chat/ChatThread.vue')
+    const thread = code('../components/Chat/ChatThread.tsx')
 
     expect(thread).toMatch(/picture: booking\.picture \?\? null/)
     expect(thread).toMatch(/transactionId: booking\.id/)
   })
 
   it('is read by the bubble and by the opened row through the one reader', () => {
-    expect(code('../components/Chat/ChatBubble.vue')).toMatch(
+    expect(code('../components/Chat/ChatBubble.tsx')).toMatch(
       /transactionPictureShown\(props\.message\.picture, t\)/,
     )
-    expect(code('../components/Transactions/GddTransaction.vue')).toMatch(
+    expect(code('../components/Transactions/GddTransaction.tsx')).toMatch(
       /transactionPictureShown\(props\.transaction\.picture, t\)/,
     )
   })

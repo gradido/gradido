@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import ChatVideoCall from './ChatVideoCall.vue'
+import { ChatVideoCall } from './ChatVideoCall'
 import { chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { chatVideoInviteBody, chatVideoRescheduledBody } from '@/utils/chatVideoInvite'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
@@ -97,11 +97,12 @@ describe('ChatVideoCall, a video invitation changed (E-060)', () => {
               ? '<div :data-open="String(modelValue)"><slot /><slot name="footer" /></div>'
               : '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
-          IMdiCogOutline: true,
-          IMdiLinkVariant: true,
-          IMdiCheck: true,
-          IMdiServerOutline: true,
-          IMdiCalendarPlusOutline: true,
+          // The icons are imported (`~icons/…`) and carry the icon's own name.
+          MdiCogOutline: true,
+          MdiLinkVariant: true,
+          MdiCheck: true,
+          MdiServerOutline: true,
+          MdiCalendarPlusOutline: true,
         },
       },
     })
@@ -726,8 +727,8 @@ describe('ChatVideoCall, a video invitation changed (E-060)', () => {
       await flushPromises()
 
       expect(wrapper.html()).not.toContain('k7m2x9q4t8wz')
-      expect(JSON.stringify(wrapper.vm.$.setupState.videoShown)).not.toContain('k7m2x9q4t8wz')
-      expect(wrapper.vm.$.setupState.videoShown).toEqual({
+      expect(JSON.stringify(wrapper.vm.videoShown)).not.toContain('k7m2x9q4t8wz')
+      expect(wrapper.vm.videoShown).toEqual({
         settings: true,
         editing: true,
         server: `meet.ffmuc.net – ${OPERATOR}`,

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import InputUsername from './InputUsername'
+import { InputUsername } from './InputUsername'
 import {
   BButton,
   BFormGroup,

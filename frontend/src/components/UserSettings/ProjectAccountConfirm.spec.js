@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import { nextTick } from 'vue'
-import ProjectAccountConfirm from './ProjectAccountConfirm.vue'
+import { ProjectAccountConfirm } from './ProjectAccountConfirm'
 
 vi.mock('bootstrap-vue-next', () => ({
   BButton: {

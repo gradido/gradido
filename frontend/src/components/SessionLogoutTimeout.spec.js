@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import SessionLogoutTimeout from './SessionLogoutTimeout.vue'
+import { SessionLogoutTimeout } from './SessionLogoutTimeout'
 import { useLazyQuery } from '@vue/apollo-composable'
 import { useWalletStore } from '@/store/useWalletStore'
 

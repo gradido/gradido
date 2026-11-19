@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { BCollapse, BImg, BLink, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
-import { computed, type DefineComponent, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import AppAvatarVue from '@/components/AppAvatar.vue'
+import { AppAvatar } from '@/components/AppAvatar'
 import { NavItem } from '@/components/Menu/NavItem'
 import { useAuthLinks } from '@/composables/useAuthLinks'
 import CONFIG from '@/config'
@@ -12,20 +12,6 @@ import { useWalletStore } from '@/store/useWalletStore'
 import { avatarLettering } from '@/utils/avatarLettering'
 import { memberAlias } from '@/utils/gradidoAddress'
 import classes from './AuthNavbar.module.scss'
-
-/**
- * The circle of every member in the wallet. It is a .vue file, which TypeScript knows only as a
- * component without props (env.d.ts); these are the props this bar hands it, typed as
- * AppAvatar.vue declares them.
- */
-const AppAvatar = AppAvatarVue as DefineComponent<{
-  size?: number
-  src?: string
-  name?: string
-  initials?: string
-  colorSeed?: string | null
-  color?: string
-}>
 
 export const AuthNavbar = defineComponent({
   name: 'AuthNavbar',
@@ -94,7 +80,7 @@ export const AuthNavbar = defineComponent({
 
     /**
      * The member's own circle, drawn as the bar of the signed-in wallet draws it (Navbar.vue):
-     * the small picture where the store holds one (AvatarButton.vue), otherwise the first two
+     * the small picture where the store holds one (AvatarButton.tsx), otherwise the first two
      * letters of the user name in the colour of the real initials (AS-010).
      */
     const face = computed(() => {

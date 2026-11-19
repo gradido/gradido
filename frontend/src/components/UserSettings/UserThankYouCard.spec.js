@@ -3,7 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { BButton, BFormInput } from 'bootstrap-vue-next'
-import UserThankYouCard from './UserThankYouCard.vue'
+import { UserThankYouCard } from './UserThankYouCard'
 
 /**
  * "Mit Karte danken" in the settings: the PIN, the limits, and the card itself.
@@ -28,8 +28,14 @@ vi.mock('@/composables/useToast', () => ({
  * `thank-you-card.settings.saved` to the user).
  */
 const translate = (key) => `translated:${key}`
+// The page's own texts go through the same `t` now (they read `$t` in the template), and its
+// dates through `d`.
 vi.mock('vue-i18n', () => ({
-  useI18n: vi.fn(() => ({ t: (key) => `translated:${key}` })),
+  useI18n: vi.fn(() => ({
+    t: (key, values) =>
+      values ? `translated:${key}:${JSON.stringify(values)}` : `translated:${key}`,
+    d: (date) => `date(${date.toISOString().slice(0, 10)})`,
+  })),
 }))
 
 let routeQuery = {}
@@ -136,10 +142,6 @@ describe('UserThankYouCard', () => {
           errorHandler: (error) => {
             handlerErrors.push(error)
           },
-        },
-        mocks: {
-          $t: (key, values) => (values ? `${key}:${JSON.stringify(values)}` : key),
-          $d: (date) => `date(${date.toISOString().slice(0, 10)})`,
         },
         stubs: {
           BButton,
@@ -298,7 +300,7 @@ describe('UserThankYouCard', () => {
       await field('enable').trigger('click')
 
       const pin = field('new-pin')
-      expect(pin.attributes('aria-label')).toBe('thank-you-card.settings.pin-title')
+      expect(pin.attributes('aria-label')).toBe(translate('thank-you-card.settings.pin-title'))
       expect(pin.attributes('aria-describedby')).toBe('thank-you-card-pin-rules')
       expect(wrapper.find('#thank-you-card-pin-rules').exists()).toBe(true)
     })
@@ -347,9 +349,13 @@ describe('UserThankYouCard', () => {
       await mountWith({ settings: null, cards: [] })
       await field('enable').trigger('click')
 
-      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-show')
+      expect(field('pin-eye').attributes('aria-label')).toBe(
+        translate('thank-you-card.settings.pin-show'),
+      )
       await field('pin-eye').trigger('click')
-      expect(field('pin-eye').attributes('aria-label')).toBe('thank-you-card.settings.pin-hide')
+      expect(field('pin-eye').attributes('aria-label')).toBe(
+        translate('thank-you-card.settings.pin-hide'),
+      )
     })
 
     // Bernd, 21.09.2026: the field's frame stopped short of the eye. The eye was the password
@@ -735,9 +741,9 @@ describe('UserThankYouCard', () => {
       await mountWith()
 
       expect(field('sheet').exists()).toBe(true)
-      // ⚠️ The RAW key, not `translate()`. The template's `$t` mock hands the key straight
-      // back, so a `translated:`-prefixed needle is one the page can never contain -- the
-      // assertion would have been vacuously green with the button still standing.
+      // ⚠️ The RAW key, not `translate()`. It was the needle the template's `$t` mock could
+      // produce; since the page translates through `t`, the key stands in the translated
+      // text all the same, so the needle still finds the button if it comes back.
       // (coderabbit, PR #3781)
       expect(wrapper.text()).not.toContain('thank-you-card.settings.print')
     })

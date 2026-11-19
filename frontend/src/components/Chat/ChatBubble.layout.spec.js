@@ -17,9 +17,11 @@ import { readFileSync } from 'node:fs'
  *   (Bernd, 15.11.2026).
  */
 const here = dirname(fileURLToPath(import.meta.url))
-const source = readFileSync(resolve(here, './ChatBubble.vue'), 'utf8')
+const source = readFileSync(resolve(here, './ChatBubble.module.scss'), 'utf8')
 const MEDIA = /@media\s*([^{]+)\{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g
-const code = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+// The style module names what is not the bubble's own as `:global(.name)` -- the face's class
+// where it opens a picture: read as the class.
+const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/:global\(([^()]*)\)/g, '$1')
 const styles = code.replace(MEDIA, '')
 
 const rulesIn = (css, selector) =>

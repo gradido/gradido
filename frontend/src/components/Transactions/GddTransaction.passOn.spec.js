@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import GddTransaction from './GddTransaction.vue'
+import { GddTransaction } from './GddTransaction'
 import { clearPassOnDraft, usePassOnDraft } from '@/composables/usePassOnDraft'
 
 /**
@@ -18,6 +18,8 @@ vi.mock('@/store/useWalletStore', () => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+    // The row takes `d` from here now; a template's `$d` came from the mocks of the mount.
+    d: (date) => String(date),
   }),
 }))
 vi.mock('@/i18n', () => ({
@@ -106,7 +108,8 @@ describe('GddTransaction, the suggestion to pass a thank-you on', () => {
     await wrapper.find(`[data-test="thanks-nudge-${which}"]`).trigger('click')
     await flushPromises()
   }
-  const isOpen = () => wrapper.vm.$.setupState.visible
+  // Handed out with expose(): a row with a render function has no setupState.
+  const isOpen = () => wrapper.vm.visible
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })

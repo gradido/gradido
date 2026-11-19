@@ -115,8 +115,8 @@ describe('ContactTiles', () => {
    * default, and this is what says so.
    */
   it.each([
-    ['the column', 'ContactsPanel.vue'],
-    ['the phone strip', 'ContactsStrip.vue'],
+    ['the column', 'ContactsPanel.tsx'],
+    ['the phone strip', 'ContactsStrip.tsx'],
   ])('is fed a face without the zoom bindings by %s', (unused, file) => {
     const source = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), '..', 'Template', 'RightSide', file),

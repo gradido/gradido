@@ -1,0 +1,15 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet, and a double slash is not a comment
+   to it.
+
+   The link keeps room for the button at its end (ChatMessageText marks it), and the button stands
+   in that room (margin-left, in the style module): a line may break before a button, and a link
+   that reached the edge left the icon alone on the next line (measured in a group's narrower
+   bubble, 29.09.2026). The room at a link's end goes with its last character -- the line breaks
+   inside the address rather than between the two -- and the button itself takes no width on the
+   line. The gap of 0.3em between the address and the icon is the room's rest. Not scoped: the
+   link is ChatMessageText's. */
+.chat-message-text .chat-video-link {
+  padding-right: 1.3em;
+}

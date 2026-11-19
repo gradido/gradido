@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
-import ChatBubble from './ChatBubble.vue'
+import { ChatBubble } from './ChatBubble'
 import { forgetAllChatImages, rememberChatImage } from '@/composables/useChatImages'
 import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 import { CHAT_SEARCH } from '@/utils/chatSearch'
@@ -37,6 +37,9 @@ vi.mock('vue-i18n', () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 // The copy button behind a video link says what became of the copy (ChatVideoLinkCopy).
@@ -91,13 +94,13 @@ describe('ChatBubble', () => {
       props: { message, alias, ...more },
       global: {
         stubs: {
-          IMdiEmailOutline: { template: '<i data-test="envelope" />' },
-          IMdiCheck: { template: '<i data-test="tick" />' },
-          IMdiCheckAll: { template: '<i data-test="ticks" />' },
-          IMdiCalendarPlusOutline: true,
-          IMdiContentDuplicate: true,
-          IMdiFileDocumentOutline: true,
-          IMdiOpenInNew: true,
+          MdiEmailOutline: { template: '<i data-test="envelope" />' },
+          MdiCheck: { template: '<i data-test="tick" />' },
+          MdiCheckAll: { template: '<i data-test="ticks" />' },
+          MdiCalendarPlusOutline: true,
+          MdiContentDuplicate: true,
+          MdiFileDocumentOutline: true,
+          MdiOpenInNew: true,
           IBiCopy: true,
         },
       },
@@ -290,7 +293,8 @@ describe('ChatBubble', () => {
       mountBubble(INVITATION, 'Lena', { thanksAfterCall: true })
 
       const inBubble = [...wrapper.find('.chat-bubble').element.children].map(
-        (child) => child.getAttribute('data-test') ?? child.className,
+        // The first class is the name; the style module's spelling of it follows.
+        (child) => child.getAttribute('data-test') ?? child.classList[0],
       )
       const calendar = inBubble.indexOf('chat-bubble-calendar')
       expect(calendar).toBeGreaterThanOrEqual(0)
@@ -388,7 +392,7 @@ describe('ChatBubble', () => {
           {
             props: { shown: true },
             attachTo: document.body,
-            global: { stubs: { IMdiCalendarPlusOutline: true, IMdiContentDuplicate: true } },
+            global: { stubs: { MdiCalendarPlusOutline: true, MdiContentDuplicate: true } },
           },
         )
         return host
@@ -441,7 +445,7 @@ describe('ChatBubble', () => {
         props: { message, alias: 'Lena' },
         global: {
           provide: { [CHAT_SEARCH]: ref(needle) },
-          stubs: { IMdiEmailOutline: true, IBiCopy: true, IMdiFileDocumentOutline: true },
+          stubs: { MdiEmailOutline: true, IBiCopy: true, MdiFileDocumentOutline: true },
         },
       })
       return wrapper
@@ -497,7 +501,7 @@ describe('ChatBubble', () => {
     it('rings the bubble the search stands on', () => {
       wrapper = mount(ChatBubble, {
         props: { message: { ...THEIRS, body: 'Die Bank' }, alias: 'Lena', searchCurrent: true },
-        global: { provide: { [CHAT_SEARCH]: ref('bank') }, stubs: { IMdiEmailOutline: true } },
+        global: { provide: { [CHAT_SEARCH]: ref('bank') }, stubs: { MdiEmailOutline: true } },
       })
       expect(bubble().classes()).toContain('is-search-current')
       wrapper.unmount()
@@ -617,7 +621,7 @@ describe('ChatBubble', () => {
         props: { message, alias: 'Lena' },
         global: {
           provide: provided ? { [CHAT_VIDEO_JOIN]: (roomUrl) => asked.push(roomUrl) } : {},
-          stubs: { IMdiEmailOutline: true, IBiCopy: true },
+          stubs: { MdiEmailOutline: true, IBiCopy: true },
         },
       })
     }
@@ -734,7 +738,7 @@ describe('ChatBubble', () => {
               [CHAT_VIDEO_JOIN]: (...args) => handed.join.push(args),
               [CHAT_VIDEO_JOINED]: (...args) => handed.joined.push(args),
             },
-            stubs: { IMdiEmailOutline: true, IBiCopy: true },
+            stubs: { MdiEmailOutline: true, IBiCopy: true },
           },
         })
       }
@@ -779,10 +783,13 @@ describe('ChatBubble', () => {
     const LINK = 'https://www.swisstransfer.com/d/7f3a9c2e-5b1d-4e8a-9c3f-2d6b8a1e4f70'
     const card = () => wrapper.find('[data-test="chat-file-card"]')
     const text = () => wrapper.find('.chat-message-text')
-    /** What the text is made of, in order: its text as it stands, and its elements by class. */
+    /**
+     * What the text is made of, in order: its text as it stands, and its elements by class -- the
+     * first one, the name: the card's style module adds its own spelling of it.
+     */
     const pieces = () =>
       [...text().element.childNodes].map((node) =>
-        node.nodeType === Node.TEXT_NODE ? node.textContent : `<${node.className}>`,
+        node.nodeType === Node.TEXT_NODE ? node.textContent : `<${node.classList[0] ?? ''}>`,
       )
 
     it('becomes a card in place of the address, leading there in a tab of its own', () => {
@@ -997,7 +1004,7 @@ describe('ChatBubble', () => {
     // The dot between the word and the time is drawn, not read out; the word is quiet, as the time.
     it('is set apart from the time by a dot in the stylesheet', () => {
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       expect(code).toMatch(/\.chat-bubble-edited::after\s*\{[^}]*content:\s*'·'/)
@@ -1089,7 +1096,7 @@ describe('ChatBubble', () => {
       expect(wrapper.classes()).not.toContain('is-answered')
 
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       for (const mark of ['is-answered', 'is-shown']) {
@@ -1107,7 +1114,7 @@ describe('ChatBubble', () => {
      */
     it('keeps the name and the words to one line each without forbidding them to break', () => {
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       const rule = code.match(
@@ -1128,7 +1135,7 @@ describe('ChatBubble', () => {
 
     expect(wrapper.classes()).toContain('is-editing')
     const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     expect(code).toMatch(
@@ -1186,7 +1193,7 @@ describe('ChatBubble', () => {
     // gives the ticks a colour of their own, and both signs share the envelope's box.
     it('takes the colour of the time and the box of the envelope', () => {
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       const rules = [...code.matchAll(/([^{}]*)\{([^}]*)\}/g)].filter(([, selectors]) =>
@@ -1373,16 +1380,19 @@ describe('ChatBubble', () => {
    * has to be that ancestor. Comments stripped first, since the rule's explanation names it.
    */
   it('keeps the hidden name inside the bubble, in the stylesheet', () => {
-    const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
-      'utf8',
-    )
-    const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
+    const read = (file) =>
+      readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8').replace(
+        /\/\*[\s\S]*?\*\//g,
+        '',
+      )
+    // The rule stands in the style module, the hidden name in the component's markup.
+    const code = read('ChatBubble.module.scss')
+    const markup = read('ChatBubble.tsx')
     const rule = code.match(/\n\.chat-bubble\s*\{[^}]*\}/)
 
     expect(rule, '.chat-bubble no longer has a rule of its own').not.toBeNull()
     expect(rule[0]).toMatch(/position:\s*relative/)
-    expect(code).toMatch(/class="visually-hidden"/)
+    expect(markup).toMatch(/class='visually-hidden'/)
   })
 
   /**
@@ -1394,10 +1404,11 @@ describe('ChatBubble', () => {
    */
   it('keeps the line where no mail went out in the tone of the time, and lets a long name break', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
       'utf8',
     )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    // The style module names the page's `.dark-mode` as `:global(.dark-mode)`: read as the class.
+    const style = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/:global\(([^()]*)\)/g, '$1')
     const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
       selectors: selectors.split(',').map((selector) => selector.trim()),
       body,
@@ -1544,7 +1555,7 @@ describe('ChatBubble', () => {
 
     it('draws the button with a focus ring of its own, in the stylesheet', () => {
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       expect(code).toMatch(/\.chat-bubble-calendar-add:focus-visible\s*\{[^}]*outline:\s*2px solid/)
@@ -1620,7 +1631,7 @@ describe('ChatBubble', () => {
 
     it('puts the coin on the first line of the words, in the stylesheet', () => {
       const code = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
       expect(code).toMatch(
@@ -1830,14 +1841,14 @@ describe('ChatBubble', () => {
      * measured, and the picture would ask for its own pixels.
      */
     it('draws the bubble and the picture as the mockup has them', () => {
-      const bubbleCode = style('ChatBubble.vue')
+      const bubbleCode = style('ChatBubble.module.scss')
       const bubble = rule(bubbleCode, '\\.chat-bubble\\.has-image')
       expect(bubble).toMatch(/min-width:\s*min\(16\.5rem,\s*var\(--chat-bubble-share\)\)/)
       expect(bubble).not.toMatch(/(^|[\s;])width\s*:/)
       expect(bubble).toMatch(/padding:\s*0\.25rem/)
       expect(rule(bubbleCode, '\\.chat-bubble')).toMatch(/max-width:\s*var\(--chat-bubble-share\)/)
 
-      const pictureCode = style('ChatBubbleImage.vue')
+      const pictureCode = style('ChatBubbleImage.module.scss')
       const button = rule(pictureCode, '\\.chat-bubble-image').replace(/\s+/g, ' ')
       expect(button).toContain(
         'width: max( 16rem, min(var(--chat-image-twice), var(--chat-image-height, 22rem) * var(--chat-image-ratio)) );',
@@ -1914,8 +1925,8 @@ describe('ChatBubble', () => {
         props: { message, alias: 'Gradido-Café Berlin', inGroup: true, showWriter },
         global: {
           stubs: {
-            IMdiEmailOutline: { template: '<i data-test="envelope" />' },
-            IMdiCalendarPlusOutline: true,
+            MdiEmailOutline: { template: '<i data-test="envelope" />' },
+            MdiCalendarPlusOutline: true,
           },
         },
       })

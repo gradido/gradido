@@ -1,0 +1,256 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: the specs read
+   them by name. Without the scope attribute each has one level less; the state classes (`is-…`)
+   are set in the module's spelling too. */
+
+/* ⛔ From here to the sheet: the contact window's measure, rule for rule (ContactWindow.module.scss), under
+   the group window's own names -- `ChatGroupWindow.spec.js` holds the two together, so the two
+   windows cannot come to look different by a change to one of them. */
+.chat-group-window-top {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin: -0.5rem -0.5rem 0.25rem 0;
+}
+
+/* The magnifier (E-057) beside the cross and drawn as it is; while the search is open it stands
+   pressed, in the link's colour -- the same button closes the search again. */
+.chat-group-window-search-toggle,
+.chat-group-window-note-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-group-window-search-toggle:hover,
+.chat-group-window-search-toggle:focus-visible,
+.chat-group-window-note-toggle:hover,
+.chat-group-window-note-toggle:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.chat-group-window-search-toggle.is-on,
+.chat-group-window-note-toggle.is-on {
+  color: rgba(var(--bs-link-color-rgb), 1);
+}
+
+/* While the note lies over the conversation, the conversation's box is at least this high. */
+.chat-group-window-thread.is-covered {
+  min-height: 17rem;
+}
+
+/* The search bar (ChatSearchBar) under the line of the magnifier, above the head. */
+.chat-group-window-search {
+  margin-bottom: 0.75rem;
+}
+
+.chat-group-window-close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-group-window-close:hover,
+.chat-group-window-close:focus-visible {
+  color: var(--bs-body-color);
+}
+
+.chat-group-window-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-group-window-who {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The contact window's name in its font -- but where a person's name is cut, a group's wraps: it
+   may run to 100 characters and is nowhere else to be read in full (the list cuts it, as it cuts
+   a contact's). Measured in the bundle (29.09.2026), see the spec. */
+.chat-group-window-name {
+  min-width: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.chat-group-window-community {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-group-window-meta {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+  margin: 0.75rem 0 1rem;
+  min-height: 1.5em;
+}
+
+.chat-group-window-marks {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.chat-group-window-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  line-height: 1;
+}
+
+.chat-group-window-mark:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-group-window-bell-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+/* The camera: in the bell's round and at the heart's glyph size, as in the contact window. */
+.chat-group-window-video-icon {
+  width: 1.35em;
+  height: 1.35em;
+}
+
+.chat-group-window-bell.is-muted {
+  border-color: var(--gold, #c58d38);
+  background: rgb(197 141 56 / 18%);
+  color: var(--bs-body-color);
+}
+
+/* "Mitglieder" with its faces: a quiet outlined pill, the faces overlapping a little, as a group of
+   people is drawn. At least a finger's height. */
+.chat-group-window-members {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.9rem 0.25rem 0.35rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.5rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.chat-group-window-members:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-group-window-strip {
+  display: inline-flex;
+}
+
+/* Each face with a ring in the window's colour that sets it off, and each after the first a
+   third over the one before it. */
+.chat-group-window-strip-face {
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+}
+
+.chat-group-window-strip-face + .chat-group-window-strip-face {
+  margin-left: -0.55rem;
+}
+
+/* The row under the figures, as the contact window's send row: its parts in one line, and on a
+   second only where the window is too narrow for them. */
+.chat-group-window-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ⛔ The sheet (below `sm`): one column over the whole height -- head, figures, the thread -- in
+   which only the thread gives way, as in the contact window. */
+@media (width <= 575.98px) {
+  /* Not under a class of this module: the body is BModal's own element. As in ChatImageView, the
+     rule names BModal's class beside ours.
+
+     The sheet's body stands 0.75rem from the screen's sides, not a dialog's 1.5rem -- the contact
+     window's measure, and it says why (ContactWindow.module.scss). */
+  :global(.modal .modal-body.chat-group-window-body) {
+    padding-inline: 0.75rem;
+  }
+
+  .chat-group-window-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .chat-group-window-top,
+  .chat-group-window-head,
+  .chat-group-window-meta,
+  .chat-group-window-row {
+    flex-shrink: 0;
+  }
+
+  .chat-group-window-thread {
+    flex: 0 1 auto;
+  }
+
+  .chat-group-window-thread :global(.chat-thread-scroll) {
+    max-height: none;
+  }
+}
+
+/* The large window (E-077, ChatWindowSizeToggle): the same column from `sm` up, as high as what
+   it holds -- the contact window's rules under the group window's names. */
+@media (width >= 576px) and (height >= 704px) {
+  .chat-group-window-inner.is-large {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .is-large > .chat-group-window-top,
+  .is-large > .chat-group-window-head,
+  .is-large > .chat-group-window-meta,
+  .is-large > .chat-group-window-row {
+    flex-shrink: 0;
+  }
+
+  .is-large > .chat-group-window-thread {
+    flex: 0 1 auto;
+  }
+
+  /* The floor under the thread: the contact window says why. */
+  .is-large > .chat-group-window-thread :global(.chat-thread-scroll) {
+    min-height: 6rem;
+    max-height: none;
+  }
+}

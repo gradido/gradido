@@ -58,8 +58,8 @@ vi.mock('@/components/GddSend/TransactionResultLink', () => ({
     template: '<div data-test="the-link-result" />',
   },
 }))
-vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone.vue', () => ({
-  default: { name: 'ThankYouGreetingDone', template: '<div />' },
+vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone', () => ({
+  ThankYouGreetingDone: { name: 'ThankYouGreetingDone', template: '<div />' },
 }))
 
 const t = (key) => key

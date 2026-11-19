@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import UserNewsletter from './UserNewsletter'
+import { UserNewsletter } from './UserNewsletter'
 import { unsubscribeNewsletter, subscribeNewsletter } from '@/graphql/mutations'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'

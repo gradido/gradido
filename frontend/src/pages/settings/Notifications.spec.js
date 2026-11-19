@@ -1,10 +1,17 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { BCol, BRow } from 'bootstrap-vue-next'
-import Notifications from './Notifications.vue'
+import { Notifications } from './Notifications'
+
+// The page translates through useI18n, where the template read $t. The rest of vue-i18n
+// stays: the store's language module builds its instance with it.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 const mountNotifications = (transfersInChat = null) => {
   const pinia = walletStore({ newsletterState: false, transfersInChat })

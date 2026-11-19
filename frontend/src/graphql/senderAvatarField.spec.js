@@ -53,8 +53,8 @@ describe('the face of the sender, as the redeem page asks for it', () => {
 
   // The other direction: the two views read the very field the document asks for.
   it.each([
-    '../components/LinkInformations/RedeemThanksPaper.vue',
-    '../components/LinkInformations/RedeemThanksAccount.vue',
+    '../components/LinkInformations/RedeemThanksPaper.tsx',
+    '../components/LinkInformations/RedeemThanksAccount.tsx',
   ])('is what %s reads', (file) => {
     expect(read(file)).toMatch(/linkData\.senderAvatar\b/)
   })

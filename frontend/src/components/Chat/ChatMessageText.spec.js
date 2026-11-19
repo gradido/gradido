@@ -11,10 +11,10 @@ import { CHAT_VIDEO_JOIN, CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
 import { chatVideoInvitation } from '@/utils/chatVideoCalendar'
 
 // The card and the copy button have specs of their own; here they are marks where they stand.
-vi.mock('@/components/Chat/ChatFileCard.vue', async () => {
+vi.mock('@/components/Chat/ChatFileCard', async () => {
   const { h: make } = await import('vue')
   return {
-    default: {
+    ChatFileCard: {
       name: 'ChatFileCard',
       props: ['href', 'service'],
       render() {
@@ -23,10 +23,10 @@ vi.mock('@/components/Chat/ChatFileCard.vue', async () => {
     },
   }
 })
-vi.mock('@/components/Chat/ChatVideoLinkCopy.vue', async () => {
+vi.mock('@/components/Chat/ChatVideoLinkCopy', async () => {
   const { h: make } = await import('vue')
   return {
-    default: {
+    ChatVideoLinkCopy: {
       name: 'ChatVideoLinkCopy',
       props: ['href'],
       render() {

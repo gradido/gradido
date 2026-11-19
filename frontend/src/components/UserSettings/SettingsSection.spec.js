@@ -1,7 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import SettingsSection from './SettingsSection.vue'
+import { describe, it, expect, vi } from 'vitest'
+import { SettingsSection } from './SettingsSection'
+
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 

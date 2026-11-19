@@ -20,8 +20,8 @@ const READERS = [
   '../components/Contacts/ContactTiles.tsx',
   '../components/Contacts/contactDisplay.ts',
   '../components/Contacts/ContactWindow.tsx',
-  '../components/Template/RightSide/ContactsPanel.vue',
-  '../components/Template/RightSide/ContactsStrip.vue',
+  '../components/Template/RightSide/ContactsPanel.tsx',
+  '../components/Template/RightSide/ContactsStrip.tsx',
   '../pages/Contacts.tsx',
 ]
 

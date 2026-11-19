@@ -1,0 +1,25 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Unscoped, as the first style block of ClipboardCopy.vue was. */
+.svg {
+  filter: brightness(0) invert(1);
+}
+
+.copy-link-card {
+  background-color: $secondary !important;
+}
+
+/* The icon sits next to the heading instead of below the box: on a page that offers four
+   things in a row, a button the size of the ones before took more room than it earned. */
+.copy-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.copy-icon {
+  padding: 0.15rem 0.45rem;
+  line-height: 1;
+}

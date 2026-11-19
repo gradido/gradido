@@ -9,7 +9,7 @@ import {
   LABEL_COLORS,
 } from '@/components/Matching/displayCore'
 import { type GeoPlace, GeoSearchField } from '@/components/Matching/GeoSearchField'
-import ThemedSelect from '@/components/ThemedSelect.vue'
+import { ThemedSelect } from '@/components/ThemedSelect'
 import { useGmsBase } from '@/composables/useGmsBase'
 import { distanceKm } from '@/composables/useMatches'
 import { makeGeoProvider } from '@/utils/geoSearchProvider'
@@ -336,7 +336,7 @@ export const MatchList = defineComponent({
                 id='match-list-sort'
                 modelValue={props.sortMode}
                 options={sortOptions.value}
-                onChange={(value: string) => emit('sort', value)}
+                onChange={(value: unknown) => emit('sort', value)}
               />
             </div>
 
@@ -351,7 +351,7 @@ export const MatchList = defineComponent({
                   id='match-list-lens'
                   modelValue={props.lensMode}
                   options={lensOptions.value}
-                  onChange={(value: string) => emit('lens', value)}
+                  onChange={(value: unknown) => emit('lens', value)}
                 />
               </div>
             ) : null}

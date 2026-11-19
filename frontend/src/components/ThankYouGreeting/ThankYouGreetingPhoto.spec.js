@@ -14,7 +14,7 @@ import {
   transactionPicture,
 } from '@/composables/useTransactionPictures'
 import { transactionPicture as transactionPictureQuery } from '@/graphql/queries'
-import ThankYouGreetingPhoto from './ThankYouGreetingPhoto.vue'
+import { ThankYouGreetingPhoto } from './ThankYouGreetingPhoto'
 
 const apollo = vi.hoisted(() => ({ client: { query: null } }))
 vi.mock('@vue/apollo-composable', () => ({ useApolloClient: () => ({ client: apollo.client }) }))
@@ -222,10 +222,14 @@ describe('ThankYouGreetingPhoto', () => {
    */
   it('is a box of its own while it waits, so that any part of its place in sight counts', () => {
     const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ThankYouGreetingPhoto.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ThankYouGreetingPhoto.module.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
-    const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    // A CSS module: the root's own class, and the kept name with its states in `:global()`.
+    const rule = (selector) =>
+      code.match(
+        new RegExp(`\\n\\.thank-you-greeting-photo:global\\(${selector}\\)\\s*\\{([^}]*)\\}`),
+      )?.[1] ?? ''
 
     expect(rule('\\.thank-you-greeting-photo\\.is-waiting')).toMatch(/display:\s*block/)
     // …and the sentence of a photo that is gone stands in the middle of that box

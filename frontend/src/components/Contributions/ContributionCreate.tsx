@@ -8,7 +8,7 @@ import {
   type ContributionFormModel,
 } from '@/components/Contributions/ContributionForm'
 import { OpenCreationsAmount } from '@/components/Contributions/OpenCreationsAmount'
-import SuccessMessage from '@/components/SuccessMessage.vue'
+import { SuccessMessage } from '@/components/SuccessMessage'
 import { useMinimalContributionDate } from '@/composables/useMinimalContributionDate'
 import { useAppToast } from '@/composables/useToast'
 import { GDD_PER_HOUR } from '@/constants'

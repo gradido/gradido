@@ -686,7 +686,7 @@ describe('a start with a running session', () => {
     ['no token', { token: null, tokenTime: now() + 600 }],
     ['a token without an end', { token: 'running-token', tokenTime: null }],
     ['a session that has ended', { token: 'running-token', tokenTime: now() - 60 }],
-    // The margin the redeem page allows too (TransactionLink.vue).
+    // The margin the redeem page allows too (pages/TransactionLink.tsx).
     ['the last five seconds of a session', { token: 'running-token', tokenTime: now() + 3 }],
   ])('keeps the form with %s', async (_, state) => {
     expect(await whereAfter('/login', state)).toBe('/login')

@@ -38,7 +38,7 @@ const registered = routes.map((route) => route.path)
 
 describe('the settings menu and the settings routes', () => {
   it('leads nowhere that is not registered', () => {
-    for (const path of linkedPaths(read('../components/Menu/SettingsMenu.vue'))) {
+    for (const path of linkedPaths(read('../components/Menu/SettingsMenu.tsx'))) {
       expect(registered).toContain(path)
     }
   })
@@ -47,7 +47,7 @@ describe('the settings menu and the settings routes', () => {
   // be reachable only by typing the address. /settings/extern is the one exception -- it is
   // the old address kept alive for links already in the world, not an area.
   it('offers every area it registers', () => {
-    const offered = new Set(linkedPaths(read('../components/Menu/SettingsMenu.vue')))
+    const offered = new Set(linkedPaths(read('../components/Menu/SettingsMenu.tsx')))
 
     const areas = registered.filter(
       (path) => path.startsWith('/settings/') && path !== '/settings/extern',

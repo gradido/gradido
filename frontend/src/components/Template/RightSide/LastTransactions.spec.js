@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import LastTransactions from './LastTransactions'
+import { LastTransactions } from './LastTransactions'
 import { forgetAllMemberAvatars, rememberMemberAvatars } from '@/composables/useMemberAvatars'
 import { LAST_TRANSACTIONS_PAGE_SIZE, LAST_TRANSACTIONS_ROWS, LIST_AVATAR_SIZE } from '@/constants'
 
@@ -16,6 +16,9 @@ vi.mock('vue-i18n', () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date) => date,
   }),
+  // The contact window's chat bubble (I18nText) takes this off the module, now that it is
+  // imported and no longer resolved by name; the window itself is stubbed here.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 // ⚠️ The zoom composable builds its labels through `i18n.global.t`, because a composable is
@@ -37,7 +40,7 @@ vi.mock('vue-avatar', () => ({
 // rendered a div would leave `@open` untested while every assertion here stayed green --
 // the wiring, not the name, is what this column does with it.
 vi.mock('@/components/TransactionRows/Name', () => ({
-  default: {
+  Name: {
     name: 'Name',
     props: ['linkedUser', 'withCommunity'],
     emits: ['open'],
@@ -86,8 +89,8 @@ const contactWindowStub = {
   },
 }
 
-vi.mock('@/components/FavoriteHeart.vue', () => ({
-  default: {
+vi.mock('@/components/FavoriteHeart', () => ({
+  FavoriteHeart: {
     name: 'FavoriteHeart',
     props: ['member'],
     template: '<i class="heart-stub" />',
@@ -505,21 +508,21 @@ describe('LastTransactions', () => {
     // the very declaration below it would answer this search instead of the code -- an
     // injection that deleted `contain: inline-size` stayed green on 11.09.2026 for exactly
     // that reason, in the booking list's spec.
-    const styleOf = (file) => {
-      const source = readFileSync(join(here, file), 'utf8')
-      return source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
-    }
+    // The style modules: the whole file is the stylesheet.
+    const styleOf = (file) =>
+      readFileSync(join(here, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
     const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     /** What one rule gives one property -- undefined if either is missing. */
     const declared = (css, selector, property) => {
-      const rule = new RegExp(`(?:^|\\n)${escape(selector)}\\s*\\{([^}]*)\\}`).exec(css)
+      // Every rule of a module stands under the root's class: `.root :global(<selector>) {`.
+      const rule = new RegExp(`:global\\(${escape(selector)}\\)\\s*\\{([^}]*)\\}`).exec(css)
       if (!rule) return undefined
       const value = new RegExp(`(?:^|[\\s;])${escape(property)}\\s*:\\s*([^;]+);`).exec(rule[1])
       return value?.[1].trim()
     }
 
-    const bookings = styleOf('LastTransactions.vue')
-    const contacts = styleOf('ContactsPanel.vue')
+    const bookings = styleOf('LastTransactions.module.scss')
+    const contacts = styleOf('ContactsPanel.module.scss')
 
     it.each([
       [

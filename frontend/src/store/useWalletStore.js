@@ -301,7 +301,7 @@ export const useWalletStore = defineStore('wallet', {
       // sign-in nor the handover from the admin area reloads the page, and `/login` opens over a
       // running session.
       // ⛔ That is why the page where a thank-you opens the account says its hold AFTER the
-      // sign-in (pages/TransactionLink.vue).
+      // sign-in (pages/TransactionLink.tsx).
       endFirstLoginHolds()
       forgetEventLinkArrival()
     },

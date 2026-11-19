@@ -2,7 +2,7 @@
 import { BCol, BRow } from 'bootstrap-vue-next'
 import { computed, defineComponent, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppAvatar from '@/components/AppAvatar.vue'
+import { AppAvatar } from '@/components/AppAvatar'
 import { ParseMessage } from '@/components/ContributionMessages/ParseMessage'
 import { avatarZoomBindings } from '@/composables/useAvatarZoom'
 import { memberAvatarProps } from '@/composables/useMemberAvatars'

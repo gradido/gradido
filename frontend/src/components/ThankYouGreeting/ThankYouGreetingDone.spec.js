@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
 import * as sheet from '@/utils/thankYouGreetingSheet'
-import ThankYouGreetingDone from './ThankYouGreetingDone.vue'
+import { ThankYouGreetingDone } from './ThankYouGreetingDone'
 
 // On paper: the composable is the real one. What it hands on is caught where it leaves the
 // wallet -- at the drawer and its print frame, and at the device.

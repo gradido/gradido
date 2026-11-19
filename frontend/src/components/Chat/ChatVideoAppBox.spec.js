@@ -2,7 +2,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
-import ChatVideoAppBox from './ChatVideoAppBox.vue'
+import { ChatVideoAppBox } from './ChatVideoAppBox'
+
+// The component asks `useI18n` for its words (a template had `$t`).
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 const member = vi.hoisted(() => ({ gradidoID: 'me-id' }))
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => member }))

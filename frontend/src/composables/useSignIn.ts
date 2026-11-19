@@ -9,7 +9,7 @@ export type SignInCredentials = { email: string; password: string }
 /**
  * Signing in: everything the wallet does with an address and a password, before and after the
  * member stands in the store. Moved here from the login page, step for step, so that the page
- * where a thank-you is accepted signs its new member in the same way (pages/TransactionLink.vue).
+ * where a thank-you is accepted signs its new member in the same way (pages/TransactionLink.tsx).
  *
  * What a page does around it stays the page's: where it leads afterwards, and what it says when
  * the server refuses. `signIn` throws what the mutation throws.

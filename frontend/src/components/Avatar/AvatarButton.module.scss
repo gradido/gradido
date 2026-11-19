@@ -1,0 +1,89 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+.avatarButton :global(.avatar-button) {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: block;
+}
+
+.avatarButton :global(.avatar-overlay) {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 42%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  pointer-events: none;
+}
+
+.avatarButton :global(.avatar-button:hover .avatar-overlay),
+.avatarButton :global(.avatar-button:focus-visible .avatar-overlay) {
+  opacity: 1;
+}
+
+.avatarButton :global(.avatar-badge) {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #047006;
+  color: #fff;
+  border: 2.5px solid var(--surface, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  opacity: 0;
+  transform: scale(0.85);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+
+.avatarButton :global(.avatar-button:hover .avatar-badge),
+.avatarButton :global(.avatar-button:focus-visible .avatar-badge) {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* No picture yet: the badge stays visible instead of waiting for a hover, because a
+   finger does not hover and the wallet is used mostly on phones. Quietly, though --
+   no green disc, just the sign in the same colour as the initials next to it. */
+.avatarButton :global(.avatar-badge.is-quiet) {
+  opacity: 1;
+  transform: scale(1);
+  background: var(--surface, #fff);
+  border: 0;
+  color: #276e6f;
+  right: 0;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+}
+
+:global(.dark-mode) .avatarButton :global(.avatar-badge.is-quiet) {
+  background: var(--surface, #2a2c30);
+  color: #8ed0d1;
+}
+
+.avatarButton :global(.avatar-button:hover .avatar-badge.is-quiet) {
+  color: #047006;
+}

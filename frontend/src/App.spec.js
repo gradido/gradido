@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import App from './App'
-import DashboardLayout from '@/layouts/DashboardLayout'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { App } from './App'
+import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { THEME_MODE_STORAGE_KEY, useWalletStore } from '@/store/useWalletStore'
 import { walletStore } from '@test/walletStore'
@@ -15,16 +15,21 @@ const createMockRoute = (meta = {}) => ({
   params: {},
 })
 
+// App is TSX now and asks `useRoute()` for the route, where the template read `$route`.
+let route = createMockRoute()
+vi.mock('vue-router', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useRoute: () => route,
+}))
+
 describe('App', () => {
   let wrapper
 
   const createWrapper = (options = {}) => {
+    route = createMockRoute(options.routeMeta)
     return shallowMount(App, {
       global: {
         plugins: [options.pinia ?? walletStore({ darkMode: false, ...options.state })],
-        mocks: {
-          $route: createMockRoute(options.routeMeta),
-        },
         stubs: {
           BToastOrchestrator: true,
           DashboardLayout: true,

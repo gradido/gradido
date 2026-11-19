@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import QuickCodeIcon from './QuickCodeIcon.vue'
+import { QuickCodeIcon } from './QuickCodeIcon'
 
 /**
  * The arrow IS the difference between the two shortcuts. Both carry the same square, and a

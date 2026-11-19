@@ -1,0 +1,27 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Drawn as the magnifier beside it is (ContactWindow, `.contact-window-search-toggle`); the spec
+   holds the two together. */
+.chat-window-size-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-window-size-toggle:hover,
+.chat-window-size-toggle:focus-visible {
+  color: var(--bs-body-color);
+}
+
+/* The sheet (below `sm`, where the window is the whole screen): nothing to enlarge. */
+@media (width <= 575.98px) {
+  .chat-window-size-toggle {
+    display: none;
+  }
+}

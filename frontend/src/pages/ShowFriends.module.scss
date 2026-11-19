@@ -1,0 +1,112 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+
+/* The whole head is the button, so the door opens wherever it is touched. It brings none of
+   a button's looks with it: colour and font come from the page. */
+.show-friends :global(.door-head) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+}
+
+.show-friends :global(.door-icon) {
+  flex-shrink: 0;
+  font-size: 1.4rem;
+}
+
+.show-friends :global(.door-title) {
+  flex: 1;
+}
+
+.show-friends :global(.door-body) {
+  padding: 0 1.25rem 1.25rem;
+}
+
+/* The steps are read at the table, so left-aligned like any list, even though the code
+   above them is centred by its own view. */
+.show-friends :global(.door-steps) {
+  text-align: start;
+  padding-inline-start: 1.25rem;
+}
+
+.show-friends :global(.door-steps li + li) {
+  margin-top: 0.4rem;
+}
+
+/* The guests are read line by line, like the steps, under the centred code. */
+.show-friends :global(.door-guests) {
+  text-align: start;
+}
+
+.show-friends :global(.door-guests ul) {
+  padding-inline-start: 1.25rem;
+}
+
+/* ZE-014: the line with the number is the button that unfolds the names, built like the door
+   heads - it can be touched anywhere along it, and it brings none of a button's looks. */
+.show-friends :global(.door-guests-head) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.show-friends :global(.door-guests-count) {
+  flex: 1;
+}
+
+/* The message as it goes out: its own lines, and a link that may break anywhere rather than
+   run out of the card on a phone. No background of its own, so it reads in both themes. */
+.show-friends :global(.door-quote) {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border-inline-start: 3px solid var(--bs-border-color, #dee2e6);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.show-friends :global(.door-hint) {
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+/* The button to the greeting: as wide as the door, and without the house button's 50px of
+   side padding -- with them its label took two lines in six of the ten languages at 390px, and
+   three in two at 320 (measured in the built wallet). Its letters are 16px for the same
+   reason, as on "Dank annehmen". `:deep` while this was the page's
+   scoped style block: BButton renders a router-link, and the scope attribute stopped at the
+   root of a direct child component. */
+.show-friends :global(.door-body .door-greeting) {
+  --bs-btn-font-size: 1rem;
+
+  width: 100%;
+  padding-right: 0.75rem !important;
+  padding-left: 0.75rem !important;
+}
+
+/* The plain way under the greeting's button: a quiet link, with the height a thumb needs.
+   `:deep` while this was the page's scoped style block: BLink renders the anchor, and the scope
+   attribute stopped at its root. */
+.show-friends :global(.door-body .door-plain) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

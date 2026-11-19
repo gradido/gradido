@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { h, inject } from 'vue'
+import { defineComponent, h, inject } from 'vue'
 import { CHAT_SEARCH, chatSearchPieces } from '@/utils/chatSearch'
 
 /**
@@ -29,7 +29,7 @@ export const chatSearchMarked = (text, needle) => {
  * A line of plain text with its hits marked -- a bubble's subject, the words over a transfer.
  * A render function, for the reason MemoText gives: nothing may stand between the pieces.
  */
-export const ChatSearchText = {
+export const ChatSearchText = defineComponent({
   name: 'ChatSearchText',
   props: {
     text: { type: String, default: '' },
@@ -38,4 +38,4 @@ export const ChatSearchText = {
     const needle = useChatSearchNeedle()
     return () => h('span', chatSearchMarked(props.text, needle?.value ?? ''))
   },
-}
+})

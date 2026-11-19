@@ -88,18 +88,18 @@ describe('the reaction to a transfer, as the wallet asks for it', () => {
   })
 
   it('reaches the row: it reads the reaction, and whether the member may, off the booking', () => {
-    const row = code('../components/Transactions/GddTransaction.vue')
+    const row = code('../components/Transactions/GddTransaction.tsx')
 
     expect(row).toMatch(/props\.transaction\.reaction \?\? null/)
     expect(row).toMatch(/props\.transaction\.canReact/)
   })
 
   it('reaches the bubble: the thread hands the booking’s reaction and the server’s word on', () => {
-    const thread = code('../components/Chat/ChatThread.vue')
+    const thread = code('../components/Chat/ChatThread.tsx')
 
     expect(thread).toMatch(/reactions: transferReactions\(booking\)/)
     expect(thread).toMatch(/canReact: booking\.canReact === true/)
-    expect(code('../components/Chat/ChatBubble.vue')).toMatch(/props\.message\.canReact === true/)
+    expect(code('../components/Chat/ChatBubble.tsx')).toMatch(/props\.message\.canReact === true/)
   })
 
   // The column beside the overview takes its bookings from the same fragment and draws nothing

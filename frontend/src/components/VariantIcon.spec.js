@@ -1,17 +1,17 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import VariantIcon from './VariantIcon.vue'
+import { VariantIcon } from './VariantIcon'
 
-// The icons come from unplugin-icons, which the test setup does not load: each one used here
-// is stubbed under the name the template asks for, so a misspelt name finds no stub.
+// Each icon used here is stubbed under the name unplugin-icons gives the component it imports
+// (`bi-balloon-heart`), so a misspelt import finds no stub.
 const draw = (icon) =>
   mount(VariantIcon, {
     props: { icon },
     global: {
       stubs: {
-        IBiBalloonHeart: { template: '<svg data-test="icon-balloon-heart" />' },
-        IBiLink45deg: { template: '<svg data-test="icon-link" />' },
+        BiBalloonHeart: { template: '<svg data-test="icon-balloon-heart" />' },
+        BiLink45deg: { template: '<svg data-test="icon-link" />' },
       },
     },
   })

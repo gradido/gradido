@@ -46,8 +46,8 @@ vi.mock('@/composables/useCreationGroupChoice', async () => {
   const choice = { selected: ref(''), options: ref([]), selectedLabel: ref('') }
   return { useCreationGroupChoice: () => choice, __choice: choice }
 })
-vi.mock('@/components/Inputs/ValidatedInput.vue', () => ({
-  default: {
+vi.mock('@/components/Inputs/ValidatedInput', () => ({
+  ValidatedInput: {
     name: 'ValidatedInput',
     props: ['modelValue', 'maxlength', 'label', 'placeholder', 'rules', 'name', 'textarea'],
     emits: ['update:modelValue'],
@@ -55,8 +55,8 @@ vi.mock('@/components/Inputs/ValidatedInput.vue', () => ({
       '<textarea :maxlength="maxlength" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
   },
 }))
-vi.mock('@/components/ThemedSelect.vue', () => ({
-  default: { name: 'ThemedSelect', props: ['modelValue', 'options'], template: '<select />' },
+vi.mock('@/components/ThemedSelect', () => ({
+  ThemedSelect: { name: 'ThemedSelect', props: ['modelValue', 'options'], template: '<select />' },
 }))
 
 const mountForm = () =>

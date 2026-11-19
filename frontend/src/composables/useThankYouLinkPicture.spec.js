@@ -28,7 +28,7 @@ describe('useThankYouLinkPicture', () => {
   let made
   let revoked
 
-  /** The composable in a page, as pages/TransactionLink.vue holds it. */
+  /** The composable in a page, as pages/TransactionLink.tsx holds it. */
   const mountPage = () => {
     wrapper = mount({
       setup() {

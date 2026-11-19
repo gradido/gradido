@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import ChatGroupWindow from './ChatGroupWindow.vue'
+import { ChatGroupWindow } from './ChatGroupWindow'
 import { chatGroupMembersQuery, setChatGroupMuted } from '@/graphql/chatGroups.graphql'
 import { userNoteQuery } from '@/graphql/userNotes.graphql'
 import { SMALL_FACE_SIZE } from '@/constants'
@@ -23,6 +23,9 @@ vi.mock('vue-i18n', () => ({
           : key,
     d: (date, format) => `${format}(${date.toISOString()})`,
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // thread is imported and not found by name.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 const storeState = vi.hoisted(() => ({ gradidoID: 'me-id', communityUuid: 'home-uuid' }))
@@ -155,7 +158,7 @@ describe('ChatGroupWindow', () => {
       noteAsked.mockResolvedValueOnce({ data: { userNote: 'Jeden ersten Samstag' } })
       mountWindow()
       await flushPromises()
-      expect(noteButton().find('i-mdi-note-text').exists()).toBe(true)
+      expect(noteButton().find('mdi-note-text-stub').exists()).toBe(true)
       await noteButton().trigger('click')
       expect(wrapper.find('[data-test="thread"] [data-test="chat-note"]').exists()).toBe(true)
       expect(wrapper.find('[data-test="chat-note-field"]').element.value).toBe(
@@ -183,9 +186,9 @@ describe('ChatGroupWindow', () => {
             },
             template: '<div data-test="modal"><slot /></div>',
           },
-          IBiX: true,
-          IMdiBellOutline: { template: '<i data-test="bell-on" />' },
-          IMdiBellOffOutline: { template: '<i data-test="bell-off" />' },
+          BiX: true,
+          MdiBellOutline: { template: '<i data-test="bell-on" />' },
+          MdiBellOffOutline: { template: '<i data-test="bell-off" />' },
           // The thread has its own specs (ChatThread.group.spec.js); here: which group it gets.
           ChatThread: {
             name: 'ChatThread',
@@ -220,12 +223,14 @@ describe('ChatGroupWindow', () => {
             template:
               '<div data-test="thread" :data-group="group?.groupUuid" :data-search="search"><slot name="cover" /></div>',
           },
-          IMdiMagnify: true,
-          IMdiChevronUp: true,
-          IMdiChevronDown: true,
+          MdiMagnify: true,
+          MdiNoteText: true,
+          MdiNoteTextOutline: true,
+          MdiChevronUp: true,
+          MdiChevronDown: true,
           // The switch for the window's size (ChatWindowSizeToggle); its own spec is about it.
-          IMdiArrowExpand: true,
-          IMdiArrowCollapse: true,
+          MdiArrowExpand: true,
+          MdiArrowCollapse: true,
           // The dialog reads the server and has a spec of its own; here: what it was opened with.
           ChatForwardDialog: {
             name: 'ChatForwardDialog',
@@ -544,7 +549,7 @@ describe('ChatGroupWindow', () => {
           mocks: { $t: (key) => key },
           stubs: {
             BModal: { template: '<div><slot /></div>' },
-            IBiX: true,
+            BiX: true,
             ChatThread: true,
             ChatGroupMembers: {
               name: 'ChatGroupMembers',
@@ -1039,7 +1044,7 @@ describe('ChatGroupWindow', () => {
       take('', code.replace(MEDIA, ''))
       return rules
     }
-    const group = rulesOf('ChatGroupWindow.vue')
+    const group = rulesOf('ChatGroupWindow.module.scss')
     const contact = rulesOf('../Contacts/ContactWindow.module.scss')
 
     // The reader reads what it should: a rule of the first kind, one of each query, and the first
@@ -1113,14 +1118,13 @@ describe('ChatGroupWindow', () => {
     /**
      * The sheet's body 0.75rem from the screen's sides, not a dialog's 1.5rem (Bernd, 15.11.2026:
      * 16 px; 16.11.2026: 12 px): on a phone the room goes to the conversation. The body is BModal's own element, out of reach of
-     * the rules above: the group window names it in a block without scope -- its second --, the
-     * contact window's style module with `:global(`. Each beside BModal's own class, and each
+     * the rules above: both windows' style modules name it with `:global(`. Each beside BModal's own class, and each
      * window hands BModal the class its rule names.
      */
     it("keeps the sheet's body 0.75rem from the screen's sides, as the contact window does", () => {
-      expect([...rulesOf('ChatGroupWindow.vue', 2)]).toEqual([
-        [`${SHEET} .modal .modal-body.chat-group-window-body`, 'padding-inline: 0.75rem'],
-      ])
+      expect(group.get(`${SHEET} :deep(.modal .modal-body.chat-group-window-body)`)).toBe(
+        'padding-inline: 0.75rem',
+      )
       expect(contact.get(`${SHEET} :deep(.modal .modal-body.contact-window-body)`)).toBe(
         'padding-inline: 0.75rem',
       )

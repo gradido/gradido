@@ -1,20 +1,20 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { TransactionLinkSummary } from './TransactionLinkSummary'
-import CollapseIcon from '../TransactionRows/CollapseIcon'
-import CollapseLinksList from '../DecayInformations/CollapseLinksList'
+import { CollapseIcon } from '../TransactionRows/CollapseIcon'
+import { CollapseLinksList } from '../DecayInformations/CollapseLinksList'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 vi.mock('../TransactionRows/CollapseIcon', () => ({
-  default: {
+  CollapseIcon: {
     name: 'CollapseIcon',
     render: () => null,
   },
 }))
 
 vi.mock('../DecayInformations/CollapseLinksList', () => ({
-  default: {
+  CollapseLinksList: {
     name: 'CollapseLinksList',
     render: () => null,
   },

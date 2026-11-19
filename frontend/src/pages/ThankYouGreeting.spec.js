@@ -15,7 +15,7 @@ import { clearLinkDraft, useLinkDraft } from '@/composables/useLinkDraft'
 import { addThankYouGreetingPicture, createTransactionLink } from '@/graphql/mutations'
 import { thankYouGreetingPictureRenditions } from '@/graphql/queries'
 import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
-import ThankYouGreeting from './ThankYouGreeting.vue'
+import { ThankYouGreeting } from './ThankYouGreeting'
 
 /**
  * Writing a thank-you greeting, with the wallet's own texts, its real router and the real

@@ -1,0 +1,74 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: its spec reads
+   them by name. Without the scope attribute each has one level less; every class is set in the
+   module's spelling too. Block comments only: lightningcss rejects a double slash. */
+
+/* As large as the picture of a greeting stands (Bernd, 17.10.2026): as wide as a bubble may be,
+   its share of the thread (ChatBubble's `--chat-bubble-share`), and whole -- no higher than
+   `--chat-image-height`, which is 22rem in the usual window and up to a greeting's height in the
+   large one (ChatWindowSizeToggle). A picture higher than wide stands at that height and is
+   narrower.
+
+   Only a picture that would then be narrower than 16rem -- a long screenshot -- stays 16rem wide
+   and is cut at the bottom, its top in sight (E-044 F5). And at most twice its own size, as in the
+   large view -- a small picture blown up to a bubble's width shows its blocks, not its subject --,
+   but never narrower than those 16rem: a picture under 8rem wide stands 16rem wide, as it always
+   did. The floor wins over the cap (`max` outside `min`).
+
+   ⛔ The width is a length, never a percentage. It is what the picture asks of the bubble while
+   the bubble works out how wide it wants to be, and the bubble grows to it -- up to its share of
+   the thread, where `max-width` takes the picture in (a percentage there does not count while the
+   bubble is measured). A width in percent would count as `auto`, and the picture would ask for its own
+   pixels. A long caption makes the bubble wider than its picture; the picture stays at the top,
+   at the bubble's start (Bernd, 17.10.2026, in the morning).
+
+   The corners a little rounder than the bubble's padding. */
+.chat-bubble-image {
+  display: block;
+  width: max(
+    16rem,
+    min(var(--chat-image-twice), var(--chat-image-height, 22rem) * var(--chat-image-ratio))
+  );
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.chat-bubble-image:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* At most as high as the window lets a picture be; one that is higher at 16rem wide is cut at the
+   bottom, its top in sight (E-044 F5). */
+.chat-bubble-image-picture {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: var(--chat-image-height, 22rem);
+  object-fit: cover;
+  object-position: top;
+}
+
+/* Until the picture has come: a quiet surface of its size, as light on the dark bubbles as it is
+   dark on the light ones. */
+.chat-bubble-image-picture.is-waiting,
+.chat-bubble-image.is-missing {
+  background: rgb(127 127 127 / 18%);
+}
+
+.chat-bubble-image.is-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: var(--chat-image-height, 22rem);
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  text-align: center;
+  cursor: default;
+}

@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import MobileSidebar from './MobileSidebar.vue'
+import { MobileSidebar } from './MobileSidebar'
 
 const { lock, unlock } = vi.hoisted(() => ({ lock: vi.fn(), unlock: vi.fn() }))
 vi.mock('tua-body-scroll-lock', () => ({ lock, unlock }))

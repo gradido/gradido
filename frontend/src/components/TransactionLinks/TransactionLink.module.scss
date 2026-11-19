@@ -1,0 +1,105 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), so each weighs what it weighed -- `.light-gray-text` 0,2,0, which is
+   what the dark stylesheet's rule is measured against (TransactionLink.darkMode.spec.js). */
+.transaction-link :global(.light-gray-text) {
+  color: #adb5bd !important;
+}
+
+/* See the note at the state column: a Bootstrap `col` floors at its own content, so the
+   name column of the booking row carries the same guard under the same name. */
+.transaction-link :global(.min-w-0) {
+  min-width: 0;
+}
+
+.transaction-link :global(.transaction-link-row) {
+  /* The menu column is the button plus the row's gutters. Measured at 56 points, not the
+     4.5rem the booking row reserves for its collapse arrow -- that arrow is bigger, and
+     copying its figure here cost the state word exactly the 16 points it needs to stay on
+     one line at 375. */
+  --link-menu-col: 3.5rem;
+}
+
+/* The room around the three dots that opens the menu too. It is laid over the row, so the
+   row keeps its measure -- 75 by 62 points where the button alone is 35 by 50. Measured in the
+   wallet from 320 to 1440 points: to the left over the gutter, up to the amount (24); to the
+   right over the gutter and the tile's padding, up to the tile's edge (16, at every width);
+   upwards over the row's padding (8); downwards as far as the memo's margin goes (4), so it
+   lies over no word of the row. */
+.transaction-link :global(.transaction-link-menu-reach) {
+  position: absolute;
+  inset: -0.5rem -1rem -0.25rem -1.5rem;
+}
+
+/* The mark of a greeting above its memo: the motif small, and whom it is for. It names no
+   colour, so it takes the row's -- an expired row's grey included. */
+.transaction-link :global(.transaction-link-greeting) {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* At the motifs' own proportions (36 : 25); their ground is light in both themes. A photo, and
+   its room before it has come, stand in the same place. */
+.transaction-link :global(.transaction-link-greeting-motif) {
+  flex-shrink: 0;
+  width: 46px;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  border-radius: 6px;
+  background: #fbf3de;
+}
+
+/* An expired row recedes as a whole, the picture with it. */
+.transaction-link :global(.light-gray-text .transaction-link-greeting-motif) {
+  opacity: 0.55;
+}
+
+.transaction-link :global(.transaction-link-greeting-label) {
+  min-width: 0;
+}
+
+/* What there is to say of a photo that is gone, under the label: quieter than the label, in the
+   row's own colour. (Plain ASCII in this block: with any other letter in it sass heads the
+   stylesheet with a charset rule, and TransactionLink.darkMode.spec.js reads that as a part of
+   the first selector. The first line of this file has such a letter now, so that spec
+   compiles the sheet without the charset rule.) */
+.transaction-link :global(.transaction-link-greeting-missing) {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.transaction-link :global(.transaction-link-memo) {
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+
+  /* A memo may hold a web address, and an address is one unbreakable run. Without this it
+     would decide how wide the row has to be. */
+  overflow-wrap: anywhere;
+}
+
+/* An expired row recedes as a whole, the memo with it (Bernd, 23.09.2026). The memo's own
+   colour above beats the grey the row hands down -- a colour set on an element always beats an
+   inherited one, however !important it was where it came from -- so it stayed muted: darker
+   than the rest of the row in light mode, brighter in dark mode. Inheriting gives it the row's
+   grey in both, the dark one too, since that is set on the row itself. A web address in the
+   memo keeps its link colour: links here are not underlined, so a grey one would read as text. */
+.transaction-link :global(.light-gray-text .transaction-link-memo) {
+  color: inherit;
+}
+
+/* From `md` on the memo stops short of the amount instead of running the whole width, which
+   Bernd found out of balance in the booking row on 11.09.2026 ("nicht so breit ... wie die
+   Spalte"). A floor, not an exact meeting point: the amount's column is as wide as its
+   content, so this leaves air rather than touching it. On the phone the memo keeps the whole
+   width -- there is nothing beside it. */
+@media (width >= 768px) {
+  .transaction-link :global(.transaction-link-memo-col) {
+    width: calc(100% * 9 / 12 - var(--link-menu-col));
+  }
+}

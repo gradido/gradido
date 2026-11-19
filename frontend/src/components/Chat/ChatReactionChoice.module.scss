@@ -1,0 +1,98 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: its spec reads
+   them by name. Without the scope attribute each has one level less; every class is set in the
+   module's spelling too. Block comments only: lightningcss rejects a double slash. */
+
+/* The row of six and "mehr": as wide as the menu, each an equal share of it and a finger high
+   (2.75rem is 44 px). */
+.chat-reaction-choice-row {
+  display: flex;
+  gap: 0.15rem;
+}
+
+/* The device's own coloured drawing, asked for by name (as EmojiPicker has it): left to the
+   page's font, a sign that is also a letter of some font -- the heart -- could come out black
+   and flat. */
+.chat-reaction-choice-emoji,
+.chat-reaction-choice-more {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chat-reaction-choice-more-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--menu-icon, #a8732a);
+}
+
+@media (hover: hover) {
+  .chat-reaction-choice-emoji:hover,
+  .chat-reaction-choice-more:hover {
+    background: var(--menu-hover, #eef0f3);
+  }
+}
+
+.chat-reaction-choice-emoji:focus-visible,
+.chat-reaction-choice-more:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: -2px;
+}
+
+/* One's own reaction: the pressed one -- on the surface a pointer gives the others, with a rim
+   in the gold of the menu's signs (`--menu-icon`): the plain gold came to 2.2 : 1 on the menu's
+   grey in the light mode and to 2.6 in the dark one, this one is 3.1 and 4.0 (measured
+   11.10.2026). */
+.chat-reaction-choice-emoji.is-own {
+  background: var(--menu-hover, #eef0f3);
+  box-shadow: inset 0 0 0 2px var(--menu-icon, #a8732a);
+}
+
+/* With the keyboard on it -- where it comes in, and where "mehr" puts it -- the rim moves in
+   by the keyboard's own ring, which is drawn where the rim was: both are seen, the green one
+   outside and the gold one inside it (measured 11.10.2026: the ring alone had covered the rim). */
+.chat-reaction-choice-emoji.is-own:focus-visible {
+  box-shadow: inset 0 0 0 4px var(--menu-icon, #a8732a);
+}
+
+/* All forty-eight: eight in a row (EMOJI_ROWS), each a square of 36 px -- and narrower where the
+   menu is: the columns give way, as in the smiley's choice. */
+.chat-reaction-choice-line {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 2.25rem));
+}
+
+.chat-reaction-choice-grid .chat-reaction-choice-emoji {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+}
+
+/* A reaction is on its way: the emoji stand back until it is there. */
+.chat-reaction-choice.is-busy .chat-reaction-choice-emoji {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+/* Under a finger -- no pointer that hovers -- the squares are up to 44 px where the menu has the
+   room (ChatMessageMenu): they stand edge to edge, and a miss sets a reaction everybody in the
+   conversation sees. The smiley's choice, whose measure the 36 px are, is a computer's alone. */
+@media (hover: none) {
+  .chat-reaction-choice-line {
+    grid-template-columns: repeat(8, minmax(0, 2.75rem));
+  }
+}

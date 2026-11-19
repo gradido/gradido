@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import ChatSearchBar from './ChatSearchBar.vue'
+import { ChatSearchBar } from './ChatSearchBar'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({

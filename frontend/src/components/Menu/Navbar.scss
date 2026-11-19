@@ -1,0 +1,113 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Global, as the unscoped style block of Navbar.vue was; the rules that were scoped stand in
+   Navbar.module.scss. */
+.navbar-element {
+  position: sticky;
+}
+
+.navbar-toggler {
+  font-size: 2.25rem;
+}
+
+.navbar-like-link {
+  color: rgba(var(--bs-link-color-rgb));
+}
+
+button.navbar-toggler > span.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.sheet-img {
+  top: -11px;
+  left: 50%;
+  max-width: 64%;
+}
+
+.alert-box {
+  left: 20%;
+  right: 20%;
+  position: absolute;
+  z-index: 1000;
+  top: 25px;
+}
+
+@media screen and (width <= 1170px) {
+  .sheet-img {
+    left: 20%;
+  }
+
+  .alert-box {
+    position: static;
+    margin-left: 5%;
+    margin-right: 5%;
+    z-index: 0;
+  }
+}
+
+/* Between the layout's switch to the desktop and 1170px the leaves stand at the left, and
+   20% was just past the logo that stood there. A community's name is longer than "Gradido":
+   the leaves begin where it ends, no further left than they did. The 11px are how far the
+   picture's empty edge reached under the logo at 1025px. */
+@media screen and (width >= 1025px) and (width <= 1170px) {
+  .sheet-img {
+    left: max(20%, calc(var(--brand-end, 0px) - 11px));
+  }
+}
+
+@media screen and (width <= 450px) {
+  .navbar-element {
+    z-index: 1000;
+    position: fixed;
+    background-color: #f5f5f5e6;
+    left: 0;
+    right: 0;
+  }
+
+  .sheet-img {
+    left: 5%;
+    max-width: 61%;
+  }
+}
+
+/* Two columns of 44px, so the four tools stack two by two instead of pushing the block
+   opposite off a narrow phone. */
+.navbar-component .navbar-quick-row {
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
+}
+
+/* Small to the eye, 44px to the thumb -- same rule as the gear inside the calculator.
+
+   Written through the row rather than as one class per tool. This sheet is GLOBAL,
+   like DashboardLayout's, so a bare class name would style across components -- which is
+   why there used to be two names for one look. A descendant of `.navbar-quick-row` cannot
+   escape this component, and it does not grow a fifth name when a fifth tool arrives.
+
+   ⛔ `flex-start`, NOT `center`, and that is what puts the block where it belongs. Centring
+   a 22px glyph in a 44px target insets it by 11px, so the symbols stood a thumb's width
+   right of the menu opener below them and the top-right one reached into the leaves. Left
+   aligned, every glyph starts at the column edge -- the same edge the opener starts at,
+   within about a pixel (both SVGs carry roughly 3px of their own padding). The touch
+   targets and the spacing between the symbols are untouched; the whole block simply moves
+   11px left. (Bernd, 21.08.2026: "sodass die linke Kante eine Linie bildet")
+
+   The colour is the menu's own -- `--icon-muted`, which is what `svg.svg-icon` carries,
+   rgb(114 119 143) in BOTH modes. ⚠️ Not `--text`: the menu items' text is near-black in
+   light and near-white in dark, and the icons beside them are not. No opacity either --
+   the tone has to MATCH the menu, and 0.65 of it is a different grey.
+   (Bernd, 22.08.2026: "das ist so ein mittleres Grau, jeweils") */
+.navbar-component .navbar-quick-row > a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: var(--icon-muted);
+}
+
+.navbar-component .navbar-quick-row > a:hover {
+  color: var(--icon-muted);
+  opacity: 0.7;
+}

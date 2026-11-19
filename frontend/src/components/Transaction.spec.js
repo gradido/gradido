@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 import { BAvatar, BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { TransactionCollapse } from '@/components/TransactionCollapse'
 import { GdtEntryType } from '@/graphql/enums'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { VariantIcon } from '@/components/VariantIcon'
 // The store is a fake: the real one pulls in the language and the queries this spec mocks away.
 vi.mock('@/store/useWalletStore', () => ({
   useWalletStore: () => ({ transactionToHighlightId: '' }),
@@ -59,6 +59,11 @@ describe('Transaction', () => {
             props: ['id', 'modelValue'],
           },
           VariantIcon,
+          // VariantIcon imports its icons now; each one is stubbed as the element it was while
+          // nothing resolved it, under the name unplugin-icons gives the imported component.
+          BiHeart: { template: '<ibiheart />' },
+          BiPersonCheck: { template: '<ibipersoncheck />' },
+          BiGift: { template: '<ibigift />' },
           ...options.stubs,
         },
       },
@@ -75,7 +80,8 @@ describe('Transaction', () => {
     })
 
     it('has a collapse icon bi-arrow-down-circle', () => {
-      expect(wrapper.find('ibiarrowdowncircle').exists()).toBe(true)
+      // CollapseIcon imports its icon now, so it renders as an svg; the down arrow is the muted one.
+      expect(wrapper.find('.collapse-icon svg.text-muted').exists()).toBe(true)
     })
 
     describe('no valid GDT entry type', () => {

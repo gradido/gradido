@@ -9,8 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { ThanksArrivalTile } from './ThanksArrivalTile'
-import AppAvatar from '@/components/AppAvatar.vue'
-import ThankYouGreetingPhoto from '@/components/ThankYouGreeting/ThankYouGreetingPhoto.vue'
+import { AppAvatar } from '@/components/AppAvatar'
+import { ThankYouGreetingPhoto } from '@/components/ThankYouGreeting/ThankYouGreetingPhoto'
 import {
   fetchMemberAvatars,
   forgetAllMemberAvatars,
@@ -167,10 +167,10 @@ const mountTile = (list) => {
         AppAvatar: true,
         ThankYouGreetingPhoto: true,
         // The tile imports its icons (`~icons/…`), whose components carry the icon's own
-        // name; the one in ChatReactionChoice.vue is still resolved by name.
+        // name, the one in ChatReactionChoice too.
         IonLayersSharp: true,
         MdiEmoticonHappyOutline: true,
-        IMdiPlus: true,
+        MdiPlus: true,
       },
     },
   })

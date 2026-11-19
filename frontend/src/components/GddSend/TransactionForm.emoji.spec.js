@@ -17,7 +17,7 @@ import {
   BRow,
 } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
-import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
+import { EmojiPicker } from '@/components/Inputs/EmojiPicker'
 import { isComputer } from '@/utils/isComputer'
 import { TransactionForm } from './TransactionForm'
 import { walletStore } from '@test/walletStore'

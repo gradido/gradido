@@ -6,7 +6,7 @@
  * comes into the window where the window has moved past it.
  *
  * Up to 450 px the navbar stays at the top of the window, over whatever scrolls under it
- * (Menu/Navbar.vue): there the heading has to stand below the navbar's lower edge, as the form does
+ * (Menu/Navbar.tsx): there the heading has to stand below the navbar's lower edge, as the form does
  * when an address asks for it (TransactionForm.vue). Its height is read, not written down a second
  * time -- it grows with the tools in it.
  *

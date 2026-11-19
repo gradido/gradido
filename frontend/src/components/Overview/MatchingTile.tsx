@@ -137,7 +137,7 @@ export const MatchingTile = defineComponent({
           {/* The tile's name, with the icon and the word of the menu entry: "the map" alone can be
               a postcard or a playing card in German, and a newcomer could not tell that the map on
               the overview and "Matching" in the menu are one thing (Bernd, 11.10.2026). Built like
-              the label of the community's card in the page head (CommunityMember.vue): no
+              the label of the community's card in the page head (CommunityMember.tsx): no
               variant, or the badge's own text colour beats the gradient's white. */}
           <BBadge
             variant={'' as ColorVariant}

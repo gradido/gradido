@@ -1,0 +1,271 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Not scoped: the dialog's content and body are BModal's elements, which carry no scope of this
+   file. As in ChatImageView, each rule names BModal's own class beside ours, and the content's goes
+   higher still: dark mode sets `.dark-mode .modal-content` with `!important`. */
+.modal .modal-content.chat-image-editor-content {
+  border: 0;
+  background-color: rgb(10 10 12) !important;
+  color: #f1f0ec;
+}
+
+/* At the desk a dialog tall enough for a portrait; on a phone the sheet is the whole screen. */
+@media (width >= 576px) {
+  .modal .modal-content.chat-image-editor-content {
+    height: min(46rem, calc(100dvh - 3.5rem));
+  }
+}
+
+.modal .modal-body.chat-image-editor-body {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+}
+
+.chat-image-editor {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat-image-editor-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  padding: 0 0.5rem;
+}
+
+/*
+ * On a screen of 320 pixels both buttons stand wholly on it in all ten languages: they keep their
+ * width and their one line (`flex: 0 0 auto`), and the title takes the room left between them. It
+ * wraps between its words as it did; a word wider than that room is cut with an ellipsis. Before,
+ * the title could not get narrower than its longest word, and in Russian at 320 pixels that word
+ * (123 pixels, in a room of 93) pushed "Fertig" 22 pixels past the screen (measured 03.10.2026).
+ */
+.chat-image-editor-title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.chat-image-editor-cancel,
+.chat-image-editor-done {
+  flex: 0 0 auto;
+  min-height: 2.75rem;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chat-image-editor-cancel {
+  padding: 0 0.75rem;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #f1f0ec;
+}
+
+.chat-image-editor-done {
+  padding: 0 1.1rem;
+  border-radius: 2rem;
+  background: #f1f0ec;
+  color: #0a0a0c;
+  font-weight: 700;
+}
+
+/* The stage: a finger moves the picture here, so the page must not scroll under it. */
+.chat-image-editor-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 12rem;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.chat-image-editor-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.chat-image-editor-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* The frame: what lies outside it is dimmed, thirds are marked inside it. */
+.chat-image-editor-frame {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #f1f0ec;
+  box-shadow: 0 0 0 100vmax rgb(10 10 12 / 62%);
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to right,
+      transparent 33.2%,
+      rgb(241 240 236 / 35%) 33.2% 33.5%,
+      transparent 33.5% 66.5%,
+      rgb(241 240 236 / 35%) 66.5% 66.8%,
+      transparent 66.8%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 33.2%,
+      rgb(241 240 236 / 35%) 33.2% 33.5%,
+      transparent 33.5% 66.5%,
+      rgb(241 240 236 / 35%) 66.5% 66.8%,
+      transparent 66.8%
+    );
+}
+
+.chat-image-editor-controls {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.6rem 0.9rem calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* The readout and how "Sichern" went share the grid's one cell, in the same size of type. */
+.chat-image-editor-lines {
+  display: grid;
+}
+
+.chat-image-editor-lines > * {
+  grid-area: 1 / 1;
+}
+
+.chat-image-editor-readout {
+  margin: 0;
+  color: #b9b8b2;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.chat-image-editor-readout.is-quiet {
+  visibility: hidden;
+}
+
+.chat-image-editor-saved {
+  margin: 0;
+  color: #f1f0ec;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.chat-image-editor-shapes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.chat-image-editor-shape {
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid #5c5b57;
+  border-radius: 2rem;
+  background: transparent;
+  color: #f1f0ec;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.chat-image-editor-shape[aria-pressed='true'] {
+  border-color: #f1f0ec;
+  background: #f1f0ec;
+  color: #0a0a0c;
+  font-weight: 600;
+}
+
+/*
+ * On a phone the four shapes stand in one row at 390 pixels in all ten languages -- in Russian and
+ * Greek too, whose words are the longest (measured 29.09.2026: 354 of 361 pixels). Narrower still,
+ * they wrap; at 320 pixels German keeps one row.
+ */
+@media (width < 576px) {
+  .chat-image-editor-shapes {
+    gap: 0.3rem;
+  }
+
+  .chat-image-editor-shape {
+    padding: 0 0.45rem;
+  }
+}
+
+.chat-image-editor-size {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.chat-image-editor-size span {
+  flex: 0 0 auto;
+  color: #b9b8b2;
+}
+
+.chat-image-editor-size input {
+  flex: 1 1 auto;
+  accent-color: #c58d38;
+}
+
+.chat-image-editor-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.chat-image-editor-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 3.5rem;
+  padding: 0.3rem;
+  border: 1px solid #2e2e33;
+  border-radius: 0.8rem;
+  background: #17171a;
+  color: #f1f0ec;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.chat-image-editor-tool[aria-pressed='true'] {
+  border-color: #c58d38;
+  color: #f3d9a8;
+}
+
+.chat-image-editor-tool:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.chat-image-editor-tool-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+/* The focus, on everything the keyboard reaches -- last, after the rules it adds to. */
+.chat-image-editor-cancel:focus-visible,
+.chat-image-editor-done:focus-visible,
+.chat-image-editor-shape:focus-visible,
+.chat-image-editor-tool:focus-visible,
+.chat-image-editor-stage:focus-visible {
+  outline: 2px solid #f1f0ec;
+  outline-offset: 2px;
+}

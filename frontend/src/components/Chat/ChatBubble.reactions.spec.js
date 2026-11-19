@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import ChatBubble from './ChatBubble.vue'
+import { ChatBubble } from './ChatBubble'
 import { isComputer } from '@/utils/isComputer'
 
 /**
@@ -26,6 +26,13 @@ vi.mock('vue-i18n', () => ({
     d: (date, format) => `${format}(${date.toISOString()})`,
     locale: { value: 'de' },
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: {
+    name: 'I18nT',
+    props: { keypath: String },
+    template: '<span><slot name="name" /></span>',
+  },
 }))
 vi.mock('@/composables/useToast', () => ({
   useAppToast: () => ({ toastSuccess: () => {}, toastError: () => {} }),
@@ -74,16 +81,13 @@ describe('ChatBubble, the reactions to a message', () => {
       props: { message, alias: 'Lena', canReact: true, ...props },
       attachTo: document.body,
       global: {
-        components: {
-          'i18n-t': { props: { keypath: String }, template: '<span><slot name="name" /></span>' },
-        },
         stubs: {
-          IMdiDotsHorizontal: true,
-          IMdiPencilOutline: true,
-          IMdiReplyOutline: true,
-          IMdiShareOutline: true,
-          IMdiContentCopy: true,
-          IMdiPlus: true,
+          MdiDotsHorizontal: true,
+          MdiPencilOutline: true,
+          MdiReplyOutline: true,
+          MdiShareOutline: true,
+          MdiContentCopy: true,
+          MdiPlus: true,
           ChatTransferCoin: true,
         },
       },
@@ -995,10 +999,11 @@ describe('ChatBubble, the reactions to a message', () => {
    */
   describe('the stylesheet of the foot line', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
       'utf8',
     )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    // The style module names the page's `.dark-mode` as `:global(.dark-mode)`: read as the class.
+    const style = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/:global\(([^()]*)\)/g, '$1')
     const rule = (selector) =>
       style.match(
         new RegExp(`\\n${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`),

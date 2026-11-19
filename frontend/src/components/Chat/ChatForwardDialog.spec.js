@@ -2,7 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
-import ChatForwardDialog from './ChatForwardDialog.vue'
+import { ChatForwardDialog } from './ChatForwardDialog'
 import { forwardChatMessage } from '@/graphql/chat.graphql'
 import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
@@ -106,7 +106,7 @@ describe('ChatForwardDialog (E-059)', () => {
             template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
           BButton: { template: '<button type="button" v-bind="$attrs"><slot /></button>' },
-          IMdiShare: true,
+          MdiShare: true,
         },
       },
     })

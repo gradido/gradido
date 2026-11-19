@@ -1,19 +1,19 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { TransactionDecay } from './TransactionDecay'
-import CollapseIcon from '../TransactionRows/CollapseIcon'
-import DecayInformationDecay from '../DecayInformations/DecayInformation-Decay'
+import { CollapseIcon } from '../TransactionRows/CollapseIcon'
+import { DecayInformationDecay } from '../DecayInformations/DecayInformation-Decay'
 import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 
 vi.mock('../TransactionRows/CollapseIcon', () => ({
-  default: {
+  CollapseIcon: {
     name: 'CollapseIcon',
     render: () => null,
   },
 }))
 
 vi.mock('../DecayInformations/DecayInformation-Decay', () => ({
-  default: {
+  DecayInformationDecay: {
     name: 'DecayInformationDecay',
     render: () => null,
     props: {

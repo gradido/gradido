@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import UserPassword from './UserPassword.vue'
+import { UserPassword } from './UserPassword'
 import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { walletStore } from '@test/walletStore'
@@ -126,9 +126,10 @@ describe('UserPassword', () => {
           BForm,
         },
         plugins: [i18n, store],
+        // The two icons are imported (`~icons/…`) and carry the icon's own name.
         stubs: {
-          IBiPencil: true,
-          IBiXCircle: true,
+          BiPencil: true,
+          BiXCircle: true,
         },
       },
     })
@@ -172,7 +173,7 @@ describe('UserPassword', () => {
   })
 
   it('has a change password button with a pencil icon', () => {
-    expect(wrapper.find('.change-password-form-opener i-bi-pencil-stub').exists()).toBe(true)
+    expect(wrapper.find('.change-password-form-opener bi-pencil-stub').exists()).toBe(true)
   })
 
   describe('change password form', () => {
@@ -185,7 +186,7 @@ describe('UserPassword', () => {
     })
 
     it('has a cancel button', () => {
-      expect(wrapper.find('.change-password-form-opener i-bi-x-circle-stub').exists()).toBe(true)
+      expect(wrapper.find('.change-password-form-opener bi-x-circle-stub').exists()).toBe(true)
     })
 
     it('closes the form when cancel button is clicked', async () => {
@@ -263,11 +264,12 @@ describe('UserPassword', () => {
    */
   it('leaves the opener its padding on the left', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'UserPassword.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'UserPassword.module.scss'),
       'utf8',
     )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
-    const opener = style.match(/\.change-password-form-opener\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
+    const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
+    // The rule stands under the root's class now: `.change-pwd :global(.…-opener) {`.
+    const opener = style.match(/\.change-password-form-opener\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? ''
 
     expect(opener).toMatch(/display:\s*flex/)
     expect(opener).not.toMatch(/padding/)

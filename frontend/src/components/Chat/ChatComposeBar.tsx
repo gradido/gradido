@@ -1,0 +1,1649 @@
+// AI-GENERATED — not an architecture reference
+import { BButton, BModal } from 'bootstrap-vue-next'
+import {
+  computed,
+  defineComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  type PropType,
+  ref,
+  shallowRef,
+  useId,
+  watch,
+  withKeys,
+} from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ChatImageEditor } from '@/components/Chat/ChatImageEditor'
+import { EmojiPicker } from '@/components/Inputs/EmojiPicker'
+import { useFieldOutOfSight } from '@/composables/useFieldOutOfSight'
+import { usePastedImage } from '@/composables/usePastedImage'
+import { SWISSTRANSFER_URL } from '@/utils/chatFileLink'
+import { chatImageProblemWords, encodeChatImage, openChatImage } from '@/utils/chatImage'
+import { CHAT_IMAGE_UNEDITED, chatImageCut, drawChatImageCut } from '@/utils/chatImageEdit'
+import { chatNotifyFor } from '@/utils/chatNotify'
+import { offersEmojiPicker } from '@/utils/emojiChoice'
+import { isComputer } from '@/utils/isComputer'
+import { pasteIsFor } from '@/utils/pastedImage'
+import { MESSAGE_MAX_CHARS, message as messageSchema } from '@/validationSchemas'
+import IMdiCamera from '~icons/mdi/camera'
+import IMdiCellphone from '~icons/mdi/cellphone'
+import IMdiCheck from '~icons/mdi/check'
+import IMdiClose from '~icons/mdi/close'
+import IMdiEmailOutline from '~icons/mdi/email-outline'
+import IMdiFileDocument from '~icons/mdi/file-document'
+import IMdiImage from '~icons/mdi/image'
+import IMdiImageOutline from '~icons/mdi/image-outline'
+import IMdiOpenInNew from '~icons/mdi/open-in-new'
+import IMdiPaperclip from '~icons/mdi/paperclip'
+import IMdiPencil from '~icons/mdi/pencil'
+import IMdiPencilOutline from '~icons/mdi/pencil-outline'
+import IMdiReplyOutline from '~icons/mdi/reply-outline'
+import IMdiSend from '~icons/mdi/send'
+import classes from './ChatComposeBar.module.scss'
+
+/** What the member did to a picture in the editor (utils/chatImageEdit). */
+type ChatImageEdit = typeof CHAT_IMAGE_UNEDITED
+
+/** A picture chosen for the next message: as chosen, and what was done to it. */
+interface ChatPicture {
+  source: Awaited<ReturnType<typeof openChatImage>>
+  edit: ChatImageEdit
+}
+
+/** The message of one's own that is being changed (`editing`). */
+interface ChatEditing {
+  messageUuid: string
+  body: string
+  hasImage?: boolean
+}
+
+/** The message the next message answers (`replying`). */
+interface ChatReplying {
+  messageUuid: string
+  mine?: boolean
+  name?: string
+  text?: string
+  hasImage?: boolean
+}
+
+/** What waits for the next bar of a conversation (utils/chatDraft). */
+interface ChatDraftContent {
+  text: string
+  picture: ChatPicture | null
+  alsoByEmail: boolean | null
+}
+
+interface ChatDraft {
+  // The store is a .js module that knows the picture only as an object (utils/chatDraft).
+  read: () =>
+    | { text?: string; picture?: object | null; alsoByEmail?: boolean | null }
+    | null
+    | undefined
+  keep: (content: ChatDraftContent) => void
+}
+
+/** What stands in the bar: the words, the box, the picture. */
+interface BarContent {
+  text: string
+  alsoByEmail: boolean
+  picture: ChatPicture | null
+}
+
+/** What went out with a press; `text: null` for a short answer, which is no field's text. */
+interface Submitted {
+  text: string | null
+  alsoByEmail: boolean
+  picture: ChatPicture | null
+  keyboard?: boolean
+}
+
+/** A class by its name and in the module's spelling: the specs and the windows read the name. */
+const cls = (...names: string[]) => names.flatMap((name) => [name, classes[name]])
+
+/**
+ * The count of what is left appears only near the end: under every message it would be a
+ * number nobody needs. The field itself stops at the server's limit (`maxlength`).
+ */
+const SHOW_REMAINING_BELOW = 200
+
+/**
+ * How long the bar waits for those two frames at most: a page in the background draws none, and
+ * the message is to go all the same (coderabbit, PR #4010).
+ */
+const PAINT_WAIT_MS = 200
+
+/** The preview's square, in CSS pixels (the stylesheet's 3.5rem). */
+const THUMB = 56
+
+/**
+ * The line under the thread that writes to the person in it (P3, mockup E V03).
+ *
+ * It only asks: it emits `send` with the text, the wish and the picture, and the thread does the
+ * sending. Whether it went through, the thread says back through its props -- `sending` while the
+ * message is on its way, `failed` when it ends without it -- and only a message that went
+ * through empties the field and takes the picture off. The text in the field is never lost
+ * otherwise.
+ */
+export const ChatComposeBar = defineComponent({
+  name: 'ChatComposeBar',
+  props: {
+    /** The other person's name, as the window shows it. */
+    name: { type: String, default: '' },
+    /** No conversation yet: the message will go out as a mail in any case (E-024). */
+    first: { type: Boolean, default: false },
+    /**
+     * The sentence that says so. Left out by the profile window of the map (Bernd, 09.10.2026: the
+     * line is one too many there; "Hallo sagen:" stands over the words instead, and the window
+     * says afterwards that a mail went out). Everything else of `first` holds without it.
+     */
+    firstNote: { type: Boolean, default: true },
+    /** A message is on its way; the button waits. */
+    sending: { type: Boolean, default: false },
+    /** The last message did not go through; its text is still in the field. */
+    failed: { type: Boolean, default: false },
+    /**
+     * Why it did not, where the server refused it for its picture (chatImageRefusal):
+     * IMAGE_NOT_ACCEPTED or TOO_LARGE_ACROSS_BORDER. Empty for every other failure -- "not sent".
+     */
+    failedReason: { type: String, default: '' },
+    /**
+     * The words to begin with: what stood in the field, not sent yet, when iOS started the wallet
+     * over (utils/chatReturn), or "Hallo …" for a first word from a group (E-055). Read once, when
+     * the bar is made.
+     */
+    initialText: { type: String, default: '' },
+    /** A group's bar (P5): `name` is the group's, and the box is the announcement. */
+    group: { type: Boolean, default: false },
+    /** In a group: whether the member may announce -- the owner and the moderators (E-050 F5). */
+    canAnnounce: { type: Boolean, default: false },
+    /** In a group: how many would get the announcement at most -- everybody but the sender. */
+    announceTo: { type: Number, default: 0 },
+    /** Only the text, no paperclip: the contact window's first form (E-055). */
+    textOnly: { type: Boolean, default: false },
+    /**
+     * The three short answers stand over the field (E-069). The thread says when: between two, in
+     * a conversation the other one began, while nothing of the member's own is in it.
+     */
+    helloBack: { type: Boolean, default: false },
+    /**
+     * The next message is the member's first in a conversation the other one began (E-066): the
+     * box "also by e-mail" begins ticked for it. Never in a group, whose box is the announcement.
+     */
+    firstOwn: { type: Boolean, default: false },
+    /**
+     * The message of one's own that is being changed (E-060), or null: `{ messageUuid, body,
+     * hasImage }` -- its text as it stands, and whether it carries a picture (then the text is its
+     * caption, and may be emptied). While it is set the bar changes that message instead of
+     * writing a new one, and what stood in the field before waits (see `held`).
+     */
+    editing: { type: Object as PropType<ChatEditing | null>, default: null },
+    /**
+     * Why the last change did not go through, or '': NOT_CONFIRMED (the other community's server
+     * did not take it), PENDING (the message is still on its way there), anything else for "not
+     * changed". The new text stays in the field.
+     */
+    editProblem: { type: String, default: '' },
+    /**
+     * The message the next message answers, or null: `{ messageUuid, mine, name, text, hasImage }`
+     * -- whose it is ("Du" is the bar's to say, `mine`), its words on one line, whether it carries a
+     * picture. The thread's own object, handed back with `send` as the press found it.
+     */
+    replying: { type: Object as PropType<ChatReplying | null>, default: null },
+    /**
+     * Where what is written and not sent waits while no bar stands for this conversation
+     * (utils/chatDraft, `chatDraftFor`): `{ read, keep }`. The bar begins with what waits there and
+     * tells it of every change, so the next bar for the conversation begins where this one was
+     * left. Read once, when the bar is made. Null: nothing is kept.
+     */
+    draft: { type: Object as PropType<ChatDraft | null>, default: null },
+  },
+  /**
+   * `send`: a new message. `saveEdit`: the changed text of the message being changed --
+   * `{ messageUuid, body }`. `cancelEdit`: the changing is let go, by the ✕, by Esc in the field, or
+   * by saving a text that is the same as before. `cancelReply`: the next message answers none
+   * after all -- by the ✕, or by Esc in the field.
+   */
+  emits: ['send', 'saveEdit', 'cancelEdit', 'cancelReply'],
+  setup(props, { emit, expose }) {
+    const { t } = useI18n()
+
+    const id = useId()
+    const fieldId = `${id}-field`
+    const firstId = `${id}-first`
+    const remainingId = `${id}-remaining`
+    const editingId = `${id}-editing`
+    const replyingId = `${id}-replying`
+
+    /** "Antwort an [Nutzername]" over the field -- "Antwort auf Deine Nachricht" for one's own. */
+    const replyingTitle = computed(() =>
+      props.replying?.mine
+        ? t('chatThread.replyingToOwn')
+        : t('chatThread.replyingTo', { name: props.replying?.name ?? '' }),
+    )
+
+    const root = ref<HTMLElement | null>(null)
+    const field = ref<HTMLTextAreaElement | null>(null)
+    const fieldOutOfSight = useFieldOutOfSight(field, root)
+    /**
+     * What the member left in a bar for this conversation before this one (`draft`): the words, the
+     * picture, the box where they set it themselves. This bar begins with it -- the window was
+     * closed, not the message given up (Bernd, 11.10.2026).
+     */
+    const left = props.draft?.read() ?? null
+    /**
+     * The picture that waits with it -- none for a bar that takes no picture (`textOnly`): what it
+     * cannot show, it does not send.
+     */
+    const leftPicture = props.textOnly ? null : ((left?.picture ?? null) as ChatPicture | null)
+    /**
+     * The words the window handed in, as the bar found them when it was made (`initialText`): the
+     * window's to give again, and no draft of the member's until they are changed.
+     */
+    const handedIn = props.initialText ?? ''
+    /**
+     * The field begins with the words that wait; without any, with the window's. Not with the
+     * window's under a picture that waits alone: the member emptied the field over it, and the
+     * greeting is not its caption.
+     */
+    const text = ref<string>(left?.text || (leftPicture ? '' : handedIn))
+    /**
+     * Whether the smiley stands in the field: asked once, when the bar is made -- the kind of device
+     * does not change under a bar.
+     */
+    const emojiOffered = offersEmojiPicker()
+    /** The smiley and its choice (EmojiPicker), to shut the choice when a message goes out. */
+    const emojiChoice = ref<{ close: () => void } | null>(null)
+    const leftBox = typeof left?.alsoByEmail === 'boolean' ? left.alsoByEmail : null
+    const alsoByEmail = ref<boolean>(leftBox ?? (props.firstOwn && !props.group))
+    /**
+     * The member has set the box themselves: from then on it is theirs, whatever arrives -- also
+     * where they set it in a bar before this one, and the draft brought it along.
+     */
+    let boxTouched = leftBox !== null
+    const noteBoxTouched = () => {
+      boxTouched = true
+      noteDraft()
+    }
+
+    /**
+     * The picture that goes with the next message (P7): `{ source, edit }` -- the picture as chosen,
+     * decoded and whole (utils/chatImage, `openChatImage`), and what the member did to it in the
+     * editor (utils/chatImageEdit). It is made small only when the message is sent (E-047, point 6);
+     * until then it stays in full quality, for the editor and for "Sichern". Null without one; one
+     * picture a message, a second one takes the first one's place.
+     *
+     * ⛔ In memory only. It does not come back after iOS starts the wallet over, as the words do
+     * (#3999, `draft` below): a chat picture is never put into the device's storage (E-041, point 5),
+     * and it is still on the device -- whoever lost it chooses it again in two taps, where words typed
+     * would be gone for good. A shallow ref: nothing inside it changes, and its base64 is no business
+     * of Vue's reactivity.
+     *
+     * It does wait for the next bar while the wallet runs (`draft`), where the window was closed over
+     * it (`leftPicture`).
+     */
+    const picture = shallowRef<ChatPicture | null>(leftPicture)
+    /** A picture is being opened, or made small for sending; the button waits for it. */
+    const preparing = ref(false)
+    /** Why the last picture chosen could not be made ready (ChatImageError), or null. */
+    const pictureProblem = ref<string | null>(null)
+
+    /** With a picture, the words are its caption, and optional (E-044). */
+    const placeholder = computed(() => {
+      if (props.editing) {
+        return props.editing.hasImage
+          ? t('chatThread.imageCaption')
+          : t('chatThread.editPlaceholder')
+      }
+      if (picture.value || preparing.value) {
+        return t('chatThread.imageCaption')
+      }
+      return props.group
+        ? t('chatGroup.placeholder', { name: props.name })
+        : t('chatThread.placeholder', { name: props.name })
+    })
+
+    /** Whether the box stands: not before the first message of two, and in a group for those who may. */
+    const boxShown = computed(() => (props.group ? props.canAnnounce : !props.first))
+
+    /**
+     * The box's words, which say what a tick does. Ticked, they name who it goes to: the person, or --
+     * in a group -- how many at most (the sender does not learn who muted, E-024). Written-out keys,
+     * for the i18n lint.
+     */
+    const boxWords = computed(() => {
+      if (props.group) {
+        return alsoByEmail.value
+          ? t('chatGroup.announceTo', { n: props.announceTo }, props.announceTo)
+          : t('chatGroup.announce')
+      }
+      return alsoByEmail.value
+        ? t('chatThread.alsoByEmailTo', { name: props.name })
+        : t('chatThread.alsoByEmail')
+    })
+
+    /** What is sent: the text without the space around it. */
+    const body = computed(() => text.value.trim())
+
+    /**
+     * Without a picture, the rule the e-mail form holds a message to (1 to MESSAGE_MAX_CHARS
+     * characters), asked of what would be sent -- a field of spaces sends nothing. With a picture the
+     * text may be empty, 0 to as many, as the server takes it (P7a). Nothing while a picture is being
+     * made small: it was chosen to go with this message.
+     */
+    const canSend = computed(() => {
+      if (props.sending) {
+        return false
+      }
+      // A message being changed (E-060): the same bounds -- its picture counts, not one in the bar.
+      if (props.editing) {
+        return props.editing.hasImage
+          ? body.value.length <= MESSAGE_MAX_CHARS
+          : messageSchema.isValidSync(body.value)
+      }
+      if (preparing.value) {
+        return false
+      }
+      if (picture.value) {
+        return body.value.length <= MESSAGE_MAX_CHARS
+      }
+      return messageSchema.isValidSync(body.value)
+    })
+
+    /** The button's name: it sends a message, or saves the change of one. */
+    const sendWords = computed(() =>
+      props.editing ? t('chatThread.editSave') : t('chatThread.send'),
+    )
+
+    /** Counted like `maxlength` counts: the field as typed. */
+    const remaining = computed(() => MESSAGE_MAX_CHARS - text.value.length)
+    const showRemaining = computed(() => remaining.value < SHOW_REMAINING_BELOW)
+
+    const describedBy = computed(
+      () =>
+        [
+          props.first && props.firstNote ? firstId : null,
+          props.editing ? editingId : null,
+          props.replying && !props.editing ? replyingId : null,
+          showRemaining.value ? remainingId : null,
+        ]
+          .filter(Boolean)
+          .join(' ') || undefined,
+    )
+
+    /**
+     * The field grows with its text: one line empty, up to five, then it scrolls inside (the
+     * limit is the stylesheet's `max-height`). The height is measured, not guessed from line
+     * breaks -- a long line wraps as well.
+     */
+    const grow = () => {
+      const box = field.value
+      if (!box) {
+        return
+      }
+      box.style.height = 'auto'
+      box.style.height = `${box.scrollHeight + box.offsetHeight - box.clientHeight}px`
+      // Beyond its five lines the field scrolls inside, and where a scrollbar takes room (Windows; a
+      // Mac with a mouse) it stands at the field's right rim, where the smiley is. The bar is told
+      // how wide it is, and the stylesheet moves the smiley beside it.
+      if (emojiOffered) {
+        const scrollbar = Math.max(0, box.offsetWidth - box.clientWidth - 2 * box.clientLeft)
+        root.value?.style.setProperty('--field-scrollbar', `${scrollbar}px`)
+      }
+    }
+    /**
+     * Words the bar begins with -- brought back after a restart, or handed in: the field takes
+     * their height at once, as if typed.
+     *
+     * ⚠️ Not where the bar stands in a window that is not shown yet. The profile window of the map
+     * has the bar in its foot from the moment it opens, and at that moment the dialog is still
+     * `display: none`: nothing has a box, every measure is zero, and the height written was zero --
+     * four lines of words in a field a sliver high (measured in the built wallet; jsdom lays
+     * nothing out, so no test of the height saw it). There the measuring waits for the field's
+     * first box, once: from then on the field is measured as it is typed in.
+     *
+     * The observer is let go BEFORE the height is written: a size changed from inside the callback,
+     * on something still observed, is what the browser reports as a loop. Written there, the height
+     * is in the first picture the window paints.
+     */
+    let firstBox: ResizeObserver | null = null
+    onMounted(() => {
+      const box = field.value
+      if (!text.value || !box) {
+        return
+      }
+      if (box.getClientRects().length > 0 || typeof ResizeObserver === 'undefined') {
+        grow()
+        return
+      }
+      firstBox = new ResizeObserver(() => {
+        if (box.getClientRects().length === 0) {
+          return
+        }
+        firstBox?.disconnect()
+        firstBox = null
+        grow()
+      })
+      firstBox.observe(box)
+    })
+    onBeforeUnmount(() => firstBox?.disconnect())
+
+    /**
+     * What stood in the bar when the changing of a message began (E-060) -- the words, the box, the
+     * picture -- and comes back when it ends, saved or let go: the text in the field is never lost
+     * but by sending it. Null while no message is being changed.
+     */
+    let held: BarContent | null = null
+
+    /**
+     * `draft`: the words in the field as they stand, for the thread's note (utils/chatReturn). The
+     * words only: a picture chosen does not come back after a restart (see `picture`). While a message
+     * is being changed they are the words that wait, not the message's.
+     *
+     * `focus`: the keyboard into the field -- "Bearbeiten" pressed once more at the message that is
+     * being changed (ChatThread).
+     */
+    expose({
+      draft: () => (held ? held.text : text.value),
+      focus: () => field.value?.focus({ preventScroll: true }),
+      /**
+       * The field's height for the width it has NOW (E-077: the window around it was made large, or
+       * small again). The height is written when the text changes, and a text of two lines in the
+       * large window is one of five in the narrow one: left alone, the field showed its first two
+       * lines and hid the end of the draft with the caret until the next key -- and the other way
+       * round it stood five lines high around two, taking that room from the thread.
+       *
+       * ⚠️ Not where the field has no box (its window is not shown): every measure is zero there,
+       * and the height written would be zero (above, `firstBox`).
+       */
+      fit: () => {
+        if (field.value?.getClientRects().length) {
+          grow()
+        }
+      },
+    })
+
+    /**
+     * What went out with the last press. The field stays writable while a message is on its way,
+     * so what is cleared afterwards is only what went out (coderabbit, PR #3974).
+     */
+    let submitted: Submitted | null = null
+
+    /**
+     * What waits for the next bar of this conversation (`draft` of the props): what stands in this
+     * one and has not gone out -- the words, the picture, the box where the member set it.
+     *
+     * - While a message is being changed it is what stood in the bar before (`held`), not the text
+     *   of that message.
+     * - What a press sent on its way is a draft no longer (`submitted`): a window closed over a
+     *   message on its way must not hand its words to the next bar, to be sent a second time. It is
+     *   one again where the message did not go through and this bar still holds it.
+     * - The words the window handed in are the window's until they are changed (`handedIn`).
+     */
+    const draftNow = (): ChatDraftContent => {
+      const stands = held ?? {
+        text: text.value,
+        alsoByEmail: alsoByEmail.value,
+        picture: picture.value,
+      }
+      const out = submitted
+      const words = out && out.text === stands.text ? '' : stands.text
+      return {
+        text: words === handedIn ? '' : words,
+        picture: out?.picture && out.picture === stands.picture ? null : stands.picture,
+        // The wish went with the message it was ticked for.
+        alsoByEmail: boxTouched ? stands.alsoByEmail && !out?.alsoByEmail : null,
+      }
+    }
+
+    /** The window has closed, and the bar is gone with it. */
+    let gone = false
+    onBeforeUnmount(() => {
+      gone = true
+    })
+
+    /**
+     * Tells the draft what stands in the bar now -- at every change, so there is nothing left to
+     * hand over when the window closes.
+     *
+     * ⛔ Not from a bar that is gone. What comes in for it later, a picture still being opened, has
+     * no bar to stand in. And a press whose picture was still being made small when the window
+     * closed has sent nothing -- the `send` of a bar that is gone is heard by nobody --, so its words
+     * and its picture are not taken out of the draft as if they were on their way.
+     */
+    const noteDraft = () => {
+      if (!gone) {
+        props.draft?.keep(draftNow())
+      }
+    }
+    /**
+     * ⛔ `flush: 'sync'`: with the change itself, not before the next picture the page paints. A
+     * window can close in the step in which the last character was typed, and a watcher that waits
+     * for the render is stopped with the bar before it has run.
+     */
+    watch([text, picture, alsoByEmail], noteDraft, { flush: 'sync' })
+
+    /**
+     * Lets the browser paint "Bild wird vorbereitet …" before the picture is made small: making it
+     * small holds the page for a moment, and without two frames the words would come after it.
+     */
+    const afterPaint = () =>
+      new Promise<void>((resolve) => {
+        if (typeof window.requestAnimationFrame !== 'function') {
+          resolve()
+          return
+        }
+        const timer = setTimeout(resolve, PAINT_WAIT_MS)
+        window.requestAnimationFrame(() =>
+          window.requestAnimationFrame(() => {
+            clearTimeout(timer)
+            resolve()
+          }),
+        )
+      })
+
+    /**
+     * Sends what is in the bar as the press found it. A picture is made small here, and only here
+     * (E-047, point 6): cut as the member cut it, under 32 KB (utils/chatImage). Where it cannot be,
+     * the bar says so and keeps the picture and the words.
+     */
+    const submit = async () => {
+      if (!canSend.value) {
+        return
+      }
+      // The choice of emoji goes with the message: Cmd/Ctrl+Enter sends from the field and leaves
+      // it open, and an emoji pressed while the message is on its way would stay behind with the
+      // words that went out, to be sent with them a second time.
+      emojiChoice.value?.close()
+      if (props.editing) {
+        // The same words as before: nothing to change, and nothing to ask the server for. Without the
+        // space around them, as they are sent.
+        if (body.value === props.editing.body.trim()) {
+          emit('cancelEdit')
+          return
+        }
+        emit('saveEdit', { messageUuid: props.editing.messageUuid, body: body.value })
+        return
+      }
+      const pressed = {
+        text: text.value,
+        body: body.value,
+        // Only a box that stands counts: one ticked by a moderator who is none any more, since the
+        // group's window told the bar, is no wish.
+        alsoByEmail: alsoByEmail.value && boxShown.value,
+        picture: picture.value,
+        // The message answered, as the press found it: a picture is made small before the message
+        // goes, and the member may let go of the answer -- or take up another -- meanwhile.
+        reply: props.replying,
+      }
+      let image: { data: unknown; width: number; height: number } | null = null
+      if (pressed.picture) {
+        preparing.value = true
+        pictureProblem.value = null
+        try {
+          await afterPaint()
+          const ready = await encodeChatImage(pressed.picture.source, pressed.picture.edit)
+          image = { data: ready.data, width: ready.width, height: ready.height }
+        } catch (error) {
+          pictureProblem.value = (error as { problem?: string } | null)?.problem ?? 'FORMAT'
+          return
+        } finally {
+          preparing.value = false
+        }
+      }
+      submitted = {
+        text: pressed.text,
+        alsoByEmail: pressed.alsoByEmail,
+        picture: pressed.picture,
+      }
+      // On its way, and a draft no longer.
+      noteDraft()
+      emit('send', {
+        body: pressed.body,
+        // The enum NAMES the server takes, by the rule the contact window's video invitation
+        // follows too (utils/chatNotify.js).
+        notify: chatNotifyFor({ first: props.first, alsoByEmail: pressed.alsoByEmail }),
+        image,
+        // Only an answer names what it answers: every other message goes as it always went.
+        ...(pressed.reply ? { reply: pressed.reply } : {}),
+      })
+    }
+
+    /**
+     * The three short answers (E-069), for the member's first word in a conversation the other one
+     * began. Written-out keys, for the i18n lint.
+     */
+    const helloBackAnswers = computed(() => [
+      { key: 'hello', words: t('chatHello.backHello') },
+      { key: 'more', words: t('chatHello.backMore') },
+      { key: 'call', words: t('chatHello.backCall') },
+    ])
+
+    /** Where the thread asks for them -- never in a group, and not beside a message being changed. */
+    const helloBackShown = computed(() => props.helloBack && !props.group && !props.editing)
+
+    /** They wait as the arrow does: while a message is on its way, or a picture is made small for one. */
+    const helloBackWaits = computed(() => props.sending || preparing.value)
+
+    /**
+     * A tap on a short answer: its words go out at once, as an ordinary message -- with the wish of
+     * the box as it stands, and as the answer to a message where one is taken up (E-064).
+     *
+     * ⛔ What is in the bar stays in the bar: the words typed, and a picture chosen. `submitted`
+     * says so to the watch that clears what went out -- `text: null` is no field's text, so the
+     * field is left alone; the box is emptied, its wish was for this one message.
+     *
+     * `keyboard`: whether the button held the focus when it was pressed. A tap or a click never
+     * gives it the focus (`mousedown.prevent`), a press with the keyboard is made from it -- and
+     * that focus is gone with the buttons once the answer is out. Noted here, at the press: by the
+     * time the answer is back the buttons are no longer in the page to be asked.
+     */
+    const sendHelloBack = (words: string, press?: MouseEvent) => {
+      if (!helloBackShown.value || helloBackWaits.value) {
+        return
+      }
+      emojiChoice.value?.close()
+      const boxed = alsoByEmail.value && boxShown.value
+      submitted = {
+        text: null,
+        alsoByEmail: boxed,
+        picture: null,
+        keyboard: Boolean(press?.currentTarget) && press?.currentTarget === document.activeElement,
+      }
+      // The box's wish goes with the short answer: no longer the draft's.
+      noteDraft()
+      emit('send', {
+        body: words,
+        notify: chatNotifyFor({ first: props.first, alsoByEmail: boxed }),
+        image: null,
+        ...(props.replying ? { reply: props.replying } : {}),
+      })
+    }
+
+    /** The words of the line where a message did not go through (see the markup). */
+    const failedWords = computed(() => {
+      if (props.failedReason === 'IMAGE_NOT_ACCEPTED') {
+        return t('chatThread.imageNotAccepted')
+      }
+      if (props.failedReason === 'TOO_LARGE_ACROSS_BORDER') {
+        return t('chatThread.imageTooLargeAcrossBorder')
+      }
+      return t('chatThread.notSent')
+    })
+
+    /** Why a picture could not be made ready, in the bar's own words. */
+    const pictureProblemWords = computed(() => chatImageProblemWords(pictureProblem.value, t))
+
+    /** What the status says for the ear about the picture (see the markup). */
+    const pictureStatus = computed(() => {
+      if (preparing.value) {
+        return t('chatThread.imagePreparing')
+      }
+      if (picture.value) {
+        return `${t('chatThread.imageReady')}. ${t('chatThread.imageReadyHint')}`
+      }
+      return ''
+    })
+
+    /**
+     * Only the last picture chosen counts: a second one chosen while the first is still being made
+     * small takes its place, and the first one's result, whenever it comes, is let go.
+     */
+    let pictureRound = 0
+
+    /**
+     * A picture chosen for the message -- in the device's picker, or pasted --, opened for it: decoded
+     * and kept whole (utils/chatImage), not edited yet.
+     */
+    const openPicture = async (file: File) => {
+      const round = ++pictureRound
+      pictureProblem.value = null
+      preparing.value = true
+      try {
+        const source = await openChatImage(file)
+        if (round !== pictureRound) {
+          return
+        }
+        // Opened while a message is being changed (E-060): it waits with the words that wait.
+        if (held) {
+          held.picture = { source, edit: CHAT_IMAGE_UNEDITED }
+          noteDraft()
+        } else {
+          picture.value = { source, edit: CHAT_IMAGE_UNEDITED }
+        }
+      } catch (error) {
+        if (round !== pictureRound) {
+          return
+        }
+        // A picture chosen before stays: nothing has taken its place.
+        pictureProblem.value = (error as { problem?: string } | null)?.problem ?? 'FORMAT'
+      } finally {
+        if (round === pictureRound) {
+          preparing.value = false
+        }
+      }
+    }
+
+    /** The picture the device's picker answered with (the camera's field and "Bild"'s). */
+    const takePicture = (event: Event) => {
+      const input = event.target as HTMLInputElement
+      const file = input.files?.[0]
+      // Emptied, so the same file chosen again is a change again.
+      input.value = ''
+      if (file) {
+        openPicture(file)
+      }
+    }
+
+    /**
+     * A picture pasted with Ctrl+V (Cmd+V) in the window the bar stands in -- in the field, in the
+     * thread, on the window itself, which has the keyboard when it opens: it goes with the next
+     * message as if chosen under "Bild" (Bernd, 16.10.2026). Not where the bar takes no picture --
+     * the text-only bar, a message being changed --, and not while another window lies over this one
+     * (the editor, the picture large, a portrait enlarged, the video call): see utils/pastedImage.
+     *
+     * Pasted while the paperclip's menu is open, it closes the menu as a choice there does.
+     */
+    usePastedImage(
+      (file: File) => {
+        closeMenu({ focusClip: true })
+        openPicture(file)
+      },
+      (event: ClipboardEvent) => !props.textOnly && !props.editing && pasteIsFor(event, root.value),
+    )
+
+    /** "Bild entfernen": the picture is taken off; the focus goes to the paperclip, for another one. */
+    const removePicture = () => {
+      picture.value = null
+      clip.value?.focus({ preventScroll: true })
+    }
+
+    /** The editor (E-047): open while the member turns, mirrors or cuts the picture. */
+    const editorOpen = ref(false)
+
+    const openEditor = () => {
+      if (picture.value && !preparing.value) {
+        editorOpen.value = true
+      }
+    }
+
+    /** "Fertig": the picture keeps what was done to it -- the preview shows it, the message sends it. */
+    const applyEdit = (edit: ChatImageEdit) => {
+      if (picture.value) {
+        picture.value = { ...picture.value, edit }
+      }
+    }
+
+    const thumb = ref<HTMLCanvasElement | null>(null)
+
+    /**
+     * Draws the preview: the cutout, filling the square from its middle, at the screen's own
+     * resolution (at most twice, as the avatar's preview). The same drawing as the editor's and the
+     * picture that is sent (drawChatImageCut), so the three show the same part.
+     */
+    const drawThumb = () => {
+      const canvas = thumb.value
+      const chosen = picture.value
+      if (!canvas || !chosen) {
+        return
+      }
+      const size = Math.round(THUMB * Math.min(2, window.devicePixelRatio || 1))
+      canvas.width = size
+      canvas.height = size
+      const context = canvas.getContext('2d')
+      if (!context) {
+        return
+      }
+      const { source, edit } = chosen
+      const cut = chatImageCut(source.width, source.height, edit)
+      const scale = Math.max(size / cut.width, size / cut.height)
+      const width = cut.width * scale
+      const height = cut.height * scale
+      context.imageSmoothingEnabled = true
+      context.imageSmoothingQuality = 'high'
+      drawChatImageCut(context, source.image, source.width, source.height, edit, {
+        x: (size - width) / 2,
+        y: (size - height) / 2,
+        width,
+        height,
+      })
+    }
+    watch([picture, preparing], async () => {
+      await nextTick()
+      drawThumb()
+    })
+    /** A picture the draft brought along stands in the bar from its first moment: so does its preview. */
+    onMounted(drawThumb)
+
+    /**
+     * The paperclip's menu (E-044, F1): "Foto aufnehmen" on a phone or a tablet (E-047), "Bild" and
+     * "Datei". It closes when an entry is chosen, on Esc and on a press anywhere else; the focus goes
+     * into it when it opens and back to the paperclip when it closes by a choice or by Esc. A press
+     * elsewhere leaves the focus where the press put it.
+     */
+    const menuId = `${id}-attach-menu`
+    const pickerId = `${id}-picker`
+    const cameraId = `${id}-camera`
+    const attachArea = ref<HTMLElement | null>(null)
+    const clip = ref<HTMLButtonElement | null>(null)
+    const picker = ref<HTMLInputElement | null>(null)
+    const camera = ref<HTMLInputElement | null>(null)
+    const menuOpen = ref(false)
+
+    /**
+     * Whether "Foto aufnehmen" is in the menu: not on a computer (isComputer), where `capture` does
+     * nothing. Asked when the menu opens and kept after it closes -- the camera's field has to stay in
+     * the page while the camera app is open, as "Bild"'s does while the picker is.
+     */
+    const offersCamera = ref(false)
+
+    const closeMenuOnPressElsewhere = (event: Event) => {
+      if (!attachArea.value?.contains(event.target as Node | null)) {
+        closeMenu()
+      }
+    }
+
+    const openMenu = async () => {
+      // Another go: what went wrong with the last picture is said no longer.
+      pictureProblem.value = null
+      offersCamera.value = !isComputer()
+      menuOpen.value = true
+      document.addEventListener('pointerdown', closeMenuOnPressElsewhere, true)
+      await nextTick()
+      // Into the first entry: the camera where there is one.
+      ;(offersCamera.value ? camera : picker).value?.focus({ preventScroll: true })
+    }
+
+    const closeMenu = ({ focusClip = false } = {}) => {
+      if (!menuOpen.value) {
+        return
+      }
+      menuOpen.value = false
+      document.removeEventListener('pointerdown', closeMenuOnPressElsewhere, true)
+      if (focusClip) {
+        clip.value?.focus({ preventScroll: true })
+      }
+    }
+    onBeforeUnmount(() =>
+      document.removeEventListener('pointerdown', closeMenuOnPressElsewhere, true),
+    )
+
+    const toggleMenu = () => (menuOpen.value ? closeMenu({ focusClip: true }) : openMenu())
+
+    /**
+     * ⛔ Esc closes the menu and nothing more: stopped here, it does not reach the contact window,
+     * whose dialog closes on an Esc from anywhere inside it. With the menu shut, Esc goes on as always.
+     */
+    const closeMenuByKey = (event: KeyboardEvent) => {
+      if (!menuOpen.value) {
+        return
+      }
+      event.stopPropagation()
+      event.preventDefault()
+      closeMenu({ focusClip: true })
+    }
+
+    /**
+     * Tab past the last entry, or anywhere out of the menu: it closes behind the focus.
+     *
+     * ⛔ Only a focus that lands on something else is leaving. A press on a part that takes no focus
+     * -- the label of "Bild", the space between the entries -- hands the focus to the nearest ancestor
+     * that does, the contact window. Measured in Chrome (P7c): closed on that, the menu hid the label
+     * under the pointer before the button came up, and the picker never opened. A press outside closes
+     * the menu by itself (`closeMenuOnPressElsewhere`).
+     */
+    const closeMenuWhenFocusLeaves = (event: FocusEvent) => {
+      const to = event.relatedTarget as Node | null
+      if (
+        !menuOpen.value ||
+        !to ||
+        to.contains(attachArea.value) ||
+        attachArea.value?.contains(to)
+      ) {
+        return
+      }
+      closeMenu()
+    }
+
+    /**
+     * "Bild" was chosen -- with the label or a key on the field; either way the field hears the click
+     * that opens the device's picker. The menu closes a moment later, in a task of its own: the picker
+     * opens after the click, and the field stays in a menu that is still shown until then.
+     */
+    const closeMenuOnceChosen = () => {
+      setTimeout(() => closeMenu({ focusClip: true }))
+    }
+
+    /** "Datei": the hint, as the paperclip opened it before the pictures. */
+    const chooseFile = () => {
+      // The focus goes to the paperclip first: the hint's dialog hands it back, when it closes, to
+      // whatever had it when it opened -- and the entry that had it is hidden by then.
+      closeMenu({ focusClip: true })
+      openFileHint()
+    }
+
+    /** The hint behind the paperclip: how a file goes through SwissTransfer (E-042). */
+    const fileHintOpen = ref(false)
+
+    /**
+     * The tip to SwissTransfer's app, for a phone or a tablet: asked when the hint opens, nothing
+     * kept. Where the device cannot be asked (`isComputer` says no), the tip shows -- on a computer
+     * it is one sentence too many, never a wrong way.
+     */
+    const showAppTip = ref(false)
+
+    const openFileHint = () => {
+      showAppTip.value = !isComputer()
+      fileHintOpen.value = true
+    }
+
+    const closeFileHint = () => {
+      fileHintOpen.value = false
+    }
+
+    /** Cmd+Enter or Ctrl+Enter sends; Enter alone is a new line (see the markup). */
+    const sendOnModifiedEnter = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.isComposing) {
+        return
+      }
+      event.preventDefault()
+      submit()
+    }
+
+    /** The ✕ of the strip: the changing is let go, and what stood in the field comes back. */
+    const cancelEdit = () => emit('cancelEdit')
+
+    /**
+     * ⛔ Esc in the field lets the changing go and nothing more: stopped here, it does not reach the
+     * contact window, whose dialog closes on an Esc from anywhere inside it -- the window would shut
+     * over a text half changed. Without a message being changed or answered, Esc goes on as always.
+     */
+    const cancelEditByKey = (event: KeyboardEvent) => {
+      if (!props.editing && !props.replying) {
+        return
+      }
+      event.stopPropagation()
+      event.preventDefault()
+      // The same for an answer: Esc lets go of it, and the window stays open over the words typed.
+      if (props.editing) {
+        cancelEdit()
+      } else {
+        emit('cancelReply')
+      }
+    }
+
+    // The field's two key listeners on one event, each with its own key, called one after the
+    // other as Vue calls a list of listeners.
+    const fieldKeyListeners: Array<(event: KeyboardEvent) => void> = [
+      withKeys(sendOnModifiedEnter, ['enter']),
+      withKeys(cancelEditByKey, ['esc']),
+    ]
+    const onFieldKeydown = (event: KeyboardEvent) => {
+      for (const listener of fieldKeyListeners) {
+        listener(event)
+      }
+    }
+    const onAttachAreaKeydown = withKeys(closeMenuByKey, ['esc'])
+    /** `@mousedown.prevent`: the press does not take the focus out of the field. */
+    const keepFocus = (event: MouseEvent) => event.preventDefault()
+
+    /** Why a change did not go through, in the bar's own words (see the markup). */
+    const editProblemWords = computed(() => {
+      if (props.editProblem === 'NOT_CONFIRMED') {
+        return t('chatThread.editNotConfirmed', { name: props.name })
+      }
+      if (props.editProblem === 'PENDING') {
+        return t('chatThread.editPending')
+      }
+      return t('chatThread.editNotSaved')
+    })
+
+    /**
+     * Focus goes back into the field -- unless the member has moved on meanwhile: a tap on the
+     * bell while the message was on its way is not taken back.
+     */
+    const focusStaysHere = () => {
+      const active = document.activeElement
+      return !active || active === document.body || Boolean(root.value?.contains(active))
+    }
+
+    /**
+     * A message went through: the field empties, the box is empty again (E-024: the wish is for
+     * one message), the picture is taken off, and the keyboard stays in the field for the next one.
+     * A message that did not go through leaves all of it as it was.
+     *
+     * ⛔ Only what went out is cleared. Text typed while the message was on its way stays, and so
+     * does a box the member changed meanwhile -- and a picture chosen meanwhile, which goes with the
+     * next message: the text in the field is never lost but by sending it.
+     */
+    watch(
+      () => props.sending,
+      async (now, before) => {
+        if (!before || now) {
+          return
+        }
+        const sent = submitted
+        submitted = null
+        // Nothing is on its way any more: what did not go through is the draft again, as the bar
+        // holds it. What went through is cleared below, and the draft follows each change.
+        noteDraft()
+        if (props.failed || !sent) {
+          return
+        }
+        // It went through while another message is being changed (E-060): what went out waits with
+        // the rest of the bar, and is cleared there -- else it would come back into the field once
+        // the changing ends, to be sent a second time.
+        if (held) {
+          if (sent.picture && held.picture === sent.picture) {
+            held.picture = null
+          }
+          if (held.alsoByEmail === sent.alsoByEmail) {
+            held.alsoByEmail = false
+          }
+          if (held.text === sent.text) {
+            held.text = ''
+          }
+          noteDraft()
+          return
+        }
+        if (sent.picture && picture.value === sent.picture) {
+          picture.value = null
+        }
+        if (alsoByEmail.value === sent.alsoByEmail) {
+          alsoByEmail.value = false
+        }
+        // A short answer went out (E-069): nothing of the field was sent. Its buttons went with the
+        // member's first message -- and where the pressed one held the focus, a keyboard is left
+        // nowhere: it goes into the field, unless the member has taken it elsewhere meanwhile. Not
+        // after a tap or a click, which never took the focus: on a phone that would open the
+        // keyboard unasked.
+        if (sent.text === null) {
+          if (!sent.keyboard || !focusStaysHere()) {
+            return
+          }
+          await nextTick()
+          field.value?.focus({ preventScroll: true })
+          return
+        }
+        if (text.value !== sent.text) {
+          return
+        }
+        text.value = ''
+        await nextTick()
+        grow()
+        if (focusStaysHere()) {
+          field.value?.focus({ preventScroll: true })
+        }
+      },
+    )
+
+    /**
+     * Whether the next message is the member's first one changes while the bar stands: the other
+     * person's first message arrives in an open window that held none, or a message of the member's
+     * own comes in from another device (E-066). The box follows -- unless the member has set it
+     * themselves. While a message is being changed, it is the box that waits (`held`) that follows.
+     */
+    watch(
+      () => props.firstOwn && !props.group,
+      (now) => {
+        if (boxTouched) {
+          return
+        }
+        if (held) {
+          held.alsoByEmail = now
+        } else {
+          alsoByEmail.value = now
+        }
+      },
+    )
+
+    /**
+     * A message is taken into the bar to be changed, or let out of it again (E-060).
+     *
+     * In: what stood in the bar -- words, box, picture -- is held, the message's text takes the
+     * field, and the keyboard goes into it, behind the last character. From one message straight to
+     * another, what is held stays held. Out, saved or let go: what was held comes back.
+     */
+    watch(
+      () => props.editing,
+      async (now, before) => {
+        if (now) {
+          if (!before) {
+            held = { text: text.value, alsoByEmail: alsoByEmail.value, picture: picture.value }
+          }
+          closeMenu()
+          picture.value = null
+          pictureProblem.value = null
+          alsoByEmail.value = false
+          text.value = now.body
+          await nextTick()
+          grow()
+          const box = field.value
+          box?.focus({ preventScroll: true })
+          box?.setSelectionRange(box.value.length, box.value.length)
+          return
+        }
+        if (!before) {
+          return
+        }
+        const back = held
+        held = null
+        text.value = back?.text ?? ''
+        alsoByEmail.value = back?.alsoByEmail ?? false
+        picture.value = back?.picture ?? null
+        await nextTick()
+        grow()
+        if (focusStaysHere()) {
+          field.value?.focus({ preventScroll: true })
+        }
+      },
+    )
+
+    return () => (
+      <div ref={root} class={cls('chat-compose')} data-test='chat-compose'>
+        {/* The first message of a pair always goes out as a mail too -- the server decides that,
+            whatever is asked (E-024) -- so there is nothing to choose, and a sentence says so
+            where the box would stand. A window that says what it has to say in its own words
+            leaves the sentence out (`firstNote`): there is still nothing to choose, and no box. */}
+        {props.first && props.firstNote ? (
+          <p id={firstId} class={cls('chat-compose-first')} data-test='chat-compose-first'>
+            <IMdiEmailOutline class={cls('chat-compose-first-icon')} aria-hidden='true' />
+            <span>{t('chatThread.firstGoesByEmail', { name: props.name })}</span>
+          </p>
+        ) : null}
+
+        {/* A message of one's own is being changed (Bernd, 01.10.2026, E-060 B1): its text stands in
+            the field below, and this strip says so -- with the words as they were, on one line, and
+            the way out. The arrow beside the field becomes a tick. Nothing else goes with a change:
+            no picture, no mail. */}
+        {props.editing ? (
+          <div class={cls('chat-compose-editing')} data-test='chat-compose-editing'>
+            <IMdiPencilOutline class={cls('chat-compose-editing-icon')} aria-hidden='true' />
+            <div class={cls('chat-compose-editing-words')}>
+              <span id={editingId} class={cls('chat-compose-editing-title')}>
+                {t('chatThread.editing')}
+              </span>
+              {props.editing.body ? (
+                <span
+                  class={cls('chat-compose-editing-text')}
+                  data-test='chat-compose-editing-text'
+                >
+                  {props.editing.body}
+                </span>
+              ) : null}
+            </div>
+            <button
+              type='button'
+              class={cls('chat-compose-attached-remove')}
+              aria-label={t('chatThread.editCancel')}
+              title={t('chatThread.editCancel')}
+              data-test='chat-compose-edit-cancel'
+              onClick={cancelEdit}
+            >
+              <IMdiClose class={cls('chat-compose-attached-remove-icon')} aria-hidden='true' />
+            </button>
+          </div>
+        ) : null}
+
+        {/* The next message answers one of the thread (Bernd, 09.10.2026): this strip says which --
+            whose it is, and its words on one line, a picture named -- with the way out. Drawn as the
+            strip over a message being changed, which takes its place while one is: the answer waits
+            under it, as the words typed for it do (`held`), and both stand again afterwards.
+            Everything else goes with an answer as with any message. */}
+        {props.replying && !props.editing ? (
+          <div class={cls('chat-compose-editing')} data-test='chat-compose-replying'>
+            <IMdiReplyOutline class={cls('chat-compose-editing-icon')} aria-hidden='true' />
+            <div class={cls('chat-compose-editing-words')}>
+              <span id={replyingId} class={cls('chat-compose-editing-title')}>
+                {replyingTitle.value}
+              </span>
+              <span class={cls('chat-compose-editing-text')} data-test='chat-compose-replying-text'>
+                {props.replying.hasImage ? (
+                  <IMdiImageOutline class={cls('chat-compose-replying-icon')} aria-hidden='true' />
+                ) : null}{' '}
+                {props.replying.text || t('chatThread.imageReady')}
+              </span>
+            </div>
+            <button
+              type='button'
+              class={cls('chat-compose-attached-remove')}
+              aria-label={t('chatThread.replyCancel')}
+              title={t('chatThread.replyCancel')}
+              data-test='chat-compose-reply-cancel'
+              onClick={() => emit('cancelReply')}
+            >
+              <IMdiClose class={cls('chat-compose-attached-remove-icon')} aria-hidden='true' />
+            </button>
+          </div>
+        ) : null}
+
+        {/* The picture that goes with the next message (the mockup, "Bild gewählt, vor dem Senden"):
+            while it is opened, and again while it is made small for sending, a quiet square and "Bild
+            wird vorbereitet …"; otherwise the picture as it will go -- drawn from the picture as
+            chosen, cut as the member cut it (E-047) -- with "Bild" and "Wird mit Deiner Nachricht
+            gesendet.", and a round button to take it off. */}
+        {!props.editing && (preparing.value || picture.value) ? (
+          <div class={cls('chat-compose-attached')} data-test='chat-compose-attached'>
+            {preparing.value ? (
+              <span class={cls('chat-compose-attached-wait')} aria-hidden='true' />
+            ) : (
+              // A press on the picture opens the editor as the pencil does; the pencil is the one the
+              // keyboard and a screen reader reach, so the picture is not a second stop.
+              <canvas
+                ref={thumb}
+                class={cls('chat-compose-attached-picture')}
+                aria-hidden='true'
+                data-test='chat-compose-attached-picture'
+                onClick={openEditor}
+              />
+            )}
+            <div class={cls('chat-compose-attached-words')} data-test='chat-compose-attached-words'>
+              {preparing.value ? (
+                t('chatThread.imagePreparing')
+              ) : (
+                <>
+                  {t('chatThread.imageReady')} <small>{t('chatThread.imageReadyHint')}</small>
+                </>
+              )}
+            </div>
+            {/* "Bild bearbeiten" (E-047): turn, mirror, cut -- a choice, never a step on the way. */}
+            {!preparing.value ? (
+              <button
+                type='button'
+                class={cls('chat-compose-attached-remove', 'chat-compose-attached-edit')}
+                aria-label={t('chatThread.imageEdit')}
+                title={t('chatThread.imageEdit')}
+                data-test='chat-compose-attached-edit'
+                onClick={openEditor}
+              >
+                <IMdiPencil class={cls('chat-compose-attached-remove-icon')} aria-hidden='true' />
+              </button>
+            ) : null}
+            {!preparing.value ? (
+              <button
+                type='button'
+                class={cls('chat-compose-attached-remove')}
+                aria-label={t('chatThread.imageRemove')}
+                title={t('chatThread.imageRemove')}
+                data-test='chat-compose-attached-remove'
+                onClick={removePicture}
+              >
+                <IMdiClose class={cls('chat-compose-attached-remove-icon')} aria-hidden='true' />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Three short answers, one tap each (Bernd, 09.10.2026, E-069): for the member's first word
+            in a conversation the other one began -- "Hallo zurück!" and two more. A tap sends the
+            words at once, with the box below as it stands; what is typed in the field stays there.
+            They are gone with the first message of the member's own -- the thread says when
+            (`helloBack`). Not pressed away from the field (`mousedown.prevent`), as the arrow is
+            not: the keyboard of a phone stays where it is.
+
+            In a window less than 640 px high they stand on one line and are moved sideways (the
+            stylesheet): the contact window has little room, and three lines of answers left 76 px
+            of the message they answer at 320 x 568 -- 44 px in Russian. */}
+        {helloBackShown.value ? (
+          <div
+            class={cls('chat-compose-hello-back')}
+            role='group'
+            aria-label={t('chatHello.backLabel')}
+            data-test='chat-compose-hello-back'
+          >
+            {helloBackAnswers.value.map((answer) => (
+              <button
+                key={answer.key}
+                type='button'
+                class={cls('chat-compose-hello-back-answer')}
+                aria-disabled={helloBackWaits.value ? 'true' : 'false'}
+                data-test={`chat-compose-hello-back-${answer.key}`}
+                onMousedown={keepFocus}
+                onClick={(event: MouseEvent) => sendHelloBack(answer.words, event)}
+              >
+                {answer.words}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div class={cls('chat-compose-row')}>
+          {/* The paperclip (E-042, E-044 F1): with the pictures (P7) it opens a small menu above it,
+              "Bild — Foto oder Bildschirmfoto" and "Datei — über SwissTransfer, bis 50 GB", and on a
+              phone or a tablet "Foto aufnehmen — mit der Kamera" first (E-047). A sign without a
+              word: the paperclip is the learnt exception to E-033; the words are in the menu. Also
+              with the first message of a conversation -- a picture or a link is an ordinary
+              message.
+
+              ⚠️ A disclosure, not an ARIA menu, and so no `aria-haspopup`: the picture's entry is a
+              file field, and a file field may not take the role of a menu item -- a "menu" that is
+              not one would send a screen reader into keys that do nothing. The button says whether
+              the entries are shown (`aria-expanded`) and which they are (`aria-controls`); Tab walks
+              them, Esc closes them. */}
+          {/* Not in the contact window's first form (E-055): a first word to somebody met in a group
+              is only the text, and the paperclip comes with the conversation. And not while a message
+              is being changed (E-060): its picture stays as it is, and no other goes with it. */}
+          {!props.textOnly && !props.editing ? (
+            <div
+              ref={attachArea}
+              class={cls('chat-compose-attach-area')}
+              onKeydown={onAttachAreaKeydown}
+              onFocusout={closeMenuWhenFocusLeaves}
+            >
+              <button
+                ref={clip}
+                type='button'
+                class={[
+                  cls('chat-compose-attach'),
+                  menuOpen.value || fileHintOpen.value ? cls('is-open') : null,
+                ]}
+                aria-label={t('chatThread.attach')}
+                title={t('chatThread.attach')}
+                aria-expanded={menuOpen.value ? 'true' : 'false'}
+                aria-controls={menuId}
+                data-test='chat-compose-attach'
+                onClick={toggleMenu}
+              >
+                <IMdiPaperclip class={cls('chat-compose-attach-icon')} aria-hidden='true' />
+              </button>
+              {/* ⛔ Always in the page, hidden by a class while closed -- not `v-if`, not `v-show`. The
+                  picture's file field lives in here, and it has to stay rendered while the device's
+                  picker is open: the menu closes the moment an entry is chosen, and a field that is
+                  taken out of the page or set to `display: none` under an open picker may never hear
+                  which file was chosen. `visibility: hidden` takes the entries out of the tab order and
+                  out of a screen reader's reach just the same. */}
+              <div
+                id={menuId}
+                class={[cls('chat-compose-menu'), menuOpen.value ? cls('is-open') : null]}
+                role='group'
+                aria-label={t('chatThread.attach')}
+                data-test='chat-compose-menu'
+              >
+                {/* "Foto aufnehmen" (E-047): the same kind of field with `capture`, which a phone and a
+                    tablet answer with their camera app -- the back camera first, the app itself can turn
+                    round. A computer's browser takes no notice of `capture` and would open the same
+                    dialog as "Bild": there is no such entry there at all (Bernd, 29.09.2026: "Es ist nur
+                    wichtig, dass im Computer dann keine Kamera-Option zu sehen ist."). */}
+                {offersCamera.value ? (
+                  <>
+                    <input
+                      id={cameraId}
+                      ref={camera}
+                      type='file'
+                      accept='image/*'
+                      capture='environment'
+                      class={[cls('chat-compose-picker'), 'visually-hidden']}
+                      data-test='chat-compose-camera-field'
+                      onClick={closeMenuOnceChosen}
+                      onChange={takePicture}
+                    />
+                    <label
+                      for={cameraId}
+                      class={cls('chat-compose-menu-item')}
+                      data-test='chat-compose-camera'
+                    >
+                      <IMdiCamera class={cls('chat-compose-menu-icon')} aria-hidden='true' />
+                      <span class={cls('chat-compose-menu-words')}>
+                        <span class={cls('chat-compose-menu-label')}>
+                          {t('chatThread.attachCamera')}
+                        </span>
+                        <span class={cls('chat-compose-menu-hint')}>
+                          {t('chatThread.attachCameraHint')}
+                        </span>
+                      </span>
+                    </label>
+                  </>
+                ) : null}
+                {/* ⛔ A label for a file field that is hidden only from the eye (FOTO-04): a field set to
+                    `display: none` and opened with `input.click()` did nothing at all in an embedded
+                    frame. The label opens the field without a line of script; the field stays in the tab
+                    order, and the label beside it shows its focus. No `capture` on this one: here the
+                    picker offers the photos and the files. */}
+                <input
+                  id={pickerId}
+                  ref={picker}
+                  type='file'
+                  accept='image/*'
+                  class={[cls('chat-compose-picker'), 'visually-hidden']}
+                  data-test='chat-compose-picker'
+                  onClick={closeMenuOnceChosen}
+                  onChange={takePicture}
+                />
+                <label
+                  for={pickerId}
+                  class={cls('chat-compose-menu-item')}
+                  data-test='chat-compose-picture'
+                >
+                  <IMdiImage class={cls('chat-compose-menu-icon')} aria-hidden='true' />
+                  <span class={cls('chat-compose-menu-words')}>
+                    <span class={cls('chat-compose-menu-label')}>
+                      {t('chatThread.attachImage')}
+                    </span>
+                    <span class={cls('chat-compose-menu-hint')}>
+                      {t('chatThread.attachImageHint')}
+                    </span>
+                  </span>
+                </label>
+                <button
+                  type='button'
+                  class={cls('chat-compose-menu-item')}
+                  data-test='chat-compose-file'
+                  onClick={chooseFile}
+                >
+                  <IMdiFileDocument class={cls('chat-compose-menu-icon')} aria-hidden='true' />
+                  <span class={cls('chat-compose-menu-words')}>
+                    <span class={cls('chat-compose-menu-label')}>{t('chatThread.attachFile')}</span>
+                    <span class={cls('chat-compose-menu-hint')}>
+                      {t('chatThread.attachFileHint')}
+                    </span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+          <label for={fieldId} class='visually-hidden'>
+            {placeholder.value}
+          </label>
+          {/* ⛔ Enter makes a new line, as in every text field; it never sends. Many in the
+              community did not grow up with chat programs, and a message that leaves half-written
+              cannot be called back. The button sends -- at the desk also Cmd/Ctrl+Enter. */}
+          <textarea
+            id={fieldId}
+            ref={field}
+            v-model={text.value}
+            class={[cls('chat-compose-field'), emojiOffered ? cls('has-emoji') : null]}
+            rows={1}
+            maxlength={MESSAGE_MAX_CHARS}
+            placeholder={placeholder.value}
+            aria-describedby={describedBy.value}
+            data-test='chat-compose-field'
+            onInput={grow}
+            onFocus={fieldOutOfSight.start}
+            onBlur={fieldOutOfSight.stop}
+            onKeydown={onFieldKeydown}
+          />
+          {/* The smiley (Bernd, 10.10.2026): inside the field's rim, at its right end -- the wallet's
+              own small choice of emoji, which go into the field where the caret stands. At a computer
+              only (`offersEmojiPicker`): a phone has them on its keyboard. In every form of the bar
+              -- the first word, the text-only one, a message being changed: an emoji is text.
+              Behind the field for the keys: Tab goes from the words to the smiley. */}
+          {emojiOffered ? (
+            <EmojiPicker ref={emojiChoice} class={cls('chat-compose-emoji')} fieldId={fieldId} />
+          ) : null}
+          {/* `aria-disabled`, not `disabled`: a focused button that is disabled loses its focus in
+              Chrome, and a keyboard that sent with it would be nowhere while the message is on its
+              way. The handler turns a press away instead.
+
+              `@mousedown.prevent` keeps the focus in the field when the button is clicked or
+              tapped -- the keyboard of a phone stays open for the next message. The click itself
+              is not prevented. */}
+          {/* While a message is being changed (E-060) it is the tick that saves the change, in the
+              wallet's green: the same button, so the thumb finds it where the arrow was. */}
+          <button
+            type='button'
+            class={[cls('chat-compose-send'), props.editing ? cls('is-save') : null]}
+            aria-label={sendWords.value}
+            title={sendWords.value}
+            aria-disabled={canSend.value ? 'false' : 'true'}
+            data-test='chat-compose-send'
+            onMousedown={keepFocus}
+            onClick={submit}
+          >
+            {props.editing ? (
+              <IMdiCheck class={cls('chat-compose-send-icon')} aria-hidden='true' />
+            ) : (
+              <IMdiSend class={cls('chat-compose-send-icon')} aria-hidden='true' />
+            )}
+          </button>
+        </div>
+
+        {/* The sender's wish for THIS message (E-024): empty by default, and empty again after
+            every message sent -- a mail is the exception somebody asks for, not a setting. A real
+            checkbox with its word beside it (E-029: a symbol without a word is not read by many).
+
+            One message begins with the box ticked (Bernd, 09.10.2026, E-066): the member's first in
+            a conversation the other one began (`firstOwn`). Whoever wrote first is mostly not in
+            the wallet when the answer comes, and without a mail would not learn of it. The box
+            stands there to be seen and unticked, and is empty again after that one message.
+
+            In a group (P5) it is the announcement (E-050 F5): by mail to every member but the sender
+            who has not muted the group -- the owner's and the moderators' only, and only where
+            anybody else is in the group. */}
+        {boxShown.value && !props.editing ? (
+          <div class={cls('chat-compose-options')}>
+            {/* The box and its word as ONE thing, the box inside its label: a long word (in
+                Russian the whole sentence) wraps beside the box instead of the row putting the
+                word on a line of its own under an empty-looking box. */}
+            <label class={cls('chat-compose-check')} data-test='chat-compose-email-label'>
+              <input
+                v-model={alsoByEmail.value}
+                type='checkbox'
+                class={cls('chat-compose-check-box')}
+                data-test='chat-compose-email'
+                onChange={noteBoxTouched}
+              />
+              <span class={cls('chat-compose-check-text')} data-test='chat-compose-email-words'>
+                {boxWords.value}
+              </span>
+            </label>
+            {/* No sentence beside it on what an empty box means: the desk has the phone's label and
+                nothing else (Bernd, 24.09.2026) -- in a window 500 px wide the sentence mostly fell
+                to a line of its own. */}
+          </div>
+        ) : null}
+
+        {showRemaining.value ? (
+          <p id={remainingId} class={cls('chat-compose-note')} data-test='chat-compose-remaining'>
+            {t('chatThread.remaining', { n: remaining.value }, remaining.value)}
+          </p>
+        ) : null}
+        {/* ⛔ Where it went wrong, and not in a toast: the text is still in the field above, and
+            this line says that it is. `role="alert"` is announced when it is put in. Two refusals
+            about a picture have words of their own (`failedReason`). */}
+        {/* Not while a message is being changed (E-060): the words that did not go wait with the
+            rest of the bar, and the line comes back with them. */}
+        {props.failed && !props.editing ? (
+          <p class={cls('chat-compose-note')} role='alert' data-test='chat-compose-failed'>
+            {failedWords.value}
+          </p>
+        ) : null}
+        {/* A change that did not go through (E-060): why, here under the field and not in a toast,
+            as for a message that was not sent -- the new text is still in the field above. */}
+        {props.editing && props.editProblem ? (
+          <p class={cls('chat-compose-note')} role='alert' data-test='chat-compose-edit-problem'>
+            {editProblemWords.value}
+          </p>
+        ) : null}
+        {/* A picture that could not be made ready: why, in the bar's own words. */}
+        {pictureProblem.value ? (
+          <p class={cls('chat-compose-note')} role='alert' data-test='chat-compose-picture-problem'>
+            {pictureProblemWords.value}
+          </p>
+        ) : null}
+        {/* For the ear: the picture's state as it changes -- the preview above has no words a screen
+            reader would hear on its own. Always in the page, so the words are announced when they
+            change (a live region that appears together with its text is not). */}
+        <p class='visually-hidden' role='status' data-test='chat-compose-picture-status'>
+          {pictureStatus.value}
+        </p>
+
+        {/* The picture's editor (E-047): a dialog of its own over the contact window. */}
+        <ChatImageEditor
+          v-model={editorOpen.value}
+          source={picture.value?.source ?? null}
+          edit={picture.value?.edit ?? CHAT_IMAGE_UNEDITED}
+          onDone={applyEdit}
+        />
+
+        {/* The hint behind the paperclip (E-042, E-044): Gradido stores no files, SwissTransfer
+            carries them -- three steps, what the service is, and the way there. Built as the question
+            before a video call is (ContactWindow): no header, the title in the body and therefore a
+            name of its own (`aria-label`); its own footer; `lazy`. */}
+        <BModal
+          v-model={fileHintOpen.value}
+          lazy
+          centered
+          no-header
+          aria-label={t('chatThread.fileTitle')}
+          data-test='chat-compose-file-hint'
+        >
+          {{
+            default: () => (
+              <>
+                <p class='h5 mb-2' data-test='chat-compose-file-title'>
+                  {t('chatThread.fileTitle')}
+                </p>
+                <p class='mb-0'>{t('chatThread.fileIntro')}</p>
+                <ol class={cls('chat-compose-file-steps')} data-test='chat-compose-file-steps'>
+                  <li>{t('chatThread.fileStep1')}</li>
+                  <li>{t('chatThread.fileStep2')}</li>
+                  <li>{t('chatThread.fileStep3')}</li>
+                </ol>
+                <p class='small text-muted mb-0' data-test='chat-compose-file-about'>
+                  {t('chatThread.fileAbout')}
+                </p>
+                {/* On a phone or a tablet the app is the short way: "share" from any app, and in its
+                    link mode it asks for no e-mail address (Notiz §4.2). */}
+                {showAppTip.value ? (
+                  <p
+                    class={[cls('chat-compose-file-tip'), 'small']}
+                    data-test='chat-compose-file-tip'
+                  >
+                    <IMdiCellphone class={cls('chat-compose-file-tip-icon')} aria-hidden='true' />
+                    <span>{t('chatThread.fileAppTip')}</span>
+                  </p>
+                ) : null}
+              </>
+            ),
+            footer: () => (
+              <>
+                <BButton
+                  variant='secondary'
+                  data-test='chat-compose-file-close'
+                  onClick={closeFileHint}
+                >
+                  {t('form.close')}
+                </BButton>
+                {/* A link, not a button: SwissTransfer opens in a tab of its own the way a link opens,
+                    and a click with a key held or "copy link" work as on any link. The click closes the
+                    hint as well and lets the link go on: whoever comes back finds the field for the
+                    link. In the gold of the house's buttons -- `btn-md` as BButton gives its own. */}
+                <a
+                  class={['btn btn-md btn-gradido', cls('chat-compose-file-open')]}
+                  href={SWISSTRANSFER_URL}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  data-test='chat-compose-file-open'
+                  onClick={closeFileHint}
+                >
+                  {t('chatThread.fileOpen')}{' '}
+                  <IMdiOpenInNew class={cls('chat-compose-file-open-icon')} aria-hidden='true' />
+                </a>
+              </>
+            ),
+          }}
+        </BModal>
+      </div>
+    )
+  },
+})

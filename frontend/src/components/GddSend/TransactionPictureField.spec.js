@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import i18n from '@/i18n'
-import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
+import { ThankYouPictureChoice } from '@/components/ThankYouGreeting/ThankYouPictureChoice'
 import { TransactionPictureField } from './TransactionPictureField'
 
 /** Opening a photo has its own spec (utils/chatImage.spec.js); here it answers as a test says. */

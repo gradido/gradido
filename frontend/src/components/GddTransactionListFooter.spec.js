@@ -1,7 +1,10 @@
 import { mount, RouterLinkStub } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import GddTransactionListFooter from './GddTransactionListFooter'
+import { GddTransactionListFooter } from './GddTransactionListFooter'
 import { BListGroup, BListGroupItem } from 'bootstrap-vue-next'
+
+// The component asks useI18n() for `t` now; a template's `$t` came from the mocks below.
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 describe('GddTransactionListFooter', () => {
   let wrapper

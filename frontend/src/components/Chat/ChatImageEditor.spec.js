@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { BModal } from 'bootstrap-vue-next'
-import ChatImageEditor from './ChatImageEditor.vue'
+import { ChatImageEditor } from './ChatImageEditor'
 import { CHAT_IMAGE_UNEDITED, framedChatImageEdit } from '@/utils/chatImageEdit'
 
 vi.mock('vue-i18n', () => ({
@@ -102,9 +102,10 @@ describe('ChatImageEditor', () => {
       global: {
         stubs: {
           BModal: BModalStub,
-          IBiArrowClockwise: true,
-          IBiSymmetryVertical: true,
-          IMdiTrayArrowDown: true,
+          // The icons are imported (`~icons/…`) and carry the icon's own name.
+          BiArrowClockwise: true,
+          BiSymmetryVertical: true,
+          MdiTrayArrowDown: true,
         },
       },
     })
@@ -1064,7 +1065,7 @@ describe('ChatImageEditor', () => {
    */
   it('stays dark in both modes and keeps the page still under a finger', () => {
     const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
@@ -1092,7 +1093,7 @@ describe('ChatImageEditor', () => {
    */
   it('keeps both buttons of the top row on a narrow screen and lets the title give way', () => {
     const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
@@ -1115,14 +1116,18 @@ describe('ChatImageEditor', () => {
    */
   it('writes on its dialog only names the installed BModal declares', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageEditor.tsx'),
       'utf8',
-    ).replace(/<!--[\s\S]*?-->/g, '')
+    )
     const tags = [...source.matchAll(/<BModal\b([\s\S]*?)>/g)]
     expect(tags).toHaveLength(1)
 
-    const written = [...tags[0][1].matchAll(/(?:^|\s)(:|@)?([a-z][a-z0-9:-]*)(?==|\s|$)/g)].map(
-      (m) => (m[1] === '@' ? `@${m[2]}` : m[2]),
+    // The names as TSX writes them, said as a template would: a prop in kebab-case, a listener
+    // (`onShown`, `onUpdate:modelValue`) with its `@`.
+    const kebab = (name) => name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+    const written = [...tags[0][1].matchAll(/(?:^|\s)([a-zA-Z][a-zA-Z0-9:-]*)(?==|\s|$)/g)].map(
+      (m) =>
+        /^on[A-Z]/.test(m[1]) ? `@${kebab(m[1][2].toLowerCase() + m[1].slice(3))}` : kebab(m[1]),
     )
     const camel = (name) => name.replace(/-([a-z])/g, (unused, letter) => letter.toUpperCase())
     const declaredProps = Object.keys(BModal.props ?? {})

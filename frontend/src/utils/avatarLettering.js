@@ -18,7 +18,7 @@
  * ⛔ The colour seed is returned RAW, in the case the names are stored in, and that single
  * word carries the whole promise above. `avatarPaletteEntry` hashes with `charCodeAt`, so
  * it is case-sensitive: "bh" and "BH" are different colours. Every other producer of this
- * seed passes the characters through untouched -- `Navbar.vue`, `UserCard.vue`,
+ * seed passes the characters through untouched -- `Navbar.tsx`, `UserCard.tsx`,
  * `ContributionMessagesListItem.vue`, `useGradidoCard.js`, `useThankYouCheque.js` -- and
  * the uppercasing a member sees is `text-transform` in CSS, which never reaches the hash.
  * A `.toUpperCase()` here moves the colour of every member whose first or last name starts

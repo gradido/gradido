@@ -1,0 +1,133 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   The window's root is a modal (the wallet's own or the library's), so there is no element of
+   this component's own to stand under: both bodies of the window (the cropper, the question
+   before removing) wear `avatarCropper`, and every rule stands under it -- the scoped rules
+   these were had one level more (the scope attribute). What the caller draws into the
+   `pictures` slot stands inside it too: it wears none of these names. */
+.avatarCropper :global(.avatar-frame) {
+  position: relative;
+  width: var(--frame-size);
+  height: var(--frame-size);
+  margin: 0 auto 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-muted, #f2f4f6);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.avatarCropper :global(.avatar-frame.is-dragging) {
+  cursor: grabbing;
+}
+
+/* Sized by the element, not by its attributes: the canvas is FRAME pixels wide in its own
+   coordinates, and the stylesheet must not stretch it to something else -- the crop is
+   computed against FRAME, so a different display size would quietly show a different
+   square than it stores. */
+.avatarCropper :global(.avatar-preview) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.avatarCropper :global(.avatar-mask) {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(0 0 0 / 45%);
+  mask: radial-gradient(circle at 50% 50%, transparent 0 138px, #000 139px);
+}
+
+.avatarCropper :global(.avatar-placeholder),
+.avatarCropper :global(.avatar-error) {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-muted, #6c757d);
+}
+
+.avatarCropper :global(.avatar-error) {
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.avatarCropper :global(.avatar-placeholder-icon) {
+  font-size: 30px;
+}
+
+.avatarCropper :global(.avatar-size) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted, #6c757d);
+}
+
+.avatarCropper :global(.avatar-size input) {
+  flex: 1;
+  accent-color: #047006;
+}
+
+.avatarCropper :global(.avatar-actions) {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* The visible label carries the focus ring of the field it belongs to -- without this,
+   a keyboard user tabs onto something invisible. */
+.avatarCropper :global(.avatar-actions .visually-hidden:focus-visible + .btn) {
+  outline: 2px solid #047006;
+  outline-offset: 2px;
+}
+
+/* Only where a camera app exists. `capture` is silently ignored on a desktop, where this
+   would open the same dialog as "choose image" and be a second button for one thing. A
+   touch laptop shows it, and there the hint may well work.
+
+   The wrapper carries this, so the field goes with the label -- see the markup. */
+.avatarCropper :global(.avatar-camera) {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .avatarCropper :global(.avatar-camera) {
+    display: contents;
+  }
+}
+
+.avatarCropper :global(.avatar-action-icon) {
+  margin-right: 0.35rem;
+  vertical-align: -0.1em;
+}
+
+.avatarCropper :global(.avatar-measure) {
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text-muted, #6c757d);
+  font-variant-numeric: tabular-nums;
+}
+
+.avatarCropper:global(.avatar-remove-question) {
+  text-align: center;
+}
+
+.avatarCropper :global(.avatar-note) {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--text-muted, #6c757d);
+}

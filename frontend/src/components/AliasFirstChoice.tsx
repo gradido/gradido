@@ -1,0 +1,412 @@
+// AI-GENERATED — not an architecture reference
+import { useMutation, useQuery } from '@vue/apollo-composable'
+import { BButton, BFormInput, BModal, type ButtonVariant } from 'bootstrap-vue-next'
+import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+import {
+  firstLoginWindowOnScreen,
+  setFirstLoginWindowUndecided,
+  setFirstLoginWindowWanted,
+} from '@/composables/useFirstLoginWindow'
+import { useAppToast } from '@/composables/useToast'
+import CONFIG from '@/config'
+import { adoptAlias, updateUserInfos } from '@/graphql/mutations'
+import { checkUsername } from '@/graphql/queries'
+import { aliasStatus } from '@/graphql/user.graphql'
+import { useWalletStore } from '@/store/useWalletStore'
+import { USERNAME_REGEX } from '@/validationSchemas'
+import classes from './AliasFirstChoice.module.scss'
+
+/**
+ * Shown once, after the first login, for a member still holding the name the system
+ * built for them. Two ways out and both end it: keeping the name is how they take it,
+ * and picking another does the same with a different word. Closing the window without
+ * either leaves the question open, so it comes back next time - which is the point,
+ * because a window with no way out would be an imposition at exactly the wrong moment.
+ */
+export const AliasFirstChoice = defineComponent({
+  name: 'AliasFirstChoice',
+  setup() {
+    const store = useWalletStore()
+    const route = useRoute()
+    const { t } = useI18n()
+    const { toastError } = useAppToast()
+
+    // `cache-and-network`, because this query takes no variables and therefore lives under
+    // a single cache key for everybody. The cache is emptied on logout now, which is the
+    // real fix; this is the second lock, for every way a member can change without that
+    // action running - and it keeps the quota honest when it was spent in another tab.
+    const { result, error, refetch } = useQuery(aliasStatus, null, {
+      fetchPolicy: 'cache-and-network',
+    })
+    const { mutate: adopt } = useMutation(adoptAlias)
+    const { mutate: updateUser } = useMutation(updateUserInfos)
+
+    const dismissed = ref(false)
+    const choosing = ref(false)
+    const typed = ref('')
+
+    const currentAlias = computed(() => store.username || '')
+    // The address is what the name is for, so it is shown rather than explained - and in
+    // the form it takes on paper, without the scheme.
+    const addressPrefix = computed(() => {
+      try {
+        return `${new URL(CONFIG.COMMUNITY_URL).host}/u/`
+      } catch {
+        return '/u/'
+      }
+    })
+
+    // Debounced, the way the contribution lists do it: without this a query went out on
+    // every single keystroke, and each one flipped the answer to "not known yet" and back.
+    // `probed` is what the query reads; `typed` is what the member sees.
+    //
+    // Declared HERE, above everything that writes it. `startChoosing` below sets it, and
+    // that only ever held because a click handler cannot run before setup has finished --
+    // anything evaluated DURING setup would have found it in the temporal dead zone.
+    const probed = ref('')
+    let probeTimer: ReturnType<typeof setTimeout> | undefined
+    watch(typed, (value) => {
+      clearTimeout(probeTimer)
+      if (!value) {
+        probed.value = ''
+        return
+      }
+      probeTimer = setTimeout(() => {
+        probed.value = value
+      }, 300)
+    })
+
+    // The way out of the debounce, and it has to be an explicit one: this window is never
+    // unmounted -- DashboardLayout renders it for the whole session -- so `onBeforeUnmount`
+    // is a lifecycle hook that fires on nothing. Without this, leaving mid-word still sent
+    // the question 300 ms later, and `typed` kept its value for the rest of the session,
+    // which left the query enabled the whole time (it is `no-cache`, so every re-render of
+    // the address bar could ask again).
+    const stopProbing = () => {
+      clearTimeout(probeTimer)
+      typed.value = ''
+      probed.value = ''
+    }
+    onBeforeUnmount(stopProbing)
+
+    // Whether this window has a question to ask -- which is not the same as being on screen.
+    // Three first-login windows hang side by side in DashboardLayout and two BModals stack, so
+    // which of them the member sees is decided in one place (ES-003, useFirstLoginWindow).
+    //
+    // Never over the settings, like the other first-login windows (EmailConfirmationReminder,
+    // EventMatchingHomeInvitation, FirstCreation): the name is changed there, and the address
+    // reminder sends people there to correct the address. Not a dismissal -- leaving the settings
+    // brings it back (NU-025).
+    const onSettings = computed(() => route.path.startsWith('/settings'))
+    const wants = computed(
+      () =>
+        !dismissed.value &&
+        !!currentAlias.value &&
+        result.value?.aliasStatus?.aliasSettled === false &&
+        !onSettings.value,
+    )
+    watch(wants, (value) => setFirstLoginWindowWanted('alias', value), { immediate: true })
+    onBeforeUnmount(() => setFirstLoginWindowWanted('alias', false))
+
+    // Until `aliasStatus` has answered -- or failed --, nobody knows whether this question comes,
+    // and the windows after it wait (useFirstLoginWindow, `undecided`). Without this the invitation
+    // onto the map, or the first creation, took the screen for the moment of the round trip and was
+    // pushed off it again when the name question arrived: a window that flashed in before the one
+    // that comes first (KA-015).
+    //
+    // And again after the name changed somewhere else while the question was open -- in the
+    // settings, where the member can be while it waits (NU-025). That may have settled it, but the
+    // answer in hand was fetched before, so it is asked afresh and the window waits for it. Without
+    // this the window stood on the overview with the name just chosen: until the settings page's own
+    // refresh came in, and for good when the page was left before that refresh went out (vue-apollo
+    // stops a query on unmount). Not for a name emptied at logout (no token left to ask with), and
+    // not when this window took the name itself: it has its answer and asks on its own.
+    const rechecking = ref(false)
+    watch(currentAlias, async (name) => {
+      if (!name || dismissed.value || result.value?.aliasStatus?.aliasSettled !== false) {
+        return
+      }
+      rechecking.value = true
+      try {
+        await refetch()
+      } catch {
+        // A check that could not run leaves the answer in hand standing, and the window goes by it.
+      } finally {
+        rechecking.value = false
+      }
+    })
+    const undecided = computed(
+      () =>
+        !!currentAlias.value && (rechecking.value || (!result.value?.aliasStatus && !error.value)),
+    )
+    watch(undecided, (value) => setFirstLoginWindowUndecided('alias', value), { immediate: true })
+    onBeforeUnmount(() => setFirstLoginWindowUndecided('alias', false))
+
+    const onScreen = firstLoginWindowOnScreen('alias')
+    const visible = computed({
+      get: () => onScreen.value,
+      set: (open: boolean) => {
+        // ⚠️ Only the member closing it counts. This getter also goes false when the address
+        // reminder takes the screen, or the conversation an address opened, or the member steps
+        // into the settings, and BModal writes that back -- read as an answer, the name question
+        // would be retired for the session without ever having been asked.
+        if (!open && onScreen.value) {
+          dismissed.value = true
+          stopProbing()
+        }
+      },
+    })
+
+    // Prefilled when the field is opened, not by watching the window: the window is
+    // already open on the first render, so a watcher would never fire and the member
+    // would find an empty field.
+    const startChoosing = () => {
+      typed.value = currentAlias.value
+      probed.value = currentAlias.value
+      choosing.value = true
+    }
+
+    // The second exit, and the one a member takes most often. Same reason as above.
+    const goBack = () => {
+      choosing.value = false
+      stopProbing()
+    }
+
+    // Asked while typing, with the same query the settings page uses. Reactive variables
+    // rather than a lazy query on purpose: `load()` answers only the first time it is
+    // called and returns a bare false after that, which would read as "taken" for every
+    // name after the first.
+    const checkEnabled = computed(() => !!typed.value && typed.value !== currentAlias.value)
+
+    // Checked here as well as on the server, to say WHY: without it somebody who types two
+    // letters is told the name is taken, which is untrue and unhelpful in the very first
+    // window they ever see. It also holds the button and keeps the query below from asking
+    // about a word that cannot be free -- and it must be declared BEFORE that query, whose
+    // options getter runs during setup.
+    const formatValid = computed(() => USERNAME_REGEX.test(typed.value))
+
+    const {
+      result: checkResult,
+      loading: checking,
+      error: checkError,
+    } = useQuery(
+      checkUsername,
+      () => ({ username: probed.value }),
+      // `formatValid` too: "ab" can never be free, so asking about it is a round trip whose
+      // answer is discarded either way -- the invalid branch below wins in the markup, in
+      // `fieldState` and on the Save button. Nothing reads a stale answer through this gap.
+      () => ({
+        enabled: checkEnabled.value && formatValid.value && probed.value === typed.value,
+        fetchPolicy: 'no-cache',
+      }),
+    )
+    // A failed query is NOT an absent answer here. Apollo's `processError` sets `error` and
+    // flips `loading` back, and leaves `result` exactly as it was - so the answer of the
+    // PREVIOUS word stays readable and would be read as this word's: a green "still free"
+    // for a name that is taken, with Save armed behind it.
+    //
+    // ⛔ And `error` survives exactly the same way. It is cleared when the query STARTS, not
+    // when it is switched off, so in the 300 ms between a keystroke and the debounce the
+    // failure of the word before is still standing. Without `probed === typed` the line
+    // would say "could not be checked" about a word nothing was ever asked about -- and
+    // because a failed check hands Save back to the server, it would arm the button too.
+    // The same trap as the stale answer above, one floor down.
+    const checkFailed = computed(
+      () =>
+        checkEnabled.value && !checking.value && probed.value === typed.value && !!checkError.value,
+    )
+
+    // `null` while the answer is on its way, because the previous one is still lying in
+    // `checkResult` and it belongs to a different word. Without this, typing a free name
+    // and then a taken one leaves the old `true` on screen for the length of a round trip -
+    // long enough to click Save and get a bare error code back.
+    const available = computed<boolean | null>(() => {
+      if (
+        !checkEnabled.value ||
+        checking.value ||
+        checkFailed.value ||
+        probed.value !== typed.value
+      ) {
+        return null
+      }
+      return checkResult.value?.checkUsername ?? null
+    })
+    const fieldState = computed<boolean | null>(() => {
+      if (!checkEnabled.value) {
+        return null
+      }
+      if (!formatValid.value) {
+        return false
+      }
+      // Neither green nor red while the check is unavailable: the field says nothing rather
+      // than colouring in something nobody verified.
+      return checkFailed.value ? null : available.value
+    })
+
+    // The server decides whether a name is free; this query only says so early. So a check
+    // that could not run hands the decision back to it rather than locking the button - the
+    // only other way out of this window leaves the question open and brings it back next
+    // login, and `saveChosen` already turns a refusal into a message.
+    const canSave = computed(
+      () =>
+        formatValid.value &&
+        typed.value !== currentAlias.value &&
+        (available.value === true || checkFailed.value),
+    )
+
+    const keepIt = async () => {
+      try {
+        await adopt()
+        dismissed.value = true
+        await refetch()
+      } catch (error) {
+        toastError((error as Error).message)
+      }
+    }
+
+    // The server answers in English, the way UserEmail does it -- and this refusal stopped
+    // being a rarity the moment a failed check started handing the decision back to it. It
+    // is also the one a member can provoke on purpose: pick a taken name while the check
+    // cannot run. So it gets the sentence that stands above the button anyway, rather than
+    // `Given alias is already in use` in a German window. Anything else is shown as it came.
+    const errorText = (message: string | undefined) =>
+      message?.includes('already in use') ? t('settings.username.first-taken') : message
+
+    const saveChosen = async () => {
+      try {
+        await updateUser({ alias: typed.value })
+        store.setUsername(typed.value)
+        dismissed.value = true
+        await refetch()
+      } catch (error) {
+        toastError(errorText((error as Error).message))
+      }
+    }
+
+    // One line that is always there. The three states used to be three conditions that
+    // could all be false at once -- between two keystrokes, while the answer was on
+    // its way -- so the line vanished and everything below it jumped up and back.
+    // Reserving the row costs nothing and the field stops twitching while typing.
+    const status = () => {
+      if (checkEnabled.value && !formatValid.value) {
+        return (
+          <span class='text-danger' data-test='alias-first-invalid'>
+            {t('settings.username.first-invalid')}
+          </span>
+        )
+      }
+      if (checkFailed.value) {
+        return (
+          <span class='text-warning' data-test='alias-first-check-failed'>
+            {t('settings.username.first-check-failed')}
+          </span>
+        )
+      }
+      if (available.value === false) {
+        return (
+          <span class='text-danger' data-test='alias-first-taken'>
+            {t('settings.username.first-taken')}
+          </span>
+        )
+      }
+      if (available.value) {
+        return (
+          <span class='text-success' data-test='alias-first-free'>
+            {t('settings.username.first-free')}
+          </span>
+        )
+      }
+      if (checkEnabled.value) {
+        return (
+          <span class='text-muted' data-test='alias-first-checking'>
+            {t('settings.username.first-checking')}
+          </span>
+        )
+      }
+      return null
+    }
+
+    return () => (
+      <BModal
+        id='modal-alias-first-choice'
+        modelValue={visible.value}
+        onUpdate:modelValue={(open: boolean) => {
+          visible.value = open
+        }}
+        centered
+        noHeader
+        data-test='alias-first-choice'
+        v-slots={{
+          default: () =>
+            !choosing.value ? (
+              <div class={['text-center px-2 pt-3', classes.aliasFirstChoice]}>
+                <p class='h5 mb-3'>{t('settings.username.first-title')}</p>
+                <p class='mb-0'>{t('settings.username.first-intro')}</p>
+                <div class='my-3'>
+                  <div class='alias-proposal' data-test='alias-proposal'>
+                    {currentAlias.value}
+                  </div>
+                  <div class='alias-address'>
+                    {addressPrefix.value} <b>{currentAlias.value}</b>
+                  </div>
+                </div>
+                <p class='small text-muted mb-0'>{t('settings.username.first-hint')}</p>
+              </div>
+            ) : (
+              <div class={['px-2 pt-3', classes.aliasFirstChoice]}>
+                <p class='h5 mb-3 text-center'>{t('settings.username.first-choose-title')}</p>
+                <label class='form-label' for='alias-first-input'>
+                  {t('form.username')}
+                </label>
+                <BFormInput
+                  id='alias-first-input'
+                  modelValue={typed.value}
+                  onUpdate:modelValue={(entered) => {
+                    typed.value = entered as string
+                  }}
+                  state={fieldState.value}
+                  data-test='alias-first-input'
+                />
+                <div class='alias-first-status small mt-2'>{status()}</div>
+                <div class='alias-address mt-3'>
+                  {addressPrefix.value} <b>{typed.value}</b>
+                </div>
+                <div class='small text-muted mt-1'>{t('settings.username.first-rules')}</div>
+              </div>
+            ),
+          footer: () =>
+            !choosing.value ? (
+              <>
+                <BButton variant='secondary' data-test='alias-first-other' onClick={startChoosing}>
+                  {t('settings.username.first-other')}
+                </BButton>
+                <BButton
+                  variant={'gradido' as ButtonVariant}
+                  data-test='alias-first-keep'
+                  onClick={keepIt}
+                >
+                  {t('settings.username.first-keep')}
+                </BButton>
+              </>
+            ) : (
+              <>
+                <BButton variant='secondary' data-test='alias-first-back' onClick={goBack}>
+                  {t('settings.username.first-back')}
+                </BButton>
+                <BButton
+                  variant={'gradido' as ButtonVariant}
+                  disabled={!canSave.value}
+                  data-test='alias-first-save'
+                  onClick={saveChosen}
+                >
+                  {t('form.save')}
+                </BButton>
+              </>
+            ),
+        }}
+      />
+    )
+  },
+})

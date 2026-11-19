@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref, nextTick } from 'vue'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
-import UserEmail from './UserEmail.vue'
+import { UserEmail } from './UserEmail'
 import { cancelEmailChange, requestEmailChange, resendEmailChange } from '@/graphql/mutations'
 
 vi.mock('bootstrap-vue-next', () => ({

@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick, reactive, ref } from 'vue'
 import { createI18n } from 'vue-i18n'
-import FirstCreation from './FirstCreation.vue'
+import { FirstCreation } from './FirstCreation'
 import de from '@/locales/de.json'
 import {
   firstLoginWindow,
@@ -122,8 +122,8 @@ vi.mock('@/graphql/user.graphql', () => ({
 }))
 // The two-step confirmation has a spec of its own; here it is a stub the test answers
 // through, so what is measured is that nothing is declared WITHOUT it.
-vi.mock('@/components/UserSettings/ProjectAccountConfirm.vue', () => ({
-  default: {
+vi.mock('@/components/UserSettings/ProjectAccountConfirm', () => ({
+  ProjectAccountConfirm: {
     props: ['mode', 'busy'],
     emits: ['confirm', 'cancel'],
     template:
@@ -778,7 +778,9 @@ describe('FirstCreation', () => {
      */
     it('holds Save when both excluding ticks are set anyway', async () => {
       const wrapper = build()
-      wrapper.vm.checked = ['retiree', 'child']
+      // Written into the ref the window hands out (`expose`): an assignment to `wrapper.vm`
+      // does not reach it.
+      wrapper.vm.$.exposed.checked.value = ['retiree', 'child']
       await nextTick()
       expect(wrapper.find('[data-test="first-creation-count"]').text()).toContain('2')
       // The state really is the forbidden one -- otherwise a disabled Save would prove
@@ -790,7 +792,7 @@ describe('FirstCreation', () => {
 
       // The counter-check: one of them alone and Save is alive, so this is the pair being
       // held back and not the ticks in general.
-      wrapper.vm.checked = ['retiree']
+      wrapper.vm.$.exposed.checked.value = ['retiree']
       await nextTick()
       expect(
         wrapper.find('[data-test="first-creation-save"]').attributes('disabled'),

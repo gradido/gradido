@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import ChatVideoCall from './ChatVideoCall.vue'
+import { ChatVideoCall } from './ChatVideoCall'
 import { chatVideoServerChoices } from '@/graphql/chat.graphql'
 import { withChatVideoTopic } from '@/utils/chatVideoTopic'
 import { CHAT_VIDEO_JOINED } from '@/utils/chatVideoApp'
@@ -63,11 +63,12 @@ describe('ChatVideoCall in a group', () => {
             emits: ['update:modelValue', 'shown'],
             template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
-          IMdiCogOutline: true,
-          IMdiLinkVariant: true,
-          IMdiCheck: true,
-          IMdiServerOutline: true,
-          IMdiCalendarPlusOutline: true,
+          // The icons are imported (`~icons/…`) and carry the icon's own name.
+          MdiCogOutline: true,
+          MdiLinkVariant: true,
+          MdiCheck: true,
+          MdiServerOutline: true,
+          MdiCalendarPlusOutline: true,
         },
       },
     })

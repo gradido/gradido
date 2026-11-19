@@ -1,0 +1,33 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Unscoped, as the style block of ThemedSelect.vue was. */
+
+/* Make the toggle read like a form control: full width, label on the left, caret on the
+   right, in the theme's heading grey (dark in light mode, near-white in dark mode). The
+   label and the caret (which inherits currentColor) need !important to beat the wallet's
+   global `.btn-outline-secondary { color: #397196 !important }`, or both come out
+   pigeon-blue. The border is a faded shade of the text colour (via color-mix, like
+   .separator-start) so it stays visible in dark mode and in Firefox, where the token
+   border all but disappears. */
+.themed-select {
+  width: 100%;
+
+  > .btn.themed-select-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background-color: var(--surface);
+    color: var(--text) !important;
+    border-color: color-mix(in srgb, currentcolor 30%, transparent);
+  }
+
+  &.themed-select-placeholder > .btn.themed-select-toggle {
+    color: var(--text-muted) !important;
+  }
+
+  .themed-select-menu {
+    width: 100%;
+  }
+}

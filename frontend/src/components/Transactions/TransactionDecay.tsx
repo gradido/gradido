@@ -2,9 +2,9 @@
 import { BCol, BCollapse, BRow } from 'bootstrap-vue-next'
 import { computed, defineComponent, type PropType, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DecayInformationDecay from '@/components/DecayInformations/DecayInformation-Decay.vue'
-import CollapseIcon from '@/components/TransactionRows/CollapseIcon.vue'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { DecayInformationDecay } from '@/components/DecayInformations/DecayInformation-Decay'
+import { CollapseIcon } from '@/components/TransactionRows/CollapseIcon'
+import { VariantIcon } from '@/components/VariantIcon'
 import classes from './TransactionDecay.module.scss'
 
 /** The decay of a booking as `transactionList` carries it: the amount and the span it ran over. */

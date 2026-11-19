@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import ChatComposeBar from './ChatComposeBar.vue'
+import { ChatComposeBar } from './ChatComposeBar'
 import { chatDraftFor, forgetChatDrafts } from '@/utils/chatDraft'
 import { CHAT_IMAGE_UNEDITED } from '@/utils/chatImageEdit'
 
@@ -53,20 +53,20 @@ describe('ChatComposeBar and the draft of its conversation', () => {
       },
       global: {
         stubs: {
-          IMdiEmailOutline: true,
-          IMdiSend: true,
-          IMdiPaperclip: true,
-          IMdiImage: true,
-          IMdiCamera: true,
-          IMdiFileDocument: true,
-          IMdiClose: true,
-          IMdiPencil: true,
-          IMdiPencilOutline: true,
-          IMdiCheck: true,
-          IMdiReplyOutline: true,
-          IMdiImageOutline: true,
-          IMdiCellphone: true,
-          IMdiOpenInNew: true,
+          MdiEmailOutline: true,
+          MdiSend: true,
+          MdiPaperclip: true,
+          MdiImage: true,
+          MdiCamera: true,
+          MdiFileDocument: true,
+          MdiClose: true,
+          MdiPencil: true,
+          MdiPencilOutline: true,
+          MdiCheck: true,
+          MdiReplyOutline: true,
+          MdiImageOutline: true,
+          MdiCellphone: true,
+          MdiOpenInNew: true,
           ChatImageEditor: {
             name: 'ChatImageEditor',
             props: ['modelValue', 'source', 'edit'],

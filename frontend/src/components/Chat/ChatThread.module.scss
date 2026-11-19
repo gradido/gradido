@@ -1,0 +1,143 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+
+/* Under the head, over the whole width of the window, set apart by a line.
+
+   A column -- the thread, then the bar -- which does nothing where the window gives it no
+   height of its own (at the desk it is as high as what it holds) and lets the thread take
+   the height between the head and the bar where the window does (the sheet on a phone,
+   ContactWindow). `position: relative` keeps the status for screen readers (Bootstrap's
+   `.visually-hidden` is `position: absolute`) inside the thread, where a bubble's hidden name
+   once hung below the window and made it scroll (see ChatBubble). */
+.chat-thread {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+/* ⛔ No fixed height any more. P2b gave every state `height: min(45vh, 30rem)` so the window
+   would not grow under a finger when the page landed -- and a thread of one message stood at
+   the bottom of an empty box, the hole in Bernd's picture (E-031). Now the window sits at the
+   top of the screen and grows downwards only (ContactWindow), each state is as high as what
+   it shows, and the thread stops growing at its cap and scrolls inside. */
+.chat-thread :global(.chat-thread-box) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Loading: small, so the bar that comes with the page does not land far below it. */
+.chat-thread :global(.chat-thread-loading) {
+  height: 4rem;
+}
+
+.chat-thread :global(.chat-thread-quiet) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 1rem;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.chat-thread :global(.chat-thread-empty-icon) {
+  width: 2rem;
+  height: 2rem;
+  opacity: 0.6;
+}
+
+/* ⚠️ The newest message sits at the BOTTOM of a short thread, where a long one ends too:
+   the content is pushed down by `margin-top: auto`, which a scrolling flex box honours
+   (unlike `justify-content: flex-end`, which would put the overflow out of reach above).
+   `overscroll-behavior` keeps a swipe at either end inside the thread instead of moving the
+   page behind the window. */
+.chat-thread :global(.chat-thread-scroll) {
+  display: flex;
+  flex-direction: column;
+
+  /* The cap at the desk: as high as its messages, up to here. dvh with vh before it, as
+     Scanner and MatchingMap do it: an engine without dvh drops the second line and keeps the
+     first. */
+  max-height: min(45vh, 30rem);
+  max-height: min(45dvh, 30rem);
+  overflow-y: auto;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+  border-radius: 0.5rem;
+}
+
+.chat-thread :global(.chat-thread-scroll:focus-visible) {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-thread :global(.chat-thread-content) {
+  margin-top: auto;
+  padding: 0 0.15rem 0.25rem;
+}
+
+.chat-thread :global(.chat-thread-older) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+/* A real control without Bootstrap's `.btn`: its own focus ring, and a tap target of at
+   least the size a thumb needs. */
+.chat-thread :global(.chat-thread-older-button) {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.8rem;
+}
+
+.chat-thread :global(.chat-thread-older-button:hover) {
+  border-color: var(--bs-secondary-color, #6c757d);
+}
+
+.chat-thread :global(.chat-thread-older-button:focus-visible) {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-thread :global(.chat-thread-older-button[aria-disabled='true']) {
+  opacity: 0.6;
+}
+
+.chat-thread :global(.chat-thread-older-failed) {
+  margin: 0;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.75rem;
+}
+
+/* The date over a day: small and muted in the middle, not a heading's size. ⚠️ On the
+   window's own surface and not on a pill of the muted one: the muted grey of dark mode is
+   too faint on that (see ChatBubble for the same measure). */
+.chat-thread :global(.chat-thread-day) {
+  margin: 0.6rem 0 0.3rem;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.chat-thread :global(.chat-thread-list) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

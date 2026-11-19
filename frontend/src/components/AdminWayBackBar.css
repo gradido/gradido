@@ -1,0 +1,44 @@
+/* AI-GENERATED — not an architecture reference */
+
+/**
+ * Not scoped: the class on <html> moves the page and Bootstrap's windows, which this component
+ * does not render. The bar takes the page's own ground and words in both modes (the house
+ * tokens of _design-tokens.scss and gradido-template-dark.scss), with a line below it.
+ *
+ * ⛔ Fixed, not in the flow like the bar for a new version (AppOutdatedBar): measured over the
+ * real wallet on 25.10.2026, a bar in the flow lay under the conversation's window, which
+ * covers the page, and rolled out of sight on the send form, which opens scrolled down to it.
+ */
+.admin-way-back {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 44px;
+  padding: 0 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--text-muted);
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.admin-way-back:focus-visible {
+  outline: 2px solid currentcolor;
+  outline-offset: -4px;
+}
+
+html.has-admin-way-back body {
+  padding-top: 44px;
+}
+
+html.has-admin-way-back .modal {
+  top: 44px;
+  height: calc(100% - 44px);
+}

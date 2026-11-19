@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import GdtAmount from './GdtAmount'
+import { GdtAmount } from './GdtAmount'
 import { updateUserInfos } from '@/graphql/mutations'
 import { nextTick, ref, toRef } from 'vue'
 import { BBadge, BCol, BRow } from 'bootstrap-vue-next'

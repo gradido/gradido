@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import { BModal } from 'bootstrap-vue-next'
-import EmailConfirmationReminder from './EmailConfirmationReminder.vue'
+import { EmailConfirmationReminder } from './EmailConfirmationReminder'
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,
@@ -33,6 +33,8 @@ const route = { path: '/overview' }
 vi.mock('vue-router', () => ({
   useRoute: () => route,
   useRouter: () => ({ push: routerPushMock }),
+  // The window is TSX now and imports the link; the mount's stub stands in for it by this name.
+  RouterLink: { name: 'RouterLink' },
 }))
 
 const resendMock = vi.fn()

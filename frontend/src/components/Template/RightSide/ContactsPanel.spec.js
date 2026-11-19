@@ -5,7 +5,7 @@ import { nextTick } from 'vue'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import ContactsPanel from './ContactsPanel.vue'
+import { ContactsPanel } from './ContactsPanel'
 import { contactsPanelState, forgetContactsPanel } from '@/composables/useContactsPanel'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { forgetFavorites, rememberFavorites } from '@/composables/useFavorites'
@@ -28,6 +28,9 @@ vi.mock('vue-i18n', () => ({
     t: (key, values) => (typeof values === 'number' ? `${key}:${values}` : key),
     d: (date) => `d(${date.toISOString()})`,
   }),
+  // The contact window's chat bubble (I18nText) takes this off the module, now that it is
+  // imported and no longer resolved by name; the window itself is stubbed here.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key) => key } },
@@ -316,13 +319,13 @@ describe('ContactsPanel', () => {
     givenPage([{ ...person(1), unreadChatMessages: 1 }])
     mountPanel()
     await nextTick()
+    // The style module: every rule stands under the root's class (`:global(.contacts-panel-dot)`).
     const styles = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ContactsPanel.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ContactsPanel.module.scss'),
       'utf8',
-    )
-      .split('<style lang="scss" scoped>')[1]
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-    const rule = (selector) => styles.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))[1]
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) =>
+      styles.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))[1]
 
     expect(
       wrapper

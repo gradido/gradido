@@ -3,8 +3,8 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 import { walletStore } from '@test/walletStore'
 import { BCol, BRow } from 'bootstrap-vue-next'
-import Appearance from './Appearance.vue'
-import SettingsSection from '@/components/UserSettings/SettingsSection.vue'
+import { Appearance } from './Appearance'
+import { SettingsSection } from '@/components/UserSettings/SettingsSection'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 // The store sets the language on the app's own i18n, which needs the real vue-i18n.

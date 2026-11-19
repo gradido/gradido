@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import ChatReactionChoice from './ChatReactionChoice.vue'
+import { ChatReactionChoice } from './ChatReactionChoice'
 import { CHAT_QUICK_REACTIONS } from '@/utils/chatReactions'
 import { EMOJI_ROWS } from '@/utils/emojiChoice'
 
@@ -26,7 +26,7 @@ describe('ChatReactionChoice', () => {
     wrapper = mount(ChatReactionChoice, {
       props,
       attachTo: document.body,
-      global: { stubs: { IMdiPlus: { template: '<i data-test="plus" />' } } },
+      global: { stubs: { MdiPlus: { template: '<i data-test="plus" />' } } },
     })
     return wrapper
   }
@@ -358,7 +358,7 @@ describe('ChatReactionChoice', () => {
             onAll: (shown) => said.push(`all ${shown}`),
           },
           attachTo: document.body,
-          global: { stubs: { IMdiPlus: true } },
+          global: { stubs: { MdiPlus: true } },
         })
 
         await pick(CAKE)
@@ -477,10 +477,10 @@ describe('ChatReactionChoice', () => {
    */
   describe('its stylesheet', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatReactionChoice.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatReactionChoice.module.scss'),
       'utf8',
     )
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    const style = source.replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) =>
       style.match(
         new RegExp(`(^|\\n)${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^{]*\\{([^}]*)\\}`),

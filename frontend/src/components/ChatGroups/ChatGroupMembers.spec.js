@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import ChatGroupMembers from './ChatGroupMembers.vue'
+import { ChatGroupMembers } from './ChatGroupMembers'
 import {
   addChatGroupMembers,
   leaveChatGroup,
@@ -78,7 +78,7 @@ describe('ChatGroupMembers', () => {
             template: '<div v-if="modelValue"><slot /><slot name="footer" /></div>',
           },
           BButton: { template: '<button type="button" v-bind="$attrs"><slot /></button>' },
-          IBiX: true,
+          BiX: true,
         },
       },
     })
@@ -205,7 +205,7 @@ describe('ChatGroupMembers', () => {
           stubs: {
             BModal: { props: { modelValue: Boolean }, template: '<div><slot /></div>' },
             BButton: true,
-            IBiX: true,
+            BiX: true,
           },
         },
       })
@@ -489,15 +489,13 @@ describe('ChatGroupMembers', () => {
   // a face in a flex row shrinks unless it is told not to.
   it('keeps the faces at their size however long the names', () => {
     const code = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatGroupMembers.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatGroupMembers.module.scss'),
       'utf8',
-    )
-      .split('<style')[1]
-      .replace(/\/\*[\s\S]*?\*\//g, '')
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = [...code.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selectors]) =>
       selectors
         .split(',')
-        .some((selector) => selector.trim() === '.chat-group-member-line .app-avatar'),
+        .some((selector) => selector.trim() === '.chat-group-member-line :global(.app-avatar)'),
     )
     expect(rule?.[2]).toMatch(/flex:\s*0 0 auto/)
   })

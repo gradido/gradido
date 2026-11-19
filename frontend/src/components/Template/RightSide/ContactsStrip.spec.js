@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import ContactsStrip from './ContactsStrip.vue'
+import { ContactsStrip } from './ContactsStrip'
 import {
   contactsPanelState,
   forgetContactsPanel,
@@ -13,6 +13,9 @@ import { forgetFavorites, rememberFavorites } from '@/composables/useFavorites'
 // The tiles and the empty state read their words through useI18n (TSX): as `$t` below.
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key) => key }),
+  // The contact window's chat bubble (I18nText) takes this off the module, now that it is
+  // imported and no longer resolved by name; the window itself is stubbed here.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 // useAvatarZoom imports the wallet's i18n instance, which the mock above cannot create.
 vi.mock('@/i18n', () => ({

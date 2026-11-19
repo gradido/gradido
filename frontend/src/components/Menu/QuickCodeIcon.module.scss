@@ -1,0 +1,28 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+.quick-code-icon {
+  position: relative;
+  display: inline-flex;
+  line-height: 1;
+}
+
+.quick-code-icon :global(.quick-code-icon-code) {
+  width: 1em;
+  height: 1em;
+}
+
+/* Up in the corner and mostly OUTSIDE the square, so the arrow does not have to be read
+   through the code pattern. The 44px target leaves 11px of air around a 22px glyph, and
+   the arrow lives in that air; nothing needs a halo behind it. */
+.quick-code-icon :global(.quick-code-icon-arrow) {
+  position: absolute;
+  top: -0.26em;
+  right: -0.36em;
+  width: 0.72em;
+  height: 0.72em;
+}

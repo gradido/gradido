@@ -1,12 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
-import UserName from './UserName.vue'
+import { UserName } from './UserName'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 
 vi.mock('@/components/Inputs/InputUsername', () => ({
-  default: {
+  InputUsername: {
     name: 'InputUsername',
     template: '<div></div>',
   },
@@ -93,7 +93,8 @@ vi.mock('vee-validate', () => ({
     handleSubmit: handleSubmitMock,
     setFieldValue: setFieldValueMock,
     values: valuesMock.value,
-    errors: errorsMock.value,
+    // `errors` is a computed ref in vee-validate, and the form reads it through `.value`.
+    errors: errorsMock,
   }),
 }))
 

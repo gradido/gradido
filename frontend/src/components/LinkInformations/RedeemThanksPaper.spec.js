@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import i18n from '@/i18n'
-import RedeemThanksPaper from './RedeemThanksPaper.vue'
+import { RedeemThanksPaper } from './RedeemThanksPaper'
 
 /**
  * The sheet a thank-you arrives on. Rendered with the wallet's own vue-i18n and its own
@@ -32,19 +32,21 @@ const paper = (linkData = link(), slots = {}) =>
 
 const from = (wrapper) => wrapper.find('[data-test="redeem-thanks-paper-from"]')
 
-const sfc = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), 'RedeemThanksPaper.vue'),
-  'utf8',
-)
+// The component is a .tsx file with its style module beside it.
+const here = dirname(fileURLToPath(import.meta.url))
+const source = readFileSync(join(here, 'RedeemThanksPaper.tsx'), 'utf8')
+const styles = readFileSync(join(here, 'RedeemThanksPaper.module.scss'), 'utf8')
 // The file explains in comments what it must not do; a search over the raw text would find
 // its own explanation.
 const live = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
-const template = live(sfc.slice(sfc.indexOf('<template>'), sfc.indexOf('<script')))
-const script = sfc
-  .slice(sfc.indexOf('<script'), sfc.indexOf('</script>'))
-  .replace(/^\s*\/\/.*$/gm, '')
-// Every style block of the file.
-const css = live(sfc.slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>')))
+// What `setup` renders, read as the template was: with the quotes a template writes.
+const template = live(source.slice(source.indexOf('setup('))).replaceAll("'", '"')
+const script = source.replace(/^\s*\/\/.*$/gm, '')
+// The style module, read as the scoped block wrote its rules: without the root's class in front
+// of them and without `:global`, which stand in for the scope attribute.
+const css = live(styles)
+  .replaceAll(':global(.dark-mode) ', '.dark-mode ')
+  .replace(/\.redeem-thanks-paper :global\(([^()]*)\)/g, '$1')
 
 describe('RedeemThanksPaper', () => {
   beforeEach(() => {
@@ -220,7 +222,7 @@ describe('RedeemThanksPaper', () => {
 
     it('are never handed to the page as markup', () => {
       expect(template).not.toMatch(/v-html|innerHTML/)
-      expect(live(sfc)).not.toMatch(/innerHTML/)
+      expect(live(source)).not.toMatch(/innerHTML/)
     })
   })
 
@@ -551,7 +553,8 @@ describe('RedeemThanksPaper', () => {
     it('is the one declaration the wallet has, taken in from the script', () => {
       expect(script).toMatch(/^import '@\/assets\/fonts\/caveat\/caveat\.css'$/m)
       expect(css).not.toMatch(/@font-face/)
-      expect(sfc.match(/<style/g)).toHaveLength(1)
+      // Two style imports: the declaration of the face, and the one style module.
+      expect(source.match(/^import .*\.s?css'$/gm)).toHaveLength(2)
     })
 
     it('is named only by the line that is set in it', () => {

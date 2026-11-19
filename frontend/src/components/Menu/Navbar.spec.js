@@ -8,10 +8,10 @@ import { nextTick } from 'vue'
 import { createRouter, createWebHistory, RouterLink } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
-import Navbar from './Navbar.vue'
+import { Navbar } from './Navbar'
 import { BImg, BNavbar, BNavbarBrand, BNavbarNav } from 'bootstrap-vue-next'
-import AppAvatar from '@/components/AppAvatar.vue'
-import AvatarButton from '@/components/Avatar/AvatarButton.vue'
+import { AppAvatar } from '@/components/AppAvatar'
+import { AvatarButton } from '@/components/Avatar/AvatarButton'
 import { createI18n } from 'vue-i18n'
 import CONFIG from '@/config'
 import { communityHost } from '@/utils/gradidoAddress'
@@ -146,10 +146,13 @@ describe('Navbar', () => {
     // The measures of the logo that stood here, 200px wide: jsdom lays nothing out, so the
     // stylesheet is read -- without its comments, which name the same figures.
     describe('in the measures of the logo', () => {
-      const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'), 'utf8')
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
-      const rule = (selector) => css.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+      // The style module: every rule stands under the root's class (`:global(.navbar-coin)`).
+      const css = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.module.scss'),
+        'utf8',
+      ).replace(/\/\*[\s\S]*?\*\//g, '')
+      const rule = (selector) =>
+        css.match(new RegExp(`\\.${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
       it('keeps the coin as large as it was in the logo', () => {
         expect(rule('navbar-coin')).toMatch(/width:\s*58\.4px;[^}]*height:\s*58\.4px;/)
@@ -246,12 +249,11 @@ describe('Navbar', () => {
       })
 
       it('moves the leaves only in the windows where they stand at the left, and never further left', () => {
+        // The leaves' rules are global and stand in the sheet beside the component.
         const css = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+          join(dirname(fileURLToPath(import.meta.url)), 'Navbar.scss'),
           'utf8',
-        )
-          .replace(/\/\*[\s\S]*?\*\//g, '')
-          .replace(/<!--[\s\S]*?-->/g, '')
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
         const band = css.match(
           /@media screen and \(width >= 1025px\) and \(width <= 1170px\)\s*\{\s*\.sheet-img\s*\{([^}]*)\}/,
         )
@@ -497,10 +499,11 @@ describe('Navbar', () => {
     // jsdom lays nothing out, so the stylesheet says it -- read without its comments.
     it('looks like the block it replaced: no chrome, the full width', () => {
       const style = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
-      const rule = style.match(/\n\.navbar-menu-opener\s*\{([^}]*)\}/)?.[1] ?? ''
+      // The style module: the rule stands under the root's class (`:global(.navbar-menu-opener)`).
+      const rule = style.match(/:global\(\.navbar-menu-opener\)\s*\{([^}]*)\}/)?.[1] ?? ''
 
       expect(rule).toMatch(/display:\s*block/)
       expect(rule).toMatch(/width:\s*100%/)
@@ -715,11 +718,12 @@ describe('Navbar', () => {
      */
     it('lies over the corner and moves nothing, in the stylesheet', () => {
       const style = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'Navbar.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
+      // The style module: every rule stands under the root's class (`:global(.chat-unread-dot)`).
       const rule = (selector) =>
-        style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+        style.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
       expect(rule('\\.chat-unread-dot')).toMatch(/position:\s*absolute/)
       expect(rule('\\.chat-unread-dot')).toMatch(/background:\s*#c08935/)
@@ -736,19 +740,20 @@ describe('Navbar', () => {
    */
   it('keeps tools and member block side by side below the desktop, in the stylesheet', () => {
     const style = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'Navbar.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'Navbar.module.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     const band =
       style.match(/@media screen and \(width <= 1024\.98px\)\s*\{([\s\S]*?\})\s*\}/)?.[1] ?? ''
     const rule = (selector) => band.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
-    expect(rule(':deep\\(\\.container-fluid\\)')).toMatch(/flex-wrap:\s*nowrap/)
+    // What `:deep()` reached in the scoped block, `:global()` under the root's class reaches here.
+    expect(rule(':global\\(\\.container-fluid\\)')).toMatch(/flex-wrap:\s*nowrap/)
     // Without this the block keeps its full width and pushes out of the window instead.
-    expect(rule(':deep\\(\\.navbar-nav\\)')).toMatch(/min-width:\s*0/)
-    expect(rule(':deep\\(\\.navbar-brand\\)')).toMatch(/margin-right:\s*0/)
+    expect(rule(':global\\(\\.navbar-nav\\)')).toMatch(/min-width:\s*0/)
+    expect(rule(':global\\(\\.navbar-brand\\)')).toMatch(/margin-right:\s*0/)
     // And a long name breaks rather than holding the block wide.
-    expect(style.match(/\n\.navbar-settings-link\s*\{([^}]*)\}/)?.[1]).toMatch(
+    expect(style.match(/:global\(\.navbar-settings-link\)\s*\{([^}]*)\}/)?.[1]).toMatch(
       /overflow-wrap:\s*anywhere/,
     )
   })
@@ -757,8 +762,8 @@ describe('Navbar', () => {
    * The height of this navbar is somebody else's problem, and that is the whole point.
    *
    * Below 450px it is `position: fixed` and translucent, so the page needs matching clearance
-   * underneath -- `.breadcrumb`'s `padding-top` in layouts/DashboardLayout.vue plus
-   * `.page-breadcrumb`'s `margin-top` in Breadcrumb/breadcrumb.vue, 69 + 48 = 117px today
+   * underneath -- `.breadcrumb`'s `padding-top` in layouts/DashboardLayout.css plus
+   * `.page-breadcrumb`'s `margin-top` in Breadcrumb/breadcrumb.module.scss, 69 + 48 = 117px today
    -- measured on the phone, after 131 turned out to be about twice the room needed.
    *
    * ⛔ On 21.08.2026 the four till tools were added as a second row of 44px. The note written
@@ -786,8 +791,8 @@ describe('Navbar', () => {
         rows,
         `The navbar now needs ${rows} rows of tools. The clearance below it was calculated ` +
           `for ${ROWS_THE_CLEARANCE_ALLOWS}: raise .breadcrumb's padding-top in ` +
-          `DashboardLayout.vue by about 44px per extra row, and take the same again out of ` +
-          `the space under the heading in breadcrumb.vue, or the page slides down with it.`,
+          `DashboardLayout.css by about 44px per extra row, and take the same again out of ` +
+          `the space under the heading in breadcrumb.module.scss, or the page slides down with it.`,
       ).toBe(ROWS_THE_CLEARANCE_ALLOWS)
     })
   })
