@@ -1,0 +1,13 @@
+{
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": [
+      "package.json",
+      "src/**/*.ts",
+      "tests/**/*.ts",
+      "!**/build",
+      "!**/node_modules"
+    ]
+  }
+}

@@ -44,6 +44,15 @@ The admin interface (`admin/`) is written in Mithril and built with Vite; nginx 
 - **Unit tests:** `bun test` files next to the code (`src/**/*.test.ts`), run with `bunx turbo test --filter=admin`.
 - **Browser tests:** the Playwright specs in `admin/tests` run against the built admin, with the backend answered by the specs: `cd admin && bun run test:e2e`.
 
+## The wallet is being rewritten
+
+The wallet gets the same rewrite: `frontend/` (Vue) stays the wallet that is deployed, `frontend-mithril/` (Mithril) grows beside it page by page. The steps, cut into pull requests, are in `frontend-mithril/todo.md`. **Until the switch named there, changes to the wallet's behaviour are made in `frontend/`**, and in `frontend-mithril/` as well where the page is already ported.
+
+- **Not a 1:1 port:** before a page is ported, look at what Mithril makes unnecessary (reactivity wrappers, emit plumbing, the Apollo cache), what exists twice and what nothing uses. What the browser shows and does stays the same. Answers of the backend and forms are checked by valibot schemas (`src/data/*.schema.ts`), not value by value.
+- **Shared files:** `frontend-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `frontend/src` through the `@frontend` alias, and serves `frontend/public`. They still live there and are changed there. Its settings come from `frontend/.env`; `frontend-mithril/.env` holds only a port of its own.
+- **Specs:** the Playwright specs in `frontend-mithril/tests` run against the old wallet (projects `old`, `old-phone`), and against the Mithril wallet (`new`, `new-phone`) only once their file is listed in `PORTED_TO_MITHRIL` in `frontend-mithril/playwright.config.ts`. A page is ported when its specs, written against the old wallet first, pass against the new one.
+- **Running the specs:** `cd frontend-mithril && bun run test:compare`. The old wallet's Vitest suite (`bunx turbo test --filter=frontend`) keeps running as well.
+
 # Running builds, tests and checks
 
 Always use **Turbo** from the repository root for the **first** build or test run after making changes. This ensures all declared task dependencies are executed.

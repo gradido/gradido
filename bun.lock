@@ -379,6 +379,32 @@
         "webpack": "^5",
       },
     },
+    "frontend-mithril": {
+      "name": "frontend-mithril",
+      "version": "3.2.0",
+      "dependencies": {
+        "bootstrap": "^5.3.3",
+        "graphql": "16.14.2",
+        "graphql-tag": "^2.12.6",
+        "mithril": "^2.2.15",
+        "valibot": "1.1.0",
+      },
+      "devDependencies": {
+        "@biomejs/biome": "2.5.15",
+        "@playwright/test": "1.64.1",
+        "@types/bun": "1.4.3",
+        "@types/mithril": "^2.2.7",
+        "config-schema": "*",
+        "dotenv": "^16.6.1",
+        "lightningcss": "^1.30.1",
+        "sass": "1.83.4",
+        "vite": "^5.4.14",
+        "vite-plugin-commonjs": "^0.10.1",
+        "vite-plugin-environment": "^1.1.3",
+        "vite-plugin-graphql-loader": "^4.0.4",
+        "vite-plugin-html": "^3.2.2",
+      },
+    },
     "shared": {
       "name": "shared",
       "version": "3.2.0",
@@ -2030,6 +2056,8 @@
     "fresh": ["fresh@0.5.2", "", {}, "sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q=="],
 
     "frontend": ["frontend@workspace:frontend"],
+
+    "frontend-mithril": ["frontend-mithril@workspace:frontend-mithril"],
 
     "fs-extra": ["fs-extra@10.1.0", "", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-oRXApq54ETRj4eMiFzGnHWGy+zo5raudjuxN0b8H7s/RU2oW0Wvsx9O0ACRN/kRq9E8Vu/ReskGB5o3ji+FzHQ=="],
 
@@ -3702,6 +3730,8 @@
     "frontend/sass": ["sass@1.83.4", "", { "dependencies": { "chokidar": "^4.0.0", "immutable": "^5.0.2", "source-map-js": ">=0.6.2 <2.0.0" }, "optionalDependencies": { "@parcel/watcher": "^2.4.1" }, "bin": { "sass": "sass.js" } }, "sha512-B1bozCeNQiOgDcLd33e2Cs2U60wZwjUUXzh900ZyQF5qUasvMdDZYbQ566LJu7cqR+sAHlAfO6RMkaID5s6qpA=="],
 
     "frontend/uuid": ["uuid@9.0.1", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA=="],
+
+    "frontend-mithril/sass": ["sass@1.83.4", "", { "dependencies": { "chokidar": "^4.0.0", "immutable": "^5.0.2", "source-map-js": ">=0.6.2 <2.0.0" }, "optionalDependencies": { "@parcel/watcher": "^2.4.1" }, "bin": { "sass": "sass.js" } }, "sha512-B1bozCeNQiOgDcLd33e2Cs2U60wZwjUUXzh900ZyQF5qUasvMdDZYbQ566LJu7cqR+sAHlAfO6RMkaID5s6qpA=="],
 
     "global-prefix/which": ["which@1.3.1", "", { "dependencies": { "isexe": "^2.0.0" }, "bin": { "which": "./bin/which" } }, "sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ=="],
 

@@ -17,6 +17,7 @@
     "dht-node",
     "federation",
     "frontend",
+    "frontend-mithril",
     "shared",
     "shared-native"
   ],

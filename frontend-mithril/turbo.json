@@ -1,0 +1,32 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["frontend#compile-scss", "^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "$TURBO_ROOT$/frontend/.env*",
+        "$TURBO_ROOT$/frontend/src/**",
+        "$TURBO_ROOT$/frontend/public/**"
+      ],
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "FRONTEND_*", "COMMUNITY_*", "GRAPHQL_*", "ADMIN_AUTH_*",
+        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL"
+      ]
+    },
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "$TURBO_ROOT$/frontend/.env*",
+        "$TURBO_ROOT$/frontend/src/**",
+        "$TURBO_ROOT$/frontend/index.html"
+      ],
+      "env": [
+        "NODE_ENV", "BUILD_COMMIT", "FRONTEND_*", "COMMUNITY_*", "GRAPHQL_*", "ADMIN_AUTH_*",
+        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL"
+      ]
+    }
+  }
+}

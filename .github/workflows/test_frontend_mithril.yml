@@ -1,0 +1,126 @@
+# AI-GENERATED — not an architecture reference
+# The Mithril wallet: its unit tests, lint and types, and the Playwright specs run against both the
+# old wallet and the new one. No *_skipped.yml companion: no check of this workflow is required for
+# a merge yet. Once one is, it needs one (see test_frontend_skipped.yml).
+
+name: Gradido Frontend Mithril Test CI
+
+on:
+  push:
+    paths:
+      - 'frontend-mithril/**'
+      # its GraphQL documents, locales, styles and config come from there, and the specs run there too
+      - 'frontend/**'
+      # the answers the specs make up are held against it, by the admin's fixture
+      - 'backend/schema.graphql'
+      - 'admin/tests/fixtures/graphql.ts'
+      - 'config-schema/**'
+      - 'shared/**'
+      - '.bun-version'
+      - '.nvmrc'
+      - '.github/workflows/test_frontend_mithril.yml'
+
+jobs:
+  unit_test_lint:
+    name: Unit Tests & Lint & Typecheck - Frontend Mithril
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: install bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter frontend-mithril --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      # Only config-schema: turbo's ^build would build shared-native, a Zig addon, as well.
+      - name: build what the wallet imports
+        run: turbo build --filter=config-schema
+
+      - name: Frontend Mithril | Unit tests, lint, typecheck
+        working-directory: frontend-mithril
+        run: |
+          bun run test
+          bun run lint
+          bun run typecheck
+
+  compare:
+    name: Playwright - Frontend Mithril against the old wallet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: install bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: install dependencies
+        run: |
+          bun install --filter frontend-mithril --filter frontend --frozen-lockfile
+          bun install --global --no-save turbo@^2
+
+      # what both wallets import at runtime (see the job above for why not ^build), and the
+      # styles both load: gradido.css is compiled, not checked in
+      - name: build what the wallets import
+        run: |
+          turbo build --filter=config-schema
+          bun run --cwd frontend compile-scss
+
+      # The browser moves with the Playwright version, and so does the key.
+      - name: Cache Playwright's Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend-mithril/package.json') }}
+
+      - name: install Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        working-directory: frontend-mithril
+        run: bunx playwright install --with-deps chromium
+
+      - name: install Chromium's system libraries
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        working-directory: frontend-mithril
+        run: bunx playwright install-deps chromium
+
+      # The old wallet is the reference, on its way out, and runs on its dev server: the retry is
+      # allowed to pass there. First, because it takes the pictures the Mithril wallet is held to.
+      - name: Frontend Mithril | Playwright against the old wallet
+        id: old
+        working-directory: frontend-mithril
+        run: bunx playwright test --project=old --project=old-phone
+
+      # A test that passes only on its retry fails the run: the retry is there for the trace.
+      # --no-deps: the old wallet has just run.
+      - name: Frontend Mithril | Playwright against the Mithril wallet
+        id: new
+        if: ${{ !cancelled() }}
+        working-directory: frontend-mithril
+        run: bunx playwright test --project=new --project=new-phone --no-deps --pass-with-no-tests --fail-on-flaky-tests
+
+      # traces of the failed tests (trace: on-first-retry in CI)
+      - name: upload traces of failed tests
+        if: ${{ failure() && (steps.new.conclusion == 'failure' || steps.old.conclusion == 'failure') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-mithril-test-results
+          path: frontend-mithril/test-results
+          retention-days: 7
