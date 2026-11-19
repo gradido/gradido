@@ -30,8 +30,8 @@ the end of a session — is in `ARCHITECTURE.md`. It is a draft until steps 2 an
 and those two steps correct it.
 
 1. **Specs first, against the old wallet.** Write the Playwright specs of the step, with
-   `samePicture` at every state worth a picture (light and dark, desk and phone come for free
-   through the projects; dark through `localStorage['gradido-theme-mode']`). They pass on `old`.
+   `samePicture` at every state worth a picture (desk and phone come for free through the
+   projects; for a dark picture the spec sets `localStorage['gradido-theme-mode']` itself). They pass on `old`.
    Then port, then add the files to `PORTED_TO_MITHRIL`. The old mount tests
    (`@vue/test-utils`, 241 files, 110,000 lines) are the list of behaviour to cover; they are
    not translated.
@@ -230,11 +230,14 @@ the Vue-only utils, `main.js`, `App.tsx`, `i18n.js`, the Vue, Apollo, vee-valida
 bootstrap-vue-next, ESLint and Prettier dependencies and their config files (about 150).
 What `frontend-mithril` imports through `@frontend` stays.
 
-**23. One folder** — moves only, each pull request without a change of content
+**23. One folder** — moves only: a moved file keeps its content, but for the import paths and
+the build configuration the move itself changes, in the same pull request. Each of them leaves
+both the build and the specs passing.
 (a) styles: `assets/scss`, the `*.module.scss` and `.css` files next to their Mithril
 components (about 200), `compile-scss` becomes a step of the one build; (b) `locales`,
 `graphql`, `config` (as ESM TypeScript, without `vite-plugin-commonjs`), the remaining utils,
-`public` (about 200); the `@frontend` alias and the second `index.html` go. (c)
+`public` (about 200); with the last of them the `@frontend` alias and the second `index.html`
+go, once nothing imports through the alias. (c)
 `frontend-mithril` → `frontend`. **This rename is larger than 250 files** and cannot be cut
 without breaking the build in between: review it with `git diff -M --stat` (renames only), not
 with CodeRabbit. Then the workflow becomes `test_frontend.yml`, with its `_skipped` companion,

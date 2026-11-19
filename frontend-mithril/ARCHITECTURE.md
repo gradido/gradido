@@ -96,7 +96,10 @@ if (!answer.success) return toastError(answer.error.message)
 this.contributions = answer.value.listContributions
 ```
 
-- `request` returns `Result<T, GraphqlRequestError>`; it never throws.
+- `request` returns `Result<T, GraphqlRequestError>` for what can go wrong while the wallet is
+  right: no network, an error of the server, an answer that does not fit the schema. A mistake
+  of the caller (no document, variables the document does not declare) throws, as everywhere
+  in this repository.
 - The schema describes what the page uses of the answer, with defaults where the server may
   send null. An answer that does not fit is a failure like any other, and is reported once in
   `request` — not checked field by field afterwards.
@@ -144,6 +147,9 @@ policy:
 - `refresh()` where the reader shows the last value at once and wants the current one
   (`cache-and-network` of today: first-creation status, alias status, the balance). It always
   asks; `value` stays on screen until the answer replaces it.
+
+The newest wins: an answer is taken only if no later request was started and `value` was not
+assigned since it was asked. An older answer that arrives late is dropped.
 
 A page that changed the fact assigns `value` or calls `refresh()`. About 25 lines, in
 `store/resource.ts`. Anything asked by one place only is view state and uses `request` directly.
@@ -197,8 +203,9 @@ tab — the token is removed from `localStorage` and the page is loaded anew at 
 
 **When another member signs in in another tab**, their token arrives in the `localStorage` both
 tabs share. This tab is loaded anew and the token is left alone: it is theirs, and removing it
-would sign them out. The wallet then starts as it does today with a token that is not the
-member's whose profile it holds.
+would sign them out. At its start the wallet takes a token only if it names the member whose
+profile is stored, as today; otherwise it starts signed out, and the token stays in
+`localStorage` for its owner.
 
 With that reload every store, every resource, every timer and every request under way
 is gone. The list of twenty `forget…` functions and the epoch counters go.
