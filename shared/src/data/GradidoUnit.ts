@@ -6,7 +6,7 @@ import {
   toDecimalPlaces as toDecimalPlacesNative,
 } from 'shared-native'
 import { DECAY_START_TIME } from '../const'
-import { Decay } from '../schema/base.schema'
+import { Decay } from '../schema/node.schema'
 import { Duration } from './Duration'
 
 export class GradidoUnit {

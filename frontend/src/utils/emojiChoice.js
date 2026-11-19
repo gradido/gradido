@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { CHAT_REACTION_EMOJI_ROWS } from 'shared/browser'
 import { isComputer } from '@/utils/isComputer'
 
 /**
@@ -10,19 +11,17 @@ import { isComputer } from '@/utils/isComputer'
  * nothing newer than Unicode 11 (2018) -- an older phone or computer draws a newer emoji as an
  * empty box --, no flag (Windows draws two letters), no skin tone and nothing joined out of
  * several (one sign, at most with the selector that asks for the coloured drawing). The spec
- * holds the count and the plainness; the age is held by this list.
+ * holds the count and the plainness; the age is held by the list.
+ *
+ * The list itself is the server's (CHAT_REACTION_EMOJI_ROWS in `shared`): it takes no other
+ * reaction.
  *
  * The rows, for whoever changes one: joy · feelings · hands · hearts · nature and feasts ·
  * everyday.
  */
-export const EMOJI_ROWS = Object.freeze([
-  Object.freeze(['🙂', '😊', '😄', '😂', '🤣', '😉', '😍', '🥰']),
-  Object.freeze(['😘', '🤗', '😎', '🤔', '😮', '😅', '😢', '😴']),
-  Object.freeze(['👍', '👏', '🙏', '🙌', '👋', '🤝', '💪', '✌️']),
-  Object.freeze(['❤️', '🧡', '💛', '💚', '💙', '💜', '💖', '✨']),
-  Object.freeze(['🌱', '🌻', '🌈', '☀️', '🍀', '🎉', '🎁', '🎂']),
-  Object.freeze(['☕', '🍰', '🏡', '🚲', '📅', '✅', '❓', '❗']),
-])
+export const EMOJI_ROWS = Object.freeze(
+  CHAT_REACTION_EMOJI_ROWS.map((row) => Object.freeze([...row])),
+)
 
 /**
  * Whether the smiley stands beside a text field: at a computer only. A phone and a tablet have

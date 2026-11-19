@@ -266,7 +266,7 @@ describe('the entry the store keeps for a visitor who is not signed in', () => {
   })
 })
 
-// The two lengths exist a second time, each where the wallet cannot import it from.
+// The length of the sentence exists a second time, in the form's own markup.
 describe('the lengths an entry holds, here and where they are set', () => {
   const here = dirname(fileURLToPath(import.meta.url))
 
@@ -277,17 +277,5 @@ describe('the lengths an entry holds, here and where they are set', () => {
     // The fixture has to prove itself: no match would compare a number with nothing.
     expect(field).toBeDefined()
     expect(EVENT_MATCHING_SUMMARY_MAX_CHARS).toBe(Number(field))
-  })
-
-  it('is the length of the details the server takes', () => {
-    // Read as text, not imported: shared/src/const/index.ts loads a native binding.
-    const shared = readFileSync(
-      join(here, '..', '..', '..', 'shared', 'src', 'const', 'index.ts'),
-      'utf8',
-    )
-    const [, chars] = shared.match(/^export const MATCHING_ENTRY_DETAILS_MAX_CHARS = (\d+)$/m) ?? []
-
-    expect(chars).toBeDefined()
-    expect(EVENT_MATCHING_DETAILS_MAX_CHARS).toBe(Number(chars))
   })
 })

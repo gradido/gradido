@@ -1,6 +1,6 @@
-import { Geometry } from 'geojson'
+import type { Geometry } from 'geojson'
 import * as v from 'valibot'
-import { LocationPointInput, locationPointSchema } from '../schema'
+import { LocationPointInput, locationPointSchema } from '../schema/base.schema'
 
 // return true if a and b are both a location point and both contain the same coordinates or if both are null and/or undefined
 export function isLocationPointsEqual(

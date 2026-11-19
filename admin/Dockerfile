@@ -87,8 +87,8 @@ COPY --chown=app:app . .
 RUN bun install --filter admin --no-cache --frozen-lockfile \
 && bun install --global turbo@^2
 
-# Only config-schema: of shared the admin takes a type alone, and turbo's ^build would build
-# shared-native, a Zig addon, for it.
+# Only config-schema: of shared the admin takes `shared/browser`, straight from its source, and
+# turbo's ^build would build shared-native, a Zig addon, for it.
 RUN turbo build --filter=config-schema --env-mode=loose && cd admin && bun run build
 
 ##################################################################################

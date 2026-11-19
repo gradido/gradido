@@ -1,10 +1,6 @@
 import * as v from 'valibot'
-import {
-  durationSchema,
-  positiveIntegerSchema,
-  urlSchema,
-  uuidv4Schema,
-} from '../schema/base.schema'
+import { positiveIntegerSchema, urlSchema, uuidv4Schema } from '../schema/base.schema'
+import { durationSchema } from '../schema/node.schema'
 import { getPrivateKeyObjekt, getPublicKeyObject } from './JWT'
 import { JwtSigner } from './JwtSigner'
 

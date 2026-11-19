@@ -1,3 +1,5 @@
+import { CODE_VALID_DAYS_DURATION } from 'shared/browser'
+
 export const GDD_PER_HOUR = 20
 export const PAGE_SIZE = 25
 
@@ -26,12 +28,10 @@ export const LAST_TRANSACTIONS_ROWS = 5
  */
 export const LAST_TRANSACTIONS_PAGE_SIZE = 8
 /**
- * How many days a transaction link stays open. The server's number (`CODE_VALID_DAYS_DURATION`
- * in shared/src/const/index.ts); the wallet cannot import from there, so it stands here a
- * second time, and constants.drift.spec.js reads the server's file to hold the two together.
- * Said to the member where a thank-you greeting is made ("Dein Gruß wartet 14 Tage").
+ * How many days a transaction link stays open: the server's number. Said to the member where a
+ * thank-you greeting is made ("Dein Gruß wartet 14 Tage").
  */
-export const LINK_VALID_DAYS = 14
+export const LINK_VALID_DAYS = CODE_VALID_DAYS_DURATION
 // compound interest factor (decay reversed) for the days a link stays open
 // 365.2425 days per year (gregorian calendar year)
 export const LINK_COMPOUND_INTEREST_FACTOR = Math.pow(2, LINK_VALID_DAYS / 365.2425)

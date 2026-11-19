@@ -20,6 +20,7 @@
 // has to reach the pictures already lying on this device, or turning the switch off would
 // leave the face on screen until the browser storage happened to be cleared.
 
+import { MEMBER_AVATARS_MAX_REFS } from 'shared/browser'
 import { ref } from 'vue'
 import { keptPictureSource } from '@/composables/useKeptPictures'
 import { avatarLettering } from '@/utils/avatarLettering'
@@ -402,12 +403,9 @@ export const forgetAllMemberAvatars = () => {
   announceChange()
 }
 
-/**
- * What one memberAvatars request may name -- the server's cap, in
- * shared/src/const/frontendReadable.ts. Over it the request is refused WHOLE, so the
- * two numbers must not drift; useMemberAvatars.drift.spec.js holds them together.
- */
-export const MEMBER_AVATARS_MAX_REFS = 100
+// What one memberAvatars request may name -- the server's cap, and the server's own constant:
+// over it the request is refused WHOLE.
+export { MEMBER_AVATARS_MAX_REFS }
 
 /**
  * Fetches the pictures these members' rows are missing, and forgets the ones withdrawn.

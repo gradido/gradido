@@ -1,4 +1,5 @@
 // AI-GENERATED — not an architecture reference
+import { MATCHING_ENTRY_DETAILS_MAX_CHARS, MATCHING_ENTRY_SUMMARY_MAX_CHARS } from 'shared/browser'
 import type { LocationQuery } from 'vue-router'
 import type { EntryDraft } from '@/composables/useEntryDraft'
 
@@ -39,9 +40,9 @@ export type EventMatchingEntry = { summary: string; details: string | null; remo
 export type KeptEventMatchingEntry = EventMatchingEntry & { keptAt: number }
 
 /** As long as the sentence of an entry may be (the column, and the field of the form). */
-export const EVENT_MATCHING_SUMMARY_MAX_CHARS = 160
-/** As long as the details of an entry may be (MATCHING_ENTRY_DETAILS_MAX_CHARS in `shared`). */
-export const EVENT_MATCHING_DETAILS_MAX_CHARS = 2000
+export const EVENT_MATCHING_SUMMARY_MAX_CHARS = MATCHING_ENTRY_SUMMARY_MAX_CHARS
+/** As long as the details of an entry may be. */
+export const EVENT_MATCHING_DETAILS_MAX_CHARS = MATCHING_ENTRY_DETAILS_MAX_CHARS
 /**
  * As long as the wallet keeps what a link offered somebody who was not signed in: an hour. It
  * is kept for the sign-in that follows the link -- the page's button, the form, perhaps a

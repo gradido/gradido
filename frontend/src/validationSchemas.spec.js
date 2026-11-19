@@ -1,9 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { amount, identifier, memo, message } from '@/validationSchemas'
 
-// The frontend cannot import yet from the shared package, so these bounds are written
-// out twice: here and in shared/src/const/index.ts. That makes them easy to widen
-// on one side only, which is exactly what these tests are here to catch.
+// The bounds are written out here a second time, on purpose: a bound widened in the shared
+// package is to be noticed, which is what these tests are here for.
 //
 // A memo travels with a transaction. It is stored in a varchar(512) column and the
 // dlt-connector validates it a second time against its own copy of the bounds, so

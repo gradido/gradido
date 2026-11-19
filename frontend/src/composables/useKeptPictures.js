@@ -19,6 +19,7 @@
 //     browser storage the faces of other members already share (useMemberAvatars, MAX_ENTRIES), so
 //     they are asked for again on every visit -- one request, at the start of the layout.
 
+import { KEPT_PICTURES_MAX_PER_MEMBER } from 'shared/browser'
 import { ref } from 'vue'
 import {
   keptPictureFullQuery,
@@ -31,12 +32,9 @@ import { chatMemberKey } from '@/utils/chatMemberKey'
 
 const DEVICE_KEY = 'gradido-kept-pictures'
 
-/**
- * How many people a member may keep a picture of: the server's limit, named where a member reaches
- * it. The wallet has no dependency on `shared`; useKeptPictures.drift.spec.js holds this copy
- * against shared/src/const/frontendReadable.ts.
- */
-export const KEPT_PICTURES_MAX_PER_MEMBER = 100
+// How many people a member may keep a picture of: the server's limit, named where a member
+// reaches it.
+export { KEPT_PICTURES_MAX_PER_MEMBER }
 
 // The member whose pictures these are, and their community: a person named without one is of it,
 // as the server reads it (chatMemberKey).

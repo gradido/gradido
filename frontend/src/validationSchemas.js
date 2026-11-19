@@ -1,3 +1,11 @@
+import {
+  MESSAGE_MAX_CHARS,
+  MESSAGE_MIN_CHARS,
+  RESERVED_ALIAS,
+  SUPPORT_TICKET_MESSAGES_MAX,
+  SUPPORT_TICKET_TEXT_MIN_CHARS,
+  SUPPORT_TICKETS_PER_DAY_MAX,
+} from 'shared/browser'
 import { number, string } from 'yup'
 import { validate as validateUuid, version as versionUuid } from 'uuid'
 import { splitRecipient } from '@/utils/gradidoAddress'
@@ -11,27 +19,8 @@ export const USERNAME_REGEX = /^(?=.{3,20}$)[a-zA-Z0-9]+(?:[_-][a-zA-Z0-9]+?)*$/
 // for the field and for what the send page offers such a recipient.
 export const isEmailIdentifier = (value) => EMAIL_REGEX.test(value)
 
-// Nobody may hold these names. Keep in step with RESERVED_ALIAS in
-// shared/src/schema/user.schema.ts - the frontend cannot yet import from it.
-export const RESERVED_ALIAS = [
-  'admin',
-  'email',
-  'gast',
-  'gdd',
-  'gradido',
-  'guest',
-  'home',
-  'root',
-  'support',
-  'temp',
-  'tmp',
-  'user',
-  'usr',
-  'var',
-  'reserved',
-  'undefined',
-  'unknown',
-]
+// Nobody may hold these names: the server's list.
+export { RESERVED_ALIAS }
 
 // A name the server takes as a user name (aliasSchema in shared): the shape, and no reserved word.
 export const isValidUsername = (value) =>
@@ -90,25 +79,22 @@ export const memo = string()
 
 // A person-to-person message carries no amount and is stored in no varchar column,
 // so it may be longer than a memo, and a short reply like "Yes" has to pass as well.
-// Keep in step with MESSAGE_*_CHARS in the shared package -- validationSchemas.drift.spec.js
-// holds the two together, and shared says what the upper bound is bounded by. Reuses the memo
-// wording: those texts already say "message" and interpolate the bound.
-// The upper bound is exported for the fields that stop there: the chat's compose bar, and the
-// words that go with a forwarded message.
-export const MESSAGE_MAX_CHARS = 5000
+// The bounds are MESSAGE_*_CHARS of the shared package, which says what the upper one is
+// bounded by. Reuses the memo wording: those texts already say "message" and interpolate the
+// bound. The upper bound is exported for the fields that stop there: the chat's compose bar,
+// and the words that go with a forwarded message.
+export { MESSAGE_MAX_CHARS }
 
 export const message = string()
   .required('form.validation.memo.required')
-  .min(1, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
+  .min(MESSAGE_MIN_CHARS, ({ min }) => ({ key: 'form.validation.memo.min', values: { min } }))
   .max(MESSAGE_MAX_CHARS, ({ max }) => ({ key: 'form.validation.memo.max', values: { max } }))
 
 // A support request (SUA-015, SUA-020): the words of a message, and at least a few of them. A
 // member files at most so many requests in 24 hours, and a thread holds at most so many messages
-// -- the words the wallet shows where the server refuses at either. Keep in step with
-// SUPPORT_TICKET_* in the shared package; validationSchemas.drift.spec.js holds them together.
-export const SUPPORT_TICKET_TEXT_MIN_CHARS = 5
-export const SUPPORT_TICKETS_PER_DAY_MAX = 10
-export const SUPPORT_TICKET_MESSAGES_MAX = 100
+// -- the words the wallet shows where the server refuses at either. The numbers are
+// SUPPORT_TICKET_* of the shared package.
+export { SUPPORT_TICKET_MESSAGES_MAX, SUPPORT_TICKET_TEXT_MIN_CHARS, SUPPORT_TICKETS_PER_DAY_MAX }
 
 export const supportTicketText = string()
   .trim()

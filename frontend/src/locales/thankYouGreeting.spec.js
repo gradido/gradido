@@ -7,11 +7,7 @@ import { dirname, join } from 'node:path'
 import i18n from '@/i18n'
 import { RedeemThanksPaper } from '@/components/LinkInformations/RedeemThanksPaper'
 import { canWriteByHand } from '@/utils/handwriting'
-import {
-  isOneLine,
-  memoBeginsWithLine,
-  THANK_YOU_LINE_MAX_CHARS,
-} from '../../../shared/src/data/ThankYouGreeting.logic'
+import { isOneLine, memoBeginsWithLine, THANK_YOU_LINE_MAX_CHARS } from 'shared/browser'
 
 /**
  * The words of the thank-you greeting (`thank-you-greeting.*`), in all ten languages. Rendered

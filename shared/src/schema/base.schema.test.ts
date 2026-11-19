@@ -5,15 +5,13 @@ import * as v from 'valibot'
 import { Duration } from '../data/Duration'
 import {
   blankAsNull,
-  durationSchema,
   emailSchema,
-  hexBytesSchema,
-  nodeCryptoKeyObjectSchema,
   positiveIntegerSchema,
   uint32Schema,
   uint64StringSchema,
   uuidv4Schema,
 } from './base.schema'
+import { durationSchema, hexBytesSchema, nodeCryptoKeyObjectSchema } from './node.schema'
 
 describe('uuidv4 schema', () => {
   it('should validate uuidv4 (40x)', () => {

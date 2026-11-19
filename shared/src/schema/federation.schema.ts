@@ -1,5 +1,6 @@
 import * as v from 'valibot'
-import { dateSchema, ed25519PublicKeySchema, positiveIntegerSchema } from './base.schema'
+import { dateSchema, positiveIntegerSchema } from './base.schema'
+import { ed25519PublicKeySchema } from './node.schema'
 
 // The challenge a request to a peer carries and the peer signs back (RFC 9421 `nonce`): 128 random bits as hex
 // a string in and out: it travels in a query, and the peer signs back exactly what it got
