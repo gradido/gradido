@@ -65,7 +65,9 @@ export default defineConfig(({ command }) => {
       }),
       // the same variables as the old wallet hands to the browser (../frontend/vite.config.mjs)
       EnvironmentPlugin({
+        // worked out from AUTO_POLL_INTERVAL_SECONDS already, so the browser gets no second one
         AUTO_POLL_INTERVAL: CONFIG.AUTO_POLL_INTERVAL,
+        AUTO_POLL_INTERVAL_SECONDS: null,
         BUILD_COMMIT: CONFIG.BUILD_COMMIT,
         CROSS_TX_REDEEM_LINK_ACTIVE: CONFIG.CROSS_TX_REDEEM_LINK_ACTIVE,
         DLT_ACTIVE: CONFIG.DLT_ACTIVE,

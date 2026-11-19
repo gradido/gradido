@@ -29,7 +29,7 @@
         "MAP_*",
         "META_*",
         "*_ACTIVE",
-        "AUTO_POLL_INTERVAL"
+        "AUTO_POLL_INTERVAL*"
       ],
       "outputs": ["build/**"],
       "cache": true
@@ -45,7 +45,7 @@
         "MAP_*",
         "META_*",
         "*_ACTIVE",
-        "AUTO_POLL_INTERVAL"
+        "AUTO_POLL_INTERVAL*"
       ]
     }
   }

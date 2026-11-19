@@ -30,7 +30,7 @@ const environment = (port: number) => ({
   MATCHING_ACTIVE: 'true',
   HUMHUB_ACTIVE: 'true',
   // no request on a clock: a spec that wants one asks for it
-  AUTO_POLL_INTERVAL: '0',
+  AUTO_POLL_INTERVAL_SECONDS: '0',
 })
 
 // The Mithril wallet is tested as it ships: built, and served as files. Built anew for every run,

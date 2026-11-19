@@ -12,7 +12,7 @@
       ],
       "env": [
         "NODE_ENV", "BUILD_COMMIT", "FRONTEND_*", "COMMUNITY_*", "GRAPHQL_*", "ADMIN_AUTH_*",
-        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL"
+        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL*"
       ]
     },
     "test": {
@@ -25,7 +25,7 @@
       ],
       "env": [
         "NODE_ENV", "BUILD_COMMIT", "FRONTEND_*", "COMMUNITY_*", "GRAPHQL_*", "ADMIN_AUTH_*",
-        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL"
+        "MAP_*", "META_*", "*_ACTIVE", "AUTO_POLL_INTERVAL*"
       ]
     }
   }

@@ -25,6 +25,7 @@ const CONFIG = parseConfig(schema, {
   MATCHING_ACTIVE: env(process.env.MATCHING_ACTIVE),
   HUMHUB_ACTIVE: env(process.env.HUMHUB_ACTIVE),
   AUTO_POLL_INTERVAL: env(process.env.AUTO_POLL_INTERVAL),
+  AUTO_POLL_INTERVAL_SECONDS: env(process.env.AUTO_POLL_INTERVAL_SECONDS),
   CROSS_TX_REDEEM_LINK_ACTIVE: env(process.env.CROSS_TX_REDEEM_LINK_ACTIVE),
   COMMUNITY_URL: env(process.env.COMMUNITY_URL),
   GRAPHQL_URI: env(process.env.GRAPHQL_URI),
