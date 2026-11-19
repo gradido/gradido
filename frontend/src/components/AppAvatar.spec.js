@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import AppAvatar from './AppAvatar.vue'
+import { AppAvatar } from './AppAvatar'
 import { AVATAR_COLOR_PALETTE, avatarPaletteEntry } from '@/utils/avatarColor'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -144,7 +144,7 @@ describe('AppAvatar', () => {
     // or a group's square would be a plain square beside the circles. Comments out first, so a
     // radius that is only described does not count.
     it('rounds the corners of the square', () => {
-      const source = readFileSync(join(here, 'AppAvatar.vue'), 'utf8').replace(
+      const source = readFileSync(join(here, 'AppAvatar.css'), 'utf8').replace(
         /\/\*[\s\S]*?\*\//g,
         '',
       )

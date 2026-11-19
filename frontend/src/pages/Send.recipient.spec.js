@@ -51,8 +51,8 @@ vi.mock('@/components/GddSend/TransactionResultSendError', () => ({
 vi.mock('@/components/GddSend/TransactionResultLink', () => ({
   TransactionResultLink: { template: '<div></div>' },
 }))
-vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone.vue', () => ({
-  default: {
+vi.mock('@/components/ThankYouGreeting/ThankYouGreetingDone', () => ({
+  ThankYouGreetingDone: {
     name: 'ThankYouGreetingDone',
     props: {
       created: { type: Object, required: true },

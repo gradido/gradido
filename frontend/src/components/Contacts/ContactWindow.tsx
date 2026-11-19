@@ -11,13 +11,13 @@ import { BModal } from 'bootstrap-vue-next'
 import { computed, defineComponent, onBeforeUnmount, type PropType, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
-import AppAvatar from '@/components/AppAvatar.vue'
-import ChatForwardDialog from '@/components/Chat/ChatForwardDialog.vue'
-import ChatNote from '@/components/Chat/ChatNote.vue'
-import ChatSearchBar from '@/components/Chat/ChatSearchBar.vue'
-import ChatThread from '@/components/Chat/ChatThread.vue'
-import ChatVideoCall from '@/components/Chat/ChatVideoCall.vue'
-import ChatWindowSizeToggle from '@/components/Chat/ChatWindowSizeToggle.vue'
+import { AppAvatar } from '@/components/AppAvatar'
+import { ChatForwardDialog, type ForwardedMessage } from '@/components/Chat/ChatForwardDialog'
+import { ChatNote } from '@/components/Chat/ChatNote'
+import { ChatSearchBar } from '@/components/Chat/ChatSearchBar'
+import { ChatThread, type ChatThreadHandle } from '@/components/Chat/ChatThread'
+import { ChatVideoCall, type ChatVideoCallHandle } from '@/components/Chat/ChatVideoCall'
+import { ChatWindowSizeToggle } from '@/components/Chat/ChatWindowSizeToggle'
 import {
   CONTACT_META_SEPARATOR,
   type Contact,
@@ -26,7 +26,7 @@ import {
   contactOriginLine,
 } from '@/components/Contacts/contactDisplay'
 import { KeptPictureWindow } from '@/components/Contacts/KeptPictureWindow'
-import FavoriteHeart from '@/components/FavoriteHeart.vue'
+import { FavoriteHeart } from '@/components/FavoriteHeart'
 import { useChatWindowNote } from '@/composables/useChatWindowNote'
 import { useChatWindowSearch } from '@/composables/useChatWindowSearch'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
@@ -452,9 +452,9 @@ export const ContactWindow = defineComponent({
     let mutingInFlight = false
 
     /** The thread in this window: a video invitation goes out through it (`deliver`). */
-    const thread = ref<InstanceType<typeof ChatThread> | null>(null)
+    const thread = ref<ChatThreadHandle | null>(null)
     /** The questions of a video call (ChatVideoCall): the camera asks one, a link in the thread the other. */
-    const videoCall = ref<InstanceType<typeof ChatVideoCall> | null>(null)
+    const videoCall = ref<ChatVideoCallHandle | null>(null)
 
     // Another conversation -- the pair the thread is keyed by (`threadKey`), so the same id in
     // another community is another one: nothing of the last one's bell stays up while the new
@@ -541,7 +541,7 @@ export const ContactWindow = defineComponent({
      * one place for the cache, the status and the words for the ear. Nothing goes where there is
      * none.
      */
-    const deliverThroughThread = (message: unknown) =>
+    const deliverThroughThread = (message: Parameters<ChatThreadHandle['deliver']>[0]) =>
       thread.value ? thread.value.deliver(message) : Promise.resolve(false)
 
     /**
@@ -549,7 +549,7 @@ export const ContactWindow = defineComponent({
      * puts the changed message in the old one's place. '' where it went through, else what the
      * problem was.
      */
-    const editThroughThread = (changed: unknown) =>
+    const editThroughThread = (changed: Parameters<ChatThreadHandle['edit']>[0]) =>
       thread.value ? thread.value.edit(changed) : Promise.resolve('OTHER')
 
     /**
@@ -577,8 +577,8 @@ export const ContactWindow = defineComponent({
      * itself. Who wrote it is this window's person -- the dialog says "Du" for one's own.
      */
     const forwardOpen = ref(false)
-    const forwarding = ref<object | null>(null)
-    const forwardMessage = (message: object) => {
+    const forwarding = ref<ForwardedMessage | null>(null)
+    const forwardMessage = (message: ForwardedMessage) => {
       forwarding.value = message
       forwardOpen.value = true
     }
@@ -680,7 +680,7 @@ export const ContactWindow = defineComponent({
        both; the old names are accepted silently as plain attributes and do nothing, so the window
        came up with an empty header bar and an untranslated Cancel / OK pair under its own two
        buttons. Measured in the installed package: `noHeader`/`noFooter` are declared,
-       `hideHeader`/`hideFooter` occur nowhere. `UserThankYouCard.vue` carries the same warning
+       `hideHeader`/`hideFooter` occur nowhere. `UserThankYouCard.tsx` carries the same warning
        beside the same trap. Written in kebab case, as the template had them: the drift spec
        (ContactWindow.modalProps.spec) reads the names off this tag and holds them against the
        installed component.
@@ -1179,8 +1179,12 @@ export const ContactWindow = defineComponent({
                 search={searchOpen.value ? searchTyped.value : ''}
                 onChatConversation={takeChatConversation}
                 onSearch={takeFound}
-                onDuplicateVideo={(invitation: unknown) => videoCall.value?.duplicate(invitation)}
-                onEditVideo={(change: unknown) => videoCall.value?.edit(change)}
+                onDuplicateVideo={(invitation: Parameters<ChatVideoCallHandle['duplicate']>[0]) =>
+                  videoCall.value?.duplicate(invitation)
+                }
+                onEditVideo={(change: Parameters<ChatVideoCallHandle['edit']>[0]) =>
+                  videoCall.value?.edit(change)
+                }
                 onForwardMessage={forwardMessage}
                 onThank={toSend}
                 v-slots={{

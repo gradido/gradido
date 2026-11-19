@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
-import FavoriteHeart from './FavoriteHeart.vue'
+import { FavoriteHeart } from './FavoriteHeart'
 import { forgetFavorites, isFavorite, rememberFavorites } from '@/composables/useFavorites'
 
 const mutateAdd = vi.fn().mockResolvedValue({ data: { addFavorite: true } })
@@ -41,11 +41,16 @@ vi.mock('bootstrap-vue-next', () => ({
 
 const CARLA = { communityUuid: 'home', gradidoID: 'carla', alias: 'Carla-Sonne' }
 
+// The component translates through `useI18n()`, so the composable is replaced, not `$t`.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) }),
+}))
+
 const globalOptions = {
-  mocks: { $t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) },
+  // The two icons are imported (`~icons/…`) and carry the icon's own name.
   stubs: {
-    IMdiHeart: { template: '<i data-test="heart-full" />' },
-    IMdiHeartOutline: { template: '<i data-test="heart-empty" />' },
+    MdiHeart: { template: '<i data-test="heart-full" />' },
+    MdiHeartOutline: { template: '<i data-test="heart-empty" />' },
   },
 }
 

@@ -1,0 +1,143 @@
+/* AI-GENERATED — not an architecture reference */
+
+.breadcrumb {
+  background-color: transparent;
+  padding: 0.75rem 1rem;
+}
+
+.main-page {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-image: url('/img/svg/Gradido_Blaetter_Mainpage.svg') !important;
+}
+
+.b-right {
+  text-align: right;
+}
+
+.content-gradido {
+  display: inline-flex;
+  width: 100%;
+  height: 91%;
+  position: absolute;
+}
+
+.navbar-brand-img {
+  height: 2rem;
+  padding-left: 10px;
+}
+
+.bg-lightgrey {
+  background-color: #f0f0f0 !important;
+}
+
+.bg-blueviolet {
+  background-color: blueviolet !important;
+}
+
+.width70 {
+  width: 70px;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(4, 112, 6, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/*
+  ⛔ THIS NUMBER BELONGS TO THE NAVBAR'S HEIGHT. Below 450px the navbar is `position: fixed`
+  and translucent (Menu/Navbar.scss), so whatever it covers is still readable -- which is why
+  a mismatch here does not look broken, it looks smudged.
+
+  ⚠️ And the clearance is TWO numbers on the SAME element: this padding plus the `margin-top`
+  in Breadcrumb/breadcrumb.module.scss. Together they have to clear the navbar; neither alone says
+  what it depends on. That is how the four till tools slipped past on 21.08.2026 -- their
+  second row grew the brand block from about 88px to about 128px, the note at the time
+  checked it against the block OPPOSITE (about 130px, so the navbar did not get taller than
+  itself) and nobody held it against the room underneath. 48 + 55 = 103 was suddenly less
+  than 128, and the heading sat under the last 25px. (Bernd found it on the phone, 23.08.)
+
+  ⚠️ 48 + 69 = 117, and the last number is MEASURED ON THE DEVICE, not calculated. The sum
+  first went to 131, from "about 128px" in the navbar's own note plus a little. Bernd looked
+  at it on the phone: half of the added room was enough. So the ~128 was the overestimate,
+  and 117 is what the navbar actually needs -- keep it that way round if this ever moves
+  again, because the note over there is an estimate and the phone is not.
+
+  Grow the navbar and this has to grow with it -- Navbar.spec.js fails when a fifth tool
+  adds a third row.
+*/
+@media screen and (width <= 450px) {
+  .breadcrumb {
+    padding-top: 69px !important;
+  }
+}
+
+/* The page in the heading's place (`contentAtHeading`, the calculator). The lift is the
+   height of the heading's row plus the air under it: two rows of 44px tools, the row's
+   padding, and this element's own `mt-lg-3` -- measured, so the page's top edge stands level
+   with the top of the tools. Change the tools' rows or the breadcrumb's padding and this
+   has to follow; `measure-calculator-desk.mjs` in the wallet probe reads both edges. */
+@media (width >= 1025px) {
+  .main-page .main-content.content-at-heading {
+    margin-top: -116px !important;
+  }
+}
+
+/* Two columns of 44px, as on the phone. The margin lines the block up with the menu
+   entries in the column below it -- it used to sit on the scanner alone, which was the
+   same thing said in a place that could only ever hold one tool. */
+.main-page .sidebar-quick-row {
+  display: grid;
+  grid-template-columns: repeat(2, 44px);
+  margin-left: 8px;
+}
+
+/* Small to the eye, 44px to the pointer -- same rule as the gear inside the calculator.
+
+   ⚠️ Written through the row: this stylesheet of the layout is GLOBAL, so a bare class
+   name would style the navbar's twins as well -- the desktop margin would shift the phone
+   symbols. That is what the two names per tool used to be for; a descendant of
+   `.sidebar-quick-row` cannot leave this layout, and it does not multiply with the tools.
+
+   `flex-start` and `--icon-muted` for the same reasons as on the phone: the glyphs line up
+   on their left edge, and the tone is the one the menu icons themselves carry --
+   rgb(114 119 143) in both modes, not the near-black/near-white of the menu TEXT. */
+.main-page .sidebar-quick-row > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  color: var(--icon-muted);
+}
+
+.main-page .sidebar-quick-row > a:hover {
+  color: var(--icon-muted);
+  opacity: 0.7;
+}
+
+/* The tool whose page is open says so, the way the menu's entries do: full ink instead of
+   the muted tone -- the menu's own active values, near-black on light and white on dark.
+   Since the tools' pages stand inside the wallet on the desk the four symbols are on screen
+   WHILE one of them is open, and that is also how the two code symbols get learnt: open
+   one, see which of the two is lit (Bernd, 08.10.2026).
+
+   ⛔ By `aria-current`, not by a class. The router's active class has a name of this
+   wallet's own (`linkActiveClass: 'active'` in routes/router.js), so `.router-link-active`
+   matches nothing here -- measured in the built bundle, where the first version of this
+   rule lit no symbol at all. `aria-current="page"` is what the router sets on the link of
+   the open page whatever the class is called, and it is the same fact a screen reader is
+   told. After the hover rule on purpose, and with hover named: an open tool does not dim
+   under the pointer. */
+.main-page .sidebar-quick-row > a[aria-current='page'],
+.main-page .sidebar-quick-row > a[aria-current='page']:hover {
+  color: rgb(2 2 1);
+  opacity: 1;
+}
+
+.dark-mode .main-page .sidebar-quick-row > a[aria-current='page'],
+.dark-mode .main-page .sidebar-quick-row > a[aria-current='page']:hover {
+  color: #fff;
+}

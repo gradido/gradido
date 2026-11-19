@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
 import { createI18n } from 'vue-i18n'
-import Scanner from './Scanner.vue'
+import { Scanner } from './Scanner'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 
@@ -90,7 +90,8 @@ const mountScanner = () => {
   const wrapper = mount(Scanner, {
     global: {
       plugins: [createI18n({ legacy: false, locale: 'de', messages: { de, en } })],
-      stubs: ['IMdiArrowLeft', 'IMdiWeb', 'IMdiCellphone', 'IMdiKeyboardOutline'],
+      // under the names unplugin-icons gives the components the page imports
+      stubs: ['MdiArrowLeft', 'MdiWeb', 'MdiCellphone', 'MdiKeyboardOutline'],
     },
   })
   mounted.push(wrapper)
@@ -438,8 +439,13 @@ describe('Scanner page', () => {
    */
   describe('on the page, not on a panel of its own', () => {
     const here = dirname(fileURLToPath(import.meta.url))
-    const source = readFileSync(join(here, 'Scanner.vue'), 'utf8')
-    const style = source.slice(source.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+    // The style module: its rules stand under the root's class and reach the page's plain
+    // classes through `:global(…)`. Both are taken off, so each rule reads as it is named here.
+    const source = readFileSync(join(here, 'Scanner.module.scss'), 'utf8')
+    const style = source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\.scanner :global\(([^)]*)\)/g, '$1')
+      .replace(/:global\(([^)]*)\)/g, '$1')
     const block = (selector, from = style) =>
       from.match(
         new RegExp(`(?:^|\\n)\\s*${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`),

@@ -19,7 +19,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const read = (path) => readFileSync(resolve(here, path), 'utf8')
 const DARK = read('./assets/scss/gradido-template-dark.scss')
 const BRIDGE = read('./assets/scss/_color-mode-bridge.scss')
-const IMAGE_VIEW = read('./components/Chat/ChatImageView.vue')
+const IMAGE_VIEW = read('./components/Chat/ChatImageView.scss')
 
 const token = (name) => DARK.match(new RegExp(`\\n\\s*--${name}:\\s*(#[0-9a-fA-F]{6})\\s*;`))?.[1]
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))

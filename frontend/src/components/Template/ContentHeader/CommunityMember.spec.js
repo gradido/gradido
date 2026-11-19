@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CommunityMember from './CommunityMember'
+import { CommunityMember } from './CommunityMember'
 import CONFIG from '@/config'
 import { BBadge } from 'bootstrap-vue-next'
 

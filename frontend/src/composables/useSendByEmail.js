@@ -87,7 +87,7 @@ const pictureAsPng = async (source) => {
  * @param {string | import('vue').Ref<string>} [options.shortText] the text where that would make the
  *   link too long for a mail program (MAILTO_MAX_LENGTH): `shortLinkText`
  * @param {object | null} [options.greeting] the link's greeting, for the subject
- * @param {string} [options.address] the recipient, where one is known
+ * @param {string | (() => string)} [options.address] the recipient, where one is known
  * @param {string | null | (() => string | null)} [options.picture] an address the picture can be
  *   loaded from, or nothing where there is no picture at hand
  */

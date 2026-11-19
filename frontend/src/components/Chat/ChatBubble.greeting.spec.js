@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
-import ChatBubble from './ChatBubble.vue'
+import { ChatBubble } from './ChatBubble'
 import { CHAT_SEARCH } from '@/utils/chatSearch'
 import { THANK_YOU_MOTIF_KEYS } from '@/utils/thankYouMotifs'
 
@@ -31,6 +31,9 @@ vi.mock('vue-i18n', () => ({
     d: (date, format) => `${format}(${date.toISOString()})`,
     locale: { value: 'de' },
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 vi.mock('@/composables/useToast', () => ({
@@ -62,11 +65,11 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
 
   // The signs and the sentence a bubble can hold besides: none of them stands in a transfer.
   const stubs = {
-    IMdiEmailOutline: true,
-    IMdiCalendarPlusOutline: true,
-    IMdiContentDuplicate: true,
-    IMdiDotsHorizontal: true,
-    IMdiShare: true,
+    MdiEmailOutline: true,
+    MdiCalendarPlusOutline: true,
+    MdiContentDuplicate: true,
+    MdiDotsHorizontal: true,
+    MdiShare: true,
     I18nT: true,
   }
 
@@ -262,7 +265,7 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
 
     it('fills its room: as large as the room in the stylesheet', () => {
       const css = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
+        join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.module.scss'),
         'utf8',
       ).replace(/\/\*[\s\S]*?\*\//g, '')
 
@@ -499,15 +502,13 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
    * -- is part of the delivery.
    */
   describe('in the stylesheet', () => {
-    const sfc = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatBubble.vue'),
-      'utf8',
-    )
+    const read = (file) => readFileSync(join(dirname(fileURLToPath(import.meta.url)), file), 'utf8')
     // The file explains in comments what it does; a search over the raw text would find the
-    // explanation.
-    const css = sfc
-      .slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>'))
+    // explanation. The style module names the page's `.dark-mode` as `:global(.dark-mode)`: read
+    // as the class.
+    const css = read('ChatBubble.module.scss')
       .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/:global\(([^()]*)\)/g, '$1')
     const rule = (selector) => {
       const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       return css.match(new RegExp(`(?:^|\\})\\s*${escaped}\\s*\\{([^}]*)\\}`))?.[1] ?? null
@@ -556,9 +557,7 @@ describe('ChatBubble, the booking of a thank-you greeting', () => {
     // the script, never declared here.
     it('declares no face of its own', () => {
       expect(css).not.toMatch(/@font-face/)
-      const script = sfc
-        .slice(sfc.indexOf('<script'), sfc.indexOf('</script>'))
-        .replace(/^\s*\/\/.*$/gm, '')
+      const script = read('ChatBubble.tsx').replace(/^\s*\/\/.*$/gm, '')
       expect(script).toMatch(/^import '@\/assets\/fonts\/caveat\/caveat\.css'$/m)
     })
   })

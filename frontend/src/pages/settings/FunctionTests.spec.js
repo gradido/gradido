@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { ref } from 'vue'
-import FunctionTests from './FunctionTests.vue'
+import { FunctionTests } from './FunctionTests'
 
 /**
  * The function-test area (ES-014). What is worth measuring here is who gets in and what

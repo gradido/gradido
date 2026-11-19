@@ -1,9 +1,16 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import RegisterCommunity from './RegisterCommunity.vue'
+import { RegisterCommunity } from './RegisterCommunity'
 import { createRouter, createWebHistory } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { BButton, BCol, BContainer, BRow } from 'bootstrap-vue-next'
+
+// The page reads its texts through useI18n(); the rest of vue-i18n stays real, the store's
+// i18n is built with it.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 // Mock the CONFIG import
 vi.mock('@/config', () => ({

@@ -1,0 +1,97 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the questions had, by the same flat selectors: specs read them
+   by name (ContactWindow.spec). Without the scope attribute each has one level less. */
+
+/* The questions before a call: the start button waits while the call is being made, as the
+   compose bar's send button does -- `aria-disabled`, so a keyboard that pressed it keeps its
+   place, and a look that says it waits. So does "Join call" while the Jitsi app is awaited. */
+.chat-video-start[aria-disabled='true'],
+.chat-video-join[aria-disabled='true'],
+.chat-video-gear[aria-disabled='true'],
+.chat-video-plan[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* The gear (V5): drawn as the camera and the bell are -- the icon in the muted colour, nothing
+   filled -- at the left end of the footer, the other buttons pushed to the right. The hit area is
+   as high as the buttons beside it (46px). */
+.chat-video-gear {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.875rem;
+  height: 2.875rem;
+  margin-right: auto;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chat-video-gear:hover {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+.chat-video-gear:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* The buttons of the gear's view with their sign before the word, and the server chosen with the
+   server's sign. */
+.chat-video-tool,
+.chat-video-server {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* The server of an invitation being changed (E-060), as words: a long name breaks where it must
+   rather than run out of the dialog. */
+.chat-video-edit-server {
+  overflow-wrap: anywhere;
+}
+
+/* "Calendar file" and "Copy link" side by side, one under the other where they do not fit. */
+.chat-video-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* A planned call's time (V5b): the day wider than the two times of day. Where the dialog is too
+   narrow for three fields (a phone), the day takes its own row and the two times share the next. */
+.chat-video-when {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.chat-video-when label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+@media (width <= 420px) {
+  .chat-video-when {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .chat-video-when-day {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The copied link breaks anywhere rather than reach past the dialog: an address has no spaces. */
+.chat-video-link {
+  overflow-wrap: anywhere;
+  color: var(--bs-body-color);
+}

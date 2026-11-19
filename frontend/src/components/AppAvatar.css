@@ -1,0 +1,73 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Global, as the unscoped style block of AppAvatar.vue was: every circle in the wallet wears
+   these classes, and other components' sheets reach for them.
+
+   Comments here must be block comments: lightningcss parses this sheet, and a
+   double slash is not a comment to it -- the build dies with "Invalid empty selector". */
+.app-avatar {
+  overflow: hidden;
+}
+
+/* A group (P5): a square with rounded corners, a quarter of its side and a little more -- the
+   mockup's measure, round enough to belong with the circles beside it, square enough not to be
+   taken for one. A percentage, so the 28, 48 and 64 pixel sizes keep the same shape. */
+.app-avatar-rounded {
+  border-radius: 26%;
+}
+
+/* A button that has to look exactly like the div it replaces -- every one of these undoes
+   something the user agent adds. `appearance` last, because Safari keeps its own control
+   styling without it even when border and background are set. */
+.app-avatar-zoomable {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  appearance: none;
+}
+
+/* Keyboard focus has to be visible, and an outline on a circle has to follow it. Drawn
+   OUTSIDE the shape (offset), because the picture fills the circle edge to edge and an
+   inset ring would sit on somebody's face. */
+.app-avatar-zoomable:focus-visible {
+  outline: 2px solid #276e6f;
+  outline-offset: 2px;
+}
+
+.dark-mode .app-avatar-zoomable:focus-visible {
+  outline-color: #8ed0d1;
+}
+
+.app-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The empty state, when the member can still fill it. A dashed ring is the commonly
+   understood notation for "something is missing here" -- it does not push, but it is
+   read, and it stops an avatar without a picture from looking like a finished thing. */
+.app-avatar-quiet {
+  background-color: #e4efef;
+  color: #276e6f;
+  border: 1.5px dashed #a9cccc;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.app-avatar-quiet span {
+  color: #276e6f !important;
+}
+
+/* The saturated wallet colour does not carry in the dark; these are its own values. */
+.dark-mode .app-avatar-quiet {
+  background-color: #243a3b;
+  border-color: #47797a;
+}
+
+.dark-mode .app-avatar-quiet span {
+  color: #8ed0d1 !important;
+}

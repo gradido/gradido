@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BButton } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
-import AvatarCropper from './AvatarCropper.vue'
+import { AvatarCropper } from './AvatarCropper'
 
 /**
  * The cropper over the contact window (`stacked`, AS-023): a BModal of its own -- the contact

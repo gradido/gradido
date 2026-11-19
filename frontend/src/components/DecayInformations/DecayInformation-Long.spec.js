@@ -1,7 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import DecayInformationLong from './DecayInformation-Long.vue'
+import { describe, it, expect, vi } from 'vitest'
+import { DecayInformationLong } from './DecayInformation-Long'
+
+// The component asks useI18n() for `t` and `d` now; a template's `$t` and `$d` came from the
+// mocks below.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key, d: (date) => String(date) }),
+}))
 
 const mountIt = () =>
   mount(DecayInformationLong, {

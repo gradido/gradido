@@ -52,6 +52,9 @@ vi.mock('vue-i18n', () => ({
     t: (key, values) => (typeof values === 'number' ? `${key}:${values}` : key),
     d: (date) => String(date),
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 // useAvatarZoom imports the wallet's i18n instance, which the mock above cannot create.

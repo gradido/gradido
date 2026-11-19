@@ -1,0 +1,277 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   Every rule but the root's stands under the root's class: the scoped rules these were had one
+   level more (the scope attribute). What was `:deep()` under `.tyg-amount` reaches into the
+   house's input as it did.
+
+   The gold of the house in two depths: the darker one carries text on a light ground, the
+   lighter one lines. On the dark sheet the text gold is a lighter one -- the brown would stand
+   at 3 : 1 there. */
+.thank-you-greeting {
+  --tyg-accent: #8a6124;
+  --tyg-accent-line: #c58d38;
+  --tyg-on-accent: #fff;
+  --tyg-chosen-ground: #fdf6e3;
+}
+
+:global(.dark-mode) .thank-you-greeting {
+  --tyg-accent: #e6bd70;
+  --tyg-on-accent: #23262b;
+  --tyg-chosen-ground: #3a3424;
+}
+
+.thank-you-greeting :global(.tyg-head) {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+/* The arrow has the height and width a thumb needs, and none of a button's looks. */
+.thank-you-greeting :global(.tyg-back) {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-block-start: -11px;
+  margin-inline-start: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+}
+
+.thank-you-greeting :global(.tyg-back:disabled) {
+  opacity: 0.4;
+}
+
+/* Three steps side by side, each its mark with its name under it, a fine line from mark to
+   mark. The names stand under the marks, not beside them: beside them they were cut short in
+   every language on a 320px phone, and in six of ten at 390 (measured in the built wallet).
+   Under the mark each has a third of the row, and a long one may take two lines. */
+.thank-you-greeting :global(.tyg-steps) {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: 26rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.thank-you-greeting :global(.tyg-step) {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  color: var(--bs-secondary-color, #6c757d);
+  text-align: center;
+}
+
+/* The line to the step before: from the edge of that mark to the edge of this one. */
+.thank-you-greeting :global(.tyg-step + .tyg-step::before) {
+  position: absolute;
+  top: 11px;
+  right: calc(50% + 15px);
+  width: calc(100% - 30px);
+  height: 1px;
+  background: var(--bs-border-color, #c9ced3);
+  content: '';
+}
+
+.thank-you-greeting :global(.tyg-step.is-current),
+.thank-you-greeting :global(.tyg-step.is-passed) {
+  color: var(--tyg-accent);
+}
+
+.thank-you-greeting :global(.tyg-step.is-current::before),
+.thank-you-greeting :global(.tyg-step.is-passed::before) {
+  background: var(--tyg-accent);
+}
+
+.thank-you-greeting :global(.tyg-step-mark) {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid currentcolor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+
+.thank-you-greeting :global(.tyg-step.is-current .tyg-step-mark),
+.thank-you-greeting :global(.tyg-step.is-passed .tyg-step-mark) {
+  border-color: var(--tyg-accent);
+  background: var(--tyg-accent);
+  color: var(--tyg-on-accent);
+}
+
+.thank-you-greeting :global(.tyg-step-name) {
+  max-width: 100%;
+  padding: 0 2px;
+  overflow-wrap: anywhere;
+}
+
+.thank-you-greeting :global(.tyg-card) {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.25rem;
+}
+
+.thank-you-greeting :global(.tyg-field) {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.thank-you-greeting :global(.tyg-label) {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.thank-you-greeting :global(.tyg-hint),
+.thank-you-greeting :global(.tyg-line-group-title) {
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.thank-you-greeting :global(.tyg-line-group + .tyg-line-group) {
+  margin-top: 6px;
+}
+
+.thank-you-greeting :global(.tyg-line-group-title) {
+  margin-bottom: 4px;
+}
+
+.thank-you-greeting :global(.tyg-chips) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A suggestion: as high as a thumb needs, its words on as many lines as they take. */
+.thank-you-greeting :global(.tyg-chip) {
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--bs-border-color, #ced4da);
+  border-radius: 22px;
+  background: var(--bs-body-bg, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.thank-you-greeting :global(.tyg-chip.is-chosen) {
+  border-color: var(--tyg-accent-line);
+  box-shadow: inset 0 0 0 1px var(--tyg-accent-line);
+  background: var(--tyg-chosen-ground);
+  color: var(--tyg-accent);
+  font-weight: 700;
+}
+
+.thank-you-greeting :global(.tyg-line-more) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+}
+
+/* Reads as a link, is a button: it opens something on this page. */
+.thank-you-greeting :global(.tyg-link) {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(var(--bs-link-color-rgb), 1);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: start;
+}
+
+.thank-you-greeting :global(.tyg-link:hover),
+.thank-you-greeting :global(.tyg-link[aria-pressed='true']) {
+  text-decoration: underline;
+}
+
+/* What is missing, and why a greeting was not made. On the light page the house's red for a
+   field in error (#dc3545) stands at 4.2 : 1 -- it is made for a white card --, so these
+   sentences take a deeper red there (6 : 1 on the page, 6.5 on the card); on the dark page the
+   theme's own, lighter red. */
+.thank-you-greeting :global(.tyg-error) {
+  color: #b02a37;
+}
+
+:global(.dark-mode) .thank-you-greeting :global(.tyg-error) {
+  color: var(--bs-form-invalid-color, #ea868f);
+}
+
+/* The amount is the small thing here: a short field and a label like the others'. */
+.thank-you-greeting :global(.tyg-amount) label {
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.thank-you-greeting :global(.tyg-amount) input {
+  max-width: 10rem;
+}
+
+.thank-you-greeting :global(.tyg-amount) fieldset,
+.thank-you-greeting :global(.tyg-amount .form-group) {
+  margin-bottom: 0;
+}
+
+/* The sheet as the other person will see it: no wider than on the page a link opens as, and
+   its words as large. That page keeps 30px beside the sheet on a phone (330 of 390, 260 of
+   320 -- measured), this one 6px; and the sheet's sizes are em of its surroundings, which are
+   16px there and 13.6px on a phone here. So both are said: the width, and the 16px. */
+.thank-you-greeting :global(.tyg-paper) {
+  width: min(24rem, calc(100% - 48px));
+  margin: 0 auto 1rem;
+  font-size: 16px;
+}
+
+.thank-you-greeting :global(.tyg-note) {
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1.5;
+}
+
+/* What the page has to say before a choice is made: in the page's own colour, not the muted
+   one of a note -- it is to be read, not to be found. */
+.thank-you-greeting :global(.tyg-notice) {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.thank-you-greeting :global(.tyg-actions) {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+/* Whoever walks the page with the keyboard sees where they are. */
+.thank-you-greeting :global(.tyg-back:focus-visible),
+.thank-you-greeting :global(.tyg-link:focus-visible),
+.thank-you-greeting :global(.tyg-chip:focus-visible) {
+  outline: 2px solid var(--tyg-accent);
+  outline-offset: 2px;
+}

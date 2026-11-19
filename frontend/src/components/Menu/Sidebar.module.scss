@@ -1,0 +1,117 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it. Every rule stands under the root's class: the scoped rules these were had one level
+   more (the scope attribute), and the `:deep()` ones reached everything under the root. */
+.sidebar :global(.sidebar-logo) {
+  display: block;
+  margin-top: 1.5rem;
+  padding-left: 0.5rem;
+}
+
+.sidebar :global(.nav-item > a) {
+  color: rgb(56 56 56) !important;
+  border-left: 4px transparent solid;
+  display: block;
+}
+
+.sidebar :global(.active-route) {
+  display: block;
+  font-weight: bold;
+  color: rgb(2 2 1);
+  border-left-color: rgb(219 129 19) !important;
+}
+
+.sidebar :global(.nav-link) {
+  padding: 0;
+}
+
+.sidebar :global(.logout-text),
+.sidebar :global(.logout-icon) {
+  color: #cd5556;
+}
+
+.sidebar :global(.sidebar-menu-item-wrapper) {
+  padding: 4px 12px;
+}
+
+/* Symbol and word in one row, and the word on one line. ⛔ A row and not a line of text: in a
+   line a word too long for the card drops whole under its symbol (measured in the probe with
+   "Contacten en chat", the entry's name until 04.10.2026). The entry is one short word now; the
+   row stays, it is what keeps the mark's corner and the word together. */
+.sidebar :global(.chat-menu-item) {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar :global(.chat-menu-label) {
+  white-space: nowrap;
+}
+
+/* The symbol and its mark: the mark hangs on the symbol's corner and takes no room in the row,
+   so nothing moves when it comes and goes. */
+.sidebar :global(.chat-menu-icon) {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Gold B with white figures, the gold of the chat's send buttons (E-032 point 5); round for one
+   figure, a pill for "99+", which grows to the left over the symbol and not into the word. A
+   ring in the colour of the menu card keeps it off the symbol's lines. */
+.sidebar :global(.chat-unread-badge) {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.4rem;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 0.525rem;
+  background: #c08935;
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sidebar :global(.svg-icon) {
+  filter: brightness(1) invert(0);
+}
+
+.sidebar :global(.active-route .svg-icon) {
+  filter: brightness(0) invert(0);
+}
+
+.sidebar:global(#component-sidebar) {
+  min-width: 200px;
+}
+
+@media screen and (width >= 1025px) {
+  .sidebar :global(#side-menu) {
+    max-width: 180px;
+  }
+
+  .sidebar:global(#component-sidebar) {
+    min-width: 180px;
+  }
+}
+
+/*
+@media screen and (min-width: 1075px) {
+  #side-menu {
+    max-width: 200px;
+  }
+  #component-sidebar {
+    min-width: 200px;
+  }
+}
+@media screen and (max-width: 1108px) {
+  #side-menu {
+    max-width: 100%;
+  }
+  #component-sidebar {
+    max-width: 100%;
+  }
+} */

@@ -2,7 +2,7 @@
 
 /**
  * Whether a name can be set in the typeface of the logo's wordmark, "Afacad" -- the name of
- * the community beside the coin, top left in the wallet (Menu/Navbar.vue).
+ * the community beside the coin, top left in the wallet (Menu/Navbar.tsx).
  *
  * The font shipped with the wallet (assets/fonts/afacad/Afacad-525.woff2) is one weight of a
  * Latin typeface: it carries no Greek, no Cyrillic and nothing beyond Latin. A name holding

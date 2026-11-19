@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import ChatGroupPicker from './ChatGroupPicker.vue'
+import { ChatGroupPicker } from './ChatGroupPicker'
 
 /**
  * The picker where a message is forwarded (E-059): the member's groups as a list of their own over

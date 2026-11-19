@@ -5,12 +5,15 @@ import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, describe, expect, it } from 'vitest'
-import ThanksNudge from './ThanksNudge.vue'
+import { ThanksNudge } from './ThanksNudge'
 
 const here = dirname(fileURLToPath(import.meta.url))
 /** A file's source without its block comments: a rule only counts where it is code. */
 const source = (path) => readFileSync(join(here, path), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
-const rule = (code, selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]
+// A rule of a style module stands under the root's class (`:global(.thanks-nudge-yes)`), one of
+// a plain sheet at the start of a line.
+const rule = (code, selector) =>
+  code.match(new RegExp(`(?:\\n|:global\\()${selector}\\)?\\s*\\{([^}]*)\\}`))?.[1]
 
 const WORDS = {
   question: 'Möchtest Du Dich bei Lena für das Gespräch bedanken?',
@@ -95,7 +98,7 @@ describe('ThanksNudge', () => {
   })
 
   describe('the look', () => {
-    const code = source('ThanksNudge.vue')
+    const code = source('ThanksNudge.module.scss')
 
     // "Gold B" (E-033, E-048): the flat gold of "Gradido senden" in the contact window, white
     // words -- the same value, so the two do not drift apart.
@@ -126,7 +129,7 @@ describe('ThanksNudge', () => {
 
     it('rings every button for the keyboard', () => {
       expect(code).toMatch(
-        /\.thanks-nudge-yes:focus-visible,\s*\.thanks-nudge-choice:focus-visible,\s*\.thanks-nudge-no:focus-visible\s*\{[^}]*outline:\s*2px solid/,
+        /\.thanks-nudge-yes:focus-visible\),\s*\.thanks-nudge :global\(\.thanks-nudge-choice:focus-visible\),\s*\.thanks-nudge :global\(\.thanks-nudge-no:focus-visible\)\s*\{[^}]*outline:\s*2px solid/,
       )
     })
 

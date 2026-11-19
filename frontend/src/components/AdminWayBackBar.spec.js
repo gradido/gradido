@@ -7,7 +7,13 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { walletStore } from '@test/walletStore'
 import { useWalletStore } from '@/store/useWalletStore'
 import { forgetWayBack, goBackToAdmin } from '@/utils/adminWayBack'
-import AdminWayBackBar from './AdminWayBackBar.vue'
+import { AdminWayBackBar } from './AdminWayBackBar'
+
+// The component is TSX now and takes its words from useI18n, not from `$t`.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 // ⚠️ The step back is caught here, not at window.location: under the vmThreads pool the global
 // is jsdom's own window, whose location can be neither deleted nor replaced. What the step does

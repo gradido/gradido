@@ -168,13 +168,17 @@ describe('the declaration of the handwriting', () => {
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const path = join(dir, entry.name)
       if (entry.isDirectory()) return sources(path)
-      return /\.(vue|js|css|scss)$/.test(entry.name) && !/\.spec\.js$/.test(entry.name)
+      return /\.(vue|js|tsx|css|scss)$/.test(entry.name) && !/\.spec\.js$/.test(entry.name)
         ? [relative(srcDir, path)]
         : []
     })
   const read = (file) => readFileSync(join(srcDir, file), 'utf8')
   /** A component's script without its line comments: an import in a comment imports nothing. */
   const scriptOf = (file) => {
+    // A style module is taken in by the .tsx file of its name: that file is its script.
+    if (file.endsWith('.module.scss')) {
+      return read(file.replace(/\.module\.scss$/, '.tsx')).replace(/^\s*\/\/.*$/gm, '')
+    }
     const sfc = read(file)
     return sfc.slice(sfc.indexOf('<script'), sfc.indexOf('</script>')).replace(/^\s*\/\/.*$/gm, '')
   }
@@ -196,8 +200,8 @@ describe('the declaration of the handwriting', () => {
     const files = sources()
     expect(files.length).toBeGreaterThan(300)
     expect(files).toContain('assets/fonts/caveat/caveat.css')
-    expect(files).toContain('components/Chat/ChatBubble.vue')
-    expect(files).toContain('components/LinkInformations/RedeemThanksPaper.vue')
+    expect(files).toContain('components/Chat/ChatBubble.module.scss')
+    expect(files).toContain('components/LinkInformations/RedeemThanksPaper.module.scss')
   })
 
   it('stands nowhere else: no other file declares a face of that name', () => {
@@ -222,8 +226,8 @@ describe('the declaration of the handwriting', () => {
       .filter((file) => /font-family:\s*Caveat,/.test(live(read(file))))
       .sort()
     expect(naming).toEqual([
-      'components/Chat/ChatBubble.vue',
-      'components/LinkInformations/RedeemThanksPaper.vue',
+      'components/Chat/ChatBubble.module.scss',
+      'components/LinkInformations/RedeemThanksPaper.module.scss',
     ])
     for (const file of naming) {
       expect(scriptOf(file), file).toMatch(IMPORT)
@@ -236,6 +240,8 @@ describe('the declaration of the handwriting', () => {
     const importing = sources()
       .filter((file) => read(file).includes('fonts/caveat/caveat.css'))
       .sort()
-    expect(importing).toEqual([...naming, ...DRAWERS].sort())
+    // The import stands in the script: for a style module, in the .tsx file of its name.
+    const scripts = naming.map((file) => file.replace(/\.module\.scss$/, '.tsx'))
+    expect(importing).toEqual([...scripts, ...DRAWERS].sort())
   })
 })

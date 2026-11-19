@@ -1418,12 +1418,13 @@ describe('MatchProfile', () => {
        * ⛔ "Sie muss also identisch aussehen, und zwar so wie die Bubble, die ich selber schicke
        * ... mit dem entsprechenden Rand und der Hintergrundfarbe" (Bernd, 09.10.2026, E-070). The
        * field in the foot carries the rim, the ground and the corners of one's own message in a
-       * conversation -- read from ChatBubble.vue, so the two cannot drift apart.
+       * conversation -- read from ChatBubble.module.scss, so the two cannot drift apart.
        */
       it("draws the field as one's own message in a conversation is drawn", () => {
-        const bubbles = readFileSync(join(here, '../Chat/ChatBubble.vue'), 'utf8')
-          .split('<style')[1]
-          .replace(/\/\*[\s\S]*?\*\//g, '')
+        const bubbles = readFileSync(join(here, '../Chat/ChatBubble.module.scss'), 'utf8').replace(
+          /\/\*[\s\S]*?\*\//g,
+          '',
+        )
         const of = (sheet, selector) =>
           sheet.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
         const value = (body, property) =>
@@ -1448,7 +1449,7 @@ describe('MatchProfile', () => {
           value(mine, 'border-bottom-right-radius'),
         )
         // One pixel of rim on both: the bar's field has it, the bubble has it.
-        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.module.scss'), 'utf8')
         expect(bar).toMatch(/\.chat-compose-field \{[^}]*border: 1px solid /)
         expect(value(every, 'border')).toBe('1px solid transparent')
         // Not the bubble's smaller letters: a field under 16 px makes a phone zoom in.
@@ -1461,7 +1462,7 @@ describe('MatchProfile', () => {
           '\\.profile-foot \\.profile-hello :global\\(\\.chat-compose-field:focus-visible\\)',
         )
         expect(focused).toBe(' border-color: var(--success, #047006); ')
-        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.module.scss'), 'utf8')
         expect(bar).toMatch(
           /\.chat-compose-field:focus-visible \{\s*border-color: var\(--success, #047006\);/,
         )
@@ -1484,7 +1485,7 @@ describe('MatchProfile', () => {
        * (The three shared rules themselves are held in ContactWindow.spec.)
        */
       it('wears the gold of the chat on "Gradido senden", and no teal any more', () => {
-        const gold = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8').match(
+        const gold = readFileSync(join(here, '../Chat/ChatComposeBar.module.scss'), 'utf8').match(
           /\n\.chat-compose-send\s*\{[^}]*\sbackground:\s*(#[0-9a-f]{6});/i,
         )?.[1]
         expect(gold).toBe('#c08935')
@@ -1549,7 +1550,7 @@ describe('MatchProfile', () => {
         expect(block.replace(/\s+/g, ' ')).toBe(
           ' .profile-foot .profile-hello :global(.chat-compose-field) { max-height: calc(8.4em + 0.9rem + 2px); }',
         )
-        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.vue'), 'utf8')
+        const bar = readFileSync(join(here, '../Chat/ChatComposeBar.module.scss'), 'utf8')
         expect(bar).toMatch(
           /\.chat-compose-field \{[^}]*max-height: calc\(7em \+ 0\.9rem \+ 2px\);[^}]*line-height: 1\.4;/,
         )

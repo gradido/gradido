@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import UserCard from './UserCard.vue'
+import { UserCard } from './UserCard'
 import { BCol, BRow } from 'bootstrap-vue-next'
-import AppAvatar from '@/components/AppAvatar.vue'
+import { AppAvatar } from '@/components/AppAvatar'
 import { walletStore } from '@test/walletStore'
 
 vi.mock('vue-avatar', () => ({
@@ -19,15 +19,21 @@ vi.mock('@/config', () => ({
   },
 }))
 
+// The card translates and formats through useI18n, where the template read $t and $n.
+const mocks = vi.hoisted(() => ({
+  $t: vi.fn((t) => t),
+  $n: vi.fn((n) => String(n)),
+}))
+// The rest of vue-i18n stays: the store's language module builds its instance with it.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: mocks.$t, n: mocks.$n }),
+}))
+
 describe('UserCard', () => {
   let wrapper
 
   const signedIn = { firstName: 'Bibi', lastName: 'Bloxberg' }
-
-  const mocks = {
-    $t: vi.fn((t) => t),
-    $n: vi.fn((n) => String(n)),
-  }
 
   beforeEach(() => {
     wrapper = mount(UserCard, {

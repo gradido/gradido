@@ -1,0 +1,26 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* One line, whatever the length: cut with an ellipsis, as a group's long name is cut. ⛔ And
+   `contain: inline-size`, so that the length of the words never becomes the width the row asks
+   for -- a line kept on one line otherwise widens every flex box up to the page (the memo of a
+   booking row, #3884). */
+.chat-preview-line {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  contain: inline-size;
+}
+
+/* What somebody wrote, in italics -- as both booking lists set a memo, to tell it from the
+   lines around it (Bernd, 24.10.2026). Who wrote it, the Gradido and "Bild" stay upright. */
+.chat-preview-line :global(.chat-preview-line-words) {
+  font-style: italic;
+}
+
+/* The picture's sign in front of the words, as the quotation over an answer has it. */
+.chat-preview-line :global(.chat-preview-line-icon) {
+  width: 1.05em;
+  height: 1.05em;
+  margin-inline-end: 0.25em;
+  vertical-align: -0.15em;
+}

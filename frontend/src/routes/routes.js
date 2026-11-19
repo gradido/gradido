@@ -119,37 +119,37 @@ const eventMatchingRoutes = CONFIG.MATCHING_ACTIVE
 const settingsRoutes = [
   {
     path: '/settings',
-    component: () => import('@/pages/settings/Index.vue'),
+    component: () => import('@/pages/settings/Index').then((page) => page.SettingsIndex),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/account',
-    component: () => import('@/pages/settings/Account.vue'),
+    component: () => import('@/pages/settings/Account').then((page) => page.Account),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/appearance',
-    component: () => import('@/pages/settings/Appearance.vue'),
+    component: () => import('@/pages/settings/Appearance').then((page) => page.Appearance),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/gradido-card',
-    component: () => import('@/pages/settings/GradidoCard.vue'),
+    component: () => import('@/pages/settings/GradidoCard').then((page) => page.GradidoCard),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/thank-you-card',
-    component: () => import('@/pages/settings/ThankYouCard.vue'),
+    component: () => import('@/pages/settings/ThankYouCard').then((page) => page.ThankYouCard),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/visibility',
-    component: () => import('@/pages/settings/Visibility.vue'),
+    component: () => import('@/pages/settings/Visibility').then((page) => page.Visibility),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   {
     path: '/settings/notifications',
-    component: () => import('@/pages/settings/Notifications.vue'),
+    component: () => import('@/pages/settings/Notifications').then((page) => page.Notifications),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   // ES-014, the function-test area. ⚠️ Registered unconditionally, unlike the circles below
@@ -160,7 +160,7 @@ const settingsRoutes = [
   // the mutation behind it holds against a bare API call whatever the wallet shows.
   {
     path: '/settings/function-tests',
-    component: () => import('@/pages/settings/FunctionTests.vue'),
+    component: () => import('@/pages/settings/FunctionTests').then((page) => page.FunctionTests),
     meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
   },
   // The circles exist only where HumHub is switched on -- otherwise the page would stand empty
@@ -171,7 +171,7 @@ const settingsRoutes = [
     ? [
         {
           path: '/settings/communities',
-          component: () => import('@/pages/settings/Communities.vue'),
+          component: () => import('@/pages/settings/Communities').then((page) => page.Communities),
           meta: { requiresAuth: true, settingsChrome: true, pageTitle: 'settings' },
         },
       ]
@@ -288,7 +288,7 @@ const routes = [
     // A page rather than an overlay for the calculator's reasons: deep-linkable, and the
     // back button does what somebody expects without any handling of ours.
     path: '/scan',
-    component: () => import('@/pages/Scanner'),
+    component: () => import('@/pages/Scanner').then((page) => page.Scanner),
     meta: {
       requiresAuth: true,
       pageTitle: 'scanner',
@@ -367,7 +367,7 @@ const routes = [
     // door holds the member's own code, and a code handed across a table should not come with
     // the last bookings beside it.
     path: '/show-friends',
-    component: () => import('@/pages/ShowFriends'),
+    component: () => import('@/pages/ShowFriends').then((page) => page.ShowFriends),
     meta: {
       requiresAuth: true,
       pageTitle: 'show-friends',
@@ -380,7 +380,7 @@ const routes = [
     // nowhere in the menu (ZE-017, F1). No right-hand column, like the page it comes from.
     // ⛔ Not under `/send/...`: that path reads what follows as a community.
     path: '/thank-you-greeting',
-    component: () => import('@/pages/ThankYouGreeting'),
+    component: () => import('@/pages/ThankYouGreeting').then((page) => page.ThankYouGreeting),
     meta: {
       requiresAuth: true,
       pageTitle: 'thank-you-greeting',
@@ -493,7 +493,7 @@ const routes = [
   },
   {
     path: '/register-community',
-    component: () => import('@/pages/RegisterCommunity'),
+    component: () => import('@/pages/RegisterCommunity').then((page) => page.RegisterCommunity),
   },
   ...eventMatchingRoutes,
   // {
@@ -503,13 +503,13 @@ const routes = [
   {
     name: 'ResetPassword',
     path: '/reset-password/:optin',
-    component: () => import('@/pages/ResetPassword'),
+    component: () => import('@/pages/ResetPassword').then((page) => page.ResetPassword),
   },
   {
     name: 'CheckEmail',
     // `codeCommunityUuid`: the community of a redeem code that is another community's link
     path: '/checkEmail/:optin/:code?/:codeCommunityUuid?',
-    component: () => import('@/pages/ResetPassword'),
+    component: () => import('@/pages/ResetPassword').then((page) => page.ResetPassword),
   },
   // Both reached from a mail, mostly in a browser that is not signed in - so no auth.
   // The page asks for a click before it does anything: a link that acts on being opened
@@ -538,7 +538,7 @@ const routes = [
   {
     name: 'Redeem',
     path: '/redeem/:code',
-    component: () => import('@/pages/TransactionLink'),
+    component: () => import('@/pages/TransactionLink').then((page) => page.TransactionLink),
     meta: { hideGreeting: true },
   },
   // The Gradido address, `community-host/u/alias`. Public on purpose: it is what a printed
@@ -549,7 +549,7 @@ const routes = [
   {
     name: 'PublicProfile',
     path: '/u/:alias',
-    component: () => import('@/pages/PublicProfile'),
+    component: () => import('@/pages/PublicProfile').then((page) => page.PublicProfile),
   },
   // Where a scanned thank you card lands. Its own namespace rather than a query on the
   // Gradido address, because the card carries neither a name nor an address, only its
@@ -561,7 +561,7 @@ const routes = [
   {
     name: 'ThankYouCardPayment',
     path: '/dk/:code',
-    component: () => import('@/pages/ThankYouCardPayment'),
+    component: () => import('@/pages/ThankYouCardPayment').then((page) => page.ThankYouCardPayment),
     props: true,
     meta: {
       requiresAuth: true,

@@ -25,7 +25,7 @@ const config = vi.hoisted(() => ({
 vi.mock('@/config', () => ({ default: config }))
 
 vi.mock('@/components/Overview/CommunityNews', () => ({
-  default: {
+  CommunityNews: {
     name: 'CommunityNews',
     template: '<div class="community-news"></div>',
   },
@@ -92,12 +92,12 @@ describe('Overview', () => {
         stubs: {
           RouterLink: true,
           // The tiles import their icons (`~icons/…`), whose components carry the icon's own
-          // name; the one in ChatReactionChoice.vue is still resolved by name.
+          // name, the one in ChatReactionChoice too.
           MdiChevronRight: true,
           TablerHeartHandshake: true,
           IonLayersSharp: true,
           MdiEmoticonHappyOutline: true,
-          IMdiPlus: true,
+          MdiPlus: true,
           // The window the tile opens is its own component with its own spec; this file
           // is about which tiles the page shows and in what order.
           ContactWindow: true,

@@ -86,7 +86,7 @@ describe('the declaration of the typeface', () => {
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
       const path = join(dir, entry.name)
       if (entry.isDirectory()) return sources(path)
-      return /\.(vue|js|css|scss)$/.test(entry.name) && !/\.spec\.js$/.test(entry.name)
+      return /\.(vue|js|tsx|css|scss)$/.test(entry.name) && !/\.spec\.js$/.test(entry.name)
         ? [relative(srcDir, path)]
         : []
     })
@@ -108,7 +108,7 @@ describe('the declaration of the typeface', () => {
     // The fixture proves itself: a walk that found nothing would hold everything below.
     expect(files.length).toBeGreaterThan(300)
     expect(files).toContain('assets/fonts/afacad/afacad.css')
-    expect(files).toContain('components/Menu/Navbar.vue')
+    expect(files).toContain('components/Menu/Navbar.tsx')
 
     const declaring = files.filter((file) =>
       /@font-face\s*\{[^}]*font-family:\s*['"]?Afacad/i.test(live(read(file))),
@@ -118,6 +118,6 @@ describe('the declaration of the typeface', () => {
     const importing = files.filter((file) =>
       /^import '@\/assets\/fonts\/afacad\/afacad\.css'$/m.test(read(file)),
     )
-    expect(importing).toEqual(['components/Menu/Navbar.vue'])
+    expect(importing).toEqual(['components/Menu/Navbar.tsx'])
   })
 })

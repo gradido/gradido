@@ -13,14 +13,14 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import ChatComposeBar from '@/components/Chat/ChatComposeBar.vue'
+import { ChatComposeBar } from '@/components/Chat/ChatComposeBar'
 import {
   DEFAULTS,
   displayType,
   LABEL_COLORS,
   scoreToStage,
 } from '@/components/Matching/displayCore'
-import CollapseIcon from '@/components/TransactionRows/CollapseIcon.vue'
+import { CollapseIcon } from '@/components/TransactionRows/CollapseIcon'
 import {
   CHAT_HELLO_ASKING,
   CHAT_HELLO_CONTACT,

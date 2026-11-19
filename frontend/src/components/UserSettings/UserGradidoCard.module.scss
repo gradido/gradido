@@ -1,0 +1,23 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+.gradido-card-section :global(.gradido-card-preview) {
+  width: 100%;
+  max-width: 24rem;
+  height: auto;
+  display: block;
+}
+
+/* Holds the width of the preview while there is none, so the field beside it does not jump
+   sideways the moment the first card appears. The width has to be a definite one: the column
+   is `md="auto"`, so it takes its width from its content, and `width: 100%` inside it would
+   be measured against a width that is not decided yet -- reserving nothing. */
+.gradido-card-section :global(.gradido-card-empty) {
+  width: 24rem;
+  max-width: 100%;
+  min-height: 4rem;
+}

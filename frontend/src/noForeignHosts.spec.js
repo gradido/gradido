@@ -61,14 +61,7 @@ const styleAddresses = (css) => {
   return found
 }
 
-/** What a file contributes to the stylesheets: all of it, or the style blocks of a component. */
-const stylesOf = (file) => {
-  const text = read(file)
-  if (!file.endsWith('.vue')) return text
-  return [...text.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
-    .map(([, body]) => body)
-    .join('\n')
-}
+const stylesOf = read
 
 // Walked by hand: `readdirSync(dir, { recursive: true })` is silently ignored by a Node older
 // than 18.17, and a guard that only saw the top level would stay green for ever.
@@ -76,7 +69,7 @@ const styleFiles = (dir) =>
   readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) return styleFiles(path)
-    return /\.(?:scss|css|vue)$/.test(name) ? [path] : []
+    return /\.(?:scss|css)$/.test(name) ? [path] : []
   })
 
 describe('how the guard reads', () => {
@@ -141,7 +134,7 @@ describe('the styles under src', () => {
   )
 
   it('are really read: all of them, and the addresses in them', () => {
-    expect(files.length).toBeGreaterThan(200)
+    expect(files.length).toBeGreaterThan(150)
     // The forty faces of Open Sans alone are forty addresses.
     expect(addresses.length).toBeGreaterThan(40)
     // The case the guard must not trip over is in the tree: an inline SVG names its

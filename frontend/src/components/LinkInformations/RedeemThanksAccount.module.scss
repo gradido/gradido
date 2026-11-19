@@ -1,0 +1,61 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it.
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the class names in the markup stay what they were (`:global`). The sizes are in em of the card's own size, as in RedeemThanks. */
+
+/* The strip: the picture small on the left, the sentence beside it -- left-aligned, like the
+   strip above the registration form, though the view around it is centred. */
+.redeem-thanks-open-account :global(.redeem-thanks-strip) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.redeem-thanks-open-account :global(.redeem-thanks-strip-picture) {
+  flex: none;
+  width: 64px;
+  height: auto;
+  border-radius: 6px;
+}
+
+/* A photo, and its room before it has come: 36 : 25 in the colour of the card. */
+.redeem-thanks-open-account :global(.redeem-thanks-strip-picture.is-photo) {
+  aspect-ratio: 36 / 25;
+  background: #fbf3de;
+  object-fit: cover;
+}
+
+/* The face of the sender, where the link has no picture of its own: 48px round, beside the
+   sentence as on the sheet. */
+.redeem-thanks-open-account :global(.redeem-thanks-strip-face) {
+  display: block;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.redeem-thanks-open-account :global(.redeem-thanks-account-text) {
+  margin: 0 0 16px;
+  font-size: 0.875em;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+/* A form reads from the left: labels, fields, the sentence and the consent. */
+.redeem-thanks-open-account :global(.redeem-thanks-form) {
+  text-align: left;
+}
+
+/* The sentence under the passwords, in the size of the small sentences of this card: at the
+   size it has on the registration form it is five lines on a phone, between the passwords and
+   the consent. */
+.redeem-thanks-open-account :global(.redeem-thanks-form .account-fields-hint) {
+  font-size: 0.875em;
+  line-height: 1.5;
+}

@@ -1,7 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import PanelSwitch from './PanelSwitch.vue'
+import { describe, it, expect, vi } from 'vitest'
+import { PanelSwitch } from './PanelSwitch'
+
+// The group's name is asked of `useI18n()`, as the template asked `$t`.
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 // The component is handed FINISHED words, so what they say is the caller's business and
 // the fixture is free to be English like the rest of the tree.

@@ -1,29 +1,42 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import ContentFooter from './ContentFooter'
+import { ContentFooter } from './ContentFooter'
 import CONFIG from '@/config'
 import { BCol, BNav, BNavItem, BRow } from 'bootstrap-vue-next'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-// jsdom applies no scoped styles, so a rule is read in the source, comments first: the comments
-// above the rules name their values too.
+// jsdom applies no module styles, so a rule is read in the source, comments first: the comments
+// above the rules name their values too. The style module: every rule stands under the root's
+// class (`.footer :global(…)`).
 const styleSource = () =>
-  readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ContentFooter.vue'), 'utf8').replace(
-    /\/\*[\s\S]*?\*\//g,
-    '',
-  )
+  readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), 'ContentFooter.module.scss'),
+    'utf8',
+  ).replace(/\/\*[\s\S]*?\*\//g, '')
+
+// The footer asks `useI18n()` for what the template read as `$t` and `$i18n`; it is handed the
+// same mocks.
+const mocks = vi.hoisted(() => ({
+  $i18n: {
+    locale: 'en',
+  },
+  $t: vi.fn((t, options) => (options ? [t, options] : t)),
+}))
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: mocks.$t,
+    locale: {
+      get value() {
+        return mocks.$i18n.locale
+      },
+    },
+  }),
+}))
 
 describe('ContentFooter', () => {
   let wrapper
-
-  const mocks = {
-    $i18n: {
-      locale: 'en',
-    },
-    $t: vi.fn((t, options) => (options ? [t, options] : t)),
-  }
 
   const Wrapper = () => {
     return mount(ContentFooter, {
@@ -80,7 +93,9 @@ describe('ContentFooter', () => {
       })
 
       it('keeps the bar in the link colour it had as the version link border', () => {
-        const rule = styleSource().match(/\n\.copyright \.separator-start \{([^}]*)\}/)
+        const rule = styleSource().match(
+          /\n\.footer :global\(\.copyright \.separator-start\) \{([^}]*)\}/,
+        )
         expect(rule, 'no rule for the bar').not.toBeNull()
         expect(rule[1]).toMatch(
           /color: rgba\(var\(--bs-link-color-rgb\), var\(--bs-link-opacity, 1\)\);/,
@@ -108,7 +123,7 @@ describe('ContentFooter', () => {
       it('spreads the version over two even lines where even its own line is too narrow', () => {
         // A long translation on a narrow phone: its words on two lines of about the same length,
         // rather than the number alone on the second one.
-        const rule = styleSource().match(/\n\.copyright-version \{([^}]*)\}/)
+        const rule = styleSource().match(/\n\.footer :global\(\.copyright-version\) \{([^}]*)\}/)
         expect(rule, 'no rule for the version line').not.toBeNull()
         expect(rule[1]).toMatch(/text-wrap: balance;/)
       })

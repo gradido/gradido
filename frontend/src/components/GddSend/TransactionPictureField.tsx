@@ -13,7 +13,7 @@ import {
   withDirectives,
 } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ThankYouPictureChoice from '@/components/ThankYouGreeting/ThankYouPictureChoice.vue'
+import { ThankYouPictureChoice } from '@/components/ThankYouGreeting/ThankYouPictureChoice'
 import {
   THANK_YOU_MOTIF_HEIGHT,
   THANK_YOU_MOTIF_WIDTH,

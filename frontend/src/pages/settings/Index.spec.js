@@ -2,17 +2,25 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
 
+// The page translates through useI18n, where the template read $t. The rest of vue-i18n
+// stays: the store's language module builds its instance with it.
+vi.mock('vue-i18n', async (importOriginal) => ({
+  ...(await importOriginal()),
+  useI18n: () => ({ t: (key) => key }),
+}))
+
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 
 const mountIndex = async () => {
   vi.resetModules()
-  const { default: Index } = await import('./Index.vue')
+  const { SettingsIndex: Index } = await import('./Index')
   return mount(Index, {
     global: {
       stubs: {
         RouterLink: RouterLinkStub,
         'settings-menu': true,
-        'settings-account': true,
+        // The account section is imported, and carries its own name.
+        Account: true,
       },
       mocks: { $t: (key) => key },
     },
@@ -30,7 +38,7 @@ describe('the settings index', () => {
     const wrapper = await mountIndex()
 
     expect(wrapper.find('.d-lg-none').find('settings-menu-stub').exists()).toBe(true)
-    expect(wrapper.find('.d-none.d-lg-block').find('settings-account-stub').exists()).toBe(true)
+    expect(wrapper.find('.d-none.d-lg-block').find('account-stub').exists()).toBe(true)
   })
 
   // The very same component the desk menu carries -- one list, not two that can drift apart.

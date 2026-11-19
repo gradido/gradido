@@ -1,46 +1,41 @@
 // AI-GENERATED — not an architecture reference
 // @vitest-environment node
-// Node, not jsdom: sass and the SFC compiler run here, and jsdom's URL class is one node rejects.
+// Node, not jsdom: sass runs here, and jsdom's URL class is one node rejects.
 import { describe, it, expect } from 'vitest'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { compile } from 'sass'
-import { parse, compileStyle } from 'vue/compiler-sfc'
 
 /**
  * An expired link fades in dark mode only if the dark stylesheet's rule outweighs the
- * component's own. Both rules say `!important`, and the component's scoped rule comes out
- * of the build as `.light-gray-text[data-v-…]` (0,2,0) in a route chunk that loads AFTER
+ * component's own. Both rules say `!important`, and the component's own rule comes out
+ * of the build under the root's class, `.transaction-link .light-gray-text` (0,2,0, as the
+ * scoped `.light-gray-text[data-v-…]` of the .vue file was), in a route chunk that loads AFTER
  * the index stylesheet, so a dark rule of the same weight loses the tie. It did: the rule
  * read `.dark-mode .light-gray-text`, also 0,2,0, and measured in a built wallet the expired
  * rows stayed rgb(173, 181, 189) in dark mode instead of rgb(107, 108, 111).
  *
  * jsdom runs no cascade, so both rules are compiled the way the build compiles them (sass
- * for the stylesheet, the SFC compiler for the scoped block) and weighed against each other.
+ * for both; the style module with its `:global(…)` written out) and weighed against each other.
  */
 const here = dirname(fileURLToPath(import.meta.url))
 const DARK = resolve(here, '../../assets/scss/gradido-template-dark.scss')
-const COMPONENT = resolve(here, 'TransactionLink.vue')
+// The component's styles: the module its scoped block became, and the sheet its unscoped one did.
+const MODULE = resolve(here, 'TransactionLink.module.scss')
+const GLOBAL = resolve(here, 'TransactionLink.scss')
 
 // Loud comments survive both compilers. A rule quoted in one is not a rule.
 const withoutComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
 const darkCss = () => withoutComments(compile(DARK).css)
 
-const componentCss = () => {
-  const { descriptor } = parse(readFileSync(COMPONENT, 'utf8'), { filename: COMPONENT })
-  const block = descriptor.styles.find((style) => style.scoped)
-  const result = compileStyle({
-    source: block.content,
-    filename: COMPONENT,
-    id: 'data-v-probe',
-    scoped: true,
-    preprocessLang: block.lang,
-  })
-  expect(result.errors).toEqual([])
-  return withoutComments(result.code)
-}
+// As CSS modules write it: what stands in `:global(…)` keeps its name. The root's class gets a
+// name of the build's own, which is still one class -- it keeps its name here and weighs the same.
+// No charset rule: the file's first line has a letter outside ASCII, and the rule would be read
+// as a part of the first selector.
+const componentCss = () =>
+  withoutComments(compile(MODULE, { charset: false }).css).replace(/:global\(([^()]*)\)/g, '$1')
 
 /** Every rule whose selector ends in the class, with its colour and whether it is !important. */
 const colourRules = (css, className) =>
@@ -84,12 +79,12 @@ const outweighs = (rule, later) => {
 }
 
 describe('TransactionLink in dark mode', () => {
-  it('reads exactly one rule on each side, the scoped one as the build writes it', () => {
+  it("reads exactly one rule on each side, the component's as the build writes it", () => {
     const own = colourRules(componentCss(), 'light-gray-text')
     const dark = colourRules(darkCss(), 'light-gray-text')
 
     expect(own).toHaveLength(1)
-    expect(own[0].selector).toBe('.light-gray-text[data-v-probe]')
+    expect(own[0].selector).toBe('.transaction-link .light-gray-text')
     expect(dark).toHaveLength(1)
   })
 
@@ -125,10 +120,7 @@ describe('TransactionLink in dark mode', () => {
  * rule for links has a `:not`, which the weighing above refuses, so it is written out: 0,2,1.
  */
 describe('the entry for a mail in the menu', () => {
-  const unscoped = () => {
-    const { descriptor } = parse(readFileSync(COMPONENT, 'utf8'), { filename: COMPONENT })
-    return withoutComments(descriptor.styles.find((style) => !style.scoped).content)
-  }
+  const unscoped = () => withoutComments(readFileSync(GLOBAL, 'utf8'))
   const OWN = '.dark-mode .transaction-link .transaction-link-menu a.dropdown-item'
 
   it('takes the colour of its neighbours', () => {

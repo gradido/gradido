@@ -34,8 +34,15 @@ const source = readFileSync(
  * markup as a native listener for an event that never comes (V4a listens for `shown`).
  */
 const namesOn = (tagBody) =>
-  [...tagBody.matchAll(/(?:^|\s)(:|@)?([a-z][a-z0-9-]*)(?==|\s|$)/g)].map((m) =>
-    m[2] === 'v-model' ? 'model-value' : m[1] === '@' ? `@${m[2]}` : m[2],
+  [...tagBody.matchAll(/(?:^|\s)(:|@)?([a-z][a-zA-Z0-9-]*)(?==|\s|$)/g)].map((m) =>
+    m[2] === 'v-model'
+      ? 'model-value'
+      : m[1] === '@'
+        ? `@${m[2]}`
+        : // A listener as TSX writes it: `onShown` is the template's `@shown`.
+          /^on[A-Z]/.test(m[2])
+          ? `@${m[2][2].toLowerCase()}${m[2].slice(3)}`
+          : m[2],
   )
 
 /** What the installed BModal declares: its props and its events. */
@@ -58,7 +65,7 @@ const modalAttributes = () => {
  * since E-053 (ChatVideoCall), which this window renders: they are read with it.
  */
 const videoSource = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.vue'),
+  join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.tsx'),
   'utf8',
 )
 

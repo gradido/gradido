@@ -1,0 +1,12 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The scoped block of VariantIcon.vue also held `:root { --bs-gold: #c58d38; }`. Scoped, that
+   selector asked for the scope attribute on the document's root and so never matched: the
+   `gold` variant has no colour of its own and the icon takes the colour around it. It is left
+   out here for that reason -- unscoped it would start to apply. */
+
+/* The colour is the variant's Bootstrap variable, handed in on the element (`v-bind` in the
+   .vue file). Two classes, as the scoped rule had a class and the scope attribute. */
+.icon:global(.icon-variant) {
+  color: var(--variant-icon-color);
+}

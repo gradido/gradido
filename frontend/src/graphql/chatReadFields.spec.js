@@ -58,7 +58,7 @@ describe('how far the other member has read, as the documents ask it (E-093)', (
   })
 
   it('is read by the thread off its first page, and by the beat off its answer -- and only there', () => {
-    expect(readOff(codeOf('../components/Chat/ChatThread.vue'), 'partnerReadUpTo')).toEqual([
+    expect(readOff(codeOf('../components/Chat/ChatThread.tsx'), 'partnerReadUpTo')).toEqual([
       'firstPage',
       'firstPage',
     ])

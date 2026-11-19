@@ -12,8 +12,8 @@
 import { useApolloClient } from '@vue/apollo-composable'
 import { computed, defineComponent, type PropType, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppAvatar from '@/components/AppAvatar.vue'
-import AvatarCropper from '@/components/Avatar/AvatarCropper.vue'
+import { AppAvatar } from '@/components/AppAvatar'
+import { AvatarCropper } from '@/components/Avatar/AvatarCropper'
 import type { ContactUser } from '@/components/Contacts/contactDisplay'
 import {
   ensureKeptPictures,

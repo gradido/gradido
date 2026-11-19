@@ -1,0 +1,43 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Global, as the unscoped style block of the component was. */
+.username-change {
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.username-old,
+.username-new {
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 17px;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  word-break: break-all;
+}
+
+.username-old {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.username-new {
+  color: var(--gold, #c58d38);
+}
+
+.username-arrow {
+  color: var(--text-muted);
+}
+
+.confirm-last {
+  color: var(--warning, #f5b539);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+div.alert {
+  color: red;
+}

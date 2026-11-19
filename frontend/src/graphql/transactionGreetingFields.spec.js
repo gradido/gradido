@@ -70,7 +70,7 @@ describe('the greeting of a booking, as the conversation asks for it', () => {
   })
 
   it('asks for everything the bubble reads off the greeting', () => {
-    const bubble = read('../components/Chat/ChatBubble.vue')
+    const bubble = read('../components/Chat/ChatBubble.tsx')
     const readOffTheGreeting = [...bubble.matchAll(/greeting\.value\?\.(\w+)/g)].map(
       (match) => `greeting.${match[1]}`,
     )

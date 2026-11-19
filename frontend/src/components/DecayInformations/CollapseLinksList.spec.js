@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import CollapseLinksList from './CollapseLinksList.vue'
+import { CollapseLinksList } from './CollapseLinksList'
 import { walletStore } from '@test/walletStore'
 import { createI18n } from 'vue-i18n'
 import { BButton } from 'bootstrap-vue-next'

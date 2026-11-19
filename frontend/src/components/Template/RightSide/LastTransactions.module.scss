@@ -1,0 +1,147 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it. Every rule stands under the root's class: the scoped rules these were had one level
+   more (the scope attribute). */
+
+/* ⛔ Drawn to the measure of the contacts beside it (`ContactsPanel`, `.contacts-panel-row`),
+   because the two are the two positions of one column: flicking the switch above them should
+   change the people, not the type size, the spacing or the lines. The bookings were set
+   larger and roomier, and Bernd wanted the contacts' measure for both (11.09.2026).
+   `LastTransactions.spec` holds this file's numbers against that one's.
+
+   `g-0` on the row takes Bootstrap's gutters out: with them the row runs 12 points past the
+   column on both sides, and so would the line between two bookings. `column-gap` then puts
+   back the contacts' 8 points between face, text and heart. */
+.rightside-last-transactions :global(.last-transactions-row) {
+  column-gap: 0.5rem;
+  padding: 0.4rem 0;
+}
+
+/* The line BETWEEN two bookings, as between two contacts -- none above the first, none under
+   the last. */
+.rightside-last-transactions :global(.last-transactions-row + .last-transactions-row) {
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.rightside-last-transactions :global(.last-transactions-name) {
+  font-size: 0.85rem;
+}
+
+/* ⛔ No line-height of its own, and that is the decision, not an omission. The contacts set
+   none either: both positions of the switch take the wallet's 1.5, so a name and the line
+   under it stand exactly as far apart here as there.
+
+   Until 13.09.2026 this column set 1.2, to keep its three lines under the 48-point face so a
+   booking row stayed as tall as a contact row. Bernd reversed that when he saw it: the rows
+   looked squeezed, and "in den Schriftgrößen und in den Abständen genau den Kontakten
+   entsprechen" weighs more than an equal row height. A booking row is now some 8 points
+   taller than a contact row (69.8 against 61.8, measured against the served stylesheet at a
+   360-point column) -- the memo is a third line the contacts do not have, and it is given
+   room rather than squeezed in. Whoever wants the rows level again has to take that up with
+   the measure, not add a line-height back here. `LastTransactions.spec` holds it. */
+
+/* The member's community, under the name: the contacts' second line in size and colour, and
+   clipped like it. `LastTransactions.spec` holds the numbers against `ContactsPanel`. */
+.rightside-last-transactions :global(.last-transactions-member-community) {
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  contain: inline-size;
+}
+
+/* The community's name on a creation row, where a member's name stands otherwise. Clipped
+   the same way `Name` clips (a community may be called anything), and `contain` for the
+   reason the memo below gives. */
+.rightside-last-transactions :global(.last-transactions-community) {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  contain: inline-size;
+}
+
+/* The memo, marked as somebody else's words by italics and the muted colour -- no heading
+   over it, exactly as in the booking list. `--bs-secondary-color` is defined in both modes.
+
+   The size is the contacts' second line (0.72rem), not a size of its own: the column has two
+   positions, and a type size that exists in only one of them is the kind of difference that
+   reads as "squeezed" without anyone being able to say why (Bernd, 13.09.2026 -- it was
+   0.65rem, a step smaller than anything the contacts use). `cursor` because the line leads
+   to the booking; a link inside it keeps its own click (MemoText). */
+.rightside-last-transactions :global(.last-transactions-memo) {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* The guard that belongs to `white-space: nowrap`, not to this place: a line that cannot
+     break counts with its FULL length as the least width of every parent that works its own
+     out, and that is what pushed the page apart when the booking list got this memo (#3886).
+
+     ⚠️ Measured here, in the dashboard's own three columns at 1250 and 1440 points, with
+     the longest memo in the fixture: taking it away changed NOTHING -- page 1262 points
+     either way, column 319 either way. This column is a fixed share of the row (col-3), so
+     its width is not worked out from its content the way the content column's is. It stays
+     because the guard travels with the `nowrap` line: whoever moves this row somewhere that
+     does size to content would otherwise meet #3886 again, and would have no reason to look
+     here for the cause. */
+  contain: inline-size;
+}
+
+/* ⛔ The column that grows has to be allowed to SHRINK, or the heart beside it drops onto a
+   line of its own. A Bootstrap `.col` is `flex: 1 0 0%` with the default `min-width: auto`,
+   so its floor is its widest unbreakable content -- the name, and the amount-and-date line
+   under it. Once that floor exceeds the space, `.row`'s `flex-wrap: wrap` pushes the
+   `col-auto` holding the heart down, and it did so at a DIFFERENT width for every booking,
+   because each one's floor is its own text. That is why it read as random: measured at a
+   column 260 points wide, three bookings of the same list disagreed -- two had dropped
+   their heart, the third still had it beside the name, and the only difference between
+   them was the width of their own amount.
+
+   `min-width: 0` lets the text clip instead -- which is what `Name` is already written for,
+   it clips with an ellipsis. Same fix and same class name as `ContactRow`, which is why the
+   contacts column beside this one never had the fault. */
+.rightside-last-transactions :global(.min-w-0) {
+  min-width: 0;
+}
+
+/* ⛔ `max-width` and `flex-wrap` are not decoration: a `button` never stretches. Its
+   `width: auto` is shrink-to-fit even as a flex container, so this line keeps its full
+   width as the column narrows and simply hangs over the heart. `max-width: 100%` is what
+   makes that impossible rather than unlikely -- it binds the button to the column it sits
+   in, and the heart is in a column of its own beside that one, so there is no width at
+   which the two can meet. `flex-wrap` then decides what gives instead: the date drops
+   under the amount, never over the heart.
+
+   The type is the contacts' second line (0.72rem), set here once rather than as `.small` on
+   each half; `padding: 0` takes away the browser's own button padding, which set this line
+   6 points in from the name above it. */
+.rightside-last-transactions :global(.transaction-details-link) {
+  color: var(--bs-body-color) !important;
+  border: none;
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  transition: border-bottom-color 0.15s ease-in-out;
+  max-width: 100%;
+  flex-wrap: wrap;
+  column-gap: 1rem;
+  padding: 0;
+  font-size: 0.72rem;
+}
+
+.rightside-last-transactions :global(.transaction-details-link:hover) {
+  border-color: #383838;
+}
+
+/* The sign and the number are one word to the eye, and the space between them is a real
+   space -- so the second guard against a break has to be here, not only in the shorter
+   text. The date beside it may still wrap; that costs nothing. */
+.rightside-last-transactions :global(.transaction-amount) {
+  white-space: nowrap;
+}

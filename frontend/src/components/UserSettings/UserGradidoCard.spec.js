@@ -2,8 +2,8 @@
 
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import UserGradidoCard from './UserGradidoCard.vue'
-import AppModal from '@/components/AppModal'
+import { UserGradidoCard } from './UserGradidoCard'
+import { AppModal } from '@/components/AppModal'
 
 const mockDrawCard = vi.fn()
 const mockDownloadCard = vi.fn()
@@ -19,11 +19,14 @@ vi.mock('@/composables/useGradidoCard', () => ({
 const storeState = { username: 'bernd', gradidoID: 'uuid-1' }
 vi.mock('@/store/useWalletStore', () => ({ useWalletStore: () => storeState }))
 
+// The section translates through useI18n, where the template read $t.
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+
 const wrapperFor = async () => {
   const wrapper = mount(UserGradidoCard, {
     global: {
-      mocks: { $t: (key) => key },
-      stubs: { IBiDownload: true, IBiPrinter: true },
+      // The two icons are imported (`~icons/…`) and carry the icon's own name.
+      stubs: { BiDownload: true, BiPrinter: true },
     },
   })
   await flushPromises()

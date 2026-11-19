@@ -1,0 +1,25 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses SFC style blocks, and a double slash is not a comment
+   to it.
+
+   The hits of the thread's search (E-057), marked where they stand -- in the words, the subject,
+   a transfer's memo, a link's text. Not scoped: the marks are made by render functions
+   (chatSearchMarks) inside this bubble, which carry no scope of this file. The same warm yellow in
+   both themes, with a dark text on it, so a hit reads alike on the grey, the gold and the dark
+   bubble; the hit the search stands on in a stronger orange, and its bubble ringed. */
+.chat-bubble-row .chat-search-mark {
+  padding: 0 0.05em;
+  border-radius: 0.15em;
+  background: #ffe58f;
+  color: #1d1d1b;
+}
+
+.chat-bubble-row.is-search-current .chat-search-mark {
+  background: #ffb340;
+}
+
+.chat-bubble-row.is-search-current .chat-bubble {
+  outline: 2px solid #ffb340;
+  outline-offset: 2px;
+}

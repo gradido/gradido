@@ -1,6 +1,9 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import FigureQrCode from './FigureQrCode'
+import { FigureQrCode } from './FigureQrCode'
+
+// The component asks useI18n() for `t` now; a template's `$t` came from the mocks below.
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 vi.mock('qrcanvas-vue', () => ({
   QRCanvas: {
@@ -81,7 +84,8 @@ describe('FigureQrCode', () => {
   describe('Download QR-Code link', () => {
     beforeEach(async () => {
       const mockToDataURL = vi.fn().mockReturnValue('data:image/png;base64,mockedData')
-      wrapper.vm.$refs.canvas.$el.toDataURL = mockToDataURL
+      // The canvas is a ref of setup() now, handed out with expose() -- no template ref to find in $refs.
+      wrapper.vm.canvas.$el.toDataURL = mockToDataURL
 
       const downloadLink = wrapper.find('#download')
       await downloadLink.trigger('click')

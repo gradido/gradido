@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import ContentHeader from './ContentHeader'
+import { ContentHeader } from './ContentHeader'
 
 const route = { path: '/' }
 vi.mock('vue-router', () => ({ useRoute: () => route }))

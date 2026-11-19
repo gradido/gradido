@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick, reactive, ref, watch } from 'vue'
 import { createI18n } from 'vue-i18n'
-import AliasFirstChoice from './AliasFirstChoice.vue'
+import { AliasFirstChoice } from './AliasFirstChoice'
 import {
   firstLoginWindow,
   forgetFirstLoginWindows,

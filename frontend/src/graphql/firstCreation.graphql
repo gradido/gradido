@@ -4,7 +4,7 @@
 #
 # ⚠️ `firstCreationStatus` takes no arguments, so every member shares one cache key. It is
 # read with `cache-and-network`, the way `aliasStatus` is; the cache itself is emptied on
-# logout (store.js). Both, not either -- see the comment in FirstCreation.vue.
+# logout (store.js). Both, not either -- see the comment in FirstCreation.tsx.
 #
 # Asked only while the window might still open: the login answer carries the member's state
 # (`firstCreationStatus` on the user), and the window reads that off the store first.

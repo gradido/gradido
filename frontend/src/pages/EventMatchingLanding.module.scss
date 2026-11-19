@@ -17,7 +17,7 @@
   overflow-wrap: anywhere;
 }
 
-/* The two buttons as on the Gradido address (pages/PublicProfile.vue, .profile-actions), rule
+/* The two buttons as on the Gradido address (pages/PublicProfile.module.scss, .profile-actions), rule
    for rule: one column, as wide as the wider label, both filling it; on a phone the whole
    width, with the house button's side padding taken back so the label keeps its line -- from
    360px on in all ten languages. At 320px "Ich habe schon ein Gradido-Konto" (E-045) takes two

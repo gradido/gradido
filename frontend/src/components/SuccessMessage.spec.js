@@ -1,8 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { BButton } from 'bootstrap-vue-next'
-import SuccessMessage from './SuccessMessage.vue'
+import { SuccessMessage } from './SuccessMessage'
+
+// The component reads its texts through useI18n().
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key) => key }),
+}))
 
 /**
  * The page after something went out: a contribution handed in, a transfer, a letter. Its button

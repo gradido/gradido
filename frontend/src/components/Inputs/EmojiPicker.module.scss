@@ -1,0 +1,138 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet, and the specs that read it strip those.
+
+   Every rule stands under the root's class, and a rule for the root itself names the root
+   twice: the scoped rules these were had one level more (the scope attribute), and the bar of
+   a chat places the smiley by a rule of that weight (ChatComposeBar). */
+
+/* In a row: only the smiley takes room -- the choice hangs over the page. */
+.emoji-picker:global(.emoji-picker) {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+/* The smiley: drawn as the paperclip is -- the sign in the muted colour, nothing filled, a
+   surface under it where a mouse rests on it and while its choice is open. A size smaller than
+   the paperclip: it stands inside a field's rim, or at the end of a label's line. */
+.emoji-picker :global(.emoji-picker-toggle) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+}
+
+.emoji-picker :global(.emoji-picker-toggle.is-open) {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+@media (hover: hover) {
+  .emoji-picker :global(.emoji-picker-toggle:hover) {
+    background: var(--surface-muted, #f2f4f6);
+    color: var(--bs-body-color);
+  }
+}
+
+.emoji-picker :global(.emoji-picker-toggle:focus-visible) {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.emoji-picker :global(.emoji-picker-toggle-icon) {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+/* The choice: the paperclip's menu (ChatComposeBar) -- a small card with a shadow on the menus'
+   own grey. Over the page, where `place` puts it: over everything of the page it is on, a
+   sticky bar too, and inside a window over all of that window.
+
+   As wide as its emoji (`max-content`), and never wider than the screen. ⚠️ Not left to "as wide
+   as there is room": what hangs over the page is given the room from where it stands to the
+   screen's right edge, and near that edge the columns -- which may give way -- gave way (measured
+   at 500 px: emoji of 27 px in place of 36). */
+.emoji-picker :global(.emoji-picker-panel) {
+  position: fixed;
+  z-index: 1040;
+  width: max-content;
+  max-width: calc(100vw - 1rem);
+  padding: 0.35rem;
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 0.85rem;
+  background: var(--menu-surface, #dde1e6);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+
+/* Eight in a row (EMOJI_ROWS), each a square of 36 px -- and narrower where the screen is: the
+   columns give way, the choice never hangs out of it. */
+.emoji-picker :global(.emoji-picker-row) {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 2.25rem));
+}
+
+.emoji-picker :global(.emoji-picker-cell) {
+  display: block;
+}
+
+/* The device's own coloured drawing, asked for by name: left to the page's font, a sign that is
+   also a letter of some font (the heart, the sun) could come out black and flat. */
+.emoji-picker :global(.emoji-picker-emoji) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .emoji-picker :global(.emoji-picker-emoji:hover) {
+    background: var(--menu-hover, #eef0f3);
+  }
+}
+
+.emoji-picker :global(.emoji-picker-emoji:focus-visible) {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: -2px;
+}
+
+/* The line under the emoji is as wide as the emoji are, and breaks where it must: it asks for no
+   width of its own (`width: 0`) and then takes what the grid made the card (`min-width`). Left
+   to itself, a long line -- the Greek one -- would make the card wider than its emoji. */
+.emoji-picker :global(.emoji-picker-more) {
+  width: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.3rem 0.35rem 0.15rem;
+  color: var(--menu-text-muted, #4d555d);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+/* In a form: the smiley at the end of the label's line -- the upper right corner of what the
+   form wraps the field in. It takes no room there. */
+.emoji-picker:global(.emoji-picker.is-corner) {
+  display: block;
+}
+
+.emoji-picker:global(.emoji-picker.is-corner .emoji-picker-toggle) {
+  position: absolute;
+  top: -0.25rem;
+  right: 0;
+}

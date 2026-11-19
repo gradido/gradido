@@ -1,0 +1,194 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it.
+
+   Every rule but the root's stands under the root's class: the scoped rules these were had one
+   level more (the scope attribute).
+
+   The gold of the house in two depths, as the page of the greeting has them: the darker one
+   carries text on a light ground, the lighter one lines. Named here as well, so the choice
+   brings its colours along wherever it is used. */
+.thank-you-picture-choice {
+  --typ-accent: #8a6124;
+  --typ-accent-line: #c58d38;
+}
+
+:global(.dark-mode) .thank-you-picture-choice {
+  --typ-accent: #e6bd70;
+}
+
+/* The tiles: picture above name -- two in a row on a phone, all six in one row where there is
+   room. With two fixed columns a tile was 500px wide at 1280 and the button under them out of
+   sight (measured in the built wallet). */
+.thank-you-picture-choice :global(.tyg-motifs) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.thank-you-picture-choice :global(.tyg-motif) {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 14px;
+  background: var(--bs-body-bg, #fff);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+/* The room of the picture stands before the picture has come: 36 : 25, as the files are, in
+   the colour of the card's place (THANK_YOU_PICTURE_GROUND). A photo fills it as a motif does. */
+.thank-you-picture-choice :global(.tyg-motif) img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 36 / 25;
+  background: #fbf3de;
+  object-fit: cover;
+}
+
+.thank-you-picture-choice :global(.tyg-motif-name) {
+  padding: 7px 10px 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* The chosen tile keeps its size: the thicker line is drawn inside the tile, not added to it. */
+.thank-you-picture-choice :global(.tyg-motif.is-chosen) {
+  border-color: var(--typ-accent-line);
+  box-shadow: inset 0 0 0 1.5px var(--typ-accent-line);
+}
+
+.thank-you-picture-choice :global(.tyg-motif.is-chosen .tyg-motif-name) {
+  color: var(--typ-accent);
+  font-weight: 700;
+}
+
+/* The tick stands on the picture, whose ground is light in both themes: its own colours. */
+.thank-you-picture-choice :global(.tyg-motif-check) {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #8a6124;
+  color: #fff;
+}
+
+/* The tile of one's own photo is no button itself: it holds its face -- the label of the
+   picker's field, or the button with the photo -- and, under a photo, the way to another one. */
+.thank-you-picture-choice :global(.tyg-own-face) {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* Empty, it is an offer: a broken line of the tile's own width around an empty room. The line is
+   all that bounds this tile -- it has no ground of its own --, so it takes the darker gold: the
+   lighter one stood at 2.7 : 1 on the light page (measured in the built wallet), this one at 5. */
+.thank-you-picture-choice :global(.tyg-own.is-empty) {
+  border-style: dashed;
+  border-color: var(--typ-accent);
+  background: transparent;
+}
+
+.thank-you-picture-choice :global(.tyg-own-room) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 36 / 25;
+  color: var(--typ-accent);
+}
+
+/* "Anderes Foto": reads as a link, is the label of the picker's field. */
+.thank-you-picture-choice :global(.tyg-own-other) {
+  align-self: flex-start;
+  margin: -3px 0 0;
+  padding: 0 10px 9px;
+  color: rgba(var(--bs-link-color-rgb), 1);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.thank-you-picture-choice :global(.tyg-own-other:hover) {
+  text-decoration: underline;
+}
+
+/* "Foto aufnehmen": one row under the tiles, as wide as all of them. */
+.thank-you-picture-choice :global(.tyg-camera) {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin: 0;
+  padding: 0.5em 1em;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 14px;
+  background: var(--bs-body-bg, #fff);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* While a photo is being opened. */
+.thank-you-picture-choice :global(.tyg-own.is-busy),
+.thank-you-picture-choice :global(.tyg-camera.is-busy) {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+/* Why a photo could not be opened. On the light page the house's red for a field in error
+   (#dc3545) stands at 4.2 : 1 -- it is made for a white card --, so the sentence takes a deeper
+   red there (6 : 1); on the dark page the theme's own, lighter red (7 : 1). */
+.thank-you-picture-choice :global(.tyg-picture-problem) {
+  margin: 0.75rem 0 0;
+  color: #b02a37;
+  font-size: 0.875rem;
+}
+
+:global(.dark-mode) .thank-you-picture-choice :global(.tyg-picture-problem) {
+  color: var(--bs-form-invalid-color, #ea868f);
+}
+
+/* Whoever walks the page with the keyboard sees where they are. The tile cuts off what
+   reaches past its round corners, so the focus of what is inside it is shown on the tile, and
+   that of "Anderes Foto" inside its own edge. */
+.thank-you-picture-choice :global(.tyg-motif:focus-visible),
+.thank-you-picture-choice :global(.tyg-own:has(.tyg-own-face:focus-visible)),
+.thank-you-picture-choice :global(.tyg-own.is-empty:has(.tyg-own-field:focus-visible)),
+.thank-you-picture-choice :global(.tyg-camera-field:focus-visible + .tyg-camera) {
+  outline: 2px solid var(--typ-accent);
+  outline-offset: 2px;
+}
+
+.thank-you-picture-choice :global(.tyg-own-face:focus-visible) {
+  outline: none;
+}
+
+.thank-you-picture-choice :global(.tyg-own-field:focus-visible + .tyg-own-other) {
+  outline: 2px solid var(--typ-accent);
+  outline-offset: -2px;
+}

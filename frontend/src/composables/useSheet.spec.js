@@ -77,7 +77,7 @@ describe('useSheet', () => {
   // `fullscreen="sm"` and their sheet rules use.
   it('asks for the boundary the stylesheets use', () => {
     const bubble = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), '../components/Chat/ChatBubble.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), '../components/Chat/ChatBubble.module.scss'),
       'utf8',
     )
     expect(SHEET_QUERY).toBe('(max-width: 575.98px)')

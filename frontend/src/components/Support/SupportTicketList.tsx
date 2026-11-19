@@ -3,7 +3,7 @@ import { useQuery } from '@vue/apollo-composable'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
+import { PaginatorRouteParamsPage } from '@/components/PaginatorRouteParamsPage'
 import {
   SupportTicketListItem,
   type SupportTicketRow,

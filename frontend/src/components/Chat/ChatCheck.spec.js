@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
-import ChatCheck from './ChatCheck.vue'
+import { ChatCheck } from './ChatCheck'
 
 /** A parent that binds the box with v-model, as the dialogs do, and notes every `change`. */
 const Parent = {
@@ -69,18 +69,25 @@ describe('ChatCheck', () => {
   // stylesheet says it; comments stripped first.
   it("is the compose bar's box, in the stylesheet", () => {
     const here = dirname(fileURLToPath(import.meta.url))
+    // A style module is the block alone, and its rules stand under the root's class:
+    // `.chat-check :global(.chat-check-box)`.
     const style = (file) =>
       readFileSync(join(here, file), 'utf8')
-        .slice(readFileSync(join(here, file), 'utf8').indexOf('<style'))
+        .slice(
+          file.endsWith('.scss') ? 0 : readFileSync(join(here, file), 'utf8').indexOf('<style'),
+        )
         .replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (code, selector) =>
       code
-        .match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1]
+        .match(new RegExp(`\\n(?:\\.[\\w-]+ :global\\()?${selector}\\)?\\s*\\{([^}]*)\\}`))?.[1]
         .replace(/\s+/g, ' ')
         .trim()
 
-    const check = style('ChatCheck.vue')
-    const bar = style('ChatComposeBar.vue')
+    const check = style('ChatCheck.module.scss')
+    const bar = readFileSync(join(here, 'ChatComposeBar.module.scss'), 'utf8').replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
     for (const property of [
       'width: 1.1rem',
       'height: 1.1rem',

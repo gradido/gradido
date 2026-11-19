@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick, reactive } from 'vue'
-import UserCreationAccount from './UserCreationAccount.vue'
+import { UserCreationAccount } from './UserCreationAccount'
 
 // The radio group is a stub that a test can drive the way the member does: by choosing.
 vi.mock('bootstrap-vue-next', () => ({
@@ -26,8 +26,8 @@ vi.mock('bootstrap-vue-next', () => ({
 
 // The confirmation is a component of its own with its own spec; here it is a stub the
 // test answers through, so what is under test is that nothing moves WITHOUT it.
-vi.mock('@/components/UserSettings/ProjectAccountConfirm.vue', () => ({
-  default: {
+vi.mock('@/components/UserSettings/ProjectAccountConfirm', () => ({
+  ProjectAccountConfirm: {
     props: ['mode', 'busy'],
     emits: ['confirm', 'cancel'],
     template:

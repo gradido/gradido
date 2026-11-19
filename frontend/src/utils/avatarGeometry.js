@@ -110,8 +110,9 @@ export function mirroredOffsetX({
  * what keeps dragging the right way round -- mirroring the finished square instead would
  * send a finger movement the wrong way.
  *
- * @param {number} outputSize edge length of the target square; defaults to the frame, so
- *   the preview can ask for the geometry without repeating the number.
+ * `outputSize`: edge length of the target square; defaults to the frame, so the preview can
+ * ask for the geometry without repeating the number. (Prose, not a `param` tag: the tag names
+ * the first parameter to TypeScript, which is the whole options object, not this number.)
  */
 export function avatarCrop({
   sourceWidth,

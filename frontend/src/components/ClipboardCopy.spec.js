@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { BButton } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
-import ClipboardCopy from './ClipboardCopy'
+import { ClipboardCopy } from './ClipboardCopy'
 
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
@@ -34,7 +34,7 @@ const mountCopy = () => {
     global: {
       plugins: [i18n],
       components: { BButton },
-      stubs: { IBiShare: true, IBiEnvelope: true, IBiLock: true, IBiCopy: true },
+      stubs: { BiShare: true, BiEnvelope: true, BiLock: true, BiCopy: true },
     },
   })
 }

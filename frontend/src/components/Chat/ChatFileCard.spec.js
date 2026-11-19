@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import ChatFileCard from './ChatFileCard.vue'
+import { ChatFileCard } from './ChatFileCard'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) }),
@@ -18,7 +18,7 @@ describe('ChatFileCard', () => {
   const mountCard = (href = LINK, service = 'SwissTransfer') => {
     wrapper = mount(ChatFileCard, {
       props: { href, service },
-      global: { stubs: { IMdiFileDocumentOutline: true, IMdiOpenInNew: true } },
+      global: { stubs: { MdiFileDocumentOutline: true, MdiOpenInNew: true } },
     })
     return wrapper
   }
@@ -79,7 +79,7 @@ describe('ChatFileCard', () => {
   })
 
   const style = () =>
-    readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ChatFileCard.vue'), 'utf8')
+    readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ChatFileCard.module.scss'), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/<!--[\s\S]*?-->/g, '')
   const rule = (selector) => style().match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''

@@ -9,13 +9,13 @@ import {
   type ButtonVariant,
   type ColorVariant,
 } from 'bootstrap-vue-next'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, type PropType, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ContributionMessagesList } from '@/components/ContributionMessages/ContributionMessagesList'
 import type { ContributionMessage } from '@/components/ContributionMessages/ContributionMessagesListItem'
 import contributionRowClasses from '@/components/Contributions/ContributionListItem.module.scss'
-import CollapseIcon from '@/components/TransactionRows/CollapseIcon.vue'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { CollapseIcon } from '@/components/TransactionRows/CollapseIcon'
+import { VariantIcon } from '@/components/VariantIcon'
 import { fetchMemberAvatars } from '@/composables/useMemberAvatars'
 import { useAppToast } from '@/composables/useToast'
 import {
@@ -58,8 +58,8 @@ export const SupportTicketListItem = defineComponent({
     text: { type: String, required: true },
     status: { type: String, required: true },
     createdAt: { type: String, required: true },
-    creationGroupTag: { type: String, default: null },
-    creationGroupName: { type: String, default: null },
+    creationGroupTag: { type: String as PropType<string | null>, default: null },
+    creationGroupName: { type: String as PropType<string | null>, default: null },
     messagesVisible: { type: Boolean, default: false },
   },
   emits: ['toggle-messages-visible', 'ticket-changed'],

@@ -4,7 +4,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import SettingsSidebar from './SettingsSidebar.vue'
+import { SettingsSidebar } from './SettingsSidebar'
+
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
+// The stubbed list still imports the wallet store, which sets the language on the app's own
+// i18n; the mock above cannot build that one.
+vi.mock('@/i18n', () => ({ default: { global: { locale: { value: 'en' } } } }))
 
 const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 
@@ -14,7 +19,7 @@ const RouterLinkStub = { props: ['to'], template: '<a :to="to"><slot /></a>' }
 const mountSidebar = () =>
   mount(SettingsSidebar, {
     global: {
-      stubs: { RouterLink: RouterLinkStub, 'settings-menu': true },
+      stubs: { RouterLink: RouterLinkStub, SettingsMenu: true },
       mocks: { $t: (key) => key },
     },
   })
@@ -54,16 +59,19 @@ describe('SettingsSidebar', () => {
 
   /**
    * ⚠️ `var(--text)`, not the literal the main menu uses. Copying `rgb(56 56 56) !important`
-   * from Sidebar.vue took its dark-mode fix along only in appearance: that fix keys off
+   * from Sidebar.tsx took its dark-mode fix along only in appearance: that fix keys off
    * `#component-sidebar .nav-item > a`, and this link is not a nav item -- so in dark mode it
    * stood nearly black on nearly black. Bernd found it at the device.
    */
   it('takes its colour from the theme token, so dark mode reaches it', () => {
     const source = readFileSync(
-      resolve(dirname(fileURLToPath(import.meta.url)), 'SettingsSidebar.vue'),
+      resolve(dirname(fileURLToPath(import.meta.url)), 'SettingsSidebar.module.scss'),
       'utf8',
     )
-    const rule = source.match(/\.settings-back,\n\.settings-logout \{([^}]*)\}/)[1]
+    // The style module: the rule stands under the root's class (`:global(.settings-back)`).
+    const rule = source.match(
+      /:global\(\.settings-back\),\n\.settingsSidebar :global\(\.settings-logout\) \{([^}]*)\}/,
+    )[1]
 
     expect(rule).toContain('color: var(--text)')
     expect(rule).not.toContain('rgb(56 56 56)')

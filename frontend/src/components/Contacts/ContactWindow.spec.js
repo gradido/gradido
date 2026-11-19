@@ -50,6 +50,9 @@ vi.mock('vue-i18n', () => ({
     // The language the day and the time zone of a planned call are written in (V5b).
     locale: { value: 'de' },
   }),
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is a .tsx file: no `<i18n-t>` is resolved by name any more.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 vi.mock('@/i18n', () => ({
   default: { global: { t: (key) => key } },
@@ -222,19 +225,19 @@ describe('ContactWindow', () => {
           MdiBellOffOutline: true,
           MdiVideoOutline: true,
           MdiMapMarkerOutline: true,
-          IMdiCogOutline: true,
-          IMdiLinkVariant: true,
-          IMdiCheck: true,
-          IMdiServerOutline: true,
-          IMdiCalendarPlusOutline: true,
+          MdiCogOutline: true,
+          MdiLinkVariant: true,
+          MdiCheck: true,
+          MdiServerOutline: true,
+          MdiCalendarPlusOutline: true,
           MdiMagnify: true,
           MdiNoteText: true,
           MdiNoteTextOutline: true,
           IMdiChevronUp: true,
           IMdiChevronDown: true,
           // The switch for the window's size (ChatWindowSizeToggle); its own spec is about it.
-          IMdiArrowExpand: true,
-          IMdiArrowCollapse: true,
+          MdiArrowExpand: true,
+          MdiArrowCollapse: true,
           // The thread reads the server; its own spec is about that. Here it only has to say
           // whom it was made for, count how often it was made, and take a video invitation
           // (`deliver`, which the real one exposes) for whom it was made. And it takes the
@@ -3701,7 +3704,7 @@ describe('ContactWindow', () => {
       it('gives the waiting look to "Plan" as well, in the stylesheet', () => {
         // The questions of a call stand in a component of their own since E-053.
         const code = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.vue'),
+          join(dirname(fileURLToPath(import.meta.url)), '../Chat/ChatVideoCall.module.scss'),
           'utf8',
         ).replace(/\/\*[\s\S]*?\*\//g, '')
         expect(code).toMatch(/\.chat-video-plan\[aria-disabled='true'\]/)
@@ -4421,9 +4424,8 @@ describe('ContactWindow', () => {
    * nothing, so the stylesheet says it; comments stripped first.
    */
   it("gives the call's buttons their waiting look, in the stylesheet", () => {
-    const code = styleOf('../Chat/ChatVideoCall.vue')
-    // From after the tag: its first rule would otherwise begin with the tag.
-    const style = code.slice(code.indexOf('>', code.indexOf('<style')) + 1)
+    // A style module: no tag before its first rule.
+    const style = styleOf('../Chat/ChatVideoCall.module.scss')
     const rules = [...style.matchAll(/([^{}]+)\{([^}]*)\}/g)].map(([, selectors, body]) => ({
       selectors: selectors.split(',').map((selector) => selector.trim()),
       body,
@@ -4443,7 +4445,7 @@ describe('ContactWindow', () => {
    * nothing out and draws no outlines, so the stylesheet says it; comments stripped first.
    */
   it('puts the gear at the left of the footer, as high as the buttons, with a focus ring, in the stylesheet', () => {
-    const code = styleOf('../Chat/ChatVideoCall.vue')
+    const code = styleOf('../Chat/ChatVideoCall.module.scss')
     const rule = (selector) => code.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
 
     const gear = rule('\\.chat-video-gear')
@@ -4659,7 +4661,7 @@ describe('ContactWindow', () => {
         .match(new RegExp(`\\n\\.${name}\\s*\\{([^}]*)\\}`))?.[1]
         ?.replace(/\s+/g, ' ')
         .trim()
-    const gold = styleOf('../Chat/ChatComposeBar.vue').match(
+    const gold = styleOf('../Chat/ChatComposeBar.module.scss').match(
       /\n\.chat-compose-send\s*\{[^}]*\sbackground:\s*(#[0-9a-f]{6});/i,
     )?.[1]
 

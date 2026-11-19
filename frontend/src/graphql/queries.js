@@ -310,7 +310,7 @@ export const thankYouGreetingPicture = gql`
 `
 
 // Both renditions of the photo of a greeting of the member's own, as base64: what a duplicate of
-// that greeting carries along (pages/ThankYouGreeting.vue, ZE-030). `large` hands the member who
+// that greeting carries along (pages/ThankYouGreeting.tsx, ZE-030). `large` hands the member who
 // made the link its large rendition -- or the small one, where no large one is filed -- while the
 // link is neither accepted nor deleted; the server takes one such call a request.
 // ⛔ Asked `no-cache`, once, by the page that takes the photo over, and kept in that page's memory

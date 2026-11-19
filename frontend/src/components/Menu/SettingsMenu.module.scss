@@ -1,0 +1,90 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it. Every rule stands under the root's class: the scoped rules these were had one level
+   more (the scope attribute). */
+
+/**
+ * ⚠️ The rule is a `::after`, not a `border-bottom`, and that is the whole point of BAU-09.
+ * A border runs the full width of the row; this one starts BEHIND the icon and runs to the
+ * row's right edge -- the phone-settings pattern Bernd named as the model. The icons stand
+ * as their own column instead of being cut by every line.
+ *
+ * The left offset is the row's own padding + the icon (18px) + the gap, so it lands exactly
+ * where the label starts. `--row-pad` carries it, because the page fassung below widens both.
+ *
+ * Label and state share a wrapper that may wrap: the label breaks first, and the state goes a
+ * line lower only where the longest word of the label does not fit beside it.
+ */
+.settings-menu {
+  --row-pad: 1rem;
+}
+
+.settings-menu :global(.settings-menu-row) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem var(--row-pad);
+  color: var(--text) !important;
+  text-decoration: none;
+}
+
+.settings-menu :global(.settings-menu-row)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--row-pad) + 18px + 0.75rem);
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.settings-menu :global(.settings-menu-row:last-child)::after {
+  display: none;
+}
+
+/**
+ * On the phone the list IS the page, so it runs to the card's edge: the card drops its side
+ * padding and the rows carry it instead. Without this the rules stopped 24px short on BOTH
+ * sides -- six little floating stripes rather than one list. (Bernd, 26.08.2026.)
+ */
+.settings-menu:global(.is-page) {
+  --row-pad: 1.5rem;
+}
+
+.settings-menu :global(.settings-menu-row.is-current) {
+  font-weight: bold;
+  background-color: var(--surface-muted);
+}
+
+.settings-menu :global(.settings-menu-icon) {
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.settings-menu :global(.settings-menu-text) {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.settings-menu :global(.settings-menu-label) {
+  flex: 1 1 0;
+  min-width: min-content;
+}
+
+.settings-menu :global(.settings-menu-state) {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.settings-menu :global(.settings-menu-chevron) {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}

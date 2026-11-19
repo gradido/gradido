@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import ChatComposeBar from './ChatComposeBar.vue'
-import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
+import { ChatComposeBar } from './ChatComposeBar'
+import { EmojiPicker } from '@/components/Inputs/EmojiPicker'
 import { isComputer } from '@/utils/isComputer'
 import { MESSAGE_MAX_CHARS } from '@/validationSchemas'
 
@@ -33,20 +33,20 @@ describe('ChatComposeBar, the smiley', () => {
       attachTo: document.body,
       global: {
         stubs: {
-          IMdiEmailOutline: true,
-          IMdiSend: true,
-          IMdiPaperclip: true,
-          IMdiImage: true,
-          IMdiCamera: true,
-          IMdiFileDocument: true,
-          IMdiClose: true,
-          IMdiPencilOutline: true,
-          IMdiCheck: true,
-          IMdiReplyOutline: true,
-          IMdiImageOutline: true,
-          IMdiCellphone: true,
-          IMdiOpenInNew: true,
-          IMdiEmoticonHappyOutline: true,
+          MdiEmailOutline: true,
+          MdiSend: true,
+          MdiPaperclip: true,
+          MdiImage: true,
+          MdiCamera: true,
+          MdiFileDocument: true,
+          MdiClose: true,
+          MdiPencilOutline: true,
+          MdiCheck: true,
+          MdiReplyOutline: true,
+          MdiImageOutline: true,
+          MdiCellphone: true,
+          MdiOpenInNew: true,
+          MdiEmoticonHappyOutline: true,
           ChatImageEditor: true,
           BModal: true,
         },
@@ -475,10 +475,15 @@ describe('ChatComposeBar, the smiley', () => {
     const here = dirname(fileURLToPath(import.meta.url))
     const styleOf = (file) => {
       const code = readFileSync(file, 'utf8')
-      return code.slice(code.indexOf('<style')).replace(/\/\*[\s\S]*?\*\//g, '')
+      return code.slice(Math.max(0, code.indexOf('<style'))).replace(/\/\*[\s\S]*?\*\//g, '')
     }
-    const bar = styleOf(join(here, 'ChatComposeBar.vue'))
-    const picker = styleOf(join(here, '..', 'Inputs', 'EmojiPicker.vue'))
+    const bar = styleOf(join(here, 'ChatComposeBar.module.scss'))
+    // The smiley's rules are in a style module: no `<style` to cut at, and each selector stands
+    // in `:global()` under the root's class.
+    const picker = readFileSync(
+      join(here, '..', 'Inputs', 'EmojiPicker.module.scss'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (code, selector) =>
       code.match(new RegExp(`\\n${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
     const rem = (css, property) => {
@@ -501,7 +506,7 @@ describe('ChatComposeBar, the smiley', () => {
     }
 
     it('take as much room back as the smiley takes: the field and the arrow do not move', () => {
-      const width = rem(rule(picker, '.emoji-picker-toggle'), 'width')
+      const width = rem(rule(picker, '.emoji-picker :global\\(.emoji-picker-toggle\\)'), 'width')
       const gap = rem(rule(bar, '.chat-compose-row'), 'gap')
       const { left, right } = margins()
 

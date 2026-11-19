@@ -1,11 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import TransactionLink from './TransactionLink.vue'
+import { TransactionLink } from './TransactionLink'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/store/useWalletStore'
 import { useAppToast } from '@/composables/useToast'
-import TransactionLinkItem from '@/components/TransactionLinkItem.vue'
+import { TransactionLinkItem } from '@/components/TransactionLinkItem'
 import { AuthTriads } from '@/components/Auth/AuthTriads'
 
 vi.mock('vue-router', () => ({
@@ -43,6 +43,9 @@ vi.mock('vue-i18n', () => ({
     d: vi.fn((d) => d.toISOString()),
     t: vi.fn((t, obj = null) => (obj ? [t, obj.date].join('; ') : t)),
   })),
+  // The sheet's sentence with a slot in it (I18nText) takes this off the module, now that the
+  // sheet is imported and not found by name; no test here reads that sentence.
+  I18nT: { name: 'I18nT', render: () => null },
 }))
 
 const now = new Date().toISOString()

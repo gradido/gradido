@@ -1,0 +1,120 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: the specs read
+   them by name. Without the scope attribute each has one level less; the state classes (`is-…`)
+   are set in the module's spelling too. */
+
+/* The chosen ones: small faces with their names, wrapped over as many lines as they need. */
+.chat-group-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chat-group-picker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.15rem 0.6rem 0.15rem 0.15rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1rem;
+  font-size: 0.85rem;
+}
+
+/* A face keeps its size however long the name beside it: the name gives way. Measured in the
+   bundle (29.09.2026): beside a name of 30 characters a row's face had shrunk to 31 px at 320 px
+   and to 41 px at 390. */
+.chat-group-picker-chip :global(.app-avatar),
+.chat-group-pick :global(.app-avatar) {
+  flex: 0 0 auto;
+}
+
+.chat-group-picker-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-group-picker-none {
+  margin: 0.75rem 0 0;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.85rem;
+}
+
+/* "Gruppen", "Kontakte": over the two lists, as the page heads its sections. */
+.chat-group-picker-head {
+  margin: 1rem 0 0;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chat-group-picker-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A row: the box, the face at the size of every list, the name over where they belong. The whole
+   row is the box's label; at least a finger's height. */
+.chat-group-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.35rem 0.25rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  cursor: pointer;
+}
+
+.chat-group-pick-box {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--gold, #c58d38);
+}
+
+.chat-group-pick-box:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-group-pick-words {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chat-group-pick-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-group-pick-sub {
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8rem;
+}
+
+/* Another community's contact (E-050 F2): there, but not to be chosen yet. The box, the face and
+   the name are greyed; the line that says why keeps its colour -- greyed with the rest it stood at
+   2.8:1 on the dark surface (measured in the bundle, 29.09.2026). */
+.chat-group-pick.is-off {
+  cursor: default;
+}
+
+.chat-group-pick.is-off .chat-group-pick-box,
+.chat-group-pick.is-off :global(.app-avatar),
+.chat-group-pick.is-off .chat-group-pick-name {
+  opacity: 0.6;
+}

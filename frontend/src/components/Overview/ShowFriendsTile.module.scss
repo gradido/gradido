@@ -48,7 +48,7 @@
 }
 
 /* ⛔ Looks like the tappable name everywhere else in the wallet -- link colour and an
-   underline -- for the reason `Name.vue` gives beside the same rule: the affordance is
+   underline -- for the reason `Name.module.scss` gives beside the same rule: the affordance is
    what tells a member there is something behind it. `font: inherit` carries the heading's
    own size and weight in, so the sentence reads as one sentence with one word in it that
    can be tapped.

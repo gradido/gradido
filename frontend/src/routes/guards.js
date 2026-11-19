@@ -15,7 +15,7 @@ import CONFIG from '../config'
 
 /**
  * Whether the stored session still runs: a token, and more than five seconds before it ends --
- * the margin the redeem page allows too (TransactionLink.vue). `tokenTime` is when the session
+ * the margin the redeem page allows too (pages/TransactionLink.tsx). `tokenTime` is when the session
  * ends by this device's clock, in seconds (`setToken` in useWalletStore.js). The language
  * switch asks the same before it saves a language to the account (LanguageSwitch2.tsx).
  */
@@ -250,7 +250,7 @@ const addNavigationGuards = (router, store, apollo) => {
   })
 
   // ES-021: a project account does not create, so the whole creation area is gone for it --
-  // from the menu (Sidebar.vue) and, here, from the address bar. The backend refuses the
+  // from the menu (Sidebar.tsx) and, here, from the address bar. The backend refuses the
   // calls behind that page either way (RESTRICTED_FOR_PROJECT_ACCOUNT); this only spares
   // the member a page of error toasts. `=== false`, not a falsy check: null is "not known",
   // and for not-known the answer is the one every existing account has.

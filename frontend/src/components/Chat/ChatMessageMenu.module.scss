@@ -1,0 +1,139 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The rules of the scoped block the component had, by the same flat selectors: its spec reads
+   them by name. Without the scope attribute each has one level less; every class is set in the
+   module's spelling too. Block comments only: lightningcss rejects a double slash. */
+
+/* The paperclip's menu (ChatComposeBar), over the message -- on the menus' own grey
+   (`--menu-surface`), as that one. */
+.chat-message-menu {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: min(16rem, 100%);
+  max-width: 100%;
+  padding: 0.35rem;
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 0.85rem;
+  background: var(--menu-surface, #dde1e6);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+
+.chat-message-menu.is-mine {
+  right: 0;
+  left: auto;
+}
+
+.chat-message-menu.is-below {
+  top: calc(100% + 0.35rem);
+  bottom: auto;
+}
+
+/* With the keyboard on the menu itself (a menu of reactions alone): the house's ring. */
+.chat-message-menu:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* With the reactions: as wide as all forty-eight are -- eight squares of 36 px, the padding, the
+   rim (18.825rem is 301.2 px), the width of the smiley's choice --, so that "mehr" changes the
+   menu's height and not its width. */
+.chat-message-menu.has-reactions {
+  min-width: min(18.825rem, 100%);
+}
+
+/* Over the page, where the bubble puts it (`menuSpot`): in the screen's own pixels, for a thread
+   too low to hold the menu. As wide as in the thread, and no wider than the screen leaves it.
+   After the two rules above -- they place the menu in the thread.
+
+   `is-hung` is the bubble's class, given from outside: it keeps its plain name. */
+.chat-message-menu:global(.is-hung) {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  min-width: min(16rem, 100vw - 1rem);
+  max-width: calc(100vw - 1rem);
+}
+
+.chat-message-menu:global(.is-hung).has-reactions {
+  min-width: min(18.825rem, 100vw - 1rem);
+}
+
+/* Under a finger the forty-eight are squares of up to 44 px (ChatReactionChoice): the menu is as
+   wide as eight of them, where the thread or the screen has that room (22.825rem is 365.2 px). */
+@media (hover: none) {
+  .chat-message-menu.has-reactions {
+    min-width: min(22.825rem, 100%);
+  }
+
+  .chat-message-menu:global(.is-hung).has-reactions {
+    min-width: min(22.825rem, 100vw - 1rem);
+  }
+}
+
+/* The reactions over the entries, set apart from them by a line -- none where they stand alone:
+   with all forty-eight shown, or at a message that has no entry. */
+.chat-message-menu-reactions {
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--menu-border, #b3bac2);
+}
+
+.chat-message-menu-reactions.is-alone {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* An entry: at least 44 px high, a finger's size -- 3rem is 48. */
+.chat-message-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .chat-message-menu-item:hover {
+    background: var(--menu-hover, #eef0f3);
+  }
+}
+
+.chat-message-menu-item:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-message-menu-icon {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--menu-icon, #a8732a);
+}
+
+.chat-message-menu-words {
+  min-width: 0;
+}
+
+.chat-message-menu-label {
+  display: block;
+  font-weight: 600;
+}
+
+.chat-message-menu-hint {
+  display: block;
+  color: var(--menu-text-muted, #4d555d);
+  font-size: 0.8rem;
+}

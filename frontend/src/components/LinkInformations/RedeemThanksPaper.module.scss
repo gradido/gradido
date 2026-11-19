@@ -1,0 +1,196 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it.
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute), and the class names in the markup stay what they were (`:global`).
+
+   The sheet follows the theme (ZE-038). Light, it is white like every box of the wallet; dark,
+   it is a step lighter than the card of the page around it (`--surface-muted` on `--surface`),
+   with the gold of the greeting bubble in the chat. Until then it was cream in both themes, as
+   paper (ZE-020) -- and on the device it stood out in both, in the dark one most.
+
+   The light colours are written out; the dark ones are the tokens of the house, which only the
+   dark theme defines (gradido-template-dark.scss), in the rules under `.dark-mode` at the end.
+   That class sits on #app, outside this component, and the scoped rules reach the sheet as
+   they reach the page around it (RedeemThanks). Each text sets its colour in both themes:
+   nothing is left to inherit.
+
+   ⛔ The room of the picture stays cream in both themes: a photo fitted in whole carries its
+   margin in that colour inside the picture (ZE-024), and the room has to vanish around it.
+
+   ⛔ Nothing on the sheet is a card, a heading, a link or a rule: the dark sheet repaints all
+   four with `!important` (gradido-template-dark.scss). A card would stand in the card's own
+   `--surface`, and the sheet would lose its step above the card it lies on.
+
+   The sizes are in em, of the card's own size: the "Aa" control of the layout sets that one,
+   and the words on the sheet grow with it. At the usual 16px they come to 15px and 13.5px. */
+.redeem-thanks-paper {
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%);
+  text-align: left;
+}
+
+.redeem-thanks-paper :global(.redeem-thanks-paper-text) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px 16px;
+}
+
+/* The room of the picture: the motifs are 360 x 250. A ground of their own colour until the
+   file is there; the picture fills the room whole. ⛔ That colour is also the margin of a photo
+   that was fitted in whole (THANK_YOU_PICTURE_GROUND, held by thankYouPicture.drift.spec.js): the
+   margin has to vanish into the room -- in the dark theme as in the light one, so the room has
+   no rule under `.dark-mode`. A photo is 36 : 25 to a pixel's rounding, and `cover` takes that
+   pixel instead of stretching the picture. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-picture) {
+  aspect-ratio: 36 / 25;
+  background: #fbf3de;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* A greeting sits a little closer: three kinds of text above the line instead of one. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-text.is-greeting) {
+  gap: 8px;
+  padding-top: 14px;
+}
+
+/* "FÜR SARAH": small, bold, spaced -- 11.5px at the usual 16. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-for) {
+  color: #8a6124;
+  font-size: 0.7188em;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  overflow-wrap: anywhere;
+}
+
+/* The first line. As it stands here it is the line with a letter the handwriting lacks: all of
+   it in the page's font -- no family is named, so it is the page's -- italic, in the colour of
+   the handwriting. 20px at the usual 16: the handwriting is a small face for its size, and
+   20px here reads about as large as 27px there. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-line) {
+  color: #8a6124;
+  font-size: 1.25em;
+  font-style: italic;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* In handwriting, which is the usual case: 27px at the usual 16. Until the file is there, and
+   for a character it lacks, the line stands upright in Open Sans, as the page's own text does. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-line.is-by-hand) {
+  font-family: Caveat, 'Open Sans', sans-serif;
+  font-size: 1.6875em;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* The lines the sender wrote are kept as lines, and a word longer than the sheet breaks
+   instead of pushing the sheet wider than the phone. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-message) {
+  color: #4a4a4a;
+  font-size: 0.9375em;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Under a line the words step back a little: 13.5px at the usual 16. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-message.is-under-line) {
+  font-size: 0.8438em;
+}
+
+.redeem-thanks-paper :global(.redeem-thanks-paper-rule) {
+  height: 1px;
+  background: #e6e6e6;
+}
+
+.redeem-thanks-paper :global(.redeem-thanks-paper-sender) {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* The face of the sender, 64px round, as their account shows it (ZE-038). Its own size, the
+   sentence beside it grows with "Aa". */
+.redeem-thanks-paper :global(.redeem-thanks-paper-face) {
+  display: block;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Where there is no face: the first letter of the name, in a circle the size of the face. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-initial) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #8a6124;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.redeem-thanks-paper :global(.redeem-thanks-paper-from) {
+  min-width: 0;
+  color: #383838;
+  font-size: 0.8438em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* The figure and its unit stay on one line: with a long name the sentence broke between
+   "20" and "Gradido". A short run, far narrower than the sheet on any phone. */
+.redeem-thanks-paper :global(.redeem-thanks-paper-amount) {
+  white-space: nowrap;
+}
+
+/* The dark theme. The sheet a step lighter than the card (#36383c on #2a2c30), its shadow
+   deeper than in the light theme -- on a dark page a light shadow does not read. The words and
+   the sender in the text colour of the house; the gold of the greeting bubble in the chat
+   (ChatBubble, `.chat-bubble-greeting-line`): 6.2 : 1 on this sheet, where the house's own gold
+   (`--gold`) comes to 4.0. The circle turns round: gold ground, dark letter (9.0 : 1). */
+:global(.dark-mode) .redeem-thanks-paper {
+  background: var(--surface-muted);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 35%);
+}
+
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-message) {
+  color: var(--text);
+}
+
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-from) {
+  color: var(--text);
+}
+
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-rule) {
+  background: rgb(255 255 255 / 14%);
+}
+
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-for),
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-line) {
+  color: #e2b55c;
+}
+
+:global(.dark-mode) .redeem-thanks-paper :global(.redeem-thanks-paper-initial) {
+  background: #e2b55c;
+  color: #1b1b1b;
+}

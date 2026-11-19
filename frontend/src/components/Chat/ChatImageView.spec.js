@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { BModal } from 'bootstrap-vue-next'
-import ChatImageView from './ChatImageView.vue'
+import { ChatImageView } from './ChatImageView'
 import {
   chatImageViewState,
   closeChatImageView,
@@ -60,7 +60,7 @@ describe('ChatImageView', () => {
   const mountView = () => {
     wrapper = mount(ChatImageView, {
       attachTo: document.body,
-      global: { stubs: { BModal: BModalStub, IMdiClose: true } },
+      global: { stubs: { BModal: BModalStub, MdiClose: true } },
     })
     return wrapper
   }
@@ -245,7 +245,7 @@ describe('ChatImageView', () => {
     }
     wrapper = mount(ChatImageView, {
       attachTo: document.body,
-      global: { stubs: { BModal: stub, IMdiClose: true } },
+      global: { stubs: { BModal: stub, MdiClose: true } },
     })
     openChatImageView(VIEW)
     await flushPromises()
@@ -292,7 +292,7 @@ describe('ChatImageView', () => {
 
   const style = () =>
     readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageView.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageView.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
 
@@ -357,14 +357,18 @@ describe('ChatImageView', () => {
    */
   it('writes on its dialog only names the installed BModal declares', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageView.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatImageView.tsx'),
       'utf8',
-    ).replace(/<!--[\s\S]*?-->/g, '')
+    )
     const tags = [...source.matchAll(/<BModal\b([\s\S]*?)>/g)]
     expect(tags).toHaveLength(1)
 
-    const written = [...tags[0][1].matchAll(/(?:^|\s)(:|@)?([a-z][a-z0-9:-]*)(?==|\s|$)/g)].map(
-      (m) => (m[1] === '@' ? `@${m[2]}` : m[2]),
+    // The names as TSX writes them, said as a template would: a prop in kebab-case, a listener
+    // (`onShown`, `onUpdate:modelValue`) with its `@`.
+    const kebab = (name) => name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+    const written = [...tags[0][1].matchAll(/(?:^|\s)([a-zA-Z][a-zA-Z0-9:-]*)(?==|\s|$)/g)].map(
+      (m) =>
+        /^on[A-Z]/.test(m[1]) ? `@${kebab(m[1][2].toLowerCase() + m[1].slice(3))}` : kebab(m[1]),
     )
     const camel = (name) => name.replace(/-([a-z])/g, (unused, letter) => letter.toUpperCase())
     const declaredProps = Object.keys(BModal.props ?? {})

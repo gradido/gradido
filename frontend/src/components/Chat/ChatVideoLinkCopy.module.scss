@@ -1,0 +1,39 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet, and a double slash is not a comment
+   to it.
+
+   Behind the link, in the link's colour: it belongs to the link, and green is what can be tapped
+   here. The colour the way Bootstrap draws a link, so both themes follow the one token (--link,
+   gradido-template-dark.scss); the picture view sets its caption's links and this alike
+   (ChatImageView). */
+.chat-video-link-copy {
+  position: relative;
+  margin-left: -1em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+  font: inherit;
+  line-height: 1;
+}
+
+.chat-video-link-copy:hover {
+  color: rgba(var(--bs-link-hover-color-rgb), var(--bs-link-opacity, 1));
+}
+
+/* The icon at the size of the letters, on their line, as the house's icons stand in text: 1em
+   wide, as the margin above counts it. */
+.chat-video-link-copy svg {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+/* A place to tap larger than the icon, without taking room from the text: out to the right and a
+   little up and down, and not to the left, where the link is. */
+.chat-video-link-copy::after {
+  content: '';
+  position: absolute;
+  inset: -0.4em -0.4em -0.4em 0;
+}

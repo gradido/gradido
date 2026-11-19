@@ -24,7 +24,7 @@
   --bs-secondary-color: var(--text-muted);
 
   // Keep links on the Gradido dark-green token instead of Bootstrap's #6ea8fe.
-  // --bs-link-color-rgb feeds .navbar-like-link (Navbar.vue). 3db85f = 61,184,95 (darkModeLinkGreen.spec).
+  // --bs-link-color-rgb feeds .navbar-like-link (Navbar.scss). 3db85f = 61,184,95 (darkModeLinkGreen.spec).
   --bs-link-color: var(--link);
   --bs-link-color-rgb: 61, 184, 95;
   --bs-link-hover-color: var(--link);

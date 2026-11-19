@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import i18n from '@/i18n'
-import CommunitySwitch from './CommunitySwitch.vue'
+import { CommunitySwitch } from './CommunitySwitch'
 
 const toastError = vi.hoisted(() => vi.fn())
 vi.mock('@/composables/useToast', () => ({ useAppToast: () => ({ toastError }) }))

@@ -151,7 +151,7 @@ export const holdFirstCreationForThisSession = () => {
 }
 
 /**
- * Said by the page where a thank-you opened the account (pages/TransactionLink.vue), once the
+ * Said by the page where a thank-you opened the account (pages/TransactionLink.tsx), once the
  * sign-in is through: the windows about the member themselves -- the name and the first
  * creation -- wait for the next start, and the thank-you comes first (E-044, ES-024, NU-025).
  *

@@ -11,7 +11,7 @@ import { computed, toValue } from 'vue'
  *
  * @param {object} options each a value, a ref or a getter
  * @param {object} options.linkData the link, as `queryTransactionLink` answers
- * @param {string} options.redeemCode the code in the address
+ * @param {import('vue').MaybeRefOrGetter<string>} options.redeemCode the code in the address
  * @param {object} options.recipientCommunity the community chosen
  */
 export function useRedeemCommunity({ linkData, redeemCode, recipientCommunity }) {

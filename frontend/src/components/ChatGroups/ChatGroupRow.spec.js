@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi } from 'vitest'
-import ChatGroupRow from './ChatGroupRow.vue'
+import { ChatGroupRow } from './ChatGroupRow'
 import { LIST_AVATAR_SIZE } from '@/constants'
 
 vi.mock('vue-i18n', () => ({
@@ -153,8 +153,10 @@ describe('ChatGroupRow', () => {
    * the two files together -- a heart of another size moves every contact's dot.
    */
   describe("the heart's room", () => {
-    const heart = rulesOf('../FavoriteHeart.vue').get('.favorite-heart-icon')
-    const row = rulesOf('ChatGroupRow.vue')
+    const heart = rulesOf('../FavoriteHeart.module.scss').get(
+      '.favorite-heart :global(.favorite-heart-icon)',
+    )
+    const row = rulesOf('ChatGroupRow.module.scss')
 
     it('is the heart and the gutter', () => {
       // the heart's em is the button's 1rem
@@ -182,7 +184,7 @@ describe('ChatGroupRow', () => {
    * dots of the two lists stand at one height, and the 9 px in it is the dot's own size.
    */
   describe('the dot beside the last line', () => {
-    const dot = rulesOf('ChatGroupRow.vue').get('.chat-group-row-dot')
+    const dot = rulesOf('ChatGroupRow.module.scss').get('.chat-group-row-dot')
 
     it('stands at the foot of the text, raised to the middle of a line of small text', () => {
       expect(dot).toEqual({
@@ -198,7 +200,9 @@ describe('ChatGroupRow', () => {
     })
 
     it("reckons with the dot's own size", () => {
-      expect(rulesOf('../Chat/ChatUnreadDot.vue').get('.chat-unread-contact-dot')).toMatchObject({
+      expect(
+        rulesOf('../Chat/ChatUnreadDot.module.scss').get('.chat-unread-contact-dot'),
+      ).toMatchObject({
         width: '9px',
         height: '9px',
       })

@@ -1,0 +1,89 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it. Every rule stands under the root's class: the scoped rules these were had one level
+   more (the scope attribute). */
+.contacts-panel :global(.contacts-panel-label) {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color, #6c757d);
+  font-weight: 600;
+  margin: 0.75rem 0 0.35rem;
+}
+
+/* ⚠️ The bookings in the other position of the switch are drawn to these numbers -- this
+   row's padding, gap and line, the name's size and the second line's -- and
+   `LastTransactions.spec` holds the two files together. Change one, change both. */
+.contacts-panel :global(.contacts-panel-row) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  padding: 0.4rem 0;
+}
+
+.contacts-panel :global(.contacts-panel-row:last-of-type) {
+  border-bottom: 0;
+}
+
+/* A button that looks like the block of text it wraps: no chrome, left aligned, and its
+   colour named -- a bare button does NOT inherit `color` from Bootstrap's reboot, so
+   without this the name would be painted in the browser's default button colour. */
+.contacts-panel :global(.contacts-panel-open) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: var(--bs-body-color);
+}
+
+.contacts-panel :global(.contacts-panel-who) {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.contacts-panel :global(.contacts-panel-who-name) {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.contacts-panel :global(.contacts-panel-who-community) {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color, #6c757d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contacts-panel :global(.contacts-panel-date) {
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color, #6c757d);
+  white-space: nowrap;
+}
+
+/* The face's upper right corner. The face stands at the row's left edge and in its middle
+   (align-items), so its top is half a face above the middle of the row's padding box -- which
+   is what an absolute child measures from. Laid over the face, the dot takes no room from the
+   name; the ring in the page's colour lifts it off a photo, as on the tiles. */
+.contacts-panel :global(.contacts-panel-dot) {
+  position: absolute;
+  top: calc(50% - var(--contacts-panel-face) / 2 + 1px);
+  left: calc(var(--contacts-panel-face) - 10px);
+  box-shadow: 0 0 0 2px var(--bg, #f5f5f5);
+}
+
+.contacts-panel :global(.contacts-panel-alllink) {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}

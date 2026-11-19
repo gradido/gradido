@@ -256,7 +256,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, beforeEach, it, expect, vi } from 'vitest'
-import ResetPassword from './ResetPassword.vue'
+import { ResetPassword } from './ResetPassword'
 import { walletStore } from '@test/walletStore'
 import { createRouter, createWebHistory } from 'vue-router'
 import { BButton, BCol, BForm, BRow } from 'bootstrap-vue-next'

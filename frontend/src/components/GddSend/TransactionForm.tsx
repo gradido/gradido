@@ -24,9 +24,9 @@ import {
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { type AnyObjectSchema, object } from 'yup'
-import CommunitySwitch from '@/components/CommunitySwitch.vue'
-import EmojiPicker from '@/components/Inputs/EmojiPicker.vue'
-import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import { CommunitySwitch } from '@/components/CommunitySwitch'
+import { EmojiPicker } from '@/components/Inputs/EmojiPicker'
+import { ValidatedInput } from '@/components/Inputs/ValidatedInput'
 import { useAmountInText } from '@/composables/useAmountInText'
 import { useLinkDraft } from '@/composables/useLinkDraft'
 import { useAppToast } from '@/composables/useToast'
@@ -143,7 +143,7 @@ export const TransactionForm = defineComponent({
     const form: FormFields = reactive({ ...entityDataToForm.value })
 
     /**
-     * A link duplicated from the member's own list (TransactionLink.vue, ZE-030): its amount and
+     * A link duplicated from the member's own list (TransactionLinks/TransactionLink.tsx, ZE-030): its amount and
      * its memo stand in the fields as if they had been typed -- the amount the way this field
      * takes it and the wallet's language writes it ("12,5"). The row opens this form on its link
      * tab (`?art`), and from here on it is the way of every link: the check, then
@@ -182,7 +182,7 @@ export const TransactionForm = defineComponent({
         return
       }
       // Up to 450 px the navbar stays at the top of the window, over whatever scrolls under it
-      // (Menu/Navbar.vue). There the form is brought to the navbar's lower edge, not to the
+      // (Menu/Navbar.tsx). There the form is brought to the navbar's lower edge, not to the
       // window's: the switch between sending, link and e-mail stood under it (measured in the
       // built wallet). Its height is read, not written down a second time -- it grows with the
       // tools in it.

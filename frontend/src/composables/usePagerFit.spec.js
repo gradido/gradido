@@ -143,7 +143,7 @@ describe('usePagerFit', () => {
       expect.arrayContaining([
         'components/GddTransactionList.tsx',
         'components/GdtTransactionList.tsx',
-        'components/PaginatorRouteParamsPage.vue',
+        'components/PaginatorRouteParamsPage.tsx',
         'pages/Contacts.tsx',
       ]),
     )

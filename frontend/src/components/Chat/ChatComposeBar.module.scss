@@ -1,0 +1,579 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet, and a double slash is not a comment
+   to it.
+
+   The rules of the scoped block the bar had, by the same flat selectors: its own specs and
+   those of the windows around it read them by name, and the hint's dialog is drawn outside
+   the bar (BModal teleports). Without the scope attribute each has one level less; the state
+   classes (`is-open`, `is-save`, `has-emoji`) are set in the module's spelling too. */
+
+/* Under the thread, set apart by a line, over the width of the window. On the sheet it keeps
+   its own height and the thread above takes what is left (ContactWindow). `position: relative`:
+   the paperclip's menu hangs from here, above the bar and over the end of the thread. */
+.chat-compose {
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+/* The first message: a quiet sentence on the same light gold as one's own messages. */
+.chat-compose-first {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0 0 0.5rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--gold, #c58d38);
+  border-radius: 0.5rem;
+  background: rgb(197 141 56 / 12%);
+  color: var(--bs-body-color);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.chat-compose-first-icon {
+  flex: 0 0 auto;
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.1em;
+}
+
+/* The picture chosen, over the field (the mockup): a small square of it, what it is, and the
+   round button that takes it off, on the muted surface. */
+.chat-compose-attached {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 0.75rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-attached-picture,
+.chat-compose-attached-wait {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+}
+
+/* While it is opened or made small: a quiet square in its place, no spinner. */
+.chat-compose-attached-wait {
+  background: var(--border, #dee2e6);
+}
+
+.chat-compose-attached-words {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ⚠️ Small text needs 4.5:1 on the muted surface, and one colour does not reach it in both
+   modes: light, Bootstrap's secondary colour (the body colour at 75 %, about 6.4:1); dark, the
+   body colour at 75 % -- the dark muted grey reaches only about 4.3:1 there (ChatBubble measures
+   the same). */
+.chat-compose-attached-words small {
+  display: block;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+:global(.dark-mode) .chat-compose-attached-words small {
+  color: var(--bs-body-color);
+  opacity: 0.75;
+}
+
+/* "Nachricht bearbeiten" over the field (E-060): the box of a chosen picture, with a pencil in
+   the gold of the menus' signs (`--menu-icon`, E-061), the title, and the words as they were on
+   one line. The house gold comes to 2.6 : 1 on this ground in the light mode; the menus' gold
+   reaches the 3 : 1 a sign needs in both (chatMenuSurface.spec.js). */
+.chat-compose-editing {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.5rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.65rem;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 0.75rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-editing-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--menu-icon, #a8732a);
+}
+
+.chat-compose-editing-words {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chat-compose-editing-title {
+  font-weight: 600;
+}
+
+.chat-compose-editing-text {
+  overflow: hidden;
+  color: var(--bs-secondary-color, #6c757d);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.dark-mode) .chat-compose-editing-text {
+  color: var(--bs-body-color);
+  opacity: 0.75;
+}
+
+/* "Bild" before the words of an answered message that carries one. */
+.chat-compose-replying-icon {
+  width: 1.05em;
+  height: 1.05em;
+  vertical-align: -0.15em;
+}
+
+.chat-compose-attached-remove {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .chat-compose-attached-remove:hover {
+    background: var(--surface, #fff);
+    color: var(--bs-body-color);
+  }
+}
+
+.chat-compose-attached-remove:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* The pencil: an action the member may take, so it has a rim; the cross only takes away. */
+.chat-compose-attached-edit {
+  border: 1px solid var(--border, #dee2e6);
+  color: var(--bs-body-color);
+}
+
+.chat-compose-attached-picture {
+  cursor: pointer;
+}
+
+.chat-compose-attached-remove-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.chat-compose-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+/* The paperclip: round and as large as the send button at the other end of the row, drawn as
+   the contact window's gear and camera are -- the sign in the muted colour, nothing filled. A
+   surface under it where a mouse rests on it and while its hint is open. The surface for the
+   mouse only: on a touch screen a tap would leave it standing after the hint has closed. */
+.chat-compose-attach {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-secondary-color, #6c757d);
+  cursor: pointer;
+}
+
+.chat-compose-attach.is-open {
+  background: var(--surface-muted, #f2f4f6);
+  color: var(--bs-body-color);
+}
+
+@media (hover: hover) {
+  .chat-compose-attach:hover {
+    background: var(--surface-muted, #f2f4f6);
+    color: var(--bs-body-color);
+  }
+}
+
+.chat-compose-attach:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-attach-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+/* The paperclip and its menu, one thing for the keys and the pointer; in the row it is only the
+   paperclip -- the menu is taken out of the flow and hangs from the bar (`.chat-compose`). */
+.chat-compose-attach-area {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+/* The menu above the paperclip (the mockup, "Büroklammer offen"): a small card with a shadow, as
+   wide as its words need and never wider than the bar -- on the menus' own grey, a clear step
+   away from the window under it (`--menu-surface`; Bernd, 01.10.2026: on the window's own
+   surface it was easily overlooked). The menu at a message is drawn the same (ChatMessageMenu). */
+.chat-compose-menu {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 16rem;
+  max-width: 100%;
+  padding: 0.35rem;
+  border: 1px solid var(--menu-border, #b3bac2);
+  border-radius: 0.85rem;
+  background: var(--menu-surface, #dde1e6);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+}
+
+/* Closed: not seen, not reached by Tab, not read out -- and still rendered (see the template). */
+.chat-compose-menu:not(.is-open) {
+  visibility: hidden;
+}
+
+/* An entry: the sign in gold, the word, a quieter line under it. At least 44 px high, a finger's
+   size -- 3rem is 48. */
+.chat-compose-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0.4rem 0.65rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .chat-compose-menu-item:hover {
+    background: var(--menu-hover, #eef0f3);
+  }
+}
+
+/* The picture's entry is a label; its field, hidden from the eye, is what the keyboard reaches.
+   The label shows the field's focus -- without this, Tab lands on something nobody can see. */
+.chat-compose-menu-item:focus-visible,
+.chat-compose-picker:focus-visible + .chat-compose-menu-item {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-menu-icon {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: var(--menu-icon, #a8732a);
+}
+
+.chat-compose-menu-words {
+  min-width: 0;
+}
+
+.chat-compose-menu-label {
+  display: block;
+  font-weight: 600;
+}
+
+.chat-compose-menu-hint {
+  display: block;
+  color: var(--menu-text-muted, #4d555d);
+  font-size: 0.8rem;
+}
+
+/* ⚠️ `font-size: 1rem` is not a matter of taste: Safari on the iPhone zooms into any field
+   under 16 px the moment it is touched, and the sheet would stand zoomed afterwards.
+   `max-height`: five lines of this line-height plus the padding and the border -- beyond
+   that the field scrolls inside instead of pushing the thread off the sheet. */
+.chat-compose-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-height: calc(7em + 0.9rem + 2px);
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-y: auto;
+  resize: none;
+}
+
+/* ⚠️ One line, however long the name: a placeholder that wraps makes the empty field
+   scroll, and its second line peeked out under the first (measured at 320 px and with a
+   thirty-character name). Chrome cuts it at the edge; where `text-overflow` reaches a
+   placeholder it ends in an ellipsis. */
+.chat-compose-field::placeholder {
+  overflow: hidden;
+  color: var(--bs-secondary-color, #6c757d);
+  opacity: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The focus as the field's own rim in the wallet's green, doubled by a shadow: as plain to see
+   as the ring on the buttons, without a second line around the round field. */
+.chat-compose-field:focus-visible {
+  border-color: var(--success, #047006);
+  outline: 0;
+  box-shadow: 0 0 0 1px var(--success, #047006);
+}
+
+/* The smiley stands inside the field's rim, at its right end (EmojiPicker): the words keep clear
+   of it, and the smiley is drawn back over the field by its own width, the row's gap and a rim
+   of 0.2rem -- the margin on its right makes up for what is left, so the field and the arrow
+   stand exactly where they stand without it. At the foot of a field of several lines, as the
+   row's other signs are.
+
+   Where the field scrolls inside and its scrollbar takes room, the smiley stands beside the
+   scrollbar, not on it: further in by the scrollbar's width, which `grow` measures -- taken
+   from the one margin and given to the other, so nothing else moves. */
+.chat-compose-field.has-emoji {
+  padding-right: 2.5rem;
+}
+
+.chat-compose-emoji {
+  margin: 0 calc(0.2rem + var(--field-scrollbar, 0px)) 0.2rem
+    calc(-2.7rem - var(--field-scrollbar, 0px));
+}
+
+/* Round and gold, like one's own messages; the paper plane says what it does, the name says
+   it to a screen reader. ⚠️ A touch darker than the house gold (`--gold`, #c58d38): white on
+   that is 2.9:1, under the 3:1 a symbol needs to be made out (WCAG 1.4.11); #c08935 is 3.06:1,
+   and beside the house gold hardly to be told apart (Bernd, 24.09.2026). The spec holds the
+   contrast. */
+.chat-compose-send {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #c08935;
+  color: #fff;
+}
+
+.chat-compose-send[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The tick that saves a change (E-060): the wallet's green in place of the arrow's gold -- the
+   green of each mode, written out so it can be measured. In dark mode that green is a light one,
+   and a white tick on it falls short of the 3:1 a symbol needs (2.4:1): the tick is dark there. */
+.chat-compose-send.is-save {
+  background: #047006;
+}
+
+:global(.dark-mode) .chat-compose-send.is-save {
+  background: #46c04a;
+  color: #10230f;
+}
+
+.chat-compose-send:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-send-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* The three short answers (E-069): a row of their own over the field, each as high as a finger
+   needs and as wide as its words; where they do not fit side by side they take the next line,
+   and a long one -- in Russian the second is a whole sentence -- wraps inside its own rim
+   rather than running past the window. Quiet: the field's own rim and the text's own colour,
+   so they read as offers, not as the next thing to press. */
+.chat-compose-hello-back {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.chat-compose-hello-back-answer {
+  min-height: 2.5rem;
+  max-width: 100%;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 1.2rem;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 0.95rem;
+  line-height: 1.3;
+  text-align: start;
+}
+
+.chat-compose-hello-back-answer[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* In a low window the answers stand on ONE line and are moved sideways -- by a finger, a
+   trackpad, the wheel with Shift, or Tab, which brings each into sight. The contact window's
+   head and the bar leave the thread what is left of the height: with the answers on three lines
+   that was 76 px of the message they answer at 320 x 568 (44 px in Russian). On one line it is
+   172 px there, and 157 px on an iPhone SE with Safari's bars (375 x 553). Each answer keeps
+   its words on one line there; one cut off at the edge is the sign that there is more.
+
+   From 640 px of height on they take the next line: three lines of answers then leave the
+   message 154 px on a phone, measured (some 14 px less in Russian, whose second answer takes
+   two lines), and more at a desk. (The same height from which the profile window's field may
+   be six lines high.)
+
+   The bar on the side is not drawn: under three small buttons it would be the largest thing in
+   the row (Windows draws it 17 px high). The padding and the margin that takes it back again
+   are room for the focus ring, which the scrolling box would cut. */
+@media (height < 640px) {
+  .chat-compose-hello-back {
+    flex-wrap: nowrap;
+    margin: -3px -3px calc(0.6rem - 3px);
+    padding: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .chat-compose-hello-back::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chat-compose-hello-back-answer {
+    flex: 0 0 auto;
+    max-width: none;
+    white-space: nowrap;
+  }
+}
+
+.chat-compose-hello-back-answer:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+/* The box and its word; the word wraps beside the box rather than running past the window in
+   a long language. */
+.chat-compose-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.5rem;
+  margin-top: 0.45rem;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.8rem;
+}
+
+/* May shrink to the width of the bar, never below it: then its word wraps beside the box. */
+.chat-compose-check {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.chat-compose-check-box {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.05rem 0 0;
+  accent-color: var(--gold, #c58d38);
+}
+
+.chat-compose-check-box:focus-visible {
+  outline: 2px solid var(--success, #047006);
+  outline-offset: 2px;
+}
+
+.chat-compose-check-box:checked + .chat-compose-check-text {
+  color: var(--bs-body-color);
+}
+
+.chat-compose-note {
+  margin: 0.35rem 0 0;
+  color: var(--bs-secondary-color, #6c757d);
+  font-size: 0.75rem;
+}
+
+/* The hint's three steps: a numbered list, a little air between its lines. */
+.chat-compose-file-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+  padding-left: 1.35rem;
+}
+
+/* The tip to the app on a phone: a quiet box, the phone in gold before its words. */
+.chat-compose-file-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.6rem;
+  background: var(--surface-muted, #f2f4f6);
+}
+
+.chat-compose-file-tip-icon {
+  flex: 0 0 auto;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.1rem;
+  color: var(--gold, #c58d38);
+}
+
+/* The sign after "Open SwissTransfer": it opens elsewhere. `.btn-gradido` holds the link at
+   `inline-block` with `!important`, so the sign stands in the line of the words. */
+.chat-compose-file-open-icon {
+  width: 1em;
+  height: 1em;
+  margin-left: 0.35rem;
+  vertical-align: -0.125em;
+}

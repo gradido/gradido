@@ -2,7 +2,7 @@
 import { BButton, BCol, BRow, type ButtonVariant } from 'bootstrap-vue-next'
 import { computed, defineComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
-import VariantIcon from '@/components/VariantIcon.vue'
+import { VariantIcon } from '@/components/VariantIcon'
 import { useFilters } from '@/composables/useFilters'
 import { LINK_COMPOUND_INTEREST_FACTOR } from '@/constants'
 import './TransactionConfirmationLink.css'

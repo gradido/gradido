@@ -2,7 +2,7 @@
 
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach } from 'vitest'
-import AppAvatar from '@/components/AppAvatar.vue'
+import { AppAvatar } from '@/components/AppAvatar'
 import {
   avatarZoomBindings,
   avatarZoomEpoch,

@@ -18,7 +18,7 @@ import pt from '@/locales/pt.json'
 import ru from '@/locales/ru.json'
 import tr from '@/locales/tr.json'
 import { pluralRules } from '@/utils/pluralRules'
-import sidebar from '@/components/Menu/Sidebar.vue?raw'
+import sidebar from '@/components/Menu/Sidebar.tsx?raw'
 import { MatchingTile } from './MatchingTile'
 import tileSource from './MatchingTile.tsx?raw'
 
@@ -396,17 +396,18 @@ describe('MatchingTile', () => {
     // label that exists to point at the menu entry would go on showing the old one.
     it('uses the very icon the menu gives matching', () => {
       const entry = sidebar.match(
-        /<(i-[a-z0-9-]+)[^>]*\/>\s*<span[^>]*>\{\{ \$t\('navigation\.matching'\) \}\}/,
+        /<(I[A-Za-z0-9]+)[^>]*\/>\s*<span[^>]*>\{t\('navigation\.matching'\)\}/,
       )
 
       expect(entry).not.toBeNull()
-      // The menu resolves `i-tabler-heart-handshake` by name; the tile imports the same icon.
-      const imported = entry[1].replace(/^i-([a-z0-9]+)-/, '~icons/$1/')
-      expect(tileSource).toContain(`from '${imported}'`)
+      // The menu imports its icon under that name; the tile imports the same module.
+      const imported = sidebar.match(new RegExp(`import ${entry[1]} (from '~icons/[a-z0-9/-]+')`))
+      expect(imported).not.toBeNull()
+      expect(tileSource).toContain(imported[1])
     })
 
     // BBadge's default variant brings black `!important` text that wins over the white of
-    // the gradient (CommunityMember.vue carries the same label for the same reason).
+    // the gradient (CommunityMember.tsx carries the same label for the same reason).
     it('keeps the white text of the gradient: the badge carries no colour variant', () => {
       const { wrapper } = mountTile()
 

@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
 import { effectScope } from 'vue'
-import ChatThread from './ChatThread.vue'
-import ChatComposeBar from './ChatComposeBar.vue'
+import { ChatThread } from './ChatThread'
+import { ChatComposeBar } from './ChatComposeBar'
 import { useChatWindowSize } from '@/composables/useChatWindowSize'
 import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { holdChatText, takeHeldChatText } from '@/utils/chatReturn'
@@ -17,7 +17,7 @@ import {
   closeChatImageView,
   forgetAllChatImages,
 } from '@/composables/useChatImages'
-import ChatImageView from './ChatImageView.vue'
+import { ChatImageView } from './ChatImageView'
 import {
   chatMessagesWithMemberQuery,
   editChatMessage,
@@ -121,6 +121,9 @@ vi.mock('@/i18n', () => ({
 }))
 
 vi.mock('vue-i18n', () => ({
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is no template; no test here reads that sentence.
+  I18nT: { name: 'I18nT', render: () => null },
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
     d: (date, format) => `${format}(${date.toISOString()})`,
@@ -4696,7 +4699,7 @@ describe('ChatThread', () => {
         await pressEdit(2)
         await field().setValue('Halb geändert')
 
-        expect(bar().vm.draft()).toBe('Ein angefangener Satz')
+        expect(bar().vm.$.exposed.draft()).toBe('Ein angefangener Satz')
       })
     })
 
@@ -5679,8 +5682,11 @@ describe('ChatThread', () => {
    * loading is a small box of its own. Only the stylesheet can say so -- jsdom lays nothing out.
    */
   it('is as high as its messages, up to a cap, and loads in a small box', () => {
-    const style = code('ChatThread.vue')
-    const rule = (selector) => style.match(new RegExp(`\\n${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+    // The style module: every rule stands under the root's class, `.chat-thread :global(…)`.
+    const style = code('ChatThread.module.scss')
+    const rule = (selector) =>
+      style.match(new RegExp(`\\n\\.chat-thread :global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ??
+      ''
 
     expect(rule('\\.chat-thread-box')).not.toMatch(/(^|[^-])height:/)
     expect(rule('\\.chat-thread-scroll')).toMatch(/max-height:\s*min\(45dvh,\s*30rem\)/)
@@ -5694,7 +5700,7 @@ describe('ChatThread', () => {
    */
   it('asks fresh on every opening -- network-only, in the code and not only in a comment', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'ChatThread.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'ChatThread.tsx'),
       'utf8',
     )
     const code = source

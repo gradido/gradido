@@ -4,7 +4,7 @@ import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import ChatWindowSizeToggle from './ChatWindowSizeToggle.vue'
+import { ChatWindowSizeToggle } from './ChatWindowSizeToggle'
 
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
@@ -18,7 +18,8 @@ describe('ChatWindowSizeToggle', () => {
 
   const mountToggle = () => {
     wrapper = mount(ChatWindowSizeToggle, {
-      global: { stubs: { IMdiArrowExpand: true, IMdiArrowCollapse: true } },
+      // The two icons are imported (`~icons/…`) and carry the icon's own name.
+      global: { stubs: { MdiArrowExpand: true, MdiArrowCollapse: true } },
     })
     return wrapper
   }
@@ -38,8 +39,8 @@ describe('ChatWindowSizeToggle', () => {
     mountToggle()
     expect(button().attributes('aria-label')).toBe('chatWindow.enlarge')
     expect(button().attributes('title')).toBe('chatWindow.enlarge')
-    expect(wrapper.find('i-mdi-arrow-expand-stub').exists()).toBe(true)
-    expect(wrapper.find('i-mdi-arrow-collapse-stub').exists()).toBe(false)
+    expect(wrapper.find('mdi-arrow-expand-stub').exists()).toBe(true)
+    expect(wrapper.find('mdi-arrow-collapse-stub').exists()).toBe(false)
   })
 
   it('offers to reduce the large one', () => {
@@ -47,8 +48,8 @@ describe('ChatWindowSizeToggle', () => {
     mountToggle()
     expect(button().attributes('aria-label')).toBe('chatWindow.reduce')
     expect(button().attributes('title')).toBe('chatWindow.reduce')
-    expect(wrapper.find('i-mdi-arrow-collapse-stub').exists()).toBe(true)
-    expect(wrapper.find('i-mdi-arrow-expand-stub').exists()).toBe(false)
+    expect(wrapper.find('mdi-arrow-collapse-stub').exists()).toBe(true)
+    expect(wrapper.find('mdi-arrow-expand-stub').exists()).toBe(false)
   })
 
   it('turns the window with a press, and back with the next', async () => {
@@ -82,7 +83,7 @@ describe('ChatWindowSizeToggle', () => {
     await button().trigger('click')
     expect(button().attributes('aria-pressed')).toBeUndefined()
     // The glyph is for the eye only.
-    expect(wrapper.find('i-mdi-arrow-collapse-stub').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.find('mdi-arrow-collapse-stub').attributes('aria-hidden')).toBe('true')
   })
 
   describe('its stylesheet', () => {
@@ -94,8 +95,8 @@ describe('ChatWindowSizeToggle', () => {
      */
     const stylesOf = (file) =>
       (file.endsWith('.scss')
-        ? // A style module: one block, as a scoped one.
-          `<style scoped>${readFileSync(join(here, file), 'utf8')}`
+        ? // A style module: one block, as a scoped one; a plain sheet: one block, not scoped.
+          `<style${file.endsWith('.module.scss') ? ' scoped' : ''}>${readFileSync(join(here, file), 'utf8')}`
         : readFileSync(join(here, file), 'utf8')
       )
         .split('<style')
@@ -141,7 +142,8 @@ describe('ChatWindowSizeToggle', () => {
     /** A block without its media queries: the rules that hold at every width. */
     const outsideMedia = (css) => css.replace(/@media[^{]+\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '')
 
-    const [button, measure] = stylesOf('ChatWindowSizeToggle.vue')
+    const [button] = stylesOf('ChatWindowSizeToggle.module.scss')
+    const [measure] = stylesOf('ChatWindowSizeToggle.scss')
     const scoped = button.css
     const unscoped = measure.css
 
@@ -249,7 +251,7 @@ describe('ChatWindowSizeToggle', () => {
       const [wide] = mediaOf(unscoped).filter(([condition]) => condition === '(width >= 576px)')
       expect(wide[1]).not.toContain('--chat-image-height')
 
-      const picture = readFileSync(join(here, 'ChatBubbleImage.vue'), 'utf8').replace(
+      const picture = readFileSync(join(here, 'ChatBubbleImage.module.scss'), 'utf8').replace(
         /\/\*[\s\S]*?\*\//g,
         '',
       )

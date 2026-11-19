@@ -1,0 +1,39 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute). */
+
+/* A 36-character gradidoID fallback must not blow up the booking row on a phone:
+   clipped visually with an ellipsis, while the full value stays in the text and stays
+   copyable (NU-018). Both the button and the bare span form their own line, so both need
+   the clipping. */
+.name :global(.gdd-transaction-list-item-name),
+.name :global(.gdd-transaction-list-item-open) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ⛔ Looks exactly like the anchor it replaced, and that is the point rather than tidiness:
+   the destination changed, the affordance must not. A name that stopped looking tappable
+   would hide the window from everybody who had learnt to tap it. `font: inherit` carries
+   the surrounding `fw-bold` in; the colour utilities the callers pass (`text-dark`) are
+   Bootstrap's own and carry `!important`, so they win here as they did over the anchor. */
+.name :global(.gdd-transaction-list-item-open) {
+  display: block;
+  max-width: 100%;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  text-align: inherit;
+  color: var(--bs-link-color, #0d6efd);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.name :global(.gdd-transaction-list-item-open:hover),
+.name :global(.gdd-transaction-list-item-open:focus-visible) {
+  color: var(--bs-link-hover-color, #0a58ca);
+}

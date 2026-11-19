@@ -3,11 +3,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import AppOutdatedBar from './AppOutdatedBar'
+import { AppOutdatedBar } from './AppOutdatedBar'
 import { markAppOutdated, resetAppOutdated } from '@/composables/useAppOutdated'
 
 const read = (relativePath) =>
   readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), relativePath), 'utf8')
+
+// The component is TSX now and takes its words from useI18n, not from `$t`.
+vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key) => key }) }))
 
 // ⚠️ The reload is caught at the composable, not at window.location. Under the vmThreads pool
 // the global is jsdom's own window, whose location can be neither deleted nor replaced --
@@ -86,7 +89,7 @@ describe('AppOutdatedBar', () => {
  * webAppManifest.spec.js holds the manifest against index.html and nginx.
  */
 describe('the bar is readable', () => {
-  const style = read('./AppOutdatedBar.vue').split('<style')[1]
+  const style = read('./AppOutdatedBar.module.scss')
   const [, token, fallback] = style.match(
     /background-color:\s*var\((--[\w-]+),\s*(#[0-9a-f]{6})\)/i,
   )

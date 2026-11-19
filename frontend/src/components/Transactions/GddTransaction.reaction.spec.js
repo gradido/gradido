@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import GddTransaction from './GddTransaction.vue'
+import { GddTransaction } from './GddTransaction'
 import { reactToTransaction } from '@/composables/useTransactionReactions'
 import { setTransactionReaction } from '@/graphql/transactions.graphql'
 
@@ -20,6 +20,8 @@ vi.mock('@/store/useWalletStore', () => ({
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key),
+    // The row takes `d` from here now; a template's `$d` came from the mocks of the mount.
+    d: (date) => String(date),
   }),
 }))
 vi.mock('@/i18n', () => ({
@@ -619,11 +621,14 @@ describe('GddTransaction, the reaction to a transfer', () => {
    */
   describe('the stylesheet', () => {
     const source = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), 'GddTransaction.vue'),
+      join(dirname(fileURLToPath(import.meta.url)), 'GddTransaction.module.scss'),
       'utf8',
     )
     const rule = (selector) => {
-      const found = new RegExp(`\\n${selector.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`).exec(source)
+      // The style module: every rule stands under the root's class (`:global(.transaction-reaction)`).
+      const found = new RegExp(
+        `\\n\\.gdd-transaction :global\\(${selector.replace(/[.]/g, '\\.')}\\) \\{([^}]*)\\}`,
+      ).exec(source)
       expect(found, `no ${selector} rule`).not.toBeNull()
       return found[1]
     }

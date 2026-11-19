@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import FirstName from './FirstName'
+import { FirstName } from './FirstName'
 import { BFormInput } from 'bootstrap-vue-next'
 
 vi.mock('vue-i18n', () => ({

@@ -68,7 +68,7 @@ const rules = (css, selector) =>
     .map(([, , body]) => body.replace(/\s+/g, ' ').trim())
 
 describe('the page edge on a phone', () => {
-  const app = styles(source('App.vue'))
+  const app = live(source('App.css'))
   const phone = mediaBodies(app, '1024.98px').join('\n')
 
   it('finds the block it is about to measure', () => {
@@ -138,7 +138,7 @@ describe('the page edge on a phone', () => {
 })
 
 describe('the pill pagers on a narrow phone', () => {
-  const app = styles(source('App.vue'))
+  const app = live(source('App.css'))
   const xs = mediaBodies(app, '575.98px').join('\n')
 
   it('keeps all three numbers of the phone form', () => {

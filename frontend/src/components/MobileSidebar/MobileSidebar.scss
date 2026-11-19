@@ -1,0 +1,33 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Global, as the style block of MobileSidebar.vue was. */
+.mobile-sidebar-wrapper {
+  width: 220px;
+  background-color: #fff;
+  z-index: 1001;
+  position: absolute;
+  border-bottom-right-radius: 26px;
+  border-top-right-radius: 26px;
+  top: 0;
+  bottom: 0;
+}
+
+#sidebar-mobile {
+  width: 220px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1001;
+}
+
+.simple-overlay {
+  position: absolute;
+  left: 200px;
+  top: 0;
+  bottom: 0;
+  background-color: #212529;
+  z-index: 99;
+  opacity: 0.6;
+  width: calc(100vw - 200px);
+}

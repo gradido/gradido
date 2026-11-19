@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createI18n } from 'vue-i18n'
-import ChatUnreadDot from './ChatUnreadDot.vue'
+import { ChatUnreadDot } from './ChatUnreadDot'
 import de from '@/locales/de.json'
 import en from '@/locales/en.json'
 import ru from '@/locales/ru.json'
@@ -23,9 +23,10 @@ const mountAt = (count, locale = 'de') =>
   })
 
 const here = dirname(fileURLToPath(import.meta.url))
-const styles = readFileSync(resolve(here, './ChatUnreadDot.vue'), 'utf8')
-  .split('<style scoped>')[1]
-  .replace(/\/\*[\s\S]*?\*\//g, '')
+const styles = readFileSync(resolve(here, './ChatUnreadDot.module.scss'), 'utf8').replace(
+  /\/\*[\s\S]*?\*\//g,
+  '',
+)
 
 describe('ChatUnreadDot', () => {
   it('draws nothing while nothing waits unread, and nothing for a row without the number', () => {

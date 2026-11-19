@@ -9,8 +9,8 @@ import {
   ContributionListAllItem,
 } from '@/components/Contributions/ContributionListAllItem'
 import type { CreationGroup } from '@/components/Contributions/ContributionListItem'
-import PaginatorRouteParamsPage from '@/components/PaginatorRouteParamsPage.vue'
-import ThemedSelect from '@/components/ThemedSelect.vue'
+import { PaginatorRouteParamsPage } from '@/components/PaginatorRouteParamsPage'
+import { ThemedSelect } from '@/components/ThemedSelect'
 import CONFIG from '@/config'
 import { PAGE_SIZE } from '@/constants'
 import {

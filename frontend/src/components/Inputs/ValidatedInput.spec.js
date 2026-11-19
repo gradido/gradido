@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ValidatedInput from '@/components/Inputs/ValidatedInput.vue'
+import { ValidatedInput } from '@/components/Inputs/ValidatedInput'
 import * as yup from 'yup'
 import { BFormInvalidFeedback, BFormInput, BFormTextarea, BFormGroup } from 'bootstrap-vue-next'
-import LabeledInput from '@/components/Inputs/LabeledInput.vue'
+import { LabeledInput } from '@/components/Inputs/LabeledInput'
 import { supportTicketText } from '@/validationSchemas'
 
 vi.mock('vue-i18n', () => ({

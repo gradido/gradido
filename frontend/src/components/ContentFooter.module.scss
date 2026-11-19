@@ -1,0 +1,22 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it. Every rule stands under the root's class: the scoped rules these were had one level
+   more (the scope attribute). */
+.footer :global(a.nav-link) {
+  color: #383838 !important;
+}
+
+/* The bar mixes its colour from `currentcolor`; it used to be the version link's own border
+   and so took the link colour, and it keeps that colour as an element of its own. */
+.footer :global(.copyright .separator-start) {
+  color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+}
+
+/* Where even a line of its own is too narrow for the version (measured 10.11.2026: French below
+   300px, Greek, Russian and Turkish at 260px), its words go over two lines of about the same
+   length, so that the number does not stand alone on the second one. A browser that does not
+   know the value wraps as before. */
+.footer :global(.copyright-version) {
+  text-wrap: balance;
+}

@@ -126,26 +126,34 @@ describe('the ground of a photo against the places that show it', () => {
   it.each([
     [
       'the card',
-      ['components', 'LinkInformations', 'RedeemThanksPaper.vue'],
-      '.redeem-thanks-paper-picture',
+      ['components', 'LinkInformations', 'RedeemThanksPaper.module.scss'],
+      '.redeem-thanks-paper :global(.redeem-thanks-paper-picture)',
     ],
     [
       'the tile of the choice',
-      ['components', 'ThankYouGreeting', 'ThankYouPictureChoice.vue'],
-      '.tyg-motif img',
+      ['components', 'ThankYouGreeting', 'ThankYouPictureChoice.module.scss'],
+      '.thank-you-picture-choice :global(.tyg-motif) img',
     ],
-    ['"Fertig"', ['components', 'ThankYouGreeting', 'ThankYouGreetingDone.vue'], '.tyg-done-motif'],
+    [
+      '"Fertig"',
+      ['components', 'ThankYouGreeting', 'ThankYouGreetingDone.module.scss'],
+      '.thank-you-greeting-done :global(.tyg-done-motif)',
+    ],
     [
       'the strip over the account form',
-      ['components', 'LinkInformations', 'RedeemThanksAccount.vue'],
-      '.redeem-thanks-strip-picture.is-photo',
+      ['components', 'LinkInformations', 'RedeemThanksAccount.module.scss'],
+      '.redeem-thanks-open-account :global(.redeem-thanks-strip-picture.is-photo)',
     ],
     [
       'the list of links',
-      ['components', 'TransactionLinks', 'TransactionLink.vue'],
-      '.transaction-link-greeting-motif',
+      ['components', 'TransactionLinks', 'TransactionLink.module.scss'],
+      '.transaction-link :global(.transaction-link-greeting-motif)',
     ],
-    ['the bubble', ['components', 'Chat', 'ChatBubble.vue'], '.chat-bubble-greeting-picture'],
+    [
+      'the bubble',
+      ['components', 'Chat', 'ChatBubble.module.scss'],
+      '.chat-bubble-greeting-picture',
+    ],
   ])('is the colour %s gives the room of its picture', (name, file, selector) => {
     const block = rule(file, selector)
 

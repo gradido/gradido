@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { computed, h, inject } from 'vue'
-import ChatFileCard from '@/components/Chat/ChatFileCard.vue'
-import ChatVideoLinkCopy from '@/components/Chat/ChatVideoLinkCopy.vue'
+import { computed, defineComponent, h, inject } from 'vue'
+import { ChatFileCard } from '@/components/Chat/ChatFileCard'
+import { ChatVideoLinkCopy } from '@/components/Chat/ChatVideoLinkCopy'
 import { chatSearchMarked, useChatSearchNeedle } from '@/components/Chat/chatSearchMarks'
 import { fileLinkService } from '@/utils/chatFileLink'
 import { chatMarkdown, isPlainChatText } from '@/utils/chatMarkdown'
@@ -130,7 +130,7 @@ const HEADING_TAGS = ['h4', 'h5', 'h6', 'h6', 'h6', 'h6']
  * every other address stays a link, as before. A card stands in a stretch of text only -- in a
  * heading, a table or an emphasised run the address is a link like any other.
  */
-export default {
+export default defineComponent({
   name: 'ChatMessageText',
   props: {
     text: { type: String, default: '' },
@@ -321,4 +321,4 @@ export default {
       return h('div', { class: 'chat-message-text chat-md' }, read.map(block))
     }
   },
-}
+})

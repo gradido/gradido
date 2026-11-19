@@ -1,0 +1,67 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet, and a double slash is not a comment
+   to it.
+
+   Every rule stands under the root's class: the scoped rules these were had one level more
+   (the scope attribute).
+
+   One line: the field takes what the rest leaves. The count keeps its width while it changes,
+   so the arrows do not move under the finger. */
+.chat-search :global(.chat-search-bar) {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chat-search :global(.chat-search-field) {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 999px;
+  background: var(--bs-body-bg, #fff);
+  color: var(--bs-body-color);
+  font-size: 1rem;
+}
+
+.chat-search :global(.chat-search-field:focus) {
+  outline: 2px solid rgba(var(--bs-link-color-rgb), 0.5);
+  outline-offset: 1px;
+}
+
+.chat-search :global(.chat-search-count) {
+  flex: 0 0 auto;
+  min-width: 4.5em;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.chat-search :global(.chat-search-step) {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bs-body-color);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-search :global(.chat-search-step[aria-disabled='true']) {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.chat-search :global(.chat-search-capped) {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+}

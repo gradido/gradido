@@ -16,8 +16,11 @@ import {
 import type { TransactionPicture } from '@/components/GddSend/TransactionPictureField'
 import { TransactionResultLink } from '@/components/GddSend/TransactionResultLink'
 import { TransactionResultSendError } from '@/components/GddSend/TransactionResultSendError'
-import SuccessMessage from '@/components/SuccessMessage.vue'
-import ThankYouGreetingDone from '@/components/ThankYouGreeting/ThankYouGreetingDone.vue'
+import { SuccessMessage } from '@/components/SuccessMessage'
+import {
+  type ThankYouGreetingCreated,
+  ThankYouGreetingDone,
+} from '@/components/ThankYouGreeting/ThankYouGreetingDone'
 import { rememberGreetingPicture } from '@/composables/useGreetingPictures'
 import { usePassOnDraft } from '@/composables/usePassOnDraft'
 import { useSendReturn } from '@/composables/useSendReturn'
@@ -65,7 +68,7 @@ export type TransactionData = {
 }
 
 /** The link made for a mail, as the mutation answers it, with the photo for "Fertig" to show. */
-type MadeForEmail = { id: number; picture: string | null; [field: string]: unknown }
+type MadeForEmail = ThankYouGreetingCreated & { id: number; picture: string | null }
 
 /** An error as Apollo rejects a query with, where the server answered at all. */
 type QueryRefusal = Error & { graphQLErrors?: { message: string }[] }
@@ -518,7 +521,7 @@ export const Send = defineComponent({
      * another form in between -- as a thank-you greeting where a picture was chosen, as a plain
      * link where none was. The mail itself is the member's own, from the view this leads to.
      *
-     * With a photo it is the chain of the greeting's page (pages/ThankYouGreeting.vue says why):
+     * With a photo it is the chain of the greeting's page (pages/ThankYouGreeting.tsx says why):
      * both renditions, the link with the small one, the large one in a request of its own, which
      * may fail without a word. A photo that cannot be made small enough makes nothing.
      *
@@ -741,7 +744,8 @@ export const Send = defineComponent({
             ),
             sendByEmailReady: () => (
               <ThankYouGreetingDone
-                created={madeForEmail.value}
+                // This view stands only once the link is made (sendEmail).
+                created={madeForEmail.value as MadeForEmail}
                 emailAddress={emailAddress.value}
                 onAnother={onBack}
               />

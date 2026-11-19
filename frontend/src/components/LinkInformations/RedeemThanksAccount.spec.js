@@ -16,7 +16,7 @@ import {
 import i18n from '@/i18n'
 import de from '@/locales/de.json'
 import { loadAllRules } from '@/validation-rules'
-import RedeemThanksAccount from './RedeemThanksAccount.vue'
+import { RedeemThanksAccount } from './RedeemThanksAccount'
 
 /**
  * "Konto anlegen" on the page a thank-you arrived on: the strip, the fields of the registration
@@ -241,13 +241,14 @@ describe('RedeemThanksAccount', () => {
       })
 
       it('is 48px round', () => {
-        const sfc = readFileSync(
-          join(dirname(fileURLToPath(import.meta.url)), 'RedeemThanksAccount.vue'),
+        // The style module, read as the scoped block wrote its rules: without the root's class
+        // in front of them and without `:global`.
+        const css = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'RedeemThanksAccount.module.scss'),
           'utf8',
         )
-        const css = sfc
-          .slice(sfc.indexOf('<style'), sfc.lastIndexOf('</style>'))
           .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/\.redeem-thanks-open-account :global\(([^()]*)\)/g, '$1')
         const body = css.match(/(?:^|\n)\s*\.redeem-thanks-strip-face\s*\{([^}]*)\}/)?.[1]
 
         expect(body).toMatch(/(^|[\s;])width:\s*48px;/)

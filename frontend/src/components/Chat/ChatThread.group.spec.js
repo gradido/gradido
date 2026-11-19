@@ -1,9 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest'
-import ChatThread from './ChatThread.vue'
-import ChatBubble from './ChatBubble.vue'
-import ChatComposeBar from './ChatComposeBar.vue'
+import { ChatThread } from './ChatThread'
+import { ChatBubble } from './ChatBubble'
+import { ChatComposeBar } from './ChatComposeBar'
 import { chatDraftFor, chatGroupDraftKey, forgetChatDrafts } from '@/utils/chatDraft'
 import { editChatMessage } from '@/graphql/chat.graphql'
 import {
@@ -73,6 +73,9 @@ vi.mock('@/i18n', () => ({
   default: { global: { t: (key, values) => (values ? `${key} ${JSON.stringify(values)}` : key) } },
 }))
 vi.mock('vue-i18n', () => ({
+  // The bubble's sentence with a name in it (I18nText) takes this off the module, now that the
+  // bubble is no template; no test here reads that sentence.
+  I18nT: { name: 'I18nT', render: () => null },
   useI18n: () => ({
     t: (key, values, plural) =>
       typeof plural === 'number'

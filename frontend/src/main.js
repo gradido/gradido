@@ -7,7 +7,7 @@ import './assets/css/gradido.css'
 import './assets/fonts/open-sans/open-sans.css'
 // import './assets/scss/gradido.scss'
 
-import App from './App'
+import { App } from './App'
 import { createFilters } from './filters/amount'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'

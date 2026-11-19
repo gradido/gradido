@@ -110,9 +110,8 @@ describe('the declaration of Open Sans', () => {
 })
 
 describe('where Open Sans is seen', () => {
-  const styles = [...read('./App.vue').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(
-    ([, body]) => withoutComments(body),
-  )
+  // App's global stylesheet, since App is a .tsx file.
+  const styles = [withoutComments(read('./App.css'))]
 
   it('reads the style of App.vue', () => {
     // The fixture proves itself: without it the assertions below would describe nothing.

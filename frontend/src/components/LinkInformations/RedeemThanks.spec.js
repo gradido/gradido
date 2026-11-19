@@ -16,11 +16,11 @@ import {
   BRow,
 } from 'bootstrap-vue-next'
 import i18n from '@/i18n'
-import CommunitySwitch from '@/components/CommunitySwitch.vue'
+import { CommunitySwitch } from '@/components/CommunitySwitch'
 import { loadAllRules } from '@/validation-rules'
-import RedeemThanks from './RedeemThanks.vue'
-import RedeemThanksAccount from './RedeemThanksAccount.vue'
-import RedeemThanksPaper from './RedeemThanksPaper.vue'
+import { RedeemThanks } from './RedeemThanks'
+import { RedeemThanksAccount } from './RedeemThanksAccount'
+import { RedeemThanksPaper } from './RedeemThanksPaper'
 
 /**
  * The view a member's redeem link opens as, in every state such a link can have.
@@ -966,14 +966,20 @@ describe('RedeemThanks', () => {
   describe('the colours in the dark theme', () => {
     const here = dirname(fileURLToPath(import.meta.url))
     // The view, and the two it is built with since an account can be opened on the page.
-    const VIEWS = ['RedeemThanks.vue', 'RedeemThanksAccount.vue', 'RedeemThanksHaveAccount.vue']
-    // Without the comments: the files explain there what they must not do.
-    const css = VIEWS.map((name) => {
-      const sfc = readFileSync(join(here, name), 'utf8')
-      return sfc
-        .slice(sfc.indexOf('>', sfc.indexOf('<style')) + 1, sfc.indexOf('</style>'))
+    const VIEWS = [
+      'RedeemThanks.module.scss',
+      'RedeemThanksAccount.module.scss',
+      'RedeemThanksHaveAccount.module.scss',
+    ]
+    // Without the comments: the files explain there what they must not do. And read as the
+    // scoped blocks wrote their rules: without the root's class in front of them and without
+    // `:global`, which stand in for the scope attribute.
+    const css = VIEWS.map((name) =>
+      readFileSync(join(here, name), 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
-    }).join('\n')
+        .replaceAll(':global(.dark-mode) ', '.dark-mode ')
+        .replace(/\.[\w-]+ (?:> )?:global\(([^()]*)\)/g, '$1'),
+    ).join('\n')
 
     const switchedIn = (scss) =>
       new Set(

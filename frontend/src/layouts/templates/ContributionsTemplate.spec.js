@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import ContributionsTemplate from './ContributionsTemplate'
-import ContributionInfo from '@/components/Template/RightSide/ContributionInfo.vue'
+import { ContributionsTemplate } from './ContributionsTemplate'
+import { ContributionInfo } from '@/components/Template/RightSide/ContributionInfo'
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
@@ -9,10 +9,15 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
+// ContributionInfo picks its slot by the route's tab and asks `useRoute()` for it.
+const route = { params: {} }
+vi.mock('vue-router', () => ({ useRoute: () => route }))
+
 describe('ContributionsTemplate', () => {
   let wrapper
 
   const createWrapper = (tab) => {
+    route.params = { tab }
     return mount(ContributionsTemplate, {
       global: {
         components: {

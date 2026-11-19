@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import i18n from '@/i18n'
 import { isComputer } from '@/utils/isComputer'
 import { THANK_YOU_PICTURE_GROUND } from '@/utils/thankYouPicture'
-import ThankYouPictureChoice from './ThankYouPictureChoice.vue'
+import { ThankYouPictureChoice } from './ThankYouPictureChoice'
 
 /**
  * The choice of a greeting's picture, with the wallet's own texts: the five motifs, the tile for
