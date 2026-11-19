@@ -25,7 +25,7 @@ import {
 // binding, with its first line. And `fileURLToPath`, not `new URL(...)`: jsdom brings its own
 // `URL` class, and node turns an instance of it away as coming from another realm.
 const sharedConst = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'shared', 'src', 'const', 'index.ts'),
+  join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'shared', 'src', 'const', 'constants.ts'),
   'utf8',
 )
 

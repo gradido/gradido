@@ -45,7 +45,7 @@ const numberIn = (text, name) => {
 }
 
 describe('the two renditions against what the server takes', () => {
-  const shared = repo('shared', 'src', 'const', 'index.ts')
+  const shared = repo('shared', 'src', 'const', 'constants.ts')
 
   it('aims the small one below the bound of a chat picture', () => {
     expect(THANK_YOU_PICTURE_SMALL.targetBytes).toBeLessThan(

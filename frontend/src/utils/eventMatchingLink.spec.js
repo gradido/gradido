@@ -280,9 +280,9 @@ describe('the lengths an entry holds, here and where they are set', () => {
   })
 
   it('is the length of the details the server takes', () => {
-    // Read as text, not imported: shared/src/const/index.ts loads a native binding.
+    // Read as text, not imported: shared/src/const/constants.ts loads a native binding.
     const shared = readFileSync(
-      join(here, '..', '..', '..', 'shared', 'src', 'const', 'index.ts'),
+      join(here, '..', '..', '..', 'shared', 'src', 'const', 'constants.ts'),
       'utf8',
     )
     const [, chars] = shared.match(/^export const MATCHING_ENTRY_DETAILS_MAX_CHARS = (\d+)$/m) ?? []

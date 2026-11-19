@@ -13,11 +13,11 @@ import { LINK_COMPOUND_INTEREST_FACTOR, LINK_VALID_DAYS, linkAmountMax } from '.
 // What drift costs: a sentence that promises more or fewer days than the link gets, and a
 // highest amount the server then refuses -- or one that is lower than it had to be.
 //
-// ⚠️ Read as text, not imported: shared/src/const/index.ts loads `shared-native`, a native
-// binding, with its first line. And `fileURLToPath`, not `new URL(...)`: jsdom brings its own
+// ⚠️ Read as text, not imported: this spec is from before the wallet could import
+// `shared/browser`. And `fileURLToPath`, not `new URL(...)`: jsdom brings its own
 // `URL` class, and node turns an instance of it away as coming from another realm.
 const sharedConst = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'shared', 'src', 'const', 'index.ts'),
+  join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'shared', 'src', 'const', 'constants.ts'),
   'utf8',
 )
 

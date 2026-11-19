@@ -1,12 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
-// Constants the wallet has to agree with. The frontend has no dependency on `shared`, so it
-// keeps its own copy of each and a drift spec there imports THIS FILE directly to hold the
-// two together.
+// Constants the wallet has to agree with. It can import them from `shared/browser` now; where
+// it still keeps a copy of one, a drift spec there imports THIS FILE directly to hold the two
+// together.
 //
-// ⛔ No imports here, ever. `./index` loads `shared-native`, a native addon the frontend's
-// tests do not build; a drift spec that reached it would fail on a clean checkout. That is
-// the only reason these constants do not stand in `./index` with the others.
+// ⛔ No imports here as long as such a spec is left: it runs without `shared-native` built.
 
 // How many members one `memberAvatars` question may name: what one wallet request may name
 // in the backend, and what one `memberAvatars` field may name for kinds `small` and `dates`
@@ -22,9 +20,7 @@
 // accepts in createServer.ts (100 KB) -- a request field for 100 ids is about 8 KB, one for
 // a single id about 1.5 KB.
 //
-// The wallet chunks its requests by the same number (frontend/src/composables/
-// useMemberAvatars.js) and has no dependency on `shared`; useMemberAvatars.drift.spec.js
-// holds its copy against this one.
+// The wallet chunks its requests by this number (frontend/src/composables/useMemberAvatars.js).
 export const MEMBER_AVATARS_MAX_REFS = 100
 
 // How many people a member may keep a picture of (AS-024): the table must not grow without end,

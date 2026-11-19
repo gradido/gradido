@@ -26,7 +26,7 @@ afterEach(() => setLocale('en'))
 describe('the bounds of a thread', () => {
   // The server's file loads the native addon: read as text, the number after the name.
   const server = readFileSync(
-    new URL('../../../shared/src/const/index.ts', import.meta.url),
+    new URL('../../../shared/src/const/constants.ts', import.meta.url),
     'utf8',
   )
   const serverValue = (name: string) =>

@@ -1,0 +1,23 @@
+// What a browser can load of `shared`: the entry `shared/browser`, for frontend and admin.
+// Nothing here may reach Node (its modules, its globals) or `shared-native`, neither directly nor
+// through an import -- so no barrel that also exports such a file. browser.test.ts holds that.
+export * from './auth/const'
+export * from './const/constants'
+export * from './data/AvatarColor.logic'
+export * from './data/location.logic'
+export * from './data/MatchingEntry.logic'
+export * from './data/ThankYouGreeting.logic'
+export * from './enum'
+export * from './errorTypes'
+export * from './helper/aliasFromName'
+export * from './helper/parseOrThrowFirstIssue'
+export * from './helper/searchWords'
+export * from './helper/storedUserName'
+export * from './helper/transliterate'
+export * from './schema/base.schema'
+export * from './schema/location.schema'
+export * from './schema/picture.schema'
+export * from './schema/projectBranding.schema'
+export * from './schema/transaction.schema'
+export * from './schema/typeGuard.schema'
+export * from './schema/user.schema'

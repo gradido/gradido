@@ -4,16 +4,18 @@ import { privateJwtKeySchema, publicJwtKeySchema } from '../jwt/jwt.schema'
 import {
   dateSchema,
   dateStringSchema,
-  ed25519PrivateKeySchema,
-  ed25519PublicKeySchema,
   locationPointSchema,
-  publicKeyHexStringSchema,
   urlSchema,
   uuidv4Schema,
-  x25519PrivateKeySchema,
-  x25519PublicKeySchema,
 } from './base.schema'
 import { signatureNonceSchema } from './federation.schema'
+import {
+  ed25519PrivateKeySchema,
+  ed25519PublicKeySchema,
+  publicKeyHexStringSchema,
+  x25519PrivateKeySchema,
+  x25519PublicKeySchema,
+} from './node.schema'
 import { hieroIdSchema } from './typeGuard.schema'
 
 export const homeCommunityInsertSchema = v.object({
