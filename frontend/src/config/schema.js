@@ -84,9 +84,21 @@ const environment = v.object({
       integerSchema,
       v.minValue(0),
       v.maxValue(600000),
-      v.description('Auto Polling for new data in ms. 0 = disabled = default. Experimental!'),
+      v.description(
+        'Auto Polling for new data in ms. 0 = disabled = default. Superseded by AUTO_POLL_INTERVAL_SECONDS, which wins where both are set.',
+      ),
     ),
     0,
+  ),
+  AUTO_POLL_INTERVAL_SECONDS: v.optional(
+    v.pipe(
+      integerSchema,
+      v.minValue(0),
+      v.maxValue(600),
+      v.description(
+        'How often the lists of contributions and support requests ask for new data, in seconds. 0 = never. Raise it on a busy server to lower its load.',
+      ),
+    ),
   ),
   CROSS_TX_REDEEM_LINK_ACTIVE: flagSchema('Enable cross-community redeem links'),
 
@@ -153,6 +165,11 @@ const schema = v.pipe(
     const COMMUNITY_URL = env.COMMUNITY_URL ?? FRONTEND_MODULE_URL
     return {
       ...env,
+      // the wallet reckons in milliseconds; the setting in seconds wins over the older one
+      AUTO_POLL_INTERVAL:
+        env.AUTO_POLL_INTERVAL_SECONDS === undefined
+          ? env.AUTO_POLL_INTERVAL
+          : env.AUTO_POLL_INTERVAL_SECONDS * 1000,
       DEBUG: env.NODE_ENV !== 'production',
       PRODUCTION: env.NODE_ENV === 'production',
       BUILD_COMMIT_SHORT: (env.BUILD_COMMIT ?? '0000000').slice(0, 7),
