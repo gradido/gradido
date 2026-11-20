@@ -150,7 +150,7 @@ No page yet; everything a page needs.
   `openCreationsAmounts`. New documents in `frontend-mithril/src/graphql`; the old wallet's stay
   untouched until it goes. The server is not changed.
 - `jwt-decode` and `uuid` are not installed: the token is read as `authToken` already reads it,
-  a gradido ID is checked by `uuidv4Schema` of `shared`.
+  a gradido ID is checked by `uuidv4Schema` of `shared/browser`.
 - The clipboard as today: `nativeClipboard` for pictures, loaded before
   `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.
 - A test for the texts, in place of the ESLint plugin that goes with ESLint (step 22): every
@@ -169,7 +169,7 @@ No page yet; everything a page needs.
   `SendEmailResultError`, `RecipientNotFound`. One copy button for `ClipboardCopy`,
   `GradidoAddressCopy`, `ChatVideoLinkCopy`. One modal for `BModal` (22 files) and `AppModal`.
 - Form schemas from `validationSchemas.js` and `validation-rules.js` in valibot, with the
-  bounds from `shared` (`RESERVED_ALIAS`, memo 5..512, message, support ticket). One amount
+  bounds from `shared/browser` (`RESERVED_ALIAS`, memo 5..512, message, support ticket). One amount
   rule for the three there are (`validationSchemas.amount`, `ContributionForm` hours,
   `filters/amount.parseAmount`).
   `ContributionForm`'s hours keep their rule as it is: a number of at most two decimals, from

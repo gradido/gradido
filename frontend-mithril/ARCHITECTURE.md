@@ -138,9 +138,9 @@ firstCreation.refresh()    // asks again; value stays on screen meanwhile
 export const reachableCommunities = resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
 ```
 
-On every visit after the first in a session the last value is drawn at once and replaced when
-the new answer comes, without a loading state in between. What is shown on the first visit is
-the next section.
+On every visit after the first in a session the last value is drawn at once, without a loading
+state. Where the reader asked again (`refresh()`, or `load()` past the hard timeout) it is
+replaced when the new answer comes. What is shown on the first visit is the next section.
 
 Which of the two a reader calls in `oninit` is the choice the old wallet made with its fetch
 policy:
