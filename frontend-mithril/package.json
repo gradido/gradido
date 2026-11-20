@@ -7,12 +7,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --cwd ../frontend compile-scss && vite",
+    "dev": "vite",
     "build": "vite build",
     "postbuild": "uname | grep -q Linux && find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} + || echo 'Skip precompress on non-Linux'",
     "start": "vite preview",
     "test": "bun test src",
-    "test:compare": "bun run --cwd ../frontend compile-scss && playwright test",
+    "test:compare": "playwright test",
     "lint": "biome check --error-on-warnings .",
     "lint:fix": "biome check --error-on-warnings . --write",
     "typecheck": "bun check && bun check -p tests"

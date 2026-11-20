@@ -18,6 +18,10 @@
     "dev": {
       "dependsOn": ["frontend#compile-scss", "config-schema#build"]
     },
+    "test:compare": {
+      "dependsOn": ["frontend#compile-scss", "config-schema#build"],
+      "cache": false
+    },
     "test": {
       "dependsOn": ["config-schema#build", "transit"],
       "inputs": [

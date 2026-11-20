@@ -51,7 +51,7 @@ The wallet gets the same rewrite: `frontend/` (Vue) stays the wallet that is dep
 - **Not a 1:1 port:** before a page is ported, look at what Mithril makes unnecessary (reactivity wrappers, emit plumbing, the Apollo cache), what exists twice and what nothing uses. What the browser shows and does stays the same. Answers of the backend and forms are checked by valibot schemas (`src/data/*.schema.ts`), not value by value.
 - **Shared files:** `frontend-mithril` imports the GraphQL documents, locales, styles, config and the Vue-free utils from `frontend/src` through the `@frontend` alias, and serves `frontend/public`. They still live there and are changed there. Its settings come from `frontend/.env`; `frontend-mithril/.env` holds only a port of its own.
 - **Specs:** the Playwright specs in `frontend-mithril/tests` run against the old wallet (projects `old`, `old-phone`), and against the Mithril wallet (`new`, `new-phone`) only once their file is listed in `PORTED_TO_MITHRIL` in `frontend-mithril/playwright.config.ts`. A page is ported when its specs, written against the old wallet first, pass against the new one.
-- **Running the specs:** `cd frontend-mithril && bun run test:compare`. The old wallet's Vitest suite (`bunx turbo test --filter=frontend`) keeps running as well.
+- **Running the specs:** `bunx turbo test:compare --filter=frontend-mithril`. The old wallet's Vitest suite (`bunx turbo test --filter=frontend`) keeps running as well.
 
 # Running builds, tests and checks
 

@@ -116,7 +116,7 @@ one kind kept as another.
 | Kind | Lives | Where | Example |
 | --- | --- | --- | --- |
 | **View** | while the component is on screen | a field of the component | the open tab, what is typed, the page of a list, a list a single page shows, the chat thread |
-| **Shared fact** | while the member is signed in | `store/*.store.ts`, a `resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
+| **Shared fact** | while the member is signed in, each answer ten minutes at most | `store/*.store.ts`, a `resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
 | **Session** | until sign-out, across reloads | `store/wallet.store.ts` | who is signed in, their settings, the token |
 | **Device** | until deleted, per member or per device | `data/DeviceValue.logic.ts` | theme, calculator settings, drafts, window size |
 
@@ -131,8 +131,11 @@ tab, an observer) calls `m.redraw()`.
 export const firstCreation = resource(firstCreationStatus, firstCreationStatusSchema)
 
 firstCreation.value        // the last answer, or undefined
-firstCreation.load()       // asks once; a second caller gets the same request
+firstCreation.load()       // asks if there is no answer or it is too old; a second caller gets the same request
 firstCreation.refresh()    // asks again; value stays on screen meanwhile
+
+// a fact that changes faster names its own limit
+export const reachableCommunities = resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
 ```
 
 On every visit after the first in a session the last value is drawn at once and replaced when
@@ -142,8 +145,9 @@ the next section.
 Which of the two a reader calls in `oninit` is the choice the old wallet made with its fetch
 policy:
 
-- `load()` where one answer per session is enough (the default policy of today: the reachable
-  communities, the lists of creation groups). It asks only if nobody has asked yet.
+- `load()` where an answer of some minutes ago is good enough (the default policy of today: the
+  reachable communities, the lists of creation groups). It asks only if nobody has asked yet
+  or the answer is older than the hard timeout.
 - `refresh()` where the reader shows the last value at once and wants the current one
   (`cache-and-network` of today: first-creation status, alias status, the balance). It always
   asks; `value` stays on screen until the answer replaces it.
@@ -151,7 +155,20 @@ policy:
 The newest wins: an answer is taken only if no later request was started and `value` was not
 assigned since it was asked. An older answer that arrives late is dropped.
 
-A page that changed the fact assigns `value` or calls `refresh()`. About 25 lines, in
+**The hard timeout.** No answer is kept for a whole session: production sessions last an hour,
+some members are always online, and even the creation groups change. Ten minutes after an
+answer came it is no longer valid, and the next `load()` asks the server again, with `value`
+still on screen until the new answer replaces it, as with `refresh()`. Hard, because nothing
+prolongs it: not reading the value, not assigning it, not prolonging the session. Only a new
+answer of the server starts the ten minutes again. It is the wallet's side of
+`SESSION_HARD_TIMEOUT_MS` in the new backend's draft, a backstop against a fact that changed
+without the wallet hearing of it. The limit is the third argument of `resource`, ten minutes
+unless given; the reachable communities take one minute, since a community that went away
+makes a transfer fail. The token is session state, not a resource, and has its own end (below).
+No timer runs for it: the age is compared when `load()` is called, so a page that stays open
+keeps what it shows until something calls `load()` or `refresh()`.
+
+A page that changed the fact assigns `value` or calls `refresh()`. About 30 lines, in
 `store/resource.ts`. Anything asked by one place only is view state and uses `request` directly.
 
 **A device value** is read through its schema and written whole:
