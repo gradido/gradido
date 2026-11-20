@@ -236,8 +236,9 @@ both the build and the specs passing.
 (a) styles: `assets/scss`, the `*.module.scss` and `.css` files next to their Mithril
 components (about 200), `compile-scss` becomes a step of the one build; (b) `locales`,
 `graphql`, `config` (as ESM TypeScript, without `vite-plugin-commonjs`), the remaining utils,
-`public` (about 200); with the last of them the `@frontend` alias and the second `index.html`
-go, once nothing imports through the alias. (c)
+`public` (about 200); with the last of them the `@frontend` alias goes, once nothing imports
+through it, and the old wallet's `index.html` together with `src/indexHtml.drift.test.ts`,
+which has nothing left to compare. (c)
 `frontend-mithril` → `frontend`. **This rename is larger than 250 files** and cannot be cut
 without breaking the build in between: review it with `git diff -M --stat` (renames only), not
 with CodeRabbit. Then the workflow becomes `test_frontend.yml`, with its `_skipped` companion,
