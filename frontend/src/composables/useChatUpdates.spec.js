@@ -24,6 +24,10 @@ import {
   supportTicketsUnfinished,
 } from '@/composables/useSupportTicketsMenu'
 import { contributionsInProgress } from '@/composables/useContributionsInProgress'
+import {
+  moderationCreationsWaiting,
+  moderationSupportTicketsWaiting,
+} from '@/composables/useModerationWaiting'
 
 const { refreshContactsPanel } = vi.hoisted(() => ({ refreshContactsPanel: vi.fn() }))
 vi.mock('@/composables/useContactsPanel', () => ({ refreshContactsPanel }))
@@ -932,6 +936,7 @@ describe('useChatUpdates', () => {
         'newChatMessagesSince',
         'supportTicketsMenu',
         'countContributionsInProgress',
+        'moderationWaiting',
       ])
       expect(
         operation.selectionSet.selections[1].selectionSet.selections.map(
@@ -1163,6 +1168,83 @@ describe('useChatUpdates', () => {
    * watchers name go with the question, and each watcher is handed its own place of the answer --
    * the answer to the question that named it.
    */
+  /**
+   * The two numbers behind "Admin" ("Meine Gruppen", MG3): what waits for the moderation rides in
+   * the same question, as the support's field does. What the field brings goes on to
+   * useModerationWaiting as it came; it is nothing to the chat, and the chat is nothing to it.
+   */
+  describe('the moderation beside it (MG3)', () => {
+    const withWaiting = (answer, moderationWaiting) => ({
+      data: { ...answer.data, moderationWaiting },
+    })
+    const shown = () => [moderationCreationsWaiting.value, moderationSupportTicketsWaiting.value]
+
+    it('asks the two numbers as the fourth root field, after the chat, the support and the contributions', () => {
+      const [operation] = newChatMessagesSince.definitions
+      const fourth = operation.selectionSet.selections[3]
+      expect(fourth.name.value).toBe('moderationWaiting')
+      expect(fourth.selectionSet.selections.map((field) => field.name.value)).toEqual([
+        'creations',
+        'supportTickets',
+      ])
+    })
+
+    it('hands what the field brings to the menu, with every answer', async () => {
+      server.answer(
+        withWaiting(update(), { creations: 3, supportTickets: 2 }),
+        withWaiting(update(), { creations: 1, supportTickets: null }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(shown()).toEqual([3, 2])
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(shown()).toEqual([1, 0])
+    })
+
+    // null: nothing to moderate, or the server could not count; missing: an answer without the
+    // field. Neither takes back what the menu shows, and neither stops the chat.
+    it('keeps what was shown where the field comes null or not at all, and the chat goes on', async () => {
+      server.answer(
+        withWaiting(update(), { creations: 3, supportTickets: 2 }),
+        withWaiting(update({ unread: 4 }), null),
+        update({ unread: 5 }),
+      )
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(shown()).toEqual([3, 2])
+      expect(chatUnreadConversations.value).toBe(4)
+
+      await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+      expect(shown()).toEqual([3, 2])
+      expect(chatUnreadConversations.value).toBe(5)
+    })
+
+    it("forgets the member's numbers when the beat stops", async () => {
+      server.answer(withWaiting(update(), { creations: 3, supportTickets: 2 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      expect(shown()).toEqual([3, 2])
+
+      stopChatUpdates()
+      expect(shown()).toEqual([0, 0])
+    })
+
+    // ⛔ An answer still on its way at a sign-out was the member's before, and the next member on
+    // this browser must not see it.
+    it('takes nothing from an answer that arrives after the beat stopped', async () => {
+      const release = server.hold()
+      server.answer(withWaiting(update(), { creations: 3, supportTickets: 2 }))
+      startChatUpdates(server.client)
+      await vi.advanceTimersByTimeAsync(0)
+      stopChatUpdates()
+      release()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(shown()).toEqual([0, 0])
+    })
+  })
+
   describe('how far the members watched have read', () => {
     const ANNA = { gradidoID: 'anna-id', communityUuid: 'home-uuid' }
     const BEN = { gradidoID: 'ben-id', communityUuid: null }
