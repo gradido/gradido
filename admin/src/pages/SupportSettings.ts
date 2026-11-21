@@ -26,6 +26,9 @@ export class SupportSettings implements ClassComponent {
   private switchingOff: { open: number | null } | null = null
   // a switch on its way: a second click sends nothing
   private switching = false
+  // the count before the question on its way: the box waits for it, and a second click asks nothing,
+  // so one click opens one question (coderabbit on #4316)
+  private counting = false
 
   oninit() {
     this.ask()
@@ -46,7 +49,12 @@ export class SupportSettings implements ClassComponent {
       await this.set(true)
       return
     }
+    if (this.counting) {
+      return
+    }
+    this.counting = true
     const counts = await askOpenSupportTickets()
+    this.counting = false
     this.switchingOff = {
       open: counts
         ? counts.forModeration +
@@ -84,7 +92,7 @@ export class SupportSettings implements ClassComponent {
               m('input#support-tickets-active', {
                 type: 'checkbox',
                 checked: this.active,
-                disabled: this.switching,
+                disabled: this.switching || this.counting,
                 onchange: (event: Event) => this.toggle((event.target as HTMLInputElement).checked),
               }),
               m('label.ms-2', { for: 'support-tickets-active' }, t('support.switch.label')),

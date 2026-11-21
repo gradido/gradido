@@ -93,6 +93,32 @@ test('names before switching off also the requests open and waiting beyond "Mein
   ).toHaveText('6')
 })
 
+// coderabbit on #4316: one click, one question -- the box waits for the count, a second click
+// while it comes asks nothing, and a question said no to does not come back
+test('asks once while the count is on its way, and not again after a no', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminCountOpenSupportTickets: () => new Promise((resolve) => held.push(resolve)),
+  })
+  await open(page)
+  await box(page).click()
+  await expect.poll(() => held.length).toBe(1)
+  await expect(box(page)).toBeDisabled()
+  await box(page).click({ force: true })
+  held[0](OPEN)
+
+  await expect(dialog(page)).toContainText(de.support.switch.confirmOpen.replace('{open}', '8'))
+  await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
+  await expect(dialog(page)).toHaveCount(0)
+  await expect(box(page)).toBeEnabled()
+  await expect(box(page)).toBeChecked()
+  expect(held).toHaveLength(1)
+  expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
+})
+
 test('switches on again without asking', async ({ page, graphql }) => {
   graphql.answer({
     supportTicketsMenu: { active: false },
