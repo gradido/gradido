@@ -1,3 +1,6 @@
+import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { RoleNames } from '@enum/RoleNames'
 import { Contribution as DbContribution, UserRole as DbUserRole } from 'database'
 import { handledCreationGroupsOf } from '@/data/HandledCreationGroups.logic'
@@ -5,6 +8,8 @@ import type { HandledCreationGroups } from '@/data/HandledCreationGroups.schema'
 import { LogError } from '@/server/LogError'
 import {
   buildModeratorScopePredicate,
+  findContributions,
+  HANDLED_FILTER,
   parseModeratorScope,
   UNTAGGED_FILTER,
 } from './findContributions'
@@ -99,6 +104,37 @@ export const handledCreationGroupsOfRole = (
     role?.handledCreationGroups,
     describeModeratorCreationGroups(role).seesAllCreationGroups,
   )
+
+// The groups a role's contribution lists are held to: a scoped moderator's scope, else null --
+// what adminListContributions hands findContributions.
+export const moderatorScopeOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups'> | null,
+): string[] | null =>
+  role && isScopedModeratorRole(role.role) ? parseModeratorScope(role.visibleCreationGroups) : null
+
+// What waits for the moderation in "Meine Gruppen" of the role (MG3): the count of the line
+// "n warten auf die Moderation" on the admin's start page, `waitingForModeration` of
+// adminOpenCreationCounts, with the arguments adminListContributions gives findContributions for
+// it. Here so that the wallet's number keeps them in one place.
+export const countContributionsWaitingForModeration = async (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
+): Promise<number> => {
+  const filter = Object.assign(new SearchContributionsFilterArgs(), {
+    statusFilter: [ContributionStatus.PENDING],
+    hideResubmission: true,
+    creationGroup: HANDLED_FILTER,
+  })
+  const [, count] = await findContributions(
+    new Paginated(),
+    filter,
+    true,
+    undefined,
+    true,
+    moderatorScopeOfRole(role),
+    handledCreationGroupsOfRole(role),
+  )
+  return count
+}
 
 export const loadModeratorScope = async (userId: number): Promise<string[]> => {
   const role = await DbUserRole.findOne({ where: { userId } })

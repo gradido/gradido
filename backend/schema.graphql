@@ -55,6 +55,7 @@ type Query {
   keptPictureFull(ref: MemberAvatarRefInput!): String
   listMatchingEntries: [MatchingEntry!]!
   eventMatchingArrival: String
+  moderationWaiting: ModerationWaiting
   projectBrandings: [ProjectBranding!]!
   projectBranding(id: Int!): ProjectBranding!
   projectBrandingBanner(alias: String!): String
@@ -827,6 +828,11 @@ type MatchingEntry {
   updatedAt: DateTime!
   keyed: Boolean!
   exactSentence: Boolean!
+}
+
+type ModerationWaiting {
+  creations: Int
+  supportTickets: Int
 }
 
 type ProjectBranding {
