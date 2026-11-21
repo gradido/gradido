@@ -25,9 +25,10 @@ type AdminState = {
   moderator: Moderator | null
   openCreations: number
   openSupportTickets: number
-  // "Meine Gruppen" (MG1) as the server last answered it, and for whom: read only where it is the
-  // signed-in moderator's (chosenGroupsOf)
+  // "Meine Gruppen" as the server last answered it, and for whom: read only where it is the
+  // signed-in moderator's (chosenGroupsOf). The column "Schöpfung" (MG1), the column "Support" (MG2b).
   handledCreationGroups: KeptHandledCreationGroups | null
+  handledSupportGroups: KeptHandledCreationGroups | null
 }
 
 /** Where the admin keeps its own state in localStorage; the key of the old admin, kept. */
@@ -38,6 +39,7 @@ const savedStateSchema = v.object({
   openCreations: v.optional(v.number(), 0),
   openSupportTickets: v.optional(v.number(), 0),
   handledCreationGroups: keptHandledCreationGroupsField,
+  handledSupportGroups: keptHandledCreationGroupsField,
 })
 
 /** What the blob holds of the state, or the empty state where it cannot be read. */
@@ -69,10 +71,22 @@ export const adminStore: AdminState = {
 }
 
 const save = () => {
-  const { moderator, openCreations, openSupportTickets, handledCreationGroups } = adminStore
+  const {
+    moderator,
+    openCreations,
+    openSupportTickets,
+    handledCreationGroups,
+    handledSupportGroups,
+  } = adminStore
   localStorage.setItem(
     STATE_KEY,
-    JSON.stringify({ moderator, openCreations, openSupportTickets, handledCreationGroups }),
+    JSON.stringify({
+      moderator,
+      openCreations,
+      openSupportTickets,
+      handledCreationGroups,
+      handledSupportGroups,
+    }),
   )
 }
 
@@ -98,33 +112,54 @@ export const setOpenSupportTickets = (openSupportTickets: number) => {
   save()
 }
 
-// The question about the choice asked last, or the save sent last (MG1): an earlier one's answer
-// arriving later keeps nothing -- a slow start page must not put back the choice from before a save.
-let choiceAsked = 0
+// The question about a column asked last, or the save sent last (MG1, MG2b), one mark per column: an
+// earlier one's answer arriving later keeps nothing -- a slow start page must not put back the choice
+// from before a save. Apart, since a question about one column does not overtake the other's.
+const choiceAsked = { handledCreationGroups: 0, handledSupportGroups: 0 }
+type Column = keyof typeof choiceAsked
 
-/** A question about the choice, or a save of it, goes out: the mark its answer is kept under. */
-export const askingHandledCreationGroups = () => ++choiceAsked
+/** A question about the column "Schöpfung", or a save, goes out: the mark its answer is kept under. */
+export const askingHandledCreationGroups = () => ++choiceAsked.handledCreationGroups
+
+/** A question about the column "Support", or a save, goes out: the mark its answer is kept under. */
+export const askingHandledSupportGroups = () => ++choiceAsked.handledSupportGroups
 
 /**
- * Keeps the choice the server answered for `of`, the moderator the question was asked for -- where
- * that is still the moderator signed in, and no question or save went out after it (`asked`, from
- * askingHandledCreationGroups): an answer arriving after a change of moderator in this browser is
- * nobody's to keep, one overtaken by a later question is out of date.
+ * Keeps the choice of a column the server answered for `of`, the moderator the question was asked
+ * for -- where that is still the moderator signed in, and no question or save went out after it
+ * (`asked`, from askingHandled…Groups): an answer arriving after a change of moderator in this
+ * browser is nobody's to keep, one overtaken by a later question is out of date.
  */
-export const keepHandledCreationGroups = (
+const keepColumn = (
+  column: Column,
   of: string | undefined,
   choice: HandledCreationGroups,
   asked: number,
 ) => {
-  if (!of || of !== adminStore.moderator?.gradidoID || asked !== choiceAsked) {
+  if (!of || of !== adminStore.moderator?.gradidoID || asked !== choiceAsked[column]) {
     return
   }
-  adminStore.handledCreationGroups = { of, ...choice }
+  adminStore[column] = { of, ...choice }
   save()
 }
 
+/** Keeps the column "Schöpfung" (MG1), as keepColumn says. */
+export const keepHandledCreationGroups = (
+  of: string | undefined,
+  choice: HandledCreationGroups,
+  asked: number,
+) => keepColumn('handledCreationGroups', of, choice, asked)
+
+/** Keeps the column "Support" (MG2b), as keepColumn says. */
+export const keepHandledSupportGroups = (
+  of: string | undefined,
+  choice: HandledCreationGroups,
+  asked: number,
+) => keepColumn('handledSupportGroups', of, choice, asked)
+
 export const logout = () => {
   adminStore.handledCreationGroups = null
+  adminStore.handledSupportGroups = null
   setToken(null)
   setModerator(null)
   // Only the admin's own blob: wallet and admin share one origin, and localStorage.clear()

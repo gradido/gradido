@@ -1,4 +1,4 @@
-import { dbSelectCreationGroupIdsIn, dbUpdateUserRoleHandledCreationGroups } from 'database'
+import { dbSelectCreationGroupIdsIn, dbUpdateUserRoleHandledGroups } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
@@ -9,16 +9,21 @@ import {
 } from '@/data/HandledCreationGroups.logic'
 import { CreationGroup } from '@/graphql/model/CreationGroup'
 import { HandledCreationGroups } from '@/graphql/model/HandledCreationGroups'
+import { HandledGroups } from '@/graphql/model/HandledGroups'
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import {
   describeModeratorCreationGroups,
   handledCreationGroupsOfRole,
+  handledSupportGroupsOfRole,
   loadModeratorScope,
   saveModeratorScope,
 } from './util/moderatorCreationGroupScope'
 import { suggestCreationGroupForUser } from './util/suggestCreationGroup'
 import { loadUserCreationGroups, saveUserCreationGroups } from './util/userCreationGroups'
+
+// What the queries of "Meine Gruppen" answer where no choice counts.
+const NO_CHOICE = { groupIds: [], untagged: false }
 
 // Group functions: a user's personal creation-group list. Users manage their own
 // list (first tag = main tag, pre-filled on submission); moderators may edit any user's
@@ -83,11 +88,12 @@ export class UserCreationGroupResolver {
     return saveModeratorScope(userId, scope)
   }
 
-  // --- "Meine Gruppen" (MG1): the creation groups the signed-in moderator handles themself ---
+  // --- "Meine Gruppen" (MG1, MG2b): the creation groups the signed-in moderator handles themself ---
   // ⚠️ Not the lists above: myCreationGroups is a member's own list for the wallet's submission
   // field, and the scope is what an administrator assigns. This is the caller's own choice, on
-  // their role row, read by the admin's start page, its count and its group filter
-  // (HANDLED_FILTER in findContributions).
+  // their role row, in two columns: the groups whose creations they handle -- read by the admin's
+  // start page, its counts and the creation page's group filter (HANDLED_FILTER in findContributions)
+  // -- and the groups whose support requests they handle, read by the support's list and count.
 
   // The choice in force, from the role row the request loaded: nothing is read here. Empty where
   // no choice counts -- nothing chosen, or a moderator with an assigned scope.
@@ -95,43 +101,60 @@ export class UserCreationGroupResolver {
   @Query(() => HandledCreationGroups)
   handledCreationGroups(@Ctx() context: Context): HandledCreationGroups {
     return new HandledCreationGroups(
-      handledCreationGroupsOfRole(getUser(context).userRole) ?? { groupIds: [], untagged: false },
+      handledCreationGroupsOfRole(getUser(context).userRole) ?? NO_CHOICE,
     )
   }
 
-  // Saves the whole choice, and answers it as stored: each group once, ascending. The choice of
-  // nothing stores null, "everything, as before". A moderator with an assigned scope has no choice
-  // to save -- their scope is their list.
+  // The same for the column "Support" (MG2b): the support page's group filter asks this one.
   @Authorized([RIGHTS.HANDLED_CREATION_GROUPS])
-  @Mutation(() => HandledCreationGroups)
-  async setHandledCreationGroups(
-    @Arg('groupIds', () => [Int]) groupIds: number[],
-    @Arg('untagged', () => Boolean) untagged: boolean,
+  @Query(() => HandledCreationGroups)
+  handledSupportGroups(@Ctx() context: Context): HandledCreationGroups {
+    return new HandledCreationGroups(
+      handledSupportGroupsOfRole(getUser(context).userRole) ?? NO_CHOICE,
+    )
+  }
+
+  // Saves both columns at once, in one statement, and answers them as stored: each group once,
+  // ascending. A column of nothing stores null, "everything, as before". Both are checked before
+  // anything is written, so a refusal keeps what was there in both. A moderator with an assigned
+  // scope has no choice to save -- their scope is their list.
+  @Authorized([RIGHTS.HANDLED_CREATION_GROUPS])
+  @Mutation(() => HandledGroups)
+  async setHandledGroups(
+    @Arg('creationGroupIds', () => [Int]) creationGroupIds: number[],
+    @Arg('creationUntagged', () => Boolean) creationUntagged: boolean,
+    @Arg('supportGroupIds', () => [Int]) supportGroupIds: number[],
+    @Arg('supportUntagged', () => Boolean) supportUntagged: boolean,
     @Ctx() context: Context,
-  ): Promise<HandledCreationGroups> {
+  ): Promise<HandledGroups> {
     const user = getUser(context)
     if (!describeModeratorCreationGroups(user.userRole).seesAllCreationGroups) {
       throw new LogError('An assigned scope leaves no creation groups to choose', user.id)
     }
-    const choice = normaliseHandledCreationGroups(groupIds, untagged)
-    if (!choice.success) {
-      throw new LogError(choice.error.message, user.id)
+    const creation = normaliseHandledCreationGroups(creationGroupIds, creationUntagged)
+    if (!creation.success) {
+      throw new LogError(creation.error.message, user.id)
     }
-    const known = await dbSelectCreationGroupIdsIn(choice.value.groupIds)
-    if (known.length !== choice.value.groupIds.length) {
-      const unknown = choice.value.groupIds.filter((id) => !known.includes(id))
+    const support = normaliseHandledCreationGroups(supportGroupIds, supportUntagged)
+    if (!support.success) {
+      throw new LogError(support.error.message, user.id)
+    }
+    const named = [...new Set([...creation.value.groupIds, ...support.value.groupIds])]
+    const known = await dbSelectCreationGroupIdsIn(named)
+    if (known.length !== named.length) {
+      const unknown = named.filter((id) => !known.includes(id))
       throw new LogError('Unknown creation group(s)', unknown.join(', '))
     }
-    const written = await dbUpdateUserRoleHandledCreationGroups(
-      user.id,
-      storedHandledCreationGroups(choice.value),
-    )
+    const written = await dbUpdateUserRoleHandledGroups(user.id, {
+      creation: storedHandledCreationGroups(creation.value),
+      support: storedHandledCreationGroups(support.value),
+    })
     if (!written.success) {
       throw new LogError('No role to save the creation groups on', user.id)
     }
     getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserCreationGroupResolver`).info(
-      `handled creation groups of user ${user.id} set: ${choice.value.groupIds.length} groups, untagged ${choice.value.untagged}`,
+      `handled groups of user ${user.id} set: creation ${creation.value.groupIds.length} groups, untagged ${creation.value.untagged}; support ${support.value.groupIds.length} groups, untagged ${support.value.untagged}`,
     )
-    return new HandledCreationGroups(choice.value)
+    return new HandledGroups(creation.value, support.value)
   }
 }

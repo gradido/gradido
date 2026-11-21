@@ -548,11 +548,14 @@
   },
   "myGroups": {
     "intro": "Tick the creation groups you handle yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
+    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
     "noMatch": "No group with this name",
     "none": "Nothing ticked: everything counts, as before.",
     "saved": "Your groups are saved.",
     "search": "Search for a group",
     "some": "Only the ticked lines count.",
+    "someBoth": "In both columns, only what is ticked counts.",
+    "someEmpty": "The column without ticks counts everything, the other only what is ticked.",
     "title": "My groups"
   },
   "name": "Name",

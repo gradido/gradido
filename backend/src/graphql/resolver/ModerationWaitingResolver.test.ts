@@ -13,7 +13,7 @@ import {
   creationGroupsTable,
   DbUser,
   dbCountOpenSupportTicketsInScope,
-  dbUpdateUserRoleHandledCreationGroups,
+  dbUpdateUserRoleHandledGroups,
   dbUpdateUserRoleSupportDuty,
   drizzleDb,
   SupportTicketStatus,
@@ -168,10 +168,15 @@ const moderate = async (user: DbUser, visibleCreationGroups: string[], supportDu
   }
 }
 
-// "Meine Gruppen" as it stands in the row, written by hand
-const choose = async (user: DbUser, choice: { groupIds: number[]; untagged: boolean } | null) =>
+// "Meine Gruppen" as it stands in the row, written by hand: the same groups in both columns, unless
+// the support's are given apart (MG2b)
+type Choice = { groupIds: number[]; untagged: boolean } | null
+const choose = async (user: DbUser, creation: Choice, support: Choice = creation) =>
   expect(
-    await dbUpdateUserRoleHandledCreationGroups(user.id, choice ? JSON.stringify(choice) : null),
+    await dbUpdateUserRoleHandledGroups(user.id, {
+      creation: creation ? JSON.stringify(creation) : null,
+      support: support ? JSON.stringify(support) : null,
+    }),
   ).toEqual({ success: true })
 
 const waiting = async () => {
@@ -285,6 +290,22 @@ describe('moderationWaiting', () => {
     await choose(peter, { groupIds: [groupA], untagged: true })
     try {
       expect(await waiting()).toEqual({ creations: 2, supportTickets: 2 })
+      expect(await waiting()).toEqual(await startPage())
+    } finally {
+      await choose(peter, null)
+    }
+  })
+
+  // MG2b: the contributions follow the column "Schöpfung", the requests the column "Support"
+  it('counts the contributions of the column "Schöpfung" and the requests of the column "Support", as the start page', async () => {
+    await loginAs('peter@lustig.de')
+    await choose(
+      peter,
+      { groupIds: [groupA], untagged: true },
+      { groupIds: [groupB], untagged: false },
+    )
+    try {
+      expect(await waiting()).toEqual({ creations: 2, supportTickets: 1 })
       expect(await waiting()).toEqual(await startPage())
     } finally {
       await choose(peter, null)

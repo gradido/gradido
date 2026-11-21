@@ -5,7 +5,7 @@ import {
   AppDatabase,
   CreationGroup as DbCreationGroup,
   DbUser,
-  dbUpdateUserRoleHandledCreationGroups,
+  dbUpdateUserRoleHandledGroups,
   UserRole,
 } from 'database'
 import { GraphQLError } from 'graphql'
@@ -18,8 +18,9 @@ import { bibiBloxberg } from '@/seeds/users/bibi-bloxberg'
 import { bobBaumeister } from '@/seeds/users/bob-baumeister'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 
-// "Meine Gruppen" (MG1): whoever sees every group ticks the creation groups they handle
-// themself, and the filter '*handled' shows exactly those. ⛔ Through the schema only: the right
+// "Meine Gruppen" (MG1, in two columns since MG2b): whoever sees every group ticks the creation
+// groups whose creations, and those whose support requests, they handle themself, and the filter
+// '*handled' of the creation page shows exactly the first. ⛔ Through the schema only: the right
 // and the rule live at the GraphQL layer and in the resolver.
 
 const handledCreationGroups = gql`
@@ -31,14 +32,50 @@ const handledCreationGroups = gql`
   }
 `
 
-const setHandledCreationGroups = gql`
-  mutation ($groupIds: [Int!]!, $untagged: Boolean!) {
-    setHandledCreationGroups(groupIds: $groupIds, untagged: $untagged) {
+const handledSupportGroups = gql`
+  query {
+    handledSupportGroups {
       groupIds
       untagged
     }
   }
 `
+
+const setHandledGroups = gql`
+  mutation (
+    $creationGroupIds: [Int!]!
+    $creationUntagged: Boolean!
+    $supportGroupIds: [Int!]!
+    $supportUntagged: Boolean!
+  ) {
+    setHandledGroups(
+      creationGroupIds: $creationGroupIds
+      creationUntagged: $creationUntagged
+      supportGroupIds: $supportGroupIds
+      supportUntagged: $supportUntagged
+    ) {
+      creation {
+        groupIds
+        untagged
+      }
+      support {
+        groupIds
+        untagged
+      }
+    }
+  }
+`
+
+type Choice = { groupIds: number[]; untagged: boolean }
+const NOTHING: Choice = { groupIds: [], untagged: false }
+
+// the variables of setHandledGroups for a choice of the creations and one of the support
+const both = (creation: Choice, support: Choice = NOTHING) => ({
+  creationGroupIds: creation.groupIds,
+  creationUntagged: creation.untagged,
+  supportGroupIds: support.groupIds,
+  supportUntagged: support.untagged,
+})
 
 const setModeratorCreationGroupScope = gql`
   mutation ($userId: Int!, $scope: [String!]!) {
@@ -92,6 +129,18 @@ const memosFor = async (creationGroup: string): Promise<string[]> => {
 
 const storedChoiceOf = async (userId: number): Promise<string | null | undefined> =>
   (await UserRole.findOne({ where: { userId } }))?.handledCreationGroups
+
+const storedSupportOf = async (userId: number): Promise<string | null | undefined> =>
+  (await UserRole.findOne({ where: { userId } }))?.handledSupportGroups
+
+// both columns as the row holds them, written by hand
+const store = async (userId: number, creation: Choice | null, support: Choice | null = null) =>
+  expect(
+    await dbUpdateUserRoleHandledGroups(userId, {
+      creation: creation && JSON.stringify(creation),
+      support: support && JSON.stringify(support),
+    }),
+  ).toEqual({ success: true })
 
 const unauthorized = expect.objectContaining({ errors: [new GraphQLError('401 Unauthorized')] })
 
@@ -157,8 +206,8 @@ describe('the filter *handled', () => {
   it('shows the groups ticked and "no group", and counts them alone the same', async () => {
     await loginAs('peter@lustig.de')
     const { errors } = await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [groupA], untagged: true },
+      mutation: setHandledGroups,
+      variables: both({ groupIds: [groupA], untagged: true }),
     })
     expect(errors).toBeUndefined()
 
@@ -171,6 +220,14 @@ describe('the filter *handled', () => {
     expect(counted.data.adminListContributions.contributionCount).toBe(2)
   })
 
+  // the support's column steers the support alone (MG2b)
+  it('shows everything where only the column "Support" is ticked', async () => {
+    await store(peter.id, null, { groupIds: [groupB], untagged: false })
+    await loginAs('peter@lustig.de')
+    expect(await memosFor('*handled')).toEqual([IN_A, IN_B, IN_NONE].sort())
+    await store(peter.id, { groupIds: [groupA], untagged: true })
+  })
+
   it('leaves the other choices of the filter as they were', async () => {
     await loginAs('peter@lustig.de')
     expect(await memosFor('')).toEqual([IN_A, IN_B, IN_NONE].sort())
@@ -180,107 +237,148 @@ describe('the filter *handled', () => {
 
   // An assigned scope is the moderator's list: a choice in the row counts not.
   it('shows a moderator with an assigned scope that scope, whatever stands in the row', async () => {
-    expect(
-      await dbUpdateUserRoleHandledCreationGroups(
-        bibi.id,
-        JSON.stringify({ groupIds: [groupA], untagged: false }),
-      ),
-    ).toEqual({ success: true })
+    await store(
+      bibi.id,
+      { groupIds: [groupA], untagged: false },
+      { groupIds: [groupA], untagged: false },
+    )
 
     await loginAs('bibi@bloxberg.de')
     expect(await memosFor('*handled')).toEqual([IN_B])
   })
 })
 
-describe('handledCreationGroups', () => {
-  it('answers the choice in force', async () => {
+describe('handledCreationGroups and handledSupportGroups', () => {
+  it('answer the choice in force, each of its own column', async () => {
     // its own choice, so that the test stands alone as well as after the others
-    expect(
-      await dbUpdateUserRoleHandledCreationGroups(
-        peter.id,
-        JSON.stringify({ groupIds: [groupA], untagged: true }),
-      ),
-    ).toEqual({ success: true })
+    await store(
+      peter.id,
+      { groupIds: [groupA], untagged: true },
+      { groupIds: [groupB], untagged: false },
+    )
     await loginAs('peter@lustig.de')
-    const { data, errors } = await query({ query: handledCreationGroups })
-    expect(errors).toBeUndefined()
-    expect(data.handledCreationGroups).toEqual({ groupIds: [groupA], untagged: true })
+    const creation = await query({ query: handledCreationGroups })
+    expect(creation.errors).toBeUndefined()
+    expect(creation.data.handledCreationGroups).toEqual({ groupIds: [groupA], untagged: true })
+    const support = await query({ query: handledSupportGroups })
+    expect(support.errors).toBeUndefined()
+    expect(support.data.handledSupportGroups).toEqual({ groupIds: [groupB], untagged: false })
   })
 
-  it('answers a moderator with an assigned scope the choice of nothing', async () => {
+  it('answer a moderator with an assigned scope the choice of nothing, in both', async () => {
     await loginAs('bibi@bloxberg.de')
-    const { data, errors } = await query({ query: handledCreationGroups })
-    expect(errors).toBeUndefined()
-    expect(data.handledCreationGroups).toEqual({ groupIds: [], untagged: false })
+    for (const [document, field] of [
+      [handledCreationGroups, 'handledCreationGroups'],
+      [handledSupportGroups, 'handledSupportGroups'],
+    ] as const) {
+      const { data, errors } = await query({ query: document })
+      expect(errors).toBeUndefined()
+      expect(data[field]).toEqual(NOTHING)
+    }
   })
 
-  it('refuses a member without a role', async () => {
+  it('refuse a member without a role', async () => {
     await loginAs('bob@baumeister.de')
     expect(await query({ query: handledCreationGroups })).toEqual(unauthorized)
+    expect(await query({ query: handledSupportGroups })).toEqual(unauthorized)
   })
 })
 
-describe('setHandledCreationGroups', () => {
-  it('stores each group once, in ascending order, and answers it so', async () => {
+describe('setHandledGroups', () => {
+  it('stores each group once, in ascending order, each column apart, and answers them so', async () => {
     await loginAs('peter@lustig.de')
     const { data, errors } = await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [groupB, groupA, groupB], untagged: true },
+      mutation: setHandledGroups,
+      variables: both(
+        { groupIds: [groupB, groupA, groupB], untagged: true },
+        { groupIds: [groupB, groupB], untagged: false },
+      ),
     })
     expect(errors).toBeUndefined()
     const ascending = [groupA, groupB].sort((a, b) => a - b)
-    expect(data.setHandledCreationGroups).toEqual({ groupIds: ascending, untagged: true })
+    expect(data.setHandledGroups).toEqual({
+      creation: { groupIds: ascending, untagged: true },
+      support: { groupIds: [groupB], untagged: false },
+    })
     expect(JSON.parse((await storedChoiceOf(peter.id)) ?? 'null')).toEqual({
       groupIds: ascending,
       untagged: true,
     })
+    expect(JSON.parse((await storedSupportOf(peter.id)) ?? 'null')).toEqual({
+      groupIds: [groupB],
+      untagged: false,
+    })
   })
 
-  it('stores the choice of nothing as null', async () => {
+  it('stores a column of nothing as null, the other as chosen', async () => {
     await loginAs('peter@lustig.de')
     const { data, errors } = await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [], untagged: false },
+      mutation: setHandledGroups,
+      variables: both(NOTHING, { groupIds: [], untagged: true }),
     })
     expect(errors).toBeUndefined()
-    expect(data.setHandledCreationGroups).toEqual({ groupIds: [], untagged: false })
+    expect(data.setHandledGroups).toEqual({
+      creation: NOTHING,
+      support: { groupIds: [], untagged: true },
+    })
     expect(await storedChoiceOf(peter.id)).toBeNull()
+    expect(JSON.parse((await storedSupportOf(peter.id)) ?? 'null')).toEqual({
+      groupIds: [],
+      untagged: true,
+    })
+
+    await mutate({ mutation: setHandledGroups, variables: both(NOTHING, NOTHING) })
+    expect(await storedChoiceOf(peter.id)).toBeNull()
+    expect(await storedSupportOf(peter.id)).toBeNull()
   })
 
-  it('refuses a group the community does not have, and keeps what was there', async () => {
-    await loginAs('peter@lustig.de')
-    await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [groupA], untagged: false },
-    })
-    const before = await storedChoiceOf(peter.id)
-    const unknown = Math.max(groupA, groupB) + 1000
+  it.each([
+    ['the creations', 'creation'],
+    ['the support', 'support'],
+  ])(
+    'refuses a group the community does not have in %s, and keeps both columns',
+    async (_name, column) => {
+      await loginAs('peter@lustig.de')
+      await mutate({
+        mutation: setHandledGroups,
+        variables: both(
+          { groupIds: [groupA], untagged: false },
+          { groupIds: [groupB], untagged: true },
+        ),
+      })
+      const before = [await storedChoiceOf(peter.id), await storedSupportOf(peter.id)]
+      const unknown = Math.max(groupA, groupB) + 1000
+      const wrong = { groupIds: [groupA, unknown], untagged: false }
 
-    const { errors } = await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [groupA, unknown], untagged: false },
-    })
-    expect(errors?.[0]?.message).toBe('Unknown creation group(s)')
-    expect(await storedChoiceOf(peter.id)).toBe(before)
-  })
+      const { errors } = await mutate({
+        mutation: setHandledGroups,
+        variables: column === 'creation' ? both(wrong, NOTHING) : both(NOTHING, wrong),
+      })
+      expect(errors?.[0]?.message).toBe('Unknown creation group(s)')
+      expect([await storedChoiceOf(peter.id), await storedSupportOf(peter.id)]).toEqual(before)
+    },
+  )
 
   it('refuses a moderator with an assigned scope, and keeps what was there', async () => {
-    const before = await storedChoiceOf(bibi.id)
+    const before = [await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]
     await loginAs('bibi@bloxberg.de')
     const { errors } = await mutate({
-      mutation: setHandledCreationGroups,
-      variables: { groupIds: [groupB], untagged: true },
+      mutation: setHandledGroups,
+      variables: both(
+        { groupIds: [groupB], untagged: true },
+        { groupIds: [groupB], untagged: true },
+      ),
     })
     expect(errors?.[0]?.message).toBe('An assigned scope leaves no creation groups to choose')
-    expect(await storedChoiceOf(bibi.id)).toBe(before)
+    expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
   })
 
   it('refuses a member without a role, and writes no row', async () => {
     await loginAs('bob@baumeister.de')
     expect(
       await mutate({
-        mutation: setHandledCreationGroups,
-        variables: { groupIds: [], untagged: true },
+        mutation: setHandledGroups,
+        variables: both({ groupIds: [], untagged: true }, { groupIds: [], untagged: true }),
       }),
     ).toEqual(unauthorized)
     expect(await storedChoiceOf(bob.id)).toBeUndefined()
@@ -295,12 +393,17 @@ describe('the choice through a save of the role row', () => {
     // loaded while the row holds another choice than the one saved next
     const stale = await UserRole.findOneOrFail({ where: { userId: bibi.id } })
     const choice = JSON.stringify({ groupIds: [groupB], untagged: true })
+    const support = JSON.stringify({ groupIds: [groupB], untagged: false })
     expect(stale.handledCreationGroups).not.toBe(choice)
-    expect(await dbUpdateUserRoleHandledCreationGroups(bibi.id, choice)).toEqual({ success: true })
+    expect(stale.handledSupportGroups).not.toBe(support)
+    expect(await dbUpdateUserRoleHandledGroups(bibi.id, { creation: choice, support })).toEqual({
+      success: true,
+    })
 
     stale.visibleCreationGroups = JSON.stringify(['handled-a'])
     await stale.save()
     expect(await storedChoiceOf(bibi.id)).toBe(choice)
+    expect(await storedSupportOf(bibi.id)).toBe(support)
 
     await loginAs('peter@lustig.de')
     const { errors } = await mutate({
@@ -309,5 +412,6 @@ describe('the choice through a save of the role row', () => {
     })
     expect(errors).toBeUndefined()
     expect(await storedChoiceOf(bibi.id)).toBe(choice)
+    expect(await storedSupportOf(bibi.id)).toBe(support)
   })
 })

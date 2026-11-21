@@ -11,7 +11,7 @@ import {
   dbSelectRoleHoldersWithContact,
   dbSelectSupportTicketsInScope,
   dbUpdateHomeCommunity,
-  dbUpdateUserRoleHandledCreationGroups,
+  dbUpdateUserRoleHandledGroups,
   dbUpdateUserRoleSupportDuty,
   drizzleDb,
   EventType,
@@ -2226,7 +2226,8 @@ describe('SupportTicketModerationResolver, the tick "may handle support requests
 })
 
 // "Meine Gruppen" (Admin-Oberfläche MG2): the list and its count follow the choice of whoever sees
-// every group, written into the role row by hand as the page of the choice stores it. A filter and
+// every group -- its column "Support" since MG2b --, written into the role row by hand as the page of
+// the choice stores it. A filter and
 // no boundary: what the moderator reaches and may do stays the scope's. The role rows are left as
 // this block found them.
 describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
@@ -2310,9 +2311,17 @@ describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
     expect(res.errors).toBeUndefined()
     return res.data.adminCountOpenSupportTickets
   }
-  const choose = async (user: DbUser, choice: { groupIds: number[]; untagged: boolean } | null) =>
+  // the column "Support"; the creations' column left empty, unless given
+  const choose = async (
+    user: DbUser,
+    choice: { groupIds: number[]; untagged: boolean } | null,
+    creation: { groupIds: number[]; untagged: boolean } | null = null,
+  ) =>
     expect(
-      await dbUpdateUserRoleHandledCreationGroups(user.id, choice ? JSON.stringify(choice) : null),
+      await dbUpdateUserRoleHandledGroups(user.id, {
+        creation: creation ? JSON.stringify(creation) : null,
+        support: choice ? JSON.stringify(choice) : null,
+      }),
     ).toEqual({ success: true })
   let dora: DbUser
   let inGarden: number
@@ -2373,6 +2382,24 @@ describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
       c.forModeration + c.forMember + c.onResubmission + c.elsewhere + c.elsewhereOnResubmission
     await choose(peter, null)
     expect(sum(counts)).toBe(sum(await counted()))
+  })
+
+  // MG2b: the two columns part -- the support follows its own, whatever the creations' holds
+  it('follows the column "Support" alone, whatever the column "Schöpfung" holds', async () => {
+    const garden = { groupIds: [gardenId], untagged: true }
+    await loginAs('peter@lustig.de')
+    await choose(peter, null, garden)
+    expect(await found('*handled')).toEqual([choirWaits, ungrouped, inChoir, inGarden])
+    expect(await counted()).toMatchObject({ elsewhere: 0, elsewhereOnResubmission: 0 })
+
+    await choose(peter, { groupIds: [choirId], untagged: false }, garden)
+    expect(await found('*handled')).toEqual([choirWaits, inChoir])
+    const counts = await counted()
+    expect(counts.forModeration + counts.forMember).toBe(await openTabCount('*handled'))
+    expect(counts.elsewhere).toBe(
+      (await openTabCount('garden')) + (await openTabCount('*untagged')),
+    )
+    await choose(peter, null)
   })
 
   it('finds with every other value of the filter what it found before the choice', async () => {

@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { creationGroupsAndHandled } from '@/graphql/creationGroups.graphql'
+import { creationGroupsAndHandledSupport } from '@/graphql/creationGroups.graphql'
 import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
@@ -27,7 +27,7 @@ import { toastError, toastSuccess } from '@/components/Toasts'
 import { UserQuery } from '@/components/UserQuery'
 import { HANDLED_FILTER } from '@/data/Contribution.logic'
 import {
-  creationGroupsAndHandledSchema,
+  creationGroupsAndHandledSupportSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
 import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
@@ -42,8 +42,8 @@ import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import {
   adminStore,
-  askingHandledCreationGroups,
-  keepHandledCreationGroups,
+  askingHandledSupportGroups,
+  keepHandledSupportGroups,
 } from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
@@ -166,25 +166,26 @@ export class Support implements ClassComponent {
 
   oninit() {
     // The groups and the choice in a request of their own, as the creation page asks (MG2): the
-    // first list does not wait for them. The choice changes the words of the filter, and whether
-    // "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
+    // first list does not wait for them. The choice -- the column "Support" of the page of the
+    // choice (MG2b) -- changes the words of the filter, and whether "(mit und ohne Gruppe)" stands
+    // for "" or HANDLED_FILTER.
     const of = this.moderator?.gradidoID
-    const choiceAsked = askingHandledCreationGroups()
-    graphqlRequest(creationGroupsAndHandled).then((answer) => {
+    const choiceAsked = askingHandledSupportGroups()
+    graphqlRequest(creationGroupsAndHandledSupport).then((answer) => {
       if (answer.success) {
-        const { creationGroups, handledCreationGroups } = v.parse(
-          creationGroupsAndHandledSchema,
+        const { creationGroups, handledSupportGroups } = v.parse(
+          creationGroupsAndHandledSupportSchema,
           answer.value,
         )
         this.groups = creationGroups
-        keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
+        keepHandledSupportGroups(of, handledSupportGroups, choiceAsked)
         // "" is offered beside a choice only, to whoever may choose. Picked while the page still
         // knew one that was cleared on another device, the same list is called by the row that now
         // means everything. A moderator of groups and of no group begins on "" (SUA-026): his stays.
         if (
           this.group === '' &&
           mayChooseGroups(this.moderator) &&
-          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+          !chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
         ) {
           this.group = HANDLED_FILTER
         }
@@ -371,7 +372,7 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
-    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm.mt-2', [
       // a row of its own above the search: it moves neither the search nor the box below (K5)

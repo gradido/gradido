@@ -21,9 +21,12 @@ jest.mock('./findContributions', () => ({
 
 type ScopeModule = typeof import('./moderatorCreationGroupScope')
 let countContributionsWaitingForModeration: ScopeModule['countContributionsWaitingForModeration']
+let handledSupportGroupsOfRole: ScopeModule['handledSupportGroupsOfRole']
 
 beforeAll(async () => {
-  ;({ countContributionsWaitingForModeration } = await import('./moderatorCreationGroupScope'))
+  ;({ countContributionsWaitingForModeration, handledSupportGroupsOfRole } = await import(
+    './moderatorCreationGroupScope'
+  ))
 })
 
 // reset, not only clear: a `mock…Once` a test left unused must not answer in the next one
@@ -79,5 +82,33 @@ describe('countContributionsWaitingForModeration', () => {
     })
     expect(mockParseModeratorScope).toHaveBeenCalledWith('["choir"]')
     expect(handedOn().slice(4)).toEqual([['choir'], null])
+  })
+})
+
+// "Meine Gruppen" of the support (MG2b): the same rule, over the support's own column
+describe('handledSupportGroupsOfRole', () => {
+  const SUPPORT = JSON.stringify({ groupIds: [5], untagged: false })
+
+  it('reads the column "Support" of whoever sees every group, never the creations\'', () => {
+    const chose = { role: 'ADMIN', visibleCreationGroups: null, handledSupportGroups: SUPPORT }
+    expect(handledSupportGroupsOfRole(chose)).toEqual({ groupIds: [5], untagged: false })
+    const choseCreationsOnly = {
+      role: 'ADMIN',
+      visibleCreationGroups: null,
+      handledCreationGroups: CHOICE,
+      handledSupportGroups: null,
+    }
+    expect(handledSupportGroupsOfRole(choseCreationsOnly)).toBeNull()
+  })
+
+  it('gives a moderator with an assigned scope no choice, whatever stands in the row', () => {
+    mockParseModeratorScope.mockReturnValue(['choir'])
+    expect(
+      handledSupportGroupsOfRole({
+        role: 'MODERATOR',
+        visibleCreationGroups: '["choir"]',
+        handledSupportGroups: SUPPORT,
+      }),
+    ).toBeNull()
   })
 })
