@@ -101,4 +101,7 @@ export const USER_RIGHTS = [
   // open to the very account that is locked out of creating.
   RIGHTS.DECLARE_PROJECT_ACCOUNT,
   RIGHTS.REQUEST_CREATION_RIGHT,
+  // Every wallet asks it with the chat's beat; whoever moderates nothing gets null. On no
+  // RESTRICTED_* list: refused, it would write a 401 into the log at every beat of the account.
+  RIGHTS.MODERATION_WAITING,
 ]

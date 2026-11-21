@@ -1250,6 +1250,8 @@
     }
   },
   "navigation": {
+    "adminCreations": "{n} yaratım moderasyonu bekliyor",
+    "adminSupportTickets": "{n} destek talebi moderasyonu bekliyor",
     "admin_area": "Admin",
     "back-to-account": "Hesaba dön",
     "back-to-settings": "Ayarlara dön",

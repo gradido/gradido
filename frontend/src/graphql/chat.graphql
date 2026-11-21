@@ -214,6 +214,14 @@ query newChatMessagesSince(
   # "Schöpfen", as the support's at "Support"). The THIRD field, for the same reason; null where
   # the server could not count, it never fails the question either.
   countContributionsInProgress
+  # What waits for the moderation in the member's own groups ("Meine Gruppen", MG3): the two
+  # numbers behind "Admin" in the menu, the lines "n warten auf die Moderation" of the admin's start
+  # page. The FOURTH field, for the same reason; null for whoever moderates nothing and where the
+  # server could not count, and it never fails the question either.
+  moderationWaiting {
+    creations
+    supportTickets
+  }
 }
 
 # Moves one's OWN read pointer up to the highest id the thread has shown (E-017). The server

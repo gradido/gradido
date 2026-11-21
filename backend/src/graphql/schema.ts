@@ -28,6 +28,7 @@ import { GuarantorCodeResolver } from './resolver/GuarantorCodeResolver'
 import { KeptPictureResolver } from './resolver/KeptPictureResolver'
 import { KlicktippResolver } from './resolver/KlicktippResolver'
 import { MatchingEntryResolver } from './resolver/MatchingEntryResolver'
+import { ModerationWaitingResolver } from './resolver/ModerationWaitingResolver'
 import { ProjectAccountResolver } from './resolver/ProjectAccountResolver'
 import { ProjectBrandingResolver } from './resolver/ProjectBrandingResolver'
 import { ShowFriendsResolver } from './resolver/ShowFriendsResolver'
@@ -77,6 +78,7 @@ export const schema = (): Promise<GraphQLSchema> => {
       GdtResolver,
       CreationGroupResolver,
       MatchingEntryResolver,
+      ModerationWaitingResolver,
       KlicktippResolver,
       GuarantorCodeResolver,
       KeptPictureResolver,
