@@ -302,7 +302,10 @@
   "creation": "Oluşturma",
   "creationGroupFilter": {
     "all": "(gruplu ve grupsuz)",
+    "chooseMine": "Gruplarımı seç …",
+    "editMine": "Gruplarımı değiştir …",
     "grouped": "(tüm gruplar)",
+    "mine": "Gruplarım",
     "untagged": "(grupsuz)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "Açık oluşturma reddedildi"
   },
   "dashboard": {
+    "elsewhere": "Diğer gruplarda: {n} açık oluşturma",
+    "elsewhereOne": "Diğer gruplarda: bir açık oluşturma",
     "resubmission": "Ayrıca hatırlatmalı: {n}",
     "support": "Destek: {n} açık talep",
     "supportNone": "Destek: açık talep yok",

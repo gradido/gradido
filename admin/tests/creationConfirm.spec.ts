@@ -17,7 +17,8 @@ const KEPT = 'gradido-admin-last-search'
 // it out from the second request on, so it is compared as the server reads it.
 const question = (
   statusFilter: string[],
-  { query = '', hideResubmission = true, creationGroup = '', currentPage = 1 } = {},
+  // the page opens on "Meine Gruppen" for whoever sees every group, as the moderator here (MG1)
+  { query = '', hideResubmission = true, creationGroup = '*handled', currentPage = 1 } = {},
 ) => ({
   filter: { statusFilter, query, hideResubmission, creationGroup },
   paginated: { currentPage, pageSize: 25, order: 'DESC' },
@@ -316,6 +317,8 @@ test('filters by group from the first page', async ({ page, graphql }) => {
     de.creationGroupFilter.untagged,
     'Garten',
     '#kueche',
+    // below a divider, a way and no choice (MG1)
+    de.creationGroupFilter.chooseMine,
   ])
   await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
 
@@ -323,6 +326,47 @@ test('filters by group from the first page', async ({ page, graphql }) => {
     .poll(() => listQuestions(graphql).at(-1))
     .toEqual(question(OPEN, { creationGroup: 'garten' }))
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
+})
+
+// "Meine Gruppen" (MG1): the first row, the fixed ones, then only the groups ticked
+test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  await open(page)
+
+  expect(listQuestions(graphql)).toEqual([question(OPEN, { creationGroup: '*handled' })])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(
+    de.creationGroupFilter.mine,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.mine,
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listQuestions(graphql).at(-1))
+    .toEqual(question(OPEN, { creationGroup: '' }))
+})
+
+test('leads from the filter to "Meine Gruppen", and leaves the filter as it is', async ({
+  page,
+  graphql,
+}) => {
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).getByTestId('creation-group-filter-mine').click()
+
+  await expect(page).toHaveURL(/\/admin\/my-groups$/)
+  await expect(page.getByRole('heading', { name: de.myGroups.title })).toBeVisible()
+  // no other list was asked for: the line is a way, not a choice
+  expect(listQuestions(graphql)).toEqual([question(OPEN)])
 })
 
 test('offers a scoped moderator only the groups they look after', async ({ page, graphql }) => {

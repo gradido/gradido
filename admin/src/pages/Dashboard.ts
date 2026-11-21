@@ -7,7 +7,7 @@ import { type OpenCreationCounts, openCreationsOf } from '@/data/OpenCreations.l
 import { adminOpenCreationCounts } from '@/graphql/adminListContributions.graphql'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, setOpenCreations } from '@/store/admin.store'
+import { adminStore, keepHandledCreationGroups, setOpenCreations } from '@/store/admin.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 
 type SupportCounts = NonNullable<Awaited<ReturnType<typeof askOpenSupportTickets>>>
@@ -35,7 +35,9 @@ export class Dashboard implements ClassComponent {
 
   private async askCreations() {
     // Also what the badge in the bar counts, so it is asked anew each time. The server limits
-    // all three to the groups of a group moderator.
+    // all of them to the groups of a group moderator, and the three of "Meine Gruppen" (MG1) to
+    // the choice of whoever sees every group.
+    const of = adminStore.moderator?.gradidoID
     const answer = await graphqlRequest<OpenCreationCounts>(adminOpenCreationCounts)
     this.creationsAsked = true
     if (!answer.success) {
@@ -44,6 +46,7 @@ export class Dashboard implements ClassComponent {
     }
     this.counts = openCreationsOf(answer.value)
     setOpenCreations(this.counts.open)
+    keepHandledCreationGroups(of, answer.value.handledCreationGroups)
   }
 
   private async askSupport() {
@@ -113,6 +116,17 @@ export class Dashboard implements ClassComponent {
             'p.mb-1',
             { 'data-test': 'on-resubmission' },
             t('dashboard.resubmission', { n: counts.onResubmission }),
+          )
+        : null,
+      // What is open outside "Meine Gruppen", quietly and without a link: nothing waits unseen
+      // that nobody ticked (MG1).
+      counts?.elsewhere
+        ? m(
+            'p.mb-1.text-body-secondary',
+            { 'data-test': 'open-elsewhere' },
+            counts.elsewhere === 1
+              ? t('dashboard.elsewhereOne')
+              : t('dashboard.elsewhere', { n: counts.elsewhere }),
           )
         : null,
       // the support requests of the open tab, below the creation's lines, in the same form

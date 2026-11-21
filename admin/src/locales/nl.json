@@ -302,7 +302,10 @@
   "creation": "Creatie",
   "creationGroupFilter": {
     "all": "(met en zonder groep)",
+    "chooseMine": "Mijn groepen kiezen …",
+    "editMine": "Mijn groepen wijzigen …",
     "grouped": "(alle groepen)",
+    "mine": "Mijn groepen",
     "untagged": "(zonder groep)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "De openstaande creatie is afgewezen"
   },
   "dashboard": {
+    "elsewhere": "In andere groepen: {n} open creaties",
+    "elsewhereOne": "In andere groepen: één open creatie",
     "resubmission": "Daarnaast: {n} met herinnering",
     "support": "Support: {n} open vragen",
     "supportNone": "Support: geen open vragen",

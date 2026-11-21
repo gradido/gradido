@@ -302,7 +302,10 @@
   "creation": "Criação",
   "creationGroupFilter": {
     "all": "(com e sem grupo)",
+    "chooseMine": "Escolher os meus grupos …",
+    "editMine": "Alterar os meus grupos …",
     "grouped": "(todos os grupos)",
+    "mine": "Os meus grupos",
     "untagged": "(sem grupo)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "A criação aberta foi rejeitada"
   },
   "dashboard": {
+    "elsewhere": "Noutros grupos: {n} criações abertas",
+    "elsewhereOne": "Noutros grupos: uma criação aberta",
     "resubmission": "Além disso: {n} com lembrete",
     "support": "Suporte: {n} pedidos abertos",
     "supportNone": "Suporte: nenhum pedido aberto",

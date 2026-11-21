@@ -302,7 +302,10 @@
   "creation": "Creazione",
   "creationGroupFilter": {
     "all": "(con e senza gruppo)",
+    "chooseMine": "Scegli i miei gruppi …",
+    "editMine": "Modifica i miei gruppi …",
     "grouped": "(tutti i gruppi)",
+    "mine": "I miei gruppi",
     "untagged": "(senza gruppo)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "La creazione aperta è stata rifiutata"
   },
   "dashboard": {
+    "elsewhere": "In altri gruppi: {n} creazioni aperte",
+    "elsewhereOne": "In altri gruppi: una creazione aperta",
     "resubmission": "Inoltre: {n} con promemoria",
     "support": "Supporto: {n} richieste aperte",
     "supportNone": "Supporto: nessuna richiesta aperta",

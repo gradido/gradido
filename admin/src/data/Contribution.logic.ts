@@ -5,6 +5,7 @@ import type { Moderator } from '@/data/Moderator.schema'
 import { t } from '@/i18n'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
 import type { ListedContribution } from './Contribution.schema'
+import type { HandledCreationGroups, NumberedCreationGroup } from './CreationGroup.schema'
 
 type CreationGroup = { tag: string; name: string | null }
 
@@ -117,4 +118,32 @@ export const groupFilterOptions = (
       .filter((group) => moderator.visibleCreationGroups.includes(group.tag))
       .map(creationGroupOption),
   ]
+}
+
+/**
+ * The choices of the creation page's group filter with "Meine Gruppen" (MG1); groupFilterOptions
+ * stays as it is, the support's filter is built on it. A moderator with an assigned scope: its rows.
+ * Whoever sees every group and chose: "Meine Gruppen" first, the three fixed rows, then the groups
+ * ticked alone. Whoever sees every group and chose nothing: the fixed rows and every group, with
+ * "(mit und ohne Gruppe)" standing for HANDLED_FILTER, which the server reads as everything for
+ * them. So the page opens on HANDLED_FILTER for everyone who sees every group, before the admin
+ * knows the choice (another device): the first list is right, and the answer changes words only.
+ */
+export const creationGroupFilterOptions = (
+  moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
+  groups: NumberedCreationGroup[],
+  chosen: HandledCreationGroups | null,
+): Option[] => {
+  if (!moderator.seesAllCreationGroups) {
+    return groupFilterOptions(moderator, groups)
+  }
+  const [all, ...fixed] = groupFilterOptions(moderator, [])
+  return chosen
+    ? [
+        { value: HANDLED_FILTER, text: t('creationGroupFilter.mine') },
+        all,
+        ...fixed,
+        ...groups.filter(({ id }) => chosen.groupIds.includes(id)).map(creationGroupOption),
+      ]
+    : [{ ...all, value: HANDLED_FILTER }, ...fixed, ...groups.map(creationGroupOption)]
 }

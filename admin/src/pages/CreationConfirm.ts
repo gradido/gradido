@@ -6,7 +6,10 @@ import {
 } from '@/graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { confirmContribution } from '@/graphql/confirmContribution'
-import { assignContributionCreationGroups, creationGroups } from '@/graphql/creationGroups.graphql'
+import {
+  assignContributionCreationGroups,
+  creationGroupsAndHandled,
+} from '@/graphql/creationGroups.graphql'
 import { denyContribution } from '@/graphql/denyContribution'
 import '@/pages/CreationConfirm.css'
 import BootstrapTooltip from 'bootstrap/js/dist/tooltip'
@@ -28,16 +31,24 @@ import { ThemedSelect } from '@/components/ThemedSelect'
 import { toastError, toastSuccess, toastWarning } from '@/components/Toasts'
 import { UserQuery } from '@/components/UserQuery'
 import { CONFIG } from '@/config'
-import { groupFilterOptions, isOpen, offersBulkResubmission } from '@/data/Contribution.logic'
+import {
+  creationGroupFilterOptions,
+  isOpen,
+  offersBulkResubmission,
+} from '@/data/Contribution.logic'
 import {
   contributionCountSchema,
   contributionListSchema,
   type ListedContribution,
 } from '@/data/Contribution.schema'
-import { creationGroupNameSchema } from '@/data/CreationGroup.schema'
+import {
+  creationGroupsAndHandledSchema,
+  type NumberedCreationGroup,
+} from '@/data/CreationGroup.schema'
+import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, setOpenCreations } from '@/store/admin.store'
+import { adminStore, keepHandledCreationGroups, setOpenCreations } from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { isPhone } from '@/viewport'
@@ -91,10 +102,6 @@ const DECISIONS: Record<Decision, { mutation: DocumentNode; done: string }> = {
   delete: { mutation: adminDeleteContribution, done: 'creation_form.toasted_delete' },
 }
 
-const groupsSchema = v.object({
-  creationGroups: v.array(creationGroupNameSchema),
-})
-
 // A selected text is copied without its hashtags: the groups a member named are no part of it.
 const copyWithoutHashtags = (event: ClipboardEvent) => {
   const selected = getSelection()?.toString()
@@ -115,10 +122,12 @@ export class CreationConfirm implements ClassComponent {
   private tab = lastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, TABS.length)
   private query = lastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID)
   private hideResubmission = true
-  private groups: v.InferOutput<typeof groupsSchema>['creationGroups'] = []
-  // the first choice on offer: a scoped moderator has no "all", and their choices are known
-  // before the groups are
-  private group = this.moderator ? groupFilterOptions(this.moderator, [])[0].value : ''
+  private groups: NumberedCreationGroup[] = []
+  // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
+  // group, whether or not the admin knows the choice yet (MG1); a scoped moderator has no "all".
+  private group = this.moderator
+    ? creationGroupFilterOptions(this.moderator, [], null)[0].value
+    : ''
   private page = 1
   private contributions: ListedContribution[] = []
   private count = 0
@@ -152,9 +161,17 @@ export class CreationConfirm implements ClassComponent {
         }
       })
     }
-    graphqlRequest(creationGroups).then((answer) => {
+    // The groups and the choice: the first list does not wait for them, the choice changes the
+    // words of the filter only.
+    const of = this.moderator?.gradidoID
+    graphqlRequest(creationGroupsAndHandled).then((answer) => {
       if (answer.success) {
-        this.groups = v.parse(groupsSchema, answer.value).creationGroups
+        const { creationGroups, handledCreationGroups } = v.parse(
+          creationGroupsAndHandledSchema,
+          answer.value,
+        )
+        this.groups = creationGroups
+        keepHandledCreationGroups(of, handledCreationGroups)
       }
     })
     this.load()
@@ -294,6 +311,7 @@ export class CreationConfirm implements ClassComponent {
     // tabs, to test it against the whole pool. Only a guide: the server checks the right.
     const showCrea = this.tab === 0 || this.tab === 4 ? aiUser : role === 'ADMIN'
     const showChat = CONFIG.ANTHROPIC_ACTIVE && aiUser
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
     return m('.creation-confirm', [
       // the search and the group side by side; on a narrow window one above the other
       m('.creation-filters.mt-2.mb-2', [
@@ -310,7 +328,17 @@ export class CreationConfirm implements ClassComponent {
           class: 'creation-group-filter',
           'data-test': 'creation-group-filter',
           value: this.group,
-          options: this.moderator ? groupFilterOptions(this.moderator, this.groups) : [],
+          options: this.moderator
+            ? creationGroupFilterOptions(this.moderator, this.groups, chosen)
+            : [],
+          // a way to the page of the choice, below the groups: leaves the filter as it is
+          link: mayChooseGroups(this.moderator)
+            ? {
+                href: '/my-groups',
+                text: t(chosen ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine'),
+                'data-test': 'creation-group-filter-mine',
+              }
+            : undefined,
           onchange: (group: string) => {
             this.group = group
             this.searchAnew()

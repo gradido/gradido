@@ -302,7 +302,10 @@
   "creation": "Schöpfung",
   "creationGroupFilter": {
     "all": "(mit und ohne Gruppe)",
+    "chooseMine": "Meine Gruppen wählen …",
+    "editMine": "Meine Gruppen ändern …",
     "grouped": "(alle Gruppen)",
+    "mine": "Meine Gruppen",
     "untagged": "(ohne Gruppe)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "Offene Schöpfung wurde abgelehnt"
   },
   "dashboard": {
+    "elsewhere": "In anderen Gruppen: {n} offene Schöpfungen",
+    "elsewhereOne": "In anderen Gruppen: eine offene Schöpfung",
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
     "support": "Support: {n} offene Anfragen",
     "supportNone": "Support: keine offenen Anfragen",
