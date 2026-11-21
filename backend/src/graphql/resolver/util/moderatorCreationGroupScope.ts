@@ -1,5 +1,7 @@
 import { RoleNames } from '@enum/RoleNames'
 import { Contribution as DbContribution, UserRole as DbUserRole } from 'database'
+import { handledCreationGroupsOf } from '@/data/HandledCreationGroups.logic'
+import type { HandledCreationGroups } from '@/data/HandledCreationGroups.schema'
 import { LogError } from '@/server/LogError'
 import {
   buildModeratorScopePredicate,
@@ -86,6 +88,17 @@ export const describeModeratorCreationGroups = (
   // free pass — the page lists these moderators under their own heading.
   return { tags, seesAllCreationGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
 }
+
+// "Meine Gruppen" of the role a request loaded: the choice of one who sees every group, else null
+// (handledCreationGroupsOf). The one reading for the creation page, the choice's own query and the
+// support's list and count (MG1, MG2), so that they cannot answer differently.
+export const handledCreationGroupsOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
+): HandledCreationGroups | null =>
+  handledCreationGroupsOf(
+    role?.handledCreationGroups,
+    describeModeratorCreationGroups(role).seesAllCreationGroups,
+  )
 
 export const loadModeratorScope = async (userId: number): Promise<string[]> => {
   const role = await DbUserRole.findOne({ where: { userId } })

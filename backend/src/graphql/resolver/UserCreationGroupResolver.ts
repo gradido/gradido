@@ -4,7 +4,6 @@ import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graph
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import {
-  handledCreationGroupsOf,
   normaliseHandledCreationGroups,
   storedHandledCreationGroups,
 } from '@/data/HandledCreationGroups.logic'
@@ -14,6 +13,7 @@ import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import {
   describeModeratorCreationGroups,
+  handledCreationGroupsOfRole,
   loadModeratorScope,
   saveModeratorScope,
 } from './util/moderatorCreationGroupScope'
@@ -94,12 +94,8 @@ export class UserCreationGroupResolver {
   @Authorized([RIGHTS.HANDLED_CREATION_GROUPS])
   @Query(() => HandledCreationGroups)
   handledCreationGroups(@Ctx() context: Context): HandledCreationGroups {
-    const role = getUser(context).userRole
     return new HandledCreationGroups(
-      handledCreationGroupsOf(
-        role?.handledCreationGroups,
-        describeModeratorCreationGroups(role).seesAllCreationGroups,
-      ) ?? { groupIds: [], untagged: false },
+      handledCreationGroupsOfRole(getUser(context).userRole) ?? { groupIds: [], untagged: false },
     )
   }
 

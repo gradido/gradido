@@ -163,14 +163,25 @@ export const supportTicketsInScope = ({
 }
 
 /**
+ * "Meine Gruppen" (Admin-Oberfläche MG2): the groups a moderator who sees every group handles
+ * themself, by their numbers, and whether the requests of no group are among them. The backend
+ * decides who has one (handledCreationGroupsOf); here it is only read.
+ */
+export interface SupportTicketHandledGroups {
+  groupIds: number[]
+  untagged: boolean
+}
+
+/**
  * What the moderation's list is narrowed to (K4), beside the scope and never in its place: words,
  * each of which turns up in the request somewhere, in any order; a group -- some group, none, the
- * one of this tag (a tag that names no group finds nothing), or any (null); and, given a moment,
- * none of the requests that wait for a resubmission after it ("Wiedervorlage verbergen").
+ * one of this tag (a tag that names no group finds nothing), the handled ones (MG2), or any (null);
+ * and, given a moment, none of the requests that wait for a resubmission after it ("Wiedervorlage
+ * verbergen").
  */
 export interface SupportTicketFilter {
   words: string[]
-  group: 'GROUPED' | 'UNGROUPED' | { tag: string } | null
+  group: 'GROUPED' | 'UNGROUPED' | { tag: string } | SupportTicketHandledGroups | null
   hideResubmissionsAfter: Date | null
 }
 
@@ -206,6 +217,18 @@ const requestHasWord = (word: string) =>
     /^\d{1,9}$/.test(word) ? eq(supportTicketsTable.id, Number(word)) : undefined,
   )
 
+/**
+ * The requests of one of the handled groups, or of no group where that is ticked (MG2), at the
+ * column. Said positively, for the count reads its rest as a difference: `NOT (… in …)` of a
+ * request of no group is NULL, and such a request would count nowhere. A choice of nothing (which
+ * the backend never hands on) narrows nothing: nothing ticked means everything.
+ */
+const inHandledGroups = ({ groupIds, untagged }: SupportTicketHandledGroups) =>
+  or(
+    groupIds.length > 0 ? inArray(supportTicketsTable.creationGroupId, groupIds) : undefined,
+    untagged ? isNull(supportTicketsTable.creationGroupId) : undefined,
+  )
+
 /** The group of the filter, at the column; a tag in a subquery closed in itself, as the scope. */
 const inFilterGroup = (group: SupportTicketFilter['group']) => {
   if (group === 'GROUPED') {
@@ -213,6 +236,9 @@ const inFilterGroup = (group: SupportTicketFilter['group']) => {
   }
   if (group === 'UNGROUPED') {
     return isNull(supportTicketsTable.creationGroupId)
+  }
+  if (group && 'groupIds' in group) {
+    return inHandledGroups(group)
   }
   return group
     ? sql`${supportTicketsTable.creationGroupId} in (select ${creationGroupsTable.id} from ${creationGroupsTable} where ${eq(creationGroupsTable.tag, group.tag)})`
@@ -333,27 +359,44 @@ export async function dbSelectSupportTicketGroupInScope(
   return row ?? null
 }
 
+/** The open tab of a moderator, counted (dbCountOpenSupportTicketsInScope). */
+export interface OpenSupportTicketCounts {
+  forModeration: number
+  forMember: number
+  onResubmission: number
+  elsewhere: number
+  elsewhereOnResubmission: number
+}
+
 /**
  * How many requests the open tab of a moderator holds, as its two halves: waiting for the
  * moderation (OPEN) and waiting for the member (IN_PROGRESS) -- what the badges and the start
  * page count -- and apart from them those that wait for a resubmission still to come (K4), which
  * the tab opens without: the start page names them in a line of their own, as for contributions.
- * Within the scope, and as the tab lists them: the moderator's own requests counted too. One
- * query; "now" is the caller's.
+ * Within the scope, and as the tab lists them: the moderator's own requests counted too. With
+ * `handled` ("Meine Gruppen", MG2) these three count the handled groups alone, and `elsewhere` and
+ * `elsewhereOnResubmission` what the scope reaches beyond them; without, both are 0.
+ *
+ * One query, so the rest cannot drift from the three: it is all the open and all the waiting less
+ * the handled ones, two positive counts of the same rows (inHandledGroups). "Now" is the caller's.
  */
 export async function dbCountOpenSupportTicketsInScope(
   scope: SupportTicketScope,
   now: Date,
-): Promise<{ forModeration: number; forMember: number; onResubmission: number }> {
+  handled: SupportTicketHandledGroups | null = null,
+): Promise<OpenSupportTicketCounts> {
+  const mine = handled ? inHandledGroups(handled) : undefined
   const [row] = await drizzleDb()
     .select({
       forModeration: count(
-        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.OPEN), waitsNoMore(now))} then 1 end`,
+        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.OPEN), waitsNoMore(now), mine)} then 1 end`,
       ),
       forMember: count(
-        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.IN_PROGRESS), waitsNoMore(now))} then 1 end`,
+        sql`case when ${and(eq(supportTicketsTable.status, SupportTicketStatus.IN_PROGRESS), waitsNoMore(now), mine)} then 1 end`,
       ),
-      onResubmission: count(sql`case when ${waitsBeyond(now)} then 1 end`),
+      onResubmission: count(sql`case when ${and(waitsBeyond(now), mine)} then 1 end`),
+      open: count(sql`case when ${waitsNoMore(now)} then 1 end`),
+      waiting: count(sql`case when ${waitsBeyond(now)} then 1 end`),
     })
     .from(supportTicketsTable)
     .where(
@@ -365,7 +408,14 @@ export async function dbCountOpenSupportTicketsInScope(
         supportTicketsInScope(scope),
       ),
     )
-  return row
+  const { forModeration, forMember, onResubmission, open, waiting } = row
+  return {
+    forModeration,
+    forMember,
+    onResubmission,
+    elsewhere: open - forModeration - forMember,
+    elsewhereOnResubmission: waiting - onResubmission,
+  }
 }
 
 /**

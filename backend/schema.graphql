@@ -948,6 +948,8 @@ type AdminOpenSupportTickets {
   forModeration: Int!
   forMember: Int!
   onResubmission: Int!
+  elsewhere: Int!
+  elsewhereOnResubmission: Int!
 }
 
 type SupportTicketsMenu {

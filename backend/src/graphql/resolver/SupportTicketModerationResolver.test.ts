@@ -11,6 +11,7 @@ import {
   dbSelectRoleHoldersWithContact,
   dbSelectSupportTicketsInScope,
   dbUpdateHomeCommunity,
+  dbUpdateUserRoleHandledCreationGroups,
   dbUpdateUserRoleSupportDuty,
   drizzleDb,
   EventType,
@@ -2221,5 +2222,213 @@ describe('SupportTicketModerationResolver, the tick "may handle support requests
       role: 'MODERATOR_AI',
       supportDuty: null,
     })
+  })
+})
+
+// "Meine Gruppen" (Admin-Oberfläche MG2): the list and its count follow the choice of whoever sees
+// every group, written into the role row by hand as the page of the choice stores it. A filter and
+// no boundary: what the moderator reaches and may do stays the scope's. The role rows are left as
+// this block found them.
+describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
+  const adminListSupportTicketsHandled = gql`
+    query (
+      $statuses: [SupportTicketStatus!]!
+      $query: String!
+      $creationGroup: String!
+      $hideResubmission: Boolean!
+    ) {
+      adminListSupportTickets(
+        statuses: $statuses
+        currentPage: 1
+        pageSize: 25
+        query: $query
+        creationGroup: $creationGroup
+        hideResubmission: $hideResubmission
+      ) {
+        count
+        tickets {
+          id
+        }
+      }
+    }
+  `
+  const adminCountOpenSupportTickets = gql`
+    query {
+      adminCountOpenSupportTickets {
+        forModeration
+        forMember
+        onResubmission
+        elsewhere
+        elsewhereOnResubmission
+      }
+    }
+  `
+  const adminCreateSupportTicketMessage = gql`
+    mutation ($supportTicketId: Int!, $message: String!) {
+      adminCreateSupportTicketMessage(
+        supportTicketId: $supportTicketId
+        message: $message
+        type: DIALOG
+        close: false
+      ) {
+        id
+      }
+    }
+  `
+  const adminReassignSupportTicket = gql`
+    mutation ($supportTicketId: Int!, $creationGroupTag: String!) {
+      adminReassignSupportTicket(
+        supportTicketId: $supportTicketId
+        creationGroupTag: $creationGroupTag
+      )
+    }
+  `
+  const LATER = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  const WORD = 'Giesskannenwagen'
+  const listOf = async (
+    creationGroup: string,
+    { words = WORD, statuses = ALL, hideResubmission = false } = {},
+  ) => {
+    const res = await query({
+      query: adminListSupportTicketsHandled,
+      variables: { statuses, query: words, creationGroup, hideResubmission },
+    })
+    expect(res.errors).toBeUndefined()
+    return res.data.adminListSupportTickets
+  }
+  // the ids of this block's requests the filter leaves, the count agreeing with them
+  const found = async (creationGroup: string): Promise<number[]> => {
+    const { count, tickets } = await listOf(creationGroup)
+    expect(count).toBe(tickets.length)
+    return tickets.map((ticket: { id: number }) => ticket.id)
+  }
+  // how many the open tab lists with this filter, as it opens: no search, resubmissions hidden
+  const openTabCount = async (creationGroup: string): Promise<number> =>
+    (await listOf(creationGroup, { words: '', statuses: OPEN_TAB, hideResubmission: true })).count
+  const counted = async () => {
+    const res = await query({ query: adminCountOpenSupportTickets })
+    expect(res.errors).toBeUndefined()
+    return res.data.adminCountOpenSupportTickets
+  }
+  const choose = async (user: DbUser, choice: { groupIds: number[]; untagged: boolean } | null) =>
+    expect(
+      await dbUpdateUserRoleHandledCreationGroups(user.id, choice ? JSON.stringify(choice) : null),
+    ).toEqual({ success: true })
+  let dora: DbUser
+  let inGarden: number
+  let inChoir: number
+  let ungrouped: number
+  let choirWaits: number
+  let toHandOn: number
+
+  beforeAll(async () => {
+    // a moderator without an assigned scope, who handles support: she may choose (MG1)
+    dora = await userFactoryDrizzle({
+      email: 'dora@regen.de',
+      firstName: 'Dora',
+      lastName: 'Regen',
+      alias: 'DoraR',
+      emailChecked: true,
+      language: 'de',
+    })
+    await moderate(dora, [])
+    inGarden = await file(bibi.id, `Der ${WORD} im Garten`, 300, gardenId)
+    inChoir = await file(bibi.id, `Der ${WORD} im Chor`, 301, choirId)
+    ungrouped = await file(bibi.id, `Ein ${WORD} ohne Gruppe`, 302, null)
+    choirWaits = await file(bibi.id, `Ein wartender ${WORD} im Chor`, 303, choirId, {
+      resubmissionAt: LATER,
+    })
+    toHandOn = await file(bibi.id, 'Ein Notenständer für den Chor', 304, choirId)
+  })
+
+  afterAll(async () => {
+    await choose(peter, null)
+    await choose(bob, null)
+    await drizzleDb().delete(userRolesTable).where(eq(userRolesTable.userId, dora.id))
+  })
+
+  // ⛔ The test that matters most: nothing ticked means everything, not nothing.
+  it('shows an administrator who chose nothing everything with "*handled", and nothing elsewhere', async () => {
+    await loginAs('peter@lustig.de')
+    expect(await found('*handled')).toEqual([choirWaits, ungrouped, inChoir, inGarden])
+    const counts = await counted()
+    expect(counts).toMatchObject({ elsewhere: 0, elsewhereOnResubmission: 0 })
+    expect(counts.forModeration + counts.forMember).toBe(await openTabCount('*handled'))
+    expect(await openTabCount('*handled')).toBe(await openTabCount(''))
+  })
+
+  it('shows the garden and the requests of no group alone, and counts the choir elsewhere', async () => {
+    await choose(peter, { groupIds: [gardenId], untagged: true })
+    await loginAs('peter@lustig.de')
+    expect(await found('*handled')).toEqual([ungrouped, inGarden])
+    const counts = await counted()
+    // the two halves are the open tab of "Meine Gruppen", as it opens
+    expect(counts.forModeration + counts.forMember).toBe(await openTabCount('*handled'))
+    // and what is open beyond it is the choir's: this file has no other group
+    expect(counts.elsewhere).toBe(await openTabCount('choir'))
+    expect(counts.elsewhere).toBeGreaterThan(0)
+    expect(counts.elsewhereOnResubmission).toBeGreaterThan(0)
+    // no request counts twice or nowhere: the five add up to the three without the choice
+    const sum = (c: typeof counts) =>
+      c.forModeration + c.forMember + c.onResubmission + c.elsewhere + c.elsewhereOnResubmission
+    await choose(peter, null)
+    expect(sum(counts)).toBe(sum(await counted()))
+  })
+
+  it('finds with every other value of the filter what it found before the choice', async () => {
+    await choose(peter, null)
+    await loginAs('peter@lustig.de')
+    const values = ['', '*grouped', '*untagged', 'garden', 'choir']
+    const before: Record<string, number[]> = {}
+    for (const value of values) {
+      before[value] = await found(value)
+    }
+    await choose(peter, { groupIds: [gardenId], untagged: true })
+    for (const value of values) {
+      expect([value, await found(value)]).toEqual([value, before[value]])
+    }
+  })
+
+  it('keeps a moderator with a scope to it: a choice in the row changes nothing for him', async () => {
+    // bob moderates the garden; a choice of the choir, written by hand, is not his to follow
+    await choose(bob, { groupIds: [choirId], untagged: true })
+    await loginAs('bob@baumeister.de')
+    expect(await found('*handled')).toEqual([inGarden])
+    expect(await found('*handled')).toEqual(await found(''))
+    const counts = await counted()
+    expect(counts).toMatchObject({ elsewhere: 0, elsewhereOnResubmission: 0 })
+    expect(counts.forModeration + counts.forMember).toBe(await openTabCount(''))
+  })
+
+  it('follows the choice of a moderator without a scope, as an administrator', async () => {
+    await choose(dora, { groupIds: [gardenId], untagged: true })
+    await loginAs('dora@regen.de')
+    expect(await found('*handled')).toEqual([ungrouped, inGarden])
+    const counts = await counted()
+    expect(counts.forModeration + counts.forMember).toBe(await openTabCount('*handled'))
+    expect(counts.elsewhere).toBe(await openTabCount('choir'))
+    expect(counts.elsewhere).toBeGreaterThan(0)
+  })
+
+  // ⛔ A filter, no boundary: the choice reaches no act on a request.
+  it('lets an administrator who chose the garden read, answer and hand on a request of the choir', async () => {
+    await choose(peter, { groupIds: [gardenId], untagged: false })
+    await loginAs('peter@lustig.de')
+    const thread = await threadOf(toHandOn)
+    expect(thread.errors).toBeUndefined()
+    const answered = await mutate({
+      mutation: adminCreateSupportTicketMessage,
+      variables: { supportTicketId: toHandOn, message: 'Welcher Notenständer?' },
+    })
+    expect(answered.errors).toBeUndefined()
+    const handedOn = await mutate({
+      mutation: adminReassignSupportTicket,
+      variables: { supportTicketId: toHandOn, creationGroupTag: '' },
+    })
+    expect(handedOn.errors).toBeUndefined()
+    expect(handedOn.data.adminReassignSupportTicket).toBe(true)
+    expect((await threadOf(toHandOn)).data.adminListSupportTicketMessages).toEqual(
+      expect.arrayContaining([expect.objectContaining({ message: 'Welcher Notenständer?' })]),
+    )
   })
 })
