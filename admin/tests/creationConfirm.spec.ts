@@ -276,7 +276,8 @@ test('opens on the search and tab kept, and counts the open ones apart', async (
   await expect(page.locator('.tab-badge')).toHaveText('42')
   expect(listQuestions(graphql)).toEqual(
     expect.arrayContaining([
-      { filter: { statusFilter: OPEN, hideResubmission: true } },
+      // the badges count "Meine Gruppen" (MG1)
+      { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
       question(OPEN, { query: 'member1' }),
     ]),
   )
@@ -369,6 +370,62 @@ test('leads from the filter to "Meine Gruppen", and leaves the filter as it is',
   expect(listQuestions(graphql)).toEqual([question(OPEN)])
 })
 
+// The number at "Schöpfung" counts one thing (MG1): the open ones in "Meine Gruppen", the
+// resubmissions hidden -- what the start page counts --, whatever list the page shows.
+const counted = (variables: Variables) => {
+  const filter = variables.filter as Variables
+  return filter.creationGroup === 'garten' ? 2 : filter.hideResubmission === false ? 75 : 60
+}
+const countedList = (variables: Variables) =>
+  variables.paginated
+    ? contributionList([...contributions, own], counted(variables))
+    : { contributionCount: counted(variables) }
+const menuBadge = (page: Page) =>
+  page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge')
+
+test('keeps the number at "Schöpfung" while a group or the resubmissions are shown', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminListContributions: countedList })
+  await open(page)
+  await expect(menuBadge(page)).toHaveText('60')
+
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await page.locator('#hide-resubmission').uncheck()
+  await expect.poll(() => listQuestions(graphql).length).toBe(3)
+
+  await expect(menuBadge(page)).toHaveText('60')
+  await expect(page.locator('.tab-badge')).toHaveText('60')
+  // nothing else counted: the list of the badges set them as it loaded
+  expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([])
+})
+
+test('counts the number at "Schöpfung" anew after a decision on another list', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminListContributions: countedList, confirmContribution: true })
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+
+  graphql.answer({
+    adminListContributions: (variables: Variables) =>
+      variables.paginated ? countedList(variables) : { contributionCount: 59 },
+  })
+  await row(page, 0).getByRole('button', { name: de.save, exact: true }).click()
+  await dialog(page).getByRole('button', { name: de.overlay.confirm.yes }).click()
+
+  await expect(menuBadge(page)).toHaveText('59')
+  expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([
+    { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+  ])
+})
+
 test('offers a scoped moderator only the groups they look after', async ({ page, graphql }) => {
   const scoped = {
     ...moderator,
@@ -381,7 +438,14 @@ test('offers a scoped moderator only the groups they look after', async ({ page,
   await signIn(page, '/creation-confirm', scoped)
   await expect(rows(page)).toHaveCount(4)
 
-  expect(listQuestions(graphql)).toEqual([question(OPEN, { creationGroup: '*grouped' })])
+  // the list opens on their groups, the badges count all they see, apart (MG1)
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  expect(listQuestions(graphql)).toEqual(
+    expect.arrayContaining([
+      question(OPEN, { creationGroup: '*grouped' }),
+      { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+    ]),
+  )
   await groupFilter(page).locator('.dropdown-toggle').click()
   await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
     de.creationGroupFilter.grouped,

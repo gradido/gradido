@@ -1,9 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { adminDeleteContribution } from '@/graphql/adminDeleteContribution'
-import {
-  adminListContributions,
-  adminListContributionsCount,
-} from '@/graphql/adminListContributions.graphql'
+import { adminListContributions } from '@/graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { confirmContribution } from '@/graphql/confirmContribution'
 import {
@@ -33,14 +30,12 @@ import { UserQuery } from '@/components/UserQuery'
 import { CONFIG } from '@/config'
 import {
   creationGroupFilterOptions,
+  HANDLED_FILTER,
   isOpen,
+  OPEN_STATES,
   offersBulkResubmission,
 } from '@/data/Contribution.logic'
-import {
-  contributionCountSchema,
-  contributionListSchema,
-  type ListedContribution,
-} from '@/data/Contribution.schema'
+import { contributionListSchema, type ListedContribution } from '@/data/Contribution.schema'
 import {
   creationGroupsAndHandledSchema,
   type NumberedCreationGroup,
@@ -50,6 +45,7 @@ import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import { adminStore, keepHandledCreationGroups, setOpenCreations } from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
+import { askOpenCreations } from '@/store/openCreations.store'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { isPhone } from '@/viewport'
 import bellIcon from '~icons/bi/bell-fill'
@@ -61,11 +57,16 @@ import xCircleIcon from '~icons/bi/x-circle'
 // the page the last search and tab are kept for (lastSearch.ts), as the old router named it
 const LAST_SEARCH_PAGE = '/creation-confirm'
 const PAGE_SIZE = 25
-const OPEN = ['IN_PROGRESS', 'PENDING']
 
 // What each tab shows, in their order. "All" mixes the states, and its rows say which one each is.
 const TABS: { icon: string; tone: string; word: string; states: string[]; kind: TableKind }[] = [
-  { icon: bellIcon, tone: 'text-primary', word: 'contributions.open', states: OPEN, kind: 'open' },
+  {
+    icon: bellIcon,
+    tone: 'text-primary',
+    word: 'contributions.open',
+    states: OPEN_STATES,
+    kind: 'open',
+  },
   {
     icon: checkIcon,
     tone: 'text-success',
@@ -91,7 +92,7 @@ const TABS: { icon: string; tone: string; word: string; states: string[]; kind: 
     icon: listIcon,
     tone: '',
     word: 'contributions.all',
-    states: [...OPEN, 'CONFIRMED', 'DENIED', 'DELETED'],
+    states: [...OPEN_STATES, 'CONFIRMED', 'DENIED', 'DELETED'],
     kind: 'all',
   },
 ]
@@ -147,19 +148,10 @@ export class CreationConfirm implements ClassComponent {
   private bulk: { resubmissionAt: string | null; name: string; currentId: number } | null = null
 
   oninit() {
-    // The badges count every open contribution; where the page opens with a search, its list
-    // counts only what the search leaves, so they are counted apart.
-    if (this.keptOnTrial) {
-      graphqlRequest(adminListContributionsCount, {
-        filter: { statusFilter: OPEN, hideResubmission: true },
-      }).then((answer) => {
-        // where it fails the badges keep their count; the list says on its own what went wrong
-        if (answer.success) {
-          setOpenCreations(
-            v.parse(contributionCountSchema, answer.value).adminListContributions.contributionCount,
-          )
-        }
-      })
+    // Where the page opens on another list than the badges count -- a kept search or tab, the
+    // first group choice of a scoped moderator --, they are counted apart.
+    if (!this.showsTheBadgesList()) {
+      askOpenCreations()
     }
     // The groups and the choice: the first list does not wait for them, the choice changes the
     // words of the filter only.
@@ -185,8 +177,17 @@ export class CreationConfirm implements ClassComponent {
     document.removeEventListener('copy', copyWithoutHashtags)
   }
 
+  // Whether the list shown is the one the badges count: the open tab, no search, the resubmissions
+  // hidden, "Meine Gruppen" -- what the start page counts (MG1). Only that list sets them.
+  private showsTheBadgesList() {
+    return (
+      this.tab === 0 && this.query === '' && this.hideResubmission && this.group === HANDLED_FILTER
+    )
+  }
+
   private async load() {
     const asked = ++this.asked
+    const badgesList = this.showsTheBadgesList()
     const answer = await graphqlRequest(adminListContributions, {
       filter: {
         statusFilter: TABS[this.tab].states,
@@ -217,8 +218,8 @@ export class CreationConfirm implements ClassComponent {
     this.contributions = contributionList
     this.count = contributionCount
     askMemberAvatars(contributionList.flatMap((contribution) => contribution.user ?? []))
-    // the badges count all open contributions, never the few a search leaves
-    if (this.tab === 0 && this.query === '') {
+    // the badges count their list, never the few a search, a group or the resubmissions leave
+    if (badgesList) {
       setOpenCreations(contributionCount)
     }
   }
@@ -252,7 +253,12 @@ export class CreationConfirm implements ClassComponent {
       return
     }
     this.contributions = this.contributions.filter(({ id }) => id !== contribution.id)
-    setOpenCreations(adminStore.openCreations - 1)
+    // on the badges' list one fewer, on any other the badges counted anew
+    if (this.showsTheBadgesList()) {
+      setOpenCreations(adminStore.openCreations - 1)
+    } else {
+      askOpenCreations()
+    }
     toastSuccess(t(DECISIONS[decision].done))
   }
 
@@ -262,7 +268,11 @@ export class CreationConfirm implements ClassComponent {
       toastError(answer.error.message)
       return false
     }
-    // whether the contribution is still in the list is the server's to say
+    // whether the contribution is still in the list is the server's to say, and in "Meine
+    // Gruppen": the badges' list counts itself as it loads, on any other they are counted anew
+    if (!this.showsTheBadgesList()) {
+      askOpenCreations()
+    }
     this.load()
     toastSuccess(t('contribution.changeGroupDone'))
     return true
