@@ -545,10 +545,10 @@
     "show-submission-form": "aspettare il promemoria?"
   },
   "myGroups": {
-    "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, il numero accanto a «Creazione» e la scelta del gruppo seguono ciò che spunti. Continui a vedere tutto.",
+    "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, il numero accanto a «Creazione» e il filtro per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
     "noMatch": "Nessun gruppo con questo nome",
-    "none": "Niente spuntato: conta tutto, come prima.",
-    "saved": "I tuoi gruppi sono salvati.",
+    "none": "Niente spuntato: tutto conta, come prima.",
+    "saved": "I tuoi gruppi sono stati salvati.",
     "search": "Cerca un gruppo",
     "some": "Contano solo le righe spuntate.",
     "title": "I miei gruppi"

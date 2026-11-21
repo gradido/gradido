@@ -545,12 +545,12 @@
     "show-submission-form": "wachten op herinnering?"
   },
   "myGroups": {
-    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, het getal bij “Creatie” en de groepskeuze volgen wat je aanvinkt. Je ziet nog steeds alles.",
+    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, het getal bij “Creatie” en het groepsfilter richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
     "noMatch": "Geen groep met deze naam",
-    "none": "Niets aangevinkt: alles telt, zoals voorheen.",
+    "none": "Niets aangevinkt: alles telt mee, zoals voorheen.",
     "saved": "Je groepen zijn opgeslagen.",
     "search": "Groep zoeken",
-    "some": "Alleen de aangevinkte regels tellen.",
+    "some": "Alleen de aangevinkte rijen tellen mee.",
     "title": "Mijn groepen"
   },
   "name": "Naam",

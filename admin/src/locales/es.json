@@ -545,12 +545,12 @@
     "show-submission-form": "¿esperar al recordatorio?"
   },
   "myGroups": {
-    "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, el número junto a «Creación» y la selección de grupo siguen lo que marques. Sigues viéndolo todo.",
+    "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, el número junto a «Creación» y el filtro de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
     "noMatch": "Ningún grupo con este nombre",
-    "none": "Nada marcado: cuenta todo, como hasta ahora.",
+    "none": "Nada marcado: todo cuenta, como hasta ahora.",
     "saved": "Tus grupos están guardados.",
     "search": "Buscar grupo",
-    "some": "Solo cuentan las líneas marcadas.",
+    "some": "Solo cuentan las filas marcadas.",
     "title": "Mis grupos"
   },
   "name": "Nombre",
