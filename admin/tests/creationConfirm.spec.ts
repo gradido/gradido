@@ -486,18 +486,22 @@ test('sets the number at "Schöpfung" from the first list, also once a search is
       if (variables.paginated && filter.query === '' && held.length === 0) {
         return new Promise((resolve) => held.push(resolve))
       }
-      return contributionList([...contributions, own], 3)
+      // the search finds one contribution the first list does not hold
+      return contributionList([listedContribution(7)], 1)
     },
   })
   await signIn(page, '/creation-confirm')
   await expect.poll(() => held.length).toBe(1)
   await page.locator('.test-input-criteria').fill('garden')
   await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await expect(rows(page)).toHaveCount(1)
 
   held[0](contributionList([...contributions, own], 42))
 
   await expect(page.locator('.tab-badge')).toHaveText('42')
-  await expect(rows(page)).toHaveCount(4)
+  // the late answer set the badges only: the rows stay the search's
+  await expect(rows(page)).toHaveCount(1)
+  await expect(rows(page).first()).toContainText('First7')
   await expect(page.locator('.test-input-criteria')).toHaveValue('garden')
 })
 
