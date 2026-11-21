@@ -85,8 +85,8 @@ Checked again and found alive, so still there: `graphql/enums.js` (`GdtEntryType
 transaction rows), `favoritesLoaded`, `forgetSheet` and `forgetViewport` (the specs reset and
 read state through them; they go with the specs in step 21), `@morev/vue-transitions` (its
 components are unused, but its style sheet sets `.fade-enter-active`, the name
-bootstrap-vue-next's own transitions use: it goes with bootstrap-vue-next in step 22). The
-`$filters` the specs still mock are no longer set by `main.js`.
+bootstrap-vue-next's own transitions use: it goes with bootstrap-vue-next in step 22), `$filters`
+in `main.js` (`useFilters.ts` hands them to the TSX components).
 
 **2. The base** (about 70 files)
 No page yet; everything a page needs.
