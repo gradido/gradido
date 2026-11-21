@@ -211,6 +211,8 @@ test('counts the number at "Schöpfung" anew after a resubmission on another lis
   page,
   graphql,
 }) => {
+  // a day before the resubmission of the fixtures, which the form then takes as one to come
+  await page.clock.setSystemTime(new Date('2026-11-20T12:00:00.000Z'))
   graphql.answer({ adminCreateContributionMessage: createdMessage })
   await signIn(page, '/creation-confirm')
   const filter = page.getByTestId('creation-group-filter')
