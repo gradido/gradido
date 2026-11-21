@@ -1,0 +1,48 @@
+/* "Meine Gruppen" (MG1). Bootstrap's variables only, no colour of its own: the list group, the
+   box and the button follow the dark mode as they are (AO-008). */
+.page {
+  max-width: 40rem;
+}
+
+/* The whole row is the label: a tap anywhere on it ticks the box, at least 44px high. */
+.row {
+  padding: 0;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.375rem 1rem;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.box {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* Below the list, and at the foot of the window while the list runs past it. */
+.foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  background-color: var(--bs-body-bg);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* Room for two lines: ticking the first box changes the sentence, and the button beside or below
+   it stays where it was. */
+.rule {
+  display: flex;
+  flex: 1 1 16rem;
+  align-items: center;
+  min-height: 3em;
+}

@@ -8,6 +8,7 @@ const counts = {
   waitingForModeration: { contributionCount: 0 },
   waitingForMember: { contributionCount: 0 },
   allOpen: { contributionCount: 0 },
+  everythingOpen: { contributionCount: 0 },
 }
 
 test.beforeEach(async ({ page, graphql }) => {

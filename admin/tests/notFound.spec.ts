@@ -12,6 +12,7 @@ test.beforeEach(async ({ page, graphql }) => {
     waitingForModeration: { contributionCount: 0 },
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
     // the support's count (K3) is asked beside the creation's by the Mithril admin
     adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
   })

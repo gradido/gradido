@@ -3,6 +3,11 @@
 import m from 'mithril'
 import * as v from 'valibot'
 import { CONFIG } from '@/config'
+import {
+  type HandledCreationGroups,
+  type KeptHandledCreationGroups,
+  keptHandledCreationGroupsField,
+} from '@/data/CreationGroup.schema'
 import { type Moderator, moderatorSchema } from '@/data/Moderator.schema'
 import { followAuthToken, keepAuthToken, readAuthToken, tokenBelongsTo } from '@/utils/authToken'
 import { forgetMemberAvatars } from './memberAvatars.store'
@@ -20,6 +25,9 @@ type AdminState = {
   moderator: Moderator | null
   openCreations: number
   openSupportTickets: number
+  // "Meine Gruppen" (MG1) as the server last answered it, and for whom: read only where it is the
+  // signed-in moderator's (chosenGroupsOf)
+  handledCreationGroups: KeptHandledCreationGroups | null
 }
 
 /** Where the admin keeps its own state in localStorage; the key of the old admin, kept. */
@@ -29,6 +37,7 @@ const savedStateSchema = v.object({
   moderator: v.optional(v.nullable(moderatorSchema), null),
   openCreations: v.optional(v.number(), 0),
   openSupportTickets: v.optional(v.number(), 0),
+  handledCreationGroups: keptHandledCreationGroupsField,
 })
 
 /** What the blob holds of the state, or the empty state where it cannot be read. */
@@ -60,8 +69,11 @@ export const adminStore: AdminState = {
 }
 
 const save = () => {
-  const { moderator, openCreations, openSupportTickets } = adminStore
-  localStorage.setItem(STATE_KEY, JSON.stringify({ moderator, openCreations, openSupportTickets }))
+  const { moderator, openCreations, openSupportTickets, handledCreationGroups } = adminStore
+  localStorage.setItem(
+    STATE_KEY,
+    JSON.stringify({ moderator, openCreations, openSupportTickets, handledCreationGroups }),
+  )
 }
 
 export const setToken = (token: string | null) => {
@@ -86,7 +98,33 @@ export const setOpenSupportTickets = (openSupportTickets: number) => {
   save()
 }
 
+// The question about the choice asked last, or the save sent last (MG1): an earlier one's answer
+// arriving later keeps nothing -- a slow start page must not put back the choice from before a save.
+let choiceAsked = 0
+
+/** A question about the choice, or a save of it, goes out: the mark its answer is kept under. */
+export const askingHandledCreationGroups = () => ++choiceAsked
+
+/**
+ * Keeps the choice the server answered for `of`, the moderator the question was asked for -- where
+ * that is still the moderator signed in, and no question or save went out after it (`asked`, from
+ * askingHandledCreationGroups): an answer arriving after a change of moderator in this browser is
+ * nobody's to keep, one overtaken by a later question is out of date.
+ */
+export const keepHandledCreationGroups = (
+  of: string | undefined,
+  choice: HandledCreationGroups,
+  asked: number,
+) => {
+  if (!of || of !== adminStore.moderator?.gradidoID || asked !== choiceAsked) {
+    return
+  }
+  adminStore.handledCreationGroups = { of, ...choice }
+  save()
+}
+
 export const logout = () => {
+  adminStore.handledCreationGroups = null
   setToken(null)
   setModerator(null)
   // Only the admin's own blob: wallet and admin share one origin, and localStorage.clear()

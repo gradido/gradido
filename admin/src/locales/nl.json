@@ -302,7 +302,10 @@
   "creation": "Creatie",
   "creationGroupFilter": {
     "all": "(met en zonder groep)",
+    "chooseMine": "Mijn groepen kiezen …",
+    "editMine": "Mijn groepen wijzigen …",
     "grouped": "(alle groepen)",
+    "mine": "Mijn groepen",
     "untagged": "(zonder groep)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "De openstaande creatie is afgewezen"
   },
   "dashboard": {
+    "elsewhere": "In andere groepen: {n} open creaties",
+    "elsewhereOne": "In andere groepen: één open creatie",
     "resubmission": "Daarnaast: {n} met herinnering",
     "support": "Support: {n} open vragen",
     "supportNone": "Support: geen open vragen",
@@ -539,18 +544,28 @@
     "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
     "show-submission-form": "wachten op herinnering?"
   },
+  "myGroups": {
+    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, het getal bij “Creatie” en het groepsfilter richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
+    "noMatch": "Geen groep met deze naam",
+    "none": "Niets aangevinkt: alles telt mee, zoals voorheen.",
+    "saved": "Je groepen zijn opgeslagen.",
+    "search": "Groep zoeken",
+    "some": "Alleen de aangevinkte rijen tellen mee.",
+    "title": "Mijn groepen"
+  },
   "name": "Naam",
   "navbar": {
     "appearance": "Weergave",
     "automaticContributions": "Startsaldo",
     "chat": "Chat",
     "crea": "Crea",
-    "creationGroups": "Creation groups",
+    "creationGroups": "Creatiegroepen",
     "information": "Informatie",
     "instances": "Instanties",
     "logout": "Afmelden",
     "menu": "Menu",
     "my-account": "Mijn account",
+    "myGroups": "Mijn groepen",
     "projectBranding": "Projectbranding",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",

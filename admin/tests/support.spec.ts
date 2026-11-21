@@ -426,6 +426,7 @@ test('lets a refusal of an earlier count, arriving late, take nothing away', asy
     waitingForModeration: { contributionCount: 0 },
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
     adminCountOpenSupportTickets: async () => {
       asks += 1
       if (asks > 1) {

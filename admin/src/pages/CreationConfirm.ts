@@ -1,12 +1,12 @@
 // AI-GENERATED — not an architecture reference
 import { adminDeleteContribution } from '@/graphql/adminDeleteContribution'
-import {
-  adminListContributions,
-  adminListContributionsCount,
-} from '@/graphql/adminListContributions.graphql'
+import { adminListContributions } from '@/graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { confirmContribution } from '@/graphql/confirmContribution'
-import { assignContributionCreationGroups, creationGroups } from '@/graphql/creationGroups.graphql'
+import {
+  assignContributionCreationGroups,
+  creationGroupsAndHandled,
+} from '@/graphql/creationGroups.graphql'
 import { denyContribution } from '@/graphql/denyContribution'
 import '@/pages/CreationConfirm.css'
 import BootstrapTooltip from 'bootstrap/js/dist/tooltip'
@@ -28,17 +28,32 @@ import { ThemedSelect } from '@/components/ThemedSelect'
 import { toastError, toastSuccess, toastWarning } from '@/components/Toasts'
 import { UserQuery } from '@/components/UserQuery'
 import { CONFIG } from '@/config'
-import { groupFilterOptions, isOpen, offersBulkResubmission } from '@/data/Contribution.logic'
 import {
-  contributionCountSchema,
-  contributionListSchema,
-  type ListedContribution,
-} from '@/data/Contribution.schema'
-import { creationGroupNameSchema } from '@/data/CreationGroup.schema'
+  creationGroupFilterOptions,
+  HANDLED_FILTER,
+  isOpen,
+  OPEN_STATES,
+  offersBulkResubmission,
+} from '@/data/Contribution.logic'
+import { contributionListSchema, type ListedContribution } from '@/data/Contribution.schema'
+import {
+  creationGroupsAndHandledSchema,
+  type NumberedCreationGroup,
+} from '@/data/CreationGroup.schema'
+import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, setOpenCreations } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+} from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
+import {
+  answerOpenCreations,
+  askingOpenCreations,
+  askOpenCreations,
+} from '@/store/openCreations.store'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { isPhone } from '@/viewport'
 import bellIcon from '~icons/bi/bell-fill'
@@ -50,11 +65,16 @@ import xCircleIcon from '~icons/bi/x-circle'
 // the page the last search and tab are kept for (lastSearch.ts), as the old router named it
 const LAST_SEARCH_PAGE = '/creation-confirm'
 const PAGE_SIZE = 25
-const OPEN = ['IN_PROGRESS', 'PENDING']
 
 // What each tab shows, in their order. "All" mixes the states, and its rows say which one each is.
 const TABS: { icon: string; tone: string; word: string; states: string[]; kind: TableKind }[] = [
-  { icon: bellIcon, tone: 'text-primary', word: 'contributions.open', states: OPEN, kind: 'open' },
+  {
+    icon: bellIcon,
+    tone: 'text-primary',
+    word: 'contributions.open',
+    states: OPEN_STATES,
+    kind: 'open',
+  },
   {
     icon: checkIcon,
     tone: 'text-success',
@@ -80,7 +100,7 @@ const TABS: { icon: string; tone: string; word: string; states: string[]; kind: 
     icon: listIcon,
     tone: '',
     word: 'contributions.all',
-    states: [...OPEN, 'CONFIRMED', 'DENIED', 'DELETED'],
+    states: [...OPEN_STATES, 'CONFIRMED', 'DENIED', 'DELETED'],
     kind: 'all',
   },
 ]
@@ -90,10 +110,6 @@ const DECISIONS: Record<Decision, { mutation: DocumentNode; done: string }> = {
   deny: { mutation: denyContribution, done: 'creation_form.toasted_denied' },
   delete: { mutation: adminDeleteContribution, done: 'creation_form.toasted_delete' },
 }
-
-const groupsSchema = v.object({
-  creationGroups: v.array(creationGroupNameSchema),
-})
 
 // A selected text is copied without its hashtags: the groups a member named are no part of it.
 const copyWithoutHashtags = (event: ClipboardEvent) => {
@@ -115,10 +131,12 @@ export class CreationConfirm implements ClassComponent {
   private tab = lastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, TABS.length)
   private query = lastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID)
   private hideResubmission = true
-  private groups: v.InferOutput<typeof groupsSchema>['creationGroups'] = []
-  // the first choice on offer: a scoped moderator has no "all", and their choices are known
-  // before the groups are
-  private group = this.moderator ? groupFilterOptions(this.moderator, [])[0].value : ''
+  private groups: NumberedCreationGroup[] = []
+  // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
+  // group, whether or not the admin knows the choice yet (MG1); a scoped moderator has no "all".
+  private group = this.moderator
+    ? creationGroupFilterOptions(this.moderator, [], null)[0].value
+    : ''
   private page = 1
   private contributions: ListedContribution[] = []
   private count = 0
@@ -138,23 +156,31 @@ export class CreationConfirm implements ClassComponent {
   private bulk: { resubmissionAt: string | null; name: string; currentId: number } | null = null
 
   oninit() {
-    // The badges count every open contribution; where the page opens with a search, its list
-    // counts only what the search leaves, so they are counted apart.
-    if (this.keptOnTrial) {
-      graphqlRequest(adminListContributionsCount, {
-        filter: { statusFilter: OPEN, hideResubmission: true },
-      }).then((answer) => {
-        // where it fails the badges keep their count; the list says on its own what went wrong
-        if (answer.success) {
-          setOpenCreations(
-            v.parse(contributionCountSchema, answer.value).adminListContributions.contributionCount,
-          )
-        }
-      })
+    // Where the page opens on another list than the badges count -- a kept search or tab, the
+    // first group choice of a scoped moderator --, they are counted apart.
+    if (!this.showsTheBadgesList()) {
+      askOpenCreations()
     }
-    graphqlRequest(creationGroups).then((answer) => {
+    // The groups and the choice: the first list does not wait for them. The choice changes the
+    // words of the filter, and whether "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
+    const of = this.moderator?.gradidoID
+    const choiceAsked = askingHandledCreationGroups()
+    graphqlRequest(creationGroupsAndHandled).then((answer) => {
       if (answer.success) {
-        this.groups = v.parse(groupsSchema, answer.value).creationGroups
+        const { creationGroups, handledCreationGroups } = v.parse(
+          creationGroupsAndHandledSchema,
+          answer.value,
+        )
+        this.groups = creationGroups
+        keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
+        // "" is offered with a choice only. Picked while the page still knew one that was cleared
+        // on another device, the same list is called by the row that now means everything.
+        if (
+          this.group === '' &&
+          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+        ) {
+          this.group = HANDLED_FILTER
+        }
       }
     })
     this.load()
@@ -168,8 +194,19 @@ export class CreationConfirm implements ClassComponent {
     document.removeEventListener('copy', copyWithoutHashtags)
   }
 
+  // Whether the list shown is the one the badges count: the open tab, no search, the resubmissions
+  // hidden, "Meine Gruppen" -- what the start page counts (MG1). Only that list sets them.
+  private showsTheBadgesList() {
+    return (
+      this.tab === 0 && this.query === '' && this.hideResubmission && this.group === HANDLED_FILTER
+    )
+  }
+
   private async load() {
     const asked = ++this.asked
+    const badgesList = this.showsTheBadgesList()
+    // the badges' list sets them as it loads, unless a later question about them went out (MG1)
+    const badgeAsked = badgesList ? askingOpenCreations() : 0
     const answer = await graphqlRequest(adminListContributions, {
       filter: {
         statusFilter: TABS[this.tab].states,
@@ -180,17 +217,24 @@ export class CreationConfirm implements ClassComponent {
       },
       paginated: { currentPage: this.page, pageSize: PAGE_SIZE, order: 'DESC' },
     })
-    if (asked !== this.asked) {
-      return
-    }
     if (!answer.success) {
-      toastError(answer.error.message)
+      if (asked === this.asked) {
+        toastError(answer.error.message)
+      }
       return
     }
     const { contributionCount, contributionList } = v.parse(
       contributionListSchema,
       answer.value,
     ).adminListContributions
+    // The badges count their list, never the few a search, a group or the resubmissions leave --
+    // also where this page has asked for another list since: their mark decides, not the page's.
+    if (badgesList) {
+      answerOpenCreations(badgeAsked, contributionCount)
+    }
+    if (asked !== this.asked) {
+      return
+    }
     if (this.keptOnTrial && contributionCount === 0) {
       this.query = ''
       this.searchAnew()
@@ -200,9 +244,13 @@ export class CreationConfirm implements ClassComponent {
     this.contributions = contributionList
     this.count = contributionCount
     askMemberAvatars(contributionList.flatMap((contribution) => contribution.user ?? []))
-    // the badges count all open contributions, never the few a search leaves
-    if (this.tab === 0 && this.query === '') {
-      setOpenCreations(contributionCount)
+  }
+
+  // Something the open count may follow changed on the server: the badges' list sets them as it
+  // loads, on any other they are counted anew (MG1).
+  private countAnew() {
+    if (!this.showsTheBadgesList()) {
+      askOpenCreations()
     }
   }
 
@@ -235,7 +283,9 @@ export class CreationConfirm implements ClassComponent {
       return
     }
     this.contributions = this.contributions.filter(({ id }) => id !== contribution.id)
-    setOpenCreations(adminStore.openCreations - 1)
+    // Counted anew, also on the badges' list: one fewer could take the contribution off a count
+    // that already left it out, or that it was never in (MG1).
+    askOpenCreations()
     toastSuccess(t(DECISIONS[decision].done))
   }
 
@@ -245,13 +295,18 @@ export class CreationConfirm implements ClassComponent {
       toastError(answer.error.message)
       return false
     }
-    // whether the contribution is still in the list is the server's to say
+    // whether the contribution is still in the list is the server's to say, and in "Meine Gruppen"
+    this.countAnew()
     this.load()
     toastSuccess(t('contribution.changeGroupDone'))
     return true
   }
 
   private resubmissionSaved(saved: ResubmissionSaved) {
+    // a resubmission set or taken away moves the contribution in or out of the open count
+    if (!saved.unchanged) {
+      this.countAnew()
+    }
     if (offersBulkResubmission(this.contributions, saved)) {
       const user = this.contributions[0].user
       this.bulk = {
@@ -283,6 +338,7 @@ export class CreationConfirm implements ClassComponent {
         t(resubmissionAt === null ? 'bulkResubmission.successRemove' : 'bulkResubmission.success'),
       )
     }
+    this.countAnew()
     this.load()
   }
 
@@ -294,6 +350,7 @@ export class CreationConfirm implements ClassComponent {
     // tabs, to test it against the whole pool. Only a guide: the server checks the right.
     const showCrea = this.tab === 0 || this.tab === 4 ? aiUser : role === 'ADMIN'
     const showChat = CONFIG.ANTHROPIC_ACTIVE && aiUser
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
     return m('.creation-confirm', [
       // the search and the group side by side; on a narrow window one above the other
       m('.creation-filters.mt-2.mb-2', [
@@ -310,7 +367,17 @@ export class CreationConfirm implements ClassComponent {
           class: 'creation-group-filter',
           'data-test': 'creation-group-filter',
           value: this.group,
-          options: this.moderator ? groupFilterOptions(this.moderator, this.groups) : [],
+          options: this.moderator
+            ? creationGroupFilterOptions(this.moderator, this.groups, chosen)
+            : [],
+          // a way to the page of the choice, below the groups: leaves the filter as it is
+          link: mayChooseGroups(this.moderator)
+            ? {
+                href: '/my-groups',
+                text: t(chosen ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine'),
+                'data-test': 'creation-group-filter-mine',
+              }
+            : undefined,
           onchange: (group: string) => {
             this.group = group
             this.searchAnew()

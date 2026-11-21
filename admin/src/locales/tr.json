@@ -302,7 +302,10 @@
   "creation": "Oluşturma",
   "creationGroupFilter": {
     "all": "(gruplu ve grupsuz)",
+    "chooseMine": "Gruplarımı seç …",
+    "editMine": "Gruplarımı değiştir …",
     "grouped": "(tüm gruplar)",
+    "mine": "Gruplarım",
     "untagged": "(grupsuz)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "Açık oluşturma reddedildi"
   },
   "dashboard": {
+    "elsewhere": "Diğer gruplarda: {n} açık oluşturma",
+    "elsewhereOne": "Diğer gruplarda: bir açık oluşturma",
     "resubmission": "Ayrıca hatırlatmalı: {n}",
     "support": "Destek: {n} açık talep",
     "supportNone": "Destek: açık talep yok",
@@ -539,18 +544,28 @@
     "notice-tooltip": "Not yalnızca moderatörlere görünür",
     "show-submission-form": "hatırlatma beklensin mi?"
   },
+  "myGroups": {
+    "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, «Oluşturma» yanındaki sayı ve grup filtresi işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
+    "noMatch": "Bu adda grup yok",
+    "none": "Hiçbir şey işaretli değil: her şey eskisi gibi sayılır.",
+    "saved": "Grupların kaydedildi.",
+    "search": "Grup ara",
+    "some": "Yalnızca işaretli satırlar sayılır.",
+    "title": "Gruplarım"
+  },
   "name": "Ad",
   "navbar": {
     "appearance": "Görünüm",
     "automaticContributions": "Başlangıç bakiyesi",
     "chat": "Sohbet",
     "crea": "Crea",
-    "creationGroups": "Creation groups",
+    "creationGroups": "Yaratım grupları",
     "information": "Bilgi",
     "instances": "Örnekler",
     "logout": "Çıkış yap",
     "menu": "Menü",
     "my-account": "Hesabım",
+    "myGroups": "Gruplarım",
     "projectBranding": "Proje markalaması",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",

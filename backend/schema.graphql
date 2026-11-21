@@ -75,6 +75,7 @@ type Query {
   suggestedCreationGroup: CreationGroup
   userCreationGroups(userId: Int!): [CreationGroup!]!
   moderatorCreationGroupScope(userId: Int!): [String!]!
+  handledCreationGroups: HandledCreationGroups!
   userNote(about: UserNoteSubjectInput!): String
   userNotes: [UserNote!]!
   userRemark(userId: Int!): UserRemark
@@ -1015,6 +1016,11 @@ type ThankYouCard {
   createdAt: DateTime!
 }
 
+type HandledCreationGroups {
+  groupIds: [Int!]!
+  untagged: Boolean!
+}
+
 input UserNoteSubjectInput {
   member: MemberAvatarRefInput
   groupUuid: String
@@ -1207,6 +1213,7 @@ type Mutation {
   setMyCreationGroups(tags: [String!]!): [CreationGroup!]!
   setUserCreationGroups(tags: [String!]!, userId: Int!): [CreationGroup!]!
   setModeratorCreationGroupScope(scope: [String!]!, userId: Int!): [String!]!
+  setHandledCreationGroups(untagged: Boolean!, groupIds: [Int!]!): HandledCreationGroups!
   setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
   setUserRemark(userId: Int!, remark: String!): UserRemark
   login(email: String!, password: String!, publisherId: Int, project: String): User!

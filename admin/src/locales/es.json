@@ -302,7 +302,10 @@
   "creation": "Creación",
   "creationGroupFilter": {
     "all": "(con y sin grupo)",
+    "chooseMine": "Elegir mis grupos …",
+    "editMine": "Cambiar mis grupos …",
     "grouped": "(todos los grupos)",
+    "mine": "Mis grupos",
     "untagged": "(sin grupo)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "La creación abierta se ha rechazado"
   },
   "dashboard": {
+    "elsewhere": "En otros grupos: {n} creaciones abiertas",
+    "elsewhereOne": "En otros grupos: una creación abierta",
     "resubmission": "Además: {n} con recordatorio",
     "support": "Soporte: {n} consultas abiertas",
     "supportNone": "Soporte: ninguna consulta abierta",
@@ -539,18 +544,28 @@
     "notice-tooltip": "La nota solo es visible para los moderadores",
     "show-submission-form": "¿esperar al recordatorio?"
   },
+  "myGroups": {
+    "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, el número junto a «Creación» y el filtro de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
+    "noMatch": "Ningún grupo con este nombre",
+    "none": "Nada marcado: todo cuenta, como hasta ahora.",
+    "saved": "Tus grupos están guardados.",
+    "search": "Buscar grupo",
+    "some": "Solo cuentan las filas marcadas.",
+    "title": "Mis grupos"
+  },
   "name": "Nombre",
   "navbar": {
     "appearance": "Apariencia",
     "automaticContributions": "Saldo inicial",
     "chat": "Chat",
     "crea": "Crea",
-    "creationGroups": "Creation groups",
+    "creationGroups": "Grupos de creación",
     "information": "Información",
     "instances": "Instancias",
     "logout": "Cerrar sesión",
     "menu": "Menú",
     "my-account": "Mi cuenta",
+    "myGroups": "Mis grupos",
     "projectBranding": "Marca del proyecto",
     "projectBrandingTooltip": "Usa tu propio logotipo en el inicio de sesión de Gradido y añade nuevos usuarios a un espacio de Humhub",
     "settings": "Configuración",

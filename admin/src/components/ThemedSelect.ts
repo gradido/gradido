@@ -14,6 +14,9 @@ interface Attrs {
   size?: 'sm' | 'md'
   /** the name of the button, where no word beside it names the choice */
   label?: string
+  /** a last line below a divider that leads to another page: a way, not a choice, so it never
+   * reaches `onchange` ("Meine Gruppen ändern …", MG1) */
+  link?: { href: string; text: string; 'data-test'?: string }
 }
 
 /**
@@ -22,7 +25,7 @@ interface Attrs {
  */
 export class ThemedSelect implements ClassComponent<Attrs> {
   view({
-    attrs: { value, options, onchange, class: className, 'data-test': test, size, label },
+    attrs: { value, options, onchange, class: className, 'data-test': test, size, label, link },
   }: Vnode<Attrs>) {
     const chosen = options.find((option) => option.value === value)
     return m(
@@ -35,23 +38,44 @@ export class ThemedSelect implements ClassComponent<Attrs> {
         size,
         label,
       },
-      options.map((option) =>
-        m(
-          'li',
-          { role: 'presentation' },
+      [
+        ...options.map((option) =>
           m(
-            'button.dropdown-item',
-            {
-              type: 'button',
-              role: 'menuitem',
-              class: option.value === value ? 'active' : '',
-              'aria-current': option.value === value ? 'true' : undefined,
-              onclick: () => option.value !== value && onchange(option.value),
-            },
-            option.text,
+            'li',
+            { role: 'presentation' },
+            m(
+              'button.dropdown-item',
+              {
+                type: 'button',
+                role: 'menuitem',
+                class: option.value === value ? 'active' : '',
+                'aria-current': option.value === value ? 'true' : undefined,
+                onclick: () => option.value !== value && onchange(option.value),
+              },
+              option.text,
+            ),
           ),
         ),
-      ),
+        link
+          ? [
+              m('li', { role: 'presentation' }, m('hr.dropdown-divider', { role: 'separator' })),
+              m(
+                'li',
+                { role: 'presentation' },
+                m(
+                  m.route.Link,
+                  {
+                    href: link.href,
+                    class: 'dropdown-item text-body-secondary',
+                    role: 'menuitem',
+                    'data-test': link['data-test'],
+                  },
+                  link.text,
+                ),
+              ),
+            ]
+          : null,
+      ],
     )
   }
 }

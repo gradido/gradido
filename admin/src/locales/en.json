@@ -302,7 +302,10 @@
   "creation": "Creation",
   "creationGroupFilter": {
     "all": "(with and without group)",
+    "chooseMine": "Choose my groups …",
+    "editMine": "Change my groups …",
     "grouped": "(all groups)",
+    "mine": "My groups",
     "untagged": "(no group)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "Open creation has been rejected"
   },
   "dashboard": {
+    "elsewhere": "In other groups: {n} open creations",
+    "elsewhereOne": "In other groups: one open creation",
     "resubmission": "Also: {n} on resubmission",
     "support": "Support: {n} open requests",
     "supportNone": "Support: no open requests",
@@ -539,6 +544,15 @@
     "notice-tooltip": "The note is only visible to moderators",
     "show-submission-form": "wait for reminder?"
   },
+  "myGroups": {
+    "intro": "Tick the creation groups you handle yourself. The start page, the number at “Creation” and the group filter follow your choice. You can still see everything.",
+    "noMatch": "No group with this name",
+    "none": "Nothing ticked: everything counts, as before.",
+    "saved": "Your groups are saved.",
+    "search": "Search for a group",
+    "some": "Only the ticked lines count.",
+    "title": "My groups"
+  },
   "name": "Name",
   "navbar": {
     "appearance": "Appearance",
@@ -551,6 +565,7 @@
     "logout": "Logout",
     "menu": "Menu",
     "my-account": "My Account",
+    "myGroups": "My groups",
     "projectBranding": "Project Branding",
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "settings": "Settings",

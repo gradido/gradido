@@ -52,6 +52,8 @@ const NO_PHONE = {
   themedSelect: join(here, 'components', 'ThemedSelect.scss'),
   timePicker: join(here, 'components', 'input', 'TimePicker.module.css'),
   chatSettings: join(here, 'pages', 'ChatSettings.module.css'),
+  // "Meine Gruppen" (MG1): one rule on every width, Bootstrap's variables only
+  myGroups: join(here, 'pages', 'MyGroups.module.css'),
 }
 // Upper bounds, counted on 23.10.2026 before the delivery (CreationConfirm.css had one: the
 // backdrop of the overlay the dialog replaced). NavBar.scss is not touched by it; it is held
@@ -91,6 +93,7 @@ const FIXED_COLOURS_AT_MOST: Record<string, number> = {
   [NO_PHONE.themedSelect]: 1,
   [NO_PHONE.timePicker]: 0,
   [NO_PHONE.chatSettings]: 1,
+  [NO_PHONE.myGroups]: 0,
 }
 
 // Who loads each stylesheet. A sheet that nobody imports holds its rules for no page, and the
@@ -112,6 +115,7 @@ const LOADED_BY = {
   [NO_PHONE.themedSelect]: join(here, 'components', 'ThemedSelect.ts'),
   [NO_PHONE.timePicker]: join(here, 'components', 'creationConfirm', 'MessageForm.ts'),
   [NO_PHONE.chatSettings]: join(here, 'pages', 'ChatSettings.ts'),
+  [NO_PHONE.myGroups]: join(here, 'pages', 'MyGroups.ts'),
 }
 
 const PHONE = `(width < ${PHONE_BREAKPOINT_PX}px)`

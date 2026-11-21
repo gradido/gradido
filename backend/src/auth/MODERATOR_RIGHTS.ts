@@ -34,6 +34,9 @@ export const MODERATOR_RIGHTS = [
   // The remark the moderation keeps on a member (Bernd, 28.10.2026: "alle ab der Berechtigung
   // Moderator"): KI-moderators and administrators hold it through their sets as well (ROLES.ts).
   RIGHTS.MANAGE_USER_REMARKS,
+  // The creation groups the moderator handles themself ("Meine Gruppen", MG1): their own choice,
+  // which only counts where they see every group (handledCreationGroupsOf).
+  RIGHTS.HANDLED_CREATION_GROUPS,
   // ⛔ Not the support requests of the moderator's creation groups (MANAGE_SUPPORT_TICKETS): a
   // moderator handles them only with the tick on their role row (K6, SUA-025), and roleOfHolder in
   // ROLES.ts adds the right where it is set.

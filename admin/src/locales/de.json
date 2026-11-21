@@ -302,7 +302,10 @@
   "creation": "Schöpfung",
   "creationGroupFilter": {
     "all": "(mit und ohne Gruppe)",
+    "chooseMine": "Meine Gruppen wählen …",
+    "editMine": "Meine Gruppen ändern …",
     "grouped": "(alle Gruppen)",
+    "mine": "Meine Gruppen",
     "untagged": "(ohne Gruppe)"
   },
   "creationGroupsAdmin": {
@@ -358,6 +361,8 @@
     "toasted_denied": "Offene Schöpfung wurde abgelehnt"
   },
   "dashboard": {
+    "elsewhere": "In anderen Gruppen: {n} offene Schöpfungen",
+    "elsewhereOne": "In anderen Gruppen: eine offene Schöpfung",
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
     "support": "Support: {n} offene Anfragen",
     "supportNone": "Support: keine offenen Anfragen",
@@ -539,6 +544,15 @@
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
     "show-submission-form": "warten auf Erinnerung?"
   },
+  "myGroups": {
+    "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahl am Menüpunkt „Schöpfung“ und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
+    "noMatch": "Keine Gruppe mit diesem Namen",
+    "none": "Nichts angekreuzt: Es zählt alles, wie bisher.",
+    "saved": "Deine Gruppen sind gespeichert.",
+    "search": "Gruppe suchen",
+    "some": "Es zählen nur die angekreuzten Zeilen.",
+    "title": "Meine Gruppen"
+  },
   "name": "Name",
   "navbar": {
     "appearance": "Erscheinungsbild",
@@ -551,6 +565,7 @@
     "logout": "Abmelden",
     "menu": "Menü",
     "my-account": "Mein Konto",
+    "myGroups": "Meine Gruppen",
     "projectBranding": "Projekt-Branding",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",

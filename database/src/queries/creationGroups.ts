@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { drizzleDb } from '../AppDatabase'
 import { creationGroupsTable } from '../schemas/drizzle.schema'
 
@@ -25,4 +25,19 @@ export async function dbSelectCreationGroupByTag(tag: string): Promise<CreationG
     .where(eq(creationGroupsTable.tag, tag))
     .limit(1)
   return group ?? null
+}
+
+/**
+ * Which of these row numbers the community has a group for ("Meine Gruppen", MG1: a choice may name
+ * only groups there are). An empty list asks nothing.
+ */
+export async function dbSelectCreationGroupIdsIn(ids: number[]): Promise<number[]> {
+  if (ids.length === 0) {
+    return []
+  }
+  const rows = await drizzleDb()
+    .select({ id: creationGroupsTable.id })
+    .from(creationGroupsTable)
+    .where(inArray(creationGroupsTable.id, ids))
+  return rows.map(({ id }) => id)
 }

@@ -113,6 +113,10 @@ export enum RIGHTS {
   // writing it, one right for both -- every moderator reads and writes the same remark. ⛔ Never in
   // USER_RIGHTS: the member it is about must not read it, in the wallet or anywhere else.
   MANAGE_USER_REMARKS = 'MANAGE_USER_REMARKS',
+  // "Meine Gruppen" (MG1, UserCreationGroupResolver): reading and saving the creation groups the
+  // caller handles themself. Every call reaches the caller's own role row and nothing else -- no
+  // operation takes a member.
+  HANDLED_CREATION_GROUPS = 'HANDLED_CREATION_GROUPS',
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
