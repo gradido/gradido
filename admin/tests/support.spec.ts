@@ -1088,13 +1088,14 @@ for (const [who, scope, first, choices] of [
   })
 }
 
-// "Meine Gruppen" (MG2): the same choice as on the creation page -- the first row, the fixed ones,
-// then only the groups ticked, and at the end the way to the page of the choice
+// "Meine Gruppen" (MG2): the filter of the creation page -- the first row, the fixed ones, then only
+// the groups ticked, and at the end the way to the page of the choice -- over the column "Support"
+// of that page (MG2b)
 test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone (MG2)', async ({
   page,
   graphql,
 }) => {
-  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false } })
   await open(page)
 
   expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
@@ -1123,11 +1124,36 @@ test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone 
   ])
 })
 
+// The two columns part (MG2b): a choice in the column "Schöpfung" narrows nothing here.
+test('follows the column "Support" alone, whatever the column "Schöpfung" holds (MG2b)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    handledCreationGroups: { groupIds: [2], untagged: false },
+    handledSupportGroups: { groupIds: [], untagged: false },
+  })
+  await open(page)
+
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.chooseMine,
+  ])
+  expect(graphql.sentFor('handledSupportGroups')).toHaveLength(1)
+})
+
 test('leads from the filter to "Meine Gruppen", and leaves the filter as it is (MG2)', async ({
   page,
   graphql,
 }) => {
-  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false } })
   await open(page)
   await groupFilter(page).locator('.dropdown-toggle').click()
   await groupFilter(page).getByTestId('support-group-filter-mine').click()
@@ -1144,27 +1170,21 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
   page,
   graphql,
 }) => {
-  // the start page keeps a choice ...
-  graphql.answer({
-    handledCreationGroups: { groupIds: [1], untagged: false },
-    waitingForModeration: { contributionCount: 0 },
-    waitingForMember: { contributionCount: 0 },
-    allOpen: { contributionCount: 0 },
-    everythingOpen: { contributionCount: 0 },
-  })
-  await signIn(page, '')
+  // the page of the choice keeps a choice of the support (MG2b) ...
+  graphql.answer({ handledSupportGroups: { groupIds: [1], untagged: false } })
+  await signIn(page, '/my-groups')
   await expect
     .poll(
       async () =>
         JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
-          .handledCreationGroups?.groupIds,
+          .handledSupportGroups?.groupIds,
     )
     .toEqual([1])
   // ... which another device clears before the support page asks for it
   const held: ((answer: unknown) => void)[] = []
   graphql.answer({
     creationGroups: () => new Promise((resolve) => held.push(resolve)),
-    handledCreationGroups: { groupIds: [], untagged: false },
+    handledSupportGroups: { groupIds: [], untagged: false },
   })
   await page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).click()
   await expect(rows(page)).toHaveCount(6)
@@ -1762,7 +1782,7 @@ test.describe('the switch of new requests (K5)', () => {
     graphql,
   }) => {
     graphql.answer({
-      handledCreationGroups: { groupIds: [1], untagged: false },
+      handledSupportGroups: { groupIds: [1], untagged: false },
       adminCountOpenSupportTickets: {
         forModeration: 5,
         forMember: 1,

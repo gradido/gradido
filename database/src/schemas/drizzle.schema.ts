@@ -1017,6 +1017,10 @@ export const userRolesTable = mysqlTable(
     // it is. NULL is nobody chose: everything counts, as before the column (migration 0177). Read
     // through handledCreationGroupsOf in the backend, which ignores it under an assigned scope.
     handledCreationGroups: text('handled_creation_groups').default(sql`NULL`),
+    // "Meine Gruppen" of the support (MG2b): the groups whose support requests the holder handles
+    // themself, in the same JSON text. Filled from handledCreationGroups where a choice existed
+    // (migration 0178), since that one choice steered the support until then.
+    handledSupportGroups: text('handled_support_groups').default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

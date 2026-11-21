@@ -11,7 +11,8 @@ import type { Context } from '@/server/context'
 const mockCountSupportTickets = jest.fn()
 const mockCountCreations = jest.fn()
 const mockDescribe = jest.fn()
-const mockHandled = jest.fn()
+// the rule of the column "Support" (MG2b): the requests' number follows it
+const mockHandledSupport = jest.fn()
 const mockDatabaseErrorCode = jest.fn()
 const mockLogError = jest.fn()
 
@@ -32,7 +33,7 @@ jest.mock('log4js', () => ({ getLogger: () => ({ error: mockLogError }) }))
 jest.mock('./util/moderatorCreationGroupScope', () => ({
   countContributionsWaitingForModeration: mockCountCreations,
   describeModeratorCreationGroups: mockDescribe,
-  handledCreationGroupsOfRole: mockHandled,
+  handledSupportGroupsOfRole: mockHandledSupport,
 }))
 
 type ResolverModule = typeof import('./ModerationWaitingResolver')
@@ -53,7 +54,7 @@ const CHOICE = { groupIds: [7], untagged: true }
 beforeEach(() => {
   jest.resetAllMocks()
   mockDescribe.mockReturnValue(SCOPE)
-  mockHandled.mockReturnValue(CHOICE)
+  mockHandledSupport.mockReturnValue(CHOICE)
   mockCountCreations.mockResolvedValue(3)
   mockCountSupportTickets.mockResolvedValue({
     forModeration: 2,
@@ -105,7 +106,7 @@ describe('ModerationWaitingResolver', () => {
       expect(await waiting(row)).toEqual({ creations: 3, supportTickets: 2 })
       expect(mockCountCreations).toHaveBeenCalledWith(row)
       expect(mockDescribe).toHaveBeenCalledWith(row)
-      expect(mockHandled).toHaveBeenCalledWith(row)
+      expect(mockHandledSupport).toHaveBeenCalledWith(row)
       expect(mockCountSupportTickets).toHaveBeenCalledWith(SCOPE, expect.any(Date), CHOICE)
     },
   )

@@ -10,7 +10,7 @@ import { Context } from '@/server/context'
 import {
   countContributionsWaitingForModeration,
   describeModeratorCreationGroups,
-  handledCreationGroupsOfRole,
+  handledSupportGroupsOfRole,
 } from './util/moderatorCreationGroupScope'
 
 const createLogger = () =>
@@ -20,7 +20,8 @@ const createLogger = () =>
 export class ModerationWaitingResolver {
   /**
    * The two numbers behind "Admin" in the wallet's menu ("Meine Gruppen", MG3): what waits for the
-   * moderation in the caller's own groups -- the lines "n warten auf die Moderation" of the admin's
+   * moderation in the caller's own groups -- the contributions in those of the column "Schöpfung",
+   * the requests in those of the column "Support" (MG2b) -- the lines "n warten auf die Moderation" of the admin's
    * start page, counted with the same conditions: `waitingForModeration` of adminOpenCreationCounts
    * (see countContributionsWaitingForModeration), and `forModeration` of the very statement of
    * adminCountOpenSupportTickets. Each only with the right that reads it on the start page; whoever
@@ -49,7 +50,7 @@ export class ModerationWaitingResolver {
           ? dbCountOpenSupportTicketsInScope(
               describeModeratorCreationGroups(role),
               new Date(),
-              handledCreationGroupsOfRole(role),
+              handledSupportGroupsOfRole(role),
             ).then(({ forModeration }) => forModeration)
           : null,
       ])

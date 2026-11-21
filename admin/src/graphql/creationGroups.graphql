@@ -20,8 +20,8 @@ query moderatorCreationGroupScope($userId: Int!) {
   moderatorCreationGroupScope(userId: $userId)
 }
 
-# "Meine Gruppen" (MG1): every group with its number, and the groups the signed-in moderator
-# handles themself, in one request -- the page of the choice and the creation page ask for both.
+# "Meine Gruppen" (MG1): every group with its number, and the groups whose creations the signed-in
+# moderator handles themself (the column "Schöpfung"), in one request -- the creation page asks it.
 query creationGroupsAndHandled {
   creationGroups {
     id
@@ -34,11 +34,57 @@ query creationGroupsAndHandled {
   }
 }
 
-# Saves the whole choice; the answer is the choice as stored (each group once, ascending).
-mutation setHandledCreationGroups($groupIds: [Int!]!, $untagged: Boolean!) {
-  setHandledCreationGroups(groupIds: $groupIds, untagged: $untagged) {
+# The same for the support page (MG2b): the groups and the column "Support".
+query creationGroupsAndHandledSupport {
+  creationGroups {
+    id
+    tag
+    name
+  }
+  handledSupportGroups {
     groupIds
     untagged
+  }
+}
+
+# The page of the choice (MG2b): every group and both columns, in one request.
+query myGroupsChoice {
+  creationGroups {
+    id
+    tag
+    name
+  }
+  handledCreationGroups {
+    groupIds
+    untagged
+  }
+  handledSupportGroups {
+    groupIds
+    untagged
+  }
+}
+
+# Saves both columns at once; the answer is the choice as stored (each group once, ascending).
+mutation setHandledGroups(
+  $creationGroupIds: [Int!]!
+  $creationUntagged: Boolean!
+  $supportGroupIds: [Int!]!
+  $supportUntagged: Boolean!
+) {
+  setHandledGroups(
+    creationGroupIds: $creationGroupIds
+    creationUntagged: $creationUntagged
+    supportGroupIds: $supportGroupIds
+    supportUntagged: $supportUntagged
+  ) {
+    creation {
+      groupIds
+      untagged
+    }
+    support {
+      groupIds
+      untagged
+    }
   }
 }
 

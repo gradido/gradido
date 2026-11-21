@@ -17,7 +17,8 @@ export type CreationGroup = v.InferOutput<typeof creationGroupSchema>
 
 /**
  * "Meine Gruppen" (MG1): the creation groups the moderator handles themself, by number, and whether
- * "no group" is among them. Both empty where none is chosen, or none counts (an assigned scope).
+ * "no group" is among them -- one column of the page, "Schöpfung" or "Support" (MG2b). Both empty
+ * where none is chosen, or none counts (an assigned scope).
  */
 export const handledCreationGroupsSchema = v.object({
   groupIds: v.array(v.number()),
@@ -52,10 +53,28 @@ export const numberedCreationGroupSchema = v.object({
 
 export type NumberedCreationGroup = v.InferOutput<typeof numberedCreationGroupSchema>
 
-/** The answer of creationGroupsAndHandled. */
+/** The answer of creationGroupsAndHandled: the groups and the column "Schöpfung". */
 export const creationGroupsAndHandledSchema = v.object({
   creationGroups: v.array(numberedCreationGroupSchema),
   handledCreationGroups: handledCreationGroupsSchema,
+})
+
+/** The answer of creationGroupsAndHandledSupport (MG2b): the groups and the column "Support". */
+export const creationGroupsAndHandledSupportSchema = v.object({
+  creationGroups: v.array(numberedCreationGroupSchema),
+  handledSupportGroups: handledCreationGroupsSchema,
+})
+
+/** The answer of myGroupsChoice (MG2b): the groups and both columns. */
+export const myGroupsChoiceSchema = v.object({
+  ...creationGroupsAndHandledSchema.entries,
+  handledSupportGroups: handledCreationGroupsSchema,
+})
+
+/** Both columns, as setHandledGroups answers them (MG2b). */
+export const handledGroupsSchema = v.object({
+  creation: handledCreationGroupsSchema,
+  support: handledCreationGroupsSchema,
 })
 
 /** How many contributions still name a group with a hashtag: exactly, and with a space after #. */

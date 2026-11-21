@@ -117,21 +117,29 @@ export async function dbUpdateUserRoleSupportDuty(
       }
 }
 
+/** "Meine Gruppen" as the role row stores it: one JSON text per column, null where nothing is chosen. */
+export interface StoredHandledGroups {
+  /** the groups whose creations the holder handles (MG1), handled_creation_groups */
+  creation: string | null
+  /** the groups whose support requests the holder handles (MG2b), handled_support_groups */
+  support: string | null
+}
+
 /**
- * Sets "Meine Gruppen" (MG1) on the member's role row -- the JSON text handledCreationGroupsOf reads
- * in the backend -- or clears it with null. Where that row holds one of ASSIGNABLE_ROLE_NAMES, the
- * role the condition of the very statement: a role taken away in the meantime gets nothing written,
- * and answers like a missing row. Whether the choice counts under the role of the moment the backend
- * decides on reading, so a role change needs nothing here. A choice saved twice is found the second
- * time too (FOUND_ROWS, see dbUpdateUserRoleSupportDuty).
+ * Sets "Meine Gruppen" on the member's role row, both columns in one statement -- the JSON texts
+ * handledCreationGroupsOf reads in the backend -- or clears a column with null. Where that row holds
+ * one of ASSIGNABLE_ROLE_NAMES, the role the condition of the very statement: a role taken away in
+ * the meantime gets nothing written, and answers like a missing row. Whether a choice counts under
+ * the role of the moment the backend decides on reading, so a role change needs nothing here. A
+ * choice saved twice is found the second time too (FOUND_ROWS, see dbUpdateUserRoleSupportDuty).
  */
-export async function dbUpdateUserRoleHandledCreationGroups(
+export async function dbUpdateUserRoleHandledGroups(
   userId: number,
-  handled: string | null,
+  { creation, support }: StoredHandledGroups,
 ): Promise<VoidResult<DBNotFoundError>> {
   const [result] = await drizzleDb()
     .update(userRolesTable)
-    .set({ handledCreationGroups: handled, updatedAt: new Date() })
+    .set({ handledCreationGroups: creation, handledSupportGroups: support, updatedAt: new Date() })
     .where(
       and(eq(userRolesTable.userId, userId), inArray(userRolesTable.role, ASSIGNABLE_ROLE_NAMES)),
     )

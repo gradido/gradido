@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
+import { upgrade as upgradeTo0178 } from '../../migration/migrations/0178-user_roles_handled_support_groups'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { isDuplicateEntry } from '../errorTypes'
 import { userContactsTable, userRolesTable, usersTable } from '../schemas'
@@ -17,7 +18,7 @@ import {
   dbInsertUserRoles,
   dbRemoveUserRoles,
   dbSelectRoleHoldersWithContact,
-  dbUpdateUserRoleHandledCreationGroups,
+  dbUpdateUserRoleHandledGroups,
   dbUpdateUserRoleSupportDuty,
   dbUpsertUserRole,
 } from './userRoles'
@@ -189,16 +190,22 @@ describe('dbUpdateUserRoleSupportDuty', () => {
   })
 })
 
-// "Meine Gruppen" (MG1): written on a row with a role of the moderation only, the role checked by
-// the very statement that writes; everything else on the row stays as it is.
-describe('dbUpdateUserRoleHandledCreationGroups', () => {
+// "Meine Gruppen" (MG1, MG2b): both columns written in one statement, on a row with a role of the
+// moderation only, the role checked by the very statement that writes; everything else on the row
+// stays as it is.
+describe('dbUpdateUserRoleHandledGroups', () => {
   const ADMIN = 9301
   const MODERATOR = 9302
   const MODERATOR_AI = 9303
   const USER = 9304
   const NOBODY = 9305
-  const CHOICE = '{"groupIds":[3,7],"untagged":true}'
-  const choiceOf = async (userId: number) => (await rolesOf(userId))[0]?.handledCreationGroups
+  const CREATION = '{"groupIds":[3,7],"untagged":true}'
+  const SUPPORT = '{"groupIds":[5],"untagged":false}'
+  const BOTH = { creation: CREATION, support: SUPPORT }
+  const choiceOf = async (userId: number) => {
+    const [row] = await rolesOf(userId)
+    return row && { creation: row.handledCreationGroups, support: row.handledSupportGroups }
+  }
 
   beforeAll(async () => {
     await db.delete(userRolesTable)
@@ -219,53 +226,100 @@ describe('dbUpdateUserRoleHandledCreationGroups', () => {
     await db.delete(userRolesTable)
   })
 
-  it('sets the choice of every role of the moderation, and clears it with null', async () => {
+  it('sets both choices of every role of the moderation, each in its column, and clears them with null', async () => {
     for (const userId of [ADMIN, MODERATOR, MODERATOR_AI]) {
-      expect(await dbUpdateUserRoleHandledCreationGroups(userId, CHOICE)).toEqual({
-        success: true,
-      })
+      expect(await dbUpdateUserRoleHandledGroups(userId, BOTH)).toEqual({ success: true })
       const [row] = await rolesOf(userId)
-      expect(row.handledCreationGroups).toBe(CHOICE)
+      expect(row.handledCreationGroups).toBe(CREATION)
+      expect(row.handledSupportGroups).toBe(SUPPORT)
       expect(row.updatedAt).toBeInstanceOf(Date)
-      expect(await dbUpdateUserRoleHandledCreationGroups(userId, null)).toEqual({ success: true })
-      expect(await choiceOf(userId)).toBeNull()
+      expect(
+        await dbUpdateUserRoleHandledGroups(userId, { creation: null, support: null }),
+      ).toEqual({ success: true })
+      expect(await choiceOf(userId)).toEqual({ creation: null, support: null })
     }
   })
 
+  it('leaves one column empty where only the other is chosen', async () => {
+    await dbUpdateUserRoleHandledGroups(ADMIN, { creation: null, support: SUPPORT })
+    expect(await choiceOf(ADMIN)).toEqual({ creation: null, support: SUPPORT })
+    await dbUpdateUserRoleHandledGroups(ADMIN, { creation: CREATION, support: null })
+    expect(await choiceOf(ADMIN)).toEqual({ creation: CREATION, support: null })
+  })
+
   it('finds a choice saved twice', async () => {
-    expect(await dbUpdateUserRoleHandledCreationGroups(ADMIN, CHOICE)).toEqual({ success: true })
-    expect(await dbUpdateUserRoleHandledCreationGroups(ADMIN, CHOICE)).toEqual({ success: true })
-    expect(await choiceOf(ADMIN)).toBe(CHOICE)
+    expect(await dbUpdateUserRoleHandledGroups(ADMIN, BOTH)).toEqual({ success: true })
+    expect(await dbUpdateUserRoleHandledGroups(ADMIN, BOTH)).toEqual({ success: true })
+    expect(await choiceOf(ADMIN)).toEqual(BOTH)
   })
 
   it('leaves the role, the scope and the tick of the row as they are', async () => {
-    await dbUpdateUserRoleHandledCreationGroups(MODERATOR, CHOICE)
+    await dbUpdateUserRoleHandledGroups(MODERATOR, BOTH)
 
     const [row] = await rolesOf(MODERATOR)
     expect(row.role).toBe('MODERATOR')
     expect(row.visibleCreationGroups).toBe('["garden","*untagged"]')
     expect(row.supportDuty).toBe(true)
-    expect(row.handledCreationGroups).toBe(CHOICE)
+    expect(await choiceOf(MODERATOR)).toEqual(BOTH)
   })
 
   it.each([
     ['a row with USER', USER],
     ['a member without a role', NOBODY],
   ])('writes nothing for %s, and says so', async (_name, userId) => {
-    const answer = await dbUpdateUserRoleHandledCreationGroups(userId, CHOICE)
+    const answer = await dbUpdateUserRoleHandledGroups(userId, BOTH)
     expect(answer.success).toBe(false)
-    expect(await choiceOf(userId)).toBe(userId === NOBODY ? undefined : null)
+    expect(await choiceOf(userId)).toEqual(
+      userId === NOBODY ? undefined : { creation: null, support: null },
+    )
   })
 
   // Whether a choice counts under the role of the moment decides the backend on reading
   // (handledCreationGroupsOf): a role change leaves it standing, as it leaves scope and tick.
   it('keeps the choice through a change of the role', async () => {
-    await dbUpdateUserRoleHandledCreationGroups(MODERATOR_AI, CHOICE)
+    await dbUpdateUserRoleHandledGroups(MODERATOR_AI, BOTH)
 
     await dbUpsertUserRole(MODERATOR_AI, 'ADMIN')
-    expect(await choiceOf(MODERATOR_AI)).toBe(CHOICE)
+    expect(await choiceOf(MODERATOR_AI)).toEqual(BOTH)
     await dbUpsertUserRole(MODERATOR_AI, 'MODERATOR')
-    expect(await choiceOf(MODERATOR_AI)).toBe(CHOICE)
+    expect(await choiceOf(MODERATOR_AI)).toEqual(BOTH)
+  })
+})
+
+// Migration 0178 gives the support the choice that steered it until then (MG2): copied where the
+// support's column is empty, so that a retry takes back nothing saved in between. Its column exists
+// here already, so the ALTER of the run below changes nothing.
+describe('migration 0178, the support column filled from the creations', () => {
+  const CHOSE = 9401
+  const CHOSE_BOTH = 9402
+  const CHOSE_NOTHING = 9403
+  const CREATION = '{"groupIds":[3,7],"untagged":true}'
+  const SUPPORT = '{"groupIds":[5],"untagged":false}'
+
+  afterAll(async () => {
+    await db.delete(userRolesTable)
+  })
+
+  it('copies a saved choice into an empty support column, and leaves the others as they are', async () => {
+    await db.delete(userRolesTable)
+    await db.insert(userRolesTable).values([
+      { userId: CHOSE, role: 'ADMIN', handledCreationGroups: CREATION },
+      {
+        userId: CHOSE_BOTH,
+        role: 'MODERATOR',
+        handledCreationGroups: CREATION,
+        handledSupportGroups: SUPPORT,
+      },
+      { userId: CHOSE_NOTHING, role: 'MODERATOR' },
+    ])
+
+    await upgradeTo0178((query: string) => db.execute(sql.raw(query)) as Promise<any>)
+
+    const rows = await db.select().from(userRolesTable)
+    const support = Object.fromEntries(rows.map((row) => [row.userId, row.handledSupportGroups]))
+    expect(support).toEqual({ [CHOSE]: CREATION, [CHOSE_BOTH]: SUPPORT, [CHOSE_NOTHING]: null })
+    const creation = Object.fromEntries(rows.map((row) => [row.userId, row.handledCreationGroups]))
+    expect(creation).toEqual({ [CHOSE]: CREATION, [CHOSE_BOTH]: CREATION, [CHOSE_NOTHING]: null })
   })
 })
 

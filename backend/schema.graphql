@@ -77,6 +77,7 @@ type Query {
   userCreationGroups(userId: Int!): [CreationGroup!]!
   moderatorCreationGroupScope(userId: Int!): [String!]!
   handledCreationGroups: HandledCreationGroups!
+  handledSupportGroups: HandledCreationGroups!
   userNote(about: UserNoteSubjectInput!): String
   userNotes: [UserNote!]!
   userRemark(userId: Int!): UserRemark
@@ -1221,7 +1222,7 @@ type Mutation {
   setMyCreationGroups(tags: [String!]!): [CreationGroup!]!
   setUserCreationGroups(tags: [String!]!, userId: Int!): [CreationGroup!]!
   setModeratorCreationGroupScope(scope: [String!]!, userId: Int!): [String!]!
-  setHandledCreationGroups(untagged: Boolean!, groupIds: [Int!]!): HandledCreationGroups!
+  setHandledGroups(supportUntagged: Boolean!, supportGroupIds: [Int!]!, creationUntagged: Boolean!, creationGroupIds: [Int!]!): HandledGroups!
   setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
   setUserRemark(userId: Int!, remark: String!): UserRemark
   login(email: String!, password: String!, publisherId: Int, project: String): User!
@@ -1447,6 +1448,11 @@ type ThankYouCardPaymentResult {
   attemptsLeft: Int
   payerName: String
   amount: GradidoUnit
+}
+
+type HandledGroups {
+  creation: HandledCreationGroups!
+  support: HandledCreationGroups!
 }
 
 """Possible role names"""

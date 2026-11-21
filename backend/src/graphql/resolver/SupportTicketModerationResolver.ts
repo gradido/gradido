@@ -61,7 +61,7 @@ import { GROUPED_FILTER, HANDLED_FILTER, UNTAGGED_FILTER } from './util/findCont
 import { fromDatabase } from './util/fromDatabase'
 import {
   describeModeratorCreationGroups,
-  handledCreationGroupsOfRole,
+  handledSupportGroupsOfRole,
 } from './util/moderatorCreationGroupScope'
 import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
 import {
@@ -71,18 +71,18 @@ import {
 
 /**
  * The group filter as the admin's choice sends it, the creation page's tokens (findContributions):
- * '' any group, `*grouped` some, `*untagged` none, `*handled` "Meine Gruppen" of the role (MG2), else
- * a group's tag.
+ * '' any group, `*grouped` some, `*untagged` none, `*handled` "Meine Gruppen" of the support of the
+ * role (MG2, its own column since MG2b), else a group's tag.
  *
  * ⛔ `*handled` before the tag: taken for one, it would name no group, and every administrator's
  * support page would open empty. For whoever has no choice it is any group, nothing beyond the scope.
  */
 const groupFilterOf = (
   creationGroup: string,
-  role: Parameters<typeof handledCreationGroupsOfRole>[0],
+  role: Parameters<typeof handledSupportGroupsOfRole>[0],
 ): SupportTicketFilter['group'] => {
   if (creationGroup === HANDLED_FILTER) {
-    return handledCreationGroupsOfRole(role)
+    return handledSupportGroupsOfRole(role)
   }
   if (creationGroup === GROUPED_FILTER) {
     return 'GROUPED'
@@ -255,8 +255,8 @@ export class SupportTicketModerationResolver {
    * How many requests the open tab holds, as its two halves (K3): waiting for the moderation,
    * waiting for the member -- and apart from them what waits for a resubmission still to come,
    * which the tab opens without (K4). Within the scope, the moderator's own requests counted as
-   * the tab lists them -- what the badges and the start page show. Always "Meine Gruppen" (MG2),
-   * and beside it what is open and waiting elsewhere in the scope: one statement, one moment, so
+   * the tab lists them -- what the badges and the start page show. Always "Meine Gruppen" of the
+   * support (MG2, MG2b), and beside it what is open and waiting elsewhere in the scope: one statement, one moment, so
    * the line "In anderen Gruppen" cannot come from two counts that drift apart. No argument.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
@@ -268,7 +268,7 @@ export class SupportTicketModerationResolver {
       dbCountOpenSupportTicketsInScope(
         describeModeratorCreationGroups(role),
         new Date(),
-        handledCreationGroupsOfRole(role),
+        handledSupportGroupsOfRole(role),
       ),
     )
   }

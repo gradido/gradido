@@ -94,14 +94,26 @@ export const describeModeratorCreationGroups = (
   return { tags, seesAllCreationGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
 }
 
-// "Meine Gruppen" of the role a request loaded: the choice of one who sees every group, else null
-// (handledCreationGroupsOf). The one reading for the creation page, the choice's own query and the
-// support's list and count (MG1, MG2), so that they cannot answer differently.
+// "Meine Gruppen" of the creations of the role a request loaded: the choice of one who sees every
+// group, else null (handledCreationGroupsOf). The one reading for the creation page, its counts, the
+// number of contributions at "Admin" in the wallet and the choice's own query (MG1, MG3), so that
+// they cannot answer differently.
 export const handledCreationGroupsOfRole = (
   role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
 ): HandledCreationGroups | null =>
   handledCreationGroupsOf(
     role?.handledCreationGroups,
+    describeModeratorCreationGroups(role).seesAllCreationGroups,
+  )
+
+// "Meine Gruppen" of the support (MG2b): the same rule over the support's own column. The one
+// reading for the support's list and count, the number of requests at "Admin" in the wallet and the
+// choice's own query.
+export const handledSupportGroupsOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledSupportGroups'> | null,
+): HandledCreationGroups | null =>
+  handledCreationGroupsOf(
+    role?.handledSupportGroups,
     describeModeratorCreationGroups(role).seesAllCreationGroups,
   )
 
