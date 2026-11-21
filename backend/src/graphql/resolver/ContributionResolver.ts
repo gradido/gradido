@@ -40,6 +40,7 @@ import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { colleagueNoteOnQuestion } from '@/data/ContributionConversation.logic'
+import { handledCreationGroupsOf } from '@/data/HandledCreationGroups.logic'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -57,9 +58,10 @@ import {
 import { createUserContribution } from './util/createUserContribution'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFieldPaths, extractGraphQLFields } from './util/extractGraphQLFields'
-import { findContributions, parseModeratorScope } from './util/findContributions'
+import { findContributions, HANDLED_FILTER, parseModeratorScope } from './util/findContributions'
 import {
   assertContributionInModeratorScope,
+  describeModeratorCreationGroups,
   isScopedModeratorRole,
 } from './util/moderatorCreationGroupScope'
 
@@ -472,6 +474,14 @@ export class ContributionResolver {
       activeRole && isScopedModeratorRole(activeRole.role)
         ? parseModeratorScope(activeRole.visibleCreationGroups)
         : null
+    // "Meine Gruppen" (MG1), from the role row loaded with the request: no query of its own.
+    const handled =
+      filter.creationGroup === HANDLED_FILTER
+        ? handledCreationGroupsOf(
+            activeRole?.handledCreationGroups,
+            describeModeratorCreationGroups(activeRole).seesAllCreationGroups,
+          )
+        : null
     const [dbContributions, count] = await findContributions(
       paginated,
       filter,
@@ -486,6 +496,7 @@ export class ContributionResolver {
       },
       countOnly,
       moderatorScope,
+      handled,
     )
     const result = new ContributionListResult(count, dbContributions)
     await attachContributionCreationGroups(result.contributionList)

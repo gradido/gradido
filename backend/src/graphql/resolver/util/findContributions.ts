@@ -4,6 +4,7 @@ import { AppDatabase, Contribution as DbContribution } from 'database'
 import { searchWords } from 'shared'
 import { Brackets, In, IsNull, LessThanOrEqual, Like, SelectQueryBuilder } from 'typeorm'
 
+import type { HandledCreationGroups } from '@/data/HandledCreationGroups.schema'
 import { LogError } from '@/server/LogError'
 
 interface Relations {
@@ -50,6 +51,12 @@ export const UNTAGGED_FILTER = '*untagged'
 // Its complement, offered by the group filter only: everything that does belong to some
 // group. "all" (the empty filter) plus these two cover every contribution exactly once.
 export const GROUPED_FILTER = '*grouped'
+
+// "Meine Gruppen" (MG1): the groups the signed-in moderator handles themself, as the admin's start
+// page and creation page ask for them. What it stands for the resolver decides
+// (handledCreationGroupsOf): the choice of one who sees every group; for everybody else nothing
+// beyond what they see, so it is a valid filter for every role.
+export const HANDLED_FILTER = '*handled'
 
 // "Untagged" = no group moderator is looking after this: the contribution is linked to no
 // group. Exactly the complement of "linked to some group", so "all" plus these two cover
@@ -118,6 +125,29 @@ export const buildCreationGroupPredicate = (
   return { sql: tagMatchSql('creationGroupFilter'), params: { creationGroupFilter: tag } }
 }
 
+// The ticked groups, by their numbers, OR the contributions in no group where "no group" is
+// ticked. A choice names at least one of the two (parseHandledCreationGroups). Its parameter has a
+// name of its own: the scope's (scopeTag…) and the filter's would overwrite it in the one query.
+export const buildHandledPredicate = (
+  choice: HandledCreationGroups,
+): { sql: string; params: Record<string, number[]> } => {
+  const parts: string[] = []
+  if (choice.groupIds.length > 0) {
+    parts.push(
+      `EXISTS (SELECT 1 FROM contribution_creation_groups cgh ` +
+        `WHERE cgh.contribution_id = Contribution.id ` +
+        `AND cgh.creation_group_id IN (:...handledGroupIds))`,
+    )
+  }
+  if (choice.untagged) {
+    parts.push(UNTAGGED_SQL)
+  }
+  return {
+    sql: `(${parts.join(' OR ')})`,
+    params: choice.groupIds.length > 0 ? { handledGroupIds: choice.groupIds } : {},
+  }
+}
+
 export const findContributions = async (
   { pageSize, currentPage, order }: Paginated,
   filter: SearchContributionsFilterArgs,
@@ -125,6 +155,8 @@ export const findContributions = async (
   relations: Relations | undefined = undefined,
   countOnly = false,
   moderatorScope: string[] | null = null,
+  // what HANDLED_FILTER stands for in this request, null for no restriction
+  handled: HandledCreationGroups | null = null,
 ): Promise<[DbContribution[], number]> => {
   const connection = AppDatabase.getInstance()
   if (!connection.isConnected()) {
@@ -171,7 +203,15 @@ export const findContributions = async (
   })
   // Creation-group filter from the admin UI (a single selected group). Separate from the
   // free-text `query` above, so both can be applied at the same time.
-  if (filter.creationGroup) {
+  //
+  // ⛔ "Meine Gruppen" before the general branch: that one would take '*handled' for a tag, find
+  // no group of that name, and "nothing ticked" would show nothing instead of everything.
+  if (filter.creationGroup === HANDLED_FILTER) {
+    if (handled) {
+      const handledPredicate = buildHandledPredicate(handled)
+      queryBuilder.andWhere(handledPredicate.sql, handledPredicate.params)
+    }
+  } else if (filter.creationGroup) {
     const groupPredicate = buildCreationGroupPredicate(filter.creationGroup)
     queryBuilder.andWhere(groupPredicate.sql, groupPredicate.params)
   }
