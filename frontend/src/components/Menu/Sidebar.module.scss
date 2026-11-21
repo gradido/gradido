@@ -76,6 +76,47 @@
   white-space: nowrap;
 }
 
+/* "Meine Gruppen" (MG3): the two numbers behind "Admin", in Bernd's form -- a column at the end
+   of the word, the creations above, the support requests below and 10 px in. It takes no room
+   in the row (absolute, the word its reference), so nothing moves when a number comes or goes,
+   and each number keeps its place: a number that is not there leaves its place empty. */
+.sidebar :global(.admin-menu-label) {
+  position: relative;
+}
+
+.sidebar :global(.admin-marks) {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  display: block;
+  width: max-content;
+  margin-left: 6px;
+  line-height: 0;
+  transform: translateY(-50%);
+}
+
+.sidebar :global(.admin-mark-row) {
+  display: block;
+  height: 1.05rem;
+}
+
+.sidebar :global(.admin-mark-row + .admin-mark-row) {
+  margin: 2px 0 0 10px;
+}
+
+/* The marks are the chat's (.chat-unread-badge): its height, figures, gold and the ring in the
+   card's colour -- standing in their row, not hanging on a symbol's corner. The upper one is
+   square, the lower round as the others. */
+.sidebar :global(.chat-unread-badge.admin-mark) {
+  position: static;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.sidebar :global(.chat-unread-badge.admin-mark-square) {
+  border-radius: 3px;
+}
+
 .sidebar :global(.svg-icon) {
   filter: brightness(1) invert(0);
 }
