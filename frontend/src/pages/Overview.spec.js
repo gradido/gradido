@@ -24,13 +24,6 @@ const config = vi.hoisted(() => ({
 }))
 vi.mock('@/config', () => ({ default: config }))
 
-vi.mock('@/components/Overview/CommunityNews', () => ({
-  CommunityNews: {
-    name: 'CommunityNews',
-    template: '<div class="community-news"></div>',
-  },
-}))
-
 // ⚠️ `result` included: the tile reads the referral trace off it. Without it the tile
 // throws, and the two cases below would fail for a reason that has nothing to do with
 // what they are about.

@@ -523,7 +523,6 @@
       "yourContribution": "Η συνεισφορά σου στο κοινό καλό"
     },
     "isEdited": "επεξεργάστηκε τη συνεισφορά",
-    "lastContribution": "Τελευταίες συνεισφορές",
     "memoIsPublic": "Η περιγραφή σου εμφανίζεται στη λίστα της κοινότητας, όπου είναι ορατή σε όλα τα μέλη. Εκεί αναγράφεται ο αριθμός της συνεισφοράς αντί για το όνομά σου.",
     "noContributions": {
       "allContributions": "Δεν έχουν υποβληθεί ακόμη συνεισφορές.",
@@ -571,7 +570,6 @@
   "delete": "Διαγραφή",
   "download": "Λήψη",
   "edit": "επεξεργασία",
-  "em-dash": "—",
   "emailChange": {
     "confirm": {
       "button": "Επιβεβαίωση νέας διεύθυνσης",
@@ -1461,12 +1459,7 @@
       "enabled": "Τα δεδομένα εξάγονται στην Gradido Community"
     },
     "language": {
-      "de": "Deutsch",
-      "en": "English",
       "error": "Δεν ήταν δυνατή η ενημέρωση των ρυθμίσεων γλώσσας.",
-      "es": "Español",
-      "fr": "Français",
-      "nl": "Nederlands",
       "success": "Η γλώσσα σου άλλαξε με επιτυχία."
     },
     "menu": {
@@ -1869,8 +1862,7 @@
     "nullTransactions": "Δεν έχεις ακόμη συναλλαγές στον λογαριασμό σου.",
     "onlyWith": "{n} κίνηση με {name} | {n} κινήσεις με {name}",
     "onlyWithSomeone": "Μόνο κινήσεις με ένα μέλος",
-    "receiverNotFound": "Ο παραλήπτης δεν βρέθηκε",
-    "show_all": "Δες όλες τις <strong>{count}</strong> συναλλαγές"
+    "receiverNotFound": "Ο παραλήπτης δεν βρέθηκε"
   },
   "transaction-link": {
     "send_you": "σου στέλνει"

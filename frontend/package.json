@@ -7,7 +7,6 @@
     "build": "vite build",
     "start": "vite preview",
     "postbuild": "uname | grep -q Linux && find build -type f -regex '.*\\.\\(html\\|js\\|css\\|svg\\|json\\)' -exec gzip -9 -k {} + || echo 'Skip precompress on non-Linux'",
-    "analyse-bundle": "yarn build && webpack-bundle-analyzer build/webpack.stats.json",
     "lint": "biome check --error-on-warnings . && eslint --ext .js,.vue,.json,.ts,.tsx .",
     "lint:fix": "biome check --error-on-warnings . --write && eslint --ext .js,.vue,.json,.ts,.tsx . --fix",
     "stylelint": "stylelint '**/*.{scss,vue}'",
@@ -47,10 +46,8 @@
     "pbf": "^5.1.2",
     "pinia": "3.0.4",
     "pmtiles": "^4.5.0",
-    "portal-vue": "^3.0.0",
     "qrcanvas": "^3.1.2",
     "qrcanvas-vue": "3",
-    "regenerator-runtime": "^0.13.7",
     "tua-body-scroll-lock": "^1.5.1",
     "uuid": "^9.0.0",
     "valibot": "1.1.0",
@@ -85,7 +82,6 @@
     "config-schema": "*",
     "cross-env": "^7.0.3",
     "dotenv": "^16.6.1",
-    "dotenv-webpack": "^7.0.3",
     "eslint": "8.57.1",
     "eslint-config-prettier": "^10.1.1",
     "eslint-config-standard": "^17.0.0",
@@ -96,7 +92,6 @@
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-vitest": "^0.5.4",
     "eslint-plugin-vue": "8.7.1",
-    "eslint-webpack-plugin": "^5.0.0",
     "jsdom": "^25.0.0",
     "lightningcss": "^1.30.1",
     "mock-apollo-client": "^1.2.1",
@@ -113,8 +108,7 @@
     "vite-plugin-graphql-loader": "^4.0.4",
     "vite-plugin-html": "^3.2.2",
     "vitest": "^2.0.5",
-    "vitest-canvas-mock": "^0.3.3",
-    "webpack": "^5"
+    "vitest-canvas-mock": "^0.3.3"
   },
   "postcss": {
     "plugins": {

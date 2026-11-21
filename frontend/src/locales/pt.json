@@ -523,7 +523,6 @@
       "yourContribution": "A tua contribuição para o bem comum"
     },
     "isEdited": "editou a contribuição",
-    "lastContribution": "Últimas contribuições",
     "memoIsPublic": "A tua descrição aparece na lista da comunidade, onde é visível para todos os membros. Aí figura o número da contribuição em vez do teu nome.",
     "noContributions": {
       "allContributions": "Ainda não foram submetidas contribuições.",
@@ -571,7 +570,6 @@
   "delete": "Eliminar",
   "download": "Transferir",
   "edit": "editar",
-  "em-dash": "—",
   "emailChange": {
     "confirm": {
       "button": "Confirmar o novo endereço",
@@ -1461,12 +1459,7 @@
       "enabled": "Os dados são exportados para a Gradido Community"
     },
     "language": {
-      "de": "Deutsch",
-      "en": "English",
       "error": "Não foi possível atualizar as definições de idioma.",
-      "es": "Español",
-      "fr": "Français",
-      "nl": "Nederlands",
       "success": "O teu idioma foi alterado com sucesso."
     },
     "menu": {
@@ -1869,8 +1862,7 @@
     "nullTransactions": "Ainda não tens transações na tua conta.",
     "onlyWith": "{n} movimento com {name} | {n} movimentos com {name}",
     "onlyWithSomeone": "Apenas movimentos com um membro",
-    "receiverNotFound": "Destinatário não encontrado",
-    "show_all": "Ver todas as <strong>{count}</strong> transações"
+    "receiverNotFound": "Destinatário não encontrado"
   },
   "transaction-link": {
     "send_you": "envia-te"

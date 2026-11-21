@@ -80,22 +80,13 @@ Playwright specs. `old` is what the step replaces (code files / lines).
 
 ### Before any page
 
-**1. Dead code out of the old wallet** (about 60 files, deletions only)
-So that nobody ports it, and the later steps are counted without it.
-- Imported by nothing: `GddSend/NavSend`, `LanguageSwitchSelect`, `Overview/CommunityNews` (and
-  `assets/News/news.json`), `Template/RightSide/LastContributions`, `TransactionRows/TypeIcon`.
-- Imported by their own spec only: `GddTransactionListFooter`, `Inputs/FirstName`,
-  `Inputs/LastName`, `Status`, `UserSettings/UserCard`.
-- 15 `*.NEW` / `*.old` files; `plugins/globalDirectives.js` (empty); `assets/mocks/styleMock.js`;
-  `graphql/enums.js`; query `listContributionMessages`; fragments `contributionFields`,
-  `unconfirmedContributionFields`; rule `is_not`; store field `hasElopage`; exports
-  `ROTATIONS`, `isSwissTransferLink`, `thankYouCardFileName`, `favoritesLoaded`, `forgetSheet`,
-  `forgetViewport`.
-- Outside `src`: `babel.config.js`, `vue.config.js`, `intelij.webpack.js`, `run/server.js`,
-  `scripts/sort.sh`, `scripts/sort_filter.jq`, `scripts/missing-keys.sh.old`, the
-  `analyse-bundle` script, and the dependencies `portal-vue`, `@morev/vue-transitions`,
-  `webpack`, `dotenv-webpack`, `eslint-webpack-plugin`, `regenerator-runtime`.
-- In `main.js`: `$filters`, the `if (!store)` block, the mount "stub" options.
+**1. Dead code out of the old wallet** — done.
+Checked again and found alive, so still there: `graphql/enums.js` (`GdtEntryType`, read by the
+transaction rows), `favoritesLoaded`, `forgetSheet` and `forgetViewport` (the specs reset and
+read state through them; they go with the specs in step 21), `@morev/vue-transitions` (its
+components are unused, but its style sheet sets `.fade-enter-active`, the name
+bootstrap-vue-next's own transitions use: it goes with bootstrap-vue-next in step 22), `$filters`
+in `main.js` (`useFilters.ts` hands them to the TSX components).
 
 **2. The base** (about 70 files)
 No page yet; everything a page needs.

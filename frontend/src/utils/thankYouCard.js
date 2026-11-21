@@ -3,7 +3,6 @@
 import { printFontReady } from './printFont'
 import { printSheet } from './printSheet'
 import { renderQrCodeCanvas } from './qrCode'
-import { chequeFileName } from './thankYouCheque'
 
 /**
  * The printed thank you card: portrait, 54 x 85.6 mm at 300 dpi.
@@ -116,23 +115,6 @@ const sizeToFit = (ctx, { text, weight, size, floor, room }) => {
     ctx.font = `${weight} ${fitted}px ${FONT}`
   }
   return fitted
-}
-
-/**
- * The file name of a downloaded card. The label leads, so somebody who has had several over
- * the years gets a folder that sorts by card rather than by date.
- *
- * ★ Reuses the cheque's name builder rather than inventing a second one. It already handles
- * what a file name has to survive -- characters Windows forbids, reserved device names,
- * trailing dots -- and a private copy of those rules would drift from it the first time
- * somebody learns something new about file names.
- *
- * @param {string} label
- * @returns {string}
- */
-export const thankYouCardFileName = (label) => {
-  const name = String(label ?? '').trim()
-  return chequeFileName(name ? `Dank-Karte ${name}` : 'Dank-Karte')
 }
 
 /**

@@ -20,9 +20,6 @@
  * no decision left in them (`applyCrop` below).
  */
 
-/** The turns the rotate button steps through. */
-export const ROTATIONS = [0, 90, 180, 270]
-
 /**
  * One press of the rotate button: a quarter turn clockwise, four of them back to the
  * start. One button rather than two, because pressing three times IS the other direction

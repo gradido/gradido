@@ -523,7 +523,6 @@
       "yourContribution": "Ta contribution au bien commun"
     },
     "isEdited": "a modifié la contribution",
-    "lastContribution": "Dernières contributions",
     "memoIsPublic": "Ta description apparaît dans la liste de la communauté, où elle est visible par tous les membres. C’est le numéro de la contribution qui y figure, pas ton nom.",
     "noContributions": {
       "allContributions": "Aucune contribution n'a encore été soumise.",
@@ -571,7 +570,6 @@
   "delete": "Supprimer",
   "download": "Télécharger",
   "edit": "modifier",
-  "em-dash": "—",
   "emailChange": {
     "confirm": {
       "button": "Confirmer la nouvelle adresse",
@@ -1461,12 +1459,7 @@
       "enabled": "Les données sont exportées vers la communauté Gradido"
     },
     "language": {
-      "de": "Deutsch",
-      "en": "English",
       "error": "Échec de la mise à jour des paramètres linguistiques.",
-      "es": "Español",
-      "fr": "Français",
-      "nl": "Nederlands",
       "success": "Ta langue de préférence a bien été actualisée."
     },
     "menu": {
@@ -1869,8 +1862,7 @@
     "nullTransactions": "Tu n'as pas encore de transaction effectuée sur ton compte.",
     "onlyWith": "{n} opération avec {name} | {n} opérations avec {name}",
     "onlyWithSomeone": "Uniquement les opérations avec un membre",
-    "receiverNotFound": "Destinataire inconnu",
-    "show_all": "Voir toutes les <strong>{count}</strong> transactions."
+    "receiverNotFound": "Destinataire inconnu"
   },
   "transaction-link": {
     "send_you": "veut t'envoyer"

@@ -12,8 +12,6 @@ import { createFilters } from './filters/amount'
 import i18n from './i18n.js'
 import { loadAllRules } from './validation-rules'
 
-import 'regenerator-runtime'
-
 import addNavigationGuards from './routes/guards'
 
 import { pinia, store } from './store/store'
@@ -33,9 +31,7 @@ import { installNewVersionCheck } from './utils/newVersionCheck'
 
 import { createBootstrap } from 'bootstrap-vue-next'
 
-import GlobalDirectives from '@/plugins/globalDirectives'
 import { plugin as vueTransitionsPlugin } from '@morev/vue-transitions/vue3'
-import PortalVue from 'portal-vue'
 import '@morev/vue-transitions/styles'
 
 // Before anything else that could navigate: a deploy invalidates the lazily loaded pages of
@@ -54,8 +50,6 @@ app.use(router)
 app.use(pinia)
 app.use(i18n)
 app.use(createBootstrap())
-app.use(GlobalDirectives)
-app.use(PortalVue)
 app.use(vueTransitionsPlugin())
 
 const filters = createFilters(i18n)
@@ -85,27 +79,11 @@ if (store.language) {
   i18n.global.locale.value = store.language
 }
 
-if (!store) {
-  setTimeout(
-    window.location.assign('https://github.com/gradido/gradido/tree/master/support#cookies'),
-    5000,
-  )
-}
-
 // Wait for the router's initial navigation to resolve before mounting. Otherwise
 // the first render happens on the start location (which has no route meta), so
 // App.vue picks the AuthLayout and the login page flashes for a moment on every
 // reload of an authenticated route before the router lands on it and swaps in the
 // DashboardLayout (also seen when returning from the admin interface).
 router.isReady().then(() => {
-  app.mount('#app', {
-    stub: {
-      ValidationObserver: {
-        template: '<div>Validation Observer MOCK</div>',
-      },
-      ValidationProvider: {
-        template: '<div>Validation Observer MOCK</div>',
-      },
-    },
-  })
+  app.mount('#app')
 })
