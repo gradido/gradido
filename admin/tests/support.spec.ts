@@ -120,7 +120,7 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
       currentPage: 1,
       pageSize: 25,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
       hideResubmission: true,
     },
   ])
@@ -185,7 +185,7 @@ test('shows the closed, the deleted and all requests with their columns, colours
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: false,
   })
   await expect(heads(page)).toHaveText([
@@ -234,7 +234,7 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql })
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: false,
   })
 })
@@ -363,7 +363,7 @@ test('asks for the next page', async ({ page, graphql }) => {
       currentPage: 2,
       pageSize: 25,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
       hideResubmission: true,
     })
 })
@@ -551,7 +551,7 @@ test('answers below the thread, and asks for the thread, the list and the count 
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: true,
   })
   // the row stays open where it is still in the list
@@ -923,7 +923,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
   await searchField(page).fill('Garten Bibi')
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '*handled' })
 
   await tab(page, de.support.tab.closed).click()
   await expect
@@ -933,7 +933,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
       statuses: ['CLOSED'],
       hideResubmission: false,
       query: 'Garten Bibi',
-      creationGroup: '',
+      creationGroup: '*handled',
     })
   const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
   expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({
@@ -953,7 +953,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
       statuses: ['CLOSED'],
       hideResubmission: false,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
     })
 })
 
@@ -998,6 +998,8 @@ test('filters by group from the first page, and opens on all the moderator sees'
     de.creationGroupFilter.untagged,
     'Garten',
     '#kueche',
+    // below a divider, a way and no choice (MG2)
+    de.creationGroupFilter.chooseMine,
   ])
   await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
   await expect
@@ -1005,10 +1007,11 @@ test('filters by group from the first page, and opens on all the moderator sees'
     .toEqual({ ...OPEN_TAB, query: '', creationGroup: 'garten' })
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
 
-  // the filter is not kept: the page opens on all again
+  // the filter is not kept: the page opens on all again -- "Meine Gruppen", which for one who
+  // chose nothing is everything (MG2)
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
-  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '*handled' })
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
 })
 
@@ -1055,6 +1058,139 @@ for (const [who, scope, first, choices] of [
   })
 }
 
+// "Meine Gruppen" (MG2): the same choice as on the creation page -- the first row, the fixed ones,
+// then only the groups ticked, and at the end the way to the page of the choice
+test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  await open(page)
+
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(
+    de.creationGroupFilter.mine,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.mine,
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  // handing a request on still offers every group (K4): where to hand it, not what I handle
+  await row(page, 0).locator('.group-select .dropdown-toggle').click()
+  await expect(row(page, 0).locator('.group-select .dropdown-item')).toHaveText([
+    de.contribution.noGroup,
+    'Garten',
+    '#kueche',
+  ])
+})
+
+test('leads from the filter to "Meine Gruppen", and leaves the filter as it is (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).getByTestId('support-group-filter-mine').click()
+
+  await expect(page).toHaveURL(/\/admin\/my-groups$/)
+  await expect(page.getByRole('heading', { name: de.myGroups.title })).toBeVisible()
+  // no other list was asked for: the line is a way, not a choice
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+})
+
+// "" is on offer with a choice only (MG2, as MG1): picked while the page still knew a choice that
+// was cleared on another device, the filter names the same list by the row that now means everything.
+test('names the whole list where the choice was cleared elsewhere as it was picked (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  // the start page keeps a choice ...
+  graphql.answer({
+    handledCreationGroups: { groupIds: [1], untagged: false },
+    waitingForModeration: { contributionCount: 0 },
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
+  })
+  await signIn(page, '')
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
+          .handledCreationGroups?.groupIds,
+    )
+    .toEqual([1])
+  // ... which another device clears before the support page asks for it
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    creationGroups: () => new Promise((resolve) => held.push(resolve)),
+    handledCreationGroups: { groupIds: [], untagged: false },
+  })
+  await page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).click()
+  await expect(rows(page)).toHaveCount(6)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+
+  await expect.poll(() => held.length).toBe(1)
+  held[0](groups)
+  // the answer read: the groups stand in the filter
+  await expect(groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' })).toHaveCount(1)
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  // the same list, not asked for again -- and the next page asks it by its new name
+  expect(listAsked(graphql)).toHaveLength(2)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, currentPage: 2, query: '', creationGroup: '*handled' })
+})
+
+// ⛔ The rule of the cleared choice is for whoever may choose: a moderator of a group and of no
+// group begins on "" (SUA-026), and stays there once the groups came.
+test('keeps a moderator of a group and of no group on "(mit und ohne Gruppe)" (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  const scoped = {
+    ...moderator,
+    role: 'MODERATOR',
+    seesAllCreationGroups: false,
+    visibleCreationGroups: ['kueche'],
+    seesUntagged: true,
+  }
+  graphql.answer(signedInAnswers(scoped))
+  await signIn(page, '/support', scoped)
+  await expect(rows(page)).toHaveCount(6)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  // the groups came, and no way to "Meine Gruppen": the scope is the list
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+  ])
+  await expect(groupFilter(page).locator('.dropdown-item.active')).toHaveText(
+    de.creationGroupFilter.all,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, currentPage: 2, query: '', creationGroup: '' })
+})
+
 test('searches for the member of a row with its magnifier: the address, else the username', async ({
   page,
   graphql,
@@ -1071,7 +1207,7 @@ test('searches for the member of a row with its magnifier: the address, else the
   await expect(searchField(page)).toHaveValue('member1@example.org')
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '*handled' })
 
   await row(page, 1).getByRole('button', { name: de.support.searchMember }).click()
   await expect(searchField(page)).toHaveValue('member2')
@@ -1094,7 +1230,7 @@ test('hides on the open tab what waits for a resubmission, at every opening, and
   await hideBox(page).uncheck()
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '*handled' })
 
   // the other tabs hide nothing, and have no box
   await tab(page, de.support.tab.closed).click()
