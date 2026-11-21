@@ -116,6 +116,8 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
 }) => {
   await open(page)
 
+  // the page's name, the menu's word
+  await expect(page.getByRole('heading', { name: de.navbar.support, exact: true })).toBeVisible()
   await expect(page.locator('li.bg-color-creation + li')).toHaveText(`${de.navbar.support} 6`)
   await expect(
     page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }),

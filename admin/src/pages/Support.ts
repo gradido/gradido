@@ -326,7 +326,9 @@ export class Support implements ClassComponent {
     const asked = pending ? DECISIONS[pending.decision] : null
     const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
-    return m('.support-tickets.creation-confirm.mt-2', [
+    return m('.support-tickets.creation-confirm', [
+      // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
+      m('h2.h4.mb-3', t('navbar.support')),
       // the line while new requests are off, a row of its own above the search (K5)
       this.switchRow(),
       // the search and the group side by side; on a narrow window one above the other
