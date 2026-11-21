@@ -329,6 +329,44 @@ test('keeps the count and the choice of a save where the start page answers afte
   expect(kept.handledSupportGroups).toMatchObject({ groupIds: [3], untagged: true })
 })
 
+// coderabbit on #4315: a later question that fails takes nothing from a save -- the save's answer,
+// arriving after it, is kept. The marks of both columns work alike; the start page asks this one.
+test('keeps a save whose answer comes after a later question that failed', async ({
+  page,
+  graphql,
+}) => {
+  const save = holding()
+  graphql.answer({
+    setHandledGroups: save.answer,
+    adminListContributions: { contributionCount: 1 },
+    // the start page's question, which carries the column "Schöpfung", fails
+    waitingForModeration: new Failure('no database'),
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
+  })
+  await signIn(page, '/my-groups')
+  await box(page, 'Amstetten').check()
+  await page.getByTestId('my-groups-save').click()
+  await expect.poll(() => save.held.length).toBe(1)
+
+  // on to the start page while the save is on its way: its question goes out after the save
+  await page.getByTestId('navbar-home').click()
+  await expect(page.getByRole('alert')).toContainText('no database')
+  save.held[0]({
+    creation: { groupIds: [3, 7], untagged: true },
+    support: { groupIds: [3], untagged: true },
+  })
+
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
+          .handledCreationGroups?.groupIds,
+    )
+    .toEqual([3, 7])
+})
+
 test('reports a failed save, and leaves the ticks as they are', async ({ page, graphql }) => {
   graphql.answer({ setHandledGroups: new Failure('no database') })
   await signIn(page, '/my-groups')

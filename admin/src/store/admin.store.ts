@@ -112,23 +112,29 @@ export const setOpenSupportTickets = (openSupportTickets: number) => {
   save()
 }
 
-// The question about a column asked last, or the save sent last (MG1, MG2b), one mark per column: an
-// earlier one's answer arriving later keeps nothing -- a slow start page must not put back the choice
-// from before a save. Apart, since a question about one column does not overtake the other's.
-const choiceAsked = { handledCreationGroups: 0, handledSupportGroups: 0 }
-type Column = keyof typeof choiceAsked
+// One mark per column for every question or save as it goes out (MG1, MG2b), and the mark of the
+// answer last kept: an answer is kept only where it is newer than that one. A slow start page, asked
+// before a save and answering after it, keeps nothing -- it must not put back the choice from before
+// the save. A save answered while a later question is still out is kept, and that question's answer
+// overtakes it once it comes; where that question fails, the save stands. Apart per column, since a
+// question about one column overtakes nothing of the other.
+const marks = {
+  handledCreationGroups: { asked: 0, kept: 0 },
+  handledSupportGroups: { asked: 0, kept: 0 },
+}
+type Column = keyof typeof marks
 
 /** A question about the column "Schöpfung", or a save, goes out: the mark its answer is kept under. */
-export const askingHandledCreationGroups = () => ++choiceAsked.handledCreationGroups
+export const askingHandledCreationGroups = () => ++marks.handledCreationGroups.asked
 
 /** A question about the column "Support", or a save, goes out: the mark its answer is kept under. */
-export const askingHandledSupportGroups = () => ++choiceAsked.handledSupportGroups
+export const askingHandledSupportGroups = () => ++marks.handledSupportGroups.asked
 
 /**
  * Keeps the choice of a column the server answered for `of`, the moderator the question was asked
- * for -- where that is still the moderator signed in, and no question or save went out after it
- * (`asked`, from askingHandled…Groups): an answer arriving after a change of moderator in this
- * browser is nobody's to keep, one overtaken by a later question is out of date.
+ * for -- where that is still the moderator signed in, and no answer to a later question or save was
+ * kept before it (`asked`, from askingHandled…Groups): an answer arriving after a change of moderator
+ * in this browser is nobody's to keep, one older than the choice kept is out of date.
  */
 const keepColumn = (
   column: Column,
@@ -136,9 +142,11 @@ const keepColumn = (
   choice: HandledCreationGroups,
   asked: number,
 ) => {
-  if (!of || of !== adminStore.moderator?.gradidoID || asked !== choiceAsked[column]) {
+  const mark = marks[column]
+  if (!of || of !== adminStore.moderator?.gradidoID || asked <= mark.kept) {
     return
   }
+  mark.kept = asked
   adminStore[column] = { of, ...choice }
   save()
 }
