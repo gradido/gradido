@@ -61,7 +61,6 @@ const i18n = createI18n({
 
 const createWalletStore = (state = {}) =>
   walletStore({
-    hasElopage: true,
     role: null,
     ...state,
   })

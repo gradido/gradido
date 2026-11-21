@@ -523,7 +523,6 @@
       "yourContribution": "Your Contributions to the Common Good"
     },
     "isEdited": "edited the contribution",
-    "lastContribution": "Last Contributions",
     "memoIsPublic": "Your description appears in the community list, where it is visible to all members. It shows the contribution's number instead of your name.",
     "noContributions": {
       "allContributions": "No contributions have been submitted yet.",
@@ -571,7 +570,6 @@
   "delete": "Delete",
   "download": "Download",
   "edit": "edit",
-  "em-dash": "—",
   "emailChange": {
     "confirm": {
       "button": "Confirm new address",
@@ -1461,12 +1459,7 @@
       "enabled": "Data exported into the Gradido Community"
     },
     "language": {
-      "de": "Deutsch",
-      "en": "English",
       "error": "Failed to update language settings.",
-      "es": "Español",
-      "fr": "Français",
-      "nl": "Nederlands",
       "success": "Your language has been successfully updated."
     },
     "menu": {
@@ -1869,8 +1862,7 @@
     "nullTransactions": "You don't have any transactions on your account yet.",
     "onlyWith": "{n} booking with {name} | {n} bookings with {name}",
     "onlyWithSomeone": "Only bookings with one member",
-    "receiverNotFound": "Recipient not found",
-    "show_all": "View all <strong>{count}</strong> transactions."
+    "receiverNotFound": "Recipient not found"
   },
   "transaction-link": {
     "send_you": "wants to send you"
