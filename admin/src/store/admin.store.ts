@@ -98,16 +98,25 @@ export const setOpenSupportTickets = (openSupportTickets: number) => {
   save()
 }
 
+// The question about the choice asked last, or the save sent last (MG1): an earlier one's answer
+// arriving later keeps nothing -- a slow start page must not put back the choice from before a save.
+let choiceAsked = 0
+
+/** A question about the choice, or a save of it, goes out: the mark its answer is kept under. */
+export const askingHandledCreationGroups = () => ++choiceAsked
+
 /**
  * Keeps the choice the server answered for `of`, the moderator the question was asked for -- where
- * that is still the moderator signed in: an answer arriving after a change of moderator in this
- * browser is nobody's to keep.
+ * that is still the moderator signed in, and no question or save went out after it (`asked`, from
+ * askingHandledCreationGroups): an answer arriving after a change of moderator in this browser is
+ * nobody's to keep, one overtaken by a later question is out of date.
  */
 export const keepHandledCreationGroups = (
   of: string | undefined,
   choice: HandledCreationGroups,
+  asked: number,
 ) => {
-  if (!of || of !== adminStore.moderator?.gradidoID) {
+  if (!of || of !== adminStore.moderator?.gradidoID || asked !== choiceAsked) {
     return
   }
   adminStore.handledCreationGroups = { of, ...choice }

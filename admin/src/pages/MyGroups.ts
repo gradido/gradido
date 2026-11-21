@@ -16,7 +16,11 @@ import {
 } from '@/graphql/creationGroups.graphql'
 import { currentLocale, t } from '@/i18n'
 import classes from '@/pages/MyGroups.module.css'
-import { adminStore, keepHandledCreationGroups } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+} from '@/store/admin.store'
 import { askOpenCreations } from '@/store/openCreations.store'
 import { creationGroupLabel } from '@/utils/creationGroupLabel'
 
@@ -42,6 +46,7 @@ export class MyGroups implements ClassComponent {
 
   private async load() {
     const of = adminStore.moderator?.gradidoID
+    const choiceAsked = askingHandledCreationGroups()
     const answer = await graphqlRequest(creationGroupsAndHandled)
     if (!answer.success) {
       toastError(answer.error.message)
@@ -51,7 +56,7 @@ export class MyGroups implements ClassComponent {
       creationGroupsAndHandledSchema,
       answer.value,
     )
-    keepHandledCreationGroups(of, handledCreationGroups)
+    keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
     for (const id of handledCreationGroups.groupIds) {
       this.ticked.add(id)
     }
@@ -74,6 +79,8 @@ export class MyGroups implements ClassComponent {
     }
     this.saving = true
     const of = adminStore.moderator?.gradidoID
+    // a save overtakes every question about the choice still on its way
+    const choiceAsked = askingHandledCreationGroups()
     const answer = await graphqlRequest(setHandledCreationGroups, {
       groupIds: [...this.ticked].sort((a, b) => a - b),
       untagged: this.untagged,
@@ -83,7 +90,11 @@ export class MyGroups implements ClassComponent {
       toastError(answer.error.message)
       return
     }
-    keepHandledCreationGroups(of, v.parse(savedSchema, answer.value).setHandledCreationGroups)
+    keepHandledCreationGroups(
+      of,
+      v.parse(savedSchema, answer.value).setHandledCreationGroups,
+      choiceAsked,
+    )
     toastSuccess(t('myGroups.saved'))
     // what the badges count changed with it
     askOpenCreations()

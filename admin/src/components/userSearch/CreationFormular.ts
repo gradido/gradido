@@ -9,7 +9,7 @@ import type { SearchedMember } from '@/data/SearchedMember.schema'
 import { adminCreateContribution } from '@/graphql/adminCreateContribution'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, setOpenCreations } from '@/store/admin.store'
+import { askOpenCreations } from '@/store/openCreations.store'
 import { isPhone } from '@/viewport'
 
 interface Attrs {
@@ -72,7 +72,9 @@ export class CreationFormular implements ClassComponent<Attrs> {
       return
     }
     member.creation = v.parse(openAmountsSchema, answer.value).adminCreateContribution
-    setOpenCreations(adminStore.openCreations + 1)
+    // counted anew rather than one more: the new creation has no group, and "Meine Gruppen" may
+    // leave out the ungrouped (MG1)
+    askOpenCreations()
     toastSuccess(t('creation_form.toasted', { value: amount, email: member.email ?? '' }))
   }
 

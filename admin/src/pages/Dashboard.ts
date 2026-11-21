@@ -7,7 +7,12 @@ import { type OpenCreationCounts, openCreationsOf } from '@/data/OpenCreations.l
 import { adminOpenCreationCounts } from '@/graphql/adminListContributions.graphql'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, keepHandledCreationGroups, setOpenCreations } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+} from '@/store/admin.store'
+import { answerOpenCreations, askingOpenCreations } from '@/store/openCreations.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 
 type SupportCounts = NonNullable<Awaited<ReturnType<typeof askOpenSupportTickets>>>
@@ -38,6 +43,10 @@ export class Dashboard implements ClassComponent {
     // all of them to the groups of a group moderator, and the three of "Meine Gruppen" (MG1) to
     // the choice of whoever sees every group.
     const of = adminStore.moderator?.gradidoID
+    // marked as the question goes out: a later question or save overtakes the answer, also where
+    // this page is left by then (MG1)
+    const badgeAsked = askingOpenCreations()
+    const choiceAsked = askingHandledCreationGroups()
     const answer = await graphqlRequest<OpenCreationCounts>(adminOpenCreationCounts)
     this.creationsAsked = true
     if (!answer.success) {
@@ -45,8 +54,8 @@ export class Dashboard implements ClassComponent {
       return
     }
     this.counts = openCreationsOf(answer.value)
-    setOpenCreations(this.counts.open)
-    keepHandledCreationGroups(of, answer.value.handledCreationGroups)
+    answerOpenCreations(badgeAsked, this.counts.open)
+    keepHandledCreationGroups(of, answer.value.handledCreationGroups, choiceAsked)
   }
 
   private async askSupport() {

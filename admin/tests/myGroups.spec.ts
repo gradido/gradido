@@ -158,6 +158,52 @@ test('sends nothing on a second press while the first answer is on its way', asy
   expect(graphql.sentFor('setHandledCreationGroups')).toHaveLength(1)
 })
 
+// A question and a save each take a mark as they go out: the start page's answer, asked before a
+// save and arriving after it, sets neither the number at "Schöpfung" nor the kept choice.
+test('keeps the count and the choice of a save where the start page answers after it', async ({
+  page,
+  graphql,
+}) => {
+  const start = holding()
+  graphql.answer({
+    waitingForModeration: start.answer,
+    waitingForMember: { contributionCount: 1 },
+    allOpen: { contributionCount: 9 },
+    everythingOpen: { contributionCount: 12 },
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+    setHandledCreationGroups: { groupIds: [3, 7], untagged: true },
+    adminListContributions: { contributionCount: 3 },
+  })
+  await signIn(page, '')
+  await expect.poll(() => start.held.length).toBe(1)
+  // on to "Meine Gruppen" while the start page still waits for its counts
+  await page.getByTestId('navbar-account').getByRole('button', { name: 'Peter Lustig' }).click()
+  await page.getByTestId('navbar-my-groups').click()
+  await box(page, 'Amstetten').check()
+  await page.getByTestId('my-groups-save').click()
+  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  const menuBadge = page
+    .locator('nav.navbar')
+    .getByRole('link', { name: de.creation })
+    .locator('.badge')
+  await expect(menuBadge).toHaveText('3')
+
+  const answered = page.waitForResponse((response) =>
+    (response.request().postData() ?? '').includes('adminOpenCreationCounts'),
+  )
+  start.held[0]({ contributionCount: 8 })
+  await answered
+  // time for the page to read the answer
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)))
+
+  await expect(menuBadge).toHaveText('3')
+  const kept = JSON.parse(
+    (await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}',
+  )
+  expect(kept.openCreations).toBe(3)
+  expect(kept.handledCreationGroups).toMatchObject({ groupIds: [3, 7], untagged: true })
+})
+
 test('reports a failed save, and leaves the ticks as they are', async ({ page, graphql }) => {
   graphql.answer({ setHandledCreationGroups: new Failure('no database') })
   await signIn(page, '/my-groups')

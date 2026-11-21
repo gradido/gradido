@@ -426,6 +426,53 @@ test('counts the number at "Schöpfung" anew after a decision on another list', 
   ])
 })
 
+// "" is on offer with a choice only (MG1): picked while the page still knew a choice that was
+// cleared on another device, the filter names the same list by the row that now means everything.
+test('names the whole list where the choice was cleared elsewhere as it was picked', async ({
+  page,
+  graphql,
+}) => {
+  // the start page keeps a choice ...
+  graphql.answer({
+    handledCreationGroups: { groupIds: [1], untagged: false },
+    waitingForModeration: { contributionCount: 0 },
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
+    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+  })
+  await signIn(page, '')
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
+          .handledCreationGroups?.groupIds,
+    )
+    .toEqual([1])
+  // ... which another device clears before the creation page asks for it
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    creationGroups: () => new Promise((resolve) => held.push(resolve)),
+    handledCreationGroups: { groupIds: [], untagged: false },
+  })
+  await page.locator('nav.navbar').getByRole('link', { name: de.creation }).click()
+  await expect(rows(page)).toHaveCount(4)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listQuestions(graphql).at(-1))
+    .toEqual(question(OPEN, { creationGroup: '' }))
+
+  await expect.poll(() => held.length).toBe(1)
+  held[0](groups)
+  // the answer read: the groups stand in the filter
+  await expect(groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' })).toHaveCount(1)
+
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  // the same list, not asked for again
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toHaveLength(2)
+})
+
 test('offers a scoped moderator only the groups they look after', async ({ page, graphql }) => {
   const scoped = {
     ...moderator,

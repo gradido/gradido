@@ -205,6 +205,46 @@ test('writes to the member, and the list comes anew where the resubmission hides
   await expect(card(page)).toHaveCount(0)
 })
 
+// The number at "Schöpfung" counts "Meine Gruppen" (MG1): a resubmission on another list moves a
+// contribution out of it, which that list does not count.
+test('counts the number at "Schöpfung" anew after a resubmission on another list', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminCreateContributionMessage: createdMessage })
+  await signIn(page, '/creation-confirm')
+  const filter = page.getByTestId('creation-group-filter')
+  await filter.locator('.dropdown-toggle').click()
+  await filter.locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect.poll(() => graphql.sentFor('adminListContributions').length).toBe(2)
+  graphql.answer({
+    adminListContributions: (variables: { paginated?: object }) =>
+      variables.paginated ? contributionList([listedContribution(2)]) : { contributionCount: 41 },
+  })
+
+  await details(page, 0).click()
+  await field(page).fill('Hi there')
+  await save(page).click()
+
+  await expect(page.getByRole('alert')).toContainText(de.message.request)
+  const menuBadge = page
+    .locator('nav.navbar')
+    .getByRole('link', { name: de.creation })
+    .locator('.badge')
+  await expect(menuBadge).toHaveText('41')
+  expect(
+    asked(graphql, 'adminListContributions').filter((variables) => !('paginated' in variables)),
+  ).toEqual([
+    {
+      filter: {
+        statusFilter: ['IN_PROGRESS', 'PENDING'],
+        hideResubmission: true,
+        creationGroup: '*handled',
+      },
+    },
+  ])
+})
+
 test('writes to the member and keeps the thread open, now as a question', async ({
   page,
   graphql,

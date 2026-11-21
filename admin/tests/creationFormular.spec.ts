@@ -121,7 +121,10 @@ test('moves the slider with the amount, and the amount with the slider', async (
 })
 
 test('makes the creation, and shows what is still open', async ({ page, graphql }) => {
-  graphql.answer({ adminCreateContribution: ['1000', '0', '150.5'] })
+  graphql.answer({
+    adminCreateContribution: ['1000', '0', '150.5'],
+    adminListContributions: { contributionCount: 7 },
+  })
   await openRow(page)
   await chooseMonth(page, 2)
   await amount(page).fill('100')
@@ -148,11 +151,22 @@ test('makes the creation, and shows what is still open', async ({ page, graphql 
   await expect(text(page)).toHaveValue('')
   await expect(amount(page)).toHaveCount(0)
   await expect(form(page).locator('input[type=radio]:checked')).toHaveCount(0)
-  // one more open creation for the menu
-  expect(
-    JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
-      .openCreations,
-  ).toBe(1)
+  // The menu's number counted anew, not one more: the new creation has no group, and "Meine
+  // Gruppen" may leave the ungrouped out (MG1).
+  await expect
+    .poll(async () =>
+      JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}'),
+    )
+    .toMatchObject({ openCreations: 7 })
+  expect(graphql.sentFor('adminListContributions').map((sent) => sent.variables)).toEqual([
+    {
+      filter: {
+        statusFilter: ['IN_PROGRESS', 'PENDING'],
+        hideResubmission: true,
+        creationGroup: '*handled',
+      },
+    },
+  ])
 })
 
 test('says in its own words that a project account does not create', async ({ page, graphql }) => {

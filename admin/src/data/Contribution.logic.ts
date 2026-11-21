@@ -127,7 +127,8 @@ export const groupFilterOptions = (
  * ticked alone. Whoever sees every group and chose nothing: the fixed rows and every group, with
  * "(mit und ohne Gruppe)" standing for HANDLED_FILTER, which the server reads as everything for
  * them. So the page opens on HANDLED_FILTER for everyone who sees every group, before the admin
- * knows the choice (another device): the first list is right, and the answer changes words only.
+ * knows the choice (another device): the first list is right. The answer changes the words, and
+ * whether "(mit und ohne Gruppe)" is "" or HANDLED_FILTER (CreationConfirm follows that).
  */
 export const creationGroupFilterOptions = (
   moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,

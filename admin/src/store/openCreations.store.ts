@@ -7,22 +7,33 @@ import { adminListContributionsCount } from '@/graphql/adminListContributions.gr
 import { graphqlRequest } from '@/graphql/client'
 import { setOpenCreations } from './admin.store'
 
-// the question last asked: the answer to an earlier one, coming later, does not set the badges
+// The question about the badges' count asked last -- by any page (MG1): an earlier one's answer,
+// arriving later, does not set them. A slow start page must not put back a count from before a save.
 let lastAsked = 0
+
+/** A question whose answer is to set the badges goes out: the mark to set them with. */
+export const askingOpenCreations = () => ++lastAsked
+
+/** Sets the badges to the count answered, where no later question went out after it was asked. */
+export const answerOpenCreations = (asked: number, count: number) => {
+  if (asked === lastAsked) {
+    setOpenCreations(count)
+  }
+}
 
 /**
  * Asks how many creations are open in "Meine Gruppen" (MG1), the resubmissions hidden -- what the
  * start page counts -- and sets the badges to it, where no later question was asked in the
- * meantime: a slow answer must not put back a count from before a save. Where it fails, the badges
- * keep what they showed.
+ * meantime. Where it fails, the badges keep what they showed.
  */
 export const askOpenCreations = async () => {
-  const asked = ++lastAsked
+  const asked = askingOpenCreations()
   const answer = await graphqlRequest(adminListContributionsCount, {
     filter: { statusFilter: OPEN_STATES, hideResubmission: true, creationGroup: HANDLED_FILTER },
   })
-  if (answer.success && asked === lastAsked) {
-    setOpenCreations(
+  if (answer.success) {
+    answerOpenCreations(
+      asked,
       v.parse(contributionCountSchema, answer.value).adminListContributions.contributionCount,
     )
   }

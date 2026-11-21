@@ -43,9 +43,18 @@ import {
 import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, keepHandledCreationGroups, setOpenCreations } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+  setOpenCreations,
+} from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
-import { askOpenCreations } from '@/store/openCreations.store'
+import {
+  answerOpenCreations,
+  askingOpenCreations,
+  askOpenCreations,
+} from '@/store/openCreations.store'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
 import { isPhone } from '@/viewport'
 import bellIcon from '~icons/bi/bell-fill'
@@ -153,9 +162,10 @@ export class CreationConfirm implements ClassComponent {
     if (!this.showsTheBadgesList()) {
       askOpenCreations()
     }
-    // The groups and the choice: the first list does not wait for them, the choice changes the
-    // words of the filter only.
+    // The groups and the choice: the first list does not wait for them. The choice changes the
+    // words of the filter, and whether "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
     const of = this.moderator?.gradidoID
+    const choiceAsked = askingHandledCreationGroups()
     graphqlRequest(creationGroupsAndHandled).then((answer) => {
       if (answer.success) {
         const { creationGroups, handledCreationGroups } = v.parse(
@@ -163,7 +173,15 @@ export class CreationConfirm implements ClassComponent {
           answer.value,
         )
         this.groups = creationGroups
-        keepHandledCreationGroups(of, handledCreationGroups)
+        keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
+        // "" is offered with a choice only. Picked while the page still knew one that was cleared
+        // on another device, the same list is called by the row that now means everything.
+        if (
+          this.group === '' &&
+          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+        ) {
+          this.group = HANDLED_FILTER
+        }
       }
     })
     this.load()
@@ -188,6 +206,8 @@ export class CreationConfirm implements ClassComponent {
   private async load() {
     const asked = ++this.asked
     const badgesList = this.showsTheBadgesList()
+    // the badges' list sets them as it loads, unless a later question about them went out (MG1)
+    const badgeAsked = badgesList ? askingOpenCreations() : 0
     const answer = await graphqlRequest(adminListContributions, {
       filter: {
         statusFilter: TABS[this.tab].states,
@@ -220,7 +240,15 @@ export class CreationConfirm implements ClassComponent {
     askMemberAvatars(contributionList.flatMap((contribution) => contribution.user ?? []))
     // the badges count their list, never the few a search, a group or the resubmissions leave
     if (badgesList) {
-      setOpenCreations(contributionCount)
+      answerOpenCreations(badgeAsked, contributionCount)
+    }
+  }
+
+  // Something the open count may follow changed on the server: the badges' list sets them as it
+  // loads, on any other they are counted anew (MG1).
+  private countAnew() {
+    if (!this.showsTheBadgesList()) {
+      askOpenCreations()
     }
   }
 
@@ -257,7 +285,7 @@ export class CreationConfirm implements ClassComponent {
     if (this.showsTheBadgesList()) {
       setOpenCreations(adminStore.openCreations - 1)
     } else {
-      askOpenCreations()
+      this.countAnew()
     }
     toastSuccess(t(DECISIONS[decision].done))
   }
@@ -268,17 +296,18 @@ export class CreationConfirm implements ClassComponent {
       toastError(answer.error.message)
       return false
     }
-    // whether the contribution is still in the list is the server's to say, and in "Meine
-    // Gruppen": the badges' list counts itself as it loads, on any other they are counted anew
-    if (!this.showsTheBadgesList()) {
-      askOpenCreations()
-    }
+    // whether the contribution is still in the list is the server's to say, and in "Meine Gruppen"
+    this.countAnew()
     this.load()
     toastSuccess(t('contribution.changeGroupDone'))
     return true
   }
 
   private resubmissionSaved(saved: ResubmissionSaved) {
+    // a resubmission set or taken away moves the contribution in or out of the open count
+    if (!saved.unchanged) {
+      this.countAnew()
+    }
     if (offersBulkResubmission(this.contributions, saved)) {
       const user = this.contributions[0].user
       this.bulk = {
@@ -310,6 +339,7 @@ export class CreationConfirm implements ClassComponent {
         t(resubmissionAt === null ? 'bulkResubmission.successRemove' : 'bulkResubmission.success'),
       )
     }
+    this.countAnew()
     this.load()
   }
 
