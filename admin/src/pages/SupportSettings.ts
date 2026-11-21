@@ -53,7 +53,9 @@ export class SupportSettings implements ClassComponent {
       return
     }
     this.counting = true
-    const counts = await askOpenSupportTickets()
+    // an answer the admin cannot read throws (a server of another version): asked without a number
+    // then, as where the count did not come -- and the box never stays waiting
+    const counts = await askOpenSupportTickets().catch(() => null)
     this.counting = false
     this.switchingOff = {
       open: counts

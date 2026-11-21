@@ -119,6 +119,33 @@ test('asks once while the count is on its way, and not again after a no', async 
   expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
 })
 
+// coderabbit on #4316: a count the admin cannot read -- a server of another version -- throws; the
+// question still comes, without a number, and the box does not stay waiting
+test('asks without a number where the count cannot be read, and frees the box', async ({
+  page,
+}) => {
+  await open(page)
+  // past the answers of the fixture, which hold to the schema: a count in a shape the admin's
+  // schema refuses
+  await page.route('**/graphql', async (route) => {
+    const body = route.request().postData() ?? ''
+    if (body.includes('adminCountOpenSupportTickets')) {
+      await route.fulfill({
+        json: { data: { adminCountOpenSupportTickets: { forModeration: 'fünf' } } },
+      })
+    } else {
+      await route.fallback()
+    }
+  })
+  await box(page).click()
+
+  await expect(dialog(page)).toContainText(de.support.switch.confirmBody)
+  await expect(dialog(page)).not.toContainText(de.support.switch.confirmOpen.split('{')[0])
+  await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
+  await expect(box(page)).toBeEnabled()
+  await expect(box(page)).toBeChecked()
+})
+
 test('switches on again without asking', async ({ page, graphql }) => {
   graphql.answer({
     supportTicketsMenu: { active: false },
