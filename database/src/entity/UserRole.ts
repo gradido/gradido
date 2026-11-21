@@ -48,6 +48,21 @@ export class UserRole extends BaseEntity {
   })
   supportDuty: boolean
 
+  // "Meine Gruppen" (MG1): the creation groups the holder handles themself, JSON text (see the
+  // schema). Read here with the role of every signed-in request (isAuthorized), so the contribution
+  // list and the question for the choice need no query of their own; written only by
+  // dbUpdateUserRoleHandledCreationGroups. `insert: false, update: false` for the reason given at
+  // `supportDuty`: a save() of a row loaded earlier would take back a choice saved in between.
+  @Column({
+    name: 'handled_creation_groups',
+    type: 'text',
+    nullable: true,
+    default: null,
+    insert: false,
+    update: false,
+  })
+  handledCreationGroups: string | null
+
   @Column({
     name: 'created_at',
     type: 'datetime',

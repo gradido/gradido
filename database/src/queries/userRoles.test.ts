@@ -17,6 +17,7 @@ import {
   dbInsertUserRoles,
   dbRemoveUserRoles,
   dbSelectRoleHoldersWithContact,
+  dbUpdateUserRoleHandledCreationGroups,
   dbUpdateUserRoleSupportDuty,
   dbUpsertUserRole,
 } from './userRoles'
@@ -185,6 +186,86 @@ describe('dbUpdateUserRoleSupportDuty', () => {
     await dbUpsertUserRole(MODERATOR_AI, 'ADMIN')
     expect((await dbUpdateUserRoleSupportDuty(MODERATOR_AI, true)).success).toBe(false)
     expect(await tickOf(MODERATOR_AI)).toBe(false)
+  })
+})
+
+// "Meine Gruppen" (MG1): written on a row with a role of the moderation only, the role checked by
+// the very statement that writes; everything else on the row stays as it is.
+describe('dbUpdateUserRoleHandledCreationGroups', () => {
+  const ADMIN = 9301
+  const MODERATOR = 9302
+  const MODERATOR_AI = 9303
+  const USER = 9304
+  const NOBODY = 9305
+  const CHOICE = '{"groupIds":[3,7],"untagged":true}'
+  const choiceOf = async (userId: number) => (await rolesOf(userId))[0]?.handledCreationGroups
+
+  beforeAll(async () => {
+    await db.delete(userRolesTable)
+    await db.insert(userRolesTable).values([
+      { userId: ADMIN, role: 'ADMIN' },
+      {
+        userId: MODERATOR,
+        role: 'MODERATOR',
+        visibleCreationGroups: '["garden","*untagged"]',
+        supportDuty: true,
+      },
+      { userId: MODERATOR_AI, role: 'MODERATOR_AI' },
+      // rows with USER existed (migration 0136)
+      { userId: USER, role: 'USER' },
+    ])
+  })
+  afterAll(async () => {
+    await db.delete(userRolesTable)
+  })
+
+  it('sets the choice of every role of the moderation, and clears it with null', async () => {
+    for (const userId of [ADMIN, MODERATOR, MODERATOR_AI]) {
+      expect(await dbUpdateUserRoleHandledCreationGroups(userId, CHOICE)).toEqual({
+        success: true,
+      })
+      const [row] = await rolesOf(userId)
+      expect(row.handledCreationGroups).toBe(CHOICE)
+      expect(row.updatedAt).toBeInstanceOf(Date)
+      expect(await dbUpdateUserRoleHandledCreationGroups(userId, null)).toEqual({ success: true })
+      expect(await choiceOf(userId)).toBeNull()
+    }
+  })
+
+  it('finds a choice saved twice', async () => {
+    expect(await dbUpdateUserRoleHandledCreationGroups(ADMIN, CHOICE)).toEqual({ success: true })
+    expect(await dbUpdateUserRoleHandledCreationGroups(ADMIN, CHOICE)).toEqual({ success: true })
+    expect(await choiceOf(ADMIN)).toBe(CHOICE)
+  })
+
+  it('leaves the role, the scope and the tick of the row as they are', async () => {
+    await dbUpdateUserRoleHandledCreationGroups(MODERATOR, CHOICE)
+
+    const [row] = await rolesOf(MODERATOR)
+    expect(row.role).toBe('MODERATOR')
+    expect(row.visibleCreationGroups).toBe('["garden","*untagged"]')
+    expect(row.supportDuty).toBe(true)
+    expect(row.handledCreationGroups).toBe(CHOICE)
+  })
+
+  it.each([
+    ['a row with USER', USER],
+    ['a member without a role', NOBODY],
+  ])('writes nothing for %s, and says so', async (_name, userId) => {
+    const answer = await dbUpdateUserRoleHandledCreationGroups(userId, CHOICE)
+    expect(answer.success).toBe(false)
+    expect(await choiceOf(userId)).toBe(userId === NOBODY ? undefined : null)
+  })
+
+  // Whether a choice counts under the role of the moment decides the backend on reading
+  // (handledCreationGroupsOf): a role change leaves it standing, as it leaves scope and tick.
+  it('keeps the choice through a change of the role', async () => {
+    await dbUpdateUserRoleHandledCreationGroups(MODERATOR_AI, CHOICE)
+
+    await dbUpsertUserRole(MODERATOR_AI, 'ADMIN')
+    expect(await choiceOf(MODERATOR_AI)).toBe(CHOICE)
+    await dbUpsertUserRole(MODERATOR_AI, 'MODERATOR')
+    expect(await choiceOf(MODERATOR_AI)).toBe(CHOICE)
   })
 })
 

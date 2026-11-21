@@ -118,6 +118,32 @@ export async function dbUpdateUserRoleSupportDuty(
 }
 
 /**
+ * Sets "Meine Gruppen" (MG1) on the member's role row -- the JSON text handledCreationGroupsOf reads
+ * in the backend -- or clears it with null. Where that row holds one of ASSIGNABLE_ROLE_NAMES, the
+ * role the condition of the very statement: a role taken away in the meantime gets nothing written,
+ * and answers like a missing row. Whether the choice counts under the role of the moment the backend
+ * decides on reading, so a role change needs nothing here. A choice saved twice is found the second
+ * time too (FOUND_ROWS, see dbUpdateUserRoleSupportDuty).
+ */
+export async function dbUpdateUserRoleHandledCreationGroups(
+  userId: number,
+  handled: string | null,
+): Promise<VoidResult<DBNotFoundError>> {
+  const [result] = await drizzleDb()
+    .update(userRolesTable)
+    .set({ handledCreationGroups: handled, updatedAt: new Date() })
+    .where(
+      and(eq(userRolesTable.userId, userId), inArray(userRolesTable.role, ASSIGNABLE_ROLE_NAMES)),
+    )
+  return result.affectedRows === 1
+    ? { success: true }
+    : {
+        success: false,
+        error: new DBNotFoundError('user_roles', `user_id = ${userId} with a role`),
+      }
+}
+
+/**
  * Remove every role of these members -- for each of them, the one row they may have.
  *
  * An empty list removes nothing and asks the database nothing: `inArray` over no values

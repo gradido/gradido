@@ -1012,6 +1012,11 @@ export const userRolesTable = mysqlTable(
     // which alone turns it into a right -- for an administrator it decides nothing, and for any
     // other role neither. Off for everybody from the start (migration 0175).
     supportDuty: boolean('support_duty').default(false).notNull(),
+    // "Meine Gruppen" (MG1): the creation groups the holder handles themself, as JSON text
+    // `{"groupIds":[…],"untagged":…}` -- numbers of creation_groups rows, so a rename leaves it as
+    // it is. NULL is nobody chose: everything counts, as before the column (migration 0177). Read
+    // through handledCreationGroupsOf in the backend, which ignores it under an assigned scope.
+    handledCreationGroups: text('handled_creation_groups').default(sql`NULL`),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),
