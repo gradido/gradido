@@ -5,7 +5,6 @@ import {
   adminDeleteSupportTicket,
   adminListSupportTickets,
   adminReassignSupportTicket,
-  adminSetSupportTicketsActive,
   supportTicketsMenu,
 } from '@/graphql/supportTickets.graphql'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
@@ -34,7 +33,6 @@ import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
 import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.logic'
 import {
   type ListedSupportTicket,
-  supportSwitchedSchema,
   supportSwitchSchema,
   supportTicketListSchema,
 } from '@/data/SupportTicket.schema'
@@ -158,11 +156,6 @@ export class Support implements ClassComponent {
   private readonly deciding = new Set<number>()
   // whether members file new requests (K5): null until the server said, and then nothing is shown
   private supportActive: boolean | null = null
-  // the question before switching new requests off, with how many requests are open (null: the
-  // count did not come)
-  private switchingOff: { open: number | null } | null = null
-  // a switch on its way: a second click sends nothing
-  private switching = false
 
   oninit() {
     // The groups and the choice in a request of their own, as the creation page asks (MG2): the
@@ -206,66 +199,25 @@ export class Support implements ClassComponent {
   }
 
   /**
-   * The administrator's box (K5): switching off asks first and names all requests still open --
-   * also those waiting for a resubmission, which the badges leave out (K4), and those beyond
-   * "Meine Gruppen" (MG2) --; switching on asks nothing (only one way does harm).
+   * While new requests are off (K5), a line says so above the search; an administrator's leads to
+   * where it is switched, Einstellungen → Support (SupportSettings.ts). Nothing while they are on,
+   * or where the server could not say.
    */
-  private async toggleSwitch(active: boolean) {
-    if (active) {
-      await this.setSwitch(true)
-      return
-    }
-    const counts = await askOpenSupportTickets()
-    this.switchingOff = {
-      open: counts
-        ? counts.forModeration +
-          counts.forMember +
-          counts.onResubmission +
-          counts.elsewhere +
-          counts.elsewhereOnResubmission
-        : null,
-    }
-  }
-
-  /** Sets the switch; the box then stands as the server says it holds. */
-  private async setSwitch(active: boolean) {
-    if (this.switching) {
-      return
-    }
-    this.switching = true
-    const answer = await graphqlRequest(adminSetSupportTicketsActive, { active })
-    this.switching = false
-    if (!answer.success) {
-      toastError(t('support.failed'))
-      return
-    }
-    this.supportActive = v.parse(supportSwitchedSchema, answer.value).adminSetSupportTicketsActive
-    toastSuccess(t(this.supportActive ? 'support.switch.on' : 'support.switch.off'))
-  }
-
-  /** The row of the switch: the box for an administrator, a line for a moderator while it is off. */
   private switchRow() {
-    if (this.supportActive === null) {
+    if (this.supportActive !== false) {
       return null
     }
-    if (this.moderator?.role !== 'ADMIN') {
-      return this.supportActive
-        ? null
-        : m('p.mt-2.mb-0.support-switch-off', t('support.switch.off'))
-    }
-    // the word is the label of the box, so a tap on it ticks the box too
-    return m('.mt-2.support-switch', [
-      m('p.mb-0.d-flex.align-items-center', [
-        m('input#support-tickets-active', {
-          type: 'checkbox',
-          checked: this.supportActive,
-          disabled: this.switching,
-          onchange: (event: Event) => this.toggleSwitch((event.target as HTMLInputElement).checked),
-        }),
-        m('label.ms-2', { for: 'support-tickets-active' }, t('support.switch.label')),
-      ]),
-      m('small.d-block.text-muted', t('support.switch.hint')),
-    ])
+    const line = t('support.switch.off')
+    return m(
+      'p.mt-2.mb-0.support-switch-off',
+      this.moderator?.role === 'ADMIN'
+        ? m(
+            m.route.Link,
+            { href: '/support-settings', 'data-test': 'support-switch-settings' },
+            line,
+          )
+        : line,
+    )
   }
 
   /**
@@ -375,7 +327,7 @@ export class Support implements ClassComponent {
     const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm.mt-2', [
-      // a row of its own above the search: it moves neither the search nor the box below (K5)
+      // the line while new requests are off, a row of its own above the search (K5)
       this.switchRow(),
       // the search and the group side by side; on a narrow window one above the other
       m('.creation-filters.mt-2.mb-2', [
@@ -492,25 +444,6 @@ export class Support implements ClassComponent {
         noEndButtons: phone,
         onpage: (page: number) => this.load(page),
       }),
-      this.switchingOff
-        ? m(ConfirmModal, {
-            title: t('support.switch.confirmTitle'),
-            body: [
-              t('support.switch.confirmBody'),
-              this.switchingOff.open === null
-                ? ''
-                : t('support.switch.confirmOpen', { open: this.switchingOff.open }),
-            ]
-              .filter(Boolean)
-              .join(' '),
-            yes: t('support.switch.confirmYes'),
-            variant: 'danger',
-            onyes: () => this.setSwitch(false),
-            onclose: () => {
-              this.switchingOff = null
-            },
-          })
-        : null,
       pending && asked
         ? m(ConfirmModal, {
             title: t(asked.title),

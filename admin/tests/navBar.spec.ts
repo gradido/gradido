@@ -79,6 +79,7 @@ test('leads an administrator to every page', async ({ page }) => {
     de.navbar.creationGroups,
     de.navbar.crea,
     de.navbar.chat,
+    de.navbar.support,
   ])
   await expect(settings.nth(1)).toHaveAttribute('title', de.navbar.projectBrandingTooltip)
 })
