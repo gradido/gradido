@@ -114,8 +114,9 @@ export const moderatorScopeOfRole = (
 
 // What waits for the moderation in "Meine Gruppen" of the role (MG3): the count of the line
 // "n warten auf die Moderation" on the admin's start page, `waitingForModeration` of
-// adminOpenCreationCounts, with the arguments adminListContributions gives findContributions for
-// it. Here so that the wallet's number keeps them in one place.
+// adminOpenCreationCounts -- the filter, the scope and the choice adminListContributions hands
+// findContributions for it, in one place. Not its relations: it joins the member and the address
+// because its empty search word counts as one, and a left join changes no COUNT(DISTINCT id).
 export const countContributionsWaitingForModeration = async (
   role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
 ): Promise<number> => {

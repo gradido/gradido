@@ -21,9 +21,10 @@ export class ModerationWaitingResolver {
   /**
    * The two numbers behind "Admin" in the wallet's menu ("Meine Gruppen", MG3): what waits for the
    * moderation in the caller's own groups -- the lines "n warten auf die Moderation" of the admin's
-   * start page, the same statements: `waitingForModeration` of adminOpenCreationCounts, and
-   * `forModeration` of adminCountOpenSupportTickets. Each only with the right that reads it on the
-   * start page; whoever has neither gets null before anything is counted.
+   * start page, counted with the same conditions: `waitingForModeration` of adminOpenCreationCounts
+   * (see countContributionsWaitingForModeration), and `forModeration` of the very statement of
+   * adminCountOpenSupportTickets. Each only with the right that reads it on the start page; whoever
+   * has neither gets null before anything is counted.
    *
    * ⛔ Nullable, and its whole body caught, as supportTicketsMenu: every wallet asks it with the
    * chat's beat, and any entry in `errors` makes the wallet throw the chat's answer away too. Where
