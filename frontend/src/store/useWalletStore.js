@@ -84,7 +84,6 @@ export const useWalletStore = defineStore('wallet', {
     transfersInChat: null,
     humhubAllowed: null,
     gmsPublishLocation: null,
-    hasElopage: false,
     project: null,
     publisherId: null,
     eventMatchingEntry: null,
@@ -207,9 +206,6 @@ export const useWalletStore = defineStore('wallet', {
     setRole(role) {
       this.role = role
     },
-    setHasElopage(hasElopage) {
-      this.hasElopage = hasElopage
-    },
     setHideAmountGDD(hideAmountGDD) {
       this.hideAmountGDD = !!hideAmountGDD
     },
@@ -275,7 +271,6 @@ export const useWalletStore = defineStore('wallet', {
       this.setTransfersInChat(data.transfersInChat ?? null)
       this.setHumhubAllowed(data.humhubAllowed)
       this.setGmsPublishLocation(data.gmsPublishLocation)
-      this.setHasElopage(data.hasElopage)
       this.setPublisherId(data.publisherId)
       this.setRole(data.role ?? null)
       this.setHideAmountGDD(data.hideAmountGDD)
@@ -331,7 +326,6 @@ export const useWalletStore = defineStore('wallet', {
       this.setTransfersInChat(null)
       this.setHumhubAllowed(null)
       this.setGmsPublishLocation(null)
-      this.setHasElopage(false)
       this.setProject(null)
       this.setPublisherId(null)
       this.setEventMatchingEntry(null)

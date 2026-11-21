@@ -154,12 +154,6 @@ export const fileLinkService = (url) => {
 }
 
 /**
- * @param {string} url an address as the thread found it (chatTextParts)
- * @returns {boolean} whether it is a link to files on SwissTransfer
- */
-export const isSwissTransferLink = (url) => fileLinkService(url) === 'SwissTransfer'
-
-/**
  * What the card shows as its destination: host and path, the host in small letters and without
  * `www.` -- `swisstransfer.com/dl/…`, `dropbox.com/scl/fi/…/Bericht.pdf`. Not the query or the `#`
  * part: they carry the link's key, which the card keeps as its target and need not show.

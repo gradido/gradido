@@ -1,12 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'vitest'
-import {
-  SWISSTRANSFER_URL,
-  fileLinkLabel,
-  fileLinkService,
-  isSwissTransferLink,
-} from './chatFileLink'
+import { SWISSTRANSFER_URL, fileLinkLabel, fileLinkService } from './chatFileLink'
 import { chatTextParts } from './chatTextParts'
+
+const isSwissTransferLink = (url) => fileLinkService(url) === 'SwissTransfer'
 
 /**
  * Links as SwissTransfer shares them (27.09.2026): its website from `www.swisstransfer.com`, its

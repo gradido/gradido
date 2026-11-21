@@ -79,12 +79,6 @@ export const loadAllRules = (i18nCallback, apollo) => {
   defineRule('max', max)
 
   // ------ Custom rules ------
-  defineRule('is_not', (value, [otherValue]) => {
-    return value !== otherValue
-      ? true
-      : i18nCallback.t('form.validation.is-not', { other: otherValue })
-  })
-
   defineRule('containsLowercaseCharacter', (value) => {
     const isMatch = value && !!value.match(/[a-z]+/)
     return isMatch || i18nCallback.t('site.signup.lowercase')

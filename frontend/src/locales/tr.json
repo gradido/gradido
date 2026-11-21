@@ -523,7 +523,6 @@
       "yourContribution": "Yaptığın hizmetin topluma katkısı"
     },
     "isEdited": "katkıyı düzenledi",
-    "lastContribution": "Son Katkılar",
     "memoIsPublic": "Açıklaman topluluk listesinde görünür ve orada bütün üyeler tarafından görülebilir. Adının yerine katkının numarası yazar.",
     "noContributions": {
       "allContributions": "Henüz hiç katkı gönderilmedi.",
@@ -571,7 +570,6 @@
   "delete": "Sil",
   "download": "İndir",
   "edit": "düzenle",
-  "em-dash": "—",
   "emailChange": {
     "confirm": {
       "button": "Yeni adresi onayla",
@@ -1461,12 +1459,7 @@
       "enabled": "Veriler Gradido Topluluğuna aktarılıyor"
     },
     "language": {
-      "de": "Deutsch",
-      "en": "English",
       "error": "Dil ayarları güncellenemedi.",
-      "es": "Español",
-      "fr": "Français",
-      "nl": "Nederlands",
       "success": "Dil başarıyla güncellendi."
     },
     "menu": {
@@ -1869,8 +1862,7 @@
     "nullTransactions": "Henüz hesabında hiç işlem yok.",
     "onlyWith": "{name} ile {n} işlem | {name} ile {n} işlem",
     "onlyWithSomeone": "Yalnızca bir üyeyle işlemler",
-    "receiverNotFound": "Alıcı bulunamadı",
-    "show_all": "Bütün <strong>{count}</strong> işlemleri görüntüle."
+    "receiverNotFound": "Alıcı bulunamadı"
   },
   "transaction-link": {
     "send_you": "sana gönderiyor"

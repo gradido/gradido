@@ -375,29 +375,6 @@ export const searchAdminUsers = gql`
   }
 `
 
-export const listContributionMessages = gql`
-  query ($contributionId: Int!, $pageSize: Int = 25, $currentPage: Int = 1, $order: Order = ASC) {
-    listContributionMessages(
-      contributionId: $contributionId
-      pageSize: $pageSize
-      currentPage: $currentPage
-      order: $order
-    ) {
-      count
-      messages {
-        id
-        message
-        createdAt
-        updatedAt
-        type
-        userAlias
-        userAvatarColorIndex
-        userId
-      }
-    }
-  }
-`
-
 export const user = gql`
   query ($identifier: String!, $communityIdentifier: String!) {
     user(identifier: $identifier, communityIdentifier: $communityIdentifier) {
