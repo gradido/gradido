@@ -1,7 +1,9 @@
 // AI-GENERATED — not an architecture reference
 // Unit test: the arguments the wallet's number of waiting creations (MG3) hands findContributions
-// -- those adminListContributions hands it for `waitingForModeration` of the start page. That they
-// count the same rows runs with a database (ModerationWaitingResolver.test.ts).
+// -- the filter, the scope and the choice adminListContributions hands it for `waitingForModeration`
+// of the start page. Not its relations: the start page joins the member and the address for its
+// empty search word, which changes no count. That they count the same rows runs with a database
+// (ModerationWaitingResolver.test.ts).
 //
 // Written to run under jest and `bun test --isolate` alike (AGENTS.md): the fakes are declared
 // before `jest.mock`, the factory hands out its own, and the module is imported in `beforeAll`.
@@ -37,7 +39,7 @@ const CHOICE = JSON.stringify({ groupIds: [3], untagged: true })
 const handedOn = () => mockFindContributions.mock.calls[0].slice(1)
 
 describe('countContributionsWaitingForModeration', () => {
-  it('counts what the start page counts: waiting for the moderation, no resubmission to come, "Meine Gruppen"', async () => {
+  it('counts with the start page\'s conditions: waiting for the moderation, no resubmission to come, "Meine Gruppen"', async () => {
     expect(
       await countContributionsWaitingForModeration({
         role: 'ADMIN',

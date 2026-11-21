@@ -27,10 +27,11 @@ export class ModerationWaitingResolver {
    * has neither gets null before anything is counted.
    *
    * ⛔ Nullable, and its whole body caught, as supportTicketsMenu: every wallet asks it with the
-   * chat's beat, and any entry in `errors` makes the wallet throw the chat's answer away too. Where
-   * a count fails it answers null and logs the code; for a signed-in member it never throws. Not in
-   * the support's read budget: it carries two numbers and no words, and the cap of root fields
-   * bounds its aliases (see SUPPORT_TICKET_READS_MAX_PER_REQUEST).
+   * chat's beat. Not nullable, a failure would empty the whole answer, the chat's part with it; not
+   * caught, it would write an error into the log at every beat (logPlugin). Where a count fails it
+   * answers null and logs the code; for a signed-in member it never throws. Not in the support's
+   * read budget: it carries two numbers and no words, and the cap of root fields bounds its aliases
+   * (see SUPPORT_TICKET_READS_MAX_PER_REQUEST).
    */
   @Authorized([RIGHTS.MODERATION_WAITING])
   @Query(() => ModerationWaiting, { nullable: true })

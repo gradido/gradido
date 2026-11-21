@@ -1157,18 +1157,6 @@ describe('useChatUpdates', () => {
   })
 
   /**
-   * ⛔ The beat's state lives in this module and nowhere else: the store is written to
-   * localStorage in full, so a marker or a message put there would outlive the session. And the
-   * beat is a constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). Only the
-   * source can say both -- read with the comments taken out, because the comments name the very
-   * words (skill null-af2).
-   */
-  /**
-   * How far the other member of an open conversation of two has read (Chat E-093): the members the
-   * watchers name go with the question, and each watcher is handed its own place of the answer --
-   * the answer to the question that named it.
-   */
-  /**
    * The two numbers behind "Admin" ("Meine Gruppen", MG3): what waits for the moderation rides in
    * the same question, as the support's field does. What the field brings goes on to
    * useModerationWaiting as it came; it is nothing to the chat, and the chat is nothing to it.
@@ -1245,6 +1233,18 @@ describe('useChatUpdates', () => {
     })
   })
 
+  /**
+   * ⛔ The beat's state lives in this module and nowhere else: the store is written to
+   * localStorage in full, so a marker or a message put there would outlive the session. And the
+   * beat is a constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). Only the
+   * source can say both -- read with the comments taken out, because the comments name the very
+   * words (skill null-af2).
+   */
+  /**
+   * How far the other member of an open conversation of two has read (Chat E-093): the members the
+   * watchers name go with the question, and each watcher is handed its own place of the answer --
+   * the answer to the question that named it.
+   */
   describe('how far the members watched have read', () => {
     const ANNA = { gradidoID: 'anna-id', communityUuid: 'home-uuid' }
     const BEN = { gradidoID: 'ben-id', communityUuid: null }
