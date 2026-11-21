@@ -473,6 +473,34 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
   expect(listQuestions(graphql).filter((sent) => sent.paginated)).toHaveLength(2)
 })
 
+// The badges' list sets them from its answer also where a search went out meanwhile: the
+// question's mark decides, not the page's own (MG1).
+test('sets the number at "Schöpfung" from the first list, also once a search is typed', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminListContributions: (variables: Variables) => {
+      const filter = variables.filter as Variables
+      if (variables.paginated && filter.query === '' && held.length === 0) {
+        return new Promise((resolve) => held.push(resolve))
+      }
+      return contributionList([...contributions, own], 3)
+    },
+  })
+  await signIn(page, '/creation-confirm')
+  await expect.poll(() => held.length).toBe(1)
+  await page.locator('.test-input-criteria').fill('garden')
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+
+  held[0](contributionList([...contributions, own], 42))
+
+  await expect(page.locator('.tab-badge')).toHaveText('42')
+  await expect(rows(page)).toHaveCount(4)
+  await expect(page.locator('.test-input-criteria')).toHaveValue('garden')
+})
+
 test('offers a scoped moderator only the groups they look after', async ({ page, graphql }) => {
   const scoped = {
     ...moderator,
@@ -502,6 +530,13 @@ test('offers a scoped moderator only the groups they look after', async ({ page,
   await expect(page.getByRole('columnheader', { name: de.crea.column })).toHaveCount(0)
 })
 
+// After a decision the badges are counted anew (MG1): the server's count, one fewer.
+const afterOneDecision = (variables: Variables) =>
+  variables.paginated ? contributionList([...contributions, own], 60) : { contributionCount: 59 }
+const COUNTED_ANEW = {
+  filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' },
+}
+
 for (const [decision, button, mutation, toast] of [
   ['confirm', de.save, 'confirmContribution', de.creation_form.toasted_created],
   ['deny', de.deny, 'denyContribution', de.creation_form.toasted_denied],
@@ -510,6 +545,7 @@ for (const [decision, button, mutation, toast] of [
   test(`asks once more, then sends the decision ${decision}`, async ({ page, graphql }) => {
     graphql.answer({ [mutation]: true })
     await open(page)
+    graphql.answer({ adminListContributions: afterOneDecision })
 
     await row(page, 0).getByRole('button', { name: button, exact: true }).click()
     await expect(dialog(page).locator('.modal-title')).toHaveText(de.overlay[decision].title)
@@ -531,7 +567,8 @@ for (const [decision, button, mutation, toast] of [
     await expect(page.getByRole('alert')).toContainText(toast)
     await expect(page.locator('.tab-badge')).toHaveText('59')
     expect(graphql.sentFor(mutation).map((sent) => sent.variables)).toEqual([{ id: 1 }])
-    expect(listQuestions(graphql)).toHaveLength(1)
+    // the list stays, the badges are counted anew (MG1)
+    expect(listQuestions(graphql)).toEqual([question(OPEN), COUNTED_ANEW])
   })
 }
 
@@ -551,6 +588,7 @@ test('keeps a contribution whose decision is refused', async ({ page, graphql })
 test('sends a decision once, however often it is pressed', async ({ page, graphql }) => {
   graphql.answer({ denyContribution: true })
   await open(page)
+  graphql.answer({ adminListContributions: afterOneDecision })
 
   await row(page, 0).getByRole('button', { name: de.deny, exact: true }).click()
   await dialog(page).getByRole('button', { name: de.overlay.deny.yes }).dblclick()

@@ -149,12 +149,16 @@ test('sends nothing on a second press while the first answer is on its way', asy
 
   await button.click()
   await expect(button).toBeDisabled()
+  // the ticks shown stay the ticks sent
+  await expect(box(page, 'Amstetten')).toBeDisabled()
+  await expect(box(page, de.creationGroupFilter.untagged)).toBeDisabled()
   await button.click({ force: true })
   await expect.poll(() => save.held.length).toBe(1)
   save.held[0]({ groupIds: [3], untagged: true })
 
   await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
   await expect(button).toBeEnabled()
+  await expect(box(page, 'Amstetten')).toBeEnabled()
   expect(graphql.sentFor('setHandledCreationGroups')).toHaveLength(1)
 })
 

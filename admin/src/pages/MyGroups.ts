@@ -109,6 +109,8 @@ export class MyGroups implements ClassComponent {
           type: 'checkbox',
           class: classes.box,
           checked,
+          // while a save is on its way, the ticks shown are the ticks sent
+          disabled: this.saving,
           onchange: (event: Event) => tick((event.target as HTMLInputElement).checked),
         }),
         m('span', text),

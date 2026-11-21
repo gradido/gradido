@@ -47,7 +47,6 @@ import {
   adminStore,
   askingHandledCreationGroups,
   keepHandledCreationGroups,
-  setOpenCreations,
 } from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
 import {
@@ -218,17 +217,24 @@ export class CreationConfirm implements ClassComponent {
       },
       paginated: { currentPage: this.page, pageSize: PAGE_SIZE, order: 'DESC' },
     })
-    if (asked !== this.asked) {
-      return
-    }
     if (!answer.success) {
-      toastError(answer.error.message)
+      if (asked === this.asked) {
+        toastError(answer.error.message)
+      }
       return
     }
     const { contributionCount, contributionList } = v.parse(
       contributionListSchema,
       answer.value,
     ).adminListContributions
+    // The badges count their list, never the few a search, a group or the resubmissions leave --
+    // also where this page has asked for another list since: their mark decides, not the page's.
+    if (badgesList) {
+      answerOpenCreations(badgeAsked, contributionCount)
+    }
+    if (asked !== this.asked) {
+      return
+    }
     if (this.keptOnTrial && contributionCount === 0) {
       this.query = ''
       this.searchAnew()
@@ -238,10 +244,6 @@ export class CreationConfirm implements ClassComponent {
     this.contributions = contributionList
     this.count = contributionCount
     askMemberAvatars(contributionList.flatMap((contribution) => contribution.user ?? []))
-    // the badges count their list, never the few a search, a group or the resubmissions leave
-    if (badgesList) {
-      answerOpenCreations(badgeAsked, contributionCount)
-    }
   }
 
   // Something the open count may follow changed on the server: the badges' list sets them as it
@@ -281,12 +283,9 @@ export class CreationConfirm implements ClassComponent {
       return
     }
     this.contributions = this.contributions.filter(({ id }) => id !== contribution.id)
-    // on the badges' list one fewer, on any other the badges counted anew
-    if (this.showsTheBadgesList()) {
-      setOpenCreations(adminStore.openCreations - 1)
-    } else {
-      this.countAnew()
-    }
+    // Counted anew, also on the badges' list: one fewer could take the contribution off a count
+    // that already left it out, or that it was never in (MG1).
+    askOpenCreations()
     toastSuccess(t(DECISIONS[decision].done))
   }
 
