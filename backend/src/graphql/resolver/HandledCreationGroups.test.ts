@@ -194,6 +194,13 @@ describe('the filter *handled', () => {
 
 describe('handledCreationGroups', () => {
   it('answers the choice in force', async () => {
+    // its own choice, so that the test stands alone as well as after the others
+    expect(
+      await dbUpdateUserRoleHandledCreationGroups(
+        peter.id,
+        JSON.stringify({ groupIds: [groupA], untagged: true }),
+      ),
+    ).toEqual({ success: true })
     await loginAs('peter@lustig.de')
     const { data, errors } = await query({ query: handledCreationGroups })
     expect(errors).toBeUndefined()
