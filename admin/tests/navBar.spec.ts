@@ -176,6 +176,32 @@ test('shows who is signed in, and switches light and dark', async ({ page }) => 
   await expect(page.locator('html')).not.toHaveAttribute('data-bs-theme', 'dark')
 })
 
+// "Meine Gruppen" (MG1): below the appearance, above "Mein Konto"; a moderator with an assigned
+// scope has none (myGroups.spec.ts)
+test('offers "Meine Gruppen" in the moderator’s menu, and leads there', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ creationGroups: [], handledCreationGroups: { groupIds: [], untagged: false } })
+  await signIn(page, '/contribution-links')
+  const account = page.getByTestId('navbar-account')
+  await account.getByRole('button', { name: 'Peter Lustig' }).click()
+
+  await expect(
+    account.locator('.dropdown-menu [role=menuitem], .dropdown-menu [role=menuitemradio]'),
+  ).toHaveText([
+    de.navbar.theme.system,
+    de.navbar.theme.light,
+    de.navbar.theme.dark,
+    de.navbar.myGroups,
+    de.navbar['my-account'],
+    de.navbar.logout,
+  ])
+  await page.getByTestId('navbar-my-groups').click()
+  await expect(page).toHaveURL(/\/admin\/my-groups$/)
+  await expect(page.getByRole('heading', { name: de.myGroups.title })).toBeVisible()
+})
+
 test('takes the wallet a change of light and dark made there', async ({ page }) => {
   await signIn(page, '/contribution-links')
   // another tab of the origin writes the key: this one hears it as a storage event

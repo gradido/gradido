@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
-import { supportIsTheirs } from './Moderator.logic'
+import { chosenGroupsOf, mayChooseGroups, supportIsTheirs } from './Moderator.logic'
 import { type Moderator, moderatorSchema } from './Moderator.schema'
 
 const signedIn = (more: Partial<Moderator>): Moderator => ({
@@ -46,5 +46,60 @@ describe('supportIsTheirs', () => {
     const { handlesSupportTickets: _left, ...before } = signedIn({})
     expect(supportIsTheirs(v.parse(moderatorSchema, { ...before, role: 'ADMIN' }))).toBe(true)
     expect(supportIsTheirs(v.parse(moderatorSchema, before))).toBe(false)
+  })
+})
+
+// "Meine Gruppen" (MG1)
+describe('mayChooseGroups', () => {
+  it('is yes for whoever has a role and sees every group', () => {
+    expect(mayChooseGroups(signedIn({ role: 'ADMIN' }))).toBe(true)
+    expect(mayChooseGroups(signedIn({ role: 'MODERATOR' }))).toBe(true)
+    expect(mayChooseGroups(signedIn({ role: 'MODERATOR_AI' }))).toBe(true)
+  })
+
+  // the scope is their list
+  it('is no for a moderator with an assigned scope', () => {
+    expect(
+      mayChooseGroups(
+        signedIn({ seesAllCreationGroups: false, visibleCreationGroups: ['garden'] }),
+      ),
+    ).toBe(false)
+  })
+
+  it('is no without a role, and where nobody is signed in', () => {
+    expect(mayChooseGroups(signedIn({ role: null }))).toBe(false)
+    expect(mayChooseGroups(null)).toBe(false)
+  })
+})
+
+describe('chosenGroupsOf', () => {
+  const moderator = signedIn({ role: 'ADMIN' })
+  const kept = (more = {}) => ({
+    of: moderator.gradidoID,
+    groupIds: [3, 7],
+    untagged: true,
+    ...more,
+  })
+
+  it('is the choice kept for the moderator signed in', () => {
+    expect(chosenGroupsOf(moderator, kept())).toEqual({ groupIds: [3, 7], untagged: true })
+    expect(chosenGroupsOf(moderator, kept({ groupIds: [] }))).toEqual({
+      groupIds: [],
+      untagged: true,
+    })
+  })
+
+  // The same browser is used by more than one moderator.
+  it('is none where the kept choice is somebody else’s', () => {
+    expect(
+      chosenGroupsOf(moderator, kept({ of: 'b1d2c3e4-0000-4000-8000-000000000001' })),
+    ).toBeNull()
+  })
+
+  it('is none where nothing is ticked, nothing is kept, or the moderator may not choose', () => {
+    expect(chosenGroupsOf(moderator, kept({ groupIds: [], untagged: false }))).toBeNull()
+    expect(chosenGroupsOf(moderator, null)).toBeNull()
+    expect(chosenGroupsOf(null, kept())).toBeNull()
+    expect(chosenGroupsOf({ ...moderator, seesAllCreationGroups: false }, kept())).toBeNull()
   })
 })

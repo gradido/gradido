@@ -8,6 +8,15 @@ import type { ListedContribution } from './Contribution.schema'
 
 type CreationGroup = { tag: string; name: string | null }
 
+/**
+ * "Meine Gruppen" (MG1): the token the server reads as the groups the signed-in moderator handles
+ * themself, and for one who chose nothing as everything they see.
+ */
+export const HANDLED_FILTER = '*handled'
+
+/** The states of the tab "open" of the creation page: what the badges count. */
+export const OPEN_STATES = ['IN_PROGRESS', 'PENDING']
+
 /** Still being worked on: a moderator can still decide it. */
 export const isOpen = ({ contributionStatus }: ListedContribution) =>
   contributionStatus === 'PENDING' || contributionStatus === 'IN_PROGRESS'

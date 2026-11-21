@@ -15,6 +15,49 @@ export const creationGroupSchema = v.object({
 
 export type CreationGroup = v.InferOutput<typeof creationGroupSchema>
 
+/**
+ * "Meine Gruppen" (MG1): the creation groups the moderator handles themself, by number, and whether
+ * "no group" is among them. Both empty where none is chosen, or none counts (an assigned scope).
+ */
+export const handledCreationGroupsSchema = v.object({
+  groupIds: v.array(v.number()),
+  untagged: v.boolean(),
+})
+
+export type HandledCreationGroups = v.InferOutput<typeof handledCreationGroupsSchema>
+
+/** The choice as the admin keeps it between pages: with the moderator it is the choice of. */
+export const keptHandledCreationGroupsSchema = v.object({
+  of: v.string(),
+  ...handledCreationGroupsSchema.entries,
+})
+
+export type KeptHandledCreationGroups = v.InferOutput<typeof keptHandledCreationGroupsSchema>
+
+/**
+ * The field of the kept state (admin.store.ts): none where a state kept from before has no such
+ * field, and none where it cannot be read -- a schema that refused it would throw the whole kept
+ * state away, the token with it.
+ */
+export const keptHandledCreationGroupsField = v.fallback(
+  v.nullable(keptHandledCreationGroupsSchema),
+  null,
+)
+
+/** A group with its number, as the choice names it. */
+export const numberedCreationGroupSchema = v.object({
+  ...creationGroupNameSchema.entries,
+  id: v.number(),
+})
+
+export type NumberedCreationGroup = v.InferOutput<typeof numberedCreationGroupSchema>
+
+/** The answer of creationGroupsAndHandled. */
+export const creationGroupsAndHandledSchema = v.object({
+  creationGroups: v.array(numberedCreationGroupSchema),
+  handledCreationGroups: handledCreationGroupsSchema,
+})
+
 /** How many contributions still name a group with a hashtag: exactly, and with a space after #. */
 export const hashtagCountsSchema = v.object({ exact: v.number(), loose: v.number() })
 

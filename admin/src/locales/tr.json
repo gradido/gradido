@@ -539,6 +539,15 @@
     "notice-tooltip": "Not yalnızca moderatörlere görünür",
     "show-submission-form": "hatırlatma beklensin mi?"
   },
+  "myGroups": {
+    "intro": "Kendin işlediğin yaratım gruplarını işaretle. Başlangıç sayfası, «Oluşturma» yanındaki sayı ve grup seçimi işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edersin.",
+    "noMatch": "Bu adda grup yok",
+    "none": "Hiçbir şey işaretli değil: her şey eskisi gibi sayılır.",
+    "saved": "Grupların kaydedildi.",
+    "search": "Grup ara",
+    "some": "Yalnızca işaretli satırlar sayılır.",
+    "title": "Gruplarım"
+  },
   "name": "Ad",
   "navbar": {
     "appearance": "Görünüm",
@@ -551,6 +560,7 @@
     "logout": "Çıkış yap",
     "menu": "Menü",
     "my-account": "Hesabım",
+    "myGroups": "Gruplarım",
     "projectBranding": "Proje markalaması",
     "projectBrandingTooltip": "Gradido girişinde kendi logonu kullan ve yeni kullanıcıları bir Humhub alanına ekle",
     "settings": "Ayarlar",

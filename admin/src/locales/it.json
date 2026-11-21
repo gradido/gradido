@@ -539,6 +539,15 @@
     "notice-tooltip": "La nota è visibile solo ai moderatori",
     "show-submission-form": "aspettare il promemoria?"
   },
+  "myGroups": {
+    "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, il numero accanto a «Creazione» e la scelta del gruppo seguono ciò che spunti. Continui a vedere tutto.",
+    "noMatch": "Nessun gruppo con questo nome",
+    "none": "Niente spuntato: conta tutto, come prima.",
+    "saved": "I tuoi gruppi sono salvati.",
+    "search": "Cerca un gruppo",
+    "some": "Contano solo le righe spuntate.",
+    "title": "I miei gruppi"
+  },
   "name": "Nome",
   "navbar": {
     "appearance": "Aspetto",
@@ -551,6 +560,7 @@
     "logout": "Esci",
     "menu": "Menu",
     "my-account": "Il mio account",
+    "myGroups": "I miei gruppi",
     "projectBranding": "Branding del progetto",
     "projectBrandingTooltip": "Usa il tuo logo nel login di Gradido e aggiungi nuovi utenti a uno spazio Humhub",
     "settings": "Impostazioni",

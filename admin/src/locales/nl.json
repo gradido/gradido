@@ -539,6 +539,15 @@
     "notice-tooltip": "De notitie is alleen zichtbaar voor moderatoren",
     "show-submission-form": "wachten op herinnering?"
   },
+  "myGroups": {
+    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, het getal bij “Creatie” en de groepskeuze volgen wat je aanvinkt. Je ziet nog steeds alles.",
+    "noMatch": "Geen groep met deze naam",
+    "none": "Niets aangevinkt: alles telt, zoals voorheen.",
+    "saved": "Je groepen zijn opgeslagen.",
+    "search": "Groep zoeken",
+    "some": "Alleen de aangevinkte regels tellen.",
+    "title": "Mijn groepen"
+  },
   "name": "Naam",
   "navbar": {
     "appearance": "Weergave",
@@ -551,6 +560,7 @@
     "logout": "Afmelden",
     "menu": "Menu",
     "my-account": "Mijn account",
+    "myGroups": "Mijn groepen",
     "projectBranding": "Projectbranding",
     "projectBrandingTooltip": "Gebruik je eigen logo in de Gradido-login en voeg nieuwe gebruikers toe aan een Humhub-space",
     "settings": "Instellingen",
