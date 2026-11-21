@@ -365,6 +365,8 @@
     "elsewhereOne": "Noutros grupos: uma criação aberta",
     "resubmission": "Além disso: {n} com lembrete",
     "support": "Suporte: {n} pedidos abertos",
+    "supportElsewhere": "Noutros grupos: {n} pedidos abertos",
+    "supportElsewhereOne": "Noutros grupos: um pedido aberto",
     "supportNone": "Suporte: nenhum pedido aberto",
     "supportOne": "Suporte: um pedido aberto",
     "today": "Hoje: {n} criações abertas",
@@ -545,7 +547,7 @@
     "show-submission-form": "esperar pelo lembrete?"
   },
   "myGroups": {
-    "intro": "Marca os grupos de criação que tratas tu. A página inicial, o número junto a «Criação» e o filtro de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
+    "intro": "Marca os grupos de criação que tratas tu. A página inicial, os números do menu e os filtros de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
     "noMatch": "Nenhum grupo com este nome",
     "none": "Nada marcado: tudo conta, como até agora.",
     "saved": "Os teus grupos foram guardados.",

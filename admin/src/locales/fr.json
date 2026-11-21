@@ -365,6 +365,8 @@
     "elsewhereOne": "Dans d'autres groupes : une création ouverte",
     "resubmission": "En plus : {n} avec rappel",
     "support": "Assistance : {n} demandes ouvertes",
+    "supportElsewhere": "Dans d'autres groupes : {n} demandes ouvertes",
+    "supportElsewhereOne": "Dans d'autres groupes : une demande ouverte",
     "supportNone": "Assistance : aucune demande ouverte",
     "supportOne": "Assistance : une demande ouverte",
     "today": "Aujourd'hui : {n} créations ouvertes",
@@ -545,7 +547,7 @@
     "show-submission-form": "attendre le rappel ?"
   },
   "myGroups": {
-    "intro": "Coche les groupes de création dont tu t'occupes toi-même. La page d'accueil, le nombre à côté de « Création » et le filtre par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
+    "intro": "Coche les groupes de création dont tu t'occupes toi-même. La page d'accueil, les nombres du menu et les filtres par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
     "noMatch": "Aucun groupe de ce nom",
     "none": "Rien de coché : tout compte, comme avant.",
     "saved": "Tes groupes sont enregistrés.",

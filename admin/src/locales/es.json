@@ -365,6 +365,8 @@
     "elsewhereOne": "En otros grupos: una creación abierta",
     "resubmission": "Además: {n} con recordatorio",
     "support": "Soporte: {n} consultas abiertas",
+    "supportElsewhere": "En otros grupos: {n} consultas abiertas",
+    "supportElsewhereOne": "En otros grupos: una consulta abierta",
     "supportNone": "Soporte: ninguna consulta abierta",
     "supportOne": "Soporte: una consulta abierta",
     "today": "Hoy: {n} creaciones abiertas",
@@ -545,7 +547,7 @@
     "show-submission-form": "¿esperar al recordatorio?"
   },
   "myGroups": {
-    "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, el número junto a «Creación» y el filtro de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
+    "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, los números del menú y los filtros de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
     "noMatch": "Ningún grupo con este nombre",
     "none": "Nada marcado: todo cuenta, como hasta ahora.",
     "saved": "Tus grupos están guardados.",

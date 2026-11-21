@@ -206,17 +206,23 @@ export class Support implements ClassComponent {
 
   /**
    * The administrator's box (K5): switching off asks first and names all requests still open --
-   * also those waiting for a resubmission, which the badges leave out (K4) --; switching on asks
-   * nothing (only one way does harm).
+   * also those waiting for a resubmission, which the badges leave out (K4), and those beyond
+   * "Meine Gruppen" (MG2) --; switching on asks nothing (only one way does harm).
    */
   private async toggleSwitch(active: boolean) {
     if (active) {
       await this.setSwitch(true)
       return
     }
-    const halves = await askOpenSupportTickets()
+    const counts = await askOpenSupportTickets()
     this.switchingOff = {
-      open: halves ? halves.forModeration + halves.forMember + halves.onResubmission : null,
+      open: counts
+        ? counts.forModeration +
+          counts.forMember +
+          counts.onResubmission +
+          counts.elsewhere +
+          counts.elsewhereOnResubmission
+        : null,
     }
   }
 

@@ -439,7 +439,13 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
     everythingOpen: { contributionCount: 0 },
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 0,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+    },
   })
   await signIn(page, '')
   await expect

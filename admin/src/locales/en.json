@@ -365,6 +365,8 @@
     "elsewhereOne": "In other groups: one open creation",
     "resubmission": "Also: {n} on resubmission",
     "support": "Support: {n} open requests",
+    "supportElsewhere": "In other groups: {n} open requests",
+    "supportElsewhereOne": "In other groups: one open request",
     "supportNone": "Support: no open requests",
     "supportOne": "Support: one open request",
     "today": "Today: {n} open creations",
@@ -545,7 +547,7 @@
     "show-submission-form": "wait for reminder?"
   },
   "myGroups": {
-    "intro": "Tick the creation groups you handle yourself. The start page, the number at “Creation” and the group filter follow your choice. You can still see everything.",
+    "intro": "Tick the creation groups you handle yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
     "noMatch": "No group with this name",
     "none": "Nothing ticked: everything counts, as before.",
     "saved": "Your groups are saved.",

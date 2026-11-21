@@ -365,6 +365,8 @@
     "elsewhereOne": "Diğer gruplarda: bir açık oluşturma",
     "resubmission": "Ayrıca hatırlatmalı: {n}",
     "support": "Destek: {n} açık talep",
+    "supportElsewhere": "Diğer gruplarda: {n} açık talep",
+    "supportElsewhereOne": "Diğer gruplarda: bir açık talep",
     "supportNone": "Destek: açık talep yok",
     "supportOne": "Destek: bir açık talep",
     "today": "Bugün: {n} açık oluşturma",
@@ -545,7 +547,7 @@
     "show-submission-form": "hatırlatma beklensin mi?"
   },
   "myGroups": {
-    "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, «Oluşturma» yanındaki sayı ve grup filtresi işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
+    "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
     "noMatch": "Bu adda grup yok",
     "none": "Hiçbir şey işaretli değil: her şey eskisi gibi sayılır.",
     "saved": "Grupların kaydedildi.",

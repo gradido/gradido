@@ -71,7 +71,13 @@ const byTab: Answer = ({ statuses }: { statuses: string[] }) =>
         : ticketList([...tickets, own], 30)
 
 // the two halves of the open tab (K3): the badges show their sum
-const OPEN = { forModeration: 5, forMember: 1, onResubmission: 0 }
+const OPEN = {
+  forModeration: 5,
+  forMember: 1,
+  onResubmission: 0,
+  elsewhere: 0,
+  elsewhereOnResubmission: 0,
+}
 
 test.beforeEach(async ({ graphql }) => {
   graphql.answer({
@@ -696,9 +702,21 @@ test('lets no answer to an earlier count put back a count from before a write', 
       counted += 1
       if (counted === 1) {
         await held
-        return { forModeration: 5, forMember: 1, onResubmission: 0 }
+        return {
+          forModeration: 5,
+          forMember: 1,
+          onResubmission: 0,
+          elsewhere: 0,
+          elsewhereOnResubmission: 0,
+        }
       }
-      return { forModeration: 4, forMember: 1, onResubmission: 0 }
+      return {
+        forModeration: 4,
+        forMember: 1,
+        onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+      }
     },
   })
   const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
@@ -850,7 +868,13 @@ test('counts the open requests at the menu entry and at the open tab', async ({
   // after a write, the count as it is now
   graphql.answer({ adminCloseSupportTicket: true })
   graphql.answer({
-    adminCountOpenSupportTickets: { forModeration: 4, forMember: 1, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 4,
+      forMember: 1,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+    },
   })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
   await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
@@ -858,7 +882,13 @@ test('counts the open requests at the menu entry and at the open tab', async ({
   await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
 
   graphql.answer({
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 0,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+    },
   })
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
@@ -1702,7 +1732,13 @@ test.describe('the switch of new requests (K5)', () => {
     graphql,
   }) => {
     graphql.answer({
-      adminCountOpenSupportTickets: { forModeration: 5, forMember: 1, onResubmission: 2 },
+      adminCountOpenSupportTickets: {
+        forModeration: 5,
+        forMember: 1,
+        onResubmission: 2,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+      },
       adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
     })
     await open(page)
@@ -1717,6 +1753,30 @@ test.describe('the switch of new requests (K5)', () => {
     await expect(box(page)).not.toBeChecked()
     expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([{ active: false }])
     await expect(toast(page, de.support.switch.off)).toBeVisible()
+  })
+
+  // ⛔ "Meine Gruppen" is a filter of what the moderator handles, not of what is open (MG2): an
+  // administrator who chose names every request still open before switching off, also the others'.
+  test('names before switching off also the requests open and waiting beyond "Meine Gruppen" (MG2)', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({
+      handledCreationGroups: { groupIds: [1], untagged: false },
+      adminCountOpenSupportTickets: {
+        forModeration: 5,
+        forMember: 1,
+        onResubmission: 2,
+        elsewhere: 7,
+        elsewhereOnResubmission: 3,
+      },
+      adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
+    })
+    await open(page)
+    await box(page).click()
+    await expect(dialog(page)).toContainText(de.support.switch.confirmOpen.replace('{open}', '18'))
+    // the badges count "Meine Gruppen" alone
+    await expect(page.locator('.tab-badge')).toHaveText('6')
   })
 
   test('switches on again without asking', async ({ page, graphql }) => {

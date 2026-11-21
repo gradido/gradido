@@ -83,6 +83,12 @@ export class Dashboard implements ClassComponent {
     return open === 1 ? t('dashboard.supportOne') : t('dashboard.support', { n: open })
   }
 
+  private supportElsewhere(open: number) {
+    return open === 1
+      ? t('dashboard.supportElsewhereOne')
+      : t('dashboard.supportElsewhere', { n: open })
+  }
+
   view() {
     const counts = this.counts
     const support = this.creationsAsked ? this.support : null
@@ -173,6 +179,15 @@ export class Dashboard implements ClassComponent {
             'p.mb-1',
             { 'data-test': 'support-on-resubmission' },
             t('dashboard.resubmission', { n: support.onResubmission }),
+          )
+        : null,
+      // What is open outside "Meine Gruppen", quietly and without a link, as for contributions
+      // (MG2); the server counts it only for whoever chose, so it never stands for anybody else.
+      support?.elsewhere
+        ? m(
+            'p.mb-1.text-body-secondary',
+            { 'data-test': 'support-open-elsewhere' },
+            this.supportElsewhere(support.elsewhere),
           )
         : null,
     ])

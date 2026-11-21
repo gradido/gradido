@@ -365,6 +365,8 @@
     "elsewhereOne": "In anderen Gruppen: eine offene Schöpfung",
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
     "support": "Support: {n} offene Anfragen",
+    "supportElsewhere": "In anderen Gruppen: {n} offene Anfragen",
+    "supportElsewhereOne": "In anderen Gruppen: eine offene Anfrage",
     "supportNone": "Support: keine offenen Anfragen",
     "supportOne": "Support: eine offene Anfrage",
     "today": "Heute: {n} offene Schöpfungen",
@@ -545,7 +547,7 @@
     "show-submission-form": "warten auf Erinnerung?"
   },
   "myGroups": {
-    "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahl am Menüpunkt „Schöpfung“ und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
+    "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
     "noMatch": "Keine Gruppe mit diesem Namen",
     "none": "Nichts angekreuzt: Es zählt alles, wie bisher.",
     "saved": "Deine Gruppen sind gespeichert.",
