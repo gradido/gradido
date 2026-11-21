@@ -352,6 +352,8 @@ export class CreationConfirm implements ClassComponent {
     const showChat = CONFIG.ANTHROPIC_ACTIVE && aiUser
     const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
     return m('.creation-confirm', [
+      // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
+      m('h2.h4.mb-3', t('creation')),
       // the search and the group side by side; on a narrow window one above the other
       m('.creation-filters.mt-2.mb-2', [
         m(UserQuery, {

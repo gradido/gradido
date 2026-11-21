@@ -17,6 +17,7 @@ import { NotFound } from '@/pages/NotFound'
 import { ProjectBranding } from '@/pages/ProjectBranding'
 import { Statistic } from '@/pages/Statistic'
 import { Support } from '@/pages/Support'
+import { SupportSettings } from '@/pages/SupportSettings'
 import { UserSearch } from '@/pages/UserSearch'
 import { adminStore } from '@/store/admin.store'
 import { authenticate } from './authenticate'
@@ -68,6 +69,7 @@ export const routes: RouteDefs = {
   '/projectBranding': protectedPage(ProjectBranding, forAdministrators),
   '/creaSettings': protectedPage(CreaSettings, forAdministrators),
   '/chat': protectedPage(ChatSettings, forAdministrators),
+  '/support-settings': protectedPage(SupportSettings, forAdministrators),
   '/creation-groups': protectedPage(CreationGroups, forAdministrators),
   // The page answered to /group-tags until the rename; old bookmarks still lead there.
   '/group-tags': { onmatch: () => m.route.set('/creation-groups', undefined, { replace: true }) },

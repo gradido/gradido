@@ -245,6 +245,8 @@ export class NavBar implements ClassComponent {
                 { to: '/creation-groups', label: t('navbar.creationGroups') },
                 { to: '/creaSettings', label: t('navbar.crea') },
                 { to: '/chat', label: t('navbar.chat') },
+                // whether members may file new requests (K5), moved here from the support page
+                { to: '/support-settings', label: t('navbar.support') },
               ],
             },
           ]

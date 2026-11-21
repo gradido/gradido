@@ -77,6 +77,8 @@ const open = async (page: Page) => {
 test('lists the open contributions, asking once', async ({ page, graphql }) => {
   await open(page)
 
+  // the page's name, the menu's word
+  await expect(page.getByRole('heading', { name: de.creation, exact: true })).toBeVisible()
   expect(listQuestions(graphql)).toEqual([question(OPEN)])
   expect(graphql.sentFor('creationGroups')).toHaveLength(1)
   await expect(page.locator('.open-creations-table thead th')).toHaveText([
