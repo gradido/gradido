@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { creationGroups } from '@/graphql/creationGroups.graphql'
+import { creationGroupsAndHandled } from '@/graphql/creationGroups.graphql'
 import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
@@ -25,7 +25,12 @@ import {
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { toastError, toastSuccess } from '@/components/Toasts'
 import { UserQuery } from '@/components/UserQuery'
-import { creationGroupNameSchema } from '@/data/CreationGroup.schema'
+import { HANDLED_FILTER } from '@/data/Contribution.logic'
+import {
+  creationGroupsAndHandledSchema,
+  type NumberedCreationGroup,
+} from '@/data/CreationGroup.schema'
+import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
 import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.logic'
 import {
   type ListedSupportTicket,
@@ -35,7 +40,11 @@ import {
 } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+} from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 import { isPhone } from '@/viewport'
@@ -109,10 +118,6 @@ const DECISIONS = {
   },
 } as const
 
-const groupsSchema = v.object({
-  creationGroups: v.array(creationGroupNameSchema),
-})
-
 /**
  * The support requests of the moderator's groups, under one tab per state, 25 to a page, the
  * newest first (K2), searched by text or by a member and filtered by group (K4); a request opens
@@ -120,7 +125,8 @@ const groupsSchema = v.object({
  * its row (K3), or handed on to another group (K4). After every write -- done or refused -- the
  * page asks for its list and for the count of the open tab anew: what a request is now, the
  * server says. The search and the tab are
- * kept for each moderator on this device (lastSearch.ts); the group filter opens on all they see.
+ * kept for each moderator on this device (lastSearch.ts); the group filter opens on "Meine Gruppen"
+ * (MG2) -- for a moderator with a scope on all they see -- and is not kept.
  *
  * Above the list the switch of new requests (K5, SUA-019): an administrator ticks it on and off --
  * off only after a question that names the requests still open --, a moderator reads a line while
@@ -130,9 +136,11 @@ export class Support implements ClassComponent {
   private readonly moderator = adminStore.moderator
   private tab = lastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, TABS.length)
   private query = lastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID)
-  private groups: v.InferOutput<typeof groupsSchema>['creationGroups'] = []
-  // the first choice, all the moderator sees: their choices are known before the groups are
-  private group = this.moderator ? supportGroupFilterOptions(this.moderator, [])[0].value : ''
+  private groups: NumberedCreationGroup[] = []
+  // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
+  // group, whether or not the admin knows the choice yet (MG2); for a moderator with a scope all
+  // they see.
+  private group = this.moderator ? supportGroupFilterOptions(this.moderator, [], null)[0].value : ''
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
   // only: a search given here stays, also where it finds nothing.
   private keptOnTrial = this.query !== ''
@@ -157,10 +165,29 @@ export class Support implements ClassComponent {
   private switching = false
 
   oninit() {
-    // in a request of its own, as the creation page asks: the groups are not support's to count
-    graphqlRequest(creationGroups).then((answer) => {
+    // The groups and the choice in a request of their own, as the creation page asks (MG2): the
+    // first list does not wait for them. The choice changes the words of the filter, and whether
+    // "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
+    const of = this.moderator?.gradidoID
+    const choiceAsked = askingHandledCreationGroups()
+    graphqlRequest(creationGroupsAndHandled).then((answer) => {
       if (answer.success) {
-        this.groups = v.parse(groupsSchema, answer.value).creationGroups
+        const { creationGroups, handledCreationGroups } = v.parse(
+          creationGroupsAndHandledSchema,
+          answer.value,
+        )
+        this.groups = creationGroups
+        keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
+        // "" is offered beside a choice only, to whoever may choose. Picked while the page still
+        // knew one that was cleared on another device, the same list is called by the row that now
+        // means everything. A moderator of groups and of no group begins on "" (SUA-026): his stays.
+        if (
+          this.group === '' &&
+          mayChooseGroups(this.moderator) &&
+          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+        ) {
+          this.group = HANDLED_FILTER
+        }
       }
     })
     this.load(this.page)
@@ -179,17 +206,23 @@ export class Support implements ClassComponent {
 
   /**
    * The administrator's box (K5): switching off asks first and names all requests still open --
-   * also those waiting for a resubmission, which the badges leave out (K4) --; switching on asks
-   * nothing (only one way does harm).
+   * also those waiting for a resubmission, which the badges leave out (K4), and those beyond
+   * "Meine Gruppen" (MG2) --; switching on asks nothing (only one way does harm).
    */
   private async toggleSwitch(active: boolean) {
     if (active) {
       await this.setSwitch(true)
       return
     }
-    const halves = await askOpenSupportTickets()
+    const counts = await askOpenSupportTickets()
     this.switchingOff = {
-      open: halves ? halves.forModeration + halves.forMember + halves.onResubmission : null,
+      open: counts
+        ? counts.forModeration +
+          counts.forMember +
+          counts.onResubmission +
+          counts.elsewhere +
+          counts.elsewhereOnResubmission
+        : null,
     }
   }
 
@@ -338,6 +371,7 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm.mt-2', [
       // a row of its own above the search: it moves neither the search nor the box below (K5)
@@ -357,7 +391,17 @@ export class Support implements ClassComponent {
           class: 'creation-group-filter',
           'data-test': 'support-group-filter',
           value: this.group,
-          options: this.moderator ? supportGroupFilterOptions(this.moderator, this.groups) : [],
+          options: this.moderator
+            ? supportGroupFilterOptions(this.moderator, this.groups, chosen)
+            : [],
+          // a way to the page of the choice, below the groups: leaves the filter as it is
+          link: mayChooseGroups(this.moderator)
+            ? {
+                href: '/my-groups',
+                text: t(chosen ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine'),
+                'data-test': 'support-group-filter-mine',
+              }
+            : undefined,
           onchange: (group: string) => {
             this.group = group
             this.searchAnew()

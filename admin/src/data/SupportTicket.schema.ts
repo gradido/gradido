@@ -49,13 +49,16 @@ export const supportThreadSchema = v.object({
 
 /**
  * The two halves of the open tab in the moderator's groups (adminCountOpenSupportTickets), and
- * apart from them what waits for a resubmission (K4).
+ * apart from them what waits for a resubmission (K4) -- all three in "Meine Gruppen" (MG2) -- and
+ * what is open and what waits beyond it.
  */
 export const openSupportTicketsSchema = v.object({
   adminCountOpenSupportTickets: v.object({
     forModeration: v.number(),
     forMember: v.number(),
     onResubmission: v.number(),
+    elsewhere: v.number(),
+    elsewhereOnResubmission: v.number(),
   }),
 })
 

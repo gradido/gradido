@@ -78,15 +78,18 @@ query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
   }
 }
 
-# The two halves of the open tab within the moderator's groups (K3): what the badges in the bar
-# and on the tab, and the start page, add up -- and apart from them what waits for a resubmission
-# (K4), which the start page names in a line of its own. A document of its own: the start page
+# The two halves of the open tab within the moderator's groups (K3), in "Meine Gruppen" (MG2): what
+# the badges in the bar and on the tab, and the start page, add up -- and apart from them what waits
+# for a resubmission (K4), which the start page names in a line of its own; and what is open and
+# waiting beyond "Meine Gruppen" (0 where nothing is chosen). A document of its own: the start page
 # asks for it beside the creation's counts, and either may fail without the other.
 query adminCountOpenSupportTickets {
   adminCountOpenSupportTickets {
     forModeration
     forMember
     onResubmission
+    elsewhere
+    elsewhereOnResubmission
   }
 }
 

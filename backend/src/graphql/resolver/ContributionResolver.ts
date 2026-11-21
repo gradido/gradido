@@ -40,7 +40,6 @@ import { EntityManager, IsNull } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { colleagueNoteOnQuestion } from '@/data/ContributionConversation.logic'
-import { handledCreationGroupsOf } from '@/data/HandledCreationGroups.logic'
 import { CREATION_NOT_ALLOWED } from '@/data/ProjectAccount.logic'
 import { UpdateUnconfirmedContributionContext } from '@/interactions/updateUnconfirmedContribution/UpdateUnconfirmedContribution.context'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
@@ -61,7 +60,7 @@ import { extractGraphQLFieldPaths, extractGraphQLFields } from './util/extractGr
 import { findContributions, HANDLED_FILTER, parseModeratorScope } from './util/findContributions'
 import {
   assertContributionInModeratorScope,
-  describeModeratorCreationGroups,
+  handledCreationGroupsOfRole,
   isScopedModeratorRole,
 } from './util/moderatorCreationGroupScope'
 
@@ -476,12 +475,7 @@ export class ContributionResolver {
         : null
     // "Meine Gruppen" (MG1), from the role row loaded with the request: no query of its own.
     const handled =
-      filter.creationGroup === HANDLED_FILTER
-        ? handledCreationGroupsOf(
-            activeRole?.handledCreationGroups,
-            describeModeratorCreationGroups(activeRole).seesAllCreationGroups,
-          )
-        : null
+      filter.creationGroup === HANDLED_FILTER ? handledCreationGroupsOfRole(activeRole) : null
     const [dbContributions, count] = await findContributions(
       paginated,
       filter,

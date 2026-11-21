@@ -365,6 +365,8 @@
     "elsewhereOne": "In altri gruppi: una creazione aperta",
     "resubmission": "Inoltre: {n} con promemoria",
     "support": "Supporto: {n} richieste aperte",
+    "supportElsewhere": "In altri gruppi: {n} richieste aperte",
+    "supportElsewhereOne": "In altri gruppi: una richiesta aperta",
     "supportNone": "Supporto: nessuna richiesta aperta",
     "supportOne": "Supporto: una richiesta aperta",
     "today": "Oggi: {n} creazioni aperte",
@@ -545,7 +547,7 @@
     "show-submission-form": "aspettare il promemoria?"
   },
   "myGroups": {
-    "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, il numero accanto a «Creazione» e il filtro per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
+    "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, i numeri nel menu e i filtri per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
     "noMatch": "Nessun gruppo con questo nome",
     "none": "Niente spuntato: tutto conta, come prima.",
     "saved": "I tuoi gruppi sono stati salvati.",

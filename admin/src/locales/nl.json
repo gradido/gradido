@@ -365,6 +365,8 @@
     "elsewhereOne": "In andere groepen: één open creatie",
     "resubmission": "Daarnaast: {n} met herinnering",
     "support": "Support: {n} open vragen",
+    "supportElsewhere": "In andere groepen: {n} open vragen",
+    "supportElsewhereOne": "In andere groepen: één open vraag",
     "supportNone": "Support: geen open vragen",
     "supportOne": "Support: één open vraag",
     "today": "Vandaag: {n} open creaties",
@@ -545,7 +547,7 @@
     "show-submission-form": "wachten op herinnering?"
   },
   "myGroups": {
-    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, het getal bij “Creatie” en het groepsfilter richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
+    "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, de getallen in het menu en de groepsfilters richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
     "noMatch": "Geen groep met deze naam",
     "none": "Niets aangevinkt: alles telt mee, zoals voorheen.",
     "saved": "Je groepen zijn opgeslagen.",

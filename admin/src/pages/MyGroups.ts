@@ -9,6 +9,7 @@ import {
   handledCreationGroupsSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
+import { supportIsTheirs } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import {
   creationGroupsAndHandled,
@@ -22,15 +23,16 @@ import {
   keepHandledCreationGroups,
 } from '@/store/admin.store'
 import { askOpenCreations } from '@/store/openCreations.store'
+import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 import { creationGroupLabel } from '@/utils/creationGroupLabel'
 
 const savedSchema = v.object({ setHandledCreationGroups: handledCreationGroupsSchema })
 
 /**
  * "Meine Gruppen" (MG1): the moderator ticks the creation groups they handle themself, and "no
- * group"; the start page, the number at "Schöpfung" and the group filter of the creation page
- * follow it. For one who sees every group (mayChooseGroups, routes.ts). The page edits the server's
- * state, asked anew at every opening, never the one the admin keeps.
+ * group"; the start page, the numbers at "Schöpfung" and "Support" and the group filters of both
+ * pages follow it (MG2). For one who sees every group (mayChooseGroups, routes.ts). The page edits
+ * the server's state, asked anew at every opening, never the one the admin keeps.
  */
 export class MyGroups implements ClassComponent {
   // null while the first answer is on its way: nothing to tick, nothing to save
@@ -96,8 +98,13 @@ export class MyGroups implements ClassComponent {
       choiceAsked,
     )
     toastSuccess(t('myGroups.saved'))
-    // what the badges count changed with it
+    // what the badges count changed with it -- the support's only where it is theirs: a refusal for
+    // want of the right takes the tick away (askOpenSupportTickets), and this page stands for every
+    // moderator who may choose, with the tick or without
     askOpenCreations()
+    if (supportIsTheirs(adminStore.moderator)) {
+      askOpenSupportTickets()
+    }
   }
 
   private row(key: string, text: string, checked: boolean, tick: (on: boolean) => void) {

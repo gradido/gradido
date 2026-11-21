@@ -2,7 +2,8 @@
 import { MESSAGE_MAX_CHARS, SUPPORT_TICKET_MESSAGES_MAX } from 'shared/browser'
 import type { Option } from '@/components/ThemedSelect'
 import { t } from '@/i18n'
-import { type DetailsState, groupFilterOptions } from './Contribution.logic'
+import { creationGroupFilterOptions, type DetailsState } from './Contribution.logic'
+import type { HandledCreationGroups, NumberedCreationGroup } from './CreationGroup.schema'
 import type { Moderator } from './Moderator.schema'
 import type { ListedSupportTicket } from './SupportTicket.schema'
 
@@ -138,17 +139,19 @@ export const closingLine = (ticket: ListedSupportTicket) => {
 }
 
 /**
- * The choices of the support's group filter (K4): the creation page's, and for a moderator of
- * groups who sees the requests of no group as well "(mit und ohne Gruppe)" before them, the one
- * value that shows all they see -- the creation page has none for them and begins with their
- * groups alone. The first choice is the one the page opens with: all a moderator sees, as the
- * badges count it. The server keeps to the scope whatever is chosen.
+ * The choices of the support's group filter (K4): the creation page's with "Meine Gruppen" (MG2,
+ * creationGroupFilterOptions), and for a moderator of groups who sees the requests of no group as
+ * well "(mit und ohne Gruppe)" before them, the one value that shows all they see -- the creation
+ * page has none for them and begins with their groups alone. The first choice is the one the page
+ * opens with, as the badges count it: "Meine Gruppen" for whoever sees every group, all they see
+ * for a moderator with a scope. The server keeps to the scope whatever is chosen.
  */
 export const supportGroupFilterOptions = (
   moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
-  groups: Parameters<typeof groupFilterOptions>[1],
+  groups: NumberedCreationGroup[],
+  chosen: HandledCreationGroups | null,
 ): Option[] => {
-  const options = groupFilterOptions(moderator, groups)
+  const options = creationGroupFilterOptions(moderator, groups, chosen)
   return !moderator.seesAllCreationGroups &&
     moderator.seesUntagged &&
     moderator.visibleCreationGroups.length > 0

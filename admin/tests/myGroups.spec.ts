@@ -29,8 +29,21 @@ const holding = () => {
   return { held, answer: () => new Promise((resolve) => held.push(resolve)) }
 }
 
+// the support's count, which a save asks anew where the support is theirs (MG2)
+const NO_SUPPORT_OPEN = {
+  forModeration: 0,
+  forMember: 0,
+  onResubmission: 0,
+  elsewhere: 0,
+  elsewhereOnResubmission: 0,
+}
+
 test.beforeEach(async ({ page, graphql }) => {
-  graphql.answer({ ...signedInAnswers(), ...answersWith([3], true) })
+  graphql.answer({
+    ...signedInAnswers(),
+    ...answersWith([3], true),
+    adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
+  })
   await serveWalletAssets(page)
 })
 
@@ -135,6 +148,59 @@ test('saves the whole choice, says so, and asks the number at "Schöpfung" anew'
   await expect(badge).toHaveText('4')
 })
 
+// The number at "Support" counts "Meine Gruppen" as well (MG2): a save asks it anew -- only where
+// the support is the moderator's, since a refusal of its count takes the tick away.
+test('asks the number at "Support" anew after a save, where the support is theirs (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    setHandledCreationGroups: { groupIds: [3, 5], untagged: true },
+    adminListContributions: { contributionCount: 4 },
+    adminCountOpenSupportTickets: {
+      forModeration: 2,
+      forMember: 1,
+      onResubmission: 0,
+      elsewhere: 5,
+      elsewhereOnResubmission: 0,
+    },
+  })
+  await signIn(page, '/my-groups')
+  await box(page, 'GD-Hohestraße').check()
+  await page.getByTestId('my-groups-save').click()
+
+  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  await expect.poll(() => graphql.sentFor('adminCountOpenSupportTickets').length).toBe(1)
+  const supportBadge = page
+    .locator('nav.navbar')
+    .getByRole('link', { name: de.navbar.support })
+    .locator('.badge')
+  await expect(supportBadge).toHaveText('3')
+})
+
+test('asks no number at "Support" after a save for a moderator without the support (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  const withoutSupport = { ...moderator, role: 'MODERATOR', handlesSupportTickets: false }
+  graphql.answer({
+    ...signedInAnswers(withoutSupport),
+    setHandledCreationGroups: { groupIds: [3, 5], untagged: true },
+    adminListContributions: { contributionCount: 4 },
+  })
+  await signIn(page, '/my-groups', withoutSupport)
+  await box(page, 'GD-Hohestraße').check()
+  await page.getByTestId('my-groups-save').click()
+
+  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  // the creation's number is asked and answered, so the save has run to its end: the support's
+  // question would have gone out in the same moment
+  await expect(
+    page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge'),
+  ).toHaveText('4')
+  expect(graphql.sentFor('adminCountOpenSupportTickets')).toEqual([])
+})
+
 test('sends nothing on a second press while the first answer is on its way', async ({
   page,
   graphql,
@@ -174,7 +240,13 @@ test('keeps the count and the choice of a save where the start page answers afte
     waitingForMember: { contributionCount: 1 },
     allOpen: { contributionCount: 9 },
     everythingOpen: { contributionCount: 12 },
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 0,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+    },
     setHandledCreationGroups: { groupIds: [3, 7], untagged: true },
     adminListContributions: { contributionCount: 3 },
   })
