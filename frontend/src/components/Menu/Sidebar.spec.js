@@ -745,10 +745,10 @@ describe('Sidebar and the contributions with a question back', () => {
 })
 
 /**
- * "Meine Gruppen" (MG3): behind "Admin", what waits for the moderation in the member's own groups,
- * in Bernd's form -- the creations raised in a square box, the support requests lowered and round.
- * The numbers come through the real beat (useChatUpdates), as the chat's do; where they stand on
- * the screen, and that they move nothing, is measured in the built wallet.
+ * "Meine Gruppen" (MG3): at "Admin", what waits for the moderation in the member's own groups, on
+ * the corners of the symbol as the other marks -- the creations above, the support requests below
+ * (Bernd, 22.11.2026). The numbers come through the real beat (useChatUpdates), as the chat's do;
+ * where they stand on the screen, and that they move nothing, is measured in the built wallet.
  */
 describe('Sidebar and what waits for the moderation (MG3)', () => {
   const answer = (moderationWaiting) => ({
@@ -771,14 +771,14 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
     })
   const adminEntry = (wrapper) =>
     wrapper.findAll('.nav-item').find((item) => item.find('[data-test="admin-menu-icon"]').exists())
-  const square = (wrapper) => wrapper.find('[data-test="admin-creations-badge"]')
-  const round = (wrapper) => wrapper.find('[data-test="admin-support-badge"]')
+  const creations = (wrapper) => wrapper.find('[data-test="admin-creations-badge"]')
+  const requests = (wrapper) => wrapper.find('[data-test="admin-support-badge"]')
+  const marks = (wrapper) => adminEntry(wrapper).findAll('.chat-unread-badge')
   const sentences = (wrapper) =>
     ['admin-creations-badge-label', 'admin-support-badge-label']
       .map((name) => wrapper.find(`[data-test="${name}"]`))
       .filter((found) => found.exists())
       .map((found) => found.text())
-  const rows = (wrapper) => adminEntry(wrapper).findAll('.admin-mark-row')
 
   afterEach(() => {
     stopChatUpdates()
@@ -787,42 +787,38 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
   it('shows no mark while nothing waits, and the entry as before', async () => {
     await beatBrings({ creations: 0, supportTickets: 0 })
     const wrapper = mountSidebar()
-    expect(adminEntry(wrapper).find('.admin-marks').exists()).toBe(false)
+    expect(marks(wrapper)).toHaveLength(0)
     expect(sentences(wrapper)).toEqual([])
     expect(adminEntry(wrapper).text()).toBe('Admin')
   })
 
-  it('shows both behind the word: the creations above in a square box, the requests below and round', async () => {
+  it('shows both on the symbol, the creations above and the requests below', async () => {
     await beatBrings({ creations: 3, supportTickets: 2 })
     const wrapper = mountSidebar()
-    const label = adminEntry(wrapper).find('.admin-menu-label')
-    expect(label.element.firstChild.textContent).toBe('Admin')
-    const marks = label.find('.admin-marks')
-    expect(marks.attributes('aria-hidden')).toBe('true')
-    expect(rows(wrapper)).toHaveLength(2)
-    expect(rows(wrapper)[0].find('[data-test="admin-creations-badge"]').exists()).toBe(true)
-    expect(rows(wrapper)[1].find('[data-test="admin-support-badge"]').exists()).toBe(true)
-    expect(square(wrapper).text()).toBe('3')
-    expect(round(wrapper).text()).toBe('2')
-    // the chat's marks, the upper one square
-    expect(square(wrapper).classes()).toEqual(
-      expect.arrayContaining(['chat-unread-badge', 'admin-mark', 'admin-mark-square']),
-    )
-    expect(round(wrapper).classes()).toEqual(
-      expect.arrayContaining(['chat-unread-badge', 'admin-mark']),
-    )
-    expect(round(wrapper).classes()).not.toContain('admin-mark-square')
+    // Symbol and word in the row of the other marked entries.
+    const row = adminEntry(wrapper).find('.sidebar-menu-item-wrapper')
+    expect(row.classes()).toContain('chat-menu-item')
+    const holder = row.find('.chat-menu-icon')
+    expect(holder.find('[data-test="admin-menu-icon"]').exists()).toBe(true)
+    expect(holder.findAll('.chat-unread-badge')).toHaveLength(2)
+    expect(creations(wrapper).text()).toBe('3')
+    expect(requests(wrapper).text()).toBe('2')
+    // The figures are for the eye only.
+    expect(marks(wrapper).map((mark) => mark.attributes('aria-hidden'))).toEqual(['true', 'true'])
+    // The mark of the other entries twice: what tells them apart is the place alone.
+    expect(creations(wrapper).classes()).toEqual(['chat-unread-badge'])
+    expect(requests(wrapper).classes()).toEqual(['chat-unread-badge', 'chat-unread-badge-below'])
   })
 
-  // Where a number is not there, its place stays empty: the place says what is counted.
+  // Where a number is not there, the other keeps its corner: the place says what is counted.
   it.each([
-    [{ creations: 3, supportTickets: 0 }, [true, false]],
-    [{ creations: 0, supportTickets: 2 }, [false, true]],
-  ])('keeps each number in its own place: %o', async (waiting, shown) => {
+    [{ creations: 3, supportTickets: 0 }, ['chat-unread-badge']],
+    [{ creations: 0, supportTickets: 2 }, ['chat-unread-badge', 'chat-unread-badge-below']],
+  ])('keeps each number in its own place: %o', async (waiting, classes) => {
     await beatBrings(waiting)
     const wrapper = mountSidebar()
-    expect(rows(wrapper)).toHaveLength(2)
-    expect(rows(wrapper).map((row) => row.find('.admin-mark').exists())).toEqual(shown)
+    expect(marks(wrapper)).toHaveLength(1)
+    expect(marks(wrapper)[0].classes()).toEqual(classes)
   })
 
   it('says each number as a sentence after the word, for the ear, and the same to the mouse', async () => {
@@ -833,9 +829,12 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
       '3 creations are waiting for moderation.',
       '2 support requests are waiting for moderation.',
     ])
-    expect(square(wrapper).attributes('title')).toBe('3 creations are waiting for moderation')
-    expect(round(wrapper).attributes('title')).toBe('2 support requests are waiting for moderation')
-    const word = adminEntry(wrapper).find('.admin-menu-label')
+    expect(creations(wrapper).attributes('title')).toBe('3 creations are waiting for moderation')
+    expect(requests(wrapper).attributes('title')).toBe(
+      '2 support requests are waiting for moderation',
+    )
+    const word = adminEntry(wrapper).find('.chat-menu-label')
+    expect(word.text()).toBe('Admin')
     for (const name of ['admin-creations-badge-label', 'admin-support-badge-label']) {
       const said = wrapper.find(`[data-test="${name}"]`)
       expect(said.classes()).toContain('visually-hidden')
@@ -858,7 +857,7 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
   it('stops the figures at 99+, and the sentences say the number', async () => {
     await beatBrings({ creations: 120, supportTickets: 150 })
     const wrapper = mountSidebar()
-    expect([square(wrapper).text(), round(wrapper).text()]).toEqual(['99+', '99+'])
+    expect([creations(wrapper).text(), requests(wrapper).text()]).toEqual(['99+', '99+'])
     expect(sentences(wrapper)).toEqual([
       '120 creations are waiting for moderation.',
       '150 support requests are waiting for moderation.',
@@ -868,8 +867,8 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
   it('shows no support number for a moderator who does not handle the support', async () => {
     await beatBrings({ creations: 3, supportTickets: null })
     const wrapper = mountSidebar({ role: 'MODERATOR' })
-    expect(square(wrapper).text()).toBe('3')
-    expect(round(wrapper).exists()).toBe(false)
+    expect(creations(wrapper).text()).toBe('3')
+    expect(requests(wrapper).exists()).toBe(false)
     expect(sentences(wrapper)).toEqual(['3 creations are waiting for moderation.'])
   })
 
@@ -877,34 +876,42 @@ describe('Sidebar and what waits for the moderation (MG3)', () => {
     await beatBrings({ creations: 3, supportTickets: 2 })
     const wrapper = mountSidebar({ role: null })
     expect(wrapper.find('[data-test="admin-menu-icon"]').exists()).toBe(false)
-    expect(square(wrapper).exists()).toBe(false)
-    expect(round(wrapper).exists()).toBe(false)
+    expect(creations(wrapper).exists()).toBe(false)
+    expect(requests(wrapper).exists()).toBe(false)
     expect(sentences(wrapper)).toEqual([])
   })
 
   it("goes when the beat stops: the numbers were the member's", async () => {
     await beatBrings({ creations: 3, supportTickets: 2 })
     const wrapper = mountSidebar()
-    expect(square(wrapper).exists()).toBe(true)
+    expect(marks(wrapper)).toHaveLength(2)
     stopChatUpdates()
     await flushPromises()
-    expect(adminEntry(wrapper).find('.admin-marks').exists()).toBe(false)
+    expect(marks(wrapper)).toHaveLength(0)
   })
 
-  it('stands at the end of the word, taking no room in the row, in the stylesheet', () => {
+  // One under the other: the lower mark has its height from the symbol's lower edge, all else --
+  // the side, the round form, the gold -- is the mark's own. jsdom draws nothing, so the stylesheet
+  // says it, read without its comments.
+  it('hangs the requests as far below the symbol as the creations stand above it', () => {
     const style = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.module.scss'),
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, '')
     const rule = (selector) =>
-      style.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+      Object.fromEntries(
+        style
+          .match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))[1]
+          .split(';')
+          .map((line) => line.split(':').map((part) => part.trim()))
+          .filter(([name]) => name),
+      )
 
-    expect(rule('\\.admin-menu-label')).toMatch(/position:\s*relative/)
-    expect(rule('\\.admin-marks')).toMatch(/position:\s*absolute/)
-    expect(rule('\\.admin-marks')).toMatch(/left:\s*100%/)
-    expect(rule('\\.admin-mark-row \\+ \\.admin-mark-row')).toMatch(/margin:\s*2px 0 0 10px/)
-    // the chat's mark standing in its row, not hanging on a corner; the upper one square
-    expect(rule('\\.chat-unread-badge\\.admin-mark')).toMatch(/position:\s*static/)
-    expect(rule('\\.chat-unread-badge\\.admin-mark-square')).toMatch(/border-radius:\s*3px/)
+    const above = rule('\\.chat-unread-badge')
+    expect(above.top).toBe('-0.5rem')
+    expect(rule('\\.chat-unread-badge\\.chat-unread-badge-below')).toEqual({
+      top: 'auto',
+      bottom: above.top,
+    })
   })
 })

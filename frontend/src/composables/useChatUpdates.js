@@ -39,7 +39,7 @@ import {
  * The document asks three fields more beside the chat's: `supportTicketsMenu` (Support-Anfragen
  * K5), which goes on to useSupportTicketsMenu as it came, `countContributionsInProgress` (the
  * mark at "Schöpfen", Bernd 16.11.2026), which goes on to useContributionsInProgress, and
- * `moderationWaiting` (the two numbers behind "Admin", "Meine Gruppen" MG3), which goes on to
+ * `moderationWaiting` (the two numbers at "Admin", "Meine Gruppen" MG3), which goes on to
  * useModerationWaiting. None is anything to the chat, and none fails a question (the server
  * answers them null where it cannot count), so the beat stays the chat's.
  *
