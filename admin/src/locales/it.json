@@ -30,15 +30,15 @@
   },
   "back": "indietro",
   "bulkResubmission": {
-    "cancel": "Do not apply",
+    "cancel": "Non applicare",
     "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "noChange": "In questo contributo non è stato modificato nulla.",
+    "question": "Applicare le impostazioni del promemoria a tutti i contributi visualizzati di {name}?",
+    "questionRemove": "Rimuovere il promemoria da tutti i contributi visualizzati di {name}?",
+    "success": "Promemoria applicato.",
+    "successRemove": "Promemoria rimosso.",
+    "title": "Applicare il promemoria?",
+    "titleRemove": "Rimuovere il promemoria?"
   },
   "change_user_role": "Cambia il ruolo dell'utente",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Inserisci il testo",
     "form": "Modulo di creazione",
     "min_characters": "Inserisci almeno 10 caratteri",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Questo account è un account di progetto e non crea. La creazione può essere riattivata in «Ruolo dell'utente».",
     "reset": "Reimposta",
     "select_month": "Seleziona il mese",
     "select_value": "Seleziona l'importo",

@@ -30,15 +30,15 @@
   },
   "back": "πίσω",
   "bulkResubmission": {
-    "cancel": "Do not apply",
-    "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "cancel": "Χωρίς εφαρμογή",
+    "confirm": "Εντάξει",
+    "noChange": "Δεν άλλαξε τίποτα σε αυτή τη συνεισφορά.",
+    "question": "Να εφαρμοστούν οι ρυθμίσεις υπενθύμισης σε όλες τις εμφανιζόμενες συνεισφορές του μέλους {name};",
+    "questionRemove": "Να αφαιρεθεί η υπενθύμιση από όλες τις εμφανιζόμενες συνεισφορές του μέλους {name};",
+    "success": "Η υπενθύμιση εφαρμόστηκε.",
+    "successRemove": "Η υπενθύμιση αφαιρέθηκε.",
+    "title": "Εφαρμογή υπενθύμισης;",
+    "titleRemove": "Αφαίρεση υπενθύμισης;"
   },
   "change_user_role": "Αλλαγή ρόλου χρήστη",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Εισαγωγή κειμένου",
     "form": "Φόρμα δημιουργίας",
     "min_characters": "Εισήγαγε τουλάχιστον 10 χαρακτήρες",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Αυτός είναι λογαριασμός έργου και δεν δημιουργεί. Η δημιουργία μπορεί να ενεργοποιηθεί ξανά στην καρτέλα «Ρόλος χρήστη».",
     "reset": "Επαναφορά",
     "select_month": "Επιλογή μήνα",
     "select_value": "Επιλογή ποσού",

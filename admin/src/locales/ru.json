@@ -30,15 +30,15 @@
   },
   "back": "назад",
   "bulkResubmission": {
-    "cancel": "Do not apply",
-    "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "cancel": "Не применять",
+    "confirm": "ОК",
+    "noChange": "В этом вкладе ничего не изменено.",
+    "question": "Применить настройки напоминания ко всем показанным вкладам участника {name}?",
+    "questionRemove": "Убрать напоминание со всех показанных вкладов участника {name}?",
+    "success": "Напоминание применено.",
+    "successRemove": "Напоминание убрано.",
+    "title": "Применить напоминание?",
+    "titleRemove": "Убрать напоминание?"
   },
   "change_user_role": "Изменить роль пользователя",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Ввести текст",
     "form": "Форма создания",
     "min_characters": "Введите не менее 10 символов",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Это аккаунт проекта, он не создаёт Gradido. Создание можно снова включить на вкладке «Роль пользователя».",
     "reset": "Сбросить",
     "select_month": "Выбрать месяц",
     "select_value": "Выбрать сумму",

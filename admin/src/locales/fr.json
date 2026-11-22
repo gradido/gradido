@@ -30,15 +30,15 @@
   },
   "back": "retour",
   "bulkResubmission": {
-    "cancel": "Do not apply",
+    "cancel": "Ne pas appliquer",
     "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "noChange": "Rien n'a été modifié dans cette contribution.",
+    "question": "Appliquer les réglages du rappel à toutes les contributions affichées de {name} ?",
+    "questionRemove": "Retirer le rappel de toutes les contributions affichées de {name} ?",
+    "success": "Rappel appliqué.",
+    "successRemove": "Rappel retiré.",
+    "title": "Appliquer le rappel ?",
+    "titleRemove": "Retirer le rappel ?"
   },
   "change_user_role": "Changer le rôle de l'utilisateur",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Saisir un texte",
     "form": "Formulaire de création",
     "min_characters": "Saisis au moins 10 caractères",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Ce compte est un compte projet et ne crée pas. La création peut être réactivée sous « Rôle de l'utilisateur ».",
     "reset": "Réinitialiser",
     "select_month": "Sélectionner le mois",
     "select_value": "Sélectionner le montant",

@@ -30,15 +30,15 @@
   },
   "back": "terug",
   "bulkResubmission": {
-    "cancel": "Do not apply",
+    "cancel": "Niet toepassen",
     "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "noChange": "Aan deze bijdrage is niets gewijzigd.",
+    "question": "Herinneringsinstellingen toepassen op alle weergegeven bijdragen van {name}?",
+    "questionRemove": "Herinnering verwijderen bij alle weergegeven bijdragen van {name}?",
+    "success": "Herinnering toegepast.",
+    "successRemove": "Herinnering verwijderd.",
+    "title": "Herinnering toepassen?",
+    "titleRemove": "Herinnering verwijderen?"
   },
   "change_user_role": "Gebruikersrol wijzigen",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Tekst invoeren",
     "form": "Creatieformulier",
     "min_characters": "Voer minstens 10 tekens in",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Dit account is een projectaccount en creëert niet. Het creëren kan onder “Gebruikersrol” weer worden aangezet.",
     "reset": "Resetten",
     "select_month": "Maand selecteren",
     "select_value": "Bedrag selecteren",

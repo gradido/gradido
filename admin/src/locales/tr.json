@@ -30,15 +30,15 @@
   },
   "back": "geri",
   "bulkResubmission": {
-    "cancel": "Do not apply",
-    "confirm": "OK",
-    "noChange": "Nothing was changed on this contribution.",
-    "question": "Apply the reminder settings to all displayed contributions of {name}?",
-    "questionRemove": "Remove the reminder from all displayed contributions of {name}?",
-    "success": "Reminder applied.",
-    "successRemove": "Reminder removed.",
-    "title": "Apply reminder?",
-    "titleRemove": "Remove reminder?"
+    "cancel": "Vazgeç",
+    "confirm": "Tamam",
+    "noChange": "Bu katkıda hiçbir şey değiştirilmedi.",
+    "question": "Hatırlatma ayarları, {name} adlı üyenin gösterilen tüm katkılarına uygulansın mı?",
+    "questionRemove": "Hatırlatma, {name} adlı üyenin gösterilen tüm katkılarından kaldırılsın mı?",
+    "success": "Hatırlatma uygulandı.",
+    "successRemove": "Hatırlatma kaldırıldı.",
+    "title": "Hatırlatma uygulansın mı?",
+    "titleRemove": "Hatırlatma kaldırılsın mı?"
   },
   "change_user_role": "Kullanıcı rolünü değiştir",
   "chatAdmin": {
@@ -350,7 +350,7 @@
     "enter_text": "Metin gir",
     "form": "Oluşturma formu",
     "min_characters": "En az 10 karakter gir",
-    "not_allowed": "This account is a project account and does not create. Creation can be switched back on under “User Role”.",
+    "not_allowed": "Bu hesap bir proje hesabıdır ve yaratım yapmaz. Yaratım, «Kullanıcı rolü» altında yeniden açılabilir.",
     "reset": "Sıfırla",
     "select_month": "Ay seç",
     "select_value": "Tutar seç",
