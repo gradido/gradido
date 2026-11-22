@@ -170,7 +170,7 @@ const moderate = async (user: DbUser, visibleCreationGroups: string[], supportDu
 
 // "Meine Gruppen" as it stands in the row, written by hand: the same groups in both columns, unless
 // the support's are given apart (MG2b)
-type Choice = { groupIds: number[]; untagged: boolean } | null
+type Choice = { groupIds: number[]; untagged: boolean; off?: boolean } | null
 const choose = async (user: DbUser, creation: Choice, support: Choice = creation) =>
   expect(
     await dbUpdateUserRoleHandledGroups(user.id, {
@@ -306,6 +306,33 @@ describe('moderationWaiting', () => {
     )
     try {
       expect(await waiting()).toEqual({ creations: 2, supportTickets: 1 })
+      expect(await waiting()).toEqual(await startPage())
+    } finally {
+      await choose(peter, null)
+    }
+  })
+
+  // MG5: a column switched off counts nothing of its kind, the other as chosen -- as the start page
+  it('counts nothing of a column that is off, the other as chosen, as the start page', async () => {
+    await loginAs('peter@lustig.de')
+    await choose(
+      peter,
+      { groupIds: [groupA], untagged: true },
+      { groupIds: [groupA], untagged: true, off: true },
+    )
+    try {
+      expect(await waiting()).toEqual({ creations: 2, supportTickets: 0 })
+      expect(await waiting()).toEqual(await startPage())
+    } finally {
+      await choose(peter, null)
+    }
+    await choose(
+      peter,
+      { groupIds: [groupA], untagged: true, off: true },
+      { groupIds: [groupA], untagged: true },
+    )
+    try {
+      expect(await waiting()).toEqual({ creations: 0, supportTickets: 2 })
       expect(await waiting()).toEqual(await startPage())
     } finally {
       await choose(peter, null)

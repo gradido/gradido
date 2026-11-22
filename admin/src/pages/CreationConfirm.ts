@@ -40,7 +40,7 @@ import {
   creationGroupsAndHandledSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
-import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
+import { chosenGroupsOf, isSwitchedOff, mayChooseGroups } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
 import {
@@ -133,10 +133,12 @@ export class CreationConfirm implements ClassComponent {
   private hideResubmission = true
   private groups: NumberedCreationGroup[] = []
   // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
-  // group, whether or not the admin knows the choice yet (MG1); a scoped moderator has no "all".
-  private group = this.moderator
-    ? creationGroupFilterOptions(this.moderator, [], null)[0].value
-    : ''
+  // group, whether or not the admin knows the choice yet (MG1); a scoped moderator has no "all". Who
+  // switched the creations off (MG5) opens on everything: nothing of them is theirs.
+  private group =
+    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
+      ? creationGroupFilterOptions(this.moderator, [], null)[0].value
+      : ''
   private page = 1
   private contributions: ListedContribution[] = []
   private count = 0
@@ -175,11 +177,17 @@ export class CreationConfirm implements ClassComponent {
         keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
         // "" is offered with a choice only. Picked while the page still knew one that was cleared
         // on another device, the same list is called by the row that now means everything.
+        const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
         if (
           this.group === '' &&
+          !off &&
           !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
         ) {
           this.group = HANDLED_FILTER
+        } else if (off && this.group === HANDLED_FILTER) {
+          // asked before the admin knew: nothing of the creations is theirs (MG5)
+          this.group = ''
+          this.searchAnew()
         }
       }
     })
@@ -351,6 +359,7 @@ export class CreationConfirm implements ClassComponent {
     const showCrea = this.tab === 0 || this.tab === 4 ? aiUser : role === 'ADMIN'
     const showChat = CONFIG.ANTHROPIC_ACTIVE && aiUser
     const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+    const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
     return m('.creation-confirm', [
       // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
       m('h2.h4.mb-3', t('creation')),
@@ -370,13 +379,15 @@ export class CreationConfirm implements ClassComponent {
           'data-test': 'creation-group-filter',
           value: this.group,
           options: this.moderator
-            ? creationGroupFilterOptions(this.moderator, this.groups, chosen)
+            ? creationGroupFilterOptions(this.moderator, this.groups, chosen, off)
             : [],
           // a way to the page of the choice, below the groups: leaves the filter as it is
           link: mayChooseGroups(this.moderator)
             ? {
                 href: '/my-groups',
-                text: t(chosen ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine'),
+                text: t(
+                  chosen || off ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine',
+                ),
                 'data-test': 'creation-group-filter-mine',
               }
             : undefined,

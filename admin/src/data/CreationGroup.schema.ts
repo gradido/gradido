@@ -18,11 +18,13 @@ export type CreationGroup = v.InferOutput<typeof creationGroupSchema>
 /**
  * "Meine Gruppen" (MG1): the creation groups the moderator handles themself, by number, and whether
  * "no group" is among them -- one column of the page, "Schöpfung" or "Support" (MG2b). Both empty
- * where none is chosen, or none counts (an assigned scope).
+ * where none is chosen, or none counts (an assigned scope). `off` (MG5): they handle none of the
+ * kind at all, and the ticks stand behind it; a state kept from before has none.
  */
 export const handledCreationGroupsSchema = v.object({
   groupIds: v.array(v.number()),
   untagged: v.boolean(),
+  off: v.optional(v.boolean(), false),
 })
 
 export type HandledCreationGroups = v.InferOutput<typeof handledCreationGroupsSchema>

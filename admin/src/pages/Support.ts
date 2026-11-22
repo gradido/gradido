@@ -29,7 +29,7 @@ import {
   creationGroupsAndHandledSupportSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
-import { chosenGroupsOf, mayChooseGroups } from '@/data/Moderator.logic'
+import { chosenGroupsOf, isSwitchedOff, mayChooseGroups } from '@/data/Moderator.logic'
 import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.logic'
 import {
   type ListedSupportTicket,
@@ -137,8 +137,11 @@ export class Support implements ClassComponent {
   private groups: NumberedCreationGroup[] = []
   // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
   // group, whether or not the admin knows the choice yet (MG2); for a moderator with a scope all
-  // they see.
-  private group = this.moderator ? supportGroupFilterOptions(this.moderator, [], null)[0].value : ''
+  // they see. Who switched the support off (MG5) opens on everything: nothing of it is theirs.
+  private group =
+    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+      ? supportGroupFilterOptions(this.moderator, [], null)[0].value
+      : ''
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
   // only: a search given here stays, also where it finds nothing.
   private keptOnTrial = this.query !== ''
@@ -175,12 +178,18 @@ export class Support implements ClassComponent {
         // "" is offered beside a choice only, to whoever may choose. Picked while the page still
         // knew one that was cleared on another device, the same list is called by the row that now
         // means everything. A moderator of groups and of no group begins on "" (SUA-026): his stays.
+        const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
         if (
           this.group === '' &&
           mayChooseGroups(this.moderator) &&
+          !off &&
           !chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
         ) {
           this.group = HANDLED_FILTER
+        } else if (off && this.group === HANDLED_FILTER) {
+          // asked before the admin knew: nothing of the support is theirs (MG5)
+          this.group = ''
+          this.searchAnew()
         }
       }
     })
@@ -325,6 +334,7 @@ export class Support implements ClassComponent {
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
     const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
+    const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm', [
       // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
@@ -347,13 +357,15 @@ export class Support implements ClassComponent {
           'data-test': 'support-group-filter',
           value: this.group,
           options: this.moderator
-            ? supportGroupFilterOptions(this.moderator, this.groups, chosen)
+            ? supportGroupFilterOptions(this.moderator, this.groups, chosen, off)
             : [],
           // a way to the page of the choice, below the groups: leaves the filter as it is
           link: mayChooseGroups(this.moderator)
             ? {
                 href: '/my-groups',
-                text: t(chosen ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine'),
+                text: t(
+                  chosen || off ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine',
+                ),
                 'data-test': 'support-group-filter-mine',
               }
             : undefined,

@@ -112,12 +112,14 @@ export const supportAnswerMailDecision = (
  * A member with a role as the mail about a new request reads them (K5, SUA-018, SUA-024): whether
  * they may handle requests at all -- the right MANAGE_SUPPORT_TICKETS of their role row, which an
  * administrator always holds and a moderator with the tick of K6 (SUA-025, roleOfHolder) --,
- * whether their role is ADMIN, and their scope as describeModeratorCreationGroups reads it.
+ * whether their role is ADMIN, whether they switched the support off for themself ("Meine Gruppen",
+ * MG5; only an administrator can), and their scope as describeModeratorCreationGroups reads it.
  */
 export interface SupportTicketMailCandidate {
   id: number
   handlesSupportTickets: boolean
   isAdmin: boolean
+  supportOff: boolean
   tags: string[]
   seesAllCreationGroups: boolean
   seesUntagged: boolean
@@ -138,7 +140,9 @@ const sameTag = (a: string, b: string): boolean =>
  * none of them is left either, the administrators, whatever their scope says. Each step by their
  * number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests gets nothing, and
  * neither does anybody in `notFor` -- the asking member, who handed on: they fall out first, so the
- * request of a group's only moderator still reaches somebody.
+ * request of a group's only moderator still reaches somebody. Of the administrators the ones who
+ * switched the support off ("Meine Gruppen", MG5) are left out -- but where all of them did, all are
+ * mailed all the same: a request reaches somebody (Bernd, 22.11.2026).
  */
 export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate>(
   candidates: T[],
@@ -158,7 +162,10 @@ export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate
     ({ isAdmin, seesAllCreationGroups }) => !isAdmin && seesAllCreationGroups,
   )
   const administrators = left.filter(({ isAdmin }) => isAdmin)
-  const step = [assigned, seeEverything, administrators].find((each) => each.length > 0) ?? []
+  const administratorsOn = administrators.filter(({ supportOff }) => !supportOff)
+  const step =
+    [assigned, seeEverything, administratorsOn, administrators].find((each) => each.length > 0) ??
+    []
   return step.slice(0, SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
 }
 

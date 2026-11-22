@@ -547,15 +547,18 @@
     "show-submission-form": "aspettare il promemoria?"
   },
   "myGroups": {
+    "handle": "Me ne occupo io",
     "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, i numeri nel menu e i filtri per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
     "introBoth": "Spunta per ogni gruppo se gestisci tu la sua creazione e il suo supporto. La pagina iniziale, i numeri nel menu e i filtri per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
     "noMatch": "Nessun gruppo con questo nome",
-    "none": "Niente spuntato: tutto conta, come prima.",
+    "rule": {
+      "all": "{column}: viene conteggiato tutto, come prima.",
+      "off": "{column}: disattivata, non viene conteggiato nulla.",
+      "offSupport": "{column}: disattivato, non viene conteggiato nulla. Le e-mail sulle nuove richieste vanno agli altri.",
+      "some": "{column}: viene conteggiato solo ciò che è spuntato."
+    },
     "saved": "I tuoi gruppi sono stati salvati.",
     "search": "Cerca un gruppo",
-    "some": "Contano solo le righe spuntate.",
-    "someBoth": "In entrambe le colonne conta solo ciò che è spuntato.",
-    "someEmpty": "Nella colonna senza spunte conta tutto, nell'altra solo ciò che è spuntato.",
     "title": "I miei gruppi"
   },
   "name": "Nome",

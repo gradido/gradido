@@ -19,6 +19,15 @@ const counts = (
   everythingOpen: { contributionCount: everythingOpen },
 })
 
+/** What an answer changed is drawn: two frames, for what must not show. */
+const drawn = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  )
+
 /** The documents the page posts to the server, as they went out. */
 const posted = (page: Page) => {
   const documents: string[] = []
@@ -60,6 +69,7 @@ const support = (
   onResubmission = 0,
   elsewhere = 0,
   elsewhereOnResubmission = 0,
+  off = false,
 ) => ({
   adminCountOpenSupportTickets: {
     forModeration,
@@ -67,6 +77,7 @@ const support = (
     onResubmission,
     elsewhere,
     elsewhereOnResubmission,
+    off,
   },
 })
 
@@ -141,13 +152,14 @@ test('names what is open in other groups, quietly and below the creation, where 
 }) => {
   graphql.answer({
     ...counts(2, 1, 5, 7),
-    handledCreationGroups: { groupIds: [3], untagged: true },
+    handledCreationGroups: { groupIds: [3], untagged: true, off: false },
     adminCountOpenSupportTickets: {
       forModeration: 1,
       forMember: 0,
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await signIn(page, '/')
@@ -193,11 +205,44 @@ test('names nothing elsewhere without a choice, nor where nothing is open there'
 
   graphql.answer({
     ...counts(2, 1, 5, 3),
-    handledCreationGroups: { groupIds: [3], untagged: false },
+    handledCreationGroups: { groupIds: [3], untagged: false, off: false },
   })
   await page.reload()
   await expect(page.getByTestId('open-creations')).toBeVisible()
   await expect(page.getByTestId('open-elsewhere')).toHaveCount(0)
+})
+
+// MG5: an area switched off in "Meine Gruppen" is not on the start page -- the server counts it as
+// nothing, and what is open in it would stand there as a line of the other groups. Each area with
+// the other one on: its lines say that the answers are there.
+test('says nothing of the creations where they are switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    ...counts(0, 0, 3, 5),
+    handledCreationGroups: { groupIds: [3], untagged: true, off: true },
+    ...support(1, 0),
+  })
+  await signIn(page, '')
+  // drawn once the creations' answer is there, and below them
+  await expect(page.getByTestId('open-support-tickets')).toHaveText(de.dashboard.supportOne)
+  await expect(page.getByTestId('open-creations')).toHaveCount(0)
+  await expect(page.getByTestId('on-resubmission')).toHaveCount(0)
+  await expect(page.getByTestId('open-elsewhere')).toHaveCount(0)
+})
+
+test('says nothing of the support where it is switched off (MG5)', async ({ page, graphql }) => {
+  graphql.answer({ ...counts(2, 1, 3), ...support(0, 0, 0, 4, 1, true) })
+  const counted = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('adminCountOpenSupportTickets')),
+  )
+  await signIn(page, '')
+  await (await counted).finished()
+  await expect(page.getByTestId('open-creations')).toBeVisible()
+  await drawn(page)
+  await expect(page.getByTestId('open-support-tickets')).toHaveCount(0)
+  await expect(page.getByTestId('support-open-elsewhere')).toHaveCount(0)
 })
 
 test('names one open creation as one, and every line at 0', async ({ page, graphql }) => {

@@ -6,7 +6,10 @@ import { RIGHTS } from '@/auth/RIGHTS'
 import { roleOfHolder } from '@/auth/ROLES'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { supportTicketMailRecipients, supportTicketMailsAllowed } from '@/data/SupportTicket.logic'
-import { describeModeratorCreationGroups } from './moderatorCreationGroupScope'
+import {
+  describeModeratorCreationGroups,
+  handledSupportGroupsOfRole,
+} from './moderatorCreationGroupScope'
 
 const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.supportTicketModeratorsMail`)
@@ -37,6 +40,7 @@ export async function readSupportTicketMailRecipients(
         id: holder.userId,
         handlesSupportTickets: roleOfHolder(holder).hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS),
         isAdmin: holder.role === RoleNames.ADMIN,
+        supportOff: handledSupportGroupsOfRole(holder)?.off === true,
       })),
       groupTag,
       notFor,

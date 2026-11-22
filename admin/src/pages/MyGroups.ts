@@ -11,7 +11,7 @@ import {
   myGroupsChoiceSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
-import { supportIsTheirs } from '@/data/Moderator.logic'
+import { maySwitchOff, supportIsTheirs } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { myGroupsChoice, setHandledGroups } from '@/graphql/creationGroups.graphql'
 import { currentLocale, t } from '@/i18n'
@@ -36,26 +36,36 @@ export const MY_GROUPS_PAGE_SIZE = 20
 /** How long the page waits before it asks for the stored ticks again, where asking failed. */
 const RETRY_MS = 2000
 
-/** One column of ticks: the groups it holds by number, and whether "no group" is among them. */
+/**
+ * One column of ticks: the groups it holds by number, whether "no group" is among them, and whether
+ * an administrator handles nothing of its kind (MG5) -- the ticks stay behind the switch.
+ */
 class Ticks {
   readonly groupIds = new Set<number>()
   untagged = false
+  off = false
 
-  fill({ groupIds, untagged }: HandledCreationGroups) {
+  fill({ groupIds, untagged, off }: HandledCreationGroups) {
     this.groupIds.clear()
     for (const id of groupIds) {
       this.groupIds.add(id)
     }
     this.untagged = untagged
+    this.off = off
   }
 
-  get chosen() {
-    return this.untagged || this.groupIds.size > 0
+  // what counts of it: the sentence of the column
+  get state(): 'off' | 'some' | 'all' {
+    return this.off ? 'off' : this.untagged || this.groupIds.size > 0 ? 'some' : 'all'
   }
 
   // as the server takes it: each group once, ascending
   get sent() {
-    return { groupIds: [...this.groupIds].sort((a, b) => a - b), untagged: this.untagged }
+    return {
+      groupIds: [...this.groupIds].sort((a, b) => a - b),
+      untagged: this.untagged,
+      off: this.off,
+    }
   }
 }
 
@@ -187,13 +197,9 @@ export class MyGroups implements ClassComponent {
       // a save overtakes every question about the choice still on its way
       const creationAsked = askingHandledCreationGroups()
       const supportAsked = askingHandledSupportGroups()
-      const creation = this.ticks.creation.sent
-      const support = this.ticks.support.sent
       const answer = await graphqlRequest(setHandledGroups, {
-        creationGroupIds: creation.groupIds,
-        creationUntagged: creation.untagged,
-        supportGroupIds: support.groupIds,
-        supportUntagged: support.untagged,
+        creation: this.ticks.creation.sent,
+        support: this.ticks.support.sent,
       })
       if (!answer.success) {
         this.again = false
@@ -223,7 +229,8 @@ export class MyGroups implements ClassComponent {
     return column === 'creation' ? t('creation') : t('navbar.support')
   }
 
-  // A box of its own label, at least 44px high; named by the group and the column's word.
+  // A box of its own label, at least 44px high; named by the group and the column's word. It stands
+  // still while the column is off (MG5): its ticks are kept for the day it is on again.
   private cell(column: Column, key: string, group: number | null) {
     const ticks = this.ticks[column]
     const checked = group === null ? ticks.untagged : ticks.groupIds.has(group)
@@ -235,8 +242,8 @@ export class MyGroups implements ClassComponent {
         class: classes.box,
         checked,
         'aria-labelledby': `my-groups-name-${key} my-groups-head-${column}`,
-        // after a failed save, until the stored ticks are back
-        disabled: this.recovering,
+        // also after a failed save, until the stored ticks are back
+        disabled: this.recovering || ticks.off,
         onchange: (event: Event) => {
           const on = (event.target as HTMLInputElement).checked
           if (group === null) {
@@ -273,16 +280,55 @@ export class MyGroups implements ClassComponent {
     )
   }
 
-  // what counts, as the ticks stand: of rows where one column stands, of columns where two
+  // "Selbst bearbeiten" (MG5), for an administrator: the first row, with a switch for each column --
+  // off, and nothing of its kind is theirs, counted or mailed; its ticks stay behind it
+  private handleRow(columns: Column[]) {
+    return m(
+      'li.list-group-item',
+      {
+        key: 'handle',
+        class: `${classes.row} ${classes.handle}`,
+        'data-test': 'my-groups-handle',
+      },
+      [
+        m('span', { id: 'my-groups-name-handle', class: classes.name }, t('myGroups.handle')),
+        ...columns.map((column) =>
+          m(
+            'label',
+            { class: classes.cell },
+            m(
+              '.form-check.form-switch',
+              { class: classes.switch },
+              m('input.form-check-input', {
+                type: 'checkbox',
+                role: 'switch',
+                class: classes.box,
+                checked: !this.ticks[column].off,
+                disabled: this.recovering,
+                'aria-labelledby': `my-groups-name-handle my-groups-head-${column}`,
+                onchange: (event: Event) => {
+                  this.ticks[column].off = !(event.target as HTMLInputElement).checked
+                  this.save()
+                },
+              }),
+            ),
+          ),
+        ),
+      ],
+    )
+  }
+
+  // what counts in each column, as the ticks and the switch stand; off, the support's mails too
   private rule(columns: Column[]) {
-    const chosen = columns.filter((column) => this.ticks[column].chosen).length
-    if (chosen === 0) {
-      return t('myGroups.none')
-    }
-    if (chosen < columns.length) {
-      return t('myGroups.someEmpty')
-    }
-    return t(columns.length > 1 ? 'myGroups.someBoth' : 'myGroups.some')
+    return columns.map((column) => {
+      const state = this.ticks[column].state
+      const sentence = state === 'off' && column === 'support' ? 'offSupport' : state
+      return m(
+        'span',
+        { key: column },
+        t(`myGroups.rule.${sentence}`, { column: this.word(column) }),
+      )
+    })
   }
 
   view() {
@@ -332,6 +378,7 @@ export class MyGroups implements ClassComponent {
           )
         : m('ul.list-group', { id: 'my-groups-list', 'data-test': 'my-groups-list' }, [
             ...(groups ? [this.head(columns)] : []),
+            ...(groups && maySwitchOff(adminStore.moderator) ? [this.handleRow(columns)] : []),
             ...shown.map(({ key, text, group }) => this.row(columns, key, text, group)),
           ]),
       // on a phone `‹`, three numbers and `›`; at the desk five places with the ellipses, and « »

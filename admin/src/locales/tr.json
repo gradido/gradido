@@ -547,15 +547,18 @@
     "show-submission-form": "hatırlatma beklensin mi?"
   },
   "myGroups": {
+    "handle": "Kendim ilgileniyorum",
     "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
     "introBoth": "Her grup için oluşturmasıyla ve desteğiyle kendin ilgilenip ilgilenmediğini işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
     "noMatch": "Bu adda grup yok",
-    "none": "Hiçbir şey işaretli değil: her şey eskisi gibi sayılır.",
+    "rule": {
+      "all": "{column}: Önceden olduğu gibi her şey sayılır.",
+      "off": "{column}: Kapalı, hiçbir şey sayılmaz.",
+      "offSupport": "{column}: Kapalı, hiçbir şey sayılmaz. Yeni taleplerle ilgili e-postalar diğerlerine gider.",
+      "some": "{column}: Yalnızca işaretli olanlar sayılır."
+    },
     "saved": "Grupların kaydedildi.",
     "search": "Grup ara",
-    "some": "Yalnızca işaretli satırlar sayılır.",
-    "someBoth": "Her iki sütunda da yalnızca işaretli olanlar sayılır.",
-    "someEmpty": "İşaretsiz sütunda her şey sayılır, diğerinde yalnızca işaretli olanlar.",
     "title": "Gruplarım"
   },
   "name": "Ad",

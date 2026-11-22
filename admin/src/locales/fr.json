@@ -547,15 +547,18 @@
     "show-submission-form": "attendre le rappel ?"
   },
   "myGroups": {
+    "handle": "Je m'en occupe",
     "intro": "Coche les groupes de création dont tu t'occupes toi-même. La page d'accueil, les nombres du menu et les filtres par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
     "introBoth": "Coche pour chaque groupe si tu t'occupes toi-même de sa création et de son assistance. La page d'accueil, les nombres du menu et les filtres par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
     "noMatch": "Aucun groupe de ce nom",
-    "none": "Rien de coché : tout compte, comme avant.",
+    "rule": {
+      "all": "{column} : tout est pris en compte, comme avant.",
+      "off": "{column} : désactivée, rien n'est pris en compte.",
+      "offSupport": "{column} : désactivée, rien n'est pris en compte. Les e-mails concernant les nouvelles demandes vont aux autres.",
+      "some": "{column} : seul ce qui est coché est pris en compte."
+    },
     "saved": "Tes groupes sont enregistrés.",
     "search": "Rechercher un groupe",
-    "some": "Seules les lignes cochées comptent.",
-    "someBoth": "Dans les deux colonnes, seul ce qui est coché compte.",
-    "someEmpty": "Dans la colonne sans coche, tout compte ; dans l'autre, seulement ce qui est coché.",
     "title": "Mes groupes"
   },
   "name": "Nom",

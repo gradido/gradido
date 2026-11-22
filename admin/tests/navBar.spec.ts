@@ -183,7 +183,10 @@ test('offers "Meine Gruppen" in the moderator’s menu, and leads there', async 
   page,
   graphql,
 }) => {
-  graphql.answer({ creationGroups: [], handledCreationGroups: { groupIds: [], untagged: false } })
+  graphql.answer({
+    creationGroups: [],
+    handledCreationGroups: { groupIds: [], untagged: false, off: false },
+  })
   await signIn(page, '/contribution-links')
   const account = page.getByTestId('navbar-account')
   await account.getByRole('button', { name: 'Peter Lustig' }).click()

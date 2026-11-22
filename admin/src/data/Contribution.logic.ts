@@ -134,11 +134,15 @@ export const creationGroupFilterOptions = (
   moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
   groups: NumberedCreationGroup[],
   chosen: HandledCreationGroups | null,
+  off = false,
 ): Option[] => {
   if (!moderator.seesAllCreationGroups) {
     return groupFilterOptions(moderator, groups)
   }
   const [all, ...fixed] = groupFilterOptions(moderator, [])
+  if (off) {
+    return [all, ...fixed, ...groups.map(creationGroupOption)]
+  }
   return chosen
     ? [
         { value: HANDLED_FILTER, text: t('creationGroupFilter.mine') },

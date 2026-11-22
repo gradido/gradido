@@ -22,6 +22,7 @@ test.beforeEach(async ({ page, graphql }) => {
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await serveWalletAssets(page)

@@ -332,11 +332,35 @@ test('filters by group from the first page', async ({ page, graphql }) => {
 })
 
 // "Meine Gruppen" (MG1): the first row, the fixed ones, then only the groups ticked
+// MG5: the creations switched off, as the support page (support.spec.ts): everything from the start
+test('opens on everything, without "Meine Gruppen", where the creations are switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false, off: true } })
+  await open(page)
+  await expect
+    .poll(() =>
+      listQuestions(graphql).map((question) => (question.filter as Variables).creationGroup),
+    )
+    .toEqual(['*handled', ''])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+})
+
 test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone', async ({
   page,
   graphql,
 }) => {
-  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false } })
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false, off: false } })
   await open(page)
 
   expect(listQuestions(graphql)).toEqual([question(OPEN, { creationGroup: '*handled' })])
@@ -436,7 +460,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
 }) => {
   // the start page keeps a choice ...
   graphql.answer({
-    handledCreationGroups: { groupIds: [1], untagged: false },
+    handledCreationGroups: { groupIds: [1], untagged: false, off: false },
     waitingForModeration: { contributionCount: 0 },
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
@@ -447,6 +471,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await signIn(page, '')
@@ -461,7 +486,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
   const held: ((answer: unknown) => void)[] = []
   graphql.answer({
     creationGroups: () => new Promise((resolve) => held.push(resolve)),
-    handledCreationGroups: { groupIds: [], untagged: false },
+    handledCreationGroups: { groupIds: [], untagged: false, off: false },
   })
   await page.locator('nav.navbar').getByRole('link', { name: de.creation }).click()
   await expect(rows(page)).toHaveCount(4)

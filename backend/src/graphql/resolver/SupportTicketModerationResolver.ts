@@ -264,13 +264,15 @@ export class SupportTicketModerationResolver {
   async adminCountOpenSupportTickets(@Ctx() context: Context): Promise<AdminOpenSupportTickets> {
     countSupportTicketRead(context)
     const role = context.user?.userRole
-    return fromDatabase(SUPPORT_TICKET_NOT_READ, () =>
-      dbCountOpenSupportTicketsInScope(
+    const handled = handledSupportGroupsOfRole(role)
+    return fromDatabase(SUPPORT_TICKET_NOT_READ, async () => ({
+      ...(await dbCountOpenSupportTicketsInScope(
         describeModeratorCreationGroups(role),
         new Date(),
-        handledSupportGroupsOfRole(role),
-      ),
-    )
+        handled,
+      )),
+      off: handled?.off === true,
+    }))
   }
 
   /**

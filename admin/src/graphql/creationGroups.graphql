@@ -31,6 +31,7 @@ query creationGroupsAndHandled {
   handledCreationGroups {
     groupIds
     untagged
+    off
   }
 }
 
@@ -44,6 +45,7 @@ query creationGroupsAndHandledSupport {
   handledSupportGroups {
     groupIds
     untagged
+    off
   }
 }
 
@@ -57,33 +59,27 @@ query myGroupsChoice {
   handledCreationGroups {
     groupIds
     untagged
+    off
   }
   handledSupportGroups {
     groupIds
     untagged
+    off
   }
 }
 
 # Saves both columns at once; the answer is the choice as stored (each group once, ascending).
-mutation setHandledGroups(
-  $creationGroupIds: [Int!]!
-  $creationUntagged: Boolean!
-  $supportGroupIds: [Int!]!
-  $supportUntagged: Boolean!
-) {
-  setHandledGroups(
-    creationGroupIds: $creationGroupIds
-    creationUntagged: $creationUntagged
-    supportGroupIds: $supportGroupIds
-    supportUntagged: $supportUntagged
-  ) {
+mutation setHandledGroups($creation: HandledGroupsInput!, $support: HandledGroupsInput!) {
+  setHandledGroups(creation: $creation, support: $support) {
     creation {
       groupIds
       untagged
+      off
     }
     support {
       groupIds
       untagged
+      off
     }
   }
 }

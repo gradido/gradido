@@ -2314,8 +2314,8 @@ describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
   // the column "Support"; the creations' column left empty, unless given
   const choose = async (
     user: DbUser,
-    choice: { groupIds: number[]; untagged: boolean } | null,
-    creation: { groupIds: number[]; untagged: boolean } | null = null,
+    choice: { groupIds: number[]; untagged: boolean; off?: boolean } | null,
+    creation: { groupIds: number[]; untagged: boolean; off?: boolean } | null = null,
   ) =>
     expect(
       await dbUpdateUserRoleHandledGroups(user.id, {
@@ -2399,6 +2399,20 @@ describe('SupportTicketModerationResolver, "Meine Gruppen" (MG2)', () => {
     expect(counts.elsewhere).toBe(
       (await openTabCount('garden')) + (await openTabCount('*untagged')),
     )
+    await choose(peter, null)
+  })
+
+  // MG5: switched off, nothing of the support is mine -- the list shows nothing, the counts count
+  // nothing, and all of it is elsewhere; the rest of the filter shows what it did
+  it('finds and counts nothing as mine where the support is off, and everything elsewhere', async () => {
+    await choose(peter, { groupIds: [gardenId], untagged: true, off: true })
+    await loginAs('peter@lustig.de')
+    expect(await found('*handled')).toEqual([])
+    const counts = await counted()
+    expect(counts).toMatchObject({ forModeration: 0, forMember: 0, onResubmission: 0 })
+    expect(counts.elsewhere).toBe(await openTabCount(''))
+    expect(counts.elsewhereOnResubmission).toBeGreaterThan(0)
+    expect(await found('')).toEqual([choirWaits, ungrouped, inChoir, inGarden])
     await choose(peter, null)
   })
 

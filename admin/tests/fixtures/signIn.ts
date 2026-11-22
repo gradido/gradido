@@ -49,8 +49,8 @@ export const noWalletNews = (): Record<string, Answer> => ({
 export const signedInAnswers = (who = moderator): Record<string, Answer> => ({
   verifyLogin: who,
   ...noWalletNews(),
-  handledCreationGroups: { groupIds: [], untagged: false },
-  handledSupportGroups: { groupIds: [], untagged: false },
+  handledCreationGroups: { groupIds: [], untagged: false, off: false },
+  handledSupportGroups: { groupIds: [], untagged: false, off: false },
 })
 
 /**

@@ -132,12 +132,19 @@ describe('supportTicketMailRecipients', () => {
   const moderator = (
     id: number,
     scope: Pick<SupportTicketMailCandidate, 'tags' | 'seesAllCreationGroups' | 'seesUntagged'>,
-  ): SupportTicketMailCandidate => ({ id, handlesSupportTickets: true, isAdmin: false, ...scope })
+  ): SupportTicketMailCandidate => ({
+    id,
+    handlesSupportTickets: true,
+    isAdmin: false,
+    supportOff: false,
+    ...scope,
+  })
   // an administrator's scope reads as everything, and counts for nothing here
-  const admin = (id: number): SupportTicketMailCandidate => ({
+  const admin = (id: number, supportOff = false): SupportTicketMailCandidate => ({
     id,
     handlesSupportTickets: true,
     isAdmin: true,
+    supportOff,
     ...everything,
   })
   const ids = (recipients: SupportTicketMailCandidate[]) => recipients.map(({ id }) => id)
@@ -173,6 +180,24 @@ describe('supportTicketMailRecipients', () => {
     expect(ids(supportTicketMailRecipients([moderator(15, groups([])), peter], null, []))).toEqual([
       1,
     ])
+  })
+
+  // MG5: an administrator who switched the support off hears nothing, the others do; where all of
+  // them did, all hear all the same -- a request reaches somebody (Bernd, 22.11.2026)
+  it('leaves out an administrator who switched the support off', () => {
+    const off = admin(2, true)
+    expect(ids(supportTicketMailRecipients([off, peter, admin(3)], 'orchard', []))).toEqual([1, 3])
+    // the steps before the administrators are mailed as ever
+    expect(ids(supportTicketMailRecipients([off, peter, all], 'orchard', []))).toEqual([14])
+  })
+
+  it('mails every administrator where all of them switched the support off', () => {
+    const off = admin(2, true)
+    const offToo = admin(3, true)
+    expect(ids(supportTicketMailRecipients([off, offToo], 'orchard', []))).toEqual([2, 3])
+    // the asking member not among them, as always -- also where they are the one who is on
+    expect(ids(supportTicketMailRecipients([off, offToo], 'orchard', [2]))).toEqual([3])
+    expect(ids(supportTicketMailRecipients([off, peter], 'orchard', [peter.id]))).toEqual([2])
   })
 
   it('compares the tags without case and accents, as the list does in SQL', () => {

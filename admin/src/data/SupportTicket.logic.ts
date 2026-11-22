@@ -150,8 +150,9 @@ export const supportGroupFilterOptions = (
   moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
   groups: NumberedCreationGroup[],
   chosen: HandledCreationGroups | null,
+  off = false,
 ): Option[] => {
-  const options = creationGroupFilterOptions(moderator, groups, chosen)
+  const options = creationGroupFilterOptions(moderator, groups, chosen, off)
   return !moderator.seesAllCreationGroups &&
     moderator.seesUntagged &&
     moderator.visibleCreationGroups.length > 0

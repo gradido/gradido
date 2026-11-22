@@ -82,13 +82,30 @@
   border-top: 1px solid var(--bs-border-color);
 }
 
-/* Room for two lines: ticking the first box changes the sentence, and the line beside or below it
-   stays where it was. */
+/* A line per column, the sentence and the line below it keep their room while the words change. */
 .rule {
   display: flex;
   flex: 1 1 16rem;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   min-height: 3em;
+}
+
+/* "Selbst bearbeiten" (MG5): the first row, apart from the groups. Its switches stand in the middle
+   of the column, as the boxes below them: Bootstrap keeps room for a label beside a switch. */
+.handle {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.handle .switch {
+  display: flex;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.handle .switch .box {
+  margin: 0;
 }
 
 /* "Deine Gruppen sind gespeichert." once a save came back (MG2b, no button): its room is kept while

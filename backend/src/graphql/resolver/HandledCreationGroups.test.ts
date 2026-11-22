@@ -28,6 +28,7 @@ const handledCreationGroups = gql`
     handledCreationGroups {
       groupIds
       untagged
+      off
     }
   }
 `
@@ -37,44 +38,35 @@ const handledSupportGroups = gql`
     handledSupportGroups {
       groupIds
       untagged
+      off
     }
   }
 `
 
 const setHandledGroups = gql`
-  mutation (
-    $creationGroupIds: [Int!]!
-    $creationUntagged: Boolean!
-    $supportGroupIds: [Int!]!
-    $supportUntagged: Boolean!
-  ) {
-    setHandledGroups(
-      creationGroupIds: $creationGroupIds
-      creationUntagged: $creationUntagged
-      supportGroupIds: $supportGroupIds
-      supportUntagged: $supportUntagged
-    ) {
+  mutation ($creation: HandledGroupsInput!, $support: HandledGroupsInput!) {
+    setHandledGroups(creation: $creation, support: $support) {
       creation {
         groupIds
         untagged
+        off
       }
       support {
         groupIds
         untagged
+        off
       }
     }
   }
 `
 
-type Choice = { groupIds: number[]; untagged: boolean }
-const NOTHING: Choice = { groupIds: [], untagged: false }
+type Choice = { groupIds: number[]; untagged: boolean; off?: boolean }
+const NOTHING: Choice = { groupIds: [], untagged: false, off: false }
 
 // the variables of setHandledGroups for a choice of the creations and one of the support
 const both = (creation: Choice, support: Choice = NOTHING) => ({
-  creationGroupIds: creation.groupIds,
-  creationUntagged: creation.untagged,
-  supportGroupIds: support.groupIds,
-  supportUntagged: support.untagged,
+  creation: { off: false, ...creation },
+  support: { off: false, ...support },
 })
 
 const setModeratorCreationGroupScope = gql`
@@ -259,10 +251,18 @@ describe('handledCreationGroups and handledSupportGroups', () => {
     await loginAs('peter@lustig.de')
     const creation = await query({ query: handledCreationGroups })
     expect(creation.errors).toBeUndefined()
-    expect(creation.data.handledCreationGroups).toEqual({ groupIds: [groupA], untagged: true })
+    expect(creation.data.handledCreationGroups).toEqual({
+      groupIds: [groupA],
+      untagged: true,
+      off: false,
+    })
     const support = await query({ query: handledSupportGroups })
     expect(support.errors).toBeUndefined()
-    expect(support.data.handledSupportGroups).toEqual({ groupIds: [groupB], untagged: false })
+    expect(support.data.handledSupportGroups).toEqual({
+      groupIds: [groupB],
+      untagged: false,
+      off: false,
+    })
   })
 
   it('answer a moderator with an assigned scope the choice of nothing, in both', async () => {
@@ -297,8 +297,8 @@ describe('setHandledGroups', () => {
     expect(errors).toBeUndefined()
     const ascending = [groupA, groupB].sort((a, b) => a - b)
     expect(data.setHandledGroups).toEqual({
-      creation: { groupIds: ascending, untagged: true },
-      support: { groupIds: [groupB], untagged: false },
+      creation: { groupIds: ascending, untagged: true, off: false },
+      support: { groupIds: [groupB], untagged: false, off: false },
     })
     expect(JSON.parse((await storedChoiceOf(peter.id)) ?? 'null')).toEqual({
       groupIds: ascending,
@@ -319,7 +319,7 @@ describe('setHandledGroups', () => {
     expect(errors).toBeUndefined()
     expect(data.setHandledGroups).toEqual({
       creation: NOTHING,
-      support: { groupIds: [], untagged: true },
+      support: { groupIds: [], untagged: true, off: false },
     })
     expect(await storedChoiceOf(peter.id)).toBeNull()
     expect(JSON.parse((await storedSupportOf(peter.id)) ?? 'null')).toEqual({
@@ -330,6 +330,44 @@ describe('setHandledGroups', () => {
     await mutate({ mutation: setHandledGroups, variables: both(NOTHING, NOTHING) })
     expect(await storedChoiceOf(peter.id)).toBeNull()
     expect(await storedSupportOf(peter.id)).toBeNull()
+  })
+
+  // MG5: a column that is off, with the ticks standing behind it -- and the filter '*handled' of the
+  // creation page finds nothing
+  it('stores a column that is off with its ticks, and the filter *handled finds nothing', async () => {
+    await loginAs('peter@lustig.de')
+    const { data, errors } = await mutate({
+      mutation: setHandledGroups,
+      variables: both(
+        { groupIds: [groupA], untagged: true, off: true },
+        { groupIds: [groupB], untagged: false },
+      ),
+    })
+    expect(errors).toBeUndefined()
+    expect(data.setHandledGroups.creation).toEqual({
+      groupIds: [groupA],
+      untagged: true,
+      off: true,
+    })
+    expect(JSON.parse((await storedChoiceOf(peter.id)) ?? 'null')).toEqual({
+      groupIds: [groupA],
+      untagged: true,
+      off: true,
+    })
+    expect(JSON.parse((await storedSupportOf(peter.id)) ?? 'null')).toEqual({
+      groupIds: [groupB],
+      untagged: false,
+    })
+    expect(await memosFor('*handled')).toEqual([])
+    // on again, the ticks count as they did
+    await mutate({
+      mutation: setHandledGroups,
+      variables: both(
+        { groupIds: [groupA], untagged: true },
+        { groupIds: [groupB], untagged: false },
+      ),
+    })
+    expect(await memosFor('*handled')).toEqual([IN_A, IN_NONE].sort())
   })
 
   it.each([
@@ -371,6 +409,70 @@ describe('setHandledGroups', () => {
     })
     expect(errors?.[0]?.message).toBe('An assigned scope leaves no creation groups to choose')
     expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
+  })
+
+  // MG5: the switch is an administrator's. In the row of a moderator it is what another role left
+  // there: it counts not, the ticks behind it do
+  describe('of a moderator who sees every group', () => {
+    const scopeOfBibi = (scope: string[] | null) =>
+      UserRole.update(
+        { userId: bibi.id },
+        { visibleCreationGroups: scope && JSON.stringify(scope) },
+      )
+
+    beforeAll(async () => {
+      await scopeOfBibi(null)
+    })
+
+    afterAll(async () => {
+      await scopeOfBibi(['handled-b'])
+    })
+
+    it.each([
+      ['the creations', 'creation'],
+      ['the support', 'support'],
+    ])('refuses the switch for %s, and keeps both columns', async (_name, column) => {
+      await store(
+        bibi.id,
+        { groupIds: [groupA], untagged: false },
+        { groupIds: [groupB], untagged: false },
+      )
+      const before = [await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]
+      await loginAs('bibi@bloxberg.de')
+      const off = { groupIds: [groupA], untagged: false, off: true }
+
+      const { errors } = await mutate({
+        mutation: setHandledGroups,
+        variables: column === 'creation' ? both(off, NOTHING) : both(NOTHING, off),
+      })
+      expect(errors?.[0]?.message).toBe('Only an administrator may switch an area off')
+      expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
+    })
+
+    it('takes the ticks, and answers a switch left in the row as on', async () => {
+      await store(
+        bibi.id,
+        { groupIds: [groupA], untagged: false, off: true },
+        { groupIds: [], untagged: false, off: true },
+      )
+      await loginAs('bibi@bloxberg.de')
+      const creation = await query({ query: handledCreationGroups })
+      expect(creation.data.handledCreationGroups).toEqual({
+        groupIds: [groupA],
+        untagged: false,
+        off: false,
+      })
+      const support = await query({ query: handledSupportGroups })
+      expect(support.data.handledSupportGroups).toEqual(NOTHING)
+      expect(await memosFor('*handled')).toEqual([IN_A])
+
+      const { errors } = await mutate({
+        mutation: setHandledGroups,
+        variables: both({ groupIds: [groupB], untagged: false }),
+      })
+      expect(errors).toBeUndefined()
+      expect(await memosFor('*handled')).toEqual([IN_B])
+    })
   })
 
   it('refuses a member without a role, and writes no row', async () => {

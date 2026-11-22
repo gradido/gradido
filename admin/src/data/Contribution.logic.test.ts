@@ -169,7 +169,9 @@ describe('creationGroupFilterOptions', () => {
   const all = { seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }
 
   it('offers whoever chose "Meine Gruppen" first, the three fixed rows, and their groups alone', () => {
-    expect(creationGroupFilterOptions(all, groups, { groupIds: [3, 2], untagged: true })).toEqual([
+    expect(
+      creationGroupFilterOptions(all, groups, { groupIds: [3, 2], untagged: true, off: false }),
+    ).toEqual([
       { value: '*handled', text: 'Meine Gruppen' },
       { value: '', text: '(mit und ohne Gruppe)' },
       { value: '*grouped', text: '(alle Gruppen)' },
@@ -191,6 +193,19 @@ describe('creationGroupFilterOptions', () => {
     ])
   })
 
+  // MG5: the area switched off narrows no filter -- "everything" stands on "", never *handled, which
+  // the server reads as nothing
+  it('offers whoever switched it off every group, and "everything" as "", without "Meine Gruppen"', () => {
+    expect(creationGroupFilterOptions(all, groups, null, true)).toEqual([
+      { value: '', text: '(mit und ohne Gruppe)' },
+      { value: '*grouped', text: '(alle Gruppen)' },
+      { value: '*untagged', text: '(ohne Gruppe)' },
+      { value: 'garten', text: 'Garten' },
+      { value: 'kueche', text: '#kueche' },
+      { value: 'potsdam', text: 'Potsdam' },
+    ])
+  })
+
   it('offers a moderator with an assigned scope the rows of before, a choice or none', () => {
     const scoped = {
       seesAllCreationGroups: false,
@@ -199,9 +214,9 @@ describe('creationGroupFilterOptions', () => {
     }
     const before = groupFilterOptions(scoped, groups)
     expect(creationGroupFilterOptions(scoped, groups, null)).toEqual(before)
-    expect(creationGroupFilterOptions(scoped, groups, { groupIds: [1], untagged: false })).toEqual(
-      before,
-    )
+    expect(
+      creationGroupFilterOptions(scoped, groups, { groupIds: [1], untagged: false, off: false }),
+    ).toEqual(before)
     expect(before.map((option) => option.value)).toEqual(['*grouped', '*untagged', 'kueche'])
   })
 })

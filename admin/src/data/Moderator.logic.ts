@@ -22,17 +22,36 @@ export const mayChooseGroups = (moderator: Moderator | null): boolean =>
   Boolean(moderator?.role) && moderator?.seesAllCreationGroups === true
 
 /**
+ * Whether the signed-in moderator may switch the creations or the support off for themself in "Meine
+ * Gruppen" (MG5): an administrator. What a moderator handles, an administrator assigns. The server
+ * decides the same (maySwitchHandledGroupsOff).
+ */
+export const maySwitchOff = (moderator: Moderator | null): boolean =>
+  mayChooseGroups(moderator) && moderator?.role === 'ADMIN'
+
+/** Whether `kept` is a choice of the signed-in moderator's, who may choose. */
+const isOfModerator = (moderator: Moderator | null, kept: KeptHandledCreationGroups | null) =>
+  Boolean(kept) && mayChooseGroups(moderator) && kept?.of === moderator?.gradidoID
+
+/**
  * The choice that counts for the signed-in moderator, from what the admin keeps: null where they
- * may not choose, where the kept choice is somebody else's who used this browser, and where nothing
- * is ticked ("everything, as before").
+ * may not choose, where the kept choice is somebody else's who used this browser, where nothing is
+ * ticked ("everything, as before"), and where the column is switched off, which narrows no filter
+ * (isSwitchedOff).
  */
 export const chosenGroupsOf = (
   moderator: Moderator | null,
   kept: KeptHandledCreationGroups | null,
 ): HandledCreationGroups | null =>
   kept &&
-  mayChooseGroups(moderator) &&
-  kept.of === moderator?.gradidoID &&
+  isOfModerator(moderator, kept) &&
+  !isSwitchedOff(moderator, kept) &&
   (kept.groupIds.length > 0 || kept.untagged)
-    ? { groupIds: kept.groupIds, untagged: kept.untagged }
+    ? { groupIds: kept.groupIds, untagged: kept.untagged, off: false }
     : null
+
+/** Whether the signed-in administrator switched the column of `kept` off (MG5). */
+export const isSwitchedOff = (
+  moderator: Moderator | null,
+  kept: KeptHandledCreationGroups | null,
+): boolean => maySwitchOff(moderator) && isOfModerator(moderator, kept) && kept?.off === true

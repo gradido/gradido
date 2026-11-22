@@ -223,13 +223,24 @@ describe('supportGroupFilterOptions', () => {
   ]
   type Seeing = Parameters<typeof supportGroupFilterOptions>[0]
   const ALL: Seeing = { seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }
-  const CHOIR_AND_NONE = { groupIds: [2], untagged: true }
+  const CHOIR_AND_NONE = { groupIds: [2], untagged: true, off: false }
   const values = (moderator: Seeing, chosen: typeof CHOIR_AND_NONE | null = null) =>
     supportGroupFilterOptions(moderator, GROUPS, chosen).map((option) => option.value)
 
   it('opens for whoever sees every group and chose on "Meine Gruppen", the ticked groups alone after the fixed rows (MG2)', () => {
     expect(values(ALL, CHOIR_AND_NONE)).toEqual(['*handled', '', '*grouped', '*untagged', 'choir'])
     expect(supportGroupFilterOptions(ALL, GROUPS, CHOIR_AND_NONE)[0].text).toBe('Meine Gruppen')
+  })
+
+  // MG5: the support off narrows no filter: everything as "", never "*handled", which finds nothing
+  it('opens for whoever sees every group and switched the support off on everything, as ""', () => {
+    expect(supportGroupFilterOptions(ALL, GROUPS, null, true).map(({ value }) => value)).toEqual([
+      '',
+      '*grouped',
+      '*untagged',
+      'garden',
+      'choir',
+    ])
   })
 
   it('opens for whoever sees every group and chose nothing on everything, called "*handled" (MG2)', () => {

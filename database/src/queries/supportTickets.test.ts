@@ -456,13 +456,18 @@ describe('supportTickets query test, the moderation side', () => {
       const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
       const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
       const ungrouped = await file(bibi.id, 'no group', MORNING)
-      const handled = (groupIds: number[], untagged: boolean) => ({ group: { groupIds, untagged } })
+      const handled = (groupIds: number[], untagged: boolean, off = false) => ({
+        group: { groupIds, untagged, off },
+      })
       expect(await found(handled([gardenId], false))).toEqual([inGarden])
       expect(await found(handled([gardenId, choirId], false))).toEqual([inChoir, inGarden])
       expect(await found(handled([], true))).toEqual([ungrouped])
       expect(await found(handled([choirId], true))).toEqual([ungrouped, inChoir])
       // the choice of nothing narrows nothing: nothing ticked means everything
       expect(await found(handled([], false))).toEqual([ungrouped, inChoir, inGarden])
+      // off (MG5) finds nothing, whatever is ticked behind it
+      expect(await found(handled([gardenId, choirId], true, true))).toEqual([])
+      expect(await found(handled([], false, true))).toEqual([])
       // and never beyond the scope: the choice narrows what the scope reaches, it widens nothing
       expect(await found(handled([choirId], false), scope(['garden'], false))).toEqual([])
       expect(await found(handled([gardenId, choirId], true), scope(['garden'], false))).toEqual([
@@ -483,7 +488,7 @@ describe('supportTickets query test, the moderation side', () => {
         { group: 'UNGROUPED' },
         { group: { tag: 'garden' } },
         { group: { tag: 'choir' } },
-        { group: { groupIds: [choirId], untagged: true } },
+        { group: { groupIds: [choirId], untagged: true, off: false } },
         { group: { groupIds: [gardenId, choirId], untagged: false } },
       ]
       const scopes: [SupportTicketScope, number[]][] = [
@@ -913,7 +918,11 @@ describe('supportTickets query test, the moderation side', () => {
       await setState(ungroupedWaits, { status: 'IN_PROGRESS', resubmissionAt: LATER })
       const closed = await file(bibi.id, 'closed', MORNING, choirId)
       await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
-      const handled = (groupIds: number[], untagged: boolean) => ({ groupIds, untagged })
+      const handled = (groupIds: number[], untagged: boolean, off = false) => ({
+        groupIds,
+        untagged,
+        off,
+      })
 
       // the garden: the choir's question back and the request of no group count elsewhere -- no
       // group is not ticked --, and so does the request of no group that waits
@@ -935,6 +944,16 @@ describe('supportTickets query test, the moderation side', () => {
         onResubmission: 2,
         elsewhere: 1,
         elsewhereOnResubmission: 0,
+      })
+      // off, with the garden ticked behind it: none of it is mine (MG5)
+      expect(
+        await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON, handled([gardenId], true, true)),
+      ).toEqual({
+        forModeration: 0,
+        forMember: 0,
+        onResubmission: 0,
+        elsewhere: 3,
+        elsewhereOnResubmission: 2,
       })
       // without a choice everything is mine, and nothing is elsewhere
       const asBefore = await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON)
@@ -958,6 +977,9 @@ describe('supportTickets query test, the moderation side', () => {
         handled([], true),
         handled([gardenId, choirId], true),
         handled([], false),
+        // off: nothing is mine, everything of the scope is elsewhere (MG5)
+        handled([gardenId], true, true),
+        handled([], false, true),
       ]) {
         expect([
           choice,

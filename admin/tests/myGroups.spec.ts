@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import de from '../src/locales/de.json' with { type: 'json' }
 import { expect, Failure, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn } from './fixtures/signIn'
@@ -16,22 +16,29 @@ const GROUPS = [
   { id: 9, tag: 'dorf', name: 'Dorf der Zukunft' },
 ]
 
-type Choice = { groupIds: number[]; untagged: boolean }
+type Choice = { groupIds: number[]; untagged: boolean; off: boolean }
 
 // the column "Support" as the column "Schöpfung", unless given apart: as migration 0178 left it
 const answersWith = (groupIds: number[], untagged: boolean, support?: Choice) => ({
   creationGroups: GROUPS,
-  handledCreationGroups: { groupIds, untagged },
-  handledSupportGroups: support ?? { groupIds, untagged },
+  handledCreationGroups: { groupIds, untagged, off: false },
+  handledSupportGroups: support ?? { groupIds, untagged, off: false },
 })
 
 // setHandledGroups answering what it was sent, as the server stores it
 const echo = (variables: Record<string, unknown>) => ({
-  creation: { groupIds: variables.creationGroupIds, untagged: variables.creationUntagged },
-  support: { groupIds: variables.supportGroupIds, untagged: variables.supportUntagged },
+  creation: variables.creation,
+  support: variables.support,
 })
 
+// the sentence of a column below the list: what counts of it
+const sentence = (column: string, state: keyof typeof de.myGroups.rule) =>
+  de.myGroups.rule[state].replace('{column}', column)
+const rule = (page: Page) => page.getByTestId('my-groups-rule')
 const rows = (page: Page) => page.getByTestId('my-groups-list').getByTestId('my-groups-row')
+// the switch of a column in the row "Selbst bearbeiten", before the groups (MG5)
+const handleSwitch = (page: Page, column: string = de.creation) =>
+  page.getByTestId('my-groups-handle').getByRole('switch', { name: column })
 const row = (page: Page, text: string) => rows(page).filter({ hasText: text })
 // a box is named by its group and its column's word, the menu's: "Schöpfung", "Support"
 const box = (page: Page, text: string, column: string = de.creation) =>
@@ -51,6 +58,7 @@ const NO_SUPPORT_OPEN = {
   onResubmission: 0,
   elsewhere: 0,
   elsewhereOnResubmission: 0,
+  off: false,
 }
 
 test.beforeEach(async ({ page, graphql }) => {
@@ -85,7 +93,11 @@ test('opens with the choice the server keeps: "no group" first, then the ticked,
   await expect(box(page, 'Amstetten')).not.toBeChecked()
   await expect(supportBox(page, 'Potsdam')).toBeChecked()
   await expect(supportBox(page, 'Amstetten')).not.toBeChecked()
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.someBoth)
+  await expect(rule(page)).toContainText(sentence(de.creation, 'some'))
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'some'))
+  // the switches of both columns stand on
+  await expect(handleSwitch(page)).toBeChecked()
+  await expect(handleSwitch(page, de.navbar.support)).toBeChecked()
   // no button: a tick saves itself; five rows want no second page
   await expect(page.getByTestId('my-groups-save')).toHaveCount(0)
   await expect(page.getByTestId('my-groups-saved')).toHaveText('')
@@ -97,14 +109,89 @@ test('says that everything counts where nothing is ticked', async ({ page, graph
   await signIn(page, '/my-groups')
 
   await expect(rows(page)).toHaveCount(5)
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.none)
+  // a sentence per column: what counts of it
+  await expect(rule(page)).toContainText(sentence(de.creation, 'all'))
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'all'))
   await box(page, 'Amstetten').check()
-  // one column ticked, the other not: the sentence says which counts what (MG2b)
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.someEmpty)
+  await expect(rule(page)).toContainText(sentence(de.creation, 'some'))
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'all'))
   await supportBox(page, de.creationGroupFilter.untagged).check()
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.someBoth)
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'some'))
   await box(page, 'Amstetten').uncheck()
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.someEmpty)
+  await expect(rule(page)).toContainText(sentence(de.creation, 'all'))
+})
+
+// MG5: "Selbst bearbeiten" -- a switch per column, off: nothing of it is the moderator's. Its ticks
+// stay behind it, shown unticked and unpressable, and count again once it is on.
+test('switches a column off and on, keeping its ticks, and saves each at once (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    ...answersWith([3], true, { groupIds: [5], untagged: false, off: false }),
+    setHandledGroups: echo,
+    adminListContributions: { contributionCount: 0 },
+    adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
+  })
+  await signIn(page, '/my-groups')
+  await handleSwitch(page, de.navbar.support).uncheck()
+
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'offSupport'))
+  // the other column is as it was, the switched one waits behind the switch
+  await expect(rule(page)).toContainText(sentence(de.creation, 'some'))
+  await expect(supportBox(page, 'GD-Hohestraße')).toBeChecked()
+  await expect(supportBox(page, 'GD-Hohestraße')).toBeDisabled()
+  await expect(box(page, 'Potsdam')).toBeEnabled()
+  // saved at once, the ticks with it
+  await expect
+    .poll(() => graphql.sentFor('setHandledGroups').map(({ variables }) => variables))
+    .toEqual([
+      {
+        creation: { groupIds: [3], untagged: true, off: false },
+        support: { groupIds: [5], untagged: false, off: true },
+      },
+    ])
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  // and on again, the ticks as they were
+  await handleSwitch(page, de.navbar.support).check()
+  await expect(supportBox(page, 'GD-Hohestraße')).toBeEnabled()
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'some'))
+  await expect
+    .poll(() => graphql.sentFor('setHandledGroups').map(({ variables }) => variables.support))
+    .toEqual([
+      { groupIds: [5], untagged: false, off: true },
+      { groupIds: [5], untagged: false, off: false },
+    ])
+})
+
+// Opened switched off, the switch stands off and the ticks behind it wait.
+test('opens with a column switched off as the server keeps it (MG5)', async ({ page, graphql }) => {
+  graphql.answer({
+    ...answersWith([3], true),
+    handledSupportGroups: { groupIds: [5], untagged: true, off: true },
+  })
+  await signIn(page, '/my-groups')
+  await expect(handleSwitch(page)).toBeChecked()
+  await expect(handleSwitch(page, de.navbar.support)).not.toBeChecked()
+  await expect(supportBox(page, 'GD-Hohestraße')).toBeDisabled()
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'offSupport'))
+
+  // each switch over the boxes of its column, in the middle of its row
+  const middleOf = async (place: Locator) => {
+    const { x, y, width, height } = (await place.boundingBox()) ?? {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    }
+    return { x: x + width / 2, y: y + height / 2 }
+  }
+  const { y } = await middleOf(page.getByTestId('my-groups-handle'))
+  for (const column of [de.creation, de.navbar.support]) {
+    const shown = await middleOf(handleSwitch(page, column))
+    expect(shown.x).toBeCloseTo((await middleOf(box(page, 'Potsdam', column))).x, 0)
+    expect(Math.abs(shown.y - y)).toBeLessThanOrEqual(1)
+  }
 })
 
 test('finds a group by name or tag, without regard to case, and says where none matches', async ({
@@ -166,16 +253,12 @@ test('saves each tick at once, says so quietly, and asks the number at "Schöpfu
   // both columns in each request; the column "Support" as it was loaded
   expect(graphql.sentFor('setHandledGroups').map(({ variables }) => variables)).toEqual([
     {
-      creationGroupIds: [3, 5],
-      creationUntagged: true,
-      supportGroupIds: [3],
-      supportUntagged: true,
+      creation: { groupIds: [3, 5], untagged: true, off: false },
+      support: { groupIds: [3], untagged: true, off: false },
     },
     {
-      creationGroupIds: [3, 5],
-      creationUntagged: false,
-      supportGroupIds: [3],
-      supportUntagged: true,
+      creation: { groupIds: [3, 5], untagged: false, off: false },
+      support: { groupIds: [3], untagged: true, off: false },
     },
   ])
   // no toast for a tick: the quiet line says it
@@ -211,6 +294,7 @@ test('asks the number at "Support" anew after a save, where the support is their
       onResubmission: 0,
       elsewhere: 5,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await signIn(page, '/my-groups')
@@ -232,7 +316,7 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   const withoutSupport = { ...moderator, role: 'MODERATOR', handlesSupportTickets: false }
   graphql.answer({
     ...signedInAnswers(withoutSupport),
-    ...answersWith([3], true, { groupIds: [7], untagged: false }),
+    ...answersWith([3], true, { groupIds: [7], untagged: false, off: false }),
     setHandledGroups: echo,
     adminListContributions: { contributionCount: 4 },
   })
@@ -241,7 +325,9 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   await expect(page.getByText(de.myGroups.intro)).toBeVisible()
   await expect(page.getByTestId('my-groups-head')).toHaveText(de.creation)
   await expect(row(page, 'Potsdam').getByRole('checkbox')).toHaveCount(1)
-  await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.some)
+  await expect(rule(page)).toHaveText(sentence(de.creation, 'some'))
+  // what a moderator handles an administrator assigns: no switch (MG5)
+  await expect(page.getByTestId('my-groups-handle')).toHaveCount(0)
   await box(page, 'GD-Hohestraße').check()
 
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
@@ -254,12 +340,25 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   // the column it does not see goes back as it came
   expect(graphql.sentFor('setHandledGroups').map(({ variables }) => variables)).toEqual([
     {
-      creationGroupIds: [3, 5],
-      creationUntagged: true,
-      supportGroupIds: [7],
-      supportUntagged: false,
+      creation: { groupIds: [3, 5], untagged: true, off: false },
+      support: { groupIds: [7], untagged: false, off: false },
     },
   ])
+})
+
+// MG5: the switch is an administrator's; a moderator with the support has both columns, and no switch
+test('offers a moderator with the support both columns and no switch (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  const withSupport = { ...moderator, role: 'MODERATOR', handlesSupportTickets: true }
+  graphql.answer(signedInAnswers(withSupport))
+  await signIn(page, '/my-groups', withSupport)
+
+  await expect(rows(page)).toHaveCount(5)
+  await expect(row(page, 'Potsdam').getByRole('checkbox')).toHaveCount(2)
+  await expect(page.getByTestId('my-groups-handle')).toHaveCount(0)
+  await expect(page.getByRole('switch')).toHaveCount(0)
 })
 
 // One save at a time: ticks made while one is out go with the next, with the ticks of that moment,
@@ -292,16 +391,12 @@ test('sends one save at a time, and the ticks made meanwhile with the next', asy
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   expect(sent()).toEqual([
     {
-      creationGroupIds: [3, 7],
-      creationUntagged: true,
-      supportGroupIds: [3],
-      supportUntagged: true,
+      creation: { groupIds: [3, 7], untagged: true, off: false },
+      support: { groupIds: [3], untagged: true, off: false },
     },
     {
-      creationGroupIds: [3, 7, 9],
-      creationUntagged: true,
-      supportGroupIds: [3, 7],
-      supportUntagged: true,
+      creation: { groupIds: [3, 7, 9], untagged: true, off: false },
+      support: { groupIds: [3, 7], untagged: true, off: false },
     },
   ])
 })
@@ -324,10 +419,11 @@ test('keeps the count and the choice of a save where the start page answers afte
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
     setHandledGroups: {
-      creation: { groupIds: [3, 7], untagged: true },
-      support: { groupIds: [3], untagged: true },
+      creation: { groupIds: [3, 7], untagged: true, off: false },
+      support: { groupIds: [3], untagged: true, off: false },
     },
     adminListContributions: { contributionCount: 3 },
   })
@@ -357,8 +453,8 @@ test('keeps the count and the choice of a save where the start page answers afte
     (await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}',
   )
   expect(kept.openCreations).toBe(3)
-  expect(kept.handledCreationGroups).toMatchObject({ groupIds: [3, 7], untagged: true })
-  expect(kept.handledSupportGroups).toMatchObject({ groupIds: [3], untagged: true })
+  expect(kept.handledCreationGroups).toMatchObject({ groupIds: [3, 7], untagged: true, off: false })
+  expect(kept.handledSupportGroups).toMatchObject({ groupIds: [3], untagged: true, off: false })
 })
 
 // coderabbit on #4315: a later question that fails takes nothing from a save -- the save's answer,
@@ -385,8 +481,8 @@ test('keeps a save whose answer comes after a later question that failed', async
   await page.getByTestId('navbar-home').click()
   await expect(page.getByRole('alert')).toContainText('no database')
   save.held[0]({
-    creation: { groupIds: [3, 7], untagged: true },
-    support: { groupIds: [3], untagged: true },
+    creation: { groupIds: [3, 7], untagged: true, off: false },
+    support: { groupIds: [3], untagged: true, off: false },
   })
 
   await expect
@@ -550,7 +646,7 @@ test('shows each column with its own ticks, and saves them apart (MG2b)', async 
   graphql,
 }) => {
   graphql.answer({
-    ...answersWith([3], true, { groupIds: [5], untagged: false }),
+    ...answersWith([3], true, { groupIds: [5], untagged: false, off: false }),
     setHandledGroups: echo,
     adminListContributions: { contributionCount: 2 },
     adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
@@ -590,10 +686,8 @@ test('shows each column with its own ticks, and saves them apart (MG2b)', async 
     })
     .toEqual([[], [5, 7]])
   expect(graphql.sentFor('setHandledGroups').at(-1)?.variables).toEqual({
-    creationGroupIds: [],
-    creationUntagged: true,
-    supportGroupIds: [5, 7],
-    supportUntagged: false,
+    creation: { groupIds: [], untagged: true, off: false },
+    support: { groupIds: [5, 7], untagged: false, off: false },
   })
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
 })
@@ -610,8 +704,8 @@ test('shows twenty rows to a page, the ticked first, and searches through all', 
   })
   graphql.answer({
     creationGroups: many,
-    handledCreationGroups: { groupIds: [144], untagged: true },
-    handledSupportGroups: { groupIds: [], untagged: false },
+    handledCreationGroups: { groupIds: [144], untagged: true, off: false },
+    handledSupportGroups: { groupIds: [], untagged: false, off: false },
     setHandledGroups: echo,
     adminListContributions: { contributionCount: 1 },
     adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
@@ -645,7 +739,7 @@ test('shows twenty rows to a page, the ticked first, and searches through all', 
   await supportBox(page, 'Gruppe 44').check()
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   expect(graphql.sentFor('setHandledGroups').at(-1)?.variables).toMatchObject({
-    supportGroupIds: [143],
+    support: { groupIds: [143] },
   })
 
   // the search, from the first page, through all groups

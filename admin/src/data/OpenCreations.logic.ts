@@ -18,6 +18,7 @@ export type OpenCreationCounts = Record<
  *
  * `elsewhere`: what is open outside "Meine Gruppen", only where something is chosen. Without a
  * choice the counts take everything, and a creation arriving between them must not make up a line.
+ * `off` (MG5): the administrator handles no creations, and the page says nothing of them.
  */
 export const openCreationsOf = ({
   waitingForModeration,
@@ -36,5 +37,6 @@ export const openCreationsOf = ({
     open,
     onResubmission: Math.max(allOpen.contributionCount - open, 0),
     elsewhere: chose ? Math.max(everythingOpen.contributionCount - open, 0) : 0,
+    off: handledCreationGroups.off,
   }
 }

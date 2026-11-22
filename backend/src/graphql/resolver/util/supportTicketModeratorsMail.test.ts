@@ -55,11 +55,13 @@ const holder = (
   firstName: string,
   language = 'de',
   supportDuty = true,
+  handledSupportGroups: string | null = null,
 ): RoleHolderWithContact => ({
   userId,
   role,
   visibleCreationGroups,
   supportDuty,
+  handledSupportGroups,
   firstName,
   lastName: 'Test',
   language,
@@ -162,6 +164,40 @@ describe('readSupportTicketMailRecipients', () => {
     expect(peter.supportDuty).toBe(false)
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter])
     expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([1])
+  })
+
+  // MG5: an administrator who switched the support off in "Meine Gruppen" is left out -- and where
+  // every administrator did, all of them are mailed all the same (Bernd, 22.11.2026)
+  it('leaves out an administrator who switched the support off, and mails all where all did', async () => {
+    const off = JSON.stringify({ groupIds: [], untagged: false, off: true })
+    const peterOff = { ...peter, handledSupportGroups: off }
+    const ada = holder(2, 'ADMIN', null, 'Ada', 'de', false)
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peterOff, ada])
+    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([2])
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
+      peterOff,
+      { ...ada, handledSupportGroups: off },
+    ])
+    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([1, 2])
+  })
+
+  // the ticks alone steer no mail: what is on handles, whichever groups it names
+  it('mails an administrator who ticked groups in "Meine Gruppen", also for another group', async () => {
+    const ticked = JSON.stringify({ groupIds: [7], untagged: false })
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
+      { ...peter, handledSupportGroups: ticked },
+    ])
+    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([1])
+  })
+
+  // the switch is an administrator's: in a moderator's row it is what a role before left there
+  it('mails a moderator whatever their row says of "Meine Gruppen", with a scope and without', async () => {
+    const off = JSON.stringify({ groupIds: [], untagged: false, off: true })
+    const bobOff = { ...bob, handledSupportGroups: off }
+    const carlaOff = { ...carla, handledSupportGroups: off }
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bobOff, carlaOff])
+    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([11])
+    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([carla.userId])
   })
 
   it('throws not where the reading fails: nobody, and the code in the log', async () => {

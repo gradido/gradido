@@ -1014,8 +1014,9 @@ export const userRolesTable = mysqlTable(
     supportDuty: boolean('support_duty').default(false).notNull(),
     // "Meine Gruppen" (MG1): the creation groups the holder handles themself, as JSON text
     // `{"groupIds":[…],"untagged":…}` -- numbers of creation_groups rows, so a rename leaves it as
-    // it is. NULL is nobody chose: everything counts, as before the column (migration 0177). Read
-    // through handledCreationGroupsOf in the backend, which ignores it under an assigned scope.
+    // it is --, with `"off":true` where an administrator handles none (MG5). NULL is nobody chose:
+    // everything counts, as before the column (migration 0177). Read through handledCreationGroupsOf
+    // in the backend, which ignores it under an assigned scope.
     handledCreationGroups: text('handled_creation_groups').default(sql`NULL`),
     // "Meine Gruppen" of the support (MG2b): the groups whose support requests the holder handles
     // themself, in the same JSON text. Filled from handledCreationGroups where a choice existed

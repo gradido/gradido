@@ -1,7 +1,13 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
-import { chosenGroupsOf, mayChooseGroups, supportIsTheirs } from './Moderator.logic'
+import {
+  chosenGroupsOf,
+  isSwitchedOff,
+  mayChooseGroups,
+  maySwitchOff,
+  supportIsTheirs,
+} from './Moderator.logic'
 import { type Moderator, moderatorSchema } from './Moderator.schema'
 
 const signedIn = (more: Partial<Moderator>): Moderator => ({
@@ -78,14 +84,20 @@ describe('chosenGroupsOf', () => {
     of: moderator.gradidoID,
     groupIds: [3, 7],
     untagged: true,
+    off: false,
     ...more,
   })
 
   it('is the choice kept for the moderator signed in', () => {
-    expect(chosenGroupsOf(moderator, kept())).toEqual({ groupIds: [3, 7], untagged: true })
+    expect(chosenGroupsOf(moderator, kept())).toEqual({
+      groupIds: [3, 7],
+      untagged: true,
+      off: false,
+    })
     expect(chosenGroupsOf(moderator, kept({ groupIds: [] }))).toEqual({
       groupIds: [],
       untagged: true,
+      off: false,
     })
   })
 
@@ -101,5 +113,51 @@ describe('chosenGroupsOf', () => {
     expect(chosenGroupsOf(moderator, null)).toBeNull()
     expect(chosenGroupsOf(null, kept())).toBeNull()
     expect(chosenGroupsOf({ ...moderator, seesAllCreationGroups: false }, kept())).toBeNull()
+  })
+})
+
+// MG5: who may switch a column off, and the column switched off -- narrowing no filter
+describe('maySwitchOff', () => {
+  it('is yes for an administrator, who sees every group', () => {
+    expect(maySwitchOff(signedIn({ role: 'ADMIN' }))).toBe(true)
+  })
+
+  it('is no for a moderator of either kind, though they may choose, and for nobody signed in', () => {
+    for (const role of ['MODERATOR', 'MODERATOR_AI']) {
+      expect(mayChooseGroups(signedIn({ role }))).toBe(true)
+      expect(maySwitchOff(signedIn({ role }))).toBe(false)
+    }
+    expect(maySwitchOff(null)).toBe(false)
+  })
+})
+
+describe('isSwitchedOff', () => {
+  const moderator = signedIn({ role: 'ADMIN' })
+  const kept = (more = {}) => ({
+    of: moderator.gradidoID,
+    groupIds: [3],
+    untagged: false,
+    off: true,
+    ...more,
+  })
+
+  it('is yes for the choice kept of the administrator signed in, and off', () => {
+    expect(isSwitchedOff(moderator, kept())).toBe(true)
+    expect(chosenGroupsOf(moderator, kept())).toBeNull()
+  })
+
+  it('is no where it is on, kept of somebody else, or unknown', () => {
+    expect(isSwitchedOff(moderator, kept({ off: false }))).toBe(false)
+    expect(isSwitchedOff(moderator, kept({ of: 'b1d2c3e4-0000-4000-8000-000000000001' }))).toBe(
+      false,
+    )
+    expect(isSwitchedOff(moderator, null)).toBe(false)
+  })
+
+  // kept from the time as an administrator: the ticks count, as the server reads them by then
+  it('is no for a moderator, and their ticks count', () => {
+    const now = { ...moderator, role: 'MODERATOR' }
+    expect(isSwitchedOff(now, kept())).toBe(false)
+    expect(chosenGroupsOf(now, kept())).toEqual({ groupIds: [3], untagged: false, off: false })
   })
 })

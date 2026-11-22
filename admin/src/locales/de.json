@@ -547,15 +547,18 @@
     "show-submission-form": "warten auf Erinnerung?"
   },
   "myGroups": {
+    "handle": "Selbst bearbeiten",
     "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
     "introBoth": "Kreuze je Gruppe an, ob Du ihre Schöpfung und ihren Support selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
     "noMatch": "Keine Gruppe mit diesem Namen",
-    "none": "Nichts angekreuzt: Es zählt alles, wie bisher.",
+    "rule": {
+      "all": "{column}: Es zählt alles, wie bisher.",
+      "off": "{column}: Ausgeschaltet, es zählt nichts.",
+      "offSupport": "{column}: Ausgeschaltet, es zählt nichts. Mails über neue Anfragen gehen an die anderen.",
+      "some": "{column}: Es zählt nur das Angekreuzte."
+    },
     "saved": "Deine Gruppen sind gespeichert.",
     "search": "Gruppe suchen",
-    "some": "Es zählen nur die angekreuzten Zeilen.",
-    "someBoth": "In beiden Spalten zählt nur das Angekreuzte.",
-    "someEmpty": "In der Spalte ohne Häkchen zählt alles, in der anderen nur das Angekreuzte.",
     "title": "Meine Gruppen"
   },
   "name": "Name",

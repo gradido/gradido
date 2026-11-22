@@ -17,6 +17,7 @@ const OPEN = {
   onResubmission: 2,
   elsewhere: 0,
   elsewhereOnResubmission: 0,
+  off: false,
 }
 
 test.beforeEach(async ({ graphql }) => {
@@ -80,8 +81,8 @@ test('names before switching off also the requests open and waiting beyond "Mein
   graphql,
 }) => {
   graphql.answer({
-    handledSupportGroups: { groupIds: [1], untagged: false },
-    adminCountOpenSupportTickets: { ...OPEN, elsewhere: 7, elsewhereOnResubmission: 3 },
+    handledSupportGroups: { groupIds: [1], untagged: false, off: false },
+    adminCountOpenSupportTickets: { ...OPEN, elsewhere: 7, elsewhereOnResubmission: 3, off: false },
     adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
   })
   await open(page)

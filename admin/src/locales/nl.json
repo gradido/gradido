@@ -547,15 +547,18 @@
     "show-submission-form": "wachten op herinnering?"
   },
   "myGroups": {
+    "handle": "Zelf behandelen",
     "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, de getallen in het menu en de groepsfilters richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
     "introBoth": "Vink per groep aan of je de creatie en de support ervan zelf behandelt. De startpagina, de getallen in het menu en de groepsfilters richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
     "noMatch": "Geen groep met deze naam",
-    "none": "Niets aangevinkt: alles telt mee, zoals voorheen.",
+    "rule": {
+      "all": "{column}: alles telt mee, zoals voorheen.",
+      "off": "{column}: uitgeschakeld, er telt niets mee.",
+      "offSupport": "{column}: uitgeschakeld, er telt niets mee. E-mails over nieuwe vragen gaan naar de anderen.",
+      "some": "{column}: alleen wat aangevinkt is, telt mee."
+    },
     "saved": "Je groepen zijn opgeslagen.",
     "search": "Groep zoeken",
-    "some": "Alleen de aangevinkte rijen tellen mee.",
-    "someBoth": "In beide kolommen telt alleen mee wat aangevinkt is.",
-    "someEmpty": "In de kolom zonder vinkjes telt alles mee, in de andere alleen wat aangevinkt is.",
     "title": "Mijn groepen"
   },
   "name": "Naam",

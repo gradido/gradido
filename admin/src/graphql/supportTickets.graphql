@@ -90,6 +90,7 @@ query adminCountOpenSupportTickets {
     onResubmission
     elsewhere
     elsewhereOnResubmission
+    off
   }
 }
 

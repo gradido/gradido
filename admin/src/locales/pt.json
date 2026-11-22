@@ -547,15 +547,18 @@
     "show-submission-form": "esperar pelo lembrete?"
   },
   "myGroups": {
+    "handle": "Trato eu disto",
     "intro": "Marca os grupos de criação que tratas tu. A página inicial, os números do menu e os filtros de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
     "introBoth": "Marca em cada grupo se tratas tu da sua criação e do seu suporte. A página inicial, os números do menu e os filtros de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
     "noMatch": "Nenhum grupo com este nome",
-    "none": "Nada marcado: tudo conta, como até agora.",
+    "rule": {
+      "all": "{column}: tudo conta, como até agora.",
+      "off": "{column}: desativada, nada conta.",
+      "offSupport": "{column}: desativado, nada conta. Os e-mails sobre novos pedidos vão para os outros.",
+      "some": "{column}: só conta o que está marcado."
+    },
     "saved": "Os teus grupos foram guardados.",
     "search": "Pesquisar grupo",
-    "some": "Só contam as linhas marcadas.",
-    "someBoth": "Nas duas colunas só conta o que está marcado.",
-    "someEmpty": "Na coluna sem marcas conta tudo; na outra, só o que está marcado.",
     "title": "Os meus grupos"
   },
   "name": "Nome",
