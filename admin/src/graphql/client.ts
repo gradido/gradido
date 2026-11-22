@@ -4,9 +4,8 @@ import { type DocumentNode, print } from 'graphql'
 import m from 'mithril'
 import type { Result } from 'shared'
 import { CONFIG } from '@/config'
-import { isSchemaMismatch } from '@/data/AppOutdated.logic'
 import { adminStore, logout, setToken } from '@/store/admin.store'
-import { markAppOutdated } from '@/store/appOutdated.store'
+import { appOutdated } from '@/store/appOutdated.store'
 import { redirectTo } from '@/utils/redirect'
 
 /** The server answered with errors, or did not answer at all (`messages` then holds why). */
@@ -55,9 +54,10 @@ export const graphqlRequest = async <T>(
         token: xhr.getResponseHeader('token'),
       }),
     })
-    // a tab open across a deploy: AppOutdatedBar offers the reload
-    if (isSchemaMismatch(answer.errors ?? [])) {
-      markAppOutdated()
+    // The documents no longer fit the server's schema, in a tab open across a deploy:
+    // AppOutdatedBar offers the reload.
+    if (answer.errors?.some(({ extensions }) => extensions?.code === 'GRAPHQL_VALIDATION_FAILED')) {
+      appOutdated.value = true
     }
     // in the background the moderator did nothing: neither the session's end nor its renewal is
     // this answer's

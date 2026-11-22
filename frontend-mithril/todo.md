@@ -43,7 +43,8 @@ and those two steps correct it.
    Take schemas and bounds from `shared/browser` where they exist (`emailSchema`,
    `passwordSchema`, `aliasSchema`, `uuidv4Schema`): the entry of `shared` a browser can load.
    Never from `shared` itself, which reaches Node.
-4. **Logic beside the view.** Pure logic in `src/data/*.logic.ts` with a `*.test.ts`. The 105
+4. **Logic beside the view.** Pure logic on a thing in `src/data/*.logic.ts`, what wraps the
+   browser in `src/browser/`, each with a `*.test.ts`. The 105
    pure-logic specs of the old wallet (23,000 lines) move to `bun test` with the code they test,
    in the step that takes the code; 21 of them need their `vi.mock` replaced.
 5. **Compact.** As `ARCHITECTURE.md` says under "How the code is written": no function for
@@ -61,11 +62,17 @@ and those two steps correct it.
 
 ## Decisions to take in step 2
 
-- **Building blocks shared with the admin: decided, they are imported.** `Modal`,
-  `ConfirmModal`, `Dropdown`, `Tabs`, `Pagination`, `Tooltip`, `Toasts`, `ThemedSelect`,
-  `MemberAvatar`, `MemberAvatarZoom`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`,
-  `viewport.ts`, `graphql/client.ts`, `RelativeTime.logic`, `AppOutdated.logic` come through an
-  `@admin` alias onto `admin/src`, and are changed there where the wallet needs more. No copy.
+- **What the admin has and the wallet needs is copied: decided.** Nothing is imported from
+  `admin/`, and the admin is left as it is until the wallet is done. The admin was written
+  with less review than the wallet gets, so a copy is not taken as a model: it is read,
+  shortened and put right like any file that is ported, with its test. Afterwards the two are
+  brought together, and where they differ the wallet's file wins. Copied in 2a:
+  the admin's `utils/authToken.ts`, as far as the session uses it, which became part of
+  `store/Session.ts` (the hand-over to the admin comes with its step), and
+  `store/appOutdated.ts`. To copy with their steps: `Modal`, `ConfirmModal`,
+  `Dropdown`, `Tabs`, `Pagination`, `Tooltip`, `Toasts`, `ThemedSelect`, `MemberAvatar`,
+  `MemberAvatarZoom`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`, `viewport.ts`,
+  `RelativeTime.logic`.
 - **Styles of bootstrap-vue-next.** The old wallet loads `bootstrap-vue-next.css`. Take over
   only the rules whose classes the Mithril wallet emits (`b-toast-*`, `b-avatar*`,
   `b-pagination-pills`, `bv-d-sm-down-none`), into one small file, and drop the import.
@@ -88,31 +95,44 @@ components are unused, but its style sheet sets `.fade-enter-active`, the name
 bootstrap-vue-next's own transitions use: it goes with bootstrap-vue-next in step 22), `$filters`
 in `main.js` (`useFilters.ts` hands them to the TSX components).
 
-**2. The base** (about 70 files)
+**2. The base** (about 70 files), in two pull requests
 No page yet; everything a page needs.
+
+*2a, done:* `request` (`graphql/client.ts`), the session
+(`store/Session.ts`, `data/Member.schema.ts`), `Resource`, the device values, `repeatWhileVisible`. Left
+out on purpose, each to come with its first caller: the fields of the old store that are not the
+member (`redirectPath`, `project`, `preLoginLanguage`, …), the per-member key of a device value,
+the merged GraphQL documents, why a session ended (the hand-over to the sign-in page).
+
+*2b:* everything below that is not named under 2a.
 - `graphqlRequest` (the admin's, plus what the wallet's Apollo link does): `renewSession: false`
   as an option of its own (not the admin's `background`), a renewed token dropped when the
   member changed meanwhile, `403.13` → sign out and `/login`, `GRAPHQL_VALIDATION_FAILED` →
   outdated. No cache: `possibleTypes`, the merge policies and the 18 field-set specs in
   `graphql/` go with it; the schema check of the fixture replaces them.
-- `resource`, `deviceValue`, `formOf` and `Field` as `ARCHITECTURE.md` describes them.
+- `Resource`, the device values, `formOf` and `Field` as `ARCHITECTURE.md` describes them.
 - `Placeholder` (`line`, `block`, `row`) and the locked button with its spinner: the one way a
   wait is shown, a deliberate change from the old wallet (`ARCHITECTURE.md`, "Waiting"). Its
   pictures are checked in and run for `new` and `new-phone` only; `samePicture` gets a sibling
   for that.
-- The store as a plain object (`wallet.store.ts`): the 37 fields of `useWalletStore.js` behind
+- The store as one object with plain fields (`Session.ts`, the instance of a class): the 37 fields of `useWalletStore.js` behind
   one valibot schema for the `login` / `verifyLogin` user (replaces 25 `?? null` and about 35
   one-line setters). `tokenTime`, `darkMode` are derived; `transactionToHighlightId` is not
   persisted. The keys stay: `gradido-frontend`, `auth-token`, `gradido-theme-mode`. Signing out
   reloads the page instead of calling 20 `forget*` functions.
 - One helper for "a value per member in `localStorage`, read through a schema" (written by hand
   in 10 composables and 9 utils), one for the four hand-overs (`useEntryDraft`, `useLinkDraft`,
-  `usePassOnDraft`, `useSendReturn`), one `memberKey` (five spellings today; keep each stored
-  format readable).
-- `i18n`: the admin's — English is bundled and stands in for a missing key, any other language
+  `usePassOnDraft`, `useSendReturn`), one `memberKey` (`<name>:<gradidoID>` today, three with
+  something after it; keep each stored format readable).
+- `i18n`: a copy of the admin's — English is bundled and stands in for a missing key, any other language
   is fetched when it is asked for, and the wallet is drawn only once it is there (the old wallet
   bundles all ten) with the number and
   date formats once (ten identical copies today, 440 lines) and one language list.
+- The notice of `browser/requireStorage.ts` (the browser refuses localStorage) through `i18n`,
+  in all ten languages instead of the two sentences written into the file in 2a. The language
+  is the browser's: the member's own lies in the storage that is refused. Any language but
+  English is fetched first, so the check becomes: try the storage, on failure load the language
+  and show the notice, otherwise start the wallet.
 - Routes and guards (`routes.js`, `guards.js`, 890 lines) as one table with the meta the layout
   reads, and the guard steps in their order. Keep: `/authenticate`, the first
   navigation with a running session, the event-matching link, `requiresAuth`,
@@ -122,7 +142,7 @@ No page yet; everything a page needs.
   field for it, `login`, `createUser` and `updateUserInfos` are sent without it (the server
   takes it as optional). From the switch (step 20) a link with `?pid=` stores nothing any more:
   accepted in #4309. Its field leaves the shared GraphQL documents in step 23.
-- `every(ms, fn)`: the one helper for what runs on a clock — it pauses while the tab is hidden
+- `repeatWhileVisible(ms, fn)` (`browser/timer.ts`): the one helper for what runs on a clock — it pauses while the tab is hidden
   and stops with the component or store that started it. For the chat's beat (with its
   back-off), the new-version check, the session's countdown, the e-mail confirmation, and the
   lists of contributions and support requests.
@@ -132,7 +152,7 @@ No page yet; everything a page needs.
   milliseconds, which the inspector keeps (it asks twice a second). New: the clock pauses
   while the tab is hidden, and asks at once when the tab is seen again. The chat keeps its own
   beat of 15 s. Step 23 ends the wallet's reading of the older variable.
-- The balance as a `resource`, refreshed by whatever changes it. The counter of answers in
+- The balance as a `Resource`, refreshed by whatever changes it. The counter of answers in
   `DashboardLayout`, by which the first-creation window tells a new balance from an old one,
   goes: the window refreshes and waits for that answer.
 - GraphQL documents that ask nearly the same become one each, with one schema: the member of
@@ -140,7 +160,7 @@ No page yet; everything a page needs.
   `transactionsQuery` and `transactionsUserCountQuery`, `openCreations` and
   `openCreationsAmounts`. New documents in `frontend-mithril/src/graphql`; the old wallet's stay
   untouched until it goes. The server is not changed.
-- `jwt-decode` and `uuid` are not installed: the token is read as `authToken` already reads it,
+- `jwt-decode` and `uuid` are not installed: the token is read as `tokenMemberId` in `store/Session.ts` already reads it,
   a gradido ID is checked by `uuidv4Schema` of `shared/browser`.
 - The clipboard as today: `nativeClipboard` for pictures, loaded before
   `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.
@@ -152,7 +172,7 @@ No page yet; everything a page needs.
   that the admin can run it too.
 - Theme, viewport, outdated bar, stale-chunk reload and new-version check
   (`reloadOnStaleChunk`, `newVersionCheck`), `nativeClipboard`.
-- Building blocks: the admin's (see the decision above), and the missing ones on Bootstrap's own
+- Building blocks: copies of the admin's (see the decision above), and the missing ones on Bootstrap's own
   JS: `Collapse`, `Carousel`, `Popover`. One `Field` (label, input, feedback) driven by a
   valibot schema, in place of `LabeledInput`, `ValidatedInput`, `InputEmail`, `InputPassword`,
   `InputPasswordConfirmation`, `InputUsername`, `AccountFields` and vee-validate + yup. One
@@ -178,7 +198,7 @@ that click stays on `old` only.
 | # | Step | Old (files / lines) | Files in the PR | Notes |
 | --- | --- | --- | --- | --- |
 | 3 | Sign-in pages and their layout: `AuthLayout`, `Auth/*`, Login, Register, RegisterCommunity, ForgotPassword, ResetPassword, ConfirmEmail, EmailChange, PublicProfile, NotFound | 16 / 3,260 | ~60 | `NotFoundPage` is 1,200 lines of inline SVG: one `.svg` file. The two backend sentences Login matches stay pinned by a test. |
-| 4 | The shell: `DashboardLayout`, templates, `Menu/*`, `MobileSidebar`, `Breadcrumb`, footer, `ContentHeader`, `RightSide` (without the contact panels), `SessionLogoutTimeout`, `EmailConfirmation*`, `AdminWayBackBar` | 28 / 4,600 | ~90 | The settings menu is in the DOM twice today (desk, phone): draw it once, by the width, if the picture stays the same without a change to the styles; else twice, reading one `resource`. Body scroll lock of the phone menu. |
+| 4 | The shell: `DashboardLayout`, templates, `Menu/*`, `MobileSidebar`, `Breadcrumb`, footer, `ContentHeader`, `RightSide` (without the contact panels), `SessionLogoutTimeout`, `EmailConfirmation*`, `AdminWayBackBar` | 28 / 4,600 | ~90 | The settings menu is in the DOM twice today (desk, phone): draw it once, by the width, if the picture stays the same without a change to the styles; else twice, reading one `Resource`. Body scroll lock of the phone menu. |
 | 5 | First steps: `FirstCreation`, `AliasFirstChoice`, `EventMatchingHomeInvitation`, `useFirstLoginWindow` | 5 / 1,900 | ~35 | Which window comes first is the logic to keep. |
 | 6 | Contributions, support, information: three pages, `Contributions/`, `ContributionMessages/`, `Support/` | 19 / 2,960 | ~70 | Depends on the base only. The lists poll with `AUTO_POLL_INTERVAL`. |
 | 7 | Scanner and calculator: `Scanner`, `Calculator`, `QrCode/*`, `useQrScanner`, `useCalculator*`, `qrDetector` | 14 / 2,900 | ~50 | The camera is released when the page leaves (`onremove`). `qrcanvas` without `qrcanvas-vue`. |
@@ -200,7 +220,9 @@ that click stays on `old` only.
 **20. Deploy the Mithril wallet** (about 15 files)
 `deployment/bare_metal/start.sh`, the nginx templates (`root …/frontend-mithril/build/`),
 `deployment/hetzner_cloud/install.sh`, `frontend/Dockerfile` and the compose files, the
-`e2e-tests`. `PORTED_TO_MITHRIL` holds every spec. Before it: a run through the whole wallet on a
+`e2e-tests`. `PORTED_TO_MITHRIL` holds every spec. The old wallet's stored state is flat
+(`gradidoID` beside `language`), the new one's holds `member`: read the old shape once at the
+start, or the switch signs every member out. Before it: a run through the whole wallet on a
 real phone (keyboard, camera, installed app, a deploy while a tab is open), and the sizes of the
 bundle compared with the old build.
 

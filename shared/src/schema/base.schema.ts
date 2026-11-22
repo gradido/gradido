@@ -5,6 +5,7 @@ import { AVAILABLE_LOCALS, DEFAULT_LANGUAGE } from '../const/constants'
 export const uuidv4Schema = v.pipe(
   v.string(),
   v.check((val: string) => validate(val) && version(val) === 4, 'Invalid uuid'),
+  v.transform((val: string) => val.toLowerCase())
 )
 
 export type Uuidv4Input = v.InferInput<typeof uuidv4Schema>

@@ -74,21 +74,36 @@ src/
   main.ts              start: styles, theme, language, routes
   routes.ts            the route table, and what may open a page
   graphql/client.ts    request(): the one way to the server
-  data/                *.schema.ts (valibot), *.logic.ts (pure), each with its *.test.ts
-  store/               *.store.ts: state that outlives a page
+  data/                Thing.schema.ts (valibot) and Thing.logic.ts (pure), each with its *.test.ts
+  store/               state that outlives a page (Session.ts, …); Resource.ts and device.ts, what it is built with
+  browser/             what wraps a facility of the browser and knows nothing of Gradido's data
   components/          building blocks, by feature folder as today
   pages/               one file per route, loaded on demand
 tests/                 Playwright specs and fixtures
 ```
 
-Names as in the admin: `Thing.schema.ts`, `Thing.logic.ts`, `thing.store.ts`, components in
-`PascalCase.ts`. No `composables/`, no `utils/`: a file is a schema, logic, a store or a
-component. What does not fit is a sign that it does two things.
+- `data/` is about a thing the wallet deals in (a member, a contribution): `Thing.schema.ts` says
+  what it is, `Thing.logic.ts` holds logic on it that is too simple for an interaction of its
+  own. Nothing else goes there.
+- `browser/` holds what wraps a facility of the browser: `timer.ts` (`repeatWhileVisible`, and
+  any timer with other properties beside it), and with their steps the clipboard, the viewport,
+  the reload on a stale chunk, the check for a new version.
+- A file of functions is named after what they have in common (`timer.ts`), not after one of
+  them: a second function of the kind goes into the same file, and its name says how it differs.
+  No file for a single function where a group is in sight.
+- A file that holds a class or a component is named after it, in `PascalCase.ts`; a file that
+  holds only functions starts with a small letter (`timer.ts`, `device.ts`). A store follows the
+  same rule and has no `.store` in its name, the folder says that it is one: `Session.ts` holds
+  the class `Session` and its one instance.
+- No `composables/`. No `utils/` either, as long as a file has a group that says what it is;
+  only what has none goes there, and a second file of its kind is the sign to name the group.
 
 ### From the server to the screen
 
-One function: `request`, the wallet's own wrapper around the admin's `graphqlRequest`, which
-takes the schema as an argument so that no call can forget it. The admin's client stays as it is.
+One function: `request`, the wallet's own, which takes the schema as an argument so that no
+call can forget it. It is not built on the admin's `graphqlRequest`: that one reads the admin's
+store and config, and stays as it is. Nothing is imported from the admin: what the wallet
+needs of it is copied and put right here (`todo.md`, decisions of step 2).
 
 ```ts
 const answer = await request(listContributions, variables, contributionListSchema)
@@ -96,10 +111,9 @@ if (!answer.success) return toastError(answer.error.message)
 this.contributions = answer.value.listContributions
 ```
 
-- `request` returns `Result<T, GraphqlRequestError>` for what can go wrong while the wallet is
-  right: no network, an error of the server, an answer that does not fit the schema. A mistake
-  of the caller (no document, variables the document does not declare) throws, as everywhere
-  in this repository.
+- `request` returns `Result<T>` for what can go wrong while the wallet is right: no network, an
+  error of the server, an answer that does not fit the schema. A mistake of the caller (no
+  document, variables the document does not declare) throws, as everywhere in this repository.
 - The schema describes what the page uses of the answer, with defaults where the server may
   send null. An answer that does not fit is a failure like any other, and is reported once in
   `request` — not checked field by field afterwards.
@@ -116,68 +130,90 @@ one kind kept as another.
 | Kind | Lives | Where | Example |
 | --- | --- | --- | --- |
 | **View** | while the component is on screen | a field of the component | the open tab, what is typed, the page of a list, a list a single page shows, the chat thread |
-| **Shared fact** | while the member is signed in, each answer ten minutes at most | `store/*.store.ts`, a `resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
-| **Session** | until sign-out, across reloads | `store/wallet.store.ts` | who is signed in, their settings, the token |
-| **Device** | until deleted, per member or per device | `data/DeviceValue.logic.ts` | theme, calculator settings, drafts, window size |
+| **Shared fact** | while the member is signed in, each answer ten minutes at most | a file in `store/`, a `Resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
+| **Session** | until sign-out, across reloads | `store/Session.ts` | `session.state.member` (who is signed in, with their settings), `session.state.language`, `session.token` |
+| **Device** | until deleted, per member or per device | `store/device.ts` | theme, calculator settings, drafts, window size |
 
-Mithril redraws after every event handler and every `request`. A store is therefore a plain
-object, and a component reads it in `view`. No subscription, no setter that only assigns, no
+Mithril redraws after every event handler and every `request`. A store is therefore an
+object with plain fields (the one instance of a class where it has methods, as `session`), and a
+component reads it in `view`. No subscription, no setter that only assigns, no
 copy of a store value in a component. Only what changes outside of Mithril (a timer, another
 tab, an observer) calls `m.redraw()`.
 
 **A shared fact** is the one new primitive, in the cache's place:
 
 ```ts
-export const firstCreation = resource(firstCreationStatus, firstCreationStatusSchema)
+export const firstCreation = new Resource(firstCreationStatus, firstCreationStatusSchema)
 
 firstCreation.value        // the last answer, or undefined
-firstCreation.load()       // asks if there is no answer or it is too old; a second caller gets the same request
-firstCreation.refresh()    // asks again; value stays on screen meanwhile
+firstCreation.load()       // asks if nobody asked within the resource's limit; a second caller gets the same request
+firstCreation.load(0)      // asks for the current one; value stays on screen meanwhile
 
 // a fact that changes faster names its own limit
-export const reachableCommunities = resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
+export const reachableCommunities = new Resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
 ```
 
 On every visit after the first in a session the last value is drawn at once, without a loading
-state. Where the reader asked again (`refresh()`, or `load()` past the hard timeout) it is
-replaced when the new answer comes. What is shown on the first visit is the next section.
+state. Where the reader asked again it is replaced when the new answer comes. What is shown on
+the first visit is the next section.
 
-Which of the two a reader calls in `oninit` is the choice the old wallet made with its fetch
-policy:
+A reader calls `load` in `oninit` and says how old the answer may be, in milliseconds. That is
+the choice the old wallet made with its fetch policy:
 
 - `load()` where an answer of some minutes ago is good enough (the default policy of today: the
   reachable communities, the lists of creation groups). It asks only if nobody has asked yet
-  or the answer is older than the hard timeout.
-- `refresh()` where the reader shows the last value at once and wants the current one
-  (`cache-and-network` of today: first-creation status, alias status, the balance). It always
-  asks; `value` stays on screen until the answer replaces it.
+  or the last question is older than the hard timeout.
+- `load(0)` where the reader shows the last value at once and wants the current one
+  (`cache-and-network` of today: first-creation status, alias status, the balance).
+
+A question of the last 100 ms counts as current, whatever age was asked for: an answer takes
+about that long, and the header and the page that both want the current balance on the same
+route change share one request. A question that failed does not count at all.
 
 The newest wins: an answer is taken only if no later request was started and `value` was not
 assigned since it was asked. An older answer that arrives late is dropped.
 
 **The hard timeout.** No answer is kept for a whole session: production sessions last an hour,
-some members are always online, and even the creation groups change. Ten minutes after an
-answer came it is no longer valid, and the next `load()` asks the server again, with `value`
-still on screen until the new answer replaces it, as with `refresh()`. Hard, because nothing
+some members are always online, and even the creation groups change. Ten minutes after a
+question was asked its answer is no longer valid, and the next `load()` asks the server again,
+with `value` still on screen until the new answer replaces it. Hard, because nothing
 prolongs it: not reading the value, not assigning it, not prolonging the session. Only a new
 answer of the server starts the ten minutes again. It is the wallet's side of
 `SESSION_HARD_TIMEOUT_MS` in the new backend's draft, a backstop against a fact that changed
-without the wallet hearing of it. The limit is the third argument of `resource`, ten minutes
+without the wallet hearing of it. The limit is the third argument of `Resource`, ten minutes
 unless given; the reachable communities take one minute, since a community that went away
 makes a transfer fail. The token is session state, not a resource, and has its own end (below).
-No timer runs for it: the age is compared when `load()` is called, so a page that stays open
-keeps what it shows until something calls `load()` or `refresh()`.
+No timer runs for it: the age is compared when `load` is called, so a page that stays open
+keeps what it shows until something calls `load`.
 
-A page that changed the fact assigns `value` or calls `refresh()`. About 30 lines, in
-`store/resource.ts`. Anything asked by one place only is view state and uses `request` directly.
+A page that changed the fact assigns `value` if it knows the new one, and calls `load(0)`
+otherwise. Assigning also drops a question under way and the failure of an earlier one. About
+40 lines, in `store/Resource.ts`. Anything asked by one place only is view state and uses
+`request` directly.
 
 **A device value** is read through its schema and written whole:
 
 ```ts
-const prefs = deviceValue('calculator-prefs', calculatorPrefsSchema, { perMember: true })
-prefs.get()   // parsed, or the schema's defaults where the stored text does not fit
-prefs.set(v)
+const prefsSchema = v.fallback(v.object({ decimals: v.fallback(v.number(), 2) }), { decimals: 2 })
+
+deviceGetObject('calculator-prefs', prefsSchema)   // what is stored, or what the schema's fallbacks say
+deviceSet<typeof prefsSchema>('calculator-prefs', prefs)
+
+deviceGetValue('right-side', v.fallback(v.picklist(['left', 'right']), 'left'))
 ```
+
+`deviceGetObject` reads an object or a list from JSON, `deviceGetValue` a text as it is (the
+old wallet's switches `'1'` and plain texts stay readable); the caller knows which it has.
+`deviceSet` writes a text as it is and anything else as JSON; it takes the value as valid, of
+the type the named schema hands out. Every such schema names with
+`v.fallback` what holds where nothing is stored or something that does not fit, so the schema
+alone says how the value behaves. A schema without one throws: an error in the code, to be seen
+at once. Text that is no JSON counts as nothing stored. A browser that refuses its storage
+never gets this far: `browser/requireStorage.ts`, the first import of `main.ts`, tries it and shows a notice instead of the wallet, which
+could not keep a session there either.
+
+A value kept per member gets its key from the member: `<name>:<gradidoID>` in the old wallet,
+three of them with something after it. That part is written with the first value that needs it.
 
 It replaces the 33 hand-written `try { JSON.parse(localStorage…) }` with their `typeof` chains.
 The stored keys and shapes of today stay readable: a member must not lose a draft by the switch.
@@ -186,7 +222,7 @@ The stored keys and shapes of today stay readable: a member must not lose a draf
 
 **The one place where the new wallet shows something else than the old one, on purpose.** The
 old wallet shows the wait differently in every place (nothing, a spinner, a skeleton, the page
-without the part). The new one has one way, for a `resource` and for a page's own `request`
+without the part). The new one has one way, for a `Resource` and for a page's own `request`
 alike:
 
 - **Content that is on its way is a `Placeholder`**: a grey shape with a faint shimmer, in the
@@ -239,7 +275,7 @@ is gone. The list of twenty `forget…` functions and the epoch counters go.
 What has to reach the next page (why the session ended, the address to return to) crosses in
 `sessionStorage` through the hand-over helper. What is kept on the device per member stays, as
 today; what must not stay for the next member on this device is removed in one place,
-`wallet.store.ts`, by key.
+`Session.ts`, by key.
 
 ### Components
 
@@ -253,7 +289,7 @@ today; what must not stay for the next member on this device is removed in one p
   call) are attributes or a store.
 - A page reads its route through `m.route.param()`, and the flags the layout needs from the
   route table, not from the page.
-- **What runs on a clock uses `every(ms, fn)`**, which pauses while the tab is hidden and
+- **What runs on a clock uses `repeatWhileVisible(ms, fn)`**, which pauses while the tab is hidden and
   returns its stop. No `setInterval` in a component or store.
 - **What starts in `oncreate` stops in `onremove`**: a timer, the camera, the map, a listener on
   `window`, `document` or `visualViewport`, an observer. One line each, next to each other. A
@@ -297,12 +333,12 @@ One table. Each row: path, the page (as `() => import(…)`), and the flags of t
 
 | Store | Replaces | Shape |
 | --- | --- | --- |
-| `wallet.store.ts` | `useWalletStore.js`, `store.js` | the session, parsed by one schema at start and at sign-in |
-| `chatBeat.store.ts` | `useChatUpdates.js` | timer, unread counts, `onMessages` / `onEdited` / `onReacted` / `watchRead` |
-| `pictures.store.ts` | `useMemberAvatars`, `useKeptPictures`, `useChatImages`, `memoryPictures` | `pictureCache({ fetch, atOnce, max, persistKey? })`, used three times |
-| `firstLoginWindow.store.ts` | `useFirstLoginWindow.js` | `wanted`, `undecided`, `held`, and `onScreen()` from the logic file |
-| `contactWindow.store.ts` | `useContactWindow`, `useContactsPanelHost` | which conversation is open; the window is drawn once, by the layout |
-| `appOutdated.store.ts`, theme, viewport | their composables | the admin's |
+| `Session.ts` | `useWalletStore.js`, `store.js` | the session, parsed by one schema at start and at sign-in |
+| `chatBeat.ts` | `useChatUpdates.js` | timer, unread counts, `onMessages` / `onEdited` / `onReacted` / `watchRead` |
+| `pictures.ts` | `useMemberAvatars`, `useKeptPictures`, `useChatImages`, `memoryPictures` | `pictureCache({ fetch, atOnce, max, persistKey? })`, used three times |
+| `firstLoginWindow.ts` | `useFirstLoginWindow.js` | `wanted`, `undecided`, `held`, and `onScreen()` from the logic file |
+| `contactWindow.ts` | `useContactWindow`, `useContactsPanelHost` | which conversation is open; the window is drawn once, by the layout |
+| `appOutdated.ts`, theme, viewport | their composables | copied from the admin (`todo.md`, decisions of step 2) |
 
 The chat thread is not in this list: it is view state of `ChatThread` (above).
 
@@ -346,8 +382,8 @@ nothing to look up and nothing to skip. Fewer lines are also fewer bytes to down
 - **A test per behaviour**, not per function, and none that reads source files as text.
 
 The helpers this document introduces had to pass the first rule themselves: `request` (about
-170 callers), `deviceValue` (33), `resource` (about 10 facts), `formOf` and `Field` (about 10
-forms), `every` (5). A helper that turns out to have one caller in the end is put back inline.
+170 callers), the device values (33), `Resource` (about 10 facts), `formOf` and `Field` (about 10
+forms), `repeatWhileVisible` (5). A helper that turns out to have one caller in the end is put back inline.
 
 Every pull request names in its description the lines of the old code it replaces and the lines
 it adds, tests apart. Where it is not clearly less, it says why.
@@ -357,12 +393,12 @@ it adds, tests apart. Where it is not clearly less, it says why.
 | Old | New |
 | --- | --- |
 | a page or component (`.tsx`) | `pages/` or `components/`; its asking and keeping stay in it, its rules move to `data/` |
-| a composable that wraps Apollo or Vue (32) | gone: `request`, a `resource`, or a field of the component |
-| a composable with logic (28) | `data/*.logic.ts`; the part that keeps state, a store |
+| a composable that wraps Apollo or Vue (32) | gone: `request`, a `Resource`, or a field of the component |
+| a composable with logic (28) | `data/*.logic.ts` where it is logic on a thing, `browser/` where it wraps the browser; the part that keeps state, a store |
 | a composable with module state (7) | a store from the table above |
-| a util (88 pure) | `data/*.logic.ts`, moved with its test; imported through `@frontend` until its step |
+| a util (88 pure) | `data/*.logic.ts` or `browser/`, by the same rule, moved with its test; imported through `@frontend` until its step |
 | `useQuery` with `no-cache` / `network-only` | `request` in `oninit` or a handler |
-| `useQuery` with the default or `cache-and-network` | a `resource` where two places read it, else `request` |
+| `useQuery` with the default or `cache-and-network` | a `Resource` where two places read it, else `request` |
 | `cache.updateQuery`, `readQuery` | assign to the resource or to the component's field |
 | `useMutation` | `request` |
 | `emit`, `v-model`, `expose` | a function or the value in `attrs` |
@@ -370,7 +406,7 @@ it adds, tests apart. Where it is not clearly less, it says why.
 | `watch` that starts something | the handler that caused the change |
 | `computed` | a getter or a function called in `view` |
 | vee-validate, yup | `formOf(schema)` and `Field` |
-| `store.setX(v)` | `walletStore.x = v` |
+| `store.setX(v)` | `session.state.x = v` |
 | `useToast` (53 files) | `toastError`, `toastSuccess` from `Toasts` |
 
 ## 4. Settled, and how each is held
