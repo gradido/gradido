@@ -156,6 +156,8 @@ export class CreationConfirm implements ClassComponent {
   private tooltip?: BootstrapTooltip
   // a resubmission saved on one contribution, offered for the member's others
   private bulk: { resubmissionAt: string | null; name: string; currentId: number } | null = null
+  // the question for the groups and the choice, on its way from the page's opening
+  private choice: Promise<void> = Promise.resolve()
 
   oninit() {
     // Where the page opens on another list than the badges count -- a kept search or tab, the
@@ -167,7 +169,7 @@ export class CreationConfirm implements ClassComponent {
     // words of the filter, and whether "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
     const of = this.moderator?.gradidoID
     const choiceAsked = askingHandledCreationGroups()
-    graphqlRequest(creationGroupsAndHandled).then((answer) => {
+    this.choice = graphqlRequest(creationGroupsAndHandled).then((answer) => {
       if (answer.success) {
         const { creationGroups, handledCreationGroups } = v.parse(
           creationGroupsAndHandledSchema,
@@ -185,9 +187,11 @@ export class CreationConfirm implements ClassComponent {
         ) {
           this.group = HANDLED_FILTER
         } else if (off && this.group === HANDLED_FILTER) {
-          // asked before the admin knew: nothing of the creations is theirs (MG5)
+          // asked before the admin knew: nothing of the creations is theirs (MG5). No search given
+          // here: a kept one stays on trial, for this list to judge (coderabbit on #4318).
           this.group = ''
-          this.searchAnew()
+          this.page = 1
+          this.load()
         }
       }
     })
@@ -244,6 +248,12 @@ export class CreationConfirm implements ClassComponent {
       return
     }
     if (this.keptOnTrial && contributionCount === 0) {
+      // "Meine Gruppen" switched off finds nothing, whatever the search (MG5): then the choice asks
+      // for another list, and that one judges it
+      await this.choice
+      if (asked !== this.asked) {
+        return
+      }
       this.query = ''
       this.searchAnew()
       return

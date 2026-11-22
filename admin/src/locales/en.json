@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: everything counts, as before.",
       "off": "{column}: switched off, nothing counts.",
-      "offSupport": "{column}: switched off, nothing counts. E-mails about new requests go to the others.",
+      "offSupport": "{column}: switched off, nothing counts. You get e-mails about new requests only when nobody else is responsible.",
       "some": "{column}: only what is ticked counts."
     },
     "saved": "Your groups are saved.",

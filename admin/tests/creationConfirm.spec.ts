@@ -308,6 +308,69 @@ test('gives a kept search that finds nothing up for the whole list', async ({ pa
   ])
 })
 
+// MG5: the page asks "Meine Gruppen" before it knows that the creations are switched off, which finds
+// nothing, whatever the search: the list asked then says whether a kept search gives way -- whichever
+// of the two answers comes first
+test('loses no kept search where the creations turn out switched off after the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keep(page, { '/creation-confirm': 'member1', '/creation-confirm#tab': 0 })
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    handledCreationGroups: () => new Promise((resolve) => held.push(resolve)),
+    adminListContributions: (variables: Variables) =>
+      !variables.paginated || (variables.filter as Variables).creationGroup === '*handled'
+        ? contributionList([], 0)
+        : contributionList([listedContribution(1)], 1),
+  })
+  const listed = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('paginated')),
+  )
+  await signIn(page, '/creation-confirm')
+  await (await listed).finished()
+  await expect.poll(() => held.length).toBe(1)
+  held[0]({ groupIds: [], untagged: false, off: true })
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.locator('.test-input-criteria')).toHaveValue('member1')
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toEqual([
+    question(OPEN, { query: 'member1' }),
+    question(OPEN, { query: 'member1', creationGroup: '' }),
+  ])
+})
+
+test('gives a kept search up where the creations turn out switched off before the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keep(page, { '/creation-confirm': 'gone', '/creation-confirm#tab': 0 })
+  graphql.answer({
+    handledCreationGroups: { groupIds: [], untagged: false, off: true },
+    adminListContributions: (variables: Variables) => {
+      if (!variables.paginated) {
+        return contributionList([], 0)
+      }
+      const { creationGroup, query } = variables.filter as Variables
+      // the first list never answers here: the choice overtakes it
+      return creationGroup === '*handled'
+        ? new Promise(() => undefined)
+        : query === 'gone'
+          ? contributionList([], 0)
+          : contributionList([listedContribution(1)], 1)
+    },
+  })
+  await signIn(page, '/creation-confirm')
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.locator('.test-input-criteria')).toHaveValue('')
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toEqual([
+    question(OPEN, { query: 'gone' }),
+    question(OPEN, { query: 'gone', creationGroup: '' }),
+    question(OPEN, { creationGroup: '' }),
+  ])
+})
+
 test('filters by group from the first page', async ({ page, graphql }) => {
   await open(page)
   await page.locator('.pagination').getByText('3', { exact: true }).click()

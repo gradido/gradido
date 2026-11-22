@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: alles telt mee, zoals voorheen.",
       "off": "{column}: uitgeschakeld, er telt niets mee.",
-      "offSupport": "{column}: uitgeschakeld, er telt niets mee. E-mails over nieuwe vragen gaan naar de anderen.",
+      "offSupport": "{column}: uitgeschakeld, er telt niets mee. E-mails over nieuwe vragen krijg je alleen nog als er verder niemand verantwoordelijk is.",
       "some": "{column}: alleen wat aangevinkt is, telt mee."
     },
     "saved": "Je groepen zijn opgeslagen.",

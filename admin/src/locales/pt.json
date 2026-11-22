@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: tudo conta, como até agora.",
       "off": "{column}: desativada, nada conta.",
-      "offSupport": "{column}: desativado, nada conta. Os e-mails sobre novos pedidos vão para os outros.",
+      "offSupport": "{column}: desativado, nada conta. Só recebes e-mails sobre novos pedidos quando não há mais ninguém responsável.",
       "some": "{column}: só conta o que está marcado."
     },
     "saved": "Os teus grupos foram guardados.",

@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: viene conteggiato tutto, come prima.",
       "off": "{column}: disattivata, non viene conteggiato nulla.",
-      "offSupport": "{column}: disattivato, non viene conteggiato nulla. Le e-mail sulle nuove richieste vanno agli altri.",
+      "offSupport": "{column}: disattivato, non viene conteggiato nulla. Ricevi e-mail sulle nuove richieste solo se nessun altro ne è responsabile.",
       "some": "{column}: viene conteggiato solo ciò che è spuntato."
     },
     "saved": "I tuoi gruppi sono stati salvati.",

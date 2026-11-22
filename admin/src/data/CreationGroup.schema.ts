@@ -27,6 +27,7 @@ export const handledCreationGroupsSchema = v.object({
   off: v.optional(v.boolean(), false),
 })
 
+export type HandledCreationGroupsInput = v.InferInput<typeof handledCreationGroupsSchema>
 export type HandledCreationGroups = v.InferOutput<typeof handledCreationGroupsSchema>
 
 /** The choice as the admin keeps it between pages: with the moderator it is the choice of. */

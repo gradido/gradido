@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: Es zählt alles, wie bisher.",
       "off": "{column}: Ausgeschaltet, es zählt nichts.",
-      "offSupport": "{column}: Ausgeschaltet, es zählt nichts. Mails über neue Anfragen gehen an die anderen.",
+      "offSupport": "{column}: Ausgeschaltet, es zählt nichts. Mails über neue Anfragen bekommst Du nur noch, wenn sonst niemand zuständig ist.",
       "some": "{column}: Es zählt nur das Angekreuzte."
     },
     "saved": "Deine Gruppen sind gespeichert.",

@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: Önceden olduğu gibi her şey sayılır.",
       "off": "{column}: Kapalı, hiçbir şey sayılmaz.",
-      "offSupport": "{column}: Kapalı, hiçbir şey sayılmaz. Yeni taleplerle ilgili e-postalar diğerlerine gider.",
+      "offSupport": "{column}: Kapalı, hiçbir şey sayılmaz. Yeni taleplerle ilgili e-postalar yalnızca başka sorumlu yoksa sana gelir.",
       "some": "{column}: Yalnızca işaretli olanlar sayılır."
     },
     "saved": "Grupların kaydedildi.",

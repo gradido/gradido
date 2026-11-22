@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column}: todo cuenta, como hasta ahora.",
       "off": "{column}: desactivada, nada cuenta.",
-      "offSupport": "{column}: desactivado, nada cuenta. Los correos sobre nuevas consultas van a los demás.",
+      "offSupport": "{column}: desactivado, nada cuenta. Solo recibes correos sobre nuevas consultas cuando no hay nadie más a cargo.",
       "some": "{column}: solo cuenta lo marcado."
     },
     "saved": "Tus grupos están guardados.",

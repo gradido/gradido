@@ -554,7 +554,7 @@
     "rule": {
       "all": "{column} : tout est pris en compte, comme avant.",
       "off": "{column} : désactivée, rien n'est pris en compte.",
-      "offSupport": "{column} : désactivée, rien n'est pris en compte. Les e-mails concernant les nouvelles demandes vont aux autres.",
+      "offSupport": "{column} : désactivée, rien n'est pris en compte. Tu ne reçois des e-mails concernant les nouvelles demandes que si personne d'autre n'en est chargé.",
       "some": "{column} : seul ce qui est coché est pris en compte."
     },
     "saved": "Tes groupes sont enregistrés.",

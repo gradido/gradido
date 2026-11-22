@@ -159,6 +159,8 @@ export class Support implements ClassComponent {
   private readonly deciding = new Set<number>()
   // whether members file new requests (K5): null until the server said, and then nothing is shown
   private supportActive: boolean | null = null
+  // the question for the groups and the choice, on its way from the page's opening
+  private choice: Promise<void> = Promise.resolve()
 
   oninit() {
     // The groups and the choice in a request of their own, as the creation page asks (MG2): the
@@ -167,7 +169,7 @@ export class Support implements ClassComponent {
     // for "" or HANDLED_FILTER.
     const of = this.moderator?.gradidoID
     const choiceAsked = askingHandledSupportGroups()
-    graphqlRequest(creationGroupsAndHandledSupport).then((answer) => {
+    this.choice = graphqlRequest(creationGroupsAndHandledSupport).then((answer) => {
       if (answer.success) {
         const { creationGroups, handledSupportGroups } = v.parse(
           creationGroupsAndHandledSupportSchema,
@@ -187,9 +189,10 @@ export class Support implements ClassComponent {
         ) {
           this.group = HANDLED_FILTER
         } else if (off && this.group === HANDLED_FILTER) {
-          // asked before the admin knew: nothing of the support is theirs (MG5)
+          // asked before the admin knew: nothing of the support is theirs (MG5). No search given
+          // here: a kept one stays on trial, for this list to judge (coderabbit on #4318).
           this.group = ''
-          this.searchAnew()
+          this.load(1)
         }
       }
     })
@@ -256,6 +259,12 @@ export class Support implements ClassComponent {
       answer.value,
     ).adminListSupportTickets
     if (this.keptOnTrial && count === 0) {
+      // "Meine Gruppen" switched off finds nothing, whatever the search (MG5): then the choice asks
+      // for another list, and that one judges it
+      await this.choice
+      if (asked !== this.asked) {
+        return
+      }
       this.query = ''
       this.searchAnew()
       return

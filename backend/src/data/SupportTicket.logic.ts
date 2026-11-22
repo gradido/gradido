@@ -141,9 +141,11 @@ const sameTag = (a: string, b: string): boolean =>
  * those with "no group"); only where none is left, the moderators who see everything; only where
  * none of them is left either, the administrators, whatever their scope says. Of these two only
  * those whose "Meine Gruppen" takes the request in (MG5): its group is ticked, or nothing is, and
- * the support is not switched off. Where that leaves nobody, these two steps once more without it
- * -- the administrators who switched it off only where all of them did: a request reaches somebody
- * (Bernd, 22.11.2026).
+ * the support is not switched off. Where that leaves nobody -- who sees everything ticked other
+ * groups alone, or switched it off --, the two steps once more, as if nothing were ticked: a
+ * request nobody took in goes where it went before the ticks, also to a moderator who left its group
+ * out; an administrator who switched the support off only where all of them did. A request reaches
+ * somebody (Bernd, 22.11.2026).
  *
  * Each step by their number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests
  * gets nothing, and neither does anybody in `notFor` -- the asking member, who handed on: they fall
