@@ -203,7 +203,7 @@
     "openPoints": "Açık sorular",
     "previewBanner": "Yapay zekâ bağlantısı olmadan önizleme — örnek bir sonuç. Görünüm, veritabanı, hitap ve imza gerçektir.",
     "readsRemark": "Crea da okur",
-    "readsRemarkHint": "Yalnızca açıklamalar kişisel veri içermiyorsa etkinleştirin!",
+    "readsRemarkHint": "Yalnızca açıklamalar kişisel veri içermiyorsa etkinleştir!",
     "reasoning": "Gerekçe",
     "response": "Yanıt önerisi",
     "resubmission": "Hatırlatma",
@@ -597,7 +597,7 @@
       "yes": "Evet, kullanıcı rolünü değiştir"
     },
     "confirm": {
-      "question": "Bu ortak yarara katkıyı gerçekten onaylamak ve hesabına geçirmek istiyor musun?",
+      "question": "Bu ortak yarara katkıyı gerçekten onaylamak ve üyenin hesabına işlemek istiyor musun?",
       "text": "Kaydettikten sonra kayıt artık değiştirilemez. Her şeyin doğru olduğunu dikkatlice kontrol et.",
       "title": "Ortak yarara katkıyı onayla!",
       "yes": "Evet, katkıyı onayla ve kaydet!"

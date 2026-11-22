@@ -116,10 +116,10 @@
     "changeGroupHint": "Selon tes groupes visibles, la contribution pourrait ne plus apparaître dans ta liste.",
     "changeGroupQuestion": "Déplacer cette contribution de {from} vers {to} ?",
     "confirm": "Confirmer",
-    "confirmedBy": "Confirmé par {name}.",
-    "createdBy": "Créé par {name}.",
-    "deletedBy": "Supprimé par {name}.",
-    "deniedBy": "Refusé par {name}.",
+    "confirmedBy": "Confirmée par {name}.",
+    "createdBy": "Créée par {name}.",
+    "deletedBy": "Supprimée par {name}.",
+    "deniedBy": "Refusée par {name}.",
     "detailsState": {
       "answer": "réponse du membre",
       "changed": "modifié par le membre",
@@ -564,7 +564,7 @@
   "name": "Nom",
   "navbar": {
     "appearance": "Apparence",
-    "automaticContributions": "Solde initial",
+    "automaticContributions": "Crédit de départ",
     "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Groupes de création",
@@ -588,7 +588,7 @@
     "walletNews": "{n} nouveauté dans ton portefeuille | {n} nouveautés dans ton portefeuille"
   },
   "notice": "Notification",
-  "open": "ouverte",
+  "open": "ouvert",
   "overlay": {
     "cancel": "Annuler",
     "changeUserRole": {
@@ -638,7 +638,7 @@
     "title": "Image du projet",
     "updated": "L'entrée d'image du projet a été mise à jour."
   },
-  "redeemed": "échangé",
+  "redeemed": "encaissé",
   "refresh": "Actualiser",
   "registered": "Inscrit",
   "registered_at": "Inscrit le",
@@ -728,7 +728,7 @@
   "text": "Texte",
   "thank-you-cheque": {
     "download": "Télécharger le chèque de crédit de départ",
-    "scan-qr": "Pour l'accréditation du Gradido, scanner le code QR !",
+    "scan-qr": "Pour que les Gradido soient crédités, scanne le code QR !",
     "starting-credit": "Crédit de départ {amount} Gradido",
     "starting-credit-valid": "Ce crédit de départ est valable du {from} au {to}."
   },

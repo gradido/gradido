@@ -207,7 +207,7 @@
     "reasoning": "Motivering",
     "response": "Antwoordsuggestie",
     "resubmission": "Herinnering",
-    "resubmissionDue": "Herinnering verlopen",
+    "resubmissionDue": "Herinneringsdatum bereikt",
     "rewrite": "Schrijven volgens mijn beslissing",
     "salutation": "Aanhef",
     "salutationHint": "Zo wordt deze persoon aangesproken. Wijzig je de aanhef hier, dan past de suggestie zich meteen aan. Met “Aanhef opslaan” staat de aanhef er bij de volgende bijdrage al.",
@@ -751,7 +751,7 @@
     "button": "Registratie-e-mail bevestigen, nu verzenden",
     "error": "Fout bij het verzenden van de bevestigingslink naar de gebruiker: {message}",
     "gdt_email": "Voor de GDT-server telt het eerste adres van dit account: {email}",
-    "info": "E-mail bevestigen, herhaaldelijk verzenden naar:",
+    "info": "E-mail bevestigen, opnieuw verzenden naar:",
     "never_sent": "Het lijkt erop dat we nooit een e-mail naar het lid {email} hebben gestuurd",
     "pending": "Wijziging in afwachting: bevestiging aangevraagd voor {email} op {date}",
     "replace": {
@@ -800,7 +800,7 @@
       "moderatorAi": "AI-moderator",
       "user": "gewone gebruiker"
     },
-    "successfullyChangedTo": "Gebruiker is nu «{role}».",
+    "successfullyChangedTo": "Gebruiker is nu “{role}”.",
     "supportDuty": {
       "help": "Behandelt de vragen van de zichtbare groepen. Beheerders kunnen dat altijd.",
       "label": "Kan supportvragen behandelen",

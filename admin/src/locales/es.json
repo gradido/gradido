@@ -116,10 +116,10 @@
     "changeGroupHint": "Según tus grupos visibles, la contribución puede dejar de aparecer en tu lista.",
     "changeGroupQuestion": "¿Mover esta contribución de {from} a {to}?",
     "confirm": "Confirmar",
-    "confirmedBy": "Confirmado por {name}.",
-    "createdBy": "Creado por {name}.",
-    "deletedBy": "Eliminado por {name}.",
-    "deniedBy": "Rechazado por {name}.",
+    "confirmedBy": "Confirmada por {name}.",
+    "createdBy": "Creada por {name}.",
+    "deletedBy": "Eliminada por {name}.",
+    "deniedBy": "Rechazada por {name}.",
     "detailsState": {
       "answer": "respuesta del miembro",
       "changed": "modificado por el miembro",
@@ -588,7 +588,7 @@
     "walletNews": "{n} novedad en tu cartera | {n} novedades en tu cartera"
   },
   "notice": "Aviso",
-  "open": "abierta",
+  "open": "abierto",
   "overlay": {
     "cancel": "Cancelar",
     "changeUserRole": {
@@ -751,7 +751,7 @@
     "button": "Confirmar el correo de registro, enviar ahora",
     "error": "Error al enviar el enlace de confirmación al usuario: {message}",
     "gdt_email": "Para el servidor GDT cuenta la primera dirección de esta cuenta: {email}",
-    "info": "Confirmar correo, enviar repetidamente a:",
+    "info": "Confirmar correo, enviar de nuevo a:",
     "never_sent": "Parece que nunca hemos enviado un correo al miembro {email}",
     "pending": "Cambio pendiente: confirmación solicitada para {email} el {date}",
     "replace": {

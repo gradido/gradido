@@ -202,7 +202,7 @@
     "memoTooLong": "Il testo del contributo è troppo lungo (max. {max} caratteri) — accorcialo un po', per favore.",
     "openPoints": "Punti in sospeso",
     "previewBanner": "Anteprima senza collegamento all'IA — un risultato di esempio. Aspetto, database, formula di apertura e firma sono reali.",
-    "readsRemark": "Crea la legge anche",
+    "readsRemark": "Anche Crea può leggerla",
     "readsRemarkHint": "Attivare solo se le osservazioni non contengono dati personali!",
     "reasoning": "Motivazione",
     "response": "Risposta suggerita",
@@ -564,7 +564,7 @@
   "name": "Nome",
   "navbar": {
     "appearance": "Aspetto",
-    "automaticContributions": "Saldo iniziale",
+    "automaticContributions": "Credito iniziale",
     "chat": "Chat",
     "crea": "Crea",
     "creationGroups": "Gruppi di creazione",
@@ -751,7 +751,7 @@
     "button": "Conferma l'e-mail di registrazione, invia ora",
     "error": "Errore durante l'invio del link di conferma all'utente: {message}",
     "gdt_email": "Per il server GDT conta il primo indirizzo di questo account: {email}",
-    "info": "Conferma l'e-mail, invia ripetutamente a:",
+    "info": "Conferma l'e-mail, invia di nuovo a:",
     "never_sent": "Sembra che non abbiamo mai inviato un'e-mail al membro {email}",
     "pending": "Modifica in sospeso: conferma richiesta per {email} il {date}",
     "replace": {
