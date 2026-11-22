@@ -81,8 +81,8 @@ export async function request<const TSchema extends v.GenericSchema>(
   if (answer.errors?.[0]?.message === REVOKED) {
     logout()
   } else if (
-    (token && renewSession && askingUserId && session.state.member?.gradidoID === askingUserId) ||
-    !askingUserId
+    token &&
+    (!askingUserId || (renewSession && session.state.member?.gradidoID === askingUserId))
   ) {
     // Only while the member who asked is still the one signed in: an answer that arrives after
     // the session ended would otherwise keep its token for the next one.

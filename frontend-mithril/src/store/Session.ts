@@ -48,11 +48,11 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
    * The gradidoID of the member whose token lay in localStorage when this tab last looked, or
    * null where none lay there. Tells a renewal for the same member from somebody new signing in.
    */
-  lastSeenMemberId: Uuidv4 | null
+  #lastSeenMemberId: Uuidv4 | null
 
   constructor() {
     super(AUTH_TOKEN_KEY, authTokenSchema, true)
-    this.lastSeenMemberId = this.#extractTokenMemberId(this.state?.token)
+    this.#lastSeenMemberId = this.#extractTokenMemberId(this.state?.token)
   }
   set(value: AuthToken, save = true) {
     // logout
@@ -61,11 +61,11 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
     }
     if (value) {
       const tokenMemberId = this.#extractTokenMemberId(value.token)
-      if (this.state && tokenMemberId !== this.lastSeenMemberId) {
+      if (this.state && tokenMemberId !== this.#lastSeenMemberId) {
         // reload page, this means all js state/memory will be cleared and started freshly over
         location.reload()
       }
-      this.lastSeenMemberId = tokenMemberId
+      this.#lastSeenMemberId = tokenMemberId
     }
     super.set(value, save)
   }
@@ -91,8 +91,13 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
     return null
   }
 }
+
 export const authToken = new AuthTokenStore()
 export const session = new DeviceStore(STATE_KEY, sessionStateSchema, true)
+
+if (!authToken.state && session.state.member) {
+  logout()
+}
 
 export function logout() {
   session.set(v.parse(sessionStateSchema, { language: session.state.language }))
@@ -101,4 +106,5 @@ export function logout() {
 
 export function login(member: Member) {
   session.set({ member, language: session.state.language })
+  // auth token is set in client
 }
