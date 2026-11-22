@@ -6,6 +6,9 @@ window.addEventListener('storage', ({ key, newValue }) => {
   if (key) {
     const deviceStore = deviceStores.get(key)
     deviceStore?.set(deviceStore.itemToState(newValue), false)
+  } else {
+    // localStorage.clear was called in another tab
+    deviceStores.forEach((value) => value.set(undefined, false))
   }
 })
 
@@ -52,7 +55,7 @@ export class DeviceStore<const TSchema extends v.GenericSchema> {
    * @param {boolean} persist - if true (default) update localStorage with the change
    */
   set(value: v.InferOutput<TSchema> | undefined, persist: boolean = true) {
-    if (!value) {
+    if (value == null) {
       if (persist) {
         localStorage.removeItem(this.key)
       }

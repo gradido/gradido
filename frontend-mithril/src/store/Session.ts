@@ -1,6 +1,6 @@
 import { Uuidv4, uuidv4Schema } from 'shared/browser'
 import * as v from 'valibot'
-import { memberSchema } from '@/data/Member.schema'
+import { Member, memberSchema } from '@/data/Member.schema'
 import { DeviceStore } from './DeviceStore'
 
 /** Where the wallet keeps its state in localStorage; the key of the old wallet. */
@@ -44,40 +44,36 @@ export const authTokenSchema = v.fallback(
 export type AuthToken = v.InferOutput<typeof authTokenSchema>
 
 export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
-  tokenMemberId: Uuidv4 | null
   /**
    * The gradidoID of the member whose token lay in localStorage when this tab last looked, or
    * null where none lay there. Tells a renewal for the same member from somebody new signing in.
    */
-  #lastSeenMemberId: Uuidv4 | null
+  lastSeenMemberId: Uuidv4 | null
 
   constructor() {
     super(AUTH_TOKEN_KEY, authTokenSchema, true)
-    this.tokenMemberId = this.#extractTokenMemberId(this.state?.token)
-    this.#lastSeenMemberId = this.tokenMemberId
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        if (!this.state) {
-          // todo: check if maybe using mithril router here is better
-          location.assign('/login')
-        } else {
-          if (this.#lastSeenMemberId !== this.tokenMemberId) {
-            // reload page, this means all js state/memory will be cleared and started freshly over
-            location.reload()
-          }
-        }
-      }
-    })
+    this.lastSeenMemberId = this.#extractTokenMemberId(this.state?.token)
   }
   set(value: AuthToken, save = true) {
+    // logout
+    if (this.state && !value) {
+      location.assign('/login')
+    }
+    if (value) {
+      const tokenMemberId = this.#extractTokenMemberId(value.token)
+      if (this.state && tokenMemberId !== this.lastSeenMemberId) {
+        // reload page, this means all js state/memory will be cleared and started freshly over
+        location.reload()
+      }
+      this.lastSeenMemberId = tokenMemberId
+    }
     super.set(value, save)
-    this.tokenMemberId = this.#extractTokenMemberId(value?.token)
   }
 
   /**
    * The gradidoID of the member `token` was issued to (its `sub`), lowercased -- read, not
-   * verified: the server verifies every request. null where there is no token or it names nobody.
-   * Throw on invalid token, because frontend don't work with invalid token, nearly every backend request would fail
+   * verified: the server verifies every request. null where there is no token.
+   * Throw on invalid token, or invalid sub, because frontend don't work with invalid token, nearly every backend request would fail
    */
   #extractTokenMemberId(token?: string | null): Uuidv4 | null {
     const payload = token?.split('.')[1]
@@ -99,7 +95,10 @@ export const authToken = new AuthTokenStore()
 export const session = new DeviceStore(STATE_KEY, sessionStateSchema, true)
 
 export function logout() {
-  authToken.set(null)
   session.set(v.parse(sessionStateSchema, { language: session.state.language }))
-  location.assign('/login')
+  authToken.set(null)
+}
+
+export function login(member: Member) {
+  session.set({ member, language: session.state.language })
 }
