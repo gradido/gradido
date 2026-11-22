@@ -82,11 +82,20 @@
   border-top: 1px solid var(--bs-border-color);
 }
 
-/* Room for two lines: ticking the first box changes the sentence, and the button beside or below
-   it stays where it was. */
+/* Room for two lines: ticking the first box changes the sentence, and the line beside or below it
+   stays where it was. */
 .rule {
   display: flex;
   flex: 1 1 16rem;
   align-items: center;
   min-height: 3em;
+}
+
+/* "Deine Gruppen sind gespeichert." once a save came back (MG2b, no button): its room is kept while
+   it is empty, so its coming moves nothing. */
+.saved {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-height: 1.5em;
 }
