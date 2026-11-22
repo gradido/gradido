@@ -33,6 +33,9 @@ const savedSchema = v.object({ setHandledGroups: handledGroupsSchema })
 /** Rows of a page: "(ohne Gruppe)" counts as one of them, on the first. */
 export const MY_GROUPS_PAGE_SIZE = 20
 
+/** How long the page waits before it asks for the stored ticks again, where asking failed. */
+const RETRY_MS = 2000
+
 /** One column of ticks: the groups it holds by number, and whether "no group" is among them. */
 class Ticks {
   readonly groupIds = new Set<number>()
@@ -69,8 +72,9 @@ type Column = 'creation' | 'support'
  *
  * Every tick is saved at once, both columns in one request (Bernd, 22.11.2026: no button). One
  * request at a time: ticks made while one is out go with the next, so no answer overtakes another.
- * A save that fails says so and puts back the ticks the server holds. Twenty rows to a page, the
- * ticked ones first; the search looks through all of them.
+ * A save that fails says so and puts back the ticks the server holds -- the boxes wait for them,
+ * asked again until the server answers (coderabbit on #4317). Twenty rows to a page, the ticked
+ * ones first; the search looks through all of them.
  */
 export class MyGroups implements ClassComponent {
   // null while the first answer is on its way: nothing to tick, nothing to save
@@ -83,20 +87,33 @@ export class MyGroups implements ClassComponent {
   private again = false
   // the quiet line below the list: said once a save came back and no tick waits
   private saved = false
+  // after a failed save, until the ticks the server holds are back: the boxes wait
+  private recovering = false
+  // the page was left: a failed save stops asking
+  private left = false
 
   oninit() {
     this.load()
   }
 
-  /** The groups and both columns as the server holds them; `order` sorts the rows anew. */
-  private async load(order = true) {
+  onremove() {
+    this.left = true
+  }
+
+  /**
+   * The groups and both columns as the server holds them; `order` sorts the rows anew. Answers
+   * whether they came; `quiet` asks again without a word of its own.
+   */
+  private async load(order = true, quiet = false): Promise<boolean> {
     const of = adminStore.moderator?.gradidoID
     const creationAsked = askingHandledCreationGroups()
     const supportAsked = askingHandledSupportGroups()
     const answer = await graphqlRequest(myGroupsChoice)
     if (!answer.success) {
-      toastError(answer.error.message)
-      return
+      if (!quiet) {
+        toastError(answer.error.message)
+      }
+      return false
     }
     const { creationGroups, handledCreationGroups, handledSupportGroups } = v.parse(
       myGroupsChoiceSchema,
@@ -107,7 +124,7 @@ export class MyGroups implements ClassComponent {
     this.ticks.creation.fill(handledCreationGroups)
     this.ticks.support.fill(handledSupportGroups)
     if (!order && this.groups) {
-      return
+      return true
     }
     // The ticked ones first, in either column as stored when the page opened, then the others, each
     // by name. The order stays while the moderator ticks: a row must not move away under the finger.
@@ -120,6 +137,21 @@ export class MyGroups implements ClassComponent {
       ...sorted.filter(({ id }) => ticked(id)),
       ...sorted.filter(({ id }) => !ticked(id)),
     ]
+    return true
+  }
+
+  /**
+   * After a failed save: the ticks the server holds, in the order of the page, before anything
+   * else is ticked -- the boxes wait, and a question that fails is asked again until the server
+   * answers or the page is left. Until then no tick can go out on top of what the screen shows
+   * wrongly.
+   */
+  private async recover() {
+    this.recovering = true
+    while (!(await this.load(false, true)) && !this.left) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_MS))
+    }
+    this.recovering = false
   }
 
   /**
@@ -151,26 +183,26 @@ export class MyGroups implements ClassComponent {
         supportUntagged: support.untagged,
       })
       if (!answer.success) {
-        this.saving = false
         this.again = false
         toastError(answer.error.message)
-        // the ticks the server holds, in the order of the page
-        await this.load(false)
+        // still saving while the stored ticks come back: nothing goes out in between
+        await this.recover()
+        this.saving = false
         return
       }
       const saved = v.parse(savedSchema, answer.value).setHandledGroups
       keepHandledCreationGroups(of, saved.creation, creationAsked)
       keepHandledSupportGroups(of, saved.support, supportAsked)
+      // what the badges count changed with each save that came through -- the support's only where
+      // it is theirs: a refusal for want of the right takes the tick away (askOpenSupportTickets),
+      // and this page stands for every moderator who may choose, with the tick or without
+      askOpenCreations()
+      if (supportIsTheirs(adminStore.moderator)) {
+        askOpenSupportTickets()
+      }
     } while (this.again)
     this.saving = false
     this.saved = true
-    // what the badges count changed with it -- the support's only where it is theirs: a refusal for
-    // want of the right takes the tick away (askOpenSupportTickets), and this page stands for every
-    // moderator who may choose, with the tick or without
-    askOpenCreations()
-    if (supportIsTheirs(adminStore.moderator)) {
-      askOpenSupportTickets()
-    }
   }
 
   // The column's word, as the menu has it: "Schöpfung", "Support".
@@ -190,6 +222,8 @@ export class MyGroups implements ClassComponent {
         class: classes.box,
         checked,
         'aria-labelledby': `my-groups-name-${key} my-groups-head-${column}`,
+        // after a failed save, until the stored ticks are back
+        disabled: this.recovering,
         onchange: (event: Event) => {
           const on = (event.target as HTMLInputElement).checked
           if (group === null) {

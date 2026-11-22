@@ -421,6 +421,61 @@ test('reports a failed save, and shows the ticks the server holds', async ({ pag
   expect(graphql.sentFor('adminListContributions')).toHaveLength(0)
 })
 
+// coderabbit on #4317: after a failed save the boxes wait until the stored ticks are back, so no
+// tick goes out on top of what the screen shows wrongly; a question that fails is asked again
+test('waits with the boxes until the stored ticks are back, asking again where that fails', async ({
+  page,
+  graphql,
+}) => {
+  let asked = 0
+  graphql.answer({
+    setHandledGroups: new Failure('save refused'),
+    // the page's own question, then the one after the failed save, which fails once
+    creationGroups: () => (++asked === 2 ? new Failure('question refused') : GROUPS),
+  })
+  await signIn(page, '/my-groups')
+  await expect(rows(page)).toHaveCount(5)
+  await box(page, 'Amstetten').check()
+
+  await expect(page.getByRole('alert').filter({ hasText: 'save refused' })).toBeVisible()
+  await expect(box(page, 'Potsdam')).toBeDisabled()
+  await expect(supportBox(page, 'Potsdam')).toBeDisabled()
+  await expect.poll(() => asked).toBe(3)
+  await expect(box(page, 'Potsdam')).toBeEnabled()
+  await expect(box(page, 'Amstetten')).not.toBeChecked()
+  await expect(box(page, 'Potsdam')).toBeChecked()
+  // asked again without a word of its own
+  await expect(page.getByRole('alert').filter({ hasText: 'question refused' })).toHaveCount(0)
+})
+
+// coderabbit on #4317: the badges are asked anew after each save that came through, also where the
+// save after it fails
+test('asks the badges anew after each save that came through, also where a later one fails', async ({
+  page,
+  graphql,
+}) => {
+  const held: (() => void)[] = []
+  graphql.answer({
+    setHandledGroups: (variables: Record<string, unknown>) =>
+      held.length === 0
+        ? new Promise((resolve) => held.push(() => resolve(echo(variables))))
+        : new Failure('save refused'),
+    adminListContributions: { contributionCount: 7 },
+  })
+  await signIn(page, '/my-groups')
+  await box(page, 'Amstetten').check()
+  await expect.poll(() => held.length).toBe(1)
+  // waits for the first save, and then fails
+  await box(page, 'Dorf der Zukunft').check()
+  held[0]()
+
+  await expect(page.getByRole('alert').filter({ hasText: 'save refused' })).toBeVisible()
+  await expect(
+    page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge'),
+  ).toHaveText('7')
+  expect(graphql.sentFor('adminListContributions')).toHaveLength(1)
+})
+
 // their scope is their list
 test('sends a moderator with an assigned scope to not found, and offers them no entry', async ({
   page,
@@ -501,19 +556,23 @@ test('shows each column with its own ticks, and saves them apart (MG2b)', async 
   await supportBox(page, 'Amstetten').check()
   await box(page, 'Potsdam').uncheck()
 
-  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
-  // the last request carries both ticks, each in its column
+  // the last request carries both ticks, each in its column -- and what the admin keeps is its
+  // answer (waited for: the line of the first save may still stand while the second is out)
+  await expect
+    .poll(async () => {
+      const kept = JSON.parse(
+        (await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}',
+      )
+      return [kept.handledCreationGroups?.groupIds, kept.handledSupportGroups?.groupIds]
+    })
+    .toEqual([[], [5, 7]])
   expect(graphql.sentFor('setHandledGroups').at(-1)?.variables).toEqual({
     creationGroupIds: [],
     creationUntagged: true,
     supportGroupIds: [5, 7],
     supportUntagged: false,
   })
-  const kept = JSON.parse(
-    (await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}',
-  )
-  expect(kept.handledCreationGroups).toMatchObject({ groupIds: [], untagged: true })
-  expect(kept.handledSupportGroups).toMatchObject({ groupIds: [5, 7], untagged: false })
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
 })
 
 // Many groups (22.11.2026): twenty rows to a page, "(ohne Gruppe)" and the ticked ones first; the
@@ -541,6 +600,20 @@ test('shows twenty rows to a page, the ticked first, and searches through all', 
   await expect(rows(page).nth(0)).toHaveText(de.creationGroupFilter.untagged)
   await expect(rows(page).nth(1)).toHaveText('Gruppe 45')
   await expect(rows(page).nth(2)).toHaveText('Gruppe 01')
+
+  // the pager by keyboard (coderabbit on #4317): → moves the focus, Enter turns the page, End goes
+  // to the last button
+  await page.getByRole('menuitem', { name: 'Go to page 1' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByRole('menuitem', { name: 'Go to page 2' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(rows(page).first()).toHaveText('Gruppe 19')
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).focus()
+  await page.keyboard.press('End')
+  await expect(page.getByRole('menuitem', { name: 'Go to last page' })).toBeFocused()
+  await page.keyboard.press('Home')
+  await expect(page.getByRole('menuitem', { name: 'Go to first page' })).toBeFocused()
+
   await page.getByRole('menuitem', { name: 'Go to page 3' }).click()
   await expect(rows(page)).toHaveCount(6)
   await expect(rows(page).last()).toHaveText('Gruppe 44')
