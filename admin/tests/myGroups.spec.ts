@@ -448,6 +448,29 @@ test('waits with the boxes until the stored ticks are back, asking again where t
   await expect(page.getByRole('alert').filter({ hasText: 'question refused' })).toHaveCount(0)
 })
 
+// coderabbit on #4317: the page left while it waits to ask again asks no more
+test('stops asking for the stored ticks once the page is left', async ({ page, graphql }) => {
+  let asked = 0
+  graphql.answer({
+    setHandledGroups: new Failure('save refused'),
+    creationGroups: () => (++asked === 1 ? GROUPS : new Failure('question refused')),
+    waitingForModeration: { contributionCount: 0 },
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
+  })
+  await signIn(page, '/my-groups')
+  await expect(rows(page)).toHaveCount(5)
+  await box(page, 'Amstetten').check()
+  await expect.poll(() => asked).toBe(2)
+
+  await page.getByTestId('navbar-home').click()
+  await expect(page).toHaveURL(/\/admin\/$/)
+  // two seconds is the pause before the next question
+  await page.waitForTimeout(2500)
+  expect(asked).toBe(2)
+})
+
 // coderabbit on #4317: the badges are asked anew after each save that came through, also where the
 // save after it fails
 test('asks the badges anew after each save that came through, also where a later one fails', async ({

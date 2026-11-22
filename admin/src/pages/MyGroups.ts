@@ -89,8 +89,9 @@ export class MyGroups implements ClassComponent {
   private saved = false
   // after a failed save, until the ticks the server holds are back: the boxes wait
   private recovering = false
-  // the page was left: a failed save stops asking
+  // the page was left: a failed save stops asking, also the one waiting its turn (coderabbit on #4317)
   private left = false
+  private endWait?: () => void
 
   oninit() {
     this.load()
@@ -98,6 +99,7 @@ export class MyGroups implements ClassComponent {
 
   onremove() {
     this.left = true
+    this.endWait?.()
   }
 
   /**
@@ -148,10 +150,21 @@ export class MyGroups implements ClassComponent {
    */
   private async recover() {
     this.recovering = true
-    while (!(await this.load(false, true)) && !this.left) {
-      await new Promise((resolve) => setTimeout(resolve, RETRY_MS))
+    while (!this.left && !(await this.load(false, true))) {
+      await this.waitToRetry()
     }
     this.recovering = false
+  }
+
+  /** The pause before the stored ticks are asked again; ended at once where the page is left. */
+  private waitToRetry() {
+    return new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, RETRY_MS)
+      this.endWait = () => {
+        clearTimeout(timer)
+        resolve()
+      }
+    })
   }
 
   /**
