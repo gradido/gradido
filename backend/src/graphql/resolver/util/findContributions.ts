@@ -126,11 +126,15 @@ export const buildCreationGroupPredicate = (
 }
 
 // The ticked groups, by their numbers, OR the contributions in no group where "no group" is
-// ticked. A choice names at least one of the two (parseHandledCreationGroups). Its parameter has a
-// name of its own: the scope's (scopeTag…) and the filter's would overwrite it in the one query.
+// ticked. A choice names at least one of the two (parseHandledCreationGroups), or is off and finds
+// nothing (MG5). Its parameter has a name of its own: the scope's (scopeTag…) and the filter's would
+// overwrite it in the one query.
 export const buildHandledPredicate = (
   choice: HandledCreationGroups,
 ): { sql: string; params: Record<string, number[]> } => {
+  if (choice.off) {
+    return { sql: '(1 = 0)', params: {} }
+  }
   const parts: string[] = []
   if (choice.groupIds.length > 0) {
     parts.push(

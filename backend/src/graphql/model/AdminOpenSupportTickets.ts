@@ -28,4 +28,8 @@ export class AdminOpenSupportTickets {
   // waiting for a resubmission outside "Meine Gruppen"; 0 where nothing is chosen
   @Field(() => Int)
   elsewhereOnResubmission: number
+
+  // the administrator switched the support off in "Meine Gruppen" (MG5): the first three are 0
+  @Field(() => Boolean)
+  off: boolean
 }

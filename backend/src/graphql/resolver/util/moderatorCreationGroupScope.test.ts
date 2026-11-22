@@ -70,7 +70,7 @@ describe('countContributionsWaitingForModeration', () => {
       visibleCreationGroups: null,
       handledCreationGroups: CHOICE,
     })
-    expect(handedOn().slice(4)).toEqual([null, { groupIds: [3], untagged: true }])
+    expect(handedOn().slice(4)).toEqual([null, { groupIds: [3], untagged: true, off: false }])
   })
 
   it('holds a moderator with an assigned scope to it, and the choice in the row does not count', async () => {
@@ -91,7 +91,11 @@ describe('handledSupportGroupsOfRole', () => {
 
   it('reads the column "Support" of whoever sees every group, never the creations\'', () => {
     const chose = { role: 'ADMIN', visibleCreationGroups: null, handledSupportGroups: SUPPORT }
-    expect(handledSupportGroupsOfRole(chose)).toEqual({ groupIds: [5], untagged: false })
+    expect(handledSupportGroupsOfRole(chose)).toEqual({
+      groupIds: [5],
+      untagged: false,
+      off: false,
+    })
     const choseCreationsOnly = {
       role: 'ADMIN',
       visibleCreationGroups: null,
@@ -99,6 +103,27 @@ describe('handledSupportGroupsOfRole', () => {
       handledSupportGroups: null,
     }
     expect(handledSupportGroupsOfRole(choseCreationsOnly)).toBeNull()
+  })
+
+  // MG5: an administrator may handle none of the support; in a moderator's row the switch is what
+  // another role left there
+  it('reads "off" of an administrator alone, of a moderator the ticks behind it', () => {
+    const holder = {
+      visibleCreationGroups: null,
+      handledSupportGroups: JSON.stringify({ groupIds: [5], untagged: false, off: true }),
+    }
+    expect(handledSupportGroupsOfRole({ role: 'ADMIN', ...holder })).toEqual({
+      groupIds: [5],
+      untagged: false,
+      off: true,
+    })
+    for (const role of ['MODERATOR', 'MODERATOR_AI']) {
+      expect(handledSupportGroupsOfRole({ role, ...holder })).toEqual({
+        groupIds: [5],
+        untagged: false,
+        off: false,
+      })
+    }
   })
 
   it('gives a moderator with an assigned scope no choice, whatever stands in the row', () => {

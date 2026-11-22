@@ -90,8 +90,9 @@ export class Dashboard implements ClassComponent {
   }
 
   view() {
-    const counts = this.counts
-    const support = this.creationsAsked ? this.support : null
+    // who switched an area off in "Meine Gruppen" (MG5) reads nothing of it here
+    const counts = this.counts?.off ? null : this.counts
+    const support = this.creationsAsked && !this.support?.off ? this.support : null
     const supportOpen = support ? support.forModeration + support.forMember : 0
     return m('.admin-dashboard', [
       m('h2.h4.mb-3', t('dashboard.welcome')),

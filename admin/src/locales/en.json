@@ -547,15 +547,18 @@
     "show-submission-form": "wait for reminder?"
   },
   "myGroups": {
+    "handle": "I handle this myself",
     "intro": "Tick the creation groups you handle yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
-    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
+    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu, the group filters and the e-mails about new support requests follow your choice. You can still see everything.",
     "noMatch": "No group with this name",
-    "none": "Nothing ticked: everything counts, as before.",
+    "rule": {
+      "all": "{column}: everything counts, as before.",
+      "off": "{column}: switched off, nothing counts.",
+      "offSupport": "{column}: switched off, nothing counts. You get e-mails about new requests only when nobody else is responsible.",
+      "some": "{column}: only what is ticked counts."
+    },
     "saved": "Your groups are saved.",
     "search": "Search for a group",
-    "some": "Only the ticked lines count.",
-    "someBoth": "In both columns, only what is ticked counts.",
-    "someEmpty": "The column without ticks counts everything, the other only what is ticked.",
     "title": "My groups"
   },
   "name": "Name",

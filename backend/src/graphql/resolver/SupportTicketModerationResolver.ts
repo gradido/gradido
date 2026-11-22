@@ -264,13 +264,15 @@ export class SupportTicketModerationResolver {
   async adminCountOpenSupportTickets(@Ctx() context: Context): Promise<AdminOpenSupportTickets> {
     countSupportTicketRead(context)
     const role = context.user?.userRole
-    return fromDatabase(SUPPORT_TICKET_NOT_READ, () =>
-      dbCountOpenSupportTicketsInScope(
+    const handled = handledSupportGroupsOfRole(role)
+    return fromDatabase(SUPPORT_TICKET_NOT_READ, async () => ({
+      ...(await dbCountOpenSupportTicketsInScope(
         describeModeratorCreationGroups(role),
         new Date(),
-        handledSupportGroupsOfRole(role),
-      ),
-    )
+        handled,
+      )),
+      off: handled?.off === true,
+    }))
   }
 
   /**
@@ -534,10 +536,7 @@ export class SupportTicketModerationResolver {
     )
     // who hears of it in the group it goes to (K5, SUA-024 point 6): read before the write and
     // never throwing -- neither who hands it on nor the member who asked
-    const recipients = await readSupportTicketMailRecipients(target?.tag ?? null, [
-      moderator.id,
-      ticket.userId,
-    ])
+    const recipients = await readSupportTicketMailRecipients(target, [moderator.id, ticket.userId])
     const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       writeSupportTicketMessage(
         moderatorReassigner({

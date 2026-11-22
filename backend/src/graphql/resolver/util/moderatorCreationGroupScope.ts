@@ -94,6 +94,18 @@ export const describeModeratorCreationGroups = (
   return { tags, seesAllCreationGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
 }
 
+// Who may switch an area off for themself in "Meine Gruppen" (MG5): an administrator. A moderator's
+// areas are the administrator's to assign -- the tick of K6 for the support, the scope -- and not
+// theirs to leave.
+export const maySwitchHandledGroupsOff = (role?: Pick<DbUserRole, 'role'> | null): boolean =>
+  role?.role === RoleNames.ADMIN
+
+// What handledCreationGroupsOf asks of a role, for both columns.
+const handledGroupsAsked = (role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups'> | null) => ({
+  seesAllCreationGroups: describeModeratorCreationGroups(role).seesAllCreationGroups,
+  maySwitchOff: maySwitchHandledGroupsOff(role),
+})
+
 // "Meine Gruppen" of the creations of the role a request loaded: the choice of one who sees every
 // group, else null (handledCreationGroupsOf). The one reading for the creation page, its counts, the
 // number of contributions at "Admin" in the wallet and the choice's own query (MG1, MG3), so that
@@ -101,10 +113,7 @@ export const describeModeratorCreationGroups = (
 export const handledCreationGroupsOfRole = (
   role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
 ): HandledCreationGroups | null =>
-  handledCreationGroupsOf(
-    role?.handledCreationGroups,
-    describeModeratorCreationGroups(role).seesAllCreationGroups,
-  )
+  handledCreationGroupsOf(role?.handledCreationGroups, handledGroupsAsked(role))
 
 // "Meine Gruppen" of the support (MG2b): the same rule over the support's own column. The one
 // reading for the support's list and count, the number of requests at "Admin" in the wallet and the
@@ -112,10 +121,7 @@ export const handledCreationGroupsOfRole = (
 export const handledSupportGroupsOfRole = (
   role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledSupportGroups'> | null,
 ): HandledCreationGroups | null =>
-  handledCreationGroupsOf(
-    role?.handledSupportGroups,
-    describeModeratorCreationGroups(role).seesAllCreationGroups,
-  )
+  handledCreationGroupsOf(role?.handledSupportGroups, handledGroupsAsked(role))
 
 // The groups a role's contribution lists are held to: a scoped moderator's scope, else null --
 // what adminListContributions hands findContributions.

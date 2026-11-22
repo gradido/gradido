@@ -165,11 +165,13 @@ export const supportTicketsInScope = ({
 /**
  * "Meine Gruppen" (Admin-Oberfläche MG2): the groups a moderator who sees every group handles
  * themself, by their numbers, and whether the requests of no group are among them. The backend
- * decides who has one (handledCreationGroupsOf); here it is only read.
+ * decides who has one (handledCreationGroupsOf); here it is only read. `off` (MG5): none of the
+ * requests is the administrator's to handle, whatever is ticked.
  */
 export interface SupportTicketHandledGroups {
   groupIds: number[]
   untagged: boolean
+  off: boolean
 }
 
 /**
@@ -221,13 +223,16 @@ const requestHasWord = (word: string) =>
  * The requests of one of the handled groups, or of no group where that is ticked (MG2), at the
  * column. Said positively, for the count reads its rest as a difference: `NOT (… in …)` of a
  * request of no group is NULL, and such a request would count nowhere. A choice of nothing (which
- * the backend never hands on) narrows nothing: nothing ticked means everything.
+ * the backend never hands on) narrows nothing: nothing ticked means everything. One that is off
+ * (MG5) finds nothing, whatever stands ticked behind it.
  */
-const inHandledGroups = ({ groupIds, untagged }: SupportTicketHandledGroups) =>
-  or(
-    groupIds.length > 0 ? inArray(supportTicketsTable.creationGroupId, groupIds) : undefined,
-    untagged ? isNull(supportTicketsTable.creationGroupId) : undefined,
-  )
+const inHandledGroups = ({ groupIds, untagged, off }: SupportTicketHandledGroups) =>
+  off
+    ? sql`false`
+    : or(
+        groupIds.length > 0 ? inArray(supportTicketsTable.creationGroupId, groupIds) : undefined,
+        untagged ? isNull(supportTicketsTable.creationGroupId) : undefined,
+      )
 
 /** The group of the filter, at the column; a tag in a subquery closed in itself, as the scope. */
 const inFilterGroup = (group: SupportTicketFilter['group']) => {

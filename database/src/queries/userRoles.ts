@@ -22,6 +22,8 @@ export interface RoleHolderWithContact {
   role: string
   visibleCreationGroups: string | null
   supportDuty: boolean
+  /** "Meine Gruppen" of the support (MG2b), its JSON text: whether they handle none (MG5) */
+  handledSupportGroups: string | null
   firstName: string | null
   lastName: string | null
   language: string
@@ -44,6 +46,7 @@ export async function dbSelectRoleHoldersWithContact(): Promise<RoleHolderWithCo
       role: userRolesTable.role,
       visibleCreationGroups: userRolesTable.visibleCreationGroups,
       supportDuty: userRolesTable.supportDuty,
+      handledSupportGroups: userRolesTable.handledSupportGroups,
       firstName: usersTable.firstName,
       lastName: usersTable.lastName,
       language: usersTable.language,

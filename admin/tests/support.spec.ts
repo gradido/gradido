@@ -77,6 +77,7 @@ const OPEN = {
   onResubmission: 0,
   elsewhere: 0,
   elsewhereOnResubmission: 0,
+  off: false,
 }
 
 test.beforeEach(async ({ graphql }) => {
@@ -710,6 +711,7 @@ test('lets no answer to an earlier count put back a count from before a write', 
           onResubmission: 0,
           elsewhere: 0,
           elsewhereOnResubmission: 0,
+          off: false,
         }
       }
       return {
@@ -718,6 +720,7 @@ test('lets no answer to an earlier count put back a count from before a write', 
         onResubmission: 0,
         elsewhere: 0,
         elsewhereOnResubmission: 0,
+        off: false,
       }
     },
   })
@@ -876,6 +879,7 @@ test('counts the open requests at the menu entry and at the open tab', async ({
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
@@ -890,6 +894,7 @@ test('counts the open requests at the menu entry and at the open tab', async ({
       onResubmission: 0,
       elsewhere: 0,
       elsewhereOnResubmission: 0,
+      off: false,
     },
   })
   await page.reload()
@@ -1016,6 +1021,73 @@ test('lets a kept search that finds nothing give way, and keeps one typed here',
   await expect(searchField(page)).toHaveValue('niemand')
 })
 
+// MG5: "Meine Gruppen" that turns out switched off finds nothing, whatever the search: the list
+// asked then says whether a kept search gives way -- whichever of the two answers comes first
+const keepSearch = (page: Page, search: string) =>
+  page.addInitScript(
+    ([key, kept]) => localStorage.setItem(key, kept),
+    [KEPT, JSON.stringify({ [moderator.gradidoID]: { '/support': search } })],
+  )
+
+test('loses no kept search where the support turns out switched off after the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keepSearch(page, 'member1')
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    handledSupportGroups: () => new Promise((resolve) => held.push(resolve)),
+    adminListSupportTickets: ({ creationGroup }: { creationGroup: string }) =>
+      creationGroup === '*handled' ? ticketList([], 0) : ticketList([tickets[0]], 1),
+  })
+  const listed = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('adminListSupportTickets')),
+  )
+  await signIn(page, '/support')
+  await (await listed).finished()
+  await expect.poll(() => held.length).toBe(1)
+  held[0]({ groupIds: [], untagged: false, off: true })
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(searchField(page)).toHaveValue('member1')
+  expect(listAsked(graphql)).toEqual([
+    { ...OPEN_TAB, query: 'member1', creationGroup: '*handled' },
+    { ...OPEN_TAB, query: 'member1', creationGroup: '' },
+  ])
+})
+
+test('gives a kept search up where the support turns out switched off before the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keepSearch(page, 'vergessen')
+  graphql.answer({
+    handledSupportGroups: { groupIds: [], untagged: false, off: true },
+    // the first list never answers here: the choice overtakes it
+    adminListSupportTickets: ({
+      creationGroup,
+      query,
+    }: {
+      creationGroup: string
+      query: string
+    }) =>
+      creationGroup === '*handled'
+        ? new Promise(() => undefined)
+        : query === 'vergessen'
+          ? ticketList([], 0)
+          : ticketList([tickets[0]], 1),
+  })
+  await signIn(page, '/support')
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(searchField(page)).toHaveValue('')
+  expect(listAsked(graphql)).toEqual([
+    { ...OPEN_TAB, query: 'vergessen', creationGroup: '*handled' },
+    { ...OPEN_TAB, query: 'vergessen', creationGroup: '' },
+    { ...OPEN_TAB, query: '', creationGroup: '' },
+  ])
+})
+
 test('filters by group from the first page, and opens on all the moderator sees', async ({
   page,
   graphql,
@@ -1097,7 +1169,7 @@ test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone 
   page,
   graphql,
 }) => {
-  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false } })
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: false } })
   await open(page)
 
   expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
@@ -1132,8 +1204,8 @@ test('follows the column "Support" alone, whatever the column "Schöpfung" holds
   graphql,
 }) => {
   graphql.answer({
-    handledCreationGroups: { groupIds: [2], untagged: false },
-    handledSupportGroups: { groupIds: [], untagged: false },
+    handledCreationGroups: { groupIds: [2], untagged: false, off: false },
+    handledSupportGroups: { groupIds: [], untagged: false, off: false },
   })
   await open(page)
 
@@ -1151,11 +1223,39 @@ test('follows the column "Support" alone, whatever the column "Schöpfung" holds
   expect(graphql.sentFor('handledSupportGroups')).toHaveLength(1)
 })
 
+// MG5: the support switched off: the page opens on everything (before the admin knows it asked "Meine
+// Gruppen", which finds nothing then), "Meine Gruppen" is not offered, and the way there stays --
+// later openings ask everything from the start
+test('opens on everything, without "Meine Gruppen", where the support is switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: true } })
+  await open(page)
+  await expect
+    .poll(() => listAsked(graphql).map((asked) => asked.creationGroup))
+    .toEqual(['*handled', ''])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  expect(listAsked(graphql).map((asked) => asked.creationGroup)).toEqual(['*handled', '', ''])
+})
+
 test('leads from the filter to "Meine Gruppen", and leaves the filter as it is (MG2)', async ({
   page,
   graphql,
 }) => {
-  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false } })
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: false } })
   await open(page)
   await groupFilter(page).locator('.dropdown-toggle').click()
   await groupFilter(page).getByTestId('support-group-filter-mine').click()
@@ -1173,7 +1273,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
   graphql,
 }) => {
   // the page of the choice keeps a choice of the support (MG2b) ...
-  graphql.answer({ handledSupportGroups: { groupIds: [1], untagged: false } })
+  graphql.answer({ handledSupportGroups: { groupIds: [1], untagged: false, off: false } })
   await signIn(page, '/my-groups')
   await expect
     .poll(
@@ -1186,7 +1286,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
   const held: ((answer: unknown) => void)[] = []
   graphql.answer({
     creationGroups: () => new Promise((resolve) => held.push(resolve)),
-    handledSupportGroups: { groupIds: [], untagged: false },
+    handledSupportGroups: { groupIds: [], untagged: false, off: false },
   })
   await page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).click()
   await expect(rows(page)).toHaveCount(6)

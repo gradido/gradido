@@ -367,6 +367,7 @@ describe('dbSelectRoleHoldersWithContact', () => {
     supportDuty = false,
   ) => db.insert(userRolesTable).values({ userId, role, visibleCreationGroups, supportDuty })
   const heldBy = async () => (await dbSelectRoleHoldersWithContact()).map(({ userId }) => userId)
+  const SUPPORT_OFF = '{"groupIds":[],"untagged":false,"off":true}'
 
   let peter: number
   let bob: number
@@ -382,18 +383,24 @@ describe('dbSelectRoleHoldersWithContact', () => {
     // bob with the tick (K6), räuber without: the column is read, not assumed
     await withRole(bob, 'MODERATOR', '["garden","*untagged"]', true)
     await withRole(raeuber, 'MODERATOR_AI')
+    // peter with a choice in both columns (MG5): the support's is read, not the creations'
+    await dbUpdateUserRoleHandledGroups(peter, {
+      creation: '{"groupIds":[1],"untagged":false}',
+      support: SUPPORT_OFF,
+    })
   })
   afterAll(async () => {
     await dbDeleteAllRowsExceptMigrations()
   })
 
-  it('answers each of them with role, scope, tick, name, language and address, by number', async () => {
+  it('answers each of them with role, scope, tick, choice, name, language and address, by number', async () => {
     expect(await dbSelectRoleHoldersWithContact()).toEqual([
       {
         userId: peter,
         role: 'ADMIN',
         visibleCreationGroups: null,
         supportDuty: false,
+        handledSupportGroups: SUPPORT_OFF,
         firstName: 'Peter',
         lastName: 'Lustig',
         language: 'de',
@@ -404,6 +411,7 @@ describe('dbSelectRoleHoldersWithContact', () => {
         role: 'MODERATOR',
         visibleCreationGroups: '["garden","*untagged"]',
         supportDuty: true,
+        handledSupportGroups: null,
         firstName: 'Bob',
         lastName: 'der Baumeister',
         language: 'de',
@@ -414,6 +422,7 @@ describe('dbSelectRoleHoldersWithContact', () => {
         role: 'MODERATOR_AI',
         visibleCreationGroups: null,
         supportDuty: false,
+        handledSupportGroups: null,
         firstName: 'Räuber',
         lastName: 'Hotzenplotz',
         language: 'de',

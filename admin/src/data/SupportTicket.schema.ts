@@ -59,6 +59,8 @@ export const openSupportTicketsSchema = v.object({
     onResubmission: v.number(),
     elsewhere: v.number(),
     elsewhereOnResubmission: v.number(),
+    // switched off in "Meine Gruppen" (MG5): the first three are 0
+    off: v.boolean(),
   }),
 })
 

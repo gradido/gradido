@@ -547,15 +547,18 @@
     "show-submission-form": "¿esperar al recordatorio?"
   },
   "myGroups": {
+    "handle": "Lo atiendo yo",
     "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, los números del menú y los filtros de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
-    "introBoth": "Marca en cada grupo si atiendes tú su creación y su soporte. La página de inicio, los números del menú y los filtros de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
+    "introBoth": "Marca en cada grupo si atiendes tú su creación y su soporte. La página de inicio, los números del menú, los filtros de grupos y los correos sobre nuevas consultas de soporte se ajustan a lo que marques. Puedes seguir viéndolo todo.",
     "noMatch": "Ningún grupo con este nombre",
-    "none": "Nada marcado: todo cuenta, como hasta ahora.",
+    "rule": {
+      "all": "{column}: todo cuenta, como hasta ahora.",
+      "off": "{column}: desactivada, nada cuenta.",
+      "offSupport": "{column}: desactivado, nada cuenta. Solo recibes correos sobre nuevas consultas cuando no hay nadie más a cargo.",
+      "some": "{column}: solo cuenta lo marcado."
+    },
     "saved": "Tus grupos están guardados.",
     "search": "Buscar grupo",
-    "some": "Solo cuentan las filas marcadas.",
-    "someBoth": "En ambas columnas solo cuenta lo marcado.",
-    "someEmpty": "En la columna sin marcas cuenta todo; en la otra, solo lo marcado.",
     "title": "Mis grupos"
   },
   "name": "Nombre",

@@ -1,3 +1,4 @@
+import { HandledGroupsInput } from '@input/HandledGroupsInput'
 import { dbSelectCreationGroupIdsIn, dbUpdateUserRoleHandledGroups } from 'database'
 import { getLogger } from 'log4js'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
@@ -17,13 +18,14 @@ import {
   handledCreationGroupsOfRole,
   handledSupportGroupsOfRole,
   loadModeratorScope,
+  maySwitchHandledGroupsOff,
   saveModeratorScope,
 } from './util/moderatorCreationGroupScope'
 import { suggestCreationGroupForUser } from './util/suggestCreationGroup'
 import { loadUserCreationGroups, saveUserCreationGroups } from './util/userCreationGroups'
 
 // What the queries of "Meine Gruppen" answer where no choice counts.
-const NO_CHOICE = { groupIds: [], untagged: false }
+const NO_CHOICE = { groupIds: [], untagged: false, off: false }
 
 // Group functions: a user's personal creation-group list. Users manage their own
 // list (first tag = main tag, pre-filled on submission); moderators may edit any user's
@@ -115,27 +117,37 @@ export class UserCreationGroupResolver {
   }
 
   // Saves both columns at once, in one statement, and answers them as stored: each group once,
-  // ascending. A column of nothing stores null, "everything, as before". Both are checked before
-  // anything is written, so a refusal keeps what was there in both. A moderator with an assigned
-  // scope has no choice to save -- their scope is their list.
+  // ascending. A column of nothing stores null, "everything, as before"; one that is off (MG5)
+  // stores its ticks behind the switch. Both are checked before anything is written, so a refusal
+  // keeps what was there in both. A moderator with an assigned scope has no choice to save -- their
+  // scope is their list --, and any other moderator no switch (maySwitchHandledGroupsOff).
   @Authorized([RIGHTS.HANDLED_CREATION_GROUPS])
   @Mutation(() => HandledGroups)
   async setHandledGroups(
-    @Arg('creationGroupIds', () => [Int]) creationGroupIds: number[],
-    @Arg('creationUntagged', () => Boolean) creationUntagged: boolean,
-    @Arg('supportGroupIds', () => [Int]) supportGroupIds: number[],
-    @Arg('supportUntagged', () => Boolean) supportUntagged: boolean,
+    @Arg('creation', () => HandledGroupsInput) creationInput: HandledGroupsInput,
+    @Arg('support', () => HandledGroupsInput) supportInput: HandledGroupsInput,
     @Ctx() context: Context,
   ): Promise<HandledGroups> {
     const user = getUser(context)
     if (!describeModeratorCreationGroups(user.userRole).seesAllCreationGroups) {
       throw new LogError('An assigned scope leaves no creation groups to choose', user.id)
     }
-    const creation = normaliseHandledCreationGroups(creationGroupIds, creationUntagged)
+    if ((creationInput.off || supportInput.off) && !maySwitchHandledGroupsOff(user.userRole)) {
+      throw new LogError('Only an administrator may switch an area off', user.id)
+    }
+    const creation = normaliseHandledCreationGroups(
+      creationInput.groupIds,
+      creationInput.untagged,
+      creationInput.off,
+    )
     if (!creation.success) {
       throw new LogError(creation.error.message, user.id)
     }
-    const support = normaliseHandledCreationGroups(supportGroupIds, supportUntagged)
+    const support = normaliseHandledCreationGroups(
+      supportInput.groupIds,
+      supportInput.untagged,
+      supportInput.off,
+    )
     if (!support.success) {
       throw new LogError(support.error.message, user.id)
     }
@@ -153,7 +165,7 @@ export class UserCreationGroupResolver {
       throw new LogError('No role to save the creation groups on', user.id)
     }
     getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.UserCreationGroupResolver`).info(
-      `handled groups of user ${user.id} set: creation ${creation.value.groupIds.length} groups, untagged ${creation.value.untagged}; support ${support.value.groupIds.length} groups, untagged ${support.value.untagged}`,
+      `handled groups of user ${user.id} set: creation ${creation.value.groupIds.length} groups, untagged ${creation.value.untagged}, off ${creation.value.off}; support ${support.value.groupIds.length} groups, untagged ${support.value.untagged}, off ${support.value.off}`,
     )
     return new HandledGroups(creation.value, support.value)
   }

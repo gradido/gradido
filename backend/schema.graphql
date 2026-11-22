@@ -957,6 +957,7 @@ type AdminOpenSupportTickets {
   onResubmission: Int!
   elsewhere: Int!
   elsewhereOnResubmission: Int!
+  off: Boolean!
 }
 
 type SupportTicketsMenu {
@@ -1028,6 +1029,7 @@ type ThankYouCard {
 type HandledCreationGroups {
   groupIds: [Int!]!
   untagged: Boolean!
+  off: Boolean!
 }
 
 input UserNoteSubjectInput {
@@ -1222,7 +1224,7 @@ type Mutation {
   setMyCreationGroups(tags: [String!]!): [CreationGroup!]!
   setUserCreationGroups(tags: [String!]!, userId: Int!): [CreationGroup!]!
   setModeratorCreationGroupScope(scope: [String!]!, userId: Int!): [String!]!
-  setHandledGroups(supportUntagged: Boolean!, supportGroupIds: [Int!]!, creationUntagged: Boolean!, creationGroupIds: [Int!]!): HandledGroups!
+  setHandledGroups(support: HandledGroupsInput!, creation: HandledGroupsInput!): HandledGroups!
   setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
   setUserRemark(userId: Int!, remark: String!): UserRemark
   login(email: String!, password: String!, publisherId: Int, project: String): User!
@@ -1453,6 +1455,12 @@ type ThankYouCardPaymentResult {
 type HandledGroups {
   creation: HandledCreationGroups!
   support: HandledCreationGroups!
+}
+
+input HandledGroupsInput {
+  groupIds: [Int!]!
+  untagged: Boolean!
+  off: Boolean!
 }
 
 """Possible role names"""
