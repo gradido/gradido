@@ -603,10 +603,10 @@
       "yes": "Yes, confirm and save creation!"
     },
     "delete": {
-      "question": "Do you really want to carry out and finally save this pre-stored creation?",
-      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "question": "Do you really want to delete this creation permanently?",
+      "text": "After deleting, the record no longer exists.",
       "title": "Delete creation!",
-      "yes": "Yes, delete and save creation!"
+      "yes": "Yes, delete creation!"
     },
     "deleteUser": {
       "question": "Do you really want to delete {username}?",
@@ -614,15 +614,15 @@
       "yes": "Yes, delete user"
     },
     "deny": {
-      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "question": "Do you really want to reject this creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Reject creation!",
       "yes": "Yes, reject and save creation!"
     },
     "undeleteUser": {
-      "question": "Do you really want to undelete {username}",
+      "question": "Do you really want to undelete {username}?",
       "title": "Undelete user",
-      "yes": "Yes,undelete user"
+      "yes": "Yes, undelete user"
     }
   },
   "projectBranding": {
@@ -631,7 +631,7 @@
     "created": "New project branding entry has been created.",
     "error": "Error when creating the project branding entry: {message}",
     "newUserToSpace": "Add user?",
-    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places",
+    "newUserToSpaceTooltip": "Automatically add new users to the space, if there is one",
     "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
     "openSpaceInHumhub": "Open in Humhub",
     "selectSpace": "Select Humhub Space",
