@@ -136,8 +136,8 @@
     "contributionLinks": "Katkı bağlantıları",
     "create": "Oluştur",
     "cycle": "Döngü",
-    "deleteNow": "Otomatik oluşturmalar '{name}' gerçekten silinsin mi?",
-    "deleted": "Otomatik oluşturma silindi!",
+    "deleteNow": "Otomatik yaratımlar '{name}' gerçekten silinsin mi?",
+    "deleted": "Otomatik yaratım silindi!",
     "maxPerCycle": "Tekrarlar",
     "memo": "Mesaj",
     "name": "Ad",
@@ -297,9 +297,9 @@
       "label": "Tavsiye"
     }
   },
-  "created": "Oluşturuldu",
+  "created": "Yaratım tarihi",
   "createdAt": "Oluşturulma",
-  "creation": "Oluşturma",
+  "creation": "Yaratım",
   "creationGroupFilter": {
     "all": "(gruplu ve grupsuz)",
     "chooseMine": "Gruplarımı seç …",
@@ -343,35 +343,35 @@
     "title": "Yaratım gruplarını yönet",
     "updated": "Grup güncellendi."
   },
-  "creationList": "Oluşturma listesi",
-  "creation_for_month": "Ay için oluşturma",
+  "creationList": "Yaratım listesi",
+  "creation_for_month": "Ay için yaratım",
   "creation_form": {
     "creation_for": "Şunun için aktif temel gelir:",
     "enter_text": "Metin gir",
-    "form": "Oluşturma formu",
+    "form": "Yaratım formu",
     "min_characters": "En az 10 karakter gir",
     "not_allowed": "Bu hesap bir proje hesabıdır ve yaratım yapmaz. Yaratım, «Kullanıcı rolü» altında yeniden açılabilir.",
     "reset": "Sıfırla",
     "select_month": "Ay seç",
     "select_value": "Tutar seç",
-    "submit_creation": "Oluşturmayı gönder",
-    "toasted": "{email} için açık oluşturma ({value} GDD) kaydedildi ve onaya hazır.",
-    "toasted_created": "Oluşturma başarıyla kaydedildi",
-    "toasted_delete": "Açık oluşturma silindi",
-    "toasted_denied": "Açık oluşturma reddedildi"
+    "submit_creation": "Yaratımı gönder",
+    "toasted": "{email} için açık yaratım ({value} GDD) kaydedildi ve onaya hazır.",
+    "toasted_created": "Yaratım başarıyla kaydedildi",
+    "toasted_delete": "Açık yaratım silindi",
+    "toasted_denied": "Açık yaratım reddedildi"
   },
   "dashboard": {
-    "elsewhere": "Diğer gruplarda: {n} açık oluşturma",
-    "elsewhereOne": "Diğer gruplarda: bir açık oluşturma",
+    "elsewhere": "Diğer gruplarda: {n} açık yaratım",
+    "elsewhereOne": "Diğer gruplarda: bir açık yaratım",
     "resubmission": "Ayrıca hatırlatmalı: {n}",
     "support": "Destek: {n} açık talep",
     "supportElsewhere": "Diğer gruplarda: {n} açık talep",
     "supportElsewhereOne": "Diğer gruplarda: bir açık talep",
     "supportNone": "Destek: açık talep yok",
     "supportOne": "Destek: bir açık talep",
-    "today": "Bugün: {n} açık oluşturma",
-    "todayNone": "Bugün: açık oluşturma yok",
-    "todayOne": "Bugün: bir açık oluşturma",
+    "today": "Bugün: {n} açık yaratım",
+    "todayNone": "Bugün: açık yaratım yok",
+    "todayOne": "Bugün: bir açık yaratım",
     "waitingForMember": "Üyeyi bekleyen: {n}",
     "waitingForModeration": "Moderasyonu bekleyen: {n}",
     "welcome": "Yönetim alanına hoş geldin"
@@ -519,7 +519,7 @@
   },
   "hide_details": "Ayrıntıları gizle",
   "hide_resubmission": "Hatırlatmaları gizle",
-  "hide_resubmission_tooltip": "Bir moderatörün hatırlatma tarihi belirlediği tüm oluşturmaları gizler.",
+  "hide_resubmission_tooltip": "Bir moderatörün hatırlatma tarihi belirlediği tüm yaratımları gizler.",
   "lastname": "Soyad",
   "latitude": "Enlem:",
   "latitude-longitude-smart": "Enlem, Boylam",
@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Kendim ilgileniyorum",
     "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
-    "introBoth": "Her grup için oluşturmasıyla ve desteğiyle kendin ilgilenip ilgilenmediğini işaretle. Başlangıç sayfası, menüdeki sayılar, grup filtreleri ve yeni destek talepleriyle ilgili e-postalar işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
+    "introBoth": "Her grup için yaratımıyla ve desteğiyle kendin ilgilenip ilgilenmediğini işaretle. Başlangıç sayfası, menüdeki sayılar, grup filtreleri ve yeni destek talepleriyle ilgili e-postalar işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
     "noMatch": "Bu adda grup yok",
     "rule": {
       "all": "{column}: Önceden olduğu gibi her şey sayılır.",
@@ -744,7 +744,7 @@
     "period": "Dönem",
     "status": "Durum",
     "submitted": "Gönderildi",
-    "title": "Kullanıcı için tüm oluşturma işlemleri"
+    "title": "Kullanıcı için tüm yaratım işlemleri"
   },
   "undelete_user": "Kullanıcıyı geri yükle",
   "unregister_mail": {
