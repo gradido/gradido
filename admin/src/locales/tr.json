@@ -338,7 +338,7 @@
     "namePlaceholder": "örn. Yeniköy Gönüllü İtfaiyesi",
     "save": "Kaydet",
     "tag": "Kısa ad",
-    "tagHint": "Boşluk içermeyen bir kısa ad — büyük harfler ve Türkçe karakterler kullanılabilir. Eşleştirmede büyük/küçük harf ayrımı yapılmaz. Her yerde grubun adı gösterilir.",
+    "tagHint": "Boşluk içermeyen bir kısa ad — büyük harfler ve Türkçe karakterler kullanılabilir. Eşleştirmede büyük/küçük harf ayrımı yapılmaz (ı ve I harfleri hariç). Her yerde grubun adı gösterilir.",
     "tagPlaceholder": "örn. itfaiye",
     "title": "Yaratım gruplarını yönet",
     "updated": "Grup güncellendi."
