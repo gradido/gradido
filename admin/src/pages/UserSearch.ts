@@ -143,6 +143,8 @@ export class UserSearch implements ClassComponent {
   view() {
     const phone = isPhone()
     return m('.user-search', [
+      // the page's name, the menu's word, as the creation and the support page have theirs
+      m('h2.h4.mb-3', t('navbar.user_search')),
       m(UserQuery, {
         class: `mb-3 mt-2 ${classes.searchField}`,
         value: this.criteria,

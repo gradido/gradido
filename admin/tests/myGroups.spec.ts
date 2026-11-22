@@ -6,7 +6,8 @@ import { moderator, signedInAnswers, signIn } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
 // "Meine Gruppen" (MG1, MG2b): the moderator ticks, group by group, whether they handle its
-// creations and its support requests themself -- two columns, "Schöpfung" and "Support".
+// creations and its support requests themself -- two columns, "Schöpfung" and "Support". Every tick
+// is saved at once, one request at a time; twenty rows to a page (22.11.2026).
 
 const GROUPS = [
   { id: 3, tag: 'potsdam', name: 'Potsdam' },
@@ -56,6 +57,9 @@ test.beforeEach(async ({ page, graphql }) => {
   graphql.answer({
     ...signedInAnswers(),
     ...answersWith([3], true),
+    // every tick saves itself, and the badges are asked anew after it
+    setHandledGroups: echo,
+    adminListContributions: { contributionCount: 0 },
     adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
   })
   await serveWalletAssets(page)
@@ -82,6 +86,10 @@ test('opens with the choice the server keeps: "no group" first, then the ticked,
   await expect(supportBox(page, 'Potsdam')).toBeChecked()
   await expect(supportBox(page, 'Amstetten')).not.toBeChecked()
   await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.someBoth)
+  // no button: a tick saves itself; five rows want no second page
+  await expect(page.getByTestId('my-groups-save')).toHaveCount(0)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText('')
+  await expect(page.locator('.my-groups .pagination')).toHaveCount(0)
 })
 
 test('says that everything counts where nothing is ticked', async ({ page, graphql }) => {
@@ -141,7 +149,7 @@ test('moves nothing when a box is ticked or cleared', async ({ page }) => {
   await expect(rows(page)).toHaveText(order)
 })
 
-test('saves the whole choice, says so, and asks the number at "Schöpfung" anew', async ({
+test('saves each tick at once, says so quietly, and asks the number at "Schöpfung" anew', async ({
   page,
   graphql,
 }) => {
@@ -151,13 +159,18 @@ test('saves the whole choice, says so, and asks the number at "Schöpfung" anew'
   })
   await signIn(page, '/my-groups')
   await box(page, 'GD-Hohestraße').check()
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   await box(page, de.creationGroupFilter.untagged).uncheck()
+  await expect.poll(() => graphql.sentFor('setHandledGroups').length).toBe(2)
 
-  await page.getByTestId('my-groups-save').click()
-
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
-  // both columns in one request; the column "Support" as it was loaded
+  // both columns in each request; the column "Support" as it was loaded
   expect(graphql.sentFor('setHandledGroups').map(({ variables }) => variables)).toEqual([
+    {
+      creationGroupIds: [3, 5],
+      creationUntagged: true,
+      supportGroupIds: [3],
+      supportUntagged: true,
+    },
     {
       creationGroupIds: [3, 5],
       creationUntagged: false,
@@ -165,10 +178,17 @@ test('saves the whole choice, says so, and asks the number at "Schöpfung" anew'
       supportUntagged: true,
     },
   ])
+  // no toast for a tick: the quiet line says it
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   const counted = graphql.sentFor('adminListContributions')
-  expect(counted.map(({ variables }) => variables.filter)).toEqual([
-    { statusFilter: ['IN_PROGRESS', 'PENDING'], hideResubmission: true, creationGroup: '*handled' },
-  ])
+  await expect.poll(() => counted.length).toBe(2)
+  const handled = {
+    statusFilter: ['IN_PROGRESS', 'PENDING'],
+    hideResubmission: true,
+    creationGroup: '*handled',
+  }
+  expect(counted.map(({ variables }) => variables.filter)).toEqual([handled, handled])
   const badge = page
     .locator('nav.navbar')
     .getByRole('link', { name: de.creation })
@@ -195,9 +215,8 @@ test('asks the number at "Support" anew after a save, where the support is their
   })
   await signIn(page, '/my-groups')
   await box(page, 'GD-Hohestraße').check()
-  await page.getByTestId('my-groups-save').click()
 
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   await expect.poll(() => graphql.sentFor('adminCountOpenSupportTickets').length).toBe(1)
   const supportBadge = page
     .locator('nav.navbar')
@@ -224,9 +243,8 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   await expect(row(page, 'Potsdam').getByRole('checkbox')).toHaveCount(1)
   await expect(page.getByTestId('my-groups-rule')).toHaveText(de.myGroups.some)
   await box(page, 'GD-Hohestraße').check()
-  await page.getByTestId('my-groups-save').click()
 
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   // the creation's number is asked and answered, so the save has run to its end: the support's
   // question would have gone out in the same moment
   await expect(
@@ -244,7 +262,9 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   ])
 })
 
-test('sends nothing on a second press while the first answer is on its way', async ({
+// One save at a time: ticks made while one is out go with the next, with the ticks of that moment,
+// so no answer overtakes another and nothing ticked is lost.
+test('sends one save at a time, and the ticks made meanwhile with the next', async ({
   page,
   graphql,
 }) => {
@@ -252,25 +272,38 @@ test('sends nothing on a second press while the first answer is on its way', asy
   graphql.answer({
     setHandledGroups: save.answer,
     adminListContributions: { contributionCount: 1 },
+    adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
   })
   await signIn(page, '/my-groups')
-  const button = page.getByTestId('my-groups-save')
-
-  await button.click()
-  await expect(button).toBeDisabled()
-  // the ticks shown stay the ticks sent
-  await expect(box(page, 'Amstetten')).toBeDisabled()
-  await expect(box(page, de.creationGroupFilter.untagged)).toBeDisabled()
-  await expect(supportBox(page, 'Amstetten')).toBeDisabled()
-  await button.click({ force: true })
+  await box(page, 'Amstetten').check()
   await expect.poll(() => save.held.length).toBe(1)
-  const kept = { groupIds: [3], untagged: true }
-  save.held[0]({ creation: kept, support: kept })
 
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
-  await expect(button).toBeEnabled()
-  await expect(box(page, 'Amstetten')).toBeEnabled()
-  expect(graphql.sentFor('setHandledGroups')).toHaveLength(1)
+  // the boxes stay open while it is out; two more ticks wait for its answer
+  await box(page, 'Dorf der Zukunft').check()
+  await supportBox(page, 'Amstetten').check()
+  expect(save.held).toHaveLength(1)
+  const sent = () =>
+    graphql.sentFor('setHandledGroups').map(({ variables }) => variables as Record<string, unknown>)
+  save.held[0](echo(sent()[0]))
+  await expect.poll(() => save.held.length).toBe(2)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText('')
+  save.held[1](echo(sent()[1]))
+
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  expect(sent()).toEqual([
+    {
+      creationGroupIds: [3, 7],
+      creationUntagged: true,
+      supportGroupIds: [3],
+      supportUntagged: true,
+    },
+    {
+      creationGroupIds: [3, 7, 9],
+      creationUntagged: true,
+      supportGroupIds: [3, 7],
+      supportUntagged: true,
+    },
+  ])
 })
 
 // A question and a save each take a mark as they go out: the start page's answer, asked before a
@@ -304,8 +337,7 @@ test('keeps the count and the choice of a save where the start page answers afte
   await page.getByTestId('navbar-account').getByRole('button', { name: 'Peter Lustig' }).click()
   await page.getByTestId('navbar-my-groups').click()
   await box(page, 'Amstetten').check()
-  await page.getByTestId('my-groups-save').click()
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
   const menuBadge = page
     .locator('nav.navbar')
     .getByRole('link', { name: de.creation })
@@ -347,7 +379,6 @@ test('keeps a save whose answer comes after a later question that failed', async
   })
   await signIn(page, '/my-groups')
   await box(page, 'Amstetten').check()
-  await page.getByTestId('my-groups-save').click()
   await expect.poll(() => save.held.length).toBe(1)
 
   // on to the start page while the save is on its way: its question goes out after the save
@@ -367,16 +398,26 @@ test('keeps a save whose answer comes after a later question that failed', async
     .toEqual([3, 7])
 })
 
-test('reports a failed save, and leaves the ticks as they are', async ({ page, graphql }) => {
+test('reports a failed save, and shows the ticks the server holds', async ({ page, graphql }) => {
   graphql.answer({ setHandledGroups: new Failure('no database') })
   await signIn(page, '/my-groups')
+  const order = [
+    de.creationGroupFilter.untagged,
+    'Potsdam',
+    'Amstetten',
+    'Dorf der Zukunft',
+    'GD-Hohestraße',
+  ]
+  await expect(rows(page)).toHaveText(order)
   await box(page, 'Amstetten').check()
 
-  await page.getByTestId('my-groups-save').click()
-
   await expect(page.getByRole('alert')).toContainText('no database')
-  await expect(box(page, 'Amstetten')).toBeChecked()
+  // asked anew: the server still holds "no group" and Potsdam, in the order of the page
+  await expect.poll(() => graphql.sentFor('handledCreationGroups').length).toBe(2)
+  await expect(box(page, 'Amstetten')).not.toBeChecked()
   await expect(box(page, 'Potsdam')).toBeChecked()
+  await expect(rows(page)).toHaveText(order)
+  await expect(page.getByTestId('my-groups-saved')).toHaveText('')
   expect(graphql.sentFor('adminListContributions')).toHaveLength(0)
 })
 
@@ -459,20 +500,60 @@ test('shows each column with its own ticks, and saves them apart (MG2b)', async 
 
   await supportBox(page, 'Amstetten').check()
   await box(page, 'Potsdam').uncheck()
-  await page.getByTestId('my-groups-save').click()
 
-  await expect(page.getByRole('alert')).toContainText(de.myGroups.saved)
-  expect(graphql.sentFor('setHandledGroups').map(({ variables }) => variables)).toEqual([
-    {
-      creationGroupIds: [],
-      creationUntagged: true,
-      supportGroupIds: [5, 7],
-      supportUntagged: false,
-    },
-  ])
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  // the last request carries both ticks, each in its column
+  expect(graphql.sentFor('setHandledGroups').at(-1)?.variables).toEqual({
+    creationGroupIds: [],
+    creationUntagged: true,
+    supportGroupIds: [5, 7],
+    supportUntagged: false,
+  })
   const kept = JSON.parse(
     (await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}',
   )
   expect(kept.handledCreationGroups).toMatchObject({ groupIds: [], untagged: true })
   expect(kept.handledSupportGroups).toMatchObject({ groupIds: [5, 7], untagged: false })
+})
+
+// Many groups (22.11.2026): twenty rows to a page, "(ohne Gruppe)" and the ticked ones first; the
+// search looks through all of them, from the first page.
+test('shows twenty rows to a page, the ticked first, and searches through all', async ({
+  page,
+  graphql,
+}) => {
+  const many = Array.from({ length: 45 }, (_, index) => {
+    const number = String(index + 1).padStart(2, '0')
+    return { id: 100 + index, tag: `gruppe-${number}`, name: `Gruppe ${number}` }
+  })
+  graphql.answer({
+    creationGroups: many,
+    handledCreationGroups: { groupIds: [144], untagged: true },
+    handledSupportGroups: { groupIds: [], untagged: false },
+    setHandledGroups: echo,
+    adminListContributions: { contributionCount: 1 },
+    adminCountOpenSupportTickets: NO_SUPPORT_OPEN,
+  })
+  await signIn(page, '/my-groups')
+
+  // 46 rows: 20, 20 and 6
+  await expect(rows(page)).toHaveCount(20)
+  await expect(rows(page).nth(0)).toHaveText(de.creationGroupFilter.untagged)
+  await expect(rows(page).nth(1)).toHaveText('Gruppe 45')
+  await expect(rows(page).nth(2)).toHaveText('Gruppe 01')
+  await page.getByRole('menuitem', { name: 'Go to page 3' }).click()
+  await expect(rows(page)).toHaveCount(6)
+  await expect(rows(page).last()).toHaveText('Gruppe 44')
+
+  // a tick on a later page is saved like any other
+  await supportBox(page, 'Gruppe 44').check()
+  await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  expect(graphql.sentFor('setHandledGroups').at(-1)?.variables).toMatchObject({
+    supportGroupIds: [143],
+  })
+
+  // the search, from the first page, through all groups
+  await page.getByPlaceholder(de.myGroups.search).fill('Gruppe 3')
+  await expect(rows(page)).toHaveText(Array.from({ length: 10 }, (_, index) => `Gruppe 3${index}`))
+  await expect(page.locator('.my-groups .pagination')).toHaveCount(0)
 })
