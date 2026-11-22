@@ -109,11 +109,15 @@ beforeEach(() => {
   mockCore.sendNewSupportTicketEmail.mockResolvedValue({ messageId: 'sent' })
 })
 
+// a request's group as the resolver hands it on: a scope names its tag, "Meine Gruppen" its number
+const NUMBER: Record<string, number> = { garden: 1, choir: 2, orchard: 3 }
+const inGroup = (tag: string) => ({ id: NUMBER[tag], tag })
+
 describe('readSupportTicketMailRecipients', () => {
   // the staircase of the rule (SUA-027): the group's own, else who sees everything, else admins
   it('finds, for a request of a group, its moderators', async () => {
-    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([11])
-    expect(ids(await readSupportTicketMailRecipients('choir', []))).toEqual([13])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([11])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('choir'), []))).toEqual([13])
     expect(mockDatabase.dbSelectRoleHoldersWithContact).toHaveBeenCalledTimes(2)
   })
 
@@ -122,16 +126,16 @@ describe('readSupportTicketMailRecipients', () => {
   })
 
   it('finds those who see everything for a group without moderators of its own', async () => {
-    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([14])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([14])
   })
 
   it('finds the administrators where no moderator is left', async () => {
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bob])
-    expect(ids(await readSupportTicketMailRecipients('garden', [11]))).toEqual([1])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), [11]))).toEqual([1])
   })
 
   it('never finds the asking member', async () => {
-    expect(ids(await readSupportTicketMailRecipients('garden', [11]))).toEqual([14])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), [11]))).toEqual([14])
   })
 
   it('asks the right of a role, not its name: a role without it finds nobody, ticked or not', async () => {
@@ -139,7 +143,7 @@ describe('readSupportTicketMailRecipients', () => {
       holder(21, 'USER', null, 'Uta'),
       holder(22, 'DLT_CONNECTOR_ROLE', null, 'Dirk'),
     ])
-    expect(await readSupportTicketMailRecipients('garden', [])).toEqual([])
+    expect(await readSupportTicketMailRecipients(inGroup('garden'), [])).toEqual([])
   })
 
   // the tick of K6 (SUA-025): a moderator without it handles no request, so no mail reaches them --
@@ -154,9 +158,9 @@ describe('readSupportTicketMailRecipients', () => {
       dora,
       carla,
     ])
-    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([14])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([14])
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bobWithout, carlaWithout])
-    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([1])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([1])
   })
 
   it('finds an administrator without the tick', async () => {
@@ -173,21 +177,25 @@ describe('readSupportTicketMailRecipients', () => {
     const peterOff = { ...peter, handledSupportGroups: off }
     const ada = holder(2, 'ADMIN', null, 'Ada', 'de', false)
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peterOff, ada])
-    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([2])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([2])
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
       peterOff,
       { ...ada, handledSupportGroups: off },
     ])
-    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([1, 2])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([1, 2])
   })
 
-  // the ticks alone steer no mail: what is on handles, whichever groups it names
-  it('mails an administrator who ticked groups in "Meine Gruppen", also for another group', async () => {
-    const ticked = JSON.stringify({ groupIds: [7], untagged: false })
-    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([
-      { ...peter, handledSupportGroups: ticked },
-    ])
-    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([1])
+  // "Meine Gruppen" of the support (MG5): of those who see everything only whose ticks name the group
+  it('finds by the ticks of the support who sees everything, moderators before administrators', async () => {
+    const ticked = (...groupIds: number[]) => JSON.stringify({ groupIds, untagged: false })
+    const carlaOrchard = { ...carla, handledSupportGroups: ticked(3) }
+    const peterChoir = { ...peter, handledSupportGroups: ticked(2) }
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peterChoir, carlaOrchard])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([14])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('choir'), []))).toEqual([1])
+    // ticked by nobody: as without any tick
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([14])
+    expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([14])
   })
 
   // the switch is an administrator's: in a moderator's row it is what a role before left there
@@ -196,15 +204,17 @@ describe('readSupportTicketMailRecipients', () => {
     const bobOff = { ...bob, handledSupportGroups: off }
     const carlaOff = { ...carla, handledSupportGroups: off }
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bobOff, carlaOff])
-    expect(ids(await readSupportTicketMailRecipients('garden', []))).toEqual([11])
-    expect(ids(await readSupportTicketMailRecipients('orchard', []))).toEqual([carla.userId])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([11])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([
+      carla.userId,
+    ])
   })
 
   it('throws not where the reading fails: nobody, and the code in the log', async () => {
     mockDatabase.dbSelectRoleHoldersWithContact.mockRejectedValue(
       Object.assign(new Error('select … bob@example.org'), { code: 'ER_LOCK_WAIT_TIMEOUT' }),
     )
-    await expect(readSupportTicketMailRecipients('garden', [])).resolves.toEqual([])
+    await expect(readSupportTicketMailRecipients(inGroup('garden'), [])).resolves.toEqual([])
     expect(mockLogger.error).toHaveBeenCalledWith(
       'support moderators not read (ER_LOCK_WAIT_TIMEOUT)',
     )

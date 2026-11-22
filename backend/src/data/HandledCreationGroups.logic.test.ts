@@ -2,6 +2,7 @@
 import {
   HANDLED_CREATION_GROUPS_MAX,
   handledCreationGroupsOf,
+  handledGroupsTakeIn,
   normaliseHandledCreationGroups,
   parseHandledCreationGroups,
   storedHandledCreationGroups,
@@ -105,6 +106,29 @@ describe('handledCreationGroupsOf', () => {
     expect(
       handledCreationGroupsOf('{"groupIds":[3],"untagged":true,"off":true}', scoped),
     ).toBeNull()
+  })
+})
+
+describe('handledGroupsTakeIn', () => {
+  it('takes in everything where there is no choice', () => {
+    expect(handledGroupsTakeIn(null, 3)).toBe(true)
+    expect(handledGroupsTakeIn(null, null)).toBe(true)
+  })
+
+  it('takes in what is ticked, and nothing else', () => {
+    const garden = { groupIds: [3, 7], untagged: false, off: false }
+    expect(handledGroupsTakeIn(garden, 7)).toBe(true)
+    expect(handledGroupsTakeIn(garden, 5)).toBe(false)
+    expect(handledGroupsTakeIn(garden, null)).toBe(false)
+    const noGroup = { groupIds: [], untagged: true, off: false }
+    expect(handledGroupsTakeIn(noGroup, null)).toBe(true)
+    expect(handledGroupsTakeIn(noGroup, 3)).toBe(false)
+  })
+
+  it('takes in nothing while it is off, whatever is ticked behind it', () => {
+    const off = { groupIds: [3], untagged: true, off: true }
+    expect(handledGroupsTakeIn(off, 3)).toBe(false)
+    expect(handledGroupsTakeIn(off, null)).toBe(false)
   })
 })
 

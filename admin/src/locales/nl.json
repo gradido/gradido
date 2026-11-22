@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Zelf behandelen",
     "intro": "Vink de creatiegroepen aan die je zelf behandelt. De startpagina, de getallen in het menu en de groepsfilters richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
-    "introBoth": "Vink per groep aan of je de creatie en de support ervan zelf behandelt. De startpagina, de getallen in het menu en de groepsfilters richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
+    "introBoth": "Vink per groep aan of je de creatie en de support ervan zelf behandelt. De startpagina, de getallen in het menu, de groepsfilters en de e-mails over nieuwe supportvragen richten zich naar wat je aanvinkt. Je kunt nog steeds alles zien.",
     "noMatch": "Geen groep met deze naam",
     "rule": {
       "all": "{column}: alles telt mee, zoals voorheen.",

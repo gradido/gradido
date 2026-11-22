@@ -1,6 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import type { DbUser, SupportTicketMessageType, SupportTicketStatus } from 'database'
 import { DomainError } from 'shared'
+import { handledGroupsTakeIn } from './HandledCreationGroups.logic'
+import type { HandledCreationGroups } from './HandledCreationGroups.schema'
 
 // Support requests (SUA-001): the rules of the member's side and of the moderation's. The bounds
 // of a request and of a thread stand in `shared` (SUPPORT_TICKET_*), because the wallet holds a
@@ -112,17 +114,17 @@ export const supportAnswerMailDecision = (
  * A member with a role as the mail about a new request reads them (K5, SUA-018, SUA-024): whether
  * they may handle requests at all -- the right MANAGE_SUPPORT_TICKETS of their role row, which an
  * administrator always holds and a moderator with the tick of K6 (SUA-025, roleOfHolder) --,
- * whether their role is ADMIN, whether they switched the support off for themself ("Meine Gruppen",
- * MG5; only an administrator can), and their scope as describeModeratorCreationGroups reads it.
+ * whether their role is ADMIN, their scope as describeModeratorCreationGroups reads it, and their
+ * choice in "Meine Gruppen" of the support as it is in force (handledSupportGroupsOfRole).
  */
 export interface SupportTicketMailCandidate {
   id: number
   handlesSupportTickets: boolean
   isAdmin: boolean
-  supportOff: boolean
   tags: string[]
   seesAllCreationGroups: boolean
   seesUntagged: boolean
+  handledGroups: HandledCreationGroups | null
 }
 
 /** The most moderators one request mails (SUA-018, point 3). */
@@ -133,20 +135,23 @@ const sameTag = (a: string, b: string): boolean =>
   a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 
 /**
- * Who hears of a request by mail -- a new one, or one handed on to `groupTag` (null: no group): a
+ * Who hears of a request by mail -- a new one, or one handed on to `group` (null: no group): a
  * staircase (SUA-027), each step among those who find the request in their list
  * (supportTicketsInScope). First the moderators its group is assigned to (for one without a group:
  * those with "no group"); only where none is left, the moderators who see everything; only where
- * none of them is left either, the administrators, whatever their scope says. Each step by their
- * number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests gets nothing, and
- * neither does anybody in `notFor` -- the asking member, who handed on: they fall out first, so the
- * request of a group's only moderator still reaches somebody. Of the administrators the ones who
- * switched the support off ("Meine Gruppen", MG5) are left out -- but where all of them did, all are
- * mailed all the same: a request reaches somebody (Bernd, 22.11.2026).
+ * none of them is left either, the administrators, whatever their scope says. Of these two only
+ * those whose "Meine Gruppen" takes the request in (MG5): its group is ticked, or nothing is, and
+ * the support is not switched off. Where that leaves nobody, these two steps once more without it
+ * -- the administrators who switched it off only where all of them did: a request reaches somebody
+ * (Bernd, 22.11.2026).
+ *
+ * Each step by their number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests
+ * gets nothing, and neither does anybody in `notFor` -- the asking member, who handed on: they fall
+ * out first, so the request of a group's only moderator still reaches somebody.
  */
 export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate>(
   candidates: T[],
-  groupTag: string | null,
+  group: { id: number; tag: string } | null,
   notFor: number[],
 ): T[] => {
   const left = candidates
@@ -156,16 +161,23 @@ export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate
     ({ isAdmin, seesAllCreationGroups, tags, seesUntagged }) =>
       !isAdmin &&
       !seesAllCreationGroups &&
-      (groupTag === null ? seesUntagged : tags.some((tag) => sameTag(tag, groupTag))),
+      (group === null ? seesUntagged : tags.some((tag) => sameTag(tag, group.tag))),
   )
   const seeEverything = left.filter(
     ({ isAdmin, seesAllCreationGroups }) => !isAdmin && seesAllCreationGroups,
   )
   const administrators = left.filter(({ isAdmin }) => isAdmin)
-  const administratorsOn = administrators.filter(({ supportOff }) => !supportOff)
+  const takesIn = ({ handledGroups }: T) => handledGroupsTakeIn(handledGroups, group?.id ?? null)
+  const isOn = ({ handledGroups }: T) => !handledGroups?.off
   const step =
-    [assigned, seeEverything, administratorsOn, administrators].find((each) => each.length > 0) ??
-    []
+    [
+      assigned,
+      seeEverything.filter(takesIn),
+      administrators.filter(takesIn),
+      seeEverything,
+      administrators.filter(isOn),
+      administrators,
+    ].find((each) => each.length > 0) ?? []
   return step.slice(0, SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)
 }
 

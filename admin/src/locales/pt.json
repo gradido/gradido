@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Trato eu disto",
     "intro": "Marca os grupos de criação que tratas tu. A página inicial, os números do menu e os filtros de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
-    "introBoth": "Marca em cada grupo se tratas tu da sua criação e do seu suporte. A página inicial, os números do menu e os filtros de grupo ajustam-se ao que marcares. Podes continuar a ver tudo.",
+    "introBoth": "Marca em cada grupo se tratas tu da sua criação e do seu suporte. A página inicial, os números do menu, os filtros de grupo e os e-mails sobre novos pedidos de suporte ajustam-se ao que marcares. Podes continuar a ver tudo.",
     "noMatch": "Nenhum grupo com este nome",
     "rule": {
       "all": "{column}: tudo conta, como até agora.",

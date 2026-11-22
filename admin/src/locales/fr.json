@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Je m'en occupe",
     "intro": "Coche les groupes de création dont tu t'occupes toi-même. La page d'accueil, les nombres du menu et les filtres par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
-    "introBoth": "Coche pour chaque groupe si tu t'occupes toi-même de sa création et de son assistance. La page d'accueil, les nombres du menu et les filtres par groupe s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
+    "introBoth": "Coche pour chaque groupe si tu t'occupes toi-même de sa création et de son assistance. La page d'accueil, les nombres du menu, les filtres par groupe et les e-mails concernant les nouvelles demandes d'assistance s'adaptent à ce que tu coches. Tu peux toujours tout voir.",
     "noMatch": "Aucun groupe de ce nom",
     "rule": {
       "all": "{column} : tout est pris en compte, comme avant.",

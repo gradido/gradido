@@ -146,7 +146,7 @@ export class SupportTicketResolver {
     }
     // Who hears of it, read before it is filed (never throws): what follows the filing without
     // being waited for is the sending alone.
-    const recipients = await readSupportTicketMailRecipients(group?.tag ?? null, [member.id])
+    const recipients = await readSupportTicketMailRecipients(group, [member.id])
     const createdAt = new Date()
     const id = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       ticketFiled(member.id, group?.id ?? null, words.output, createdAt),

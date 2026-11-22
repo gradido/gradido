@@ -1693,6 +1693,12 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     return holder.userId
   }
 
+  // a request's group as the resolver hands it on; the orchard has no row, and nobody ticked it
+  const groupOf = (tag: string | null) =>
+    tag === null
+      ? null
+      : { id: tag === 'garden' ? gardenId : tag === 'choir' ? choirId : choirId + 1000, tag }
+
   // the moderators -- not the administrators -- whose list holds this request; who has no list at
   // all, because they handle no request (K6), finds nothing
   const findersOf = async (ticketId: number, word: string): Promise<number[]> => {
@@ -1723,9 +1729,9 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     ['choir', 'Chorprobe'],
     [null, 'Ohneprobe'],
   ])('mails for a request of %s only those who find it in their list', async (tag, word) => {
-    const groupId = tag === 'garden' ? gardenId : tag === 'choir' ? choirId : null
-    const id = await file(bibi.id, `Eine ${word}`, 500, groupId)
-    const recipients = (await readSupportTicketMailRecipients(tag, [bibi.id])).map(
+    const group = groupOf(tag)
+    const id = await file(bibi.id, `Eine ${word}`, 500, group?.id ?? null)
+    const recipients = (await readSupportTicketMailRecipients(group, [bibi.id])).map(
       ({ userId }) => userId,
     )
     const finders = await findersOf(id, word)
@@ -1739,7 +1745,7 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
   it("names the group's own, else who sees everything, else the administrators (SUA-027)", async () => {
     const carla = await holderId('carla@sonne.de')
     const recipientsOf = async (tag: string | null, notFor: number[] = []) =>
-      (await readSupportTicketMailRecipients(tag, notFor)).map(({ userId }) => userId)
+      (await readSupportTicketMailRecipients(groupOf(tag), notFor)).map(({ userId }) => userId)
     // The fixture proves itself: gunda moderates the garden, a holder the mail reads, no tick.
     expect(
       (await dbSelectRoleHoldersWithContact()).find(({ userId }) => userId === gunda.id),
@@ -1751,6 +1757,28 @@ describe('SupportTicketModerationResolver, the mail and the list agree (K5)', ()
     expect(await recipientsOf('orchard')).toEqual([alma.id])
     expect(await recipientsOf('garden', [bob.id])).toEqual([alma.id])
     expect(await recipientsOf('garden', [bob.id, alma.id])).toEqual([peter.id])
+  })
+
+  // "Meine Gruppen" of the support, as the row holds it (MG5): alma sees everything and ticked the
+  // choir alone, peter ticked nothing -- what she did not take in is his
+  it('follows the ticks of who sees everything, and finds somebody where nobody ticked the group', async () => {
+    const recipientsOf = async (tag: string | null, notFor: number[] = []) =>
+      (await readSupportTicketMailRecipients(groupOf(tag), notFor)).map(({ userId }) => userId)
+    const tick = async (userId: number, groupIds: number[]) =>
+      dbUpdateUserRoleHandledGroups(userId, {
+        creation: null,
+        support: groupIds.length > 0 ? JSON.stringify({ groupIds, untagged: false }) : null,
+      })
+    const carla = await holderId('carla@sonne.de')
+    await tick(alma.id, [choirId])
+    expect(await recipientsOf('choir', [carla])).toEqual([alma.id])
+    expect(await recipientsOf('orchard')).toEqual([peter.id])
+    // ticked by nobody: as without any tick, the moderator of all groups first
+    await tick(peter.id, [choirId])
+    expect(await recipientsOf('orchard')).toEqual([alma.id])
+    await tick(alma.id, [])
+    await tick(peter.id, [])
+    expect(await recipientsOf('orchard')).toEqual([alma.id])
   })
 })
 

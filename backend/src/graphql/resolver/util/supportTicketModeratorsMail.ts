@@ -15,20 +15,20 @@ const createLogger = () =>
   getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.supportTicketModeratorsMail`)
 
 /**
- * Who hears of a request by mail (SUA-018, SUA-024) -- a new one, or one handed on to the group of
- * `groupTag` (null: no group): the members with a role, in one query, each with their scope as
- * describeModeratorCreationGroups reads it, through the rule (supportTicketMailRecipients).
- * Whether a member may handle requests is asked of the right MANAGE_SUPPORT_TICKETS of their row
- * as isAuthorized reads it (roleOfHolder: an administrator always, a moderator with the tick of
- * K6), not of the name of the role; nobody in `notFor` -- the asking member, who handed on -- gets
- * a mail.
+ * Who hears of a request by mail (SUA-018, SUA-024) -- a new one, or one handed on to `group` (null:
+ * no group): the members with a role, in one query, each with their scope as
+ * describeModeratorCreationGroups reads it and their "Meine Gruppen" of the support (MG5), through
+ * the rule (supportTicketMailRecipients). Whether a member may handle requests is asked of the right
+ * MANAGE_SUPPORT_TICKETS of their row as isAuthorized reads it (roleOfHolder: an administrator
+ * always, a moderator with the tick of K6), not of the name of the role; nobody in `notFor` -- the
+ * asking member, who handed on -- gets a mail.
  *
  * Read before the request is filed or handed on, and awaited: what follows the write without
  * being waited for is the sending alone. ⛔ Never throws: where the reading fails, nobody is
  * mailed, the log gets the error's code, and the request goes on.
  */
 export async function readSupportTicketMailRecipients(
-  groupTag: string | null,
+  group: { id: number; tag: string } | null,
   notFor: number[],
 ): Promise<RoleHolderWithContact[]> {
   try {
@@ -40,9 +40,9 @@ export async function readSupportTicketMailRecipients(
         id: holder.userId,
         handlesSupportTickets: roleOfHolder(holder).hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS),
         isAdmin: holder.role === RoleNames.ADMIN,
-        supportOff: handledSupportGroupsOfRole(holder)?.off === true,
+        handledGroups: handledSupportGroupsOfRole(holder),
       })),
-      groupTag,
+      group,
       notFor,
     )
   } catch (error) {

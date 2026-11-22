@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "I handle this myself",
     "intro": "Tick the creation groups you handle yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
-    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
+    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu, the group filters and the e-mails about new support requests follow your choice. You can still see everything.",
     "noMatch": "No group with this name",
     "rule": {
       "all": "{column}: everything counts, as before.",

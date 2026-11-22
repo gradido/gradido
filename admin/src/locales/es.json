@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Lo atiendo yo",
     "intro": "Marca los grupos de creación que atiendes tú. La página de inicio, los números del menú y los filtros de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
-    "introBoth": "Marca en cada grupo si atiendes tú su creación y su soporte. La página de inicio, los números del menú y los filtros de grupos se ajustan a lo que marques. Puedes seguir viéndolo todo.",
+    "introBoth": "Marca en cada grupo si atiendes tú su creación y su soporte. La página de inicio, los números del menú, los filtros de grupos y los correos sobre nuevas consultas de soporte se ajustan a lo que marques. Puedes seguir viéndolo todo.",
     "noMatch": "Ningún grupo con este nombre",
     "rule": {
       "all": "{column}: todo cuenta, como hasta ahora.",

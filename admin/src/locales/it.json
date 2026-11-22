@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Me ne occupo io",
     "intro": "Spunta i gruppi di creazione che gestisci tu. La pagina iniziale, i numeri nel menu e i filtri per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
-    "introBoth": "Spunta per ogni gruppo se gestisci tu la sua creazione e il suo supporto. La pagina iniziale, i numeri nel menu e i filtri per gruppo si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
+    "introBoth": "Spunta per ogni gruppo se gestisci tu la sua creazione e il suo supporto. La pagina iniziale, i numeri nel menu, i filtri per gruppo e le e-mail sulle nuove richieste di supporto si adeguano a ciò che spunti. Puoi continuare a vedere tutto.",
     "noMatch": "Nessun gruppo con questo nome",
     "rule": {
       "all": "{column}: viene conteggiato tutto, come prima.",

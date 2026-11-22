@@ -57,6 +57,23 @@ export const handledCreationGroupsOf = (
 }
 
 /**
+ * Whether the choice in force (handledCreationGroupsOf) takes in what belongs to this group, by its
+ * number (null: to no group): everything where there is none, nothing where it is off.
+ */
+export const handledGroupsTakeIn = (
+  choice: HandledCreationGroups | null,
+  groupId: number | null,
+): boolean => {
+  if (choice === null) {
+    return true
+  }
+  if (choice.off) {
+    return false
+  }
+  return groupId === null ? choice.untagged : choice.groupIds.includes(groupId)
+}
+
+/**
  * A choice as the admin sends it, in the form it is stored and answered: each group once, in
  * ascending order. More than HANDLED_CREATION_GROUPS_MAX groups is refused.
  */

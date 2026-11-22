@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Selbst bearbeiten",
     "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
-    "introBoth": "Kreuze je Gruppe an, ob Du ihre Schöpfung und ihren Support selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
+    "introBoth": "Kreuze je Gruppe an, ob Du ihre Schöpfung und ihren Support selbst bearbeitest. Die Startseite, die Zahlen im Menü, die Gruppenwahl und die Mails über neue Support-Anfragen richten sich danach. Sehen kannst Du weiterhin alles.",
     "noMatch": "Keine Gruppe mit diesem Namen",
     "rule": {
       "all": "{column}: Es zählt alles, wie bisher.",

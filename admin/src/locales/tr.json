@@ -549,7 +549,7 @@
   "myGroups": {
     "handle": "Kendim ilgileniyorum",
     "intro": "Kendin ilgilendiğin yaratım gruplarını işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
-    "introBoth": "Her grup için oluşturmasıyla ve desteğiyle kendin ilgilenip ilgilenmediğini işaretle. Başlangıç sayfası, menüdeki sayılar ve grup filtreleri işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
+    "introBoth": "Her grup için oluşturmasıyla ve desteğiyle kendin ilgilenip ilgilenmediğini işaretle. Başlangıç sayfası, menüdeki sayılar, grup filtreleri ve yeni destek talepleriyle ilgili e-postalar işaretlediklerine göre ayarlanır. Her şeyi görmeye devam edebilirsin.",
     "noMatch": "Bu adda grup yok",
     "rule": {
       "all": "{column}: Önceden olduğu gibi her şey sayılır.",
