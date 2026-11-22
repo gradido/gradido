@@ -1157,7 +1157,7 @@ describe('useChatUpdates', () => {
   })
 
   /**
-   * The two numbers behind "Admin" ("Meine Gruppen", MG3): what waits for the moderation rides in
+   * The two numbers at "Admin" ("Meine Gruppen", MG3): what waits for the moderation rides in
    * the same question, as the support's field does. What the field brings goes on to
    * useModerationWaiting as it came; it is nothing to the chat, and the chat is nothing to it.
    */

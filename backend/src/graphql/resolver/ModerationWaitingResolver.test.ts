@@ -34,7 +34,7 @@ import { garrickOllivander } from '@/seeds/users/garrick-ollivander'
 import { peterLustig } from '@/seeds/users/peter-lustig'
 import { raeuberHotzenplotz } from '@/seeds/users/raeuber-hotzenplotz'
 
-// The two numbers behind "Admin" in the wallet's menu ("Meine Gruppen", MG3), through the schema:
+// The two numbers at "Admin" in the wallet's menu ("Meine Gruppen", MG3), through the schema:
 // that they are the start page's lines "n warten auf die Moderation", whose they are, and that
 // they never take the chat's answer down with them. Which counts run for which role, and that a
 // member costs no count, is the unit test's (ModerationWaitingResolver.unit.test.ts).

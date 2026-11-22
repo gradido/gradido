@@ -3,7 +3,7 @@ import { Field, Int, ObjectType } from 'type-graphql'
 
 /**
  * What waits for the moderation in the moderator's own groups ("Meine Gruppen", MG3): the lines
- * "n warten auf die Moderation" of the admin's start page, for the two numbers behind "Admin" in
+ * "n warten auf die Moderation" of the admin's start page, for the two numbers at "Admin" in
  * the wallet's menu. A number is null where it is not the caller's to count.
  */
 @ObjectType()
