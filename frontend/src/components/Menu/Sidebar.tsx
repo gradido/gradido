@@ -15,6 +15,10 @@ import { RouterLink, useRoute } from 'vue-router'
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
 import { contributionsInProgress } from '@/composables/useContributionsInProgress'
 import {
+  moderationCreationsWaiting,
+  moderationSupportTicketsWaiting,
+} from '@/composables/useModerationWaiting'
+import {
   supportTicketsInProgress,
   supportTicketsUnfinished,
 } from '@/composables/useSupportTicketsMenu'
@@ -75,6 +79,30 @@ export const Sidebar = defineComponent({
     )
     const creationBadgeFigure = computed(() =>
       contributionsInProgress.value > 99 ? '99+' : String(contributionsInProgress.value),
+    )
+    const adminCreationsFigure = computed(() =>
+      moderationCreationsWaiting.value > 99 ? '99+' : String(moderationCreationsWaiting.value),
+    )
+    const adminSupportFigure = computed(() =>
+      moderationSupportTicketsWaiting.value > 99
+        ? '99+'
+        : String(moderationSupportTicketsWaiting.value),
+    )
+    // the sentence the mouse sees on the mark; a screen reader hears it after the word, with a full
+    // stop, so that the two sentences of the entry are not read as one
+    const adminCreationsSentence = computed(() =>
+      t(
+        'navigation.adminCreations',
+        { n: moderationCreationsWaiting.value },
+        moderationCreationsWaiting.value,
+      ),
+    )
+    const adminSupportSentence = computed(() =>
+      t(
+        'navigation.adminSupportTickets',
+        { n: moderationSupportTicketsWaiting.value },
+        moderationSupportTicketsWaiting.value,
+      ),
     )
 
     const transactionClass = computed(() => {
@@ -332,7 +360,53 @@ export const Sidebar = defineComponent({
                         out as the one lit symbol in the list, although this entry can never be the
                         open one: it leaves for the admin interface. (Bernd, 08.10.2026) */}
                     <IBiShieldCheck class='svg-icon' data-test='admin-menu-icon' />
-                    <span class='ms-2'>{t('navigation.admin_area')}</span>
+                    {/* What waits for the moderation in "Meine Gruppen" (MG3), in Bernd's own
+                        form (21.11.2026): behind the word, the creations raised in a square
+                        box, the support requests lowered and round, each from 1. Behind the
+                        word and not on the symbol's corner as the other marks: "Admin" is
+                        short, and the card leaves it room enough at its narrowest. A screen
+                        reader hears the sentences after the word, the mouse sees each on its
+                        mark. */}
+                    <span class='ms-2 admin-menu-label'>
+                      {t('navigation.admin_area')}
+                      {moderationCreationsWaiting.value > 0 ||
+                      moderationSupportTicketsWaiting.value > 0 ? (
+                        <span class='admin-marks' aria-hidden='true'>
+                          <span class='admin-mark-row'>
+                            {moderationCreationsWaiting.value > 0 ? (
+                              <span
+                                class='chat-unread-badge admin-mark admin-mark-square'
+                                title={adminCreationsSentence.value}
+                                data-test='admin-creations-badge'
+                              >
+                                {adminCreationsFigure.value}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span class='admin-mark-row'>
+                            {moderationSupportTicketsWaiting.value > 0 ? (
+                              <span
+                                class='chat-unread-badge admin-mark'
+                                title={adminSupportSentence.value}
+                                data-test='admin-support-badge'
+                              >
+                                {adminSupportFigure.value}
+                              </span>
+                            ) : null}
+                          </span>
+                        </span>
+                      ) : null}
+                    </span>
+                    {moderationCreationsWaiting.value > 0 ? (
+                      <span class='visually-hidden' data-test='admin-creations-badge-label'>
+                        {`${adminCreationsSentence.value}.`}
+                      </span>
+                    ) : null}
+                    {moderationSupportTicketsWaiting.value > 0 ? (
+                      <span class='visually-hidden' data-test='admin-support-badge-label'>
+                        {`${adminSupportSentence.value}.`}
+                      </span>
+                    ) : null}
                   </div>
                 </BNavItem>
               ) : null}

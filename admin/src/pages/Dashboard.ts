@@ -7,7 +7,12 @@ import { type OpenCreationCounts, openCreationsOf } from '@/data/OpenCreations.l
 import { adminOpenCreationCounts } from '@/graphql/adminListContributions.graphql'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore, setOpenCreations } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledCreationGroups,
+  keepHandledCreationGroups,
+} from '@/store/admin.store'
+import { answerOpenCreations, askingOpenCreations } from '@/store/openCreations.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 
 type SupportCounts = NonNullable<Awaited<ReturnType<typeof askOpenSupportTickets>>>
@@ -35,7 +40,13 @@ export class Dashboard implements ClassComponent {
 
   private async askCreations() {
     // Also what the badge in the bar counts, so it is asked anew each time. The server limits
-    // all three to the groups of a group moderator.
+    // all of them to the groups of a group moderator, and the three of "Meine Gruppen" (MG1) to
+    // the choice of whoever sees every group.
+    const of = adminStore.moderator?.gradidoID
+    // marked as the question goes out: a later question or save overtakes the answer, also where
+    // this page is left by then (MG1)
+    const badgeAsked = askingOpenCreations()
+    const choiceAsked = askingHandledCreationGroups()
     const answer = await graphqlRequest<OpenCreationCounts>(adminOpenCreationCounts)
     this.creationsAsked = true
     if (!answer.success) {
@@ -43,7 +54,8 @@ export class Dashboard implements ClassComponent {
       return
     }
     this.counts = openCreationsOf(answer.value)
-    setOpenCreations(this.counts.open)
+    answerOpenCreations(badgeAsked, this.counts.open)
+    keepHandledCreationGroups(of, answer.value.handledCreationGroups, choiceAsked)
   }
 
   private async askSupport() {
@@ -71,9 +83,16 @@ export class Dashboard implements ClassComponent {
     return open === 1 ? t('dashboard.supportOne') : t('dashboard.support', { n: open })
   }
 
+  private supportElsewhere(open: number) {
+    return open === 1
+      ? t('dashboard.supportElsewhereOne')
+      : t('dashboard.supportElsewhere', { n: open })
+  }
+
   view() {
-    const counts = this.counts
-    const support = this.creationsAsked ? this.support : null
+    // who switched an area off in "Meine Gruppen" (MG5) reads nothing of it here
+    const counts = this.counts?.off ? null : this.counts
+    const support = this.creationsAsked && !this.support?.off ? this.support : null
     const supportOpen = support ? support.forModeration + support.forMember : 0
     return m('.admin-dashboard', [
       m('h2.h4.mb-3', t('dashboard.welcome')),
@@ -115,6 +134,17 @@ export class Dashboard implements ClassComponent {
             t('dashboard.resubmission', { n: counts.onResubmission }),
           )
         : null,
+      // What is open outside "Meine Gruppen", quietly and without a link: nothing waits unseen
+      // that nobody ticked (MG1).
+      counts?.elsewhere
+        ? m(
+            'p.mb-1.text-body-secondary',
+            { 'data-test': 'open-elsewhere' },
+            counts.elsewhere === 1
+              ? t('dashboard.elsewhereOne')
+              : t('dashboard.elsewhere', { n: counts.elsewhere }),
+          )
+        : null,
       // the support requests of the open tab, below the creation's lines, in the same form
       support
         ? m(
@@ -150,6 +180,15 @@ export class Dashboard implements ClassComponent {
             'p.mb-1',
             { 'data-test': 'support-on-resubmission' },
             t('dashboard.resubmission', { n: support.onResubmission }),
+          )
+        : null,
+      // What is open outside "Meine Gruppen", quietly and without a link, as for contributions
+      // (MG2); the server counts it only for whoever chose, so it never stands for anybody else.
+      support?.elsewhere
+        ? m(
+            'p.mb-1.text-body-secondary',
+            { 'data-test': 'support-open-elsewhere' },
+            this.supportElsewhere(support.elsewhere),
           )
         : null,
     ])

@@ -80,21 +80,32 @@ query adminListContributionsCount(
 # The open creations of the admin's start page, in one request. What waits for the moderation and
 # what waits for the member are the two halves of the tab "open" of the creation page, with what
 # it hides until its resubmission date. What is hidden has no filter of its own: it is all that is
-# open, less the two.
+# open, less the two. All three in "Meine Gruppen" (MG1) -- for whoever chose nothing everything they
+# see --; beside them everything open, for the line about the other groups, and the choice itself.
 query adminOpenCreationCounts {
   waitingForModeration: adminListContributions(
-    filter: { statusFilter: [PENDING], hideResubmission: true }
+    filter: { statusFilter: [PENDING], hideResubmission: true, creationGroup: "*handled" }
   ) {
     contributionCount
   }
   waitingForMember: adminListContributions(
-    filter: { statusFilter: [IN_PROGRESS], hideResubmission: true }
+    filter: { statusFilter: [IN_PROGRESS], hideResubmission: true, creationGroup: "*handled" }
   ) {
     contributionCount
   }
   allOpen: adminListContributions(
-    filter: { statusFilter: [IN_PROGRESS, PENDING], hideResubmission: false }
+    filter: { statusFilter: [IN_PROGRESS, PENDING], hideResubmission: false, creationGroup: "*handled" }
   ) {
     contributionCount
+  }
+  everythingOpen: adminListContributions(
+    filter: { statusFilter: [IN_PROGRESS, PENDING], hideResubmission: true }
+  ) {
+    contributionCount
+  }
+  handledCreationGroups {
+    groupIds
+    untagged
+    off
   }
 }

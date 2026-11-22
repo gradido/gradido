@@ -79,6 +79,10 @@ test('lists a member without an address', async ({ page, graphql }) => {
 
 test('lists the members of the first page, asking once', async ({ page, graphql }) => {
   await signIn(page, '/user')
+  // the page's name, the menu's word, as the creation and the support page have theirs
+  await expect(
+    page.getByRole('heading', { name: de.navbar.user_search, exact: true }),
+  ).toBeVisible()
 
   await expect(rows(page)).toHaveCount(5)
   await expect(page.getByTestId('user-search-hits')).toHaveText('60 Treffer')

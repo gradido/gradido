@@ -57,9 +57,12 @@ import { writeSupportTicketMessage } from '@/interactions/writeSupportTicketMess
 import { Context, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
 import { countSupportTicketRead, countSupportTicketWrite } from './util/countSupportTicket'
-import { GROUPED_FILTER, UNTAGGED_FILTER } from './util/findContributions'
+import { GROUPED_FILTER, HANDLED_FILTER, UNTAGGED_FILTER } from './util/findContributions'
 import { fromDatabase } from './util/fromDatabase'
-import { describeModeratorCreationGroups } from './util/moderatorCreationGroupScope'
+import {
+  describeModeratorCreationGroups,
+  handledSupportGroupsOfRole,
+} from './util/moderatorCreationGroupScope'
 import { mailMemberOfSupportAnswer } from './util/supportTicketAnswerMail'
 import {
   mailModeratorsOfSupportTicket,
@@ -68,9 +71,19 @@ import {
 
 /**
  * The group filter as the admin's choice sends it, the creation page's tokens (findContributions):
- * '' any group, `*grouped` some, `*untagged` none, else a group's tag.
+ * '' any group, `*grouped` some, `*untagged` none, `*handled` "Meine Gruppen" of the support of the
+ * role (MG2, its own column since MG2b), else a group's tag.
+ *
+ * ⛔ `*handled` before the tag: taken for one, it would name no group, and every administrator's
+ * support page would open empty. For whoever has no choice it is any group, nothing beyond the scope.
  */
-const groupFilterOf = (creationGroup: string): SupportTicketFilter['group'] => {
+const groupFilterOf = (
+  creationGroup: string,
+  role: Parameters<typeof handledSupportGroupsOfRole>[0],
+): SupportTicketFilter['group'] => {
+  if (creationGroup === HANDLED_FILTER) {
+    return handledSupportGroupsOfRole(role)
+  }
   if (creationGroup === GROUPED_FILTER) {
     return 'GROUPED'
   }
@@ -156,7 +169,7 @@ export class SupportTicketModerationResolver {
         scope,
         {
           words: searchWords(page.output.query),
-          group: groupFilterOf(page.output.creationGroup),
+          group: groupFilterOf(page.output.creationGroup, context.user?.userRole),
           hideResubmissionsAfter: page.output.hideResubmission ? new Date() : null,
         },
         (page.output.currentPage - 1) * page.output.pageSize,
@@ -242,18 +255,24 @@ export class SupportTicketModerationResolver {
    * How many requests the open tab holds, as its two halves (K3): waiting for the moderation,
    * waiting for the member -- and apart from them what waits for a resubmission still to come,
    * which the tab opens without (K4). Within the scope, the moderator's own requests counted as
-   * the tab lists them -- what the badges and the start page show.
+   * the tab lists them -- what the badges and the start page show. Always "Meine Gruppen" of the
+   * support (MG2, MG2b), and beside it what is open and waiting elsewhere in the scope: one statement, one moment, so
+   * the line "In anderen Gruppen" cannot come from two counts that drift apart. No argument.
    */
   @Authorized([RIGHTS.MANAGE_SUPPORT_TICKETS])
   @Query(() => AdminOpenSupportTickets)
   async adminCountOpenSupportTickets(@Ctx() context: Context): Promise<AdminOpenSupportTickets> {
     countSupportTicketRead(context)
-    return fromDatabase(SUPPORT_TICKET_NOT_READ, () =>
-      dbCountOpenSupportTicketsInScope(
-        describeModeratorCreationGroups(context.user?.userRole),
+    const role = context.user?.userRole
+    const handled = handledSupportGroupsOfRole(role)
+    return fromDatabase(SUPPORT_TICKET_NOT_READ, async () => ({
+      ...(await dbCountOpenSupportTicketsInScope(
+        describeModeratorCreationGroups(role),
         new Date(),
-      ),
-    )
+        handled,
+      )),
+      off: handled?.off === true,
+    }))
   }
 
   /**
@@ -517,10 +536,7 @@ export class SupportTicketModerationResolver {
     )
     // who hears of it in the group it goes to (K5, SUA-024 point 6): read before the write and
     // never throwing -- neither who hands it on nor the member who asked
-    const recipients = await readSupportTicketMailRecipients(target?.tag ?? null, [
-      moderator.id,
-      ticket.userId,
-    ])
+    const recipients = await readSupportTicketMailRecipients(target, [moderator.id, ticket.userId])
     const written = await fromDatabase(SUPPORT_TICKET_NOT_STORED, () =>
       writeSupportTicketMessage(
         moderatorReassigner({

@@ -1,11 +1,10 @@
 // AI-GENERATED — not an architecture reference
-import { creationGroups } from '@/graphql/creationGroups.graphql'
+import { creationGroupsAndHandledSupport } from '@/graphql/creationGroups.graphql'
 import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
   adminListSupportTickets,
   adminReassignSupportTicket,
-  adminSetSupportTicketsActive,
   supportTicketsMenu,
 } from '@/graphql/supportTickets.graphql'
 import { keepLastSearch, keepLastTab, lastSearch, lastTab } from '@/utils/lastSearch'
@@ -25,17 +24,25 @@ import {
 import { ThemedSelect } from '@/components/ThemedSelect'
 import { toastError, toastSuccess } from '@/components/Toasts'
 import { UserQuery } from '@/components/UserQuery'
-import { creationGroupNameSchema } from '@/data/CreationGroup.schema'
+import { HANDLED_FILTER } from '@/data/Contribution.logic'
+import {
+  creationGroupsAndHandledSupportSchema,
+  type NumberedCreationGroup,
+} from '@/data/CreationGroup.schema'
+import { chosenGroupsOf, isSwitchedOff, mayChooseGroups } from '@/data/Moderator.logic'
 import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.logic'
 import {
   type ListedSupportTicket,
-  supportSwitchedSchema,
   supportSwitchSchema,
   supportTicketListSchema,
 } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
 import { t } from '@/i18n'
-import { adminStore } from '@/store/admin.store'
+import {
+  adminStore,
+  askingHandledSupportGroups,
+  keepHandledSupportGroups,
+} from '@/store/admin.store'
 import { askMemberAvatars } from '@/store/memberAvatars.store'
 import { askOpenSupportTickets } from '@/store/openSupportTickets.store'
 import { isPhone } from '@/viewport'
@@ -109,10 +116,6 @@ const DECISIONS = {
   },
 } as const
 
-const groupsSchema = v.object({
-  creationGroups: v.array(creationGroupNameSchema),
-})
-
 /**
  * The support requests of the moderator's groups, under one tab per state, 25 to a page, the
  * newest first (K2), searched by text or by a member and filtered by group (K4); a request opens
@@ -120,7 +123,8 @@ const groupsSchema = v.object({
  * its row (K3), or handed on to another group (K4). After every write -- done or refused -- the
  * page asks for its list and for the count of the open tab anew: what a request is now, the
  * server says. The search and the tab are
- * kept for each moderator on this device (lastSearch.ts); the group filter opens on all they see.
+ * kept for each moderator on this device (lastSearch.ts); the group filter opens on "Meine Gruppen"
+ * (MG2) -- for a moderator with a scope on all they see -- and is not kept.
  *
  * Above the list the switch of new requests (K5, SUA-019): an administrator ticks it on and off --
  * off only after a question that names the requests still open --, a moderator reads a line while
@@ -130,9 +134,14 @@ export class Support implements ClassComponent {
   private readonly moderator = adminStore.moderator
   private tab = lastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, TABS.length)
   private query = lastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID)
-  private groups: v.InferOutput<typeof groupsSchema>['creationGroups'] = []
-  // the first choice, all the moderator sees: their choices are known before the groups are
-  private group = this.moderator ? supportGroupFilterOptions(this.moderator, [])[0].value : ''
+  private groups: NumberedCreationGroup[] = []
+  // The first choice on offer, known before the groups are: "Meine Gruppen" for whoever sees every
+  // group, whether or not the admin knows the choice yet (MG2); for a moderator with a scope all
+  // they see. Who switched the support off (MG5) opens on everything: nothing of it is theirs.
+  private group =
+    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+      ? supportGroupFilterOptions(this.moderator, [], null)[0].value
+      : ''
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
   // only: a search given here stays, also where it finds nothing.
   private keptOnTrial = this.query !== ''
@@ -150,17 +159,41 @@ export class Support implements ClassComponent {
   private readonly deciding = new Set<number>()
   // whether members file new requests (K5): null until the server said, and then nothing is shown
   private supportActive: boolean | null = null
-  // the question before switching new requests off, with how many requests are open (null: the
-  // count did not come)
-  private switchingOff: { open: number | null } | null = null
-  // a switch on its way: a second click sends nothing
-  private switching = false
+  // the question for the groups and the choice, on its way from the page's opening
+  private choice: Promise<void> = Promise.resolve()
 
   oninit() {
-    // in a request of its own, as the creation page asks: the groups are not support's to count
-    graphqlRequest(creationGroups).then((answer) => {
+    // The groups and the choice in a request of their own, as the creation page asks (MG2): the
+    // first list does not wait for them. The choice -- the column "Support" of the page of the
+    // choice (MG2b) -- changes the words of the filter, and whether "(mit und ohne Gruppe)" stands
+    // for "" or HANDLED_FILTER.
+    const of = this.moderator?.gradidoID
+    const choiceAsked = askingHandledSupportGroups()
+    this.choice = graphqlRequest(creationGroupsAndHandledSupport).then((answer) => {
       if (answer.success) {
-        this.groups = v.parse(groupsSchema, answer.value).creationGroups
+        const { creationGroups, handledSupportGroups } = v.parse(
+          creationGroupsAndHandledSupportSchema,
+          answer.value,
+        )
+        this.groups = creationGroups
+        keepHandledSupportGroups(of, handledSupportGroups, choiceAsked)
+        // "" is offered beside a choice only, to whoever may choose. Picked while the page still
+        // knew one that was cleared on another device, the same list is called by the row that now
+        // means everything. A moderator of groups and of no group begins on "" (SUA-026): his stays.
+        const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+        if (
+          this.group === '' &&
+          mayChooseGroups(this.moderator) &&
+          !off &&
+          !chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
+        ) {
+          this.group = HANDLED_FILTER
+        } else if (off && this.group === HANDLED_FILTER) {
+          // asked before the admin knew: nothing of the support is theirs (MG5). No search given
+          // here: a kept one stays on trial, for this list to judge (coderabbit on #4318).
+          this.group = ''
+          this.load(1)
+        }
       }
     })
     this.load(this.page)
@@ -178,60 +211,25 @@ export class Support implements ClassComponent {
   }
 
   /**
-   * The administrator's box (K5): switching off asks first and names all requests still open --
-   * also those waiting for a resubmission, which the badges leave out (K4) --; switching on asks
-   * nothing (only one way does harm).
+   * While new requests are off (K5), a line says so above the search; an administrator's leads to
+   * where it is switched, Einstellungen → Support (SupportSettings.ts). Nothing while they are on,
+   * or where the server could not say.
    */
-  private async toggleSwitch(active: boolean) {
-    if (active) {
-      await this.setSwitch(true)
-      return
-    }
-    const halves = await askOpenSupportTickets()
-    this.switchingOff = {
-      open: halves ? halves.forModeration + halves.forMember + halves.onResubmission : null,
-    }
-  }
-
-  /** Sets the switch; the box then stands as the server says it holds. */
-  private async setSwitch(active: boolean) {
-    if (this.switching) {
-      return
-    }
-    this.switching = true
-    const answer = await graphqlRequest(adminSetSupportTicketsActive, { active })
-    this.switching = false
-    if (!answer.success) {
-      toastError(t('support.failed'))
-      return
-    }
-    this.supportActive = v.parse(supportSwitchedSchema, answer.value).adminSetSupportTicketsActive
-    toastSuccess(t(this.supportActive ? 'support.switch.on' : 'support.switch.off'))
-  }
-
-  /** The row of the switch: the box for an administrator, a line for a moderator while it is off. */
   private switchRow() {
-    if (this.supportActive === null) {
+    if (this.supportActive !== false) {
       return null
     }
-    if (this.moderator?.role !== 'ADMIN') {
-      return this.supportActive
-        ? null
-        : m('p.mt-2.mb-0.support-switch-off', t('support.switch.off'))
-    }
-    // the word is the label of the box, so a tap on it ticks the box too
-    return m('.mt-2.support-switch', [
-      m('p.mb-0.d-flex.align-items-center', [
-        m('input#support-tickets-active', {
-          type: 'checkbox',
-          checked: this.supportActive,
-          disabled: this.switching,
-          onchange: (event: Event) => this.toggleSwitch((event.target as HTMLInputElement).checked),
-        }),
-        m('label.ms-2', { for: 'support-tickets-active' }, t('support.switch.label')),
-      ]),
-      m('small.d-block.text-muted', t('support.switch.hint')),
-    ])
+    const line = t('support.switch.off')
+    return m(
+      'p.mt-2.mb-0.support-switch-off',
+      this.moderator?.role === 'ADMIN'
+        ? m(
+            m.route.Link,
+            { href: '/support-settings', 'data-test': 'support-switch-settings' },
+            line,
+          )
+        : line,
+    )
   }
 
   /**
@@ -261,6 +259,12 @@ export class Support implements ClassComponent {
       answer.value,
     ).adminListSupportTickets
     if (this.keptOnTrial && count === 0) {
+      // "Meine Gruppen" switched off finds nothing, whatever the search (MG5): then the choice asks
+      // for another list, and that one judges it
+      await this.choice
+      if (asked !== this.asked) {
+        return
+      }
       this.query = ''
       this.searchAnew()
       return
@@ -338,9 +342,13 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
+    const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
-    return m('.support-tickets.creation-confirm.mt-2', [
-      // a row of its own above the search: it moves neither the search nor the box below (K5)
+    return m('.support-tickets.creation-confirm', [
+      // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
+      m('h2.h4.mb-3', t('navbar.support')),
+      // the line while new requests are off, a row of its own above the search (K5)
       this.switchRow(),
       // the search and the group side by side; on a narrow window one above the other
       m('.creation-filters.mt-2.mb-2', [
@@ -357,7 +365,19 @@ export class Support implements ClassComponent {
           class: 'creation-group-filter',
           'data-test': 'support-group-filter',
           value: this.group,
-          options: this.moderator ? supportGroupFilterOptions(this.moderator, this.groups) : [],
+          options: this.moderator
+            ? supportGroupFilterOptions(this.moderator, this.groups, chosen, off)
+            : [],
+          // a way to the page of the choice, below the groups: leaves the filter as it is
+          link: mayChooseGroups(this.moderator)
+            ? {
+                href: '/my-groups',
+                text: t(
+                  chosen || off ? 'creationGroupFilter.editMine' : 'creationGroupFilter.chooseMine',
+                ),
+                'data-test': 'support-group-filter-mine',
+              }
+            : undefined,
           onchange: (group: string) => {
             this.group = group
             this.searchAnew()
@@ -447,25 +467,6 @@ export class Support implements ClassComponent {
         noEndButtons: phone,
         onpage: (page: number) => this.load(page),
       }),
-      this.switchingOff
-        ? m(ConfirmModal, {
-            title: t('support.switch.confirmTitle'),
-            body: [
-              t('support.switch.confirmBody'),
-              this.switchingOff.open === null
-                ? ''
-                : t('support.switch.confirmOpen', { open: this.switchingOff.open }),
-            ]
-              .filter(Boolean)
-              .join(' '),
-            yes: t('support.switch.confirmYes'),
-            variant: 'danger',
-            onyes: () => this.setSwitch(false),
-            onclose: () => {
-              this.switchingOff = null
-            },
-          })
-        : null,
       pending && asked
         ? m(ConfirmModal, {
             title: t(asked.title),

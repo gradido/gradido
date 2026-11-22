@@ -22,6 +22,8 @@ export interface RoleHolderWithContact {
   role: string
   visibleCreationGroups: string | null
   supportDuty: boolean
+  /** "Meine Gruppen" of the support (MG2b), its JSON text: whether they handle none (MG5) */
+  handledSupportGroups: string | null
   firstName: string | null
   lastName: string | null
   language: string
@@ -44,6 +46,7 @@ export async function dbSelectRoleHoldersWithContact(): Promise<RoleHolderWithCo
       role: userRolesTable.role,
       visibleCreationGroups: userRolesTable.visibleCreationGroups,
       supportDuty: userRolesTable.supportDuty,
+      handledSupportGroups: userRolesTable.handledSupportGroups,
       firstName: usersTable.firstName,
       lastName: usersTable.lastName,
       language: usersTable.language,
@@ -114,6 +117,40 @@ export async function dbUpdateUserRoleSupportDuty(
     : {
         success: false,
         error: new DBNotFoundError('user_roles', `user_id = ${userId} with a moderator role`),
+      }
+}
+
+/** "Meine Gruppen" as the role row stores it: one JSON text per column, null where nothing is chosen. */
+export interface StoredHandledGroups {
+  /** the groups whose creations the holder handles (MG1), handled_creation_groups */
+  creation: string | null
+  /** the groups whose support requests the holder handles (MG2b), handled_support_groups */
+  support: string | null
+}
+
+/**
+ * Sets "Meine Gruppen" on the member's role row, both columns in one statement -- the JSON texts
+ * handledCreationGroupsOf reads in the backend -- or clears a column with null. Where that row holds
+ * one of ASSIGNABLE_ROLE_NAMES, the role the condition of the very statement: a role taken away in
+ * the meantime gets nothing written, and answers like a missing row. Whether a choice counts under
+ * the role of the moment the backend decides on reading, so a role change needs nothing here. A
+ * choice saved twice is found the second time too (FOUND_ROWS, see dbUpdateUserRoleSupportDuty).
+ */
+export async function dbUpdateUserRoleHandledGroups(
+  userId: number,
+  { creation, support }: StoredHandledGroups,
+): Promise<VoidResult<DBNotFoundError>> {
+  const [result] = await drizzleDb()
+    .update(userRolesTable)
+    .set({ handledCreationGroups: creation, handledSupportGroups: support, updatedAt: new Date() })
+    .where(
+      and(eq(userRolesTable.userId, userId), inArray(userRolesTable.role, ASSIGNABLE_ROLE_NAMES)),
+    )
+  return result.affectedRows === 1
+    ? { success: true }
+    : {
+        success: false,
+        error: new DBNotFoundError('user_roles', `user_id = ${userId} with a role`),
       }
 }
 

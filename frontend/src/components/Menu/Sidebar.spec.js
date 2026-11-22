@@ -32,6 +32,10 @@ const i18n = createI18n({
   messages: {
     en: {
       navigation: {
+        adminCreations:
+          '{n} creation is waiting for moderation | {n} creations are waiting for moderation',
+        adminSupportTickets:
+          '{n} support request is waiting for moderation | {n} support requests are waiting for moderation',
         overview: 'Overview',
         send: 'Send',
         calculator: 'Calculator',
@@ -737,5 +741,170 @@ describe('Sidebar and the contributions with a question back', () => {
     const wrapper = mountSidebar({ creationAllowed: false })
     expect(creationEntry(wrapper).exists()).toBe(false)
     expect(badge(wrapper).exists()).toBe(false)
+  })
+})
+
+/**
+ * "Meine Gruppen" (MG3): behind "Admin", what waits for the moderation in the member's own groups,
+ * in Bernd's form -- the creations raised in a square box, the support requests lowered and round.
+ * The numbers come through the real beat (useChatUpdates), as the chat's do; where they stand on
+ * the screen, and that they move nothing, is measured in the built wallet.
+ */
+describe('Sidebar and what waits for the moderation (MG3)', () => {
+  const answer = (moderationWaiting) => ({
+    data: {
+      newChatMessagesSince: { latestId: 1, unreadConversations: 0, messages: [], hasMore: false },
+      moderationWaiting,
+    },
+  })
+  const beatBrings = async (waiting) => {
+    startChatUpdates({ query: vi.fn(async () => answer(waiting)) })
+    await flushPromises()
+  }
+  const mountSidebar = (state = { role: 'ADMIN' }) =>
+    mount(Sidebar, {
+      global: {
+        plugins: [createWalletStore(state), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+  const adminEntry = (wrapper) =>
+    wrapper.findAll('.nav-item').find((item) => item.find('[data-test="admin-menu-icon"]').exists())
+  const square = (wrapper) => wrapper.find('[data-test="admin-creations-badge"]')
+  const round = (wrapper) => wrapper.find('[data-test="admin-support-badge"]')
+  const sentences = (wrapper) =>
+    ['admin-creations-badge-label', 'admin-support-badge-label']
+      .map((name) => wrapper.find(`[data-test="${name}"]`))
+      .filter((found) => found.exists())
+      .map((found) => found.text())
+  const rows = (wrapper) => adminEntry(wrapper).findAll('.admin-mark-row')
+
+  afterEach(() => {
+    stopChatUpdates()
+  })
+
+  it('shows no mark while nothing waits, and the entry as before', async () => {
+    await beatBrings({ creations: 0, supportTickets: 0 })
+    const wrapper = mountSidebar()
+    expect(adminEntry(wrapper).find('.admin-marks').exists()).toBe(false)
+    expect(sentences(wrapper)).toEqual([])
+    expect(adminEntry(wrapper).text()).toBe('Admin')
+  })
+
+  it('shows both behind the word: the creations above in a square box, the requests below and round', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    const label = adminEntry(wrapper).find('.admin-menu-label')
+    expect(label.element.firstChild.textContent).toBe('Admin')
+    const marks = label.find('.admin-marks')
+    expect(marks.attributes('aria-hidden')).toBe('true')
+    expect(rows(wrapper)).toHaveLength(2)
+    expect(rows(wrapper)[0].find('[data-test="admin-creations-badge"]').exists()).toBe(true)
+    expect(rows(wrapper)[1].find('[data-test="admin-support-badge"]').exists()).toBe(true)
+    expect(square(wrapper).text()).toBe('3')
+    expect(round(wrapper).text()).toBe('2')
+    // the chat's marks, the upper one square
+    expect(square(wrapper).classes()).toEqual(
+      expect.arrayContaining(['chat-unread-badge', 'admin-mark', 'admin-mark-square']),
+    )
+    expect(round(wrapper).classes()).toEqual(
+      expect.arrayContaining(['chat-unread-badge', 'admin-mark']),
+    )
+    expect(round(wrapper).classes()).not.toContain('admin-mark-square')
+  })
+
+  // Where a number is not there, its place stays empty: the place says what is counted.
+  it.each([
+    [{ creations: 3, supportTickets: 0 }, [true, false]],
+    [{ creations: 0, supportTickets: 2 }, [false, true]],
+  ])('keeps each number in its own place: %o', async (waiting, shown) => {
+    await beatBrings(waiting)
+    const wrapper = mountSidebar()
+    expect(rows(wrapper)).toHaveLength(2)
+    expect(rows(wrapper).map((row) => row.find('.admin-mark').exists())).toEqual(shown)
+  })
+
+  it('says each number as a sentence after the word, for the ear, and the same to the mouse', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    // a full stop after each, for the ear: two sentences, not one
+    expect(sentences(wrapper)).toEqual([
+      '3 creations are waiting for moderation.',
+      '2 support requests are waiting for moderation.',
+    ])
+    expect(square(wrapper).attributes('title')).toBe('3 creations are waiting for moderation')
+    expect(round(wrapper).attributes('title')).toBe('2 support requests are waiting for moderation')
+    const word = adminEntry(wrapper).find('.admin-menu-label')
+    for (const name of ['admin-creations-badge-label', 'admin-support-badge-label']) {
+      const said = wrapper.find(`[data-test="${name}"]`)
+      expect(said.classes()).toContain('visually-hidden')
+      // after the word, outside the marks a screen reader does not hear
+      expect(
+        word.element.compareDocumentPosition(said.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(said.element.closest('[aria-hidden="true"]')).toBeNull()
+    }
+  })
+
+  it('says one of each in the singular', async () => {
+    await beatBrings({ creations: 1, supportTickets: 1 })
+    expect(sentences(mountSidebar())).toEqual([
+      '1 creation is waiting for moderation.',
+      '1 support request is waiting for moderation.',
+    ])
+  })
+
+  it('stops the figures at 99+, and the sentences say the number', async () => {
+    await beatBrings({ creations: 120, supportTickets: 150 })
+    const wrapper = mountSidebar()
+    expect([square(wrapper).text(), round(wrapper).text()]).toEqual(['99+', '99+'])
+    expect(sentences(wrapper)).toEqual([
+      '120 creations are waiting for moderation.',
+      '150 support requests are waiting for moderation.',
+    ])
+  })
+
+  it('shows no support number for a moderator who does not handle the support', async () => {
+    await beatBrings({ creations: 3, supportTickets: null })
+    const wrapper = mountSidebar({ role: 'MODERATOR' })
+    expect(square(wrapper).text()).toBe('3')
+    expect(round(wrapper).exists()).toBe(false)
+    expect(sentences(wrapper)).toEqual(['3 creations are waiting for moderation.'])
+  })
+
+  it('has neither the entry nor a mark for a member without a role, whatever the beat holds', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar({ role: null })
+    expect(wrapper.find('[data-test="admin-menu-icon"]').exists()).toBe(false)
+    expect(square(wrapper).exists()).toBe(false)
+    expect(round(wrapper).exists()).toBe(false)
+    expect(sentences(wrapper)).toEqual([])
+  })
+
+  it("goes when the beat stops: the numbers were the member's", async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    expect(square(wrapper).exists()).toBe(true)
+    stopChatUpdates()
+    await flushPromises()
+    expect(adminEntry(wrapper).find('.admin-marks').exists()).toBe(false)
+  })
+
+  it('stands at the end of the word, taking no room in the row, in the stylesheet', () => {
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.module.scss'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) =>
+      style.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+
+    expect(rule('\\.admin-menu-label')).toMatch(/position:\s*relative/)
+    expect(rule('\\.admin-marks')).toMatch(/position:\s*absolute/)
+    expect(rule('\\.admin-marks')).toMatch(/left:\s*100%/)
+    expect(rule('\\.admin-mark-row \\+ \\.admin-mark-row')).toMatch(/margin:\s*2px 0 0 10px/)
+    // the chat's mark standing in its row, not hanging on a corner; the upper one square
+    expect(rule('\\.chat-unread-badge\\.admin-mark')).toMatch(/position:\s*static/)
+    expect(rule('\\.chat-unread-badge\\.admin-mark-square')).toMatch(/border-radius:\s*3px/)
   })
 })

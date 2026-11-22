@@ -1,8 +1,15 @@
+import { Paginated } from '@arg/Paginated'
+import { SearchContributionsFilterArgs } from '@arg/SearchContributionsFilterArgs'
+import { ContributionStatus } from '@enum/ContributionStatus'
 import { RoleNames } from '@enum/RoleNames'
 import { Contribution as DbContribution, UserRole as DbUserRole } from 'database'
+import { handledCreationGroupsOf } from '@/data/HandledCreationGroups.logic'
+import type { HandledCreationGroups } from '@/data/HandledCreationGroups.schema'
 import { LogError } from '@/server/LogError'
 import {
   buildModeratorScopePredicate,
+  findContributions,
+  HANDLED_FILTER,
   parseModeratorScope,
   UNTAGGED_FILTER,
 } from './findContributions'
@@ -85,6 +92,67 @@ export const describeModeratorCreationGroups = (
   // Only sentinels left (in practice just '*untagged'): a real, narrow assignment, not a
   // free pass — the page lists these moderators under their own heading.
   return { tags, seesAllCreationGroups: false, seesUntagged: scope.includes(UNTAGGED_FILTER) }
+}
+
+// Who may switch an area off for themself in "Meine Gruppen" (MG5): an administrator. A moderator's
+// areas are the administrator's to assign -- the tick of K6 for the support, the scope -- and not
+// theirs to leave.
+export const maySwitchHandledGroupsOff = (role?: Pick<DbUserRole, 'role'> | null): boolean =>
+  role?.role === RoleNames.ADMIN
+
+// What handledCreationGroupsOf asks of a role, for both columns.
+const handledGroupsAsked = (role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups'> | null) => ({
+  seesAllCreationGroups: describeModeratorCreationGroups(role).seesAllCreationGroups,
+  maySwitchOff: maySwitchHandledGroupsOff(role),
+})
+
+// "Meine Gruppen" of the creations of the role a request loaded: the choice of one who sees every
+// group, else null (handledCreationGroupsOf). The one reading for the creation page, its counts, the
+// number of contributions at "Admin" in the wallet and the choice's own query (MG1, MG3), so that
+// they cannot answer differently.
+export const handledCreationGroupsOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
+): HandledCreationGroups | null =>
+  handledCreationGroupsOf(role?.handledCreationGroups, handledGroupsAsked(role))
+
+// "Meine Gruppen" of the support (MG2b): the same rule over the support's own column. The one
+// reading for the support's list and count, the number of requests at "Admin" in the wallet and the
+// choice's own query.
+export const handledSupportGroupsOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledSupportGroups'> | null,
+): HandledCreationGroups | null =>
+  handledCreationGroupsOf(role?.handledSupportGroups, handledGroupsAsked(role))
+
+// The groups a role's contribution lists are held to: a scoped moderator's scope, else null --
+// what adminListContributions hands findContributions.
+export const moderatorScopeOfRole = (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups'> | null,
+): string[] | null =>
+  role && isScopedModeratorRole(role.role) ? parseModeratorScope(role.visibleCreationGroups) : null
+
+// What waits for the moderation in "Meine Gruppen" of the role (MG3): the count of the line
+// "n warten auf die Moderation" on the admin's start page, `waitingForModeration` of
+// adminOpenCreationCounts -- the filter, the scope and the choice adminListContributions hands
+// findContributions for it, in one place. Not its relations: it joins the member and the address
+// because its empty search word counts as one, and a left join changes no COUNT(DISTINCT id).
+export const countContributionsWaitingForModeration = async (
+  role?: Pick<DbUserRole, 'role' | 'visibleCreationGroups' | 'handledCreationGroups'> | null,
+): Promise<number> => {
+  const filter = Object.assign(new SearchContributionsFilterArgs(), {
+    statusFilter: [ContributionStatus.PENDING],
+    hideResubmission: true,
+    creationGroup: HANDLED_FILTER,
+  })
+  const [, count] = await findContributions(
+    new Paginated(),
+    filter,
+    true,
+    undefined,
+    true,
+    moderatorScopeOfRole(role),
+    handledCreationGroupsOfRole(role),
+  )
+  return count
 }
 
 export const loadModeratorScope = async (userId: number): Promise<string[]> => {

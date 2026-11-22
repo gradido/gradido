@@ -7,7 +7,7 @@ import { icon } from '@/components/icon'
 import { MemberAvatar } from '@/components/MemberAvatar'
 import { CONFIG } from '@/config'
 import { NAV_AVATAR_SIZE } from '@/constants'
-import { supportIsTheirs } from '@/data/Moderator.logic'
+import { mayChooseGroups, supportIsTheirs } from '@/data/Moderator.logic'
 import { markFigure } from '@/data/WalletNews.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { logout as logoutMutation } from '@/graphql/logout'
@@ -163,6 +163,23 @@ export class NavBar implements ClassComponent {
               ),
             ),
             divider,
+            // "Meine Gruppen" (MG1), the moderator's own settings: only where they choose
+            mayChooseGroups(moderator)
+              ? m(
+                  'li',
+                  { role: 'presentation' },
+                  m(
+                    m.route.Link,
+                    {
+                      href: '/my-groups',
+                      class: `dropdown-item ${currentPath() === '/my-groups' ? 'active' : ''}`,
+                      role: 'menuitem',
+                      'data-test': 'navbar-my-groups',
+                    },
+                    t('navbar.myGroups'),
+                  ),
+                )
+              : null,
             m(
               'li',
               { role: 'presentation' },
@@ -228,6 +245,8 @@ export class NavBar implements ClassComponent {
                 { to: '/creation-groups', label: t('navbar.creationGroups') },
                 { to: '/creaSettings', label: t('navbar.crea') },
                 { to: '/chat', label: t('navbar.chat') },
+                // whether members may file new requests (K5), moved here from the support page
+                { to: '/support-settings', label: t('navbar.support') },
               ],
             },
           ]

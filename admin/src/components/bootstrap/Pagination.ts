@@ -95,6 +95,38 @@ export const pageItems = (
   ]
 }
 
+/** Where a key of the menubar moves the focus, from the button in focus among `last + 1`. */
+const MOVES: Record<string, (index: number, last: number) => number> = {
+  ArrowLeft: (index) => Math.max(index - 1, 0),
+  ArrowRight: (index, last) => Math.min(index + 1, last),
+  Home: () => 0,
+  End: (_, last) => last,
+}
+
+/**
+ * The keys of a menubar (WAI-ARIA), as BPagination had them: ← and → move the focus to the button
+ * before or after it, Home and End to the first and the last; Enter and Space press the button in
+ * focus, as any button does. Only the page shown is in the tab order, the others are reached so.
+ * Buttons a small screen hides are passed over.
+ */
+const moveFocus = (event: KeyboardEvent & { redraw?: boolean }) => {
+  // nothing changes but the focus
+  event.redraw = false
+  const move = MOVES[event.key]
+  if (!move) {
+    return
+  }
+  const buttons = [
+    ...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button.page-link'),
+  ].filter((button) => button.offsetParent !== null)
+  const index = buttons.indexOf(document.activeElement as HTMLButtonElement)
+  if (index < 0) {
+    return
+  }
+  event.preventDefault()
+  buttons[move(index, buttons.length - 1)].focus()
+}
+
 /** Bootstrap's pagination, as BPagination drew it. */
 export class Pagination implements ClassComponent<Attrs> {
   view({ attrs }: Vnode<Attrs>) {
@@ -107,6 +139,7 @@ export class Pagination implements ClassComponent<Attrs> {
         role: 'menubar',
         'aria-disabled': 'false',
         'aria-label': 'Pagination',
+        onkeydown: moveFocus,
       },
       pageItems(page, pages, limit, !noEndButtons).map((item) => {
         if (item.kind === 'ellipsis') {

@@ -3,7 +3,7 @@
 import m, { type ComponentTypes, type RouteDefs, type RouteResolver } from 'mithril'
 import { Layout } from '@/components/Layout'
 import { CONFIG } from '@/config'
-import { supportIsTheirs } from '@/data/Moderator.logic'
+import { mayChooseGroups, supportIsTheirs } from '@/data/Moderator.logic'
 import type { Moderator } from '@/data/Moderator.schema'
 import { ChatSettings } from '@/pages/ChatSettings'
 import { ContributionLinks } from '@/pages/ContributionLinks'
@@ -12,10 +12,12 @@ import { CreationConfirm } from '@/pages/CreationConfirm'
 import { CreationGroups } from '@/pages/CreationGroups'
 import { Dashboard } from '@/pages/Dashboard'
 import { FederationVisualize } from '@/pages/FederationVisualize'
+import { MyGroups } from '@/pages/MyGroups'
 import { NotFound } from '@/pages/NotFound'
 import { ProjectBranding } from '@/pages/ProjectBranding'
 import { Statistic } from '@/pages/Statistic'
 import { Support } from '@/pages/Support'
+import { SupportSettings } from '@/pages/SupportSettings'
 import { UserSearch } from '@/pages/UserSearch'
 import { adminStore } from '@/store/admin.store'
 import { authenticate } from './authenticate'
@@ -60,11 +62,14 @@ export const routes: RouteDefs = {
   '/statistic': protectedPage(Statistic),
   '/creation-confirm': protectedPage(CreationConfirm),
   '/support': protectedPage(Support, supportIsTheirs),
+  // "Meine Gruppen" (MG1): not for a moderator with an assigned scope, whose scope is their list
+  '/my-groups': protectedPage(MyGroups, mayChooseGroups),
   '/contribution-links': protectedPage(ContributionLinks),
   '/federation': protectedPage(FederationVisualize, forAdministrators),
   '/projectBranding': protectedPage(ProjectBranding, forAdministrators),
   '/creaSettings': protectedPage(CreaSettings, forAdministrators),
   '/chat': protectedPage(ChatSettings, forAdministrators),
+  '/support-settings': protectedPage(SupportSettings, forAdministrators),
   '/creation-groups': protectedPage(CreationGroups, forAdministrators),
   // The page answered to /group-tags until the rename; old bookmarks still lead there.
   '/group-tags': { onmatch: () => m.route.set('/creation-groups', undefined, { replace: true }) },

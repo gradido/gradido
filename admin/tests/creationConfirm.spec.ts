@@ -17,7 +17,8 @@ const KEPT = 'gradido-admin-last-search'
 // it out from the second request on, so it is compared as the server reads it.
 const question = (
   statusFilter: string[],
-  { query = '', hideResubmission = true, creationGroup = '', currentPage = 1 } = {},
+  // the page opens on "Meine Gruppen" for whoever sees every group, as the moderator here (MG1)
+  { query = '', hideResubmission = true, creationGroup = '*handled', currentPage = 1 } = {},
 ) => ({
   filter: { statusFilter, query, hideResubmission, creationGroup },
   paginated: { currentPage, pageSize: 25, order: 'DESC' },
@@ -76,6 +77,8 @@ const open = async (page: Page) => {
 test('lists the open contributions, asking once', async ({ page, graphql }) => {
   await open(page)
 
+  // the page's name, the menu's word
+  await expect(page.getByRole('heading', { name: de.creation, exact: true })).toBeVisible()
   expect(listQuestions(graphql)).toEqual([question(OPEN)])
   expect(graphql.sentFor('creationGroups')).toHaveLength(1)
   await expect(page.locator('.open-creations-table thead th')).toHaveText([
@@ -275,7 +278,8 @@ test('opens on the search and tab kept, and counts the open ones apart', async (
   await expect(page.locator('.tab-badge')).toHaveText('42')
   expect(listQuestions(graphql)).toEqual(
     expect.arrayContaining([
-      { filter: { statusFilter: OPEN, hideResubmission: true } },
+      // the badges count "Meine Gruppen" (MG1)
+      { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
       question(OPEN, { query: 'member1' }),
     ]),
   )
@@ -304,6 +308,69 @@ test('gives a kept search that finds nothing up for the whole list', async ({ pa
   ])
 })
 
+// MG5: the page asks "Meine Gruppen" before it knows that the creations are switched off, which finds
+// nothing, whatever the search: the list asked then says whether a kept search gives way -- whichever
+// of the two answers comes first
+test('loses no kept search where the creations turn out switched off after the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keep(page, { '/creation-confirm': 'member1', '/creation-confirm#tab': 0 })
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    handledCreationGroups: () => new Promise((resolve) => held.push(resolve)),
+    adminListContributions: (variables: Variables) =>
+      !variables.paginated || (variables.filter as Variables).creationGroup === '*handled'
+        ? contributionList([], 0)
+        : contributionList([listedContribution(1)], 1),
+  })
+  const listed = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('paginated')),
+  )
+  await signIn(page, '/creation-confirm')
+  await (await listed).finished()
+  await expect.poll(() => held.length).toBe(1)
+  held[0]({ groupIds: [], untagged: false, off: true })
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.locator('.test-input-criteria')).toHaveValue('member1')
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toEqual([
+    question(OPEN, { query: 'member1' }),
+    question(OPEN, { query: 'member1', creationGroup: '' }),
+  ])
+})
+
+test('gives a kept search up where the creations turn out switched off before the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keep(page, { '/creation-confirm': 'gone', '/creation-confirm#tab': 0 })
+  graphql.answer({
+    handledCreationGroups: { groupIds: [], untagged: false, off: true },
+    adminListContributions: (variables: Variables) => {
+      if (!variables.paginated) {
+        return contributionList([], 0)
+      }
+      const { creationGroup, query } = variables.filter as Variables
+      // the first list never answers here: the choice overtakes it
+      return creationGroup === '*handled'
+        ? new Promise(() => undefined)
+        : query === 'gone'
+          ? contributionList([], 0)
+          : contributionList([listedContribution(1)], 1)
+    },
+  })
+  await signIn(page, '/creation-confirm')
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(page.locator('.test-input-criteria')).toHaveValue('')
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toEqual([
+    question(OPEN, { query: 'gone' }),
+    question(OPEN, { query: 'gone', creationGroup: '' }),
+    question(OPEN, { creationGroup: '' }),
+  ])
+})
+
 test('filters by group from the first page', async ({ page, graphql }) => {
   await open(page)
   await page.locator('.pagination').getByText('3', { exact: true }).click()
@@ -316,6 +383,8 @@ test('filters by group from the first page', async ({ page, graphql }) => {
     de.creationGroupFilter.untagged,
     'Garten',
     '#kueche',
+    // below a divider, a way and no choice (MG1)
+    de.creationGroupFilter.chooseMine,
   ])
   await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
 
@@ -323,6 +392,213 @@ test('filters by group from the first page', async ({ page, graphql }) => {
     .poll(() => listQuestions(graphql).at(-1))
     .toEqual(question(OPEN, { creationGroup: 'garten' }))
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
+})
+
+// "Meine Gruppen" (MG1): the first row, the fixed ones, then only the groups ticked
+// MG5: the creations switched off, as the support page (support.spec.ts): everything from the start
+test('opens on everything, without "Meine Gruppen", where the creations are switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false, off: true } })
+  await open(page)
+  await expect
+    .poll(() =>
+      listQuestions(graphql).map((question) => (question.filter as Variables).creationGroup),
+    )
+    .toEqual(['*handled', ''])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+})
+
+test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledCreationGroups: { groupIds: [2], untagged: false, off: false } })
+  await open(page)
+
+  expect(listQuestions(graphql)).toEqual([question(OPEN, { creationGroup: '*handled' })])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(
+    de.creationGroupFilter.mine,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.mine,
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listQuestions(graphql).at(-1))
+    .toEqual(question(OPEN, { creationGroup: '' }))
+})
+
+test('leads from the filter to "Meine Gruppen", and leaves the filter as it is', async ({
+  page,
+  graphql,
+}) => {
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).getByTestId('creation-group-filter-mine').click()
+
+  await expect(page).toHaveURL(/\/admin\/my-groups$/)
+  await expect(page.getByRole('heading', { name: de.myGroups.title })).toBeVisible()
+  // no other list was asked for: the line is a way, not a choice
+  expect(listQuestions(graphql)).toEqual([question(OPEN)])
+})
+
+// The number at "Schöpfung" counts one thing (MG1): the open ones in "Meine Gruppen", the
+// resubmissions hidden -- what the start page counts --, whatever list the page shows.
+const counted = (variables: Variables) => {
+  const filter = variables.filter as Variables
+  return filter.creationGroup === 'garten' ? 2 : filter.hideResubmission === false ? 75 : 60
+}
+const countedList = (variables: Variables) =>
+  variables.paginated
+    ? contributionList([...contributions, own], counted(variables))
+    : { contributionCount: counted(variables) }
+const menuBadge = (page: Page) =>
+  page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge')
+
+test('keeps the number at "Schöpfung" while a group or the resubmissions are shown', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminListContributions: countedList })
+  await open(page)
+  await expect(menuBadge(page)).toHaveText('60')
+
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await page.locator('#hide-resubmission').uncheck()
+  await expect.poll(() => listQuestions(graphql).length).toBe(3)
+
+  await expect(menuBadge(page)).toHaveText('60')
+  await expect(page.locator('.tab-badge')).toHaveText('60')
+  // nothing else counted: the list of the badges set them as it loaded
+  expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([])
+})
+
+test('counts the number at "Schöpfung" anew after a decision on another list', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminListContributions: countedList, confirmContribution: true })
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+
+  graphql.answer({
+    adminListContributions: (variables: Variables) =>
+      variables.paginated ? countedList(variables) : { contributionCount: 59 },
+  })
+  await row(page, 0).getByRole('button', { name: de.save, exact: true }).click()
+  await dialog(page).getByRole('button', { name: de.overlay.confirm.yes }).click()
+
+  await expect(menuBadge(page)).toHaveText('59')
+  expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([
+    { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+  ])
+})
+
+// "" is on offer with a choice only (MG1): picked while the page still knew a choice that was
+// cleared on another device, the filter names the same list by the row that now means everything.
+test('names the whole list where the choice was cleared elsewhere as it was picked', async ({
+  page,
+  graphql,
+}) => {
+  // the start page keeps a choice ...
+  graphql.answer({
+    handledCreationGroups: { groupIds: [1], untagged: false, off: false },
+    waitingForModeration: { contributionCount: 0 },
+    waitingForMember: { contributionCount: 0 },
+    allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 0,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+      off: false,
+    },
+  })
+  await signIn(page, '')
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
+          .handledCreationGroups?.groupIds,
+    )
+    .toEqual([1])
+  // ... which another device clears before the creation page asks for it
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    creationGroups: () => new Promise((resolve) => held.push(resolve)),
+    handledCreationGroups: { groupIds: [], untagged: false, off: false },
+  })
+  await page.locator('nav.navbar').getByRole('link', { name: de.creation }).click()
+  await expect(rows(page)).toHaveCount(4)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listQuestions(graphql).at(-1))
+    .toEqual(question(OPEN, { creationGroup: '' }))
+
+  await expect.poll(() => held.length).toBe(1)
+  held[0](groups)
+  // the answer read: the groups stand in the filter
+  await expect(groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' })).toHaveCount(1)
+
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  // the same list, not asked for again
+  expect(listQuestions(graphql).filter((sent) => sent.paginated)).toHaveLength(2)
+})
+
+// The badges' list sets them from its answer also where a search went out meanwhile: the
+// question's mark decides, not the page's own (MG1).
+test('sets the number at "Schöpfung" from the first list, also once a search is typed', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminListContributions: (variables: Variables) => {
+      const filter = variables.filter as Variables
+      if (variables.paginated && filter.query === '' && held.length === 0) {
+        return new Promise((resolve) => held.push(resolve))
+      }
+      // the search finds one contribution the first list does not hold
+      return contributionList([listedContribution(7)], 1)
+    },
+  })
+  await signIn(page, '/creation-confirm')
+  await expect.poll(() => held.length).toBe(1)
+  await page.locator('.test-input-criteria').fill('garden')
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await expect(rows(page)).toHaveCount(1)
+
+  held[0](contributionList([...contributions, own], 42))
+
+  await expect(page.locator('.tab-badge')).toHaveText('42')
+  // the late answer set the badges only: the rows stay the search's
+  await expect(rows(page)).toHaveCount(1)
+  await expect(rows(page).first()).toContainText('First7')
+  await expect(page.locator('.test-input-criteria')).toHaveValue('garden')
 })
 
 test('offers a scoped moderator only the groups they look after', async ({ page, graphql }) => {
@@ -337,7 +613,14 @@ test('offers a scoped moderator only the groups they look after', async ({ page,
   await signIn(page, '/creation-confirm', scoped)
   await expect(rows(page)).toHaveCount(4)
 
-  expect(listQuestions(graphql)).toEqual([question(OPEN, { creationGroup: '*grouped' })])
+  // the list opens on their groups, the badges count all they see, apart (MG1)
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  expect(listQuestions(graphql)).toEqual(
+    expect.arrayContaining([
+      question(OPEN, { creationGroup: '*grouped' }),
+      { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+    ]),
+  )
   await groupFilter(page).locator('.dropdown-toggle').click()
   await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
     de.creationGroupFilter.grouped,
@@ -347,6 +630,13 @@ test('offers a scoped moderator only the groups they look after', async ({ page,
   await expect(page.getByRole('columnheader', { name: de.crea.column })).toHaveCount(0)
 })
 
+// After a decision the badges are counted anew (MG1): the server's count, one fewer.
+const afterOneDecision = (variables: Variables) =>
+  variables.paginated ? contributionList([...contributions, own], 60) : { contributionCount: 59 }
+const COUNTED_ANEW = {
+  filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' },
+}
+
 for (const [decision, button, mutation, toast] of [
   ['confirm', de.save, 'confirmContribution', de.creation_form.toasted_created],
   ['deny', de.deny, 'denyContribution', de.creation_form.toasted_denied],
@@ -355,6 +645,7 @@ for (const [decision, button, mutation, toast] of [
   test(`asks once more, then sends the decision ${decision}`, async ({ page, graphql }) => {
     graphql.answer({ [mutation]: true })
     await open(page)
+    graphql.answer({ adminListContributions: afterOneDecision })
 
     await row(page, 0).getByRole('button', { name: button, exact: true }).click()
     await expect(dialog(page).locator('.modal-title')).toHaveText(de.overlay[decision].title)
@@ -376,7 +667,8 @@ for (const [decision, button, mutation, toast] of [
     await expect(page.getByRole('alert')).toContainText(toast)
     await expect(page.locator('.tab-badge')).toHaveText('59')
     expect(graphql.sentFor(mutation).map((sent) => sent.variables)).toEqual([{ id: 1 }])
-    expect(listQuestions(graphql)).toHaveLength(1)
+    // the list stays, the badges are counted anew (MG1)
+    expect(listQuestions(graphql)).toEqual([question(OPEN), COUNTED_ANEW])
   })
 }
 
@@ -396,6 +688,7 @@ test('keeps a contribution whose decision is refused', async ({ page, graphql })
 test('sends a decision once, however often it is pressed', async ({ page, graphql }) => {
   graphql.answer({ denyContribution: true })
   await open(page)
+  graphql.answer({ adminListContributions: afterOneDecision })
 
   await row(page, 0).getByRole('button', { name: de.deny, exact: true }).click()
   await dialog(page).getByRole('button', { name: de.overlay.deny.yes }).dblclick()

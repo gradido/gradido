@@ -113,6 +113,10 @@ export enum RIGHTS {
   // writing it, one right for both -- every moderator reads and writes the same remark. ⛔ Never in
   // USER_RIGHTS: the member it is about must not read it, in the wallet or anywhere else.
   MANAGE_USER_REMARKS = 'MANAGE_USER_REMARKS',
+  // "Meine Gruppen" (MG1, UserCreationGroupResolver): reading and saving the creation groups the
+  // caller handles themself. Every call reaches the caller's own role row and nothing else -- no
+  // operation takes a member.
+  HANDLED_CREATION_GROUPS = 'HANDLED_CREATION_GROUPS',
   // The contact list and the hearts on it -- one right, because every call reaches the
   // caller's own bookings, conversations and favourites, nothing else.
   MANAGE_OWN_CONTACTS = 'MANAGE_OWN_CONTACTS',
@@ -168,6 +172,11 @@ export enum RIGHTS {
   // back (a mail to the support — it switches nothing; an administrator does that).
   DECLARE_PROJECT_ACCOUNT = 'DECLARE_PROJECT_ACCOUNT',
   REQUEST_CREATION_RIGHT = 'REQUEST_CREATION_RIGHT',
+  // "Meine Gruppen" (MG3): the two numbers behind "Admin" in the wallet's menu
+  // (ModerationWaitingResolver). Every wallet asks for them with the chat's beat, and whoever
+  // moderates nothing gets null without a count: what may be counted, the role's own rights
+  // decide (ADMIN_LIST_CONTRIBUTIONS, MANAGE_SUPPORT_TICKETS), not this key.
+  MODERATION_WAITING = 'MODERATION_WAITING',
   // Moderator AI
   AI_SEND_MESSAGE = 'AI_SEND_MESSAGE',
   SET_USER_SALUTATION = 'SET_USER_SALUTATION',
