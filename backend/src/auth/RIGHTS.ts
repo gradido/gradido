@@ -172,7 +172,7 @@ export enum RIGHTS {
   // back (a mail to the support — it switches nothing; an administrator does that).
   DECLARE_PROJECT_ACCOUNT = 'DECLARE_PROJECT_ACCOUNT',
   REQUEST_CREATION_RIGHT = 'REQUEST_CREATION_RIGHT',
-  // "Meine Gruppen" (MG3): the two numbers behind "Admin" in the wallet's menu
+  // "Meine Gruppen" (MG3): the two numbers at "Admin" in the wallet's menu
   // (ModerationWaitingResolver). Every wallet asks for them with the chat's beat, and whoever
   // moderates nothing gets null without a count: what may be counted, the role's own rights
   // decide (ADMIN_LIST_CONTRIBUTIONS, MANAGE_SUPPORT_TICKETS), not this key.

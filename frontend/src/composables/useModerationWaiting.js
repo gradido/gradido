@@ -5,7 +5,7 @@ import { readonly, ref } from 'vue'
 /**
  * What the chat's beat brings of the moderation (`moderationWaiting`, "Meine Gruppen" MG3): how
  * many creations and how many support requests wait for the moderation in the member's own groups
- * -- the two numbers behind "Admin" in the menu, the lines "n warten auf die Moderation" of the
+ * -- the two numbers at "Admin" in the menu, the lines "n warten auf die Moderation" of the
  * admin's start page. 0 for whoever moderates nothing: the server answers them null.
  *
  * ⛔ No question of its own and no timer, as useContributionsInProgress: one field more in the
@@ -17,10 +17,10 @@ import { readonly, ref } from 'vue'
 const creations = ref(0)
 const supportTickets = ref(0)
 
-/** Creations waiting for the moderation: the square mark. 0 before the first answer. */
+/** Creations waiting for the moderation: the upper mark. 0 before the first answer. */
 export const moderationCreationsWaiting = readonly(creations)
 
-/** Support requests waiting for the moderation: the round mark. 0 before the first answer. */
+/** Support requests waiting for the moderation: the lower mark. 0 before the first answer. */
 export const moderationSupportTicketsWaiting = readonly(supportTickets)
 
 /**

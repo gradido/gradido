@@ -19,7 +19,7 @@ const createLogger = () =>
 @Resolver()
 export class ModerationWaitingResolver {
   /**
-   * The two numbers behind "Admin" in the wallet's menu ("Meine Gruppen", MG3): what waits for the
+   * The two numbers at "Admin" in the wallet's menu ("Meine Gruppen", MG3): what waits for the
    * moderation in the caller's own groups -- the contributions in those of the column "Schöpfung",
    * the requests in those of the column "Support" (MG2b) -- the lines "n warten auf die Moderation" of the admin's
    * start page, counted with the same conditions: `waitingForModeration` of adminOpenCreationCounts
