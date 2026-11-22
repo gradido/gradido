@@ -99,7 +99,7 @@ in `main.js` (`useFilters.ts` hands them to the TSX components).
 No page yet; everything a page needs.
 
 *2a, done:* `request` (`graphql/client.ts`), the session
-(`store/Session.ts`, `data/Member.schema.ts`), `Resource`, the device values, `repeatWhileVisible`. Left
+(`store/Session.ts`, `data/Member.schema.ts`), `Resource`, the device values (`store/DeviceStore.ts`), `repeatWhileVisible`. Left
 out on purpose, each to come with its first caller: the fields of the old store that are not the
 member (`redirectPath`, `project`, `preLoginLanguage`, …), the per-member key of a device value,
 the merged GraphQL documents, why a session ended (the hand-over to the sign-in page).
@@ -115,7 +115,7 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   wait is shown, a deliberate change from the old wallet (`ARCHITECTURE.md`, "Waiting"). Its
   pictures are checked in and run for `new` and `new-phone` only; `samePicture` gets a sibling
   for that.
-- The store as one object with plain fields (`Session.ts`, the instance of a class): the 37 fields of `useWalletStore.js` behind
+- The store as one object with plain fields (`session` in `Session.ts`, a `DeviceStore`): the 37 fields of `useWalletStore.js` behind
   one valibot schema for the `login` / `verifyLogin` user (replaces 25 `?? null` and about 35
   one-line setters). `tokenTime`, `darkMode` are derived; `transactionToHighlightId` is not
   persisted. The keys stay: `gradido-frontend`, `auth-token`, `gradido-theme-mode`. Signing out
@@ -160,7 +160,7 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   `transactionsQuery` and `transactionsUserCountQuery`, `openCreations` and
   `openCreationsAmounts`. New documents in `frontend-mithril/src/graphql`; the old wallet's stay
   untouched until it goes. The server is not changed.
-- `jwt-decode` and `uuid` are not installed: the token is read as `tokenMemberId` in `store/Session.ts` already reads it,
+- `jwt-decode` and `uuid` are not installed: the token is read as `AuthTokenStore` in `store/Session.ts` already reads it,
   a gradido ID is checked by `uuidv4Schema` of `shared/browser`.
 - The clipboard as today: `nativeClipboard` for pictures, loaded before
   `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.

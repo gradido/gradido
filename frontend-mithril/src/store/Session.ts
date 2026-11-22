@@ -1,7 +1,7 @@
 import { Uuidv4, uuidv4Schema } from 'shared/browser'
 import * as v from 'valibot'
 import { Member, memberSchema } from '@/data/Member.schema'
-import { DeviceStore } from './DeviceStore'
+import { DeviceStore, DeviceStoreBasicType } from './DeviceStore'
 
 /** Where the wallet keeps its state in localStorage; the key of the old wallet. */
 const STATE_KEY = 'gradido-frontend'
@@ -51,7 +51,7 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
   #lastSeenMemberId: Uuidv4 | null
 
   constructor() {
-    super(AUTH_TOKEN_KEY, authTokenSchema, true)
+    super(AUTH_TOKEN_KEY, authTokenSchema, DeviceStoreBasicType.Object)
     this.#lastSeenMemberId = this.#extractTokenMemberId(this.state?.token)
   }
   set(value: AuthToken, save = true) {
@@ -93,7 +93,7 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
 }
 
 export const authToken = new AuthTokenStore()
-export const session = new DeviceStore(STATE_KEY, sessionStateSchema, true)
+export const session = new DeviceStore(STATE_KEY, sessionStateSchema, DeviceStoreBasicType.Object)
 
 if (!authToken.state && session.state.member) {
   logout()

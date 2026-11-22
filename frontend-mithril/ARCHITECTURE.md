@@ -75,7 +75,7 @@ src/
   routes.ts            the route table, and what may open a page
   graphql/client.ts    request(): the one way to the server
   data/                Thing.schema.ts (valibot) and Thing.logic.ts (pure), each with its *.test.ts
-  store/               state that outlives a page (Session.ts, …); Resource.ts and device.ts, what it is built with
+  store/               state that outlives a page (Session.ts, …); Resource.ts and DeviceStore.ts, what it is built with
   browser/             what wraps a facility of the browser and knows nothing of Gradido's data
   components/          building blocks, by feature folder as today
   pages/               one file per route, loaded on demand
@@ -92,9 +92,9 @@ tests/                 Playwright specs and fixtures
   them: a second function of the kind goes into the same file, and its name says how it differs.
   No file for a single function where a group is in sight.
 - A file that holds a class or a component is named after it, in `PascalCase.ts`; a file that
-  holds only functions starts with a small letter (`timer.ts`, `device.ts`). A store follows the
-  same rule and has no `.store` in its name, the folder says that it is one: `Session.ts` holds
-  the class `Session` and its one instance.
+  holds only functions starts with a small letter (`timer.ts`). A store follows the same rule
+  and has no `.store` in its name, the folder says that it is one: `DeviceStore.ts` holds the
+  class `DeviceStore`, `Session.ts` the session's two stores with `login` and `logout`.
 - No `composables/`. No `utils/` either, as long as a file has a group that says what it is;
   only what has none goes there, and a second file of its kind is the sign to name the group.
 
@@ -131,8 +131,8 @@ one kind kept as another.
 | --- | --- | --- | --- |
 | **View** | while the component is on screen | a field of the component | the open tab, what is typed, the page of a list, a list a single page shows, the chat thread |
 | **Shared fact** | while the member is signed in, each answer ten minutes at most | a file in `store/`, a `Resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
-| **Session** | until sign-out, across reloads | `store/Session.ts` | `session.state.member` (who is signed in, with their settings), `session.state.language`, `session.token` |
-| **Device** | until deleted, per member or per device | `store/device.ts` | theme, calculator settings, drafts, window size |
+| **Session** | until sign-out, across reloads | `store/Session.ts` | `session.state.member` (who is signed in, with their settings), `session.state.language`, `authToken.state` |
+| **Device** | until deleted, per member or per device | a `DeviceStore` in `store/` | theme, calculator settings, drafts, window size |
 
 Mithril redraws after every event handler and every `request`. A store is therefore an
 object with plain fields (the one instance of a class where it has methods, as `session`), and a
@@ -191,24 +191,28 @@ otherwise. Assigning also drops a question under way and the failure of an earli
 40 lines, in `store/Resource.ts`. Anything asked by one place only is view state and uses
 `request` directly.
 
-**A device value** is read through its schema and written whole:
+**A device value** is a `DeviceStore`: one entry of `localStorage`, read through its schema at
+the start and written whole:
 
 ```ts
 const prefsSchema = v.fallback(v.object({ decimals: v.fallback(v.number(), 2) }), { decimals: 2 })
 
-deviceGetObject('calculator-prefs', prefsSchema)   // what is stored, or what the schema's fallbacks say
-deviceSet<typeof prefsSchema>('calculator-prefs', prefs)
+export const calculatorPrefs = new DeviceStore('calculator-prefs', prefsSchema, DeviceStoreBasicType.Object)
+calculatorPrefs.state          // what is stored, or what the schema's fallbacks say
+calculatorPrefs.set(prefs)     // keeps it; set(undefined) removes the entry
 
-deviceGetValue('right-side', v.fallback(v.picklist(['left', 'right']), 'left'))
+new DeviceStore('right-side', v.fallback(v.picklist(['left', 'right']), 'left'), DeviceStoreBasicType.String)
 ```
 
-`deviceGetObject` reads an object or a list from JSON, `deviceGetValue` a text as it is (the
-old wallet's switches `'1'` and plain texts stay readable); the caller knows which it has.
-`deviceSet` writes a text as it is and anything else as JSON; it takes the value as valid, of
-the type the named schema hands out. Every such schema names with
-`v.fallback` what holds where nothing is stored or something that does not fit, so the schema
-alone says how the value behaves. A schema without one throws: an error in the code, to be seen
-at once. Text that is no JSON counts as nothing stored. A browser that refuses its storage
+The third argument says how the entry lies there: `Object` an object or a list as JSON,
+`String` a text as it is (the old wallet's switches `'1'` and plain texts stay readable),
+`Number` a number as its text; the caller knows which it has. `set` takes the value as valid, of the type the schema hands out; what
+comes from outside goes through `v.parse` first. `set(value, false)` leaves `localStorage`
+alone. Every such schema names with `v.fallback` what holds where nothing is stored or
+something that does not fit, so the schema alone says how the value behaves. A schema without
+one throws: an error in the code, to be seen at once. Text that is no JSON counts as nothing
+stored. Where another tab writes or removes the entry, or clears `localStorage`, the store
+follows, in one listener for all of them. A browser that refuses its storage
 never gets this far: `browser/requireStorage.ts`, the first import of `main.ts`, tries it and shows a notice instead of the wallet, which
 could not keep a session there either.
 
@@ -275,7 +279,7 @@ is gone. The list of twenty `forget…` functions and the epoch counters go.
 What has to reach the next page (why the session ended, the address to return to) crosses in
 `sessionStorage` through the hand-over helper. What is kept on the device per member stays, as
 today; what must not stay for the next member on this device is removed in one place,
-`Session.ts`, by key.
+`logout` in `Session.ts`, by key.
 
 ### Components
 
@@ -333,7 +337,7 @@ One table. Each row: path, the page (as `() => import(…)`), and the flags of t
 
 | Store | Replaces | Shape |
 | --- | --- | --- |
-| `Session.ts` | `useWalletStore.js`, `store.js` | the session, parsed by one schema at start and at sign-in |
+| `Session.ts` | `useWalletStore.js`, `store.js` | `session` (member, language) and `authToken` (the token both apps share), each a `DeviceStore` parsed by its schema; `login`, `logout` |
 | `chatBeat.ts` | `useChatUpdates.js` | timer, unread counts, `onMessages` / `onEdited` / `onReacted` / `watchRead` |
 | `pictures.ts` | `useMemberAvatars`, `useKeptPictures`, `useChatImages`, `memoryPictures` | `pictureCache({ fetch, atOnce, max, persistKey? })`, used three times |
 | `firstLoginWindow.ts` | `useFirstLoginWindow.js` | `wanted`, `undecided`, `held`, and `onScreen()` from the logic file |
@@ -406,7 +410,7 @@ it adds, tests apart. Where it is not clearly less, it says why.
 | `watch` that starts something | the handler that caused the change |
 | `computed` | a getter or a function called in `view` |
 | vee-validate, yup | `formOf(schema)` and `Field` |
-| `store.setX(v)` | `session.state.x = v` |
+| `store.setX(v)` | `session.set({ ...session.state, x: v })` |
 | `useToast` (53 files) | `toastError`, `toastSuccess` from `Toasts` |
 
 ## 4. Settled, and how each is held

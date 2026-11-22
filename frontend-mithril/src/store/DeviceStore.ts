@@ -12,6 +12,12 @@ window.addEventListener('storage', ({ key, newValue }) => {
   }
 })
 
+export enum DeviceStoreBasicType {
+  Object,
+  String,
+  Number,
+}
+
 // Store in the name because device has so many meanings
 // TSchema is expected to work with undefined as input to return the default values or null like authTokenSchema
 export class DeviceStore<const TSchema extends v.GenericSchema> {
@@ -20,29 +26,37 @@ export class DeviceStore<const TSchema extends v.GenericSchema> {
   constructor(
     public readonly key: string,
     public readonly schema: TSchema,
-    public readonly isObject: boolean,
+    public readonly type: DeviceStoreBasicType,
   ) {
     this.state = this.itemToState(localStorage.getItem(this.key))
     deviceStores.set(this.key, this)
   }
 
   itemToState(item?: string | null): v.InferOutput<TSchema> {
-    if (this.isObject && item) {
-      try {
-        item = JSON.parse(item)
-      } catch {
-        // no JSON: as if nothing were stored
+    let typedItem: string | null | undefined | number = item
+    if (item) {
+      if (this.type === DeviceStoreBasicType.Object) {
+        try {
+          typedItem = JSON.parse(item)
+        } catch {
+          // no JSON: as if nothing were stored
+        }
+      } else if (this.type === DeviceStoreBasicType.Number) {
+        typedItem = Number(item)
       }
     }
-    return v.parse(this.schema, item)
+    return v.parse(this.schema, typedItem)
   }
 
   stateToItem(state: v.InferOutput<TSchema>): string {
     if (typeof state === 'string') {
       return state
-    } else if (this.isObject) {
+    } else if (this.type === DeviceStoreBasicType.Object) {
       return JSON.stringify(state)
-    } else if (typeof state === 'number') {
+    } else if (this.type === DeviceStoreBasicType.Number) {
+      if (typeof state !== 'number') {
+        throw new Error('Type Mismatch between schema and type')
+      }
       return state.toString()
     } else {
       throw new Error('unhandled case')
@@ -63,8 +77,9 @@ export class DeviceStore<const TSchema extends v.GenericSchema> {
     } else {
       this.state = value
       if (persist) {
+        const item = this.stateToItem(this.state)
         try {
-          localStorage.setItem(this.key, this.stateToItem(this.state))
+          localStorage.setItem(this.key, item)
         } catch {
           // storage full: the value holds for this visit only
           // TODO: send info to backend, which send e-mail to code maintainer/support
