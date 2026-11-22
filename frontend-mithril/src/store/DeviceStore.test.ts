@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import * as v from 'valibot'
-import { otherTabStores } from './browserStub'
+import { otherTabStores } from '../../test/browserStub'
 
 // after the stub: DeviceStore listens to the window as soon as it is loaded
 const { DeviceStore, DeviceStoreBasicType } = await import('./DeviceStore')

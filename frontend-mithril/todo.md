@@ -128,6 +128,10 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   is fetched when it is asked for, and the wallet is drawn only once it is there (the old wallet
   bundles all ten) with the number and
   date formats once (ten identical copies today, 440 lines) and one language list.
+- `m.redraw()` in the one `storage` listener of `store/DeviceStore.ts`: a change from another
+  tab happens outside of Mithril, and nothing draws it yet. Left out of 2a on purpose, to be
+  seen in the browser with the first page that draws a store (a tab on the sign-in page while
+  another tab signs in).
 - The notice of `browser/requireStorage.ts` (the browser refuses localStorage) through `i18n`,
   in all ten languages instead of the two sentences written into the file in 2a. The language
   is the browser's: the member's own lies in the storage that is refused. Any language but
