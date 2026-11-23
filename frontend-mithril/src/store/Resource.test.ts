@@ -76,6 +76,17 @@ describe('Resource', () => {
     expect(request).toHaveBeenCalledTimes(3)
   })
 
+  // `request` throws for a mistake in the code, or a token the wallet cannot read
+  it('hands on what `request` throws, and asks again for the next reader', async () => {
+    const fact = new Resource(document, schema)
+    request.mockImplementationOnce(() => Promise.reject(new Error('Invalid Login Response')))
+    await expect(fact.ensureLoaded()).rejects.toThrow('Invalid Login Response')
+    const second = fact.ensureLoaded()
+    answers[0](answer(5))
+    await second
+    expect(fact.value).toEqual({ balance: 5 })
+  })
+
   it('counts a question of the last 100 ms as current', async () => {
     const fact = new Resource(document, schema)
     const first = fact.ensureLoaded(0)

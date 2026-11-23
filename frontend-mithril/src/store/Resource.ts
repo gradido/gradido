@@ -35,21 +35,31 @@ export class Resource<const TSchema extends v.GenericSchema> {
       return this.#pendingRequest ?? Promise.resolve()
     }
     this.#askedAt = Date.now()
-    const pendingRequest: Promise<void> = request(this.document, {}, this.schema).then((answer) => {
-      // a later question was asked: the newest wins
-      if (this.#pendingRequest !== pendingRequest) {
-        return
-      }
-      this.#pendingRequest = undefined
-      if (answer.success) {
-        this.#value = answer.value
-        this.error = undefined
-      } else {
-        this.error = answer.error
-        // a failed question is no answer: the next reader asks again
-        this.#askedAt = 0
-      }
-    })
+    const pendingRequest: Promise<void> = request(this.document, {}, this.schema).then(
+      (answer) => {
+        // a later question was asked: the newest wins
+        if (this.#pendingRequest !== pendingRequest) {
+          return
+        }
+        this.#pendingRequest = undefined
+        if (answer.success) {
+          this.#value = answer.value
+          this.error = undefined
+        } else {
+          this.error = answer.error
+          // a failed question is no answer: the next reader asks again
+          this.#askedAt = 0
+        }
+      },
+      (thrown) => {
+        // `request` threw: no answer either, and the reader is to see it
+        if (this.#pendingRequest === pendingRequest) {
+          this.#pendingRequest = undefined
+          this.#askedAt = 0
+        }
+        throw thrown
+      },
+    )
     this.#pendingRequest = pendingRequest
     return pendingRequest
   }
