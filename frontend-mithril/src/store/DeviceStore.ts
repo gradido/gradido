@@ -2,13 +2,17 @@ import * as v from 'valibot'
 
 const deviceStores = new Map<string, DeviceStore<v.GenericSchema>>()
 
-window.addEventListener('storage', ({ key, newValue }) => {
+window.addEventListener('storage', ({ key, storageArea }) => {
+  if (storageArea !== localStorage) {
+    return
+  }
   if (key) {
     const deviceStore = deviceStores.get(key)
-    deviceStore?.set(deviceStore.itemToState(newValue), false)
+    // load from storage, because if multiple tabs change at the same time, and events running after, we need the last, actual state
+    deviceStore?.set(deviceStore.load(), false)
   } else {
     // localStorage.clear was called in another tab
-    deviceStores.forEach((value) => value.set(undefined, false))
+    deviceStores.forEach((value) => value.set(value.load(), false))
   }
 })
 
@@ -28,8 +32,12 @@ export class DeviceStore<const TSchema extends v.GenericSchema> {
     public readonly schema: TSchema,
     public readonly type: DeviceStoreBasicType,
   ) {
-    this.state = this.itemToState(localStorage.getItem(this.key))
+    this.state = this.load()
     deviceStores.set(this.key, this)
+  }
+
+  load() {
+    return this.itemToState(localStorage.getItem(this.key))
   }
 
   itemToState(item?: string | null): v.InferOutput<TSchema> {

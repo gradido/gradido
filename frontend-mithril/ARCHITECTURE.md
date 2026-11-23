@@ -114,6 +114,7 @@ this.contributions = answer.value.listContributions
 - `request` returns `Result<T>` for what can go wrong while the wallet is right: no network, an
   error of the server, an answer that does not fit the schema. A mistake of the caller (no
   document, variables the document does not declare) throws, as everywhere in this repository.
+  So does a token of the server the wallet cannot read (below, "A token that cannot be read").
 - The schema describes what the page uses of the answer, with defaults where the server may
   send null. An answer that does not fit is a failure like any other, and is reported once in
   `request` — not checked field by field afterwards.
@@ -145,9 +146,9 @@ tab, an observer) calls `m.redraw()`.
 ```ts
 export const firstCreation = new Resource(firstCreationStatus, firstCreationStatusSchema)
 
-firstCreation.value        // the last answer, or undefined
-firstCreation.load()       // asks if nobody asked within the resource's limit; a second caller gets the same request
-firstCreation.load(0)      // asks for the current one; value stays on screen meanwhile
+firstCreation.value            // the last answer, or undefined
+firstCreation.ensureLoaded()   // asks if nobody asked within the resource's limit; a second caller gets the same request
+firstCreation.ensureLoaded(0)  // asks for the current one; value stays on screen meanwhile
 
 // a fact that changes faster names its own limit
 export const reachableCommunities = new Resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
@@ -157,38 +158,37 @@ On every visit after the first in a session the last value is drawn at once, wit
 state. Where the reader asked again it is replaced when the new answer comes. What is shown on
 the first visit is the next section.
 
-A reader calls `load` in `oninit` and says how old the answer may be, in milliseconds. That is
+A reader calls `ensureLoaded` in `oninit` and says how old the answer may be, in milliseconds. That is
 the choice the old wallet made with its fetch policy:
 
-- `load()` where an answer of some minutes ago is good enough (the default policy of today: the
+- `ensureLoaded()` where an answer of some minutes ago is good enough (the default policy of today: the
   reachable communities, the lists of creation groups). It asks only if nobody has asked yet
   or the last question is older than the hard timeout.
-- `load(0)` where the reader shows the last value at once and wants the current one
+- `ensureLoaded(0)` where the reader shows the last value at once and wants the current one
   (`cache-and-network` of today: first-creation status, alias status, the balance).
 
 A question of the last 100 ms counts as current, whatever age was asked for: an answer takes
 about that long, and the header and the page that both want the current balance on the same
 route change share one request. A question that failed does not count at all.
 
-The newest wins: an answer is taken only if no later request was started and `value` was not
-assigned since it was asked. An older answer that arrives late is dropped.
+The newest wins: an answer is taken only if no later request was started. An older answer
+that arrives late is dropped.
 
 **The hard timeout.** No answer is kept for a whole session: production sessions last an hour,
 some members are always online, and even the creation groups change. Ten minutes after a
-question was asked its answer is no longer valid, and the next `load()` asks the server again,
+question was asked its answer is no longer valid, and the next `ensureLoaded()` asks the server again,
 with `value` still on screen until the new answer replaces it. Hard, because nothing
-prolongs it: not reading the value, not assigning it, not prolonging the session. Only a new
-answer of the server starts the ten minutes again. It is the wallet's side of
+prolongs it: not reading the value, not prolonging the session. Only a new answer of the
+server starts the ten minutes again. It is the wallet's side of
 `SESSION_HARD_TIMEOUT_MS` in the new backend's draft, a backstop against a fact that changed
 without the wallet hearing of it. The limit is the third argument of `Resource`, ten minutes
 unless given; the reachable communities take one minute, since a community that went away
 makes a transfer fail. The token is session state, not a resource, and has its own end (below).
-No timer runs for it: the age is compared when `load` is called, so a page that stays open
-keeps what it shows until something calls `load`.
+No timer runs for it: the age is compared when `ensureLoaded` is called, so a page that stays open
+keeps what it shows until something calls `ensureLoaded`.
 
-A page that changed the fact assigns `value` if it knows the new one, and calls `load(0)`
-otherwise. Assigning also drops a question under way and the failure of an earlier one. About
-40 lines, in `store/Resource.ts`. Anything asked by one place only is view state and uses
+A page that changed the fact calls `ensureLoaded(0)`: `value` cannot be assigned, every value
+comes from the server. About 30 lines, in `store/Resource.ts`. Anything asked by one place only is view state and uses
 `request` directly.
 
 **A device value** is a `DeviceStore`: one entry of `localStorage`, read through its schema at
@@ -260,12 +260,28 @@ tab — the token is removed from `localStorage` and the page is loaded anew at 
 
 **When another member signs in in another tab**, their token arrives in the `localStorage` both
 tabs share. This tab is loaded anew and the token is left alone: it is theirs, and removing it
-would sign them out. At its start the wallet takes a token only if it names the member whose
-profile is stored, as today; otherwise it starts signed out, and the token stays in
-`localStorage` for its owner.
+would sign them out. Loaded anew, the tab finds their token and their profile: both lie in
+the `localStorage` the tabs share, and it goes on as theirs.
 
 With that reload every store, every resource, every timer and every request under way
 is gone. The list of twenty `forget…` functions and the epoch counters go.
+
+**At its start** the wallet compares nothing. Only the wallet signs in, and it writes token and
+profile together, so the two belong to the same member. A profile without a token is what the
+admin interface leaves behind when it signs out -- it knows the token, not the wallet's entry:
+the wallet drops the profile and starts signed out.
+
+**A token that cannot be read** -- its middle part is no base64 of JSON, or its `sub` is no
+gradidoID -- is no token: `authTokenSchema` reads the gradidoID out of the token as
+`tokenMemberId` and hands out null where it cannot. What happens then depends on where the
+token came from:
+
+- Out of `localStorage`, at the start or from another tab: the wallet is signed out, instead
+  of not starting at all. What lies there is not the wallet's to trust.
+- From the server, with an answer: `request` throws, and the token there was stays. The server
+  sends something the wallet does not understand, and that is to be seen as soon as possible,
+  not at the next reload as a sign-out nobody can explain. With the toasts (step 2b of
+  `todo.md`) the throw becomes a toast in the member's language and the way to the sign-in.
 
 **No flash of the wrong theme or language**, which the reload must not cost:
 
@@ -403,7 +419,7 @@ it adds, tests apart. Where it is not clearly less, it says why.
 | a util (88 pure) | `data/*.logic.ts` or `browser/`, by the same rule, moved with its test; imported through `@frontend` until its step |
 | `useQuery` with `no-cache` / `network-only` | `request` in `oninit` or a handler |
 | `useQuery` with the default or `cache-and-network` | a `Resource` where two places read it, else `request` |
-| `cache.updateQuery`, `readQuery` | assign to the resource or to the component's field |
+| `cache.updateQuery`, `readQuery` | `ensureLoaded(0)` of the resource, or assign to the component's field |
 | `useMutation` | `request` |
 | `emit`, `v-model`, `expose` | a function or the value in `attrs` |
 | `watch` that mirrors a prop or a store | nothing: `view` reads the source |

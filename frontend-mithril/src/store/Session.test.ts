@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { beforeEach, describe, expect, it, setSystemTime, spyOn } from 'bun:test'
+import * as v from 'valibot'
 import { location, otherTabStores } from '../../test/browserStub'
 import { BIBI, BOB, member, tokenOf } from '../../test/member'
 
@@ -14,7 +15,11 @@ const keptToken = () => JSON.parse(localStorage.getItem(AUTH_TOKEN_KEY) ?? 'null
 // What the wallet finds at its start: a member kept from a session whose token is gone -- the
 // admin interface signed out, and knows nothing of the wallet's entry.
 localStorage.setItem(STATE_KEY, JSON.stringify({ member: member(BIBI), language: 'de' }))
-const { AuthTokenStore, authToken, login, logout, session } = await import('./Session')
+const { AuthTokenStore, authToken, authTokenSchema, login, logout, session } = await import(
+  './Session'
+)
+/** What the store holds for `token`: with the gradidoID read out of it. */
+const parsed = (token: string, at = NOW) => v.parse(authTokenSchema, { token, at })
 const memberAtStart = session.state.member
 const keptAtStart = localStorage.getItem(STATE_KEY)
 const openedAtStart = location.assign.mock.calls.length
@@ -54,7 +59,7 @@ describe('the session', () => {
   })
 
   it('logout removes the token and the member, keeps the language, and opens the sign-in', () => {
-    authToken.set({ token: tokenOf(BIBI), at: NOW })
+    authToken.set(parsed(tokenOf(BIBI)))
     session.set({ member: member(BIBI), language: 'de' })
     logout()
     expect(authToken.state).toBeNull()
@@ -70,7 +75,11 @@ describe('the session', () => {
 describe('AuthTokenStore', () => {
   describe('at its start', () => {
     it('has the token kept, with the time it was received', () => {
-      expect(tabWith(tokenOf(BIBI)).state).toEqual({ token: tokenOf(BIBI), at: NOW })
+      expect(tabWith(tokenOf(BIBI)).state).toEqual({
+        token: tokenOf(BIBI),
+        at: NOW,
+        tokenMemberId: BIBI,
+      })
     })
 
     it('has none where none is kept, or what is kept is no token with its time', () => {
@@ -83,18 +92,21 @@ describe('AuthTokenStore', () => {
       expect(new AuthTokenStore().state).toBeNull()
     })
 
-    // The wallet does not start with it: nearly every request would fail anyway.
-    it('throws for a token that cannot be read, or names no gradido ID', () => {
-      expect(() => tabWith('header.%%%.signature')).toThrow()
-      expect(() => tabWith(tokenOf('dlt-connector'))).toThrow()
+    // what lies in localStorage must not keep the wallet from starting
+    it('has none for a token that cannot be read, or names no gradido ID', () => {
+      expect(tabWith('no-dots').state).toBeNull()
+      expect(tabWith('header.%%%.signature').state).toBeNull()
+      expect(tabWith(`header.${btoa('no json')}.signature`).state).toBeNull()
+      expect(tabWith(tokenOf(undefined)).state).toBeNull()
+      expect(tabWith(tokenOf('dlt-connector')).state).toBeNull()
     })
   })
 
   describe('set', () => {
     it('keeps the token of a sign-in, and neither reloads nor opens the sign-in', () => {
       const store = tabWith(null)
-      store.set({ token: tokenOf(BIBI), at: NOW })
-      expect(keptToken()).toEqual({ token: tokenOf(BIBI), at: NOW })
+      store.set(parsed(tokenOf(BIBI)))
+      expect(keptToken()).toEqual(parsed(tokenOf(BIBI)))
       expect(location.reload).not.toHaveBeenCalled()
       expect(location.assign).not.toHaveBeenCalled()
     })
@@ -104,17 +116,17 @@ describe('AuthTokenStore', () => {
       const store = tabWith(tokenOf(BIBI))
       const renewed = tokenOf(BIBI.toUpperCase(), { note: '??>>' })
       expect(renewed).toMatch(/\.[^.]*[-_][^.]*\./)
-      store.set({ token: renewed, at: NOW + 1000 })
-      expect(keptToken()).toEqual({ token: renewed, at: NOW + 1000 })
+      store.set(parsed(renewed, NOW + 1000))
+      expect(keptToken()).toEqual({ token: renewed, at: NOW + 1000, tokenMemberId: BIBI })
       expect(location.reload).not.toHaveBeenCalled()
     })
 
     // The stores and the drafts of this tab are Bibi's: everything starts over.
     it('reloads where the token names somebody else than the one before', () => {
       const store = tabWith(tokenOf(BIBI))
-      store.set({ token: tokenOf(BOB), at: NOW })
+      store.set(parsed(tokenOf(BOB)))
       expect(location.reload).toHaveBeenCalledTimes(1)
-      expect(keptToken()).toEqual({ token: tokenOf(BOB), at: NOW })
+      expect(keptToken()).toEqual(parsed(tokenOf(BOB)))
     })
 
     it('removes the token and opens the sign-in, only where there was a token', () => {

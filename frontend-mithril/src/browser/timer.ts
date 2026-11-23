@@ -1,3 +1,4 @@
+// AI-GENERATED — not an architecture reference
 /**
  * Place for generic timer functions
  */
@@ -13,10 +14,10 @@ export function repeatWhileVisible(ms: number, fn: () => void) {
     timer = document.hidden ? undefined : setInterval(fn, ms)
   }
   const seen = () => {
+    start()
     if (!document.hidden) {
       fn()
     }
-    start()
   }
   document.addEventListener('visibilitychange', seen)
   start()

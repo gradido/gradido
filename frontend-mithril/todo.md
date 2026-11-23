@@ -132,6 +132,10 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   tab happens outside of Mithril, and nothing draws it yet. Left out of 2a on purpose, to be
   seen in the browser with the first page that draws a store (a tab on the sign-in page while
   another tab signs in).
+- With `Toasts`, the two `TODO` in `graphql/client.ts`: a token of the server the wallet cannot
+  read throws today (`Invalid Login Response`, `Invalid auth token refresh Response`); it
+  becomes a toast in the member's language and the way to the sign-in. And a session that ended
+  with a revoked certificate says so in a toast before the sign-in opens.
 - The notice of `browser/requireStorage.ts` (the browser refuses localStorage) through `i18n`,
   in all ten languages instead of the two sentences written into the file in 2a. The language
   is the browser's: the member's own lies in the storage that is refused. Any language but

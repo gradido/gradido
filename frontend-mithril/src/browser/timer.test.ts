@@ -35,4 +35,27 @@ describe('repeatWhileVisible', () => {
     show(true)
     expect(calls).toBe(1)
   })
+
+  it('goes on with its clock after it is seen again', async () => {
+    let calls = 0
+    const stop = repeatWhileVisible(20, () => calls++)
+    show(false)
+    show(true)
+    await wait(70)
+    stop()
+    expect(calls).toBeGreaterThanOrEqual(3)
+  })
+
+  it('stays stopped where the call at being seen again stops it', async () => {
+    let calls = 0
+    const stop = repeatWhileVisible(20, () => {
+      calls++
+      stop()
+    })
+    show(false)
+    show(true)
+    expect(calls).toBe(1)
+    await wait(70)
+    expect(calls).toBe(1)
+  })
 })

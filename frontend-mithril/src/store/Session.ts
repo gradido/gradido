@@ -29,14 +29,31 @@ const sessionStateSchema = v.fallback(
  *
  * `at` would better be called `receivedAt`. The name stays as long as the admin and the old
  * wallet read this entry: each takes it only with a number in `at`.
- * 'at' is to be set exactly at the place, where the token arrive from the server
+ * `at` is to be set exactly at the place where the token arrives from the server.
+ * `tokenMemberId` is read out of the token here, so an invalid token in localStorage is null.
  */
 export const authTokenSchema = v.fallback(
   v.nullable(
-    v.object({
-      token: v.pipe(v.string(), v.nonEmpty()),
-      at: v.pipe(v.number(), v.finite()),
-    }),
+    v.pipe(
+      v.object({
+        token: v.pipe(v.string(), v.nonEmpty()),
+        at: v.pipe(v.number(), v.finite()),
+      }),
+      v.transform((input) => {
+        /**
+         * `tokenMemberId`: the gradidoID of the member `token` was issued to (its `sub`),
+         * lowercased -- read, not verified: the server verifies every request.
+         * A token whose middle part is not base64 of JSON, or whose `sub` is no gradidoID, is no
+         * token at all: null, the wallet starts signed out.
+         */
+        try {
+          const payload = input.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+          return { ...input, tokenMemberId: v.parse(uuidv4Schema, JSON.parse(atob(payload)).sub) }
+        } catch {
+          return null
+        }
+      }),
+    ),
   ),
   null,
 )
@@ -48,11 +65,11 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
    * The gradidoID of the member whose token lay in localStorage when this tab last looked, or
    * null where none lay there. Tells a renewal for the same member from somebody new signing in.
    */
-  #lastSeenMemberId: Uuidv4 | null
+  #lastSeenMemberId?: Uuidv4
 
   constructor() {
     super(AUTH_TOKEN_KEY, authTokenSchema, DeviceStoreBasicType.Object)
-    this.#lastSeenMemberId = this.#extractTokenMemberId(this.state?.token)
+    this.#lastSeenMemberId = this.state?.tokenMemberId
   }
   set(value: AuthToken, save = true) {
     // logout
@@ -60,35 +77,13 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
       location.assign('/login')
     }
     if (value) {
-      const tokenMemberId = this.#extractTokenMemberId(value.token)
-      if (this.state && tokenMemberId !== this.#lastSeenMemberId) {
+      if (this.state && value.tokenMemberId !== this.#lastSeenMemberId) {
         // reload page, this means all js state/memory will be cleared and started freshly over
         location.reload()
       }
-      this.#lastSeenMemberId = tokenMemberId
+      this.#lastSeenMemberId = value.tokenMemberId
     }
     super.set(value, save)
-  }
-
-  /**
-   * The gradidoID of the member `token` was issued to (its `sub`), lowercased -- read, not
-   * verified: the server verifies every request. null where there is no token.
-   * Throw on invalid token, or invalid sub, because frontend don't work with invalid token, nearly every backend request would fail
-   */
-  #extractTokenMemberId(token?: string | null): Uuidv4 | null {
-    const payload = token?.split('.')[1]
-    if (!payload) {
-      return null
-    }
-    // A token whose middle part is not base64 of JSON throws: it is no token at all.
-    const parsedTokenSub = v.safeParse(
-      v.pipe(v.string(), v.nonEmpty()),
-      JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))).sub,
-    )
-    if (parsedTokenSub.success) {
-      return v.parse(uuidv4Schema, parsedTokenSub.output)
-    }
-    return null
   }
 }
 

@@ -28,7 +28,8 @@ const REVOKED = '403.13 - Client certificate revoked'
  *
  * A failure the wallet is not to blame for -- no network, an error of the server, an answer that
  * does not fit -- is returned. A mistake of the caller throws: a variable `document` does not
- * declare.
+ * declare. So does a token of the server the wallet cannot read: the two no longer fit, and that
+ * is to be seen at once.
  *
  * `renewSession: false`: a question the member did not ask (the chat's beat, a panel). The renewed
  * token is not taken, or a tab left open would never be signed out. `background`: no redraw.
@@ -51,6 +52,7 @@ export async function request<const TSchema extends v.GenericSchema>(
   // who asks: the session the answer belongs to
   const { member } = session.state
   const askingUserId = member?.gradidoID
+  const askingAuthToken = authToken.state?.token
   let answer: v.InferOutput<typeof answerSchema>
   let token: string | null
   try {
@@ -78,7 +80,8 @@ export async function request<const TSchema extends v.GenericSchema>(
   if (answer.errors?.some(({ extensions }) => extensions?.code === 'GRAPHQL_VALIDATION_FAILED')) {
     appOutdated.value = true
   }
-  if (answer.errors?.[0]?.message === REVOKED) {
+  if (answer.errors?.[0]?.message === REVOKED && askingAuthToken === authToken.state?.token) {
+    // TODO: check if error toast is shown, that session was timedout
     logout()
   } else if (
     token &&
@@ -87,7 +90,16 @@ export async function request<const TSchema extends v.GenericSchema>(
     // Only while the member who asked is still the one signed in: an answer that arrives after
     // the session ended would otherwise keep its token for the next one.
     // Or on login, without previous user
-    authToken.set(v.parse(authTokenSchema, { token, at: Date.now() }))
+    const parsedAuthToken = v.parse(authTokenSchema, { token, at: Date.now() })
+    if (!parsedAuthToken) {
+      // TODO: replace with toast translated into the current language, and redirect to login page
+      if (!askingUserId) {
+        throw new Error('Invalid Login Response')
+      } else {
+        throw new Error('Invalid auth token refresh Response')
+      }
+    }
+    authToken.set(parsedAuthToken)
   }
   if (answer.errors) {
     return {

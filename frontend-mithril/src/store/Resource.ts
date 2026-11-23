@@ -11,7 +11,8 @@ export class Resource<const TSchema extends v.GenericSchema> {
   error?: Error
   #value?: v.InferOutput<TSchema>
   #pendingRequest?: Promise<void>
-  #askedAt = Number.NEGATIVE_INFINITY
+  // when the last question was asked; 0 where none was, or it failed
+  #askedAt = 0
 
   constructor(
     private readonly document: DocumentNode,
@@ -23,26 +24,19 @@ export class Resource<const TSchema extends v.GenericSchema> {
     return this.#value
   }
 
-  // A page that changed the fact knows more than the server said before: an answer still under
-  // way is dropped, and so is the failure of an earlier question.
-  set value(changed) {
-    this.#value = changed
-    this.#pendingRequest = undefined
-    this.error = undefined
-  }
-
   /**
-   * Asks unless the last question is younger than `maxAge` milliseconds: `load()` where an answer
-   * of some minutes ago will do, `load(0)` where it must be the current one. Under 100 ms, the
-   * time an answer takes, a question counts as current. `value` stays until the answer replaces it.
+   * Asks unless the last question is younger than `maxAge` milliseconds: `ensureLoaded()` where an
+   * answer of some minutes ago will do, `ensureLoaded(0)` where it must be the current one. Under
+   * 100 ms, the time an answer takes, a question counts as current. `value` stays until the answer
+   * replaces it.
    */
-  load(maxAge = this.maxAge) {
-    if (Date.now() - this.#askedAt < Math.max(maxAge, 100)) {
+  ensureLoaded(maxAge = this.maxAge) {
+    if (this.#askedAt && Date.now() - this.#askedAt < Math.max(maxAge, 100)) {
       return this.#pendingRequest ?? Promise.resolve()
     }
     this.#askedAt = Date.now()
     const pendingRequest: Promise<void> = request(this.document, {}, this.schema).then((answer) => {
-      // a later question was asked, or `value` assigned: the newest wins
+      // a later question was asked: the newest wins
       if (this.#pendingRequest !== pendingRequest) {
         return
       }
@@ -53,7 +47,7 @@ export class Resource<const TSchema extends v.GenericSchema> {
       } else {
         this.error = answer.error
         // a failed question is no answer: the next reader asks again
-        this.#askedAt = Number.NEGATIVE_INFINITY
+        this.#askedAt = 0
       }
     })
     this.#pendingRequest = pendingRequest

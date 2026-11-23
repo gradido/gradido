@@ -29,5 +29,5 @@ export function otherTabStores(key: string | null, item: string | null) {
   } else {
     stored.set(key, item)
   }
-  tab.dispatchEvent(Object.assign(new Event('storage'), { key, newValue: item }))
+  tab.dispatchEvent(Object.assign(new Event('storage'), { key, newValue: item, storageArea: localStorage }))
 }

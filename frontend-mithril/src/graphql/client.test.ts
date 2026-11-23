@@ -44,7 +44,7 @@ mock.module('mithril', () => ({ default: { request: send } }))
 mock.module('@frontend/config', () => ({ default: { GRAPHQL_URI: 'http://backend/graphql' } }))
 
 const { request } = await import('./client')
-const { authToken, login, session } = await import('@/store/Session')
+const { authToken, authTokenSchema, login, session } = await import('@/store/Session')
 const { appOutdated } = await import('@/store/appOutdated')
 
 const NOW = 1760000000000
@@ -53,7 +53,7 @@ const balanceSchema = v.object({ balance: v.nullable(v.number(), 0) })
 
 /** A tab in which `gradidoID` is signed in. */
 const signIn = (gradidoID: string) => {
-  authToken.set({ token: tokenOf(gradidoID), at: NOW })
+  authToken.set(v.parse(authTokenSchema, { token: tokenOf(gradidoID), at: NOW }))
   login(member(gradidoID))
 }
 
@@ -147,6 +147,16 @@ describe('request', () => {
       expect(session.state.member).toBeNull()
       expect(location.assign).toHaveBeenCalledWith('/login')
     })
+
+    it('leaves the session of the next member alone where the certificate of the one before was revoked', async () => {
+      signIn(BIBI)
+      const answered = request(balance, {}, balanceSchema)
+      signIn(BOB)
+      asked[0].answer({ errors: [{ message: '403.13 - Client certificate revoked' }] }, null)
+      expect((await answered).success).toBe(false)
+      expect(session.state.member?.gradidoID).toBe(BOB)
+      expect(authToken.state?.token).toBe(tokenOf(BOB))
+    })
   })
 
   describe('the token of the answer', () => {
@@ -158,7 +168,7 @@ describe('request', () => {
       setSystemTime(new Date(NOW + 1000))
       asked[0].answer({ data: { balance: 1 } }, renewed)
       await answered
-      expect(authToken.state).toEqual({ token: renewed, at: NOW + 1000 })
+      expect(authToken.state).toEqual({ token: renewed, at: NOW + 1000, tokenMemberId: BIBI })
       expect(location.reload).not.toHaveBeenCalled()
     })
 
@@ -176,7 +186,7 @@ describe('request', () => {
       const answered = request(balance, {}, balanceSchema, { renewSession: false })
       asked[0].answer({ data: { balance: 1 } }, tokenOf(BIBI))
       await answered
-      expect(authToken.state).toEqual({ token: tokenOf(BIBI), at: NOW })
+      expect(authToken.state).toEqual({ token: tokenOf(BIBI), at: NOW, tokenMemberId: BIBI })
       expect(location.reload).not.toHaveBeenCalled()
       expect(location.assign).not.toHaveBeenCalled()
     })
@@ -209,6 +219,21 @@ describe('request', () => {
       asked[1].answer({ data: { balance: 1 } }, renewed)
       await afterBobSignedIn
       expect(authToken.state?.token).toBe(tokenOf(BOB))
+    })
+
+    // the server and the wallet no longer fit: to be seen at once
+    it('throws where it cannot be read or names no gradido ID, and keeps the token there was', async () => {
+      const signingIn = request(balance, {}, balanceSchema)
+      asked[0].answer({ data: { balance: 1 } }, 'header.%%%.signature')
+      await expect(signingIn).rejects.toThrow('Invalid Login Response')
+      expect(authToken.state).toBeNull()
+
+      signIn(BIBI)
+      const renewing = request(balance, {}, balanceSchema)
+      asked[1].answer({ data: { balance: 1 } }, tokenOf('dlt-connector'))
+      await expect(renewing).rejects.toThrow('Invalid auth token refresh Response')
+      expect(authToken.state?.token).toBe(tokenOf(BIBI))
+      expect(location.assign).not.toHaveBeenCalled()
     })
   })
 })
