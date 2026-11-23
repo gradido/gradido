@@ -266,10 +266,13 @@ the `localStorage` the tabs share, and it goes on as theirs.
 With that reload every store, every resource, every timer and every request under way
 is gone. The list of twenty `forget…` functions and the epoch counters go.
 
-**At its start** the wallet compares nothing. Only the wallet signs in, and it writes token and
-profile together, so the two belong to the same member. A profile without a token is what the
-admin interface leaves behind when it signs out -- it knows the token, not the wallet's entry:
-the wallet drops the profile and starts signed out.
+**At its start** the wallet does not compare the token with the profile stored. The old
+wallet did, and took a token only if it named the member of the profile. That rule is dropped:
+the wallet and the admin interface are to become one app, and then the token moves back into
+the member's entry, where the two cannot differ. Until then only the wallet signs in, and it
+writes the profile right after the token. A profile without a token is what the admin
+interface leaves behind when it signs out -- it knows the token, not the wallet's entry: the
+wallet drops the profile and starts signed out.
 
 **A token that cannot be read** -- its middle part is no base64 of JSON, or its `sub` is no
 gradidoID -- is no token: `authTokenSchema` reads the gradidoID out of the token as
