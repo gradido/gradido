@@ -6,7 +6,3 @@
  * keep the bar for good.
  */
 export const appOutdated = { value: false }
-
-export const markAppOutdated = () => {
-  appOutdated.value = true
-}

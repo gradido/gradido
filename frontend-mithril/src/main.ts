@@ -1,4 +1,6 @@
 // AI-GENERATED — not an architecture reference
+// ⛔ First: nothing that reads localStorage may load before it.
+import './browser/requireStorage'
 // The old wallet's styles, in its order (../frontend/src/main.js). gradido.css is the very file the
 // old wallet loads, compiled by its `compile-scss` (turbo.json runs it before a build).
 import '@frontend/assets/css/gradido.css'
