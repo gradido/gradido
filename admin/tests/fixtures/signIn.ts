@@ -40,10 +40,17 @@ export const noWalletNews = (): Record<string, Answer> => ({
   walletContributions: 0,
 })
 
-/** The answers every page needs once signed in: the moderator's own login, and the bar's question. */
+/**
+ * The answers every page needs once signed in: the moderator's own login, and the bar's question --
+ * and their own choice of groups ("Meine Gruppen"), both columns: "Schöpfung" (MG1), which the start
+ * page and the creation page ask with their counts, and "Support" (MG2b), which the support page
+ * asks. Nothing chosen, as the server answers whoever has not chosen.
+ */
 export const signedInAnswers = (who = moderator): Record<string, Answer> => ({
   verifyLogin: who,
   ...noWalletNews(),
+  handledCreationGroups: { groupIds: [], untagged: false, off: false },
+  handledSupportGroups: { groupIds: [], untagged: false, off: false },
 })
 
 /**

@@ -5,8 +5,18 @@ import type { Moderator } from '@/data/Moderator.schema'
 import { t } from '@/i18n'
 import { creationGroupOption } from '@/utils/creationGroupLabel'
 import type { ListedContribution } from './Contribution.schema'
+import type { HandledCreationGroups, NumberedCreationGroup } from './CreationGroup.schema'
 
 type CreationGroup = { tag: string; name: string | null }
+
+/**
+ * "Meine Gruppen" (MG1): the token the server reads as the groups the signed-in moderator handles
+ * themself, and for one who chose nothing as everything they see.
+ */
+export const HANDLED_FILTER = '*handled'
+
+/** The states of the tab "open" of the creation page: what the badges count. */
+export const OPEN_STATES = ['IN_PROGRESS', 'PENDING']
 
 /** Still being worked on: a moderator can still decide it. */
 export const isOpen = ({ contributionStatus }: ListedContribution) =>
@@ -108,4 +118,37 @@ export const groupFilterOptions = (
       .filter((group) => moderator.visibleCreationGroups.includes(group.tag))
       .map(creationGroupOption),
   ]
+}
+
+/**
+ * The choices of the creation page's group filter with "Meine Gruppen" (MG1); groupFilterOptions
+ * stays as it is, the support's filter is built on it. A moderator with an assigned scope: its rows.
+ * Whoever sees every group and chose: "Meine Gruppen" first, the three fixed rows, then the groups
+ * ticked alone. Whoever sees every group and chose nothing: the fixed rows and every group, with
+ * "(mit und ohne Gruppe)" standing for HANDLED_FILTER, which the server reads as everything for
+ * them. So the page opens on HANDLED_FILTER for everyone who sees every group, before the admin
+ * knows the choice (another device): the first list is right. The answer changes the words, and
+ * whether "(mit und ohne Gruppe)" is "" or HANDLED_FILTER (CreationConfirm follows that).
+ */
+export const creationGroupFilterOptions = (
+  moderator: Pick<Moderator, 'seesAllCreationGroups' | 'visibleCreationGroups' | 'seesUntagged'>,
+  groups: NumberedCreationGroup[],
+  chosen: HandledCreationGroups | null,
+  off = false,
+): Option[] => {
+  if (!moderator.seesAllCreationGroups) {
+    return groupFilterOptions(moderator, groups)
+  }
+  const [all, ...fixed] = groupFilterOptions(moderator, [])
+  if (off) {
+    return [all, ...fixed, ...groups.map(creationGroupOption)]
+  }
+  return chosen
+    ? [
+        { value: HANDLED_FILTER, text: t('creationGroupFilter.mine') },
+        all,
+        ...fixed,
+        ...groups.filter(({ id }) => chosen.groupIds.includes(id)).map(creationGroupOption),
+      ]
+    : [{ ...all, value: HANDLED_FILTER }, ...fixed, ...groups.map(creationGroupOption)]
 }

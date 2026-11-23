@@ -76,6 +76,15 @@
   white-space: nowrap;
 }
 
+/* The second mark of "Admin" (MG3), on the lower corner: as far below the symbol as the first
+   stands above it, and nothing else of the mark is different, so the two stand one under the
+   other. The symbol is 20 px high, which leaves 2.4 px between them -- more than the ring of
+   either. */
+.sidebar :global(.chat-unread-badge.chat-unread-badge-below) {
+  top: auto;
+  bottom: -0.5rem;
+}
+
 .sidebar :global(.svg-icon) {
   filter: brightness(1) invert(0);
 }

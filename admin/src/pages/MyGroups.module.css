@@ -1,0 +1,118 @@
+/* "Meine Gruppen" (MG1). Bootstrap's variables only, no colour of its own: the list group, the
+   box and the button follow the dark mode as they are (AO-008). */
+.page {
+  max-width: 40rem;
+}
+
+/* A row: the name, then one box per column at the right, under the column's word (MG2b). The name
+   keeps the line of the search field's text; each box is a label of its own, at least 44px high
+   and as wide as its column, so a tap beside it ticks it as well. */
+.row {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+}
+
+.name {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.cell,
+.column {
+  display: flex;
+  flex: 0 0 5.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell {
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.box {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* The words above the boxes, quieter than the names: Bootstrap's variables, so dark follows. */
+.head {
+  display: flex;
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* A word whole, never broken inside: "Δημιουργία", "Υποστήριξη" and "Поддержка" are the widest of
+   the ten languages, and a column of 5rem holds them only a size smaller. */
+.column {
+  padding: 0.5rem 0.125rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@media (width < 576px) {
+  .cell,
+  .column {
+    flex-basis: 5rem;
+  }
+
+  .column {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Below the list, and at the foot of the window while the list runs past it. */
+.foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0;
+  background-color: var(--bs-body-bg);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* A line per column, the sentence and the line below it keep their room while the words change. */
+.rule {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 3em;
+}
+
+/* "Selbst bearbeiten" (MG5): the first row, apart from the groups. Its switches stand in the middle
+   of the column, as the boxes below them: Bootstrap keeps room for a label beside a switch. */
+.handle {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.handle .switch {
+  display: flex;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.handle .switch .box {
+  margin: 0;
+}
+
+/* "Deine Gruppen sind gespeichert." once a save came back (MG2b, no button): its room is kept while
+   it is empty, so its coming moves nothing. */
+.saved {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-height: 1.5em;
+}

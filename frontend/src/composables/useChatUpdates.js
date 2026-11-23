@@ -7,6 +7,7 @@ import {
   forgetContributionsInProgress,
   setContributionsInProgress,
 } from '@/composables/useContributionsInProgress'
+import { forgetModerationWaiting, setModerationWaiting } from '@/composables/useModerationWaiting'
 import {
   forgetSupportTicketsMenu,
   setSupportTicketsMenu,
@@ -35,11 +36,12 @@ import {
  * Started by the layout of the signed-in wallet (DashboardLayout) and stopped when it goes, and
  * by the store's logout: nothing of one member's chat reaches the next member on this device.
  *
- * The document asks two fields more beside the chat's: `supportTicketsMenu` (Support-Anfragen
- * K5), which goes on to useSupportTicketsMenu as it came, and `countContributionsInProgress` (the
- * mark at "Schöpfen", Bernd 16.11.2026), which goes on to useContributionsInProgress. Neither is
- * anything to the chat, and neither fails a question (the server answers them null where it
- * cannot count), so the beat stays the chat's.
+ * The document asks three fields more beside the chat's: `supportTicketsMenu` (Support-Anfragen
+ * K5), which goes on to useSupportTicketsMenu as it came, `countContributionsInProgress` (the
+ * mark at "Schöpfen", Bernd 16.11.2026), which goes on to useContributionsInProgress, and
+ * `moderationWaiting` (the two numbers at "Admin", "Meine Gruppen" MG3), which goes on to
+ * useModerationWaiting. None is anything to the chat, and none fails a question (the server
+ * answers them null where it cannot count), so the beat stays the chat's.
  *
  * And how far the other member of an open conversation of two has read (Chat E-093, the two
  * ticks): a thread that wants to know names the member (`watchChatRead`), the question carries
@@ -140,10 +142,10 @@ const inSight = () => typeof document === 'undefined' || !document.hidden
  * `no-cache`: nothing reads these answers back, and every marker would leave an entry of its own
  * in the store until the logout.
  *
- * Answers the chat's part, and the support's and the contributions' beside it -- undefined where
- * a field is not in the answer.
+ * Answers the chat's part, and the support's, the contributions' and the moderation's beside it --
+ * undefined where a field is not in the answer.
  *
- * `errorPolicy: 'all'`: the two other fields have authorization checks of their own on the server,
+ * `errorPolicy: 'all'`: the other fields have authorization checks of their own on the server,
  * and an error there -- the member read anew and the database slow for that moment -- left
  * Apollo's default to throw the chat's answer away with it. Now only the chat's own part decides:
  * where it is missing, the question failed, whatever the errors say.
@@ -162,6 +164,7 @@ const ask = async (afterId, editedCursor, reactedCursor, readBy) => {
     update,
     supportTicketsMenu: data.supportTicketsMenu,
     contributionsInProgress: data.countContributionsInProgress,
+    moderationWaiting: data.moderationWaiting,
   }
 }
 
@@ -212,7 +215,7 @@ const cycle = async (mine) => {
       // ⛔ Taken before the question leaves: the places of its answer belong to these watchers,
       // whoever comes or goes while it is on its way.
       const asked = [...readWatchers].slice(-CHAT_READ_WATCH_MAX)
-      const { update, supportTicketsMenu, contributionsInProgress } = await ask(
+      const { update, supportTicketsMenu, contributionsInProgress, moderationWaiting } = await ask(
         beat.marker,
         beat.editedCursor,
         beat.reactedCursor,
@@ -221,6 +224,7 @@ const cycle = async (mine) => {
       if (mine !== generation) return
       setSupportTicketsMenu(supportTicketsMenu)
       setContributionsInProgress(contributionsInProgress)
+      setModerationWaiting(moderationWaiting)
       // The number moved without anything arriving: a conversation was read -- here, after
       // `pollChatNow`, or on another device -- and a dot in the contact list goes with it. The
       // first answer only says where one stands; the list was loaded a moment ago.
@@ -340,6 +344,7 @@ export const stopChatUpdates = () => {
   unread.value = 0
   forgetSupportTicketsMenu()
   forgetContributionsInProgress()
+  forgetModerationWaiting()
 }
 
 /**

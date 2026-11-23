@@ -1,23 +1,84 @@
 // AI-GENERATED — not an architecture reference
 import type { Page } from '@playwright/test'
+import { Kind, type OperationDefinitionNode, parse, print } from 'graphql'
 import de from '../src/locales/de.json' with { type: 'json' }
 import { expect, Failure, test } from './fixtures/graphql'
 import { moderator, signedInAnswers, signIn, WALLET_NEWS_FIELDS } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
-const counts = (forModeration: number, forMember: number, allOpen: number) => ({
+// the three counts in "Meine Gruppen" (MG1), and everything open beside them
+const counts = (
+  forModeration: number,
+  forMember: number,
+  allOpen: number,
+  everythingOpen = forModeration + forMember,
+) => ({
   waitingForModeration: { contributionCount: forModeration },
   waitingForMember: { contributionCount: forMember },
   allOpen: { contributionCount: allOpen },
+  everythingOpen: { contributionCount: everythingOpen },
 })
+
+/** What an answer changed is drawn: two frames, for what must not show. */
+const drawn = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  )
+
+/** The documents the page posts to the server, as they went out. */
+const posted = (page: Page) => {
+  const documents: string[] = []
+  page.on('request', (request) => {
+    if (request.url().endsWith('/graphql') && request.method() === 'POST') {
+      documents.push(request.postDataJSON().query)
+    }
+  })
+  return documents
+}
+
+/** The group filter each root field of a document asks with, by its alias. */
+const groupFilters = (document: string) =>
+  Object.fromEntries(
+    (parse(document).definitions[0] as OperationDefinitionNode).selectionSet.selections.flatMap(
+      (selection) => {
+        if (selection.kind !== Kind.FIELD) {
+          return []
+        }
+        const filter = selection.arguments?.find(({ name }) => name.value === 'filter')
+        const group =
+          filter?.value.kind === Kind.OBJECT
+            ? filter.value.fields.find(({ name }) => name.value === 'creationGroup')
+            : undefined
+        return [[(selection.alias ?? selection.name).value, group ? print(group.value) : null]]
+      },
+    ),
+  )
 
 const badge = (page: Page) =>
   page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge')
 const supportBadge = (page: Page) =>
   page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).locator('.badge')
 
-const support = (forModeration: number, forMember: number, onResubmission = 0) => ({
-  adminCountOpenSupportTickets: { forModeration, forMember, onResubmission },
+// the support's count (K3, K4), in "Meine Gruppen" and beyond it (MG2)
+const support = (
+  forModeration: number,
+  forMember: number,
+  onResubmission = 0,
+  elsewhere = 0,
+  elsewhereOnResubmission = 0,
+  off = false,
+) => ({
+  adminCountOpenSupportTickets: {
+    forModeration,
+    forMember,
+    onResubmission,
+    elsewhere,
+    elsewhereOnResubmission,
+    off,
+  },
 })
 
 test.beforeEach(async ({ page, graphql }) => {
@@ -53,8 +114,135 @@ test('counts what is open today, and what waits for whom', async ({ page, graphq
       .sent()
       .map(({ field }) => field)
       .filter((field) => field !== supportCount && !WALLET_NEWS_FIELDS.includes(field)),
-  ).toEqual(['verifyLogin', 'waitingForModeration', 'waitingForMember', 'allOpen'])
+  ).toEqual([
+    'verifyLogin',
+    'waitingForModeration',
+    'waitingForMember',
+    'allOpen',
+    'everythingOpen',
+    'handledCreationGroups',
+  ])
   expect(graphql.sentFor(supportCount)).toHaveLength(1)
+})
+
+// "Meine Gruppen" (MG1)
+test('counts in "Meine Gruppen", everything open beside, in one request', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer(counts(2, 1, 5))
+  const documents = posted(page)
+  await signIn(page, '/')
+  await expect(page.getByTestId('open-creations')).toBeVisible()
+
+  const countings = documents.filter((document) => document.includes('waitingForModeration'))
+  expect(countings).toHaveLength(1)
+  expect(groupFilters(countings[0])).toEqual({
+    waitingForModeration: '"*handled"',
+    waitingForMember: '"*handled"',
+    allOpen: '"*handled"',
+    everythingOpen: null,
+    handledCreationGroups: null,
+  })
+})
+
+test('names what is open in other groups, quietly and below the creation, where a choice is made', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    ...counts(2, 1, 5, 7),
+    handledCreationGroups: { groupIds: [3], untagged: true, off: false },
+    adminCountOpenSupportTickets: {
+      forModeration: 1,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+      off: false,
+    },
+  })
+  await signIn(page, '/')
+
+  await expect(page.getByTestId('open-elsewhere')).toHaveText(
+    de.dashboard.elsewhere.replace('{n}', '4'),
+  )
+  await expect(page.getByTestId('open-elsewhere').locator('a')).toHaveCount(0)
+  // the badge counts "Meine Gruppen", as the line above
+  await expect(badge(page)).toHaveText('3')
+  expect(
+    await page
+      .locator('.admin-dashboard [data-test]')
+      .evaluateAll((lines) => lines.map((line) => line.getAttribute('data-test'))),
+  ).toEqual([
+    'open-creations',
+    'open-creations-waiting',
+    'waiting-for-moderation',
+    'waiting-for-member',
+    'on-resubmission',
+    'open-elsewhere',
+    'open-support-tickets',
+    'support-waiting',
+    'support-waiting-for-moderation',
+    'support-waiting-for-member',
+  ])
+
+  // the choice stays as answered above
+  graphql.answer(counts(2, 1, 5, 4))
+  await page.reload()
+  await expect(page.getByTestId('open-elsewhere')).toHaveText(de.dashboard.elsewhereOne)
+})
+
+test('names nothing elsewhere without a choice, nor where nothing is open there', async ({
+  page,
+  graphql,
+}) => {
+  // three counts are three statements: a creation arriving between them is no rest
+  graphql.answer(counts(2, 1, 5, 6))
+  await signIn(page, '/')
+  await expect(page.getByTestId('open-creations')).toBeVisible()
+  await expect(page.getByTestId('open-elsewhere')).toHaveCount(0)
+
+  graphql.answer({
+    ...counts(2, 1, 5, 3),
+    handledCreationGroups: { groupIds: [3], untagged: false, off: false },
+  })
+  await page.reload()
+  await expect(page.getByTestId('open-creations')).toBeVisible()
+  await expect(page.getByTestId('open-elsewhere')).toHaveCount(0)
+})
+
+// MG5: an area switched off in "Meine Gruppen" is not on the start page -- the server counts it as
+// nothing, and what is open in it would stand there as a line of the other groups. Each area with
+// the other one on: its lines say that the answers are there.
+test('says nothing of the creations where they are switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    ...counts(0, 0, 3, 5),
+    handledCreationGroups: { groupIds: [3], untagged: true, off: true },
+    ...support(1, 0),
+  })
+  await signIn(page, '')
+  // drawn once the creations' answer is there, and below them
+  await expect(page.getByTestId('open-support-tickets')).toHaveText(de.dashboard.supportOne)
+  await expect(page.getByTestId('open-creations')).toHaveCount(0)
+  await expect(page.getByTestId('on-resubmission')).toHaveCount(0)
+  await expect(page.getByTestId('open-elsewhere')).toHaveCount(0)
+})
+
+test('says nothing of the support where it is switched off (MG5)', async ({ page, graphql }) => {
+  graphql.answer({ ...counts(2, 1, 3), ...support(0, 0, 0, 4, 1, true) })
+  const counted = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('adminCountOpenSupportTickets')),
+  )
+  await signIn(page, '')
+  await (await counted).finished()
+  await expect(page.getByTestId('open-creations')).toBeVisible()
+  await drawn(page)
+  await expect(page.getByTestId('open-support-tickets')).toHaveCount(0)
+  await expect(page.getByTestId('support-open-elsewhere')).toHaveCount(0)
 })
 
 test('names one open creation as one, and every line at 0', async ({ page, graphql }) => {
@@ -92,6 +280,7 @@ test('reports failed counts, and shows none', async ({ page, graphql }) => {
     waitingForModeration: new Failure('no database'),
     waitingForMember: new Failure('no database'),
     allOpen: new Failure('no database'),
+    everythingOpen: new Failure('no database'),
   })
   await signIn(page, '/')
 
@@ -172,6 +361,55 @@ test('names the support requests on resubmission in a line of their own, not in 
   await page.reload()
   await expect(page.getByTestId('open-support-tickets')).toBeVisible()
   await expect(page.getByTestId('support-on-resubmission')).toHaveCount(0)
+})
+
+// "Meine Gruppen" (MG2): the support's lines count the chosen groups, and below them, quietly and
+// without a link, what is open elsewhere -- in the same form as the creation's line
+test('names the support requests open in other groups, quietly and below the support (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ ...counts(2, 1, 5), ...support(3, 1, 2, 6, 1) })
+  await signIn(page, '/')
+
+  const elsewhere = page.getByTestId('support-open-elsewhere')
+  await expect(elsewhere).toHaveText('In anderen Gruppen: 6 offene Anfragen')
+  await expect(elsewhere.locator('a')).toHaveCount(0)
+  await expect(elsewhere).toHaveClass(/\btext-body-secondary\b/)
+  // the number counts "Meine Gruppen" alone, and so does the badge
+  await expect(page.getByTestId('open-support-tickets')).toHaveText(
+    de.dashboard.support.replace('{n}', '4'),
+  )
+  await expect(supportBadge(page)).toHaveText('4')
+  expect(
+    await page
+      .locator('.admin-dashboard [data-test]')
+      .evaluateAll((lines) => lines.map((line) => line.getAttribute('data-test'))),
+  ).toEqual([
+    'open-creations',
+    'open-creations-waiting',
+    'waiting-for-moderation',
+    'waiting-for-member',
+    'on-resubmission',
+    'open-support-tickets',
+    'support-waiting',
+    'support-waiting-for-moderation',
+    'support-waiting-for-member',
+    'support-on-resubmission',
+    'support-open-elsewhere',
+  ])
+  // still one question for the support's counts
+  expect(graphql.sentFor('adminCountOpenSupportTickets')).toHaveLength(1)
+
+  graphql.answer(support(3, 1, 0, 1))
+  await page.reload()
+  await expect(elsewhere).toHaveText('In anderen Gruppen: eine offene Anfrage')
+
+  // nothing open elsewhere -- and nothing ever for whoever chose nothing: the server says 0
+  graphql.answer(support(3, 1, 0, 0, 2))
+  await page.reload()
+  await expect(page.getByTestId('open-support-tickets')).toBeVisible()
+  await expect(elsewhere).toHaveCount(0)
 })
 
 test('names one open support request as one, and says when none is open', async ({

@@ -32,6 +32,10 @@ const i18n = createI18n({
   messages: {
     en: {
       navigation: {
+        adminCreations:
+          '{n} creation is waiting for moderation | {n} creations are waiting for moderation',
+        adminSupportTickets:
+          '{n} support request is waiting for moderation | {n} support requests are waiting for moderation',
         overview: 'Overview',
         send: 'Send',
         calculator: 'Calculator',
@@ -737,5 +741,177 @@ describe('Sidebar and the contributions with a question back', () => {
     const wrapper = mountSidebar({ creationAllowed: false })
     expect(creationEntry(wrapper).exists()).toBe(false)
     expect(badge(wrapper).exists()).toBe(false)
+  })
+})
+
+/**
+ * "Meine Gruppen" (MG3): at "Admin", what waits for the moderation in the member's own groups, on
+ * the corners of the symbol as the other marks -- the creations above, the support requests below
+ * (Bernd, 22.11.2026). The numbers come through the real beat (useChatUpdates), as the chat's do;
+ * where they stand on the screen, and that they move nothing, is measured in the built wallet.
+ */
+describe('Sidebar and what waits for the moderation (MG3)', () => {
+  const answer = (moderationWaiting) => ({
+    data: {
+      newChatMessagesSince: { latestId: 1, unreadConversations: 0, messages: [], hasMore: false },
+      moderationWaiting,
+    },
+  })
+  const beatBrings = async (waiting) => {
+    startChatUpdates({ query: vi.fn(async () => answer(waiting)) })
+    await flushPromises()
+  }
+  const mountSidebar = (state = { role: 'ADMIN' }) =>
+    mount(Sidebar, {
+      global: {
+        plugins: [createWalletStore(state), i18n],
+        stubs: ['router-link', 'i-bi-cash'],
+        components: { BNav, BBadge, BNavItem, BImg },
+      },
+    })
+  const adminEntry = (wrapper) =>
+    wrapper.findAll('.nav-item').find((item) => item.find('[data-test="admin-menu-icon"]').exists())
+  const creations = (wrapper) => wrapper.find('[data-test="admin-creations-badge"]')
+  const requests = (wrapper) => wrapper.find('[data-test="admin-support-badge"]')
+  const marks = (wrapper) => adminEntry(wrapper).findAll('.chat-unread-badge')
+  const sentences = (wrapper) =>
+    ['admin-creations-badge-label', 'admin-support-badge-label']
+      .map((name) => wrapper.find(`[data-test="${name}"]`))
+      .filter((found) => found.exists())
+      .map((found) => found.text())
+
+  afterEach(() => {
+    stopChatUpdates()
+  })
+
+  it('shows no mark while nothing waits, and the entry as before', async () => {
+    await beatBrings({ creations: 0, supportTickets: 0 })
+    const wrapper = mountSidebar()
+    expect(marks(wrapper)).toHaveLength(0)
+    expect(sentences(wrapper)).toEqual([])
+    expect(adminEntry(wrapper).text()).toBe('Admin')
+  })
+
+  it('shows both on the symbol, the creations above and the requests below', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    // Symbol and word in the row of the other marked entries.
+    const row = adminEntry(wrapper).find('.sidebar-menu-item-wrapper')
+    expect(row.classes()).toContain('chat-menu-item')
+    const holder = row.find('.chat-menu-icon')
+    expect(holder.find('[data-test="admin-menu-icon"]').exists()).toBe(true)
+    expect(holder.findAll('.chat-unread-badge')).toHaveLength(2)
+    expect(creations(wrapper).text()).toBe('3')
+    expect(requests(wrapper).text()).toBe('2')
+    // The figures are for the eye only.
+    expect(marks(wrapper).map((mark) => mark.attributes('aria-hidden'))).toEqual(['true', 'true'])
+    // The mark of the other entries twice: what tells them apart is the place alone.
+    expect(creations(wrapper).classes()).toEqual(['chat-unread-badge'])
+    expect(requests(wrapper).classes()).toEqual(['chat-unread-badge', 'chat-unread-badge-below'])
+  })
+
+  // Where a number is not there, the other keeps its corner: the place says what is counted.
+  it.each([
+    [{ creations: 3, supportTickets: 0 }, ['chat-unread-badge']],
+    [{ creations: 0, supportTickets: 2 }, ['chat-unread-badge', 'chat-unread-badge-below']],
+  ])('keeps each number in its own place: %o', async (waiting, classes) => {
+    await beatBrings(waiting)
+    const wrapper = mountSidebar()
+    expect(marks(wrapper)).toHaveLength(1)
+    expect(marks(wrapper)[0].classes()).toEqual(classes)
+  })
+
+  it('says each number as a sentence after the word, for the ear, and the same to the mouse', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    // a full stop after each, for the ear: two sentences, not one
+    expect(sentences(wrapper)).toEqual([
+      '3 creations are waiting for moderation.',
+      '2 support requests are waiting for moderation.',
+    ])
+    expect(creations(wrapper).attributes('title')).toBe('3 creations are waiting for moderation')
+    expect(requests(wrapper).attributes('title')).toBe(
+      '2 support requests are waiting for moderation',
+    )
+    const word = adminEntry(wrapper).find('.chat-menu-label')
+    expect(word.text()).toBe('Admin')
+    for (const name of ['admin-creations-badge-label', 'admin-support-badge-label']) {
+      const said = wrapper.find(`[data-test="${name}"]`)
+      expect(said.classes()).toContain('visually-hidden')
+      // after the word, outside the marks a screen reader does not hear
+      expect(
+        word.element.compareDocumentPosition(said.element) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy()
+      expect(said.element.closest('[aria-hidden="true"]')).toBeNull()
+    }
+  })
+
+  it('says one of each in the singular', async () => {
+    await beatBrings({ creations: 1, supportTickets: 1 })
+    expect(sentences(mountSidebar())).toEqual([
+      '1 creation is waiting for moderation.',
+      '1 support request is waiting for moderation.',
+    ])
+  })
+
+  it('stops the figures at 99+, and the sentences say the number', async () => {
+    await beatBrings({ creations: 120, supportTickets: 150 })
+    const wrapper = mountSidebar()
+    expect([creations(wrapper).text(), requests(wrapper).text()]).toEqual(['99+', '99+'])
+    expect(sentences(wrapper)).toEqual([
+      '120 creations are waiting for moderation.',
+      '150 support requests are waiting for moderation.',
+    ])
+  })
+
+  it('shows no support number for a moderator who does not handle the support', async () => {
+    await beatBrings({ creations: 3, supportTickets: null })
+    const wrapper = mountSidebar({ role: 'MODERATOR' })
+    expect(creations(wrapper).text()).toBe('3')
+    expect(requests(wrapper).exists()).toBe(false)
+    expect(sentences(wrapper)).toEqual(['3 creations are waiting for moderation.'])
+  })
+
+  it('has neither the entry nor a mark for a member without a role, whatever the beat holds', async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar({ role: null })
+    expect(wrapper.find('[data-test="admin-menu-icon"]').exists()).toBe(false)
+    expect(creations(wrapper).exists()).toBe(false)
+    expect(requests(wrapper).exists()).toBe(false)
+    expect(sentences(wrapper)).toEqual([])
+  })
+
+  it("goes when the beat stops: the numbers were the member's", async () => {
+    await beatBrings({ creations: 3, supportTickets: 2 })
+    const wrapper = mountSidebar()
+    expect(marks(wrapper)).toHaveLength(2)
+    stopChatUpdates()
+    await flushPromises()
+    expect(marks(wrapper)).toHaveLength(0)
+  })
+
+  // One under the other: the lower mark has its height from the symbol's lower edge, all else --
+  // the side, the round form, the gold -- is the mark's own. jsdom draws nothing, so the stylesheet
+  // says it, read without its comments.
+  it('hangs the requests as far below the symbol as the creations stand above it', () => {
+    const style = readFileSync(
+      join(dirname(fileURLToPath(import.meta.url)), 'Sidebar.module.scss'),
+      'utf8',
+    ).replace(/\/\*[\s\S]*?\*\//g, '')
+    const rule = (selector) =>
+      Object.fromEntries(
+        style
+          .match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))[1]
+          .split(';')
+          .map((line) => line.split(':').map((part) => part.trim()))
+          .filter(([name]) => name),
+      )
+
+    const above = rule('\\.chat-unread-badge')
+    expect(above.top).toBe('-0.5rem')
+    expect(rule('\\.chat-unread-badge\\.chat-unread-badge-below')).toEqual({
+      top: 'auto',
+      bottom: above.top,
+    })
   })
 })

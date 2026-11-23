@@ -1250,6 +1250,8 @@
     }
   },
   "navigation": {
+    "adminCreations": "{n} création attend la modération | {n} créations attendent la modération",
+    "adminSupportTickets": "{n} demande d'aide attend la modération | {n} demandes d'aide attendent la modération",
     "admin_area": "Admin",
     "back-to-account": "Retour au compte",
     "back-to-settings": "Retour à la configuration",

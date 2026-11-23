@@ -57,10 +57,11 @@ import {
 import { createUserContribution } from './util/createUserContribution'
 import { getOpenCreations, getUserCreation, validateContribution } from './util/creations'
 import { extractGraphQLFieldPaths, extractGraphQLFields } from './util/extractGraphQLFields'
-import { findContributions, parseModeratorScope } from './util/findContributions'
+import { findContributions, HANDLED_FILTER } from './util/findContributions'
 import {
   assertContributionInModeratorScope,
-  isScopedModeratorRole,
+  handledCreationGroupsOfRole,
+  moderatorScopeOfRole,
 } from './util/moderatorCreationGroupScope'
 
 const db = AppDatabase.getInstance()
@@ -468,10 +469,10 @@ export class ContributionResolver {
     // Crea, so the same visibility scope applies (see isScopedModeratorRole).
     // Admins (and other roles) are unrestricted -> scope null.
     const activeRole = context.user?.userRole
-    const moderatorScope =
-      activeRole && isScopedModeratorRole(activeRole.role)
-        ? parseModeratorScope(activeRole.visibleCreationGroups)
-        : null
+    const moderatorScope = moderatorScopeOfRole(activeRole)
+    // "Meine Gruppen" (MG1), from the role row loaded with the request: no query of its own.
+    const handled =
+      filter.creationGroup === HANDLED_FILTER ? handledCreationGroupsOfRole(activeRole) : null
     const [dbContributions, count] = await findContributions(
       paginated,
       filter,
@@ -486,6 +487,7 @@ export class ContributionResolver {
       },
       countOnly,
       moderatorScope,
+      handled,
     )
     const result = new ContributionListResult(count, dbContributions)
     await attachContributionCreationGroups(result.contributionList)

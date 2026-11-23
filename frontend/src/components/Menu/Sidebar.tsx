@@ -15,6 +15,10 @@ import { RouterLink, useRoute } from 'vue-router'
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
 import { contributionsInProgress } from '@/composables/useContributionsInProgress'
 import {
+  moderationCreationsWaiting,
+  moderationSupportTicketsWaiting,
+} from '@/composables/useModerationWaiting'
+import {
   supportTicketsInProgress,
   supportTicketsUnfinished,
 } from '@/composables/useSupportTicketsMenu'
@@ -75,6 +79,30 @@ export const Sidebar = defineComponent({
     )
     const creationBadgeFigure = computed(() =>
       contributionsInProgress.value > 99 ? '99+' : String(contributionsInProgress.value),
+    )
+    const adminCreationsFigure = computed(() =>
+      moderationCreationsWaiting.value > 99 ? '99+' : String(moderationCreationsWaiting.value),
+    )
+    const adminSupportFigure = computed(() =>
+      moderationSupportTicketsWaiting.value > 99
+        ? '99+'
+        : String(moderationSupportTicketsWaiting.value),
+    )
+    // the sentence the mouse sees on the mark; a screen reader hears it after the word, with a full
+    // stop, so that the two sentences of the entry are not read as one
+    const adminCreationsSentence = computed(() =>
+      t(
+        'navigation.adminCreations',
+        { n: moderationCreationsWaiting.value },
+        moderationCreationsWaiting.value,
+      ),
+    )
+    const adminSupportSentence = computed(() =>
+      t(
+        'navigation.adminSupportTickets',
+        { n: moderationSupportTicketsWaiting.value },
+        moderationSupportTicketsWaiting.value,
+      ),
     )
 
     const transactionClass = computed(() => {
@@ -326,13 +354,50 @@ export const Sidebar = defineComponent({
                   activeClass='active-route'
                   onClick={() => emit('admin')}
                 >
-                  <div class='sidebar-menu-item-wrapper'>
-                    {/* `svg-icon` like every symbol of this menu: without it the shield took the
-                        colour of the entry's TEXT -- white on dark, near-black on light -- and stood
-                        out as the one lit symbol in the list, although this entry can never be the
-                        open one: it leaves for the admin interface. (Bernd, 08.10.2026) */}
-                    <IBiShieldCheck class='svg-icon' data-test='admin-menu-icon' />
-                    <span class='ms-2'>{t('navigation.admin_area')}</span>
+                  {/* What waits for the moderation in "Meine Gruppen" (MG3): on the corners of the
+                      symbol, in the form of the other marks and for the same reason -- the creations
+                      above, the support requests below (Bernd, 22.11.2026). Each from 1 and each in
+                      its own place: the place says what is counted. A screen reader hears the
+                      sentences after the word, the mouse sees each on its mark. */}
+                  <div class='sidebar-menu-item-wrapper chat-menu-item'>
+                    <span class='chat-menu-icon'>
+                      {/* `svg-icon` like every symbol of this menu: without it the shield took the
+                          colour of the entry's TEXT -- white on dark, near-black on light -- and stood
+                          out as the one lit symbol in the list, although this entry can never be the
+                          open one: it leaves for the admin interface. (Bernd, 08.10.2026) */}
+                      <IBiShieldCheck class='svg-icon' data-test='admin-menu-icon' />
+                      {moderationCreationsWaiting.value > 0 ? (
+                        <span
+                          class='chat-unread-badge'
+                          aria-hidden='true'
+                          title={adminCreationsSentence.value}
+                          data-test='admin-creations-badge'
+                        >
+                          {adminCreationsFigure.value}
+                        </span>
+                      ) : null}
+                      {moderationSupportTicketsWaiting.value > 0 ? (
+                        <span
+                          class='chat-unread-badge chat-unread-badge-below'
+                          aria-hidden='true'
+                          title={adminSupportSentence.value}
+                          data-test='admin-support-badge'
+                        >
+                          {adminSupportFigure.value}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span class='ms-2 chat-menu-label'>{t('navigation.admin_area')}</span>
+                    {moderationCreationsWaiting.value > 0 ? (
+                      <span class='visually-hidden' data-test='admin-creations-badge-label'>
+                        {`${adminCreationsSentence.value}.`}
+                      </span>
+                    ) : null}
+                    {moderationSupportTicketsWaiting.value > 0 ? (
+                      <span class='visually-hidden' data-test='admin-support-badge-label'>
+                        {`${adminSupportSentence.value}.`}
+                      </span>
+                    ) : null}
                   </div>
                 </BNavItem>
               ) : null}

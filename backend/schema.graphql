@@ -55,6 +55,7 @@ type Query {
   keptPictureFull(ref: MemberAvatarRefInput!): String
   listMatchingEntries: [MatchingEntry!]!
   eventMatchingArrival: String
+  moderationWaiting: ModerationWaiting
   projectBrandings: [ProjectBranding!]!
   projectBranding(id: Int!): ProjectBranding!
   projectBrandingBanner(alias: String!): String
@@ -75,6 +76,8 @@ type Query {
   suggestedCreationGroup: CreationGroup
   userCreationGroups(userId: Int!): [CreationGroup!]!
   moderatorCreationGroupScope(userId: Int!): [String!]!
+  handledCreationGroups: HandledCreationGroups!
+  handledSupportGroups: HandledCreationGroups!
   userNote(about: UserNoteSubjectInput!): String
   userNotes: [UserNote!]!
   userRemark(userId: Int!): UserRemark
@@ -828,6 +831,11 @@ type MatchingEntry {
   exactSentence: Boolean!
 }
 
+type ModerationWaiting {
+  creations: Int
+  supportTickets: Int
+}
+
 type ProjectBranding {
   id: Int!
   name: String!
@@ -947,6 +955,9 @@ type AdminOpenSupportTickets {
   forModeration: Int!
   forMember: Int!
   onResubmission: Int!
+  elsewhere: Int!
+  elsewhereOnResubmission: Int!
+  off: Boolean!
 }
 
 type SupportTicketsMenu {
@@ -1013,6 +1024,12 @@ type ThankYouCard {
   label: String!
   blockedAt: DateTime
   createdAt: DateTime!
+}
+
+type HandledCreationGroups {
+  groupIds: [Int!]!
+  untagged: Boolean!
+  off: Boolean!
 }
 
 input UserNoteSubjectInput {
@@ -1207,6 +1224,7 @@ type Mutation {
   setMyCreationGroups(tags: [String!]!): [CreationGroup!]!
   setUserCreationGroups(tags: [String!]!, userId: Int!): [CreationGroup!]!
   setModeratorCreationGroupScope(scope: [String!]!, userId: Int!): [String!]!
+  setHandledGroups(support: HandledGroupsInput!, creation: HandledGroupsInput!): HandledGroups!
   setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
   setUserRemark(userId: Int!, remark: String!): UserRemark
   login(email: String!, password: String!, publisherId: Int, project: String): User!
@@ -1432,6 +1450,17 @@ type ThankYouCardPaymentResult {
   attemptsLeft: Int
   payerName: String
   amount: GradidoUnit
+}
+
+type HandledGroups {
+  creation: HandledCreationGroups!
+  support: HandledCreationGroups!
+}
+
+input HandledGroupsInput {
+  groupIds: [Int!]!
+  untagged: Boolean!
+  off: Boolean!
 }
 
 """Possible role names"""

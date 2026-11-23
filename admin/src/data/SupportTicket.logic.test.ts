@@ -218,43 +218,61 @@ describe('closingLine', () => {
 
 describe('supportGroupFilterOptions', () => {
   const GROUPS = [
-    { tag: 'garden', name: 'Garten' },
-    { tag: 'choir', name: null },
+    { id: 1, tag: 'garden', name: 'Garten' },
+    { id: 2, tag: 'choir', name: null },
   ]
-  const values = (moderator: Parameters<typeof supportGroupFilterOptions>[0]) =>
-    supportGroupFilterOptions(moderator, GROUPS).map((option) => option.value)
+  type Seeing = Parameters<typeof supportGroupFilterOptions>[0]
+  const ALL: Seeing = { seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }
+  const CHOIR_AND_NONE = { groupIds: [2], untagged: true, off: false }
+  const values = (moderator: Seeing, chosen: typeof CHOIR_AND_NONE | null = null) =>
+    supportGroupFilterOptions(moderator, GROUPS, chosen).map((option) => option.value)
 
-  it('opens for everybody on the value that shows all they see', () => {
-    // all groups: everything, with and without a group
-    expect(
-      values({ seesAllCreationGroups: true, visibleCreationGroups: [], seesUntagged: true }),
-    ).toEqual(['', '*grouped', '*untagged', 'garden', 'choir'])
-    // groups and the requests of none: both, which the creation page has no value for
-    expect(
-      values({
-        seesAllCreationGroups: false,
-        visibleCreationGroups: ['garden'],
-        seesUntagged: true,
-      }),
-    ).toEqual(['', '*grouped', '*untagged', 'garden'])
-    // groups alone: all of theirs
-    expect(
-      values({
-        seesAllCreationGroups: false,
-        visibleCreationGroups: ['garden'],
-        seesUntagged: false,
-      }),
-    ).toEqual(['*grouped', 'garden'])
-    // the requests of no group alone
-    expect(
-      values({ seesAllCreationGroups: false, visibleCreationGroups: [], seesUntagged: true }),
-    ).toEqual(['*untagged'])
+  it('opens for whoever sees every group and chose on "Meine Gruppen", the ticked groups alone after the fixed rows (MG2)', () => {
+    expect(values(ALL, CHOIR_AND_NONE)).toEqual(['*handled', '', '*grouped', '*untagged', 'choir'])
+    expect(supportGroupFilterOptions(ALL, GROUPS, CHOIR_AND_NONE)[0].text).toBe('Meine Gruppen')
   })
+
+  // MG5: the support off narrows no filter: everything as "", never "*handled", which finds nothing
+  it('opens for whoever sees every group and switched the support off on everything, as ""', () => {
+    expect(supportGroupFilterOptions(ALL, GROUPS, null, true).map(({ value }) => value)).toEqual([
+      '',
+      '*grouped',
+      '*untagged',
+      'garden',
+      'choir',
+    ])
+  })
+
+  it('opens for whoever sees every group and chose nothing on everything, called "*handled" (MG2)', () => {
+    expect(values(ALL)).toEqual(['*handled', '*grouped', '*untagged', 'garden', 'choir'])
+    expect(supportGroupFilterOptions(ALL, GROUPS, null)[0].text).toBe('(mit und ohne Gruppe)')
+  })
+
+  // The four kinds of scope, each with the list of K4 -- and a choice, kept in this browser from
+  // before a scope was assigned, changes none of them: the scope is their list (MG1).
+  it.each([
+    ['groups and the requests of none', ['garden'], true, ['', '*grouped', '*untagged', 'garden']],
+    ['groups alone', ['garden'], false, ['*grouped', 'garden']],
+    ['the requests of no group alone', [], true, ['*untagged']],
+    ['nothing', [], false, ['*untagged']],
+  ])(
+    'keeps the list of a moderator with a scope of %s as it was',
+    (_kind, visible, untagged, list) => {
+      const scoped: Seeing = {
+        seesAllCreationGroups: false,
+        visibleCreationGroups: visible as string[],
+        seesUntagged: untagged as boolean,
+      }
+      expect(values(scoped)).toEqual(list)
+      expect(values(scoped, CHOIR_AND_NONE)).toEqual(list)
+    },
+  )
 
   it('names the choices in the words of the creation page', () => {
     const [first] = supportGroupFilterOptions(
       { seesAllCreationGroups: false, visibleCreationGroups: ['garden'], seesUntagged: true },
       GROUPS,
+      null,
     )
     expect(first.text).toBe('(mit und ohne Gruppe)')
   })

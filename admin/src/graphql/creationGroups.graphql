@@ -20,6 +20,70 @@ query moderatorCreationGroupScope($userId: Int!) {
   moderatorCreationGroupScope(userId: $userId)
 }
 
+# "Meine Gruppen" (MG1): every group with its number, and the groups whose creations the signed-in
+# moderator handles themself (the column "Schöpfung"), in one request -- the creation page asks it.
+query creationGroupsAndHandled {
+  creationGroups {
+    id
+    tag
+    name
+  }
+  handledCreationGroups {
+    groupIds
+    untagged
+    off
+  }
+}
+
+# The same for the support page (MG2b): the groups and the column "Support".
+query creationGroupsAndHandledSupport {
+  creationGroups {
+    id
+    tag
+    name
+  }
+  handledSupportGroups {
+    groupIds
+    untagged
+    off
+  }
+}
+
+# The page of the choice (MG2b): every group and both columns, in one request.
+query myGroupsChoice {
+  creationGroups {
+    id
+    tag
+    name
+  }
+  handledCreationGroups {
+    groupIds
+    untagged
+    off
+  }
+  handledSupportGroups {
+    groupIds
+    untagged
+    off
+  }
+}
+
+# Saves both columns at once; the answer is the choice as stored (each group once, ascending).
+mutation setHandledGroups($creation: HandledGroupsInput!, $support: HandledGroupsInput!) {
+  setHandledGroups(creation: $creation, support: $support) {
+    creation {
+      groupIds
+      untagged
+      off
+    }
+    support {
+      groupIds
+      untagged
+      off
+    }
+  }
+}
+
 mutation setUserCreationGroups($userId: Int!, $tags: [String!]!) {
   setUserCreationGroups(userId: $userId, tags: $tags) {
     id

@@ -302,7 +302,10 @@
   "creation": "Creation",
   "creationGroupFilter": {
     "all": "(with and without group)",
+    "chooseMine": "Choose my groups …",
+    "editMine": "Change my groups …",
     "grouped": "(all groups)",
+    "mine": "My groups",
     "untagged": "(no group)"
   },
   "creationGroupsAdmin": {
@@ -358,8 +361,12 @@
     "toasted_denied": "Open creation has been rejected"
   },
   "dashboard": {
+    "elsewhere": "In other groups: {n} open creations",
+    "elsewhereOne": "In other groups: one open creation",
     "resubmission": "Also: {n} on resubmission",
     "support": "Support: {n} open requests",
+    "supportElsewhere": "In other groups: {n} open requests",
+    "supportElsewhereOne": "In other groups: one open request",
     "supportNone": "Support: no open requests",
     "supportOne": "Support: one open request",
     "today": "Today: {n} open creations",
@@ -539,6 +546,21 @@
     "notice-tooltip": "The note is only visible to moderators",
     "show-submission-form": "wait for reminder?"
   },
+  "myGroups": {
+    "handle": "I handle this myself",
+    "intro": "Tick the creation groups you handle yourself. The start page, the numbers in the menu and the group filters follow your choice. You can still see everything.",
+    "introBoth": "Tick for each group whether you handle its creations and its support requests yourself. The start page, the numbers in the menu, the group filters and the e-mails about new support requests follow your choice. You can still see everything.",
+    "noMatch": "No group with this name",
+    "rule": {
+      "all": "{column}: everything counts, as before.",
+      "off": "{column}: switched off, nothing counts.",
+      "offSupport": "{column}: switched off, nothing counts. You get e-mails about new requests only when nobody else is responsible.",
+      "some": "{column}: only what is ticked counts."
+    },
+    "saved": "Your groups are saved.",
+    "search": "Search for a group",
+    "title": "My groups"
+  },
   "name": "Name",
   "navbar": {
     "appearance": "Appearance",
@@ -551,6 +573,7 @@
     "logout": "Logout",
     "menu": "Menu",
     "my-account": "My Account",
+    "myGroups": "My groups",
     "projectBranding": "Project Branding",
     "projectBrandingTooltip": "Use your own logo in the Gradido login and add new users to a Humhub space",
     "settings": "Settings",
@@ -580,10 +603,10 @@
       "yes": "Yes, confirm and save creation!"
     },
     "delete": {
-      "question": "Do you really want to carry out and finally save this pre-stored creation?",
-      "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
+      "question": "Do you really want to delete this creation permanently?",
+      "text": "After deleting, the record no longer exists.",
       "title": "Delete creation!",
-      "yes": "Yes, delete and save creation!"
+      "yes": "Yes, delete creation!"
     },
     "deleteUser": {
       "question": "Do you really want to delete {username}?",
@@ -591,15 +614,15 @@
       "yes": "Yes, delete user"
     },
     "deny": {
-      "question": "Do you really want to carry out and finally save this pre-stored creation?",
+      "question": "Do you really want to reject this creation?",
       "text": "After saving, the record can no longer be changed or deleted. Please check carefully that everything is correct.",
       "title": "Reject creation!",
       "yes": "Yes, reject and save creation!"
     },
     "undeleteUser": {
-      "question": "Do you really want to undelete {username}",
+      "question": "Do you really want to undelete {username}?",
       "title": "Undelete user",
-      "yes": "Yes,undelete user"
+      "yes": "Yes, undelete user"
     }
   },
   "projectBranding": {
@@ -608,7 +631,7 @@
     "created": "New project branding entry has been created.",
     "error": "Error when creating the project branding entry: {message}",
     "newUserToSpace": "Add user?",
-    "newUserToSpaceTooltip": "The hours should contain a maximum of two decimal places",
+    "newUserToSpaceTooltip": "Automatically add new users to the space, if there is one",
     "noAccessRightSpace": "Selected space: {spaceId} (No access rights)",
     "openSpaceInHumhub": "Open in Humhub",
     "selectSpace": "Select Humhub Space",

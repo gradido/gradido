@@ -452,6 +452,30 @@ describe('supportTickets query test, the moderation side', () => {
       expect(await found({ group: 'GROUPED', words: ['choir'] })).toEqual([inChoir])
     })
 
+    it('narrows to the handled groups, to no group where it is ticked, or to both (MG2)', async () => {
+      const inGarden = await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      const ungrouped = await file(bibi.id, 'no group', MORNING)
+      const handled = (groupIds: number[], untagged: boolean, off = false) => ({
+        group: { groupIds, untagged, off },
+      })
+      expect(await found(handled([gardenId], false))).toEqual([inGarden])
+      expect(await found(handled([gardenId, choirId], false))).toEqual([inChoir, inGarden])
+      expect(await found(handled([], true))).toEqual([ungrouped])
+      expect(await found(handled([choirId], true))).toEqual([ungrouped, inChoir])
+      // the choice of nothing narrows nothing: nothing ticked means everything
+      expect(await found(handled([], false))).toEqual([ungrouped, inChoir, inGarden])
+      // off (MG5) finds nothing, whatever is ticked behind it
+      expect(await found(handled([gardenId, choirId], true, true))).toEqual([])
+      expect(await found(handled([], false, true))).toEqual([])
+      // and never beyond the scope: the choice narrows what the scope reaches, it widens nothing
+      expect(await found(handled([choirId], false), scope(['garden'], false))).toEqual([])
+      expect(await found(handled([gardenId, choirId], true), scope(['garden'], false))).toEqual([
+        inGarden,
+      ])
+      expect(await found(handled([choirId], true), scope(['garden'], true))).toEqual([ungrouped])
+    })
+
     it('finds nothing outside the scope, in any branch of it, with any filter', async () => {
       const inGarden = await file(bibi.id, 'Hochbeet', MORNING, gardenId)
       const inChoir = await file(bibi.id, 'Hochbeet', MORNING, choirId)
@@ -464,6 +488,8 @@ describe('supportTickets query test, the moderation side', () => {
         { group: 'UNGROUPED' },
         { group: { tag: 'garden' } },
         { group: { tag: 'choir' } },
+        { group: { groupIds: [choirId], untagged: true, off: false } },
+        { group: { groupIds: [gardenId, choirId], untagged: false } },
       ]
       const scopes: [SupportTicketScope, number[]][] = [
         [EVERYTHING, [inGarden, inChoir, ungrouped]],
@@ -520,21 +546,33 @@ describe('supportTickets query test, the moderation side', () => {
         forModeration: 1,
         forMember: 0,
         onResubmission: 2,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       expect(await dbCountOpenSupportTicketsInScope(scope(['garden'], false), NOON)).toEqual({
         forModeration: 0,
         forMember: 0,
         onResubmission: 1,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       expect(await dbCountOpenSupportTicketsInScope(scope([], true), NOON)).toEqual({
         forModeration: 1,
         forMember: 0,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       // once due, they count again
       expect(
         await dbCountOpenSupportTicketsInScope(EVERYTHING, new Date(LATER.getTime() + 1)),
-      ).toEqual({ forModeration: 2, forMember: 1, onResubmission: 0 })
+      ).toEqual({
+        forModeration: 2,
+        forMember: 1,
+        onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+      })
     })
   })
 
@@ -864,6 +902,103 @@ describe('supportTickets query test, the moderation side', () => {
         forModeration: 3,
         forMember: 1,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+      })
+    })
+
+    it('counts "Meine Gruppen" in the three, and the rest of the scope elsewhere (MG2)', async () => {
+      await file(bibi.id, 'in the garden', MORNING, gardenId)
+      const inChoir = await file(bibi.id, 'in the choir', MORNING, choirId)
+      await setState(inChoir, { status: 'IN_PROGRESS' })
+      await file(bibi.id, 'no group', MORNING)
+      const gardenWaits = await file(bibi.id, 'garden waits', MORNING, gardenId)
+      await setState(gardenWaits, { resubmissionAt: LATER })
+      const ungroupedWaits = await file(bibi.id, 'no group waits', MORNING)
+      await setState(ungroupedWaits, { status: 'IN_PROGRESS', resubmissionAt: LATER })
+      const closed = await file(bibi.id, 'closed', MORNING, choirId)
+      await setState(closed, { status: 'CLOSED', closedAt: NOON, closedBy: bibi.id })
+      const handled = (groupIds: number[], untagged: boolean, off = false) => ({
+        groupIds,
+        untagged,
+        off,
+      })
+
+      // the garden: the choir's question back and the request of no group count elsewhere -- no
+      // group is not ticked --, and so does the request of no group that waits
+      expect(
+        await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON, handled([gardenId], false)),
+      ).toEqual({
+        forModeration: 1,
+        forMember: 0,
+        onResubmission: 1,
+        elsewhere: 2,
+        elsewhereOnResubmission: 1,
+      })
+      // with no group ticked besides, both requests of no group are mine
+      expect(
+        await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON, handled([gardenId], true)),
+      ).toEqual({
+        forModeration: 2,
+        forMember: 0,
+        onResubmission: 2,
+        elsewhere: 1,
+        elsewhereOnResubmission: 0,
+      })
+      // off, with the garden ticked behind it: none of it is mine (MG5)
+      expect(
+        await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON, handled([gardenId], true, true)),
+      ).toEqual({
+        forModeration: 0,
+        forMember: 0,
+        onResubmission: 0,
+        elsewhere: 3,
+        elsewhereOnResubmission: 2,
+      })
+      // without a choice everything is mine, and nothing is elsewhere
+      const asBefore = await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON)
+      expect(asBefore).toEqual({
+        forModeration: 2,
+        forMember: 1,
+        onResubmission: 2,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+      })
+      // whatever is chosen, no request counts twice or nowhere: the five add up to the three
+      const sum = (counts: typeof asBefore) =>
+        counts.forModeration +
+        counts.forMember +
+        counts.onResubmission +
+        counts.elsewhere +
+        counts.elsewhereOnResubmission
+      for (const choice of [
+        handled([gardenId], false),
+        handled([choirId], false),
+        handled([], true),
+        handled([gardenId, choirId], true),
+        handled([], false),
+        // off: nothing is mine, everything of the scope is elsewhere (MG5)
+        handled([gardenId], true, true),
+        handled([], false, true),
+      ]) {
+        expect([
+          choice,
+          sum(await dbCountOpenSupportTicketsInScope(EVERYTHING, NOON, choice)),
+        ]).toEqual([choice, sum(asBefore)])
+      }
+      // and nothing beyond the scope: the choir under a scope of the garden leaves the garden elsewhere
+      expect(
+        await dbCountOpenSupportTicketsInScope(
+          scope(['garden'], false),
+          NOON,
+          handled([choirId], true),
+        ),
+      ).toEqual({
+        forModeration: 0,
+        forMember: 0,
+        onResubmission: 0,
+        elsewhere: 1,
+        elsewhereOnResubmission: 1,
       })
     })
 
@@ -877,21 +1012,29 @@ describe('supportTickets query test, the moderation side', () => {
         forModeration: 1,
         forMember: 0,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       expect(await dbCountOpenSupportTicketsInScope(scope(['choir'], true), NOON)).toEqual({
         forModeration: 1,
         forMember: 1,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       expect(await dbCountOpenSupportTicketsInScope(scope([], true), NOON)).toEqual({
         forModeration: 1,
         forMember: 0,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
       expect(await dbCountOpenSupportTicketsInScope(scope([], false), NOON)).toEqual({
         forModeration: 0,
         forMember: 0,
         onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
       })
     })
   })

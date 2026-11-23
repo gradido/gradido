@@ -1250,6 +1250,8 @@
     }
   },
   "navigation": {
+    "adminCreations": "{n} creatie wacht op de moderatie | {n} creaties wachten op de moderatie",
+    "adminSupportTickets": "{n} supportvraag wacht op de moderatie | {n} supportvragen wachten op de moderatie",
     "admin_area": "Admin",
     "back-to-account": "Terug naar de rekening",
     "back-to-settings": "Terug naar instellingen",

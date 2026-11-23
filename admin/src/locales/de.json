@@ -302,7 +302,10 @@
   "creation": "Schöpfung",
   "creationGroupFilter": {
     "all": "(mit und ohne Gruppe)",
+    "chooseMine": "Meine Gruppen wählen …",
+    "editMine": "Meine Gruppen ändern …",
     "grouped": "(alle Gruppen)",
+    "mine": "Meine Gruppen",
     "untagged": "(ohne Gruppe)"
   },
   "creationGroupsAdmin": {
@@ -358,8 +361,12 @@
     "toasted_denied": "Offene Schöpfung wurde abgelehnt"
   },
   "dashboard": {
+    "elsewhere": "In anderen Gruppen: {n} offene Schöpfungen",
+    "elsewhereOne": "In anderen Gruppen: eine offene Schöpfung",
     "resubmission": "Außerdem: {n} auf Wiedervorlage",
     "support": "Support: {n} offene Anfragen",
+    "supportElsewhere": "In anderen Gruppen: {n} offene Anfragen",
+    "supportElsewhereOne": "In anderen Gruppen: eine offene Anfrage",
     "supportNone": "Support: keine offenen Anfragen",
     "supportOne": "Support: eine offene Anfrage",
     "today": "Heute: {n} offene Schöpfungen",
@@ -539,6 +546,21 @@
     "notice-tooltip": "Die Notiz ist nur für Moderatoren sichtbar",
     "show-submission-form": "warten auf Erinnerung?"
   },
+  "myGroups": {
+    "handle": "Selbst bearbeiten",
+    "intro": "Kreuze an, welche Schöpfungsgruppen Du selbst bearbeitest. Die Startseite, die Zahlen im Menü und die Gruppenwahl richten sich danach. Sehen kannst Du weiterhin alles.",
+    "introBoth": "Kreuze je Gruppe an, ob Du ihre Schöpfung und ihren Support selbst bearbeitest. Die Startseite, die Zahlen im Menü, die Gruppenwahl und die Mails über neue Support-Anfragen richten sich danach. Sehen kannst Du weiterhin alles.",
+    "noMatch": "Keine Gruppe mit diesem Namen",
+    "rule": {
+      "all": "{column}: Es zählt alles, wie bisher.",
+      "off": "{column}: Ausgeschaltet, es zählt nichts.",
+      "offSupport": "{column}: Ausgeschaltet, es zählt nichts. Mails über neue Anfragen bekommst Du nur noch, wenn sonst niemand zuständig ist.",
+      "some": "{column}: Es zählt nur das Angekreuzte."
+    },
+    "saved": "Deine Gruppen sind gespeichert.",
+    "search": "Gruppe suchen",
+    "title": "Meine Gruppen"
+  },
   "name": "Name",
   "navbar": {
     "appearance": "Erscheinungsbild",
@@ -551,6 +573,7 @@
     "logout": "Abmelden",
     "menu": "Menü",
     "my-account": "Mein Konto",
+    "myGroups": "Meine Gruppen",
     "projectBranding": "Projekt-Branding",
     "projectBrandingTooltip": "Nutze ein eigenes Logo im Gradido Login und füge neue Benutzer einem Humhub-Space hinzu",
     "settings": "Einstellungen",

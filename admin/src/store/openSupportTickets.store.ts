@@ -15,9 +15,14 @@ let lastAsked = 0
 /**
  * Asks for the two halves of the open support tab (K3) and sets the badges in the bar and on the
  * tab to their sum (adminStore.openSupportTickets) -- where no later question was asked in the
- * meantime: a slow answer must not put back a count from before a write. Answers the halves, or
- * null where the count failed: the badges then keep what they showed. The start page and the
- * support page ask for it.
+ * meantime: a slow answer must not put back a count from before a write. Both halves count "Meine
+ * Gruppen" (MG2), whatever list the support page shows, so the badges count what the start page
+ * counts. Answers the counts, or null where the count failed: the badges then keep what they
+ * showed. The start page, the support page and the page of the choice ask for it.
+ *
+ * ⛔ No mark of the choice (askingHandledCreationGroups): on the start page this question and the
+ * creation's run side by side, and the choice that comes with the creation's answer would not be
+ * kept, as out of date.
  *
  * The server has the last word (K6): a refusal for want of the right means the tick was taken
  * away since the moderator came in through the wallet. The admin then forgets the tick it keeps,

@@ -71,7 +71,14 @@ const byTab: Answer = ({ statuses }: { statuses: string[] }) =>
         : ticketList([...tickets, own], 30)
 
 // the two halves of the open tab (K3): the badges show their sum
-const OPEN = { forModeration: 5, forMember: 1, onResubmission: 0 }
+const OPEN = {
+  forModeration: 5,
+  forMember: 1,
+  onResubmission: 0,
+  elsewhere: 0,
+  elsewhereOnResubmission: 0,
+  off: false,
+}
 
 test.beforeEach(async ({ graphql }) => {
   graphql.answer({
@@ -110,6 +117,8 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
 }) => {
   await open(page)
 
+  // the page's name, the menu's word
+  await expect(page.getByRole('heading', { name: de.navbar.support, exact: true })).toBeVisible()
   await expect(page.locator('li.bg-color-creation + li')).toHaveText(`${de.navbar.support} 6`)
   await expect(
     page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }),
@@ -120,7 +129,7 @@ test('stands in the menu behind the creation, and lists the open requests', asyn
       currentPage: 1,
       pageSize: 25,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
       hideResubmission: true,
     },
   ])
@@ -185,7 +194,7 @@ test('shows the closed, the deleted and all requests with their columns, colours
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: false,
   })
   await expect(heads(page)).toHaveText([
@@ -234,7 +243,7 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql })
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: false,
   })
 })
@@ -363,7 +372,7 @@ test('asks for the next page', async ({ page, graphql }) => {
       currentPage: 2,
       pageSize: 25,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
       hideResubmission: true,
     })
 })
@@ -426,6 +435,7 @@ test('lets a refusal of an earlier count, arriving late, take nothing away', asy
     waitingForModeration: { contributionCount: 0 },
     waitingForMember: { contributionCount: 0 },
     allOpen: { contributionCount: 0 },
+    everythingOpen: { contributionCount: 0 },
     adminCountOpenSupportTickets: async () => {
       asks += 1
       if (asks > 1) {
@@ -550,7 +560,7 @@ test('answers below the thread, and asks for the thread, the list and the count 
     currentPage: 1,
     pageSize: 25,
     query: '',
-    creationGroup: '',
+    creationGroup: '*handled',
     hideResubmission: true,
   })
   // the row stays open where it is still in the list
@@ -695,9 +705,23 @@ test('lets no answer to an earlier count put back a count from before a write', 
       counted += 1
       if (counted === 1) {
         await held
-        return { forModeration: 5, forMember: 1, onResubmission: 0 }
+        return {
+          forModeration: 5,
+          forMember: 1,
+          onResubmission: 0,
+          elsewhere: 0,
+          elsewhereOnResubmission: 0,
+          off: false,
+        }
       }
-      return { forModeration: 4, forMember: 1, onResubmission: 0 }
+      return {
+        forModeration: 4,
+        forMember: 1,
+        onResubmission: 0,
+        elsewhere: 0,
+        elsewhereOnResubmission: 0,
+        off: false,
+      }
     },
   })
   const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
@@ -849,7 +873,14 @@ test('counts the open requests at the menu entry and at the open tab', async ({
   // after a write, the count as it is now
   graphql.answer({ adminCloseSupportTicket: true })
   graphql.answer({
-    adminCountOpenSupportTickets: { forModeration: 4, forMember: 1, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 4,
+      forMember: 1,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+      off: false,
+    },
   })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
   await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
@@ -857,7 +888,14 @@ test('counts the open requests at the menu entry and at the open tab', async ({
   await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
 
   graphql.answer({
-    adminCountOpenSupportTickets: { forModeration: 0, forMember: 0, onResubmission: 0 },
+    adminCountOpenSupportTickets: {
+      forModeration: 0,
+      forMember: 0,
+      onResubmission: 0,
+      elsewhere: 0,
+      elsewhereOnResubmission: 0,
+      off: false,
+    },
   })
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
@@ -922,7 +960,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
   await searchField(page).fill('Garten Bibi')
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, query: 'Garten Bibi', creationGroup: '*handled' })
 
   await tab(page, de.support.tab.closed).click()
   await expect
@@ -932,7 +970,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
       statuses: ['CLOSED'],
       hideResubmission: false,
       query: 'Garten Bibi',
-      creationGroup: '',
+      creationGroup: '*handled',
     })
   const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
   expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({
@@ -952,7 +990,7 @@ test('searches from the first page, and keeps the search over the tabs and for t
       statuses: ['CLOSED'],
       hideResubmission: false,
       query: '',
-      creationGroup: '',
+      creationGroup: '*handled',
     })
 })
 
@@ -983,6 +1021,73 @@ test('lets a kept search that finds nothing give way, and keeps one typed here',
   await expect(searchField(page)).toHaveValue('niemand')
 })
 
+// MG5: "Meine Gruppen" that turns out switched off finds nothing, whatever the search: the list
+// asked then says whether a kept search gives way -- whichever of the two answers comes first
+const keepSearch = (page: Page, search: string) =>
+  page.addInitScript(
+    ([key, kept]) => localStorage.setItem(key, kept),
+    [KEPT, JSON.stringify({ [moderator.gradidoID]: { '/support': search } })],
+  )
+
+test('loses no kept search where the support turns out switched off after the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keepSearch(page, 'member1')
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    handledSupportGroups: () => new Promise((resolve) => held.push(resolve)),
+    adminListSupportTickets: ({ creationGroup }: { creationGroup: string }) =>
+      creationGroup === '*handled' ? ticketList([], 0) : ticketList([tickets[0]], 1),
+  })
+  const listed = page.waitForResponse((response) =>
+    Boolean(response.request().postData()?.includes('adminListSupportTickets')),
+  )
+  await signIn(page, '/support')
+  await (await listed).finished()
+  await expect.poll(() => held.length).toBe(1)
+  held[0]({ groupIds: [], untagged: false, off: true })
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(searchField(page)).toHaveValue('member1')
+  expect(listAsked(graphql)).toEqual([
+    { ...OPEN_TAB, query: 'member1', creationGroup: '*handled' },
+    { ...OPEN_TAB, query: 'member1', creationGroup: '' },
+  ])
+})
+
+test('gives a kept search up where the support turns out switched off before the list (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  await keepSearch(page, 'vergessen')
+  graphql.answer({
+    handledSupportGroups: { groupIds: [], untagged: false, off: true },
+    // the first list never answers here: the choice overtakes it
+    adminListSupportTickets: ({
+      creationGroup,
+      query,
+    }: {
+      creationGroup: string
+      query: string
+    }) =>
+      creationGroup === '*handled'
+        ? new Promise(() => undefined)
+        : query === 'vergessen'
+          ? ticketList([], 0)
+          : ticketList([tickets[0]], 1),
+  })
+  await signIn(page, '/support')
+
+  await expect(rows(page)).toHaveCount(1)
+  await expect(searchField(page)).toHaveValue('')
+  expect(listAsked(graphql)).toEqual([
+    { ...OPEN_TAB, query: 'vergessen', creationGroup: '*handled' },
+    { ...OPEN_TAB, query: 'vergessen', creationGroup: '' },
+    { ...OPEN_TAB, query: '', creationGroup: '' },
+  ])
+})
+
 test('filters by group from the first page, and opens on all the moderator sees', async ({
   page,
   graphql,
@@ -997,6 +1102,8 @@ test('filters by group from the first page, and opens on all the moderator sees'
     de.creationGroupFilter.untagged,
     'Garten',
     '#kueche',
+    // below a divider, a way and no choice (MG2)
+    de.creationGroupFilter.chooseMine,
   ])
   await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
   await expect
@@ -1004,10 +1111,11 @@ test('filters by group from the first page, and opens on all the moderator sees'
     .toEqual({ ...OPEN_TAB, query: '', creationGroup: 'garten' })
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText('Garten')
 
-  // the filter is not kept: the page opens on all again
+  // the filter is not kept: the page opens on all again -- "Meine Gruppen", which for one who
+  // chose nothing is everything (MG2)
   await page.reload()
   await expect(rows(page)).toHaveCount(6)
-  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  expect(listAsked(graphql).at(-1)).toEqual({ ...OPEN_TAB, query: '', creationGroup: '*handled' })
   await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
 })
 
@@ -1054,6 +1162,187 @@ for (const [who, scope, first, choices] of [
   })
 }
 
+// "Meine Gruppen" (MG2): the filter of the creation page -- the first row, the fixed ones, then only
+// the groups ticked, and at the end the way to the page of the choice -- over the column "Support"
+// of that page (MG2b)
+test('opens on "Meine Gruppen" for whoever chose, and offers their groups alone (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: false } })
+  await open(page)
+
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(
+    de.creationGroupFilter.mine,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.mine,
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+  // handing a request on still offers every group (K4): where to hand it, not what I handle
+  await row(page, 0).locator('.group-select .dropdown-toggle').click()
+  await expect(row(page, 0).locator('.group-select .dropdown-item')).toHaveText([
+    de.contribution.noGroup,
+    'Garten',
+    '#kueche',
+  ])
+})
+
+// The two columns part (MG2b): a choice in the column "Schöpfung" narrows nothing here.
+test('follows the column "Support" alone, whatever the column "Schöpfung" holds (MG2b)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    handledCreationGroups: { groupIds: [2], untagged: false, off: false },
+    handledSupportGroups: { groupIds: [], untagged: false, off: false },
+  })
+  await open(page)
+
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.chooseMine,
+  ])
+  expect(graphql.sentFor('handledSupportGroups')).toHaveLength(1)
+})
+
+// MG5: the support switched off: the page opens on everything (before the admin knows it asked "Meine
+// Gruppen", which finds nothing then), "Meine Gruppen" is not offered, and the way there stays --
+// later openings ask everything from the start
+test('opens on everything, without "Meine Gruppen", where the support is switched off (MG5)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: true } })
+  await open(page)
+  await expect
+    .poll(() => listAsked(graphql).map((asked) => asked.creationGroup))
+    .toEqual(['*handled', ''])
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    'Garten',
+    '#kueche',
+    de.creationGroupFilter.editMine,
+  ])
+
+  await page.reload()
+  await expect(rows(page)).toHaveCount(6)
+  expect(listAsked(graphql).map((asked) => asked.creationGroup)).toEqual(['*handled', '', ''])
+})
+
+test('leads from the filter to "Meine Gruppen", and leaves the filter as it is (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ handledSupportGroups: { groupIds: [2], untagged: false, off: false } })
+  await open(page)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).getByTestId('support-group-filter-mine').click()
+
+  await expect(page).toHaveURL(/\/admin\/my-groups$/)
+  await expect(page.getByRole('heading', { name: de.myGroups.title })).toBeVisible()
+  // no other list was asked for: the line is a way, not a choice
+  expect(listAsked(graphql)).toEqual([{ ...OPEN_TAB, query: '', creationGroup: '*handled' }])
+})
+
+// "" is on offer with a choice only (MG2, as MG1): picked while the page still knew a choice that
+// was cleared on another device, the filter names the same list by the row that now means everything.
+test('names the whole list where the choice was cleared elsewhere as it was picked (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  // the page of the choice keeps a choice of the support (MG2b) ...
+  graphql.answer({ handledSupportGroups: { groupIds: [1], untagged: false, off: false } })
+  await signIn(page, '/my-groups')
+  await expect
+    .poll(
+      async () =>
+        JSON.parse((await page.evaluate(() => localStorage.getItem('gradido-admin'))) ?? '{}')
+          .handledSupportGroups?.groupIds,
+    )
+    .toEqual([1])
+  // ... which another device clears before the support page asks for it
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    creationGroups: () => new Promise((resolve) => held.push(resolve)),
+    handledSupportGroups: { groupIds: [], untagged: false, off: false },
+  })
+  await page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).click()
+  await expect(rows(page)).toHaveCount(6)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await groupFilter(page).locator('.dropdown-item', { hasText: de.creationGroupFilter.all }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, query: '', creationGroup: '' })
+
+  await expect.poll(() => held.length).toBe(1)
+  held[0](groups)
+  // the answer read: the groups stand in the filter
+  await expect(groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' })).toHaveCount(1)
+  await expect(groupFilter(page).locator('.dropdown-toggle')).toHaveText(de.creationGroupFilter.all)
+  // the same list, not asked for again -- and the next page asks it by its new name
+  expect(listAsked(graphql)).toHaveLength(2)
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, currentPage: 2, query: '', creationGroup: '*handled' })
+})
+
+// ⛔ The rule of the cleared choice is for whoever may choose: a moderator of a group and of no
+// group begins on "" (SUA-026), and stays there once the groups came.
+test('keeps a moderator of a group and of no group on "(mit und ohne Gruppe)" (MG2)', async ({
+  page,
+  graphql,
+}) => {
+  const scoped = {
+    ...moderator,
+    role: 'MODERATOR',
+    seesAllCreationGroups: false,
+    visibleCreationGroups: ['kueche'],
+    seesUntagged: true,
+  }
+  graphql.answer(signedInAnswers(scoped))
+  await signIn(page, '/support', scoped)
+  await expect(rows(page)).toHaveCount(6)
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  // the groups came, and no way to "Meine Gruppen": the scope is the list
+  await expect(groupFilter(page).locator('.dropdown-item')).toHaveText([
+    de.creationGroupFilter.all,
+    de.creationGroupFilter.grouped,
+    de.creationGroupFilter.untagged,
+    '#kueche',
+  ])
+  await expect(groupFilter(page).locator('.dropdown-item.active')).toHaveText(
+    de.creationGroupFilter.all,
+  )
+  await groupFilter(page).locator('.dropdown-toggle').click()
+  await page.getByRole('menuitem', { name: 'Go to page 2' }).click()
+  await expect
+    .poll(() => listAsked(graphql).at(-1))
+    .toEqual({ ...OPEN_TAB, currentPage: 2, query: '', creationGroup: '' })
+})
+
 test('searches for the member of a row with its magnifier: the address, else the username', async ({
   page,
   graphql,
@@ -1070,7 +1359,7 @@ test('searches for the member of a row with its magnifier: the address, else the
   await expect(searchField(page)).toHaveValue('member1@example.org')
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, query: 'member1@example.org', creationGroup: '*handled' })
 
   await row(page, 1).getByRole('button', { name: de.support.searchMember }).click()
   await expect(searchField(page)).toHaveValue('member2')
@@ -1093,7 +1382,7 @@ test('hides on the open tab what waits for a resubmission, at every opening, and
   await hideBox(page).uncheck()
   await expect
     .poll(() => listAsked(graphql).at(-1))
-    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '' })
+    .toEqual({ ...OPEN_TAB, hideResubmission: false, query: '', creationGroup: '*handled' })
 
   // the other tabs hide nothing, and have no box
   await tab(page, de.support.tab.closed).click()
@@ -1541,92 +1830,58 @@ test('loads the thread of an opened request anew once it comes back in another g
   await expect(card(page)).toBeVisible()
 })
 
-// The switch of new requests (K5, SUA-019): an administrator's box above the list -- off only after
-// a question that names all requests still open --, a moderator's line while it is off.
-test.describe('the switch of new requests (K5)', () => {
+// The switch of new requests (K5, SUA-019) lives in the settings since 21.11.2026
+// (supportSettings.spec.ts); above the list stands only a line while new requests are off -- for an
+// administrator a way to the switch.
+test.describe('the line of new requests switched off (K5)', () => {
   const box = (page: Page) => page.getByLabel(de.support.switch.label)
+  const line = (page: Page) => page.locator('.support-switch-off')
   const asModerator = { ...moderator, role: 'MODERATOR' }
   const openAsModerator = async (page: Page) => {
     await signIn(page, '/support', asModerator)
     await expect(rows(page)).toHaveCount(6)
   }
 
-  test('stands ticked above the search for an administrator, with its hint', async ({ page }) => {
+  test('shows an administrator no box, and a line that leads to the switch while it is off', async ({
+    page,
+    graphql,
+  }) => {
+    graphql.answer({ supportTicketsMenu: { active: false } })
     await open(page)
-    await expect(box(page)).toBeChecked()
-    await expect(page.locator('.support-switch')).toContainText(de.support.switch.hint)
-    const switchRow = await page.locator('.support-switch').boundingBox()
+    await expect(box(page)).toHaveCount(0)
+    await expect(line(page)).toHaveText(de.support.switch.off)
     const search = await page.locator('.creation-filters').boundingBox()
-    expect(switchRow && search && switchRow.y + switchRow.height <= search.y).toBe(true)
-  })
+    const above = await line(page).boundingBox()
+    expect(above && search && above.y + above.height <= search.y).toBe(true)
 
-  test('asks before switching off and names all requests still open, the waiting ones too', async ({
-    page,
-    graphql,
-  }) => {
-    graphql.answer({
-      adminCountOpenSupportTickets: { forModeration: 5, forMember: 1, onResubmission: 2 },
-      adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
-    })
-    await open(page)
-    await box(page).click()
-    await expect(dialog(page)).toContainText(de.support.switch.confirmTitle)
-    await expect(dialog(page)).toContainText(de.support.switch.confirmBody)
-    await expect(dialog(page)).toContainText(de.support.switch.confirmOpen.replace('{open}', '8'))
-    // still on while asked
-    await expect(box(page)).toBeChecked()
-    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
-    await dialog(page).getByRole('button', { name: de.support.switch.confirmYes }).click()
+    await page.getByTestId('support-switch-settings').click()
+    await expect(page).toHaveURL(/\/admin\/support-settings$/)
     await expect(box(page)).not.toBeChecked()
-    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([{ active: false }])
-    await expect(toast(page, de.support.switch.off)).toBeVisible()
   })
 
-  test('switches on again without asking', async ({ page, graphql }) => {
-    graphql.answer({
-      supportTicketsMenu: { active: false },
-      adminSetSupportTicketsActive: ({ active }: { active: boolean }) => active,
-    })
-    await open(page)
-    await expect(box(page)).not.toBeChecked()
-    await box(page).click()
-    await expect(box(page)).toBeChecked()
-    await expect(dialog(page)).toHaveCount(0)
-    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([{ active: true }])
-    await expect(toast(page, de.support.switch.on)).toBeVisible()
-  })
-
-  test('stays on where the administrator says no, and where the switch is refused', async ({
+  test('shows an administrator nothing above the search while new requests are on', async ({
     page,
-    graphql,
   }) => {
-    graphql.answer({ adminSetSupportTicketsActive: new Failure('no database') })
     await open(page)
-    await box(page).click()
-    await dialog(page).getByRole('button', { name: de.overlay.cancel }).click()
-    await expect(dialog(page)).toHaveCount(0)
-    await expect(box(page)).toBeChecked()
-    expect(asked(graphql, 'adminSetSupportTicketsActive')).toEqual([])
-    await box(page).click()
-    await dialog(page).getByRole('button', { name: de.support.switch.confirmYes }).click()
-    await expect(toast(page, de.support.failed)).toBeVisible()
-    await expect(box(page)).toBeChecked()
+    await expect(box(page)).toHaveCount(0)
+    await expect(line(page)).toHaveCount(0)
   })
 
-  test('shows a moderator a line while new requests are off, and no box', async ({
+  test('shows a moderator the line while new requests are off, without a way to the switch', async ({
     page,
     graphql,
   }) => {
     graphql.answer({ ...signedInAnswers(asModerator), supportTicketsMenu: { active: false } })
     await openAsModerator(page)
-    await expect(page.locator('.support-switch-off')).toHaveText(de.support.switch.off)
+    await expect(line(page)).toHaveText(de.support.switch.off)
+    await expect(page.getByTestId('support-switch-settings')).toHaveCount(0)
     await expect(box(page)).toHaveCount(0)
   })
 
   test('shows a moderator nothing while new requests are on', async ({ page, graphql }) => {
     graphql.answer(signedInAnswers(asModerator))
     await openAsModerator(page)
-    await expect(page.locator('.support-switch-off')).toHaveCount(0)
+    await expect(line(page)).toHaveCount(0)
     await expect(box(page)).toHaveCount(0)
   })
 
@@ -1634,30 +1889,6 @@ test.describe('the switch of new requests (K5)', () => {
     graphql.answer({ supportTicketsMenu: null })
     await open(page)
     await expect(box(page)).toHaveCount(0)
-    await expect(page.locator('.support-switch-off')).toHaveCount(0)
-  })
-
-  test.describe('on a phone', () => {
-    test.use({ viewport: { width: 320, height: 900 } })
-
-    // The word fits one line at 375 px in Chrome on a Mac and on an iPhone (measured in the built
-    // admin, 14.11.2026); with a wider font -- the Linux runner's, a narrow Android -- it breaks
-    // into two, as the row "Wiedervorlage verbergen" of the same form does. At 320 px it breaks on
-    // any font, so that is where it is held: the box stands beside its word, also over two lines,
-    // and the row stays inside the window.
-    test('keeps the box beside its word, and the row inside the window', async ({ page }) => {
-      await open(page)
-      const box = await page.locator('#support-tickets-active').boundingBox()
-      const word = await page.locator('label[for="support-tickets-active"]').boundingBox()
-      if (!box || !word) {
-        throw new Error('the switch row is not drawn')
-      }
-      expect(word.x).toBeGreaterThan(box.x + box.width)
-      expect(word.y).toBeLessThan(box.y + box.height)
-      expect(word.x + word.width).toBeLessThanOrEqual(320)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
-        375,
-      )
-    })
+    await expect(line(page)).toHaveCount(0)
   })
 })
