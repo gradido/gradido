@@ -72,16 +72,25 @@ describe('home screen icons', () => {
 
   // iOS composites transparency onto BLACK and then applies its rounded mask. The Gradido
   // coin is round and comes with an alpha channel, so an icon made straight from it gets
-  // black corners. The background is baked in (#f5f5f5, the page colour) and the coin is
-  // inset by a tenth so the mask does not clip its rim.
-  it('carries no transparency, or iOS would fill it with black', () => {
+  // black corners. Its icon has the background baked in (#f5f5f5, the page colour) and the
+  // coin inset by a tenth so the mask does not clip its rim.
+  it('gives iOS an icon without transparency, or iOS would fill it with black', () => {
+    const png = readPng(appleTouchIcon)
+    expect({ alpha: png.hasAlphaChannel, tRNS: png.hasTransparencyChunk }).toEqual({
+      alpha: false,
+      tRNS: false,
+    })
+  })
+
+  // The manifest's icons are the installed app's on the desktop -- the Dock, the taskbar --
+  // and there the coin stands round on a transparent ground (Bernd, 24.11.2026), inset as
+  // on iOS. iOS takes the apple-touch-icon above and never these.
+  it("gives the installed app's icon a transparent ground", () => {
     expect(everyIcon.length).toBe(3)
-    for (const src of everyIcon) {
-      const png = readPng(src)
-      expect({ src, alpha: png.hasAlphaChannel, tRNS: png.hasTransparencyChunk }).toEqual({
-        src,
-        alpha: false,
-        tRNS: false,
+    for (const icon of manifest.icons) {
+      expect({ src: icon.src, alpha: readPng(icon.src).hasAlphaChannel }).toEqual({
+        src: icon.src,
+        alpha: true,
       })
     }
   })
