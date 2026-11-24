@@ -26,6 +26,7 @@ import { ContactsPanel } from '@/components/Template/RightSide/ContactsPanel'
 import { ContactsStrip } from '@/components/Template/RightSide/ContactsStrip'
 import { LastTransactions } from '@/components/Template/RightSide/LastTransactions'
 import { PanelSwitch } from '@/components/Template/RightSide/PanelSwitch'
+import { useAppBadge } from '@/composables/useAppBadge'
 import { startChatUpdates, stopChatUpdates } from '@/composables/useChatUpdates'
 import { refreshContactsPanel } from '@/composables/useContactsPanel'
 import { ensureFavorites } from '@/composables/useFavorites'
@@ -334,6 +335,8 @@ export const DashboardLayout = defineComponent({
     })
 
     onBeforeUnmount(stopChatUpdates)
+    // The menu's numbers on the icon of the wallet installed as an app (utils/appBadge).
+    useAppBadge(store)
 
     // The switch of new support requests (K5) is the community's: kept in the store once the beat
     // names it, so that the menu stands right at the next start before the first answer comes.
