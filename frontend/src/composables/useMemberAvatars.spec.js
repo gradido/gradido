@@ -312,6 +312,8 @@ describe('useMemberAvatars', () => {
       expect(apollo.query.mock.calls[0][0]).toMatchObject({
         variables: { refs: [{ communityUuid: null, gradidoID: 'id-1' }] },
         fetchPolicy: 'no-cache',
+        // faces are never the member's own doing: the session clock stays where it was
+        context: { renewSession: false },
       })
     })
 
