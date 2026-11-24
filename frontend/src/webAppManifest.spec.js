@@ -4,6 +4,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { inflateSync } from 'node:zlib'
 
 // What makes the wallet installable is spread over four places that cannot import each
 // other: index.html, the manifest in public/, the icon files, and the nginx template that
@@ -34,6 +35,33 @@ const readPng = (publicPath) => {
     hasAlphaChannel: (bytes[25] & 4) !== 0,
     hasTransparencyChunk: bytes.includes(Buffer.from('tRNS')),
   }
+}
+
+// The alpha of the two top corners of an RGBA icon, decoded from its first row: an alpha
+// channel alone says nothing, an icon can carry one and be opaque all the same. In the first
+// row the filters have no row above, so Up adds nothing, Avg half the left byte, Sub and
+// Paeth the left byte.
+const topCornerAlphas = (publicPath) => {
+  const bytes = readBytes(`../public${publicPath}`)
+  expect({ bitDepth: bytes[24], colourType: bytes[25], interlace: bytes[28] }).toEqual({
+    bitDepth: 8,
+    colourType: 6,
+    interlace: 0,
+  })
+  const idat = []
+  for (let at = 8; at < bytes.length; at += 12 + bytes.readUInt32BE(at)) {
+    if (bytes.toString('latin1', at + 4, at + 8) === 'IDAT') {
+      idat.push(bytes.subarray(at + 8, at + 8 + bytes.readUInt32BE(at)))
+    }
+  }
+  const raw = inflateSync(Buffer.concat(idat))
+  const [filter] = raw
+  const row = Buffer.alloc(bytes.readUInt32BE(16) * 4)
+  for (let i = 0; i < row.length; i++) {
+    const left = i >= 4 ? row[i - 4] : 0
+    row[i] = raw[1 + i] + (filter === 1 || filter === 4 ? left : filter === 3 ? left >> 1 : 0)
+  }
+  return [row[3], row[row.length - 1]]
 }
 
 // The --bg token, from the file that owns it. `\s` rather than a literal space so a
@@ -88,9 +116,9 @@ describe('home screen icons', () => {
   it("gives the installed app's icon a transparent ground", () => {
     expect(everyIcon.length).toBe(3)
     for (const icon of manifest.icons) {
-      expect({ src: icon.src, alpha: readPng(icon.src).hasAlphaChannel }).toEqual({
+      expect({ src: icon.src, corners: topCornerAlphas(icon.src) }).toEqual({
         src: icon.src,
-        alpha: true,
+        corners: [0, 0],
       })
     }
   })
