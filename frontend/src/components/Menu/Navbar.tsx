@@ -17,6 +17,10 @@ import { QuickCodeIcon } from '@/components/Menu/QuickCodeIcon'
 // How many conversations hold something unread, from the chat's beat -- for the dot.
 import { chatUnreadConversations } from '@/composables/useChatUpdates'
 import { contributionsInProgress } from '@/composables/useContributionsInProgress'
+import {
+  moderationCreationsWaiting,
+  moderationSupportTicketsWaiting,
+} from '@/composables/useModerationWaiting'
 import { supportTicketsInProgress } from '@/composables/useSupportTicketsMenu'
 import CONFIG from '@/config'
 import { useWalletStore } from '@/store/useWalletStore'
@@ -46,6 +50,25 @@ export const Navbar = defineComponent({
     // no dot it could follow. `!== false` as the menu reads it: not known is a person.
     const creationQuestions = computed(() =>
       store.creationAllowed !== false ? contributionsInProgress.value : 0,
+    )
+
+    // What waits for the moderation ("Meine Gruppen" MG3), the two numbers at "Admin" in the menu
+    // behind the opener. Only where that menu shows "Admin" (a role, as the Sidebar asks): a figure
+    // on the opener must lead to the same figure in the menu.
+    const moderationCreations = computed(() => (store.role ? moderationCreationsWaiting.value : 0))
+    const moderationSupportTickets = computed(() =>
+      store.role ? moderationSupportTicketsWaiting.value : 0,
+    )
+    const figure = (n: number) => (n > 99 ? '99+' : String(n))
+    const moderationCreationsSentence = computed(() =>
+      t('navigation.adminCreations', { n: moderationCreations.value }, moderationCreations.value),
+    )
+    const moderationSupportSentence = computed(() =>
+      t(
+        'navigation.adminSupportTickets',
+        { n: moderationSupportTickets.value },
+        moderationSupportTickets.value,
+      ),
     )
 
     const root = ref<HTMLElement | null>(null)
@@ -214,6 +237,31 @@ export const Navbar = defineComponent({
                         data-test='chat-unread-dot'
                       />
                     ) : null}
+                    {/* Below the lines, what waits for the moderation: the creations at the left,
+                        the support requests at the right (Bernd, 24.11.2026). Figures, unlike the
+                        dot: they are the same two numbers as at "Admin" behind the opener, in the
+                        same form, and each place says what is counted. Under the bottom line and
+                        not on it, so the three lines stay whole and the symbol stays a menu. */}
+                    {moderationCreations.value > 0 ? (
+                      <span
+                        class='navbar-moderation-mark navbar-moderation-mark-creations'
+                        aria-hidden='true'
+                        title={moderationCreationsSentence.value}
+                        data-test='navbar-moderation-creations'
+                      >
+                        {figure(moderationCreations.value)}
+                      </span>
+                    ) : null}
+                    {moderationSupportTickets.value > 0 ? (
+                      <span
+                        class='navbar-moderation-mark navbar-moderation-mark-support'
+                        aria-hidden='true'
+                        title={moderationSupportSentence.value}
+                        data-test='navbar-moderation-support'
+                      >
+                        {figure(moderationSupportTickets.value)}
+                      </span>
+                    ) : null}
                   </span>
                   {chatUnreadConversations.value > 0 ? (
                     <span class='visually-hidden' data-test='chat-unread-dot-label'>
@@ -228,6 +276,17 @@ export const Navbar = defineComponent({
                   {creationQuestions.value > 0 ? (
                     <span class='visually-hidden' data-test='creation-dot-label'>
                       {t('contribution.dot')}
+                    </span>
+                  ) : null}
+                  {/* With a full stop each: two hidden sentences in a row are otherwise read as one. */}
+                  {moderationCreations.value > 0 ? (
+                    <span class='visually-hidden' data-test='navbar-moderation-creations-label'>
+                      {`${moderationCreationsSentence.value}.`}
+                    </span>
+                  ) : null}
+                  {moderationSupportTickets.value > 0 ? (
+                    <span class='visually-hidden' data-test='navbar-moderation-support-label'>
+                      {`${moderationSupportSentence.value}.`}
                     </span>
                   ) : null}
                 </button>

@@ -63,6 +63,42 @@
   box-shadow: 0 0 0 0.08em var(--bg, #f5f5f5);
 }
 
+/* What waits for the moderation, under the symbol's lines: the creations at the left, the support
+   requests at the right (Bernd, 24.11.2026). The form of the marks at "Admin" in the menu
+   (Sidebar.module.scss, .chat-unread-badge): round, Gold B, white figures, a ring in the colour of
+   the page.
+
+   The symbol is 30px square (1.5em of 20px), its lines run from 4 to 26px across and the lowest
+   is drawn at 23px, 2px thick. The marks hang from 27px down, below it, so the three lines stay
+   whole. They meet the middle with 2.4px between them: the left one ends at 14.8px and grows to
+   the left, the right one begins at 17.2px and grows to the right, so a "99+" pushes neither over
+   the other. Absolute, so nothing moves when they come and go. In px: the symbol's measures are
+   px, and the marks are the menu's 1.05rem, not a share of the symbol. */
+.navbar-component :global(.navbar-moderation-mark) {
+  position: absolute;
+  top: 27px;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  padding: 0 0.28rem;
+  border-radius: 0.525rem;
+  background: #c08935;
+  box-shadow: 0 0 0 2px var(--bg, #f5f5f5);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.05rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.navbar-component :global(.navbar-moderation-mark-creations) {
+  right: 15.2px;
+}
+
+.navbar-component :global(.navbar-moderation-mark-support) {
+  left: 17.2px;
+}
+
 /* The measures are the logo's, which stood here 200px wide (a 500px picture, so 0.4 of
    it): the coin 146 of those 500 across, the capitals of the word 64 high. The gap is the
    logo's 16.8px less the 2px of white the G of the typeface brings along, so the word
