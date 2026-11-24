@@ -149,11 +149,20 @@ const BOOTSTRAP_ZOOM = 8
 
 // Marker sizes in screen pixels per step. They stay constant while zooming, the
 // way a pin does — a glow that grew with the zoom would read as a bigger match.
-// Step 5, which only breadth reaches (GMS-184), follows the growth of the four before
-// it (each step about 1.25 to 1.3 times the last): computed, not yet seen - it is
-// judged by eye at its acceptance.
-const GLOW_SIZE: Record<number, number> = { 1: 48, 2: 64, 3: 82, 4: 104, 5: 130 }
-const DISC_SIZE: Record<number, number> = { 1: 20, 2: 28, 3: 38, 4: 48, 5: 60 }
+// Bernd, 24.11.2026: the brightest glows (then up to 130 px) and the largest discs (up to
+// 60 px) covered whole stretches of the map, town names included. Both ladders were cut
+// to the sizes he chose from pictures of the built wallet: step 4 went from 104 to 58 px
+// on the dark map and from 48 to 28 px on the light ones. The steps still grow with the
+// strength. The tap area is unchanged: hitSizeOf keeps it at 44 px at least, so it now
+// reaches a little beyond the smallest glow box and every disc.
+const GLOW_SIZE: Record<number, number> = { 1: 40, 2: 46, 3: 52, 4: 58, 5: 64 }
+const DISC_SIZE: Record<number, number> = { 1: 12, 2: 16, 3: 22, 4: 28, 5: 34 }
+// The blur of a glow, per pixel of its size. It was 3 px on every glow; on a smaller glow
+// the same 3 px eat more of the bright middle (measured: the centre of a step-4 glow fell
+// from red 225 to 198 at 58 px). Scaling the blur with the size makes each glow the old one
+// drawn smaller, and its middle stays as bright as before (224 at 58 px): smaller, equally
+// bright, as asked.
+const GLOW_BLUR_PER_PX = 3 / 104
 
 // The veil over everything outside the search. It dims by taking contrast away,
 // not light: on the dark map the stars are bright, so a pale wash costs them
@@ -1817,7 +1826,8 @@ export const MatchingMap = defineComponent({
     function glowHtml(colour: number[], size: number, share: number, hit: number) {
       const core = (share * 0.9).toFixed(2)
       const tint = `${colour[0]}, ${colour[1]}, ${colour[2]}`
-      return `<div class="gk-glow" style="width:${size}px;height:${size}px;background:
+      const blur = (size * GLOW_BLUR_PER_PX).toFixed(2)
+      return `<div class="gk-glow" style="width:${size}px;height:${size}px;filter:blur(${blur}px);background:
         radial-gradient(circle closest-side, rgba(255,255,255,${core}) 0%, rgba(255,255,255,0) 20%),
         radial-gradient(circle closest-side, rgba(${tint},1) 0%, rgba(${tint},.5) 32%, rgba(${tint},0) 68%)"></div><div class="gk-hit" style="width:${hit}px;height:${hit}px"></div>`
     }

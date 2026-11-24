@@ -7,9 +7,9 @@
   border: 0;
 }
 
+/* The blur grows with the glow and is set on each one (glowHtml, GLOW_BLUR_PER_PX). */
 .gk-glow {
   border-radius: 50%;
-  filter: blur(3px);
   mix-blend-mode: screen;
 }
 
