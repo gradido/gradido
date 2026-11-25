@@ -21,12 +21,15 @@ jest.mock('./findContributions', () => ({
 
 type ScopeModule = typeof import('./moderatorCreationGroupScope')
 let countContributionsWaitingForModeration: ScopeModule['countContributionsWaitingForModeration']
+let handledCreationGroupsOfRole: ScopeModule['handledCreationGroupsOfRole']
 let handledSupportGroupsOfRole: ScopeModule['handledSupportGroupsOfRole']
 
 beforeAll(async () => {
-  ;({ countContributionsWaitingForModeration, handledSupportGroupsOfRole } = await import(
-    './moderatorCreationGroupScope'
-  ))
+  ;({
+    countContributionsWaitingForModeration,
+    handledCreationGroupsOfRole,
+    handledSupportGroupsOfRole,
+  } = await import('./moderatorCreationGroupScope'))
 })
 
 // reset, not only clear: a `mock…Once` a test left unused must not answer in the next one
@@ -85,6 +88,24 @@ describe('countContributionsWaitingForModeration', () => {
   })
 })
 
+// MG5: every role who sees every group may switch a column off for itself -- moderators take turns
+// (Bernd, 25.11.2026)
+describe('handledCreationGroupsOfRole', () => {
+  it('reads "off" of the creations of every role who sees every group', () => {
+    const holder = {
+      visibleCreationGroups: null,
+      handledCreationGroups: JSON.stringify({ groupIds: [3], untagged: true, off: true }),
+    }
+    for (const role of ['ADMIN', 'MODERATOR', 'MODERATOR_AI']) {
+      expect(handledCreationGroupsOfRole({ role, ...holder })).toEqual({
+        groupIds: [3],
+        untagged: true,
+        off: true,
+      })
+    }
+  })
+})
+
 // "Meine Gruppen" of the support (MG2b): the same rule, over the support's own column
 describe('handledSupportGroupsOfRole', () => {
   const SUPPORT = JSON.stringify({ groupIds: [5], untagged: false })
@@ -105,23 +126,16 @@ describe('handledSupportGroupsOfRole', () => {
     expect(handledSupportGroupsOfRole(choseCreationsOnly)).toBeNull()
   })
 
-  // MG5: an administrator may handle none of the support; in a moderator's row the switch is what
-  // another role left there
-  it('reads "off" of an administrator alone, of a moderator the ticks behind it', () => {
+  it('reads "off" of the support of every role who sees every group', () => {
     const holder = {
       visibleCreationGroups: null,
       handledSupportGroups: JSON.stringify({ groupIds: [5], untagged: false, off: true }),
     }
-    expect(handledSupportGroupsOfRole({ role: 'ADMIN', ...holder })).toEqual({
-      groupIds: [5],
-      untagged: false,
-      off: true,
-    })
-    for (const role of ['MODERATOR', 'MODERATOR_AI']) {
+    for (const role of ['ADMIN', 'MODERATOR', 'MODERATOR_AI']) {
       expect(handledSupportGroupsOfRole({ role, ...holder })).toEqual({
         groupIds: [5],
         untagged: false,
-        off: false,
+        off: true,
       })
     }
   })

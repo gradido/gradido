@@ -274,6 +274,41 @@ describe('supportTicketMailRecipients', () => {
     ])
   })
 
+  // a moderator who sees everything switches the support off as an administrator does (25.11.2026):
+  // left out while somebody else is on, also an administrator; as before the switch where all are off
+  it('leaves out a moderator who switched the support off, while anybody else is on', () => {
+    const resting = moderator(21, everything, OFF)
+    const atWork = moderator(22, everything)
+    expect(
+      ids(supportTicketMailRecipients([resting, atWork, peter], inGroup('orchard'), [])),
+    ).toEqual([22])
+    expect(ids(supportTicketMailRecipients([resting, peter], inGroup('orchard'), []))).toEqual([1])
+    // off, the ticks behind it count not
+    expect(
+      ids(
+        supportTicketMailRecipients(
+          [moderator(21, everything, { ...ticked(['orchard']), off: true }), peter],
+          inGroup('orchard'),
+          [],
+        ),
+      ),
+    ).toEqual([1])
+    // nobody ticked the group: it goes to who is on -- a moderator who left the group out, else an
+    // administrator -- before the one who is off
+    const gardener = moderator(22, everything, ticked(['garden']))
+    const choirAdmin = admin(2, ticked(['choir']))
+    expect(
+      ids(supportTicketMailRecipients([resting, gardener, choirAdmin], inGroup('orchard'), [])),
+    ).toEqual([22])
+    expect(ids(supportTicketMailRecipients([resting, choirAdmin], inGroup('orchard'), []))).toEqual(
+      [2],
+    )
+    // everybody off: as before the switch
+    expect(
+      ids(supportTicketMailRecipients([resting, admin(2, OFF)], inGroup('orchard'), [])),
+    ).toEqual([21])
+  })
+
   it('mails every administrator where all of them switched the support off', () => {
     const off = admin(2, OFF)
     const offToo = admin(3, OFF)

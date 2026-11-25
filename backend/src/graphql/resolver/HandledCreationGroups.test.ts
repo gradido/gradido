@@ -411,8 +411,8 @@ describe('setHandledGroups', () => {
     expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
   })
 
-  // MG5: the switch is an administrator's. In the row of a moderator it is what another role left
-  // there: it counts not, the ticks behind it do
+  // MG5: a moderator who sees every group switches a column off for themself as an administrator
+  // does -- moderators take turns (Bernd, 25.11.2026)
   describe('of a moderator who sees every group', () => {
     const scopeOfBibi = (scope: string[] | null) =>
       UserRole.update(
@@ -428,50 +428,30 @@ describe('setHandledGroups', () => {
       await scopeOfBibi(['handled-b'])
     })
 
-    it.each([
-      ['the creations', 'creation'],
-      ['the support', 'support'],
-    ])('refuses the switch for %s, and keeps both columns', async (_name, column) => {
-      await store(
-        bibi.id,
-        { groupIds: [groupA], untagged: false },
-        { groupIds: [groupB], untagged: false },
-      )
-      const before = [await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]
+    it('switches both columns off, keeping the ticks, and the filter *handled finds nothing', async () => {
+      await store(bibi.id, NOTHING, NOTHING)
       await loginAs('bibi@bloxberg.de')
-      const off = { groupIds: [groupA], untagged: false, off: true }
+      const creationOff = { groupIds: [groupA], untagged: false, off: true }
+      const supportOff = { groupIds: [groupB], untagged: true, off: true }
 
-      const { errors } = await mutate({
+      const { data, errors } = await mutate({
         mutation: setHandledGroups,
-        variables: column === 'creation' ? both(off, NOTHING) : both(NOTHING, off),
-      })
-      expect(errors?.[0]?.message).toBe('Only an administrator may switch an area off')
-      expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
-    })
-
-    it('takes the ticks, and answers a switch left in the row as on', async () => {
-      await store(
-        bibi.id,
-        { groupIds: [groupA], untagged: false, off: true },
-        { groupIds: [], untagged: false, off: true },
-      )
-      await loginAs('bibi@bloxberg.de')
-      const creation = await query({ query: handledCreationGroups })
-      expect(creation.data.handledCreationGroups).toEqual({
-        groupIds: [groupA],
-        untagged: false,
-        off: false,
-      })
-      const support = await query({ query: handledSupportGroups })
-      expect(support.data.handledSupportGroups).toEqual(NOTHING)
-      expect(await memosFor('*handled')).toEqual([IN_A])
-
-      const { errors } = await mutate({
-        mutation: setHandledGroups,
-        variables: both({ groupIds: [groupB], untagged: false }),
+        variables: both(creationOff, supportOff),
       })
       expect(errors).toBeUndefined()
-      expect(await memosFor('*handled')).toEqual([IN_B])
+      expect(data.setHandledGroups).toEqual({ creation: creationOff, support: supportOff })
+      const creation = await query({ query: handledCreationGroups })
+      expect(creation.data.handledCreationGroups).toEqual(creationOff)
+      const support = await query({ query: handledSupportGroups })
+      expect(support.data.handledSupportGroups).toEqual(supportOff)
+      expect(await memosFor('*handled')).toEqual([])
+
+      // on again, the ticks count as they did
+      await mutate({
+        mutation: setHandledGroups,
+        variables: both({ groupIds: [groupA], untagged: false }, NOTHING),
+      })
+      expect(await memosFor('*handled')).toEqual([IN_A])
     })
   })
 
