@@ -14,7 +14,8 @@ type Attrs<TValue> = {
 
 /**
  * A choice of one among `options`, drawn as a dropdown in the theme's colours: the browser's
- * own `<select>` opens a list the styles cannot reach. `onchange` is called with a value
+ * own `<select>` opens a list the styles cannot reach. To a screen reader it is a menu of
+ * radio entries (`menuitemradio`), the one chosen checked. `onchange` is called with a value
  * other than the one chosen.
  *
  * Drawn as `m(ThemedSelect<Language>, …)`: through `m()` TypeScript loses the type
@@ -33,24 +34,31 @@ export class ThemedSelect<TValue> implements m.ClassComponent<Attrs<TValue>> {
         disabled: attrs.disabled,
         'data-test': attrs['data-test'],
       },
-      attrs.options.map((option) =>
-        m(
+      attrs.options.map((option) => {
+        // a select locked while its menu is open lets nothing be chosen either
+        const disabled = attrs.disabled || option.disabled
+        return m(
           'li',
-          { role: 'presentation' },
+          { role: 'none' },
           m(
             'button.dropdown-item',
             {
               type: 'button',
-              role: 'menuitem',
-              class: option === chosen ? 'active' : option.disabled ? 'disabled' : '',
-              'aria-current': option === chosen ? 'true' : undefined,
-              disabled: option.disabled,
-              onclick: () => option !== chosen && attrs.onchange(option.value),
+              role: 'menuitemradio',
+              tabindex: -1,
+              class: option === chosen ? 'active' : disabled ? 'disabled' : '',
+              'aria-checked': String(option === chosen),
+              'aria-disabled': disabled ? 'true' : undefined,
+              onclick: () => {
+                if (!disabled && option !== chosen) {
+                  attrs.onchange(option.value)
+                }
+              },
             },
             option.text,
           ),
-        ),
-      ),
+        )
+      }),
     )
   }
 }

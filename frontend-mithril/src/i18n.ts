@@ -1,5 +1,6 @@
 import en from '@frontend/locales/en.json'
 import { slavicPlural } from '@frontend/utils/pluralRules'
+import * as v from 'valibot'
 
 type Texts = { [key: string]: string | Texts }
 
@@ -21,7 +22,12 @@ export const LANGUAGES = {
   tr: { name: 'Türkçe', fetch: () => import('@frontend/locales/tr.json') },
 } satisfies Record<string, { name: string; fetch: () => Promise<{ default: Texts }> }>
 
-export type Language = keyof typeof LANGUAGES
+// One of the languages above, by its own keys only (`constructor` is none), else English.
+const languageSchema = v.fallback(
+  v.picklist(Object.keys(LANGUAGES) as (keyof typeof LANGUAGES)[]),
+  'en',
+)
+export type Language = v.InferOutput<typeof languageSchema>
 
 /** The language shown. */
 export let locale: Language = 'en'
@@ -33,8 +39,7 @@ let texts: Texts = en
  * fetched, is English.
  */
 export async function setLocale(language: string) {
-  const code = language.split('-')[0]
-  const known = code in LANGUAGES ? (code as Language) : 'en'
+  const known = v.parse(languageSchema, language.split('-')[0])
   const fetched = await LANGUAGES[known].fetch().catch(() => undefined)
   locale = fetched ? known : 'en'
   texts = fetched?.default ?? en

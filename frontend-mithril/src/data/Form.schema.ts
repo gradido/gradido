@@ -6,7 +6,7 @@ import {
   SUPPORT_TICKET_TEXT_MIN_CHARS,
 } from 'shared/browser'
 import * as v from 'valibot'
-import { t } from '@/i18n'
+import { locale, t } from '@/i18n'
 
 // The rules of the wallet's form fields, for the schema of a form (`components/Form.ts`). A
 // rule's sentence is a function: it is said in the language shown when the value is checked.
@@ -29,10 +29,47 @@ const AMOUNT_TEXTS = {
   },
 }
 
+/** A whole number in groups of three: `1.234.567` with `.` as `sign`. No group starts it with 0. */
+const grouped = (sign: string) => new RegExp(`^-?[1-9]\\d{0,2}(\\${sign}\\d{3})+$`)
+
+/**
+ * `typed` as JavaScript writes a number: a point as its decimal sign, no grouping. What is no
+ * amount comes back with a sign too many, and is told so by the rule after.
+ *
+ * A comma and a point are both taken as the decimal sign, in every language. They group where
+ * nothing else can be meant: beside the other one (`1.234,56`, `1,234.56`, the last is the
+ * decimal sign), or several times (`1.000.000`). One sign with three digits behind it can be
+ * a thousand or three decimals: a thousand where it is the grouping sign of the language
+ * shown (`1.000` in German, `1,000` in English), else three decimals, which the amount's rule
+ * refuses -- no amount is guessed.
+ */
+function ungrouped(typed: string) {
+  // a space or an apostrophe before three digits only ever groups (French, Russian, Swiss)
+  const text = typed.replace(/(?<=\d)[\s'’](?=\d{3}(?!\d))/g, '')
+  const signs: string[] = text.match(/[.,]/g) ?? []
+  const last = signs.at(-1)
+  const other = signs.find((sign) => sign !== last)
+  if (last && other && signs.indexOf(last) === signs.length - 1) {
+    const whole = text.slice(0, text.lastIndexOf(last))
+    if (grouped(other).test(whole)) {
+      return `${whole.replaceAll(other, '')}.${text.slice(whole.length + 1)}`
+    }
+  } else if (last && !other && grouped(last).test(text)) {
+    const groupSign = new Intl.NumberFormat(locale)
+      .formatToParts(10000)
+      .find((part) => part.type === 'group')?.value
+    if (signs.length > 1 || last === groupSign) {
+      return text.replaceAll(last, '')
+    }
+  }
+  return text.replace(',', '.')
+}
+
 /**
  * An amount as it is typed, given out as a number: from 0.01 to `max`, with two decimals at
- * most, a comma taken as a point (`,5` is 0.5). Digits only: `1e3` and `0x10`, which
- * JavaScript reads as numbers, are none here.
+ * most, written with a comma or a point and with or without grouping (`ungrouped`; `,5` is
+ * 0.5, `1.000` in German a thousand). Digits only: `1e3` and `0x10`, which JavaScript reads as
+ * numbers, are none here.
  */
 export function amountSchema(max: number, of: keyof typeof AMOUNT_TEXTS = 'amount') {
   const texts = AMOUNT_TEXTS[of]
@@ -40,14 +77,20 @@ export function amountSchema(max: number, of: keyof typeof AMOUNT_TEXTS = 'amoun
     v.string(),
     v.trim(),
     v.nonEmpty(texts.required),
+    v.transform(ungrouped),
     // with a minus, so that an amount below zero is told its least, not that it is no number
-    v.regex(/^-?(\d+[.,]?\d*|[.,]\d+)$/, () => texts.noNumber(max)),
-    // not reached by what is no number: valibot transforms only what passed so far
-    v.transform((typed) => Number(typed.replace(',', '.'))),
-    v.minValue(0.01, texts.min),
-    v.maxValue(max, () => texts.max(max)),
+    v.regex(/^-?(\d+\.?\d*|\.\d+)$/, () => texts.noNumber(max)),
+    // not reached by what is no number: valibot transforms only what passed so far. The
+    // decimals are counted as typed: `1.000` is not 1
+    v.transform((text) => ({ amount: Number(text), decimals: text.split('.')[1]?.length ?? 0 })),
+    v.check(({ amount }) => amount >= 0.01, texts.min),
+    v.check(
+      ({ amount }) => amount <= max,
+      () => texts.max(max),
+    ),
     // after the bounds: an amount too large is told so first
-    v.check((amount) => Number(amount.toFixed(2)) === amount, texts.decimals),
+    v.check(({ decimals }) => decimals <= 2, texts.decimals),
+    v.transform(({ amount }) => amount),
   )
 }
 

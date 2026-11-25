@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Saludo de agradecimiento",
     "transactions": "Tus transacciones"
   },
+  "pagination": {
+    "label": "Paginación",
+    "next": "Ir a la página siguiente",
+    "page": "Ir a la página {page}",
+    "previous": "Ir a la página anterior"
+  },
   "public-profile": {
     "address": "Dirección Gradido",
     "duration": "Crear una cuenta en {communityName} lleva unos diez minutos. Te pregunta qué has hecho de bueno últimamente.",

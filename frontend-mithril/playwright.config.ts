@@ -41,6 +41,12 @@ const BUILT = 'test-build'
 // have nothing to say about the old wallet, and run against the Mithril wallet from the start.
 const BLOCKS = 'blocks/*.spec.ts'
 
+// What a browser may do in its own way, where the wallet must not fail (tests/browsers): typing
+// an amount with a comma. On each engine members use, against the Mithril wallet. Few specs:
+// each runs on every engine and in every language the wallet has.
+const BROWSERS = 'browsers/*.spec.ts'
+const ENGINES = { chromium: 'Desktop Chrome', firefox: 'Desktop Firefox', webkit: 'Desktop Safari' }
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -65,6 +71,12 @@ export default defineConfig({
   // The wallet is used on a phone first, and lays itself out anew for a desk: each spec on both,
   // against each wallet. `new` and `new-phone` take only what is ported.
   projects: [
+    ...Object.entries(ENGINES).map(([engine, device]) => ({
+      name: `browsers-${engine}`,
+      use: { ...devices[device], baseURL: `http://localhost:${NEW_PORT}/` },
+      testMatch: BROWSERS,
+    })),
+    ...[
     { name: 'old', use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${OLD_PORT}/` } },
     { name: 'old-phone', use: { ...devices['Pixel 7'], baseURL: `http://localhost:${OLD_PORT}/` } },
     { name: 'new', use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${NEW_PORT}/` } },
@@ -77,8 +89,9 @@ export default defineConfig({
           // the old wallet first: it takes the pictures the new one is compared with
           dependencies: [project.name.replace('new', 'old')],
         }
-      : { ...project, testIgnore: BLOCKS },
+      : { ...project, testIgnore: [BLOCKS, BROWSERS] },
   ),
+  ],
   webServer: [
     {
       // not `bun run dev`: that watches the styles as well; `test:compare` has compiled them

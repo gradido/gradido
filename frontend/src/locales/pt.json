@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Postal de agradecimento",
     "transactions": "As tuas transações"
   },
+  "pagination": {
+    "label": "Paginação",
+    "next": "Ir para a página seguinte",
+    "page": "Ir para a página {page}",
+    "previous": "Ir para a página anterior"
+  },
   "public-profile": {
     "address": "Endereço Gradido",
     "duration": "Criar uma conta em {communityName} demora cerca de dez minutos. Ela pergunta-te o que fizeste de bom ultimamente.",

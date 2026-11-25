@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Mot de remerciement",
     "transactions": "Tes transactions"
   },
+  "pagination": {
+    "label": "Pagination",
+    "next": "Aller à la page suivante",
+    "page": "Aller à la page {page}",
+    "previous": "Aller à la page précédente"
+  },
   "public-profile": {
     "address": "Adresse Gradido",
     "duration": "Un compte chez {communityName} se crée en dix minutes environ. Il te demande ce que tu as fait de bien ces derniers temps.",

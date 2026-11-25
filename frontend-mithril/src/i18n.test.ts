@@ -22,6 +22,14 @@ describe('setLocale', () => {
     expect(t('settings.language.success')).toBe('Your language has been successfully updated.')
   })
 
+  it('is English for a name every object has, which is no language', async () => {
+    await setLocale('de')
+    await setLocale('constructor')
+    expect(locale).toBe('en')
+    await setLocale('toString-DE')
+    expect(locale).toBe('en')
+  })
+
   it('is English where the texts cannot be fetched', async () => {
     const { fetch } = LANGUAGES.de
     LANGUAGES.de.fetch = () => Promise.reject(new Error('no network'))

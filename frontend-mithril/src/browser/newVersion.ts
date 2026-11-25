@@ -70,10 +70,14 @@ export function watchForNewVersion() {
     if (!response?.ok || response.redirected) {
       return
     }
+    // the connection may break while the page is read: as no page
+    const served = buildFilesOf(await response.text().catch(() => ''))
+    // none: not the wallet's page (a maintenance page during the deploy), asked again soon
+    if (!served) {
+      return
+    }
     gap = 5 * 60_000
-    const served = buildFilesOf(await response.text())
-    // none: not the wallet's page
-    if (served && served !== running) {
+    if (served !== running) {
       appOutdated.value = true
       // TODO: check if this call is really necessary and mithril not already update on variable change
       m.redraw()

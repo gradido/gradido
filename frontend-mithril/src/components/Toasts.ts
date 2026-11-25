@@ -70,16 +70,15 @@ export class Toasts implements m.ClassComponent {
             '.toast.gdd-toaster.show.fade',
             {
               class: `text-bg-${variant}`,
-              role: 'alert',
-              'aria-live': 'assertive',
-              'aria-atomic': 'true',
+              // an error interrupts what is being read; the others wait their turn
+              role: variant === 'danger' ? 'alert' : 'status',
             },
             m(
               '.toast-header.gdd-toaster-title',
               m('strong.me-auto', title),
               m('button.btn-close', {
                 type: 'button',
-                'aria-label': 'Close',
+                'aria-label': t('form.close'),
                 onclick: () => remove(id),
               }),
             ),

@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Dankgroetje",
     "transactions": "Jouw transacties"
   },
+  "pagination": {
+    "label": "Paginering",
+    "next": "Ga naar de volgende pagina",
+    "page": "Ga naar pagina {page}",
+    "previous": "Ga naar de vorige pagina"
+  },
   "public-profile": {
     "address": "Gradido-adres",
     "duration": "Een account bij {communityName} aanmaken duurt ongeveer tien minuten. Het vraagt je wat je de laatste tijd voor goeds hebt gedaan.",

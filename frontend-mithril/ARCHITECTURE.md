@@ -350,6 +350,14 @@ today; what must not stay for the next member on this device is removed in one p
 - A window (`Modal`) is open as long as it is drawn. It draws itself at the end of `<body>`
   as a root of its own, so that no parent clips it; it keeps the keyboard inside, closes on
   Escape and a click beside it, and gives the focus back.
+- **A building block has the roles, names and keys of its WAI-ARIA pattern**
+  (w3.org/WAI/ARIA/apg/patterns), held by `tests/blocks/keyboard.spec.ts`: `Modal` a dialog
+  named by its title (`ConfirmModal` an alert dialog, the focus at the button that does not),
+  `Dropdown` a menu button (↓ ↑ Home End over the entries, Tab closes and goes on),
+  `ThemedSelect` a menu of radio entries, `Tabs` with the arrows moving the focus and Enter
+  showing the tab, `Pagination` a menubar (← → Home End) with `aria-current="page"`. A toast
+  is an `alert` where it is an error and a `status` else. An icon without an `aria-label` is
+  hidden from a screen reader.
 - Values that the old wallet handed down through `provide` / `inject` (six, all for the video
   call) are attributes or a store.
 - A page reads its route through `m.route.param()`, and the flags the layout needs from the
@@ -404,6 +412,14 @@ m(Form<typeof sendSchema>, { schema: sendSchema, submitBusyButton, onsubmit: sen
   `shared/browser` itself carries an English sentence for the server's log, which valibot
   does not let a caller replace: where a field needs its sentence in the member's language,
   the rule is written out here.
+- An amount is typed with a comma or a point as its decimal sign, in every language, and
+  with or without grouping (`1.234,56`, `1 000`). One sign with three digits behind it is a
+  thousand only where the language shown groups with it (`1.000` in German, `1,000` in
+  English); else it is refused as three decimals. No amount is guessed.
+- An amount is a text field (`inputmode: 'decimal'`), read by `amountSchema`, never
+  `type: 'number'`: there Firefox refuses a comma, and Safari in English reads `1,5` as 15.
+  `tests/browsers/amount.spec.ts` holds the text field in Chromium, Firefox and WebKit, in
+  every language the wallet has.
 - A rule that asks the server (the user name is taken) is not part of the schema: the page asks
   after the schema passed, and hands the field the sentence -- an attribute `Field` gets with
   the first form that needs it.

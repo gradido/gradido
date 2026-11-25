@@ -1,6 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
+import { setLocale, t } from '@/i18n'
 import {
   amountSchema,
   emailFieldSchema,
@@ -52,9 +53,52 @@ describe('amountSchema', () => {
     expect(read(amount, '1000,01')).toEqual(['The amount should not be larger than 1000.'])
     // too large and too exact: the bound is named first
     expect(firstOf(amount, '1000,019')).toBe('The amount should not be larger than 1000.')
-    expect(read(amount, '1,234')).toEqual([
+    expect(read(amount, '1.234')).toEqual([
       'The amount should contain a maximum of two decimal places.',
     ])
+  })
+
+  it('reads grouping where nothing else can be meant, and by the language where it can', async () => {
+    const large = amountSchema(10_000_000)
+    // in the language shown
+    const decimals = () => [t('form.validation.amount.decimal-places')]
+    // beside the other sign, several times, or with a space or an apostrophe: in every language
+    for (const language of ['en', 'de', 'fr']) {
+      await setLocale(language)
+      expect(read(large, '1.234,56')).toBe(1234.56)
+      expect(read(large, '1,234.56')).toBe(1234.56)
+      expect(read(large, '1.000.000')).toBe(1000000)
+      expect(read(large, '1,000,000')).toBe(1000000)
+      expect(read(large, '1 000')).toBe(1000)
+      expect(read(large, '1\u202f234,5')).toBe(1234.5)
+      expect(read(large, '1\u00a0000\u00a0000')).toBe(1000000)
+      expect(read(large, '1’000.50')).toBe(1000.5)
+      // one or two digits behind the sign are decimals
+      expect(read(large, '1.5')).toBe(1.5)
+      expect(read(large, '1,50')).toBe(1.5)
+      // no grouping that is none
+      expect(typeof read(large, '12.34.5')).toBe('object')
+      expect(typeof read(large, '1.2345,6')).toBe('object')
+      expect(typeof read(large, '1,234,56')).toBe('object')
+      expect(typeof read(large, '1 5')).toBe('object')
+      // no thousandth is read as a one: a group does not start with 0
+      expect(firstOf(large, '0,001')).toBe(t('form.validation.amount.min', { min: 0.01 }))
+      expect(firstOf(large, '0.001')).toBe(t('form.validation.amount.min', { min: 0.01 }))
+      expect(read(large, '1000,019')).toEqual(decimals())
+    }
+    // one sign with three digits behind it: a thousand only as the language groups
+    await setLocale('de')
+    expect(read(large, '1.000')).toBe(1000)
+    expect(read(large, '1,000')).toEqual(decimals())
+    await setLocale('en')
+    expect(read(large, '1,000')).toBe(1000)
+    expect(read(large, '1.000')).toEqual(decimals())
+    expect(read(large, '1.500')).toEqual(decimals())
+    // French and Russian group with a space: neither sign is a thousand there
+    await setLocale('fr')
+    expect(read(large, '1.000')).toEqual(decimals())
+    expect(read(large, '1,000')).toEqual(decimals())
+    await setLocale('en')
   })
 
   it('speaks of hours where it is asked for hours', () => {

@@ -13,7 +13,7 @@ export class AppOutdatedBar implements m.ClassComponent {
     return appOutdated.value
       ? m(
           '.app-outdated-bar',
-          { class: classes['app-outdated-bar'], role: 'alert', 'data-test': 'app-outdated-bar' },
+          { class: classes['app-outdated-bar'], role: 'status', 'data-test': 'app-outdated-bar' },
           m('span.app-outdated-text', t('appOutdated.text')),
           m(
             'button.btn.btn-light.btn-sm',

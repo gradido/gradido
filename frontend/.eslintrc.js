@@ -145,6 +145,10 @@ module.exports = {
           // until the old wallet goes.
           'error.no-storage',
           'form.validation.email',
+          'pagination.label',
+          'pagination.next',
+          'pagination.page',
+          'pagination.previous',
         ],
         enableFix: false,
       },

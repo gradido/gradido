@@ -16,7 +16,8 @@ type Attrs = m.Attributes & {
 export class BusyButton implements m.ClassComponent<Attrs> {
   #busy = false
 
-  view({ attrs: { onclick, busy = this.#busy, ...button }, children }: m.Vnode<Attrs>) {
+  view({ attrs: { onclick, busy: busyOutside, ...button }, children }: m.Vnode<Attrs>) {
+    const busy = busyOutside || this.#busy
     return m(
       'button.btn',
       {

@@ -43,6 +43,9 @@ describe('MemberStore', () => {
     login(member(BIBI))
     const store = windowLarge.forSignedInMember()
     expect(windowLarge.forSignedInMember()).toBe(store)
+    // both ways: the store is the one of the test before, and may hold either
+    otherTabStores(`chat-window-large:${BIBI}`, '0')
+    expect(store.state).toBe(false)
     otherTabStores(`chat-window-large:${BIBI}`, '1')
     expect(store.state).toBe(true)
   })

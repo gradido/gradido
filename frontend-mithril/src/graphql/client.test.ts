@@ -260,5 +260,23 @@ describe('request', () => {
         'Your session could not be renewed. Please log in again.',
       )
     })
+
+    it('keeps a session renewed meanwhile where the answer to an older question cannot be read', async () => {
+      signIn(BIBI)
+      const first = request(balance, {}, balanceSchema)
+      const second = request(balance, {}, balanceSchema)
+      // the second is answered first, with a token the wallet reads
+      asked[1].answer({ data: { balance: 1 } }, renewed)
+      await second
+      asked[0].answer({ data: { balance: 1 } }, tokenOf('dlt-connector'))
+      expect(await first).toEqual({
+        success: false,
+        error: new Error('the server sent a token the wallet cannot read'),
+      })
+      expect(authToken.state?.token).toBe(renewed)
+      expect(session.state.member?.gradidoID).toBe(BIBI)
+      expect(location.assign).not.toHaveBeenCalled()
+      expect(sessionStorage.getItem('gradido-toast-after-reload')).toBeNull()
+    })
   })
 })

@@ -18,10 +18,20 @@ it('every key a t() names has a text in en.json', () => {
   expect(missing).toEqual([])
 })
 
-// a key put together at run time is one this test cannot read
+// A key put together at run time is one this test cannot read: the first argument is one
+// literal, and nothing more (`'form.' + name` begins with a literal too).
+const NO_LITERAL_KEY = /\bt\((?!\s*'[^']*'\s*[,)])/
+
 it('every t() names its key as a literal', () => {
-  const unreadable = sources
-    .filter(({ code }) => /\bt\((?!\s*')/.test(code))
-    .map(({ file }) => file)
+  const unreadable = sources.filter(({ code }) => NO_LITERAL_KEY.test(code)).map(({ file }) => file)
   expect(unreadable).toEqual([])
+})
+
+it('tells a literal key from one put together', () => {
+  for (const literal of ["t('form.amount')", "t('a.b', { n: 1 }, 2)", "t(\n  'a.b',\n)"]) {
+    expect(NO_LITERAL_KEY.test(literal)).toBe(false)
+  }
+  for (const made of ["t('form.' + name)", "t('a.b' + suffix, {}, 2)", 't(key)', 't(`a.${b}`)']) {
+    expect(NO_LITERAL_KEY.test(made)).toBe(true)
+  }
 })

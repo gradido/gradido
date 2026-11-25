@@ -25,11 +25,13 @@ export class ConfirmModal implements m.ClassComponent<Attrs> {
       {
         title: attrs.title,
         centered: true,
+        alert: true,
         onclose: attrs.onclose,
         footer: [
           m(
             'button.btn.btn-md.btn-secondary',
-            { type: 'button', onclick: attrs.onclose },
+            // a step that cannot be taken back: the focus starts at the button that does not
+            { type: 'button', autofocus: true, onclick: attrs.onclose },
             attrs.no ?? t('form.cancel'),
           ),
           m(

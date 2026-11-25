@@ -69,6 +69,21 @@ describe('watchForNewVersion', () => {
     expect(appOutdated.value).toBe(false)
   })
 
+  it('asks again after half a minute where the page could not be read', async () => {
+    fetched.mockResolvedValueOnce({
+      ok: true,
+      text: async () => {
+        throw new Error('connection lost')
+      },
+    })
+    // half a minute after the page that was not the wallet's
+    await seenAfter(0.5)
+    expect(fetched).toHaveBeenCalledTimes(1)
+    await seenAfter(0.5)
+    expect(fetched).toHaveBeenCalledTimes(2)
+    expect(appOutdated.value).toBe(false)
+  })
+
   it('raises the bar where the server names another build, and asks no more', async () => {
     fetched.mockResolvedValueOnce({ ok: true, text: async () => page('index-NEW.js') })
     await seenAfter(5)

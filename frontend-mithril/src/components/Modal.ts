@@ -1,5 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import m from 'mithril'
+import { t } from '@/i18n'
 
 interface Attrs {
   /** the head with this title and the ×; no head where not set */
@@ -8,6 +9,8 @@ interface Attrs {
   headerClose?: boolean
   /** what a screen reader calls a window without a title */
   label?: string
+  /** a message that waits for an answer (`alertdialog`): the body is read as the window opens */
+  alert?: boolean
   /** the buttons below the body; no footer where not set */
   footer?: m.Children
   /** asked for by the ×, Escape or a click beside the window */
@@ -33,16 +36,23 @@ interface Attrs {
 const TABBABLE =
   'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+let lastId = 0
+
 /**
  * A Bootstrap modal that is open as long as it is drawn: the caller draws it while it has
  * something to show, and stops on `onclose`.
  *
  * It is drawn at the end of <body>, not where the caller stands: there a parent that clips or
  * transforms would hold the window inside itself.
+ *
+ * As it opens the focus goes to what the caller marked `autofocus` inside, else to the window
+ * itself, so that it is read from its start.
  */
 export class Modal implements m.ClassComponent<Attrs> {
   // what the caller drew last, for the window at the end of <body>
   #drawn!: m.Vnode<Attrs>
+  readonly #id = `modal-${++lastId}`
+  #pressedBeside = false
   readonly #container = document.createElement('div')
   // where the keyboard was as the window opened: it goes back there as the window closes
   readonly #opener = document.activeElement
@@ -72,7 +82,8 @@ export class Modal implements m.ClassComponent<Attrs> {
   #tabbable() {
     return [
       ...this.#container.querySelectorAll<HTMLElement>(`.modal-dialog :is(${TABBABLE})`),
-    ].filter((element) => element.getClientRects().length > 0)
+      // not what only a script gives the focus: a tab not shown, an entry of a pager or a menu
+    ].filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0)
   }
 
   oncreate() {
@@ -89,7 +100,10 @@ export class Modal implements m.ClassComponent<Attrs> {
         }
       },
     })
-    this.#container.querySelector<HTMLElement>('.modal')?.focus()
+    const first =
+      this.#container.querySelector<HTMLElement>('[autofocus]') ??
+      this.#container.querySelector<HTMLElement>('.modal')
+    first?.focus()
   }
 
   onremove() {
@@ -119,17 +133,29 @@ export class Modal implements m.ClassComponent<Attrs> {
         {
           id: attrs.id,
           'data-test': attrs['data-test'],
-          role: 'dialog',
+          role: attrs.alert ? 'alertdialog' : 'dialog',
           'aria-modal': 'true',
-          'aria-label': attrs.label,
+          'aria-labelledby': title === undefined ? undefined : `${this.#id}-title`,
+          'aria-label': title === undefined ? attrs.label : undefined,
+          'aria-describedby': attrs.alert ? `${this.#id}-body` : undefined,
           tabindex: -1,
           style: { display: 'block', zIndex: 1054 },
           // A body, not an expression: a handler that answers false makes Mithril prevent the
           // click, and no box inside could be ticked.
           onclick: (event: MouseEvent & { target: Element }) => {
-            if (!attrs.noCloseBeside && !event.target.closest('.modal-dialog')) {
+            if (
+              !attrs.noCloseBeside &&
+              this.#pressedBeside &&
+              !event.target.closest('.modal-dialog')
+            ) {
               onclose()
             }
+          },
+          // A text marked from inside the window to beside it ends in a click beside it, which
+          // must not close: the press has to start there too.
+          onpointerdown: (event: PointerEvent & { target: Element; redraw?: boolean }) => {
+            event.redraw = false
+            this.#pressedBeside = !event.target.closest('.modal-dialog')
           },
         },
         m(
@@ -149,16 +175,16 @@ export class Modal implements m.ClassComponent<Attrs> {
             title === undefined
               ? null
               : m('.modal-header', [
-                  m('h5.modal-title', title),
+                  m('h5.modal-title', { id: `${this.#id}-title` }, title),
                   headerClose
                     ? m('button.btn-close', {
                         type: 'button',
-                        'aria-label': 'Close',
+                        'aria-label': t('form.close'),
                         onclick: onclose,
                       })
                     : null,
                 ]),
-            m('.modal-body', { class: attrs.bodyClass }, children),
+            m('.modal-body', { id: `${this.#id}-body`, class: attrs.bodyClass }, children),
             footer === undefined ? null : m('.modal-footer', footer),
           ]),
         ),

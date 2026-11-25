@@ -4,6 +4,8 @@ interface Attrs {
   tabs: { title: m.Children; content: m.Children }[]
   active: number
   onchange: (index: number) => void
+  /** what a screen reader calls the row of tabs */
+  label: string
   class?: string
   /** classes of the row of tabs: its look and alignment (`nav-tabs`, `justify-content-center`) */
   navClass?: string
@@ -14,26 +16,28 @@ let lastId = 0
 /**
  * Bootstrap's tabs: the row of tabs and a pane for each. Only the active pane has its
  * content: what a tab asks the server is asked when it is shown, and anew when it is shown
- * again. The arrow keys, Home and End go from tab to tab.
+ * again. ←, →, Home and End move the focus from tab to tab; only the active tab is in the
+ * tab order.
  */
 export class Tabs implements m.ClassComponent<Attrs> {
   readonly #id = `tabs-${++lastId}`
 
-  view({ attrs: { tabs, active, onchange, class: classes, navClass } }: m.Vnode<Attrs>) {
-    const onkeydown = (event: KeyboardEvent) => {
+  view({ attrs: { tabs, active, onchange, label, class: classes, navClass } }: m.Vnode<Attrs>) {
+    // Only the focus moves: a tab is shown by Enter, Space or a click, since showing it may
+    // ask the server. From the last tab → goes to the first, from the first ← to the last.
+    const onkeydown = (event: KeyboardEvent & { currentTarget: Element; redraw?: boolean }) => {
+      event.redraw = false
+      const buttons = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')]
+      const at = buttons.findIndex((button) => button === document.activeElement)
       const to = {
-        ArrowLeft: active - 1,
-        ArrowUp: active - 1,
-        ArrowRight: active + 1,
-        ArrowDown: active + 1,
+        ArrowLeft: (at - 1 + buttons.length) % buttons.length,
+        ArrowRight: (at + 1) % buttons.length,
         Home: 0,
-        End: tabs.length - 1,
+        End: buttons.length - 1,
       }[event.key]
-      if (to !== undefined && to >= 0 && to < tabs.length) {
+      if (at >= 0 && to !== undefined) {
         event.preventDefault()
-        onchange(to)
-        // the tab chosen takes the focus once it is drawn as the active one
-        requestAnimationFrame(() => document.getElementById(`${this.#id}-tab-${to}`)?.focus())
+        buttons[to].focus()
       }
     }
     return m('.tabs', { class: classes }, [
@@ -41,7 +45,7 @@ export class Tabs implements m.ClassComponent<Attrs> {
         'div',
         m(
           'ul.nav',
-          { class: navClass, role: 'tablist', 'aria-orientation': 'horizontal', onkeydown },
+          { class: navClass, role: 'tablist', 'aria-label': label, onkeydown },
           tabs.map(({ title }, index) =>
             m(
               'li.nav-item',
@@ -74,6 +78,8 @@ export class Tabs implements m.ClassComponent<Attrs> {
               id: `${this.#id}-pane-${index}`,
               class: index === active ? 'active show' : '',
               role: 'tabpanel',
+              // what it shows may hold nothing the keyboard reaches: the pane itself is a stop
+              tabindex: index === active ? 0 : undefined,
               'aria-labelledby': `${this.#id}-tab-${index}`,
             },
             index === active ? content : null,

@@ -95,8 +95,9 @@ export async function request<const TSchema extends v.GenericSchema>(
     const parsedAuthToken = v.parse(authTokenSchema, { token, at: Date.now() })
     if (!parsedAuthToken) {
       // The server sends a token the wallet cannot read: the two no longer fit. A session that
-      // runs ends at the sign-in, which says so; a sign-in fails, and its page says so.
-      if (askingUserId) {
+      // runs ends at the sign-in, which says so; a sign-in fails, and its page says so. Not a
+      // session renewed since this was asked: a token the wallet reads has come meanwhile.
+      if (askingUserId && askingAuthToken === authToken.state?.token) {
         toastErrorAfterReload(t('error.session-renewal-failed'))
         logout()
       }

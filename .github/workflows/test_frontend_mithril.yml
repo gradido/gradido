@@ -83,23 +83,24 @@ jobs:
           turbo build --filter=config-schema
           bun run --cwd frontend compile-scss
 
-      # The browser moves with the Playwright version, and so does the key.
-      - name: Cache Playwright's Chromium
+      # The browsers move with the Playwright version, and so does the key. Firefox and WebKit
+      # are for the few specs of tests/browsers.
+      - name: Cache Playwright's browsers
         id: browser-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('frontend-mithril/package.json') }}
+          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('frontend-mithril/package.json') }}
 
-      - name: install Chromium
+      - name: install the browsers
         if: steps.browser-cache.outputs.cache-hit != 'true'
         working-directory: frontend-mithril
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium firefox webkit
 
-      - name: install Chromium's system libraries
+      - name: install the browsers' system libraries
         if: steps.browser-cache.outputs.cache-hit == 'true'
         working-directory: frontend-mithril
-        run: bunx playwright install-deps chromium
+        run: bunx playwright install-deps chromium firefox webkit
 
       # The old wallet is the reference, on its way out, and runs on its dev server: the retry is
       # allowed to pass there. First, because it takes the pictures the Mithril wallet is held to.
@@ -117,9 +118,16 @@ jobs:
         working-directory: frontend-mithril
         run: bunx playwright test --project=new --project=new-phone --no-deps --pass-with-no-tests --fail-on-flaky-tests --output test-results/new
 
+      # What a browser may do in its own way (tests/browsers), in Chromium, Firefox and WebKit.
+      - name: Frontend Mithril | Playwright in every browser
+        id: browsers
+        if: ${{ !cancelled() }}
+        working-directory: frontend-mithril
+        run: bunx playwright test --project=browsers-chromium --project=browsers-firefox --project=browsers-webkit --fail-on-flaky-tests --output test-results/browsers
+
       # traces of the failed tests (trace: on-first-retry in CI)
       - name: upload traces of failed tests
-        if: ${{ failure() && (steps.new.conclusion == 'failure' || steps.old.conclusion == 'failure') }}
+        if: ${{ failure() && (steps.new.conclusion == 'failure' || steps.old.conclusion == 'failure' || steps.browsers.conclusion == 'failure') }}
         uses: actions/upload-artifact@v4
         with:
           name: frontend-mithril-test-results

@@ -10,7 +10,8 @@ interface Attrs {
 
 /**
  * `children` in a box that slides open and shut with `open`. They are drawn from the first
- * time it opens: a box never opened costs nothing.
+ * time it opens: a box never opened costs nothing. The button that opens it is the caller's:
+ * it says `aria-expanded`, and `aria-controls` with the `id` given here.
  */
 export class Collapse implements m.ClassComponent<Attrs> {
   #wasOpen = false

@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Dank-Gruß",
     "transactions": "Deine Transaktionen"
   },
+  "pagination": {
+    "label": "Seitennavigation",
+    "next": "Zur nächsten Seite",
+    "page": "Zur Seite {page}",
+    "previous": "Zur vorherigen Seite"
+  },
   "public-profile": {
     "address": "Gradido-Adresse",
     "duration": "Ein Konto bei {communityName} ist in etwa zehn Minuten angelegt. Es fragt Dich, was Du in letzter Zeit Gutes getan hast.",

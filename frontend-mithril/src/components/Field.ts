@@ -20,6 +20,13 @@ type Attrs<TSchema extends v.GenericSchema<string, unknown>> = m.Attributes & {
  * itself. Green as soon as what was entered fits; red, with the sentence of the first rule
  * broken, only once the field was left: nobody is told off while typing. Nothing on an empty
  * field that fits. Every other attribute goes to the input (`type`, `placeholder`, …).
+ *
+ * An amount is a text field (`inputmode: 'decimal'` for the keys of a phone), read by its
+ * schema: in a `type: 'number'` field Firefox refuses a comma, Safari in English reads `1,5`
+ * as 15, and the point every browser gives out there groups thousands in German (`1.555`). Where a field is `type: 'number'` all the same, it needs the `step` of its rule
+ * (`step: '0.01'`): it cannot be read off the schema, and the browser checks a number input by
+ * its step (1 where none is set) before the form sends -- 1.5 would fit the schema and never
+ * reach `onsubmit`.
  */
 export class Field<TSchema extends v.GenericSchema<string, unknown>>
   extends FormField

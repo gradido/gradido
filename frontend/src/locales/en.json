@@ -1290,6 +1290,12 @@
     "thank-you-greeting": "Thank-you greeting",
     "transactions": "Your transactions"
   },
+  "pagination": {
+    "label": "Pagination",
+    "next": "Go to next page",
+    "page": "Go to page {page}",
+    "previous": "Go to previous page"
+  },
   "public-profile": {
     "address": "Gradido address",
     "duration": "An account with {communityName} takes about ten minutes to set up. It asks you what good you have done lately.",

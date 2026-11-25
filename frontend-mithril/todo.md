@@ -63,11 +63,16 @@ and those two steps correct it.
    attached, after the promise such a handler returns is fulfilled, and after `m.request`
    (unless `background`). Every `m.redraw()` is held by a Playwright spec that fails without
    it; one no spec needs goes. Still to check, with the first page that draws each:
-   `Modal.ts`, `Dropdown.ts` (two), `BusyButton.ts`, `Form.ts` (after a throw), `Toasts.ts` (two), `DeviceStore.ts`,
+   `Modal.ts`, `Dropdown.ts`, `BusyButton.ts`, `Form.ts` (after a throw), `Toasts.ts` (two), `DeviceStore.ts`,
    `Theme.ts`, `browser/viewport.ts`, `browser/newVersion.ts`.
 9. **A building block no page draws yet** has its spec in `tests/blocks/`: `blocks.ts` mounts
    it on a page of its own, built beside the wallet (`/blocks/?form`), and the spec runs
    against the Mithril wallet only (`form.spec.ts`).
+10. **What a browser may do in its own way** has its spec in `tests/browsers/`, where it touches
+    what the wallet is for (an amount typed with a comma, for sending and creating). Those run
+    in Chromium, Firefox and WebKit (`--project=browsers-chromium --project=browsers-firefox
+    --project=browsers-webkit`), each in every language the wallet has. Few specs: everything
+    else runs in Chromium only.
 
 ## Decisions to take in step 2
 
@@ -244,7 +249,8 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   Each draws the markup bootstrap-vue-next drew in the old wallet, read off a browser for the
   attributes the wallet passes; the drawn `Pagination` is held to it by a spec (`tests/blocks/pagination.spec.ts`, 123 cases). They were
   tried in a browser (keys, focus, Escape, a click beside); the picture of each is held with
-  the first page that draws it. One difference: a modal says `aria-modal`. A dropdown opens
+  the first page that draws it. One difference: roles, names and keys follow the WAI-ARIA
+  patterns, not bootstrap-vue-next (ARCHITECTURE.md, Components; `tests/blocks/keyboard.spec.ts`). A dropdown opens
   upwards where the window has more room there and the menu does not fit below, and is never
   higher than that room, as bootstrap-vue-next's did through floating-ui.
   To come with the page that needs them, because one page does or the markup is the page's:
