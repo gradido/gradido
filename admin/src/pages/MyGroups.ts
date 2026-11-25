@@ -11,7 +11,7 @@ import {
   myGroupsChoiceSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
-import { maySwitchOff, supportIsTheirs } from '@/data/Moderator.logic'
+import { supportIsTheirs } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { myGroupsChoice, setHandledGroups } from '@/graphql/creationGroups.graphql'
 import { currentLocale, t } from '@/i18n'
@@ -38,7 +38,7 @@ const RETRY_MS = 2000
 
 /**
  * One column of ticks: the groups it holds by number, whether "no group" is among them, and whether
- * an administrator handles nothing of its kind (MG5) -- the ticks stay behind the switch.
+ * the moderator handles nothing of its kind (MG5) -- the ticks stay behind the switch.
  */
 class Ticks {
   readonly groupIds = new Set<number>()
@@ -280,8 +280,9 @@ export class MyGroups implements ClassComponent {
     )
   }
 
-  // "Selbst bearbeiten" (MG5), for an administrator: the first row, with a switch for each column --
-  // off, and nothing of its kind is theirs, counted or mailed; its ticks stay behind it
+  // "Selbst bearbeiten" (MG5), for administrators and moderators alike (25.11.2026): the first row,
+  // with a switch for each column -- off, and nothing of its kind is theirs, counted or mailed; its
+  // ticks stay behind it
   private handleRow(columns: Column[]) {
     return m(
       'li.list-group-item',
@@ -378,7 +379,7 @@ export class MyGroups implements ClassComponent {
           )
         : m('ul.list-group', { id: 'my-groups-list', 'data-test': 'my-groups-list' }, [
             ...(groups ? [this.head(columns)] : []),
-            ...(groups && maySwitchOff(adminStore.moderator) ? [this.handleRow(columns)] : []),
+            ...(groups ? [this.handleRow(columns)] : []),
             ...shown.map(({ key, text, group }) => this.row(columns, key, text, group)),
           ]),
       // on a phone `‹`, three numbers and `›`; at the desk five places with the ellipses, and « »

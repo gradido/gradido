@@ -144,8 +144,9 @@ const sameTag = (a: string, b: string): boolean =>
  * the support is not switched off. Where that leaves nobody -- who sees everything ticked other
  * groups alone, or switched it off --, the two steps once more, as if nothing were ticked: a
  * request nobody took in goes where it went before the ticks, also to a moderator who left its group
- * out; an administrator who switched the support off only where all of them did. A request reaches
- * somebody (Bernd, 22.11.2026).
+ * out. Who switched the support off -- an administrator, or a moderator who sees everything (Bernd,
+ * 25.11.2026: moderators take turns) -- comes last: only where every one of the two steps did, the
+ * request goes to them as before the switch. A request reaches somebody (Bernd, 22.11.2026).
  *
  * Each step by their number, at most SUPPORT_TICKET_MAIL_RECIPIENTS_MAX. Who may not handle requests
  * gets nothing, and neither does anybody in `notFor` -- the asking member, who handed on: they fall
@@ -176,8 +177,9 @@ export const supportTicketMailRecipients = <T extends SupportTicketMailCandidate
       assigned,
       seeEverything.filter(takesIn),
       administrators.filter(takesIn),
-      seeEverything,
+      seeEverything.filter(isOn),
       administrators.filter(isOn),
+      seeEverything,
       administrators,
     ].find((each) => each.length > 0) ?? []
   return step.slice(0, SUPPORT_TICKET_MAIL_RECIPIENTS_MAX)

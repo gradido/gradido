@@ -1,13 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
-import {
-  chosenGroupsOf,
-  isSwitchedOff,
-  mayChooseGroups,
-  maySwitchOff,
-  supportIsTheirs,
-} from './Moderator.logic'
+import { chosenGroupsOf, isSwitchedOff, mayChooseGroups, supportIsTheirs } from './Moderator.logic'
 import { type Moderator, moderatorSchema } from './Moderator.schema'
 
 const signedIn = (more: Partial<Moderator>): Moderator => ({
@@ -116,21 +110,8 @@ describe('chosenGroupsOf', () => {
   })
 })
 
-// MG5: who may switch a column off, and the column switched off -- narrowing no filter
-describe('maySwitchOff', () => {
-  it('is yes for an administrator, who sees every group', () => {
-    expect(maySwitchOff(signedIn({ role: 'ADMIN' }))).toBe(true)
-  })
-
-  it('is no for a moderator of either kind, though they may choose, and for nobody signed in', () => {
-    for (const role of ['MODERATOR', 'MODERATOR_AI']) {
-      expect(mayChooseGroups(signedIn({ role }))).toBe(true)
-      expect(maySwitchOff(signedIn({ role }))).toBe(false)
-    }
-    expect(maySwitchOff(null)).toBe(false)
-  })
-})
-
+// MG5: the column switched off -- narrowing no filter; administrators and moderators alike
+// (25.11.2026)
 describe('isSwitchedOff', () => {
   const moderator = signedIn({ role: 'ADMIN' })
   const kept = (more = {}) => ({
@@ -141,9 +122,12 @@ describe('isSwitchedOff', () => {
     ...more,
   })
 
-  it('is yes for the choice kept of the administrator signed in, and off', () => {
-    expect(isSwitchedOff(moderator, kept())).toBe(true)
-    expect(chosenGroupsOf(moderator, kept())).toBeNull()
+  it('is yes for the choice kept of whoever is signed in and may choose, and off', () => {
+    for (const role of ['ADMIN', 'MODERATOR', 'MODERATOR_AI']) {
+      const now = { ...moderator, role }
+      expect(isSwitchedOff(now, kept())).toBe(true)
+      expect(chosenGroupsOf(now, kept())).toBeNull()
+    }
   })
 
   it('is no where it is on, kept of somebody else, or unknown', () => {
@@ -154,10 +138,10 @@ describe('isSwitchedOff', () => {
     expect(isSwitchedOff(moderator, null)).toBe(false)
   })
 
-  // kept from the time as an administrator: the ticks count, as the server reads them by then
-  it('is no for a moderator, and their ticks count', () => {
-    const now = { ...moderator, role: 'MODERATOR' }
-    expect(isSwitchedOff(now, kept())).toBe(false)
-    expect(chosenGroupsOf(now, kept())).toEqual({ groupIds: [3], untagged: false, off: false })
+  // a scope assigned since: the scope is their list, the switch behind it counts not
+  it('is no for a moderator with an assigned scope', () => {
+    expect(
+      isSwitchedOff({ ...moderator, role: 'MODERATOR', seesAllCreationGroups: false }, kept()),
+    ).toBe(false)
   })
 })

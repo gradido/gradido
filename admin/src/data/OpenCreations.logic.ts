@@ -18,7 +18,7 @@ export type OpenCreationCounts = Record<
  *
  * `elsewhere`: what is open outside "Meine Gruppen", only where something is chosen. Without a
  * choice the counts take everything, and a creation arriving between them must not make up a line.
- * `off` (MG5): the administrator handles no creations, and the page says nothing of them.
+ * `off` (MG5): the moderator handles no creations, and the page says nothing of them.
  */
 export const openCreationsOf = ({
   waitingForModeration,

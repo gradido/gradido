@@ -198,13 +198,16 @@ describe('readSupportTicketMailRecipients', () => {
     expect(ids(await readSupportTicketMailRecipients(null, []))).toEqual([14])
   })
 
-  // the switch is an administrator's: in a moderator's row it is what a role before left there
-  it('mails a moderator whatever their row says of "Meine Gruppen", with a scope and without', async () => {
+  // a moderator who sees everything switches the support off as an administrator does (25.11.2026);
+  // for a moderator with a scope the scope is their list, whatever their row says
+  it('mails a moderator who switched the support off only where everybody is off', async () => {
     const off = JSON.stringify({ groupIds: [], untagged: false, off: true })
     const bobOff = { ...bob, handledSupportGroups: off }
     const carlaOff = { ...carla, handledSupportGroups: off }
     mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([peter, bobOff, carlaOff])
     expect(ids(await readSupportTicketMailRecipients(inGroup('garden'), []))).toEqual([11])
+    expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([1])
+    mockDatabase.dbSelectRoleHoldersWithContact.mockResolvedValue([bobOff, carlaOff])
     expect(ids(await readSupportTicketMailRecipients(inGroup('orchard'), []))).toEqual([
       carla.userId,
     ])
