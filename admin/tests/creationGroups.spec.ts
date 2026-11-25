@@ -273,6 +273,10 @@ test.describe('the old hashtags of a group', () => {
     await expect(page.getByRole('alert')).toHaveCount(0)
     await expect(okButton(page)).toHaveText('5 übernehmen')
     await okButton(page).click()
+
+    // the answer first, as the tests above: the request goes out after the click, not with it
+    await expect(page.getByRole('alert')).toContainText(words.adoption.done)
+    await expect(dialog(page)).toBeHidden()
     expect(asked(graphql, 'adoptLegacyHashtags')).toEqual([{ id: 3, includeLoose: true }])
   })
 })
