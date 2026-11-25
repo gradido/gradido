@@ -132,7 +132,7 @@ const BLOCKS: Record<string, m.Component> = {
       }),
   },
   // a window whose last button is reached by the arrow keys only (the pager's ›);
-  // `?modal=last` with a button after it
+  // `?modal=last` with a button after it, `?modal=locked` with a locked one
   modal: {
     view: () => [
       m('button', { type: 'button', onclick: () => (asking = true) }, 'open'),
@@ -141,6 +141,8 @@ const BLOCKS: Record<string, m.Component> = {
           m('button', { type: 'button' }, 'first'),
           m(Pagination, { limit: 3, pages: 3, page: 1, onpage: () => undefined }),
           location.search.endsWith('=last') && m('button', { type: 'button' }, 'last'),
+          location.search.endsWith('=locked') &&
+            m('button', { type: 'button', disabled: true, tabindex: 0 }, 'locked'),
         ]),
     ],
   },

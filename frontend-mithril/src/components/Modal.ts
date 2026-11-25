@@ -97,8 +97,14 @@ export class Modal implements m.ClassComponent<Attrs> {
   #tabbable() {
     return [
       ...this.#container.querySelectorAll<HTMLElement>(`.modal-dialog :is(${TABBABLE})`),
-      // not what only a script gives the focus: a tab not shown, an entry of a pager or a menu
-    ].filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0)
+      // not what only a script gives the focus (a tab not shown, an entry of a pager or a
+      // menu), and nothing locked, whatever its tabindex says
+    ].filter(
+      (element) =>
+        element.tabIndex >= 0 &&
+        !element.matches(':disabled') &&
+        element.getClientRects().length > 0,
+    )
   }
 
   oncreate() {

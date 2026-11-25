@@ -41,7 +41,14 @@ export function toastInfo(text: string) {
  * it. In sessionStorage, which is this tab's and survives the reload.
  */
 export function toastErrorAfterReload(text: string) {
-  sessionStorage.setItem(AFTER_RELOAD_KEY, text)
+  try {
+    sessionStorage.setItem(AFTER_RELOAD_KEY, text)
+  } catch (e) {
+    // biome-ignore lint/suspicious/noConsole: the only word left where sessionStorage is not to be had; the caller's sign-out must go on
+    console.error(
+      `calling setItem on sessionStorage with ${text} failed because ${e instanceof Error ? e.message : e}`,
+    )
+  }
 }
 
 /**

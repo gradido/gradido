@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { beforeEach, describe, expect, it, mock, setSystemTime } from 'bun:test'
+import { beforeEach, describe, expect, it, mock, setSystemTime, spyOn } from 'bun:test'
 import { parse } from 'graphql'
 import * as v from 'valibot'
 import { location } from '../../test/browserStub'
@@ -162,6 +162,22 @@ describe('request', () => {
       expect(sessionStorage.getItem('gradido-toast-after-reload')).toBe(
         'The session was closed for security reasons.',
       )
+    })
+
+    it('ends the session also where the tab cannot keep the sentence for the sign-in', async () => {
+      const said = spyOn(console, 'error').mockImplementation(() => undefined)
+      const kept = spyOn(sessionStorage, 'setItem').mockImplementation(() => {
+        throw new Error('no storage')
+      })
+      signIn(BIBI)
+      const answered = request(balance, {}, balanceSchema)
+      asked[0].answer({ errors: [{ message: '403.13 - Client certificate revoked' }] })
+      expect((await answered).success).toBe(false)
+      kept.mockRestore()
+      expect(authToken.state).toBeNull()
+      expect(location.assign).toHaveBeenCalledWith('/login')
+      expect(said).toHaveBeenCalledTimes(1)
+      said.mockRestore()
     })
 
     it('leaves the session of the next member alone where the certificate of the one before was revoked', async () => {

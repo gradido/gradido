@@ -167,3 +167,17 @@ test('Tab stays inside from a button behind the last stop of a window', async ({
   await page.keyboard.press('Tab')
   await expect(dialog.getByRole('button', { name: 'first' })).toBeFocused()
 })
+
+test('Tab stays inside a window whose last button is locked, also one with a tabindex', async ({
+  page,
+}) => {
+  await page.goto('blocks/?modal=locked')
+  await page.getByRole('button', { name: 'open' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Pages' })
+
+  await dialog.getByRole('menuitem', { name: 'Go to page 1' }).focus()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'first' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('menuitem', { name: 'Go to page 1' })).toBeFocused()
+})
