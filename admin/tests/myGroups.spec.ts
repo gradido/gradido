@@ -264,8 +264,9 @@ test('saves each tick at once, says so quietly, and asks the number at "Schöpfu
   // no toast for a tick: the quiet line says it
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  // sentFor hands out a copy: asked anew in each round, or the poll waits on a list that never grows
+  await expect.poll(() => graphql.sentFor('adminListContributions').length).toBe(2)
   const counted = graphql.sentFor('adminListContributions')
-  await expect.poll(() => counted.length).toBe(2)
   const handled = {
     statusFilter: ['IN_PROGRESS', 'PENDING'],
     hideResubmission: true,
