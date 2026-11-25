@@ -300,9 +300,9 @@ describe('supportTicketMailRecipients', () => {
     expect(
       ids(supportTicketMailRecipients([resting, gardener, choirAdmin], inGroup('orchard'), [])),
     ).toEqual([22])
-    expect(
-      ids(supportTicketMailRecipients([resting, choirAdmin], inGroup('orchard'), [])),
-    ).toEqual([2])
+    expect(ids(supportTicketMailRecipients([resting, choirAdmin], inGroup('orchard'), []))).toEqual(
+      [2],
+    )
     // everybody off: as before the switch
     expect(
       ids(supportTicketMailRecipients([resting, admin(2, OFF)], inGroup('orchard'), [])),
