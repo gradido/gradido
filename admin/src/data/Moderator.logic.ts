@@ -21,18 +21,6 @@ export const supportIsTheirs = (moderator: Moderator | null): boolean =>
 export const mayChooseGroups = (moderator: Moderator | null): boolean =>
   Boolean(moderator?.role) && moderator?.seesAllCreationGroups === true
 
-/** A column of "Meine Gruppen": the creations or the support (MG2b). */
-export type HandledColumn = 'creation' | 'support'
-
-/**
- * Whether the signed-in moderator may switch a column off for themself in "Meine Gruppen" (MG5): the
- * creations whoever may choose -- moderators take turns (Bernd, 25.11.2026) --, the support an
- * administrator, who assigns it to a moderator. The server decides the same (handledCreationGroupsOfRole,
- * maySwitchSupportOff).
- */
-export const maySwitchOff = (moderator: Moderator | null, column: HandledColumn): boolean =>
-  mayChooseGroups(moderator) && (column === 'creation' || moderator?.role === 'ADMIN')
-
 /** Whether `kept` is a choice of the signed-in moderator's, who may choose. */
 const isOfModerator = (moderator: Moderator | null, kept: KeptHandledCreationGroups | null) =>
   Boolean(kept) && mayChooseGroups(moderator) && kept?.of === moderator?.gradidoID
@@ -46,19 +34,19 @@ const isOfModerator = (moderator: Moderator | null, kept: KeptHandledCreationGro
 export const chosenGroupsOf = (
   moderator: Moderator | null,
   kept: KeptHandledCreationGroups | null,
-  column: HandledColumn,
 ): HandledCreationGroups | null =>
   kept &&
   isOfModerator(moderator, kept) &&
-  !isSwitchedOff(moderator, kept, column) &&
+  !isSwitchedOff(moderator, kept) &&
   (kept.groupIds.length > 0 || kept.untagged)
     ? { groupIds: kept.groupIds, untagged: kept.untagged, off: false }
     : null
 
-/** Whether the signed-in moderator switched `column`, kept as `kept`, off (MG5). */
+/**
+ * Whether the signed-in moderator switched the column of `kept` off (MG5): whoever may choose may,
+ * administrators and moderators alike, who take turns (Bernd, 25.11.2026).
+ */
 export const isSwitchedOff = (
   moderator: Moderator | null,
   kept: KeptHandledCreationGroups | null,
-  column: HandledColumn,
-): boolean =>
-  maySwitchOff(moderator, column) && isOfModerator(moderator, kept) && kept?.off === true
+): boolean => isOfModerator(moderator, kept) && kept?.off === true

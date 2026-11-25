@@ -11,7 +11,7 @@ import {
   myGroupsChoiceSchema,
   type NumberedCreationGroup,
 } from '@/data/CreationGroup.schema'
-import { type HandledColumn, maySwitchOff, supportIsTheirs } from '@/data/Moderator.logic'
+import { supportIsTheirs } from '@/data/Moderator.logic'
 import { graphqlRequest } from '@/graphql/client'
 import { myGroupsChoice, setHandledGroups } from '@/graphql/creationGroups.graphql'
 import { currentLocale, t } from '@/i18n'
@@ -69,7 +69,7 @@ class Ticks {
   }
 }
 
-type Column = HandledColumn
+type Column = 'creation' | 'support'
 
 /**
  * "Meine Gruppen" (MG1, MG2b): the moderator ticks, group by group, whether they handle its
@@ -280,9 +280,9 @@ export class MyGroups implements ClassComponent {
     )
   }
 
-  // "Selbst bearbeiten" (MG5): the first row, with a switch for each column they may switch off
-  // (maySwitchOff) -- off, and nothing of its kind is theirs, counted or mailed; its ticks stay
-  // behind it. A column without a switch keeps its place empty.
+  // "Selbst bearbeiten" (MG5), for administrators and moderators alike (25.11.2026): the first row,
+  // with a switch for each column -- off, and nothing of its kind is theirs, counted or mailed; its
+  // ticks stay behind it
   private handleRow(columns: Column[]) {
     return m(
       'li.list-group-item',
@@ -294,28 +294,26 @@ export class MyGroups implements ClassComponent {
       [
         m('span', { id: 'my-groups-name-handle', class: classes.name }, t('myGroups.handle')),
         ...columns.map((column) =>
-          maySwitchOff(adminStore.moderator, column)
-            ? m(
-                'label',
-                { class: classes.cell },
-                m(
-                  '.form-check.form-switch',
-                  { class: classes.switch },
-                  m('input.form-check-input', {
-                    type: 'checkbox',
-                    role: 'switch',
-                    class: classes.box,
-                    checked: !this.ticks[column].off,
-                    disabled: this.recovering,
-                    'aria-labelledby': `my-groups-name-handle my-groups-head-${column}`,
-                    onchange: (event: Event) => {
-                      this.ticks[column].off = !(event.target as HTMLInputElement).checked
-                      this.save()
-                    },
-                  }),
-                ),
-              )
-            : m('span', { class: classes.cell }),
+          m(
+            'label',
+            { class: classes.cell },
+            m(
+              '.form-check.form-switch',
+              { class: classes.switch },
+              m('input.form-check-input', {
+                type: 'checkbox',
+                role: 'switch',
+                class: classes.box,
+                checked: !this.ticks[column].off,
+                disabled: this.recovering,
+                'aria-labelledby': `my-groups-name-handle my-groups-head-${column}`,
+                onchange: (event: Event) => {
+                  this.ticks[column].off = !(event.target as HTMLInputElement).checked
+                  this.save()
+                },
+              }),
+            ),
+          ),
         ),
       ],
     )
@@ -381,9 +379,7 @@ export class MyGroups implements ClassComponent {
           )
         : m('ul.list-group', { id: 'my-groups-list', 'data-test': 'my-groups-list' }, [
             ...(groups ? [this.head(columns)] : []),
-            ...(groups && columns.some((column) => maySwitchOff(adminStore.moderator, column))
-              ? [this.handleRow(columns)]
-              : []),
+            ...(groups ? [this.handleRow(columns)] : []),
             ...shown.map(({ key, text, group }) => this.row(columns, key, text, group)),
           ]),
       // on a phone `‹`, three numbers and `›`; at the desk five places with the ellipses, and « »

@@ -88,7 +88,7 @@ describe('countContributionsWaitingForModeration', () => {
   })
 })
 
-// MG5: the creations every role that chooses may switch off for itself -- moderators take turns
+// MG5: every role who sees every group may switch a column off for itself -- moderators take turns
 // (Bernd, 25.11.2026)
 describe('handledCreationGroupsOfRole', () => {
   it('reads "off" of the creations of every role who sees every group', () => {
@@ -126,23 +126,16 @@ describe('handledSupportGroupsOfRole', () => {
     expect(handledSupportGroupsOfRole(choseCreationsOnly)).toBeNull()
   })
 
-  // MG5: an administrator may handle none of the support; in a moderator's row the switch is what
-  // another role left there
-  it('reads "off" of an administrator alone, of a moderator the ticks behind it', () => {
+  it('reads "off" of the support of every role who sees every group', () => {
     const holder = {
       visibleCreationGroups: null,
       handledSupportGroups: JSON.stringify({ groupIds: [5], untagged: false, off: true }),
     }
-    expect(handledSupportGroupsOfRole({ role: 'ADMIN', ...holder })).toEqual({
-      groupIds: [5],
-      untagged: false,
-      off: true,
-    })
-    for (const role of ['MODERATOR', 'MODERATOR_AI']) {
+    for (const role of ['ADMIN', 'MODERATOR', 'MODERATOR_AI']) {
       expect(handledSupportGroupsOfRole({ role, ...holder })).toEqual({
         groupIds: [5],
         untagged: false,
-        off: false,
+        off: true,
       })
     }
   })

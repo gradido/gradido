@@ -136,7 +136,7 @@ export class CreationConfirm implements ClassComponent {
   // group, whether or not the admin knows the choice yet (MG1); a scoped moderator has no "all". Who
   // switched the creations off (MG5) opens on everything: nothing of them is theirs.
   private group =
-    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledCreationGroups, 'creation')
+    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
       ? creationGroupFilterOptions(this.moderator, [], null)[0].value
       : ''
   private page = 1
@@ -179,11 +179,11 @@ export class CreationConfirm implements ClassComponent {
         keepHandledCreationGroups(of, handledCreationGroups, choiceAsked)
         // "" is offered with a choice only. Picked while the page still knew one that was cleared
         // on another device, the same list is called by the row that now means everything.
-        const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups, 'creation')
+        const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
         if (
           this.group === '' &&
           !off &&
-          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups, 'creation')
+          !chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
         ) {
           this.group = HANDLED_FILTER
         } else if (off && this.group === HANDLED_FILTER) {
@@ -368,8 +368,8 @@ export class CreationConfirm implements ClassComponent {
     // tabs, to test it against the whole pool. Only a guide: the server checks the right.
     const showCrea = this.tab === 0 || this.tab === 4 ? aiUser : role === 'ADMIN'
     const showChat = CONFIG.ANTHROPIC_ACTIVE && aiUser
-    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups, 'creation')
-    const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups, 'creation')
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledCreationGroups)
+    const off = isSwitchedOff(this.moderator, adminStore.handledCreationGroups)
     return m('.creation-confirm', [
       // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs
       m('h2.h4.mb-3', t('creation')),

@@ -35,27 +35,17 @@ export const parseHandledCreationGroups = (
 
 /**
  * The rule of "Meine Gruppen", decided here and nowhere else: whoever sees every group and ticked
- * something handles exactly what they ticked, and whoever may switch the column off and did
- * (`off`, MG5) nothing -- the creations everybody who chooses, the support an administrator
- * (maySwitchSupportOff). For everybody else null, no restriction beyond what they see anyway: nothing
- * ticked, or a moderator with an assigned scope -- their scope is their list (MG1). A choice saved
- * before a scope was assigned stays in the row and counts again once the scope is taken away; a
- * support switched off does not outlive the administrator's role, the ticks behind it do.
+ * something handles exactly what they ticked, and whoever switched the column off (`off`, MG5)
+ * nothing -- administrators and moderators alike, who take turns (Bernd, 25.11.2026). For everybody
+ * else null, no restriction beyond what they see anyway: nothing ticked, or a moderator with an
+ * assigned scope -- their scope is their list (MG1). A choice saved before a scope was assigned
+ * stays in the row, switch and ticks, and counts again once the scope is taken away.
  */
 export const handledCreationGroupsOf = (
   stored: string | null | undefined,
-  {
-    seesAllCreationGroups,
-    maySwitchOff,
-  }: { seesAllCreationGroups: boolean; maySwitchOff: boolean },
-): HandledCreationGroups | null => {
-  const choice = seesAllCreationGroups ? parseHandledCreationGroups(stored) : null
-  if (!choice?.off || maySwitchOff) {
-    return choice
-  }
-  const ticks = { ...choice, off: false }
-  return choosesNothing(ticks) ? null : ticks
-}
+  seesAllCreationGroups: boolean,
+): HandledCreationGroups | null =>
+  seesAllCreationGroups ? parseHandledCreationGroups(stored) : null
 
 /**
  * Whether the choice in force (handledCreationGroupsOf) takes in what belongs to this group, by its

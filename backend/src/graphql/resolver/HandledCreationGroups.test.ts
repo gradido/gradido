@@ -411,9 +411,8 @@ describe('setHandledGroups', () => {
     expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
   })
 
-  // MG5: the creations a moderator may switch off for themself, taking turns with others (Bernd,
-  // 25.11.2026); the support's switch is an administrator's. In the row of a moderator a support
-  // that is off is what another role left there: it counts not, the ticks behind it do
+  // MG5: a moderator who sees every group switches a column off for themself as an administrator
+  // does -- moderators take turns (Bernd, 25.11.2026)
   describe('of a moderator who sees every group', () => {
     const scopeOfBibi = (scope: string[] | null) =>
       UserRole.update(
@@ -429,66 +428,30 @@ describe('setHandledGroups', () => {
       await scopeOfBibi(['handled-b'])
     })
 
-    it('switches the creations off, keeping the ticks, and the filter *handled finds nothing', async () => {
-      await store(bibi.id, NOTHING, { groupIds: [groupB], untagged: false })
+    it('switches both columns off, keeping the ticks, and the filter *handled finds nothing', async () => {
+      await store(bibi.id, NOTHING, NOTHING)
       await loginAs('bibi@bloxberg.de')
-      const off = { groupIds: [groupA], untagged: false, off: true }
+      const creationOff = { groupIds: [groupA], untagged: false, off: true }
+      const supportOff = { groupIds: [groupB], untagged: true, off: true }
 
       const { data, errors } = await mutate({
         mutation: setHandledGroups,
-        variables: both(off, { groupIds: [groupB], untagged: false }),
+        variables: both(creationOff, supportOff),
       })
       expect(errors).toBeUndefined()
-      expect(data.setHandledGroups.creation).toEqual(off)
+      expect(data.setHandledGroups).toEqual({ creation: creationOff, support: supportOff })
       const creation = await query({ query: handledCreationGroups })
-      expect(creation.data.handledCreationGroups).toEqual(off)
+      expect(creation.data.handledCreationGroups).toEqual(creationOff)
+      const support = await query({ query: handledSupportGroups })
+      expect(support.data.handledSupportGroups).toEqual(supportOff)
       expect(await memosFor('*handled')).toEqual([])
 
       // on again, the ticks count as they did
       await mutate({
         mutation: setHandledGroups,
-        variables: both(
-          { groupIds: [groupA], untagged: false },
-          { groupIds: [groupB], untagged: false },
-        ),
+        variables: both({ groupIds: [groupA], untagged: false }, NOTHING),
       })
       expect(await memosFor('*handled')).toEqual([IN_A])
-    })
-
-    it('refuses the switch for the support, and keeps both columns', async () => {
-      await store(
-        bibi.id,
-        { groupIds: [groupA], untagged: false },
-        { groupIds: [groupB], untagged: false },
-      )
-      const before = [await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]
-      await loginAs('bibi@bloxberg.de')
-
-      const { errors } = await mutate({
-        mutation: setHandledGroups,
-        variables: both(NOTHING, { groupIds: [groupB], untagged: false, off: true }),
-      })
-      expect(errors?.[0]?.message).toBe('Only an administrator may switch the support off')
-      expect([await storedChoiceOf(bibi.id), await storedSupportOf(bibi.id)]).toEqual(before)
-    })
-
-    it('answers a support switched off in the row as on, its ticks alone', async () => {
-      await store(
-        bibi.id,
-        { groupIds: [groupA], untagged: false },
-        { groupIds: [groupB], untagged: true, off: true },
-      )
-      await loginAs('bibi@bloxberg.de')
-      const support = await query({ query: handledSupportGroups })
-      expect(support.data.handledSupportGroups).toEqual({
-        groupIds: [groupB],
-        untagged: true,
-        off: false,
-      })
-      // and where no tick stands behind it, everything counts
-      await store(bibi.id, NOTHING, { groupIds: [], untagged: false, off: true })
-      const empty = await query({ query: handledSupportGroups })
-      expect(empty.data.handledSupportGroups).toEqual(NOTHING)
     })
   })
 

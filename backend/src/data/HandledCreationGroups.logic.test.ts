@@ -65,48 +65,32 @@ describe('parseHandledCreationGroups', () => {
 })
 
 describe('handledCreationGroupsOf', () => {
-  const administrator = { seesAllCreationGroups: true, maySwitchOff: true }
-  const moderator = { seesAllCreationGroups: true, maySwitchOff: false }
-  const scoped = { seesAllCreationGroups: false, maySwitchOff: false }
-
   it('follows the choice of whoever sees every group', () => {
-    for (const holder of [administrator, moderator]) {
-      expect(handledCreationGroupsOf(CHOICE, holder)).toEqual({
-        groupIds: [3, 7],
-        untagged: true,
-        off: false,
-      })
-    }
+    expect(handledCreationGroupsOf(CHOICE, true)).toEqual({
+      groupIds: [3, 7],
+      untagged: true,
+      off: false,
+    })
   })
 
   // A moderator with an assigned scope: the scope is their list, a choice in the row counts not.
   it('follows no choice of a moderator with an assigned scope', () => {
-    expect(handledCreationGroupsOf(CHOICE, scoped)).toBeNull()
+    expect(handledCreationGroupsOf(CHOICE, false)).toBeNull()
+    expect(handledCreationGroupsOf('{"groupIds":[3],"untagged":true,"off":true}', false)).toBeNull()
   })
 
   it('follows nothing where nothing is chosen', () => {
-    expect(handledCreationGroupsOf(null, administrator)).toBeNull()
+    expect(handledCreationGroupsOf(null, true)).toBeNull()
   })
 
-  // MG5: who may switch it off handles nothing of the kind, the ticks kept behind it
-  it('follows "off" where it may be switched off', () => {
-    expect(
-      handledCreationGroupsOf('{"groupIds":[3],"untagged":false,"off":true}', administrator),
-    ).toEqual({ groupIds: [3], untagged: false, off: true })
-  })
-
-  // ... and a column a moderator may not switch off (the support, maySwitchSupportOff): what an
-  // administrator's role left there -- the ticks count, and where none stands, everything does
-  it('follows no "off" where it may not be switched off, the ticks behind it alone', () => {
-    expect(
-      handledCreationGroupsOf('{"groupIds":[3],"untagged":true,"off":true}', moderator),
-    ).toEqual({ groupIds: [3], untagged: true, off: false })
-    expect(
-      handledCreationGroupsOf('{"groupIds":[],"untagged":false,"off":true}', moderator),
-    ).toBeNull()
-    expect(
-      handledCreationGroupsOf('{"groupIds":[3],"untagged":true,"off":true}', scoped),
-    ).toBeNull()
+  // MG5: whoever sees every group may handle nothing of the kind -- administrators and moderators
+  // alike (25.11.2026) --, the ticks kept behind it
+  it('follows "off", the ticks behind it', () => {
+    expect(handledCreationGroupsOf('{"groupIds":[3],"untagged":false,"off":true}', true)).toEqual({
+      groupIds: [3],
+      untagged: false,
+      off: true,
+    })
   })
 })
 

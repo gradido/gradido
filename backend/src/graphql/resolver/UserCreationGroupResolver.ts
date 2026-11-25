@@ -18,7 +18,6 @@ import {
   handledCreationGroupsOfRole,
   handledSupportGroupsOfRole,
   loadModeratorScope,
-  maySwitchSupportOff,
   saveModeratorScope,
 } from './util/moderatorCreationGroupScope'
 import { suggestCreationGroupForUser } from './util/suggestCreationGroup'
@@ -120,7 +119,7 @@ export class UserCreationGroupResolver {
   // ascending. A column of nothing stores null, "everything, as before"; one that is off (MG5)
   // stores its ticks behind the switch. Both are checked before anything is written, so a refusal
   // keeps what was there in both. A moderator with an assigned scope has no choice to save -- their
-  // scope is their list --, and any other moderator no switch for the support (maySwitchSupportOff).
+  // scope is their list.
   @Authorized([RIGHTS.HANDLED_CREATION_GROUPS])
   @Mutation(() => HandledGroups)
   async setHandledGroups(
@@ -131,9 +130,6 @@ export class UserCreationGroupResolver {
     const user = getUser(context)
     if (!describeModeratorCreationGroups(user.userRole).seesAllCreationGroups) {
       throw new LogError('An assigned scope leaves no creation groups to choose', user.id)
-    }
-    if (supportInput.off && !maySwitchSupportOff(user.userRole)) {
-      throw new LogError('Only an administrator may switch the support off', user.id)
     }
     const creation = normaliseHandledCreationGroups(
       creationInput.groupIds,
