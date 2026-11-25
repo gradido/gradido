@@ -110,6 +110,10 @@ vi.mock('@/composables/useChatUpdates', async () => {
   }
 })
 
+/** The number on the app's icon (useAppBadge) -- its own spec adds it up; here only that it starts. */
+const appBadge = vi.hoisted(() => vi.fn())
+vi.mock('@/composables/useAppBadge', () => ({ useAppBadge: appBadge }))
+
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -218,6 +222,11 @@ describe('DashboardLayout', () => {
       expect(chatBeat.start).toHaveBeenCalledTimes(1)
       expect(chatBeat.start).toHaveBeenCalledWith({ query: mockApolloQuery })
       expect(chatBeat.stop).not.toHaveBeenCalled()
+    })
+
+    it("puts the menu's numbers on the app's icon, for the member's store", () => {
+      expect(appBadge).toHaveBeenCalledTimes(1)
+      expect(appBadge.mock.calls[0][0].$id).toBe('wallet')
     })
 
     it('stops when the layout goes', () => {

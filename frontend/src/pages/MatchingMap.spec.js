@@ -1516,11 +1516,11 @@ describe('MatchingMap', () => {
       vi.useRealTimers()
     })
 
-    it('keeps a step-1 disc at 20 px on the light map and gives it 44 px to tap', async () => {
+    it('keeps a step-1 disc at 12 px on the light map and gives it 44 px to tap', async () => {
       const page = await buildMap('hell', () => [person('anna', east(0))])
 
       const box = page.find('.gk-clickable').element
-      expect(px(page.find('.gk-disc').element, 'width')).toBe('20px')
+      expect(px(page.find('.gk-disc').element, 'width')).toBe('12px')
       expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
       // The box is as big as the tap area, and still centred on the person: its top left corner
       // stands half the area left of and above the person's place.
@@ -1532,7 +1532,16 @@ describe('MatchingMap', () => {
       const page = await buildMap('dunkel', () => [person('anna', east(0))])
 
       expect(px(page.find('.gk-hit').element, 'width')).toBe('44px')
-      expect(px(page.find('.gk-clickable').element, 'width')).toBe('48px')
+      expect(px(page.find('.gk-clickable').element, 'width')).toBe('40px')
+    })
+
+    // Bernd, 24.11.2026: smaller, equally bright. The blur shrinks with the glow (3 px on the
+    // 104-px glow of old), so a smaller glow is the old one drawn smaller and keeps its bright
+    // middle; a fixed 3 px dimmed it.
+    it('scales the blur of a glow with its size', async () => {
+      const page = await buildMap('dunkel', () => [person('anna', east(0))])
+
+      expect(px(page.find('.gk-glow').element, 'filter')).toBe('blur(1.15px)')
     })
 
     // 40 px apart, two tap areas of 44 px overlap: a finger there could mean either, so the
@@ -1549,7 +1558,8 @@ describe('MatchingMap', () => {
 
     // The control for the one above: with room between them the same tap opens the person,
     // so the zoom there is the overlap speaking, not every tap zooming. 70 px is beyond the
-    // largest tap area there is - 60 px since the fifth step - so beyond the crowd radius.
+    // largest tap area there is - 44 px since the discs were made smaller - so beyond the
+    // crowd radius.
     it('opens the person when no other tap area reaches theirs', async () => {
       const page = await buildMap('hell', () => [person('anna', east(0)), person('ben', east(70))])
 
@@ -1576,20 +1586,21 @@ describe('MatchingMap', () => {
       it('draws the fifth size on the dark map and on the light one', async () => {
         window.localStorage.setItem(`${KEY}breite`, JSON.stringify(true))
         const dark = await buildMap('dunkel', () => [broad('clara')])
-        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('130px')
-        expect(px(dark.find('.gk-hit').element, 'width')).toBe('60px')
+        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('64px')
+        expect(px(dark.find('.gk-hit').element, 'width')).toBe('44px')
+        expect(px(dark.find('.gk-glow').element, 'filter')).toBe('blur(1.85px)')
         dark.unmount()
         wrapper = null
 
         const light = await buildMap('hell', () => [broad('clara')])
-        expect(px(light.find('.gk-disc').element, 'width')).toBe('60px')
-        expect(px(light.find('.gk-clickable').element, 'width')).toBe('60px')
+        expect(px(light.find('.gk-disc').element, 'width')).toBe('34px')
+        expect(px(light.find('.gk-clickable').element, 'width')).toBe('44px')
       })
 
       // The control: the same person without breadth is a step-4 match, sized as one.
       it('stays on the fourth size while breadth is off', async () => {
         const dark = await buildMap('dunkel', () => [broad('clara')])
-        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('104px')
+        expect(px(dark.find('.gk-clickable').element, 'width')).toBe('58px')
       })
     })
 
@@ -4778,7 +4789,7 @@ describe('MatchingMap, the tick under the search field', () => {
 
       const markers = shown.findAll('.gk-clickable')
       expect(markers).toHaveLength(1)
-      expect(markers[0].element.style.width).toBe('130px')
+      expect(markers[0].element.style.width).toBe('64px')
     })
 
     it('draws no grey rings and steps the two boxes back where it answered with its sentence', async () => {
@@ -5269,8 +5280,8 @@ describe('MatchingMap, the tick with the real search', () => {
       ],
     },
   ]
-  // A topic match of `of`: step 1, a disc of 48 px on the dark map. A carrier of its sentence: the
-  // brightest there is, 130 px.
+  // A topic match of `of`: step 1, a glow of 40 px on the dark map. A carrier of its sentence: the
+  // brightest there is, 64 px.
   const topicOf = (alias, of) => somebody(alias, channel(of, 0.46, 'thema'))
   const carrierOf = (alias, of) => somebody(alias, channel(of, 0.865, null))
 
@@ -5394,7 +5405,7 @@ describe('MatchingMap, the tick with the real search', () => {
     })
     // All my entries: a and b ask their sentences; Carl answers c by topic.
     expect(onScreen(page)).toEqual({
-      markers: [48, 130, 130, 130],
+      markers: [40, 64, 64, 64],
       rings: 2,
       listed: 4,
       nearby: 2,
@@ -5408,7 +5419,7 @@ describe('MatchingMap, the tick with the real search', () => {
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
     expect(onScreen(page)).toEqual({
-      markers: [130, 130],
+      markers: [64, 64],
       rings: 0,
       listed: 2,
       nearby: 0,
@@ -5422,7 +5433,7 @@ describe('MatchingMap, the tick with the real search', () => {
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
     expect(onScreen(page)).toEqual({
-      markers: [130],
+      markers: [64],
       rings: 0,
       listed: 1,
       nearby: 0,
@@ -5435,7 +5446,7 @@ describe('MatchingMap, the tick with the real search', () => {
     await choose(page, { kind: 'all' })
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
-    expect(onScreen(page)).toMatchObject({ markers: [48, 130, 130, 130], rings: 2, nearby: 2 })
+    expect(onScreen(page)).toMatchObject({ markers: [40, 64, 64, 64], rings: 2, nearby: 2 })
 
     // To an entry without the tick.
     answer = hold()
@@ -5443,7 +5454,7 @@ describe('MatchingMap, the tick with the real search', () => {
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
     expect(onScreen(page)).toEqual({
-      markers: [48],
+      markers: [40],
       rings: 2,
       listed: 1,
       nearby: 2,
@@ -5454,7 +5465,7 @@ describe('MatchingMap, the tick with the real search', () => {
 
   it('takes everything down at once where the tick is set and where it is taken off', async () => {
     const page = await withMap([mine('c', { exactSentence: false })], chosen('c'))
-    expect(onScreen(page)).toMatchObject({ markers: [48], rings: 2 })
+    expect(onScreen(page)).toMatchObject({ markers: [40], rings: 2 })
 
     // Set: nobody carries the sentence of c.
     writeExact.mockResolvedValueOnce({
@@ -5495,7 +5506,7 @@ describe('MatchingMap, the tick with the real search', () => {
     await settled()
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
-    expect(onScreen(page)).toMatchObject({ markers: [48], rings: 2, nearby: 2, number: null })
+    expect(onScreen(page)).toMatchObject({ markers: [40], rings: 2, nearby: 2, number: null })
   })
 
   it('takes everything down for an entry past the limit chosen on its own, and back', async () => {
@@ -5511,7 +5522,7 @@ describe('MatchingMap, the tick with the real search', () => {
     await choose(page, chosen(last))
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
-    expect(onScreen(page)).toMatchObject({ markers: [130], rings: 0, number: '1 Mensch' })
+    expect(onScreen(page)).toMatchObject({ markers: [64], rings: 0, number: '1 Mensch' })
 
     answer = hold()
     await choose(page, { kind: 'all' })
@@ -5527,14 +5538,14 @@ describe('MatchingMap, the tick with the real search', () => {
     const page = await withMap([mine('a'), mine('b'), mine('c', { exactSentence: false })], {
       kind: 'all',
     })
-    expect(onScreen(page)).toMatchObject({ markers: [48, 48, 48], rings: 2 })
+    expect(onScreen(page)).toMatchObject({ markers: [40, 40, 40], rings: 2 })
 
     let answer = hold()
     await choose(page, chosen('a'))
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
     expect(onScreen(page)).toEqual({
-      markers: [48],
+      markers: [40],
       rings: 2,
       listed: 1,
       nearby: 2,
@@ -5547,7 +5558,7 @@ describe('MatchingMap, the tick with the real search', () => {
     await choose(page, { kind: 'all' })
     expect(onScreen(page)).toEqual(EMPTY)
     await answer()
-    expect(onScreen(page)).toMatchObject({ markers: [48, 48, 48], rings: 2 })
+    expect(onScreen(page)).toMatchObject({ markers: [40, 40, 40], rings: 2 })
   })
 
   // For a member without a change in the sentences asked, a search is what it always was: the
@@ -5556,14 +5567,14 @@ describe('MatchingMap, the tick with the real search', () => {
     gms.topic = [topicOf('Tina', 'a'), topicOf('Tom', 'b')]
     const page = await withMap([mine('a'), mine('b', { exactSentence: false })], { kind: 'all' })
     const before = onScreen(page)
-    expect(before).toMatchObject({ markers: [48, 130, 130], rings: 2, waiting: false })
+    expect(before).toMatchObject({ markers: [40, 64, 64], rings: 2, waiting: false })
 
     const answer = hold()
     await choose(page, chosen('a'))
     // Nothing is taken down: the lens of the new choice shows at once, on the markers too (second
     // reader, 15.11.2026), and the rings step back, as the entry shows only its sentence.
-    expect(onScreen(page)).toMatchObject({ markers: [130, 130], rings: 0, waiting: false })
+    expect(onScreen(page)).toMatchObject({ markers: [64, 64], rings: 0, waiting: false })
     await answer()
-    expect(onScreen(page)).toMatchObject({ markers: [130, 130], rings: 0, number: '2 Menschen' })
+    expect(onScreen(page)).toMatchObject({ markers: [64, 64], rings: 0, number: '2 Menschen' })
   })
 })

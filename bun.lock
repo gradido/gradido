@@ -18,7 +18,7 @@
     },
     "admin": {
       "name": "admin",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@popperjs/core": "^2.11.8",
         "bootstrap": "^5.3.3",
@@ -49,7 +49,7 @@
     },
     "backend": {
       "name": "backend",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@elysia/node": "1.4.5",
         "cross-env": "^7.0.3",
@@ -121,7 +121,7 @@
     },
     "config-schema": {
       "name": "config-schema",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "esbuild": "^0.25.2",
         "log4js": "^6.9.1",
@@ -136,7 +136,7 @@
     },
     "core": {
       "name": "core",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@elysia/eden": "1.4.10",
         "config-schema": "*",
@@ -173,7 +173,7 @@
     },
     "database": {
       "name": "database",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@types/uuid": "^8.3.4",
         "cross-env": "^7.0.3",
@@ -210,7 +210,7 @@
     },
     "dht-node": {
       "name": "dht-node",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "cross-env": "^7.0.3",
         "dht-rpc": "6.18.1",
@@ -247,7 +247,7 @@
     },
     "federation": {
       "name": "federation",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "cross-env": "^7.0.3",
         "email-templates": "^10.0.1",
@@ -286,7 +286,7 @@
     },
     "frontend": {
       "name": "frontend",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@mapbox/vector-tile": "^3.0.0",
         "@morev/vue-transitions": "^3.0.2",
@@ -377,7 +377,7 @@
     },
     "frontend-mithril": {
       "name": "frontend-mithril",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "bootstrap": "^5.3.3",
         "clipboard-polyfill": "^4.0.0-rc1",
@@ -412,7 +412,7 @@
     },
     "shared": {
       "name": "shared",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "config-schema": "*",
         "esbuild": "^0.25.2",
@@ -434,7 +434,7 @@
     },
     "shared-native": {
       "name": "shared-native",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "devDependencies": {
         "@biomejs/biome": "2.5.15",
         "c-cpp-zig-build": "0.3.0",

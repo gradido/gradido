@@ -8,6 +8,7 @@ import {
   setContributionsInProgress,
 } from '@/composables/useContributionsInProgress'
 import { forgetModerationWaiting, setModerationWaiting } from '@/composables/useModerationWaiting'
+import { APP_BADGE_HIDDEN_INTERVAL_MS, appBadgeShown, showAppBadge } from '@/utils/appBadge'
 import {
   forgetSupportTicketsMenu,
   setSupportTicketsMenu,
@@ -48,6 +49,11 @@ import {
  * the members named (`readBy`), and each watcher is handed its place in the answer (`readUpTo`).
  * Nothing of it is kept here: no store, nothing on the device -- only the thread's page holds the
  * number it came with, in Apollo's cache, which the logout clears.
+ *
+ * Out of sight the beat rests -- except in the wallet installed as an app, whose numbers stand on
+ * the app's icon (utils/appBadge, useAppBadge): there it asks once a minute while the window is
+ * behind others or minimised. Nothing is marked read meanwhile: a thread marks only while the page
+ * is in sight (ChatThread `markShown`).
  */
 
 /** The beat while all is well. A constant of the chat, not CONFIG.AUTO_POLL_INTERVAL (0 on the servers). */
@@ -275,15 +281,23 @@ const cycle = async (mine) => {
   }
 }
 
-/** The next question after the pause -- none while the page is out of sight or the beat stopped. */
+/**
+ * The next question after the pause -- none while the beat stopped, nor while the page is out of
+ * sight, unless the app's icon carries the numbers: then after a minute at the least.
+ */
 const schedule = () => {
   clearTimeout(beat.timer)
   beat.timer = null
-  if (!beat.client || !inSight()) return
+  if (!beat.client) return
+  let delay = beat.delay
+  if (!inSight()) {
+    if (!appBadgeShown()) return
+    delay = Math.max(delay, APP_BADGE_HIDDEN_INTERVAL_MS)
+  }
   beat.timer = setTimeout(() => {
     beat.timer = null
     poll()
-  }, beat.delay)
+  }, delay)
 }
 
 /**
@@ -313,12 +327,14 @@ const poll = () => {
   return beat.running
 }
 
-/** Out of sight: the beat rests. Back in sight: a question at once, then the beat again. */
+/**
+ * Out of sight: the beat rests, or slows down where the app's icon carries the numbers. Back in
+ * sight: a question at once, then the beat again.
+ */
 const onVisibility = () => {
   if (!beat.client) return
   if (!inSight()) {
-    clearTimeout(beat.timer)
-    beat.timer = null
+    schedule()
     return
   }
   poll()
@@ -330,6 +346,7 @@ export const startChatUpdates = (apolloClient) => {
   beat.client = apolloClient
   document.addEventListener('visibilitychange', onVisibility)
   if (inSight()) poll()
+  else schedule()
 }
 
 /**
@@ -345,6 +362,9 @@ export const stopChatUpdates = () => {
   forgetSupportTicketsMenu()
   forgetContributionsInProgress()
   forgetModerationWaiting()
+  // Also where no layout ever stood in this page's life: a launch after the session ran out logs
+  // out in the route guard, and the number of the last visit must not stay on the icon.
+  showAppBadge(0)
 }
 
 /**

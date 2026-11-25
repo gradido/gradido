@@ -18,6 +18,7 @@ import {
   watchChatRead,
 } from './useChatUpdates'
 import { newChatMessagesSince } from '@/graphql/chat.graphql'
+import { APP_BADGE_HIDDEN_INTERVAL_MS } from '@/utils/appBadge'
 import {
   supportTicketsActiveNow,
   supportTicketsInProgress,
@@ -297,6 +298,99 @@ describe('useChatUpdates', () => {
       setHidden(false)
       await vi.advanceTimersByTimeAsync(0)
       expect(server.afterIds()).toEqual([null])
+    })
+
+    describe('in the wallet installed as an app, whose icon carries the numbers', () => {
+      beforeEach(() => {
+        Object.defineProperty(navigator, 'setAppBadge', {
+          configurable: true,
+          value: vi.fn(() => Promise.resolve()),
+        })
+        Object.defineProperty(navigator, 'clearAppBadge', {
+          configurable: true,
+          value: vi.fn(() => Promise.resolve()),
+        })
+        window.matchMedia = vi.fn((query) => ({ matches: query === '(display-mode: standalone)' }))
+      })
+
+      afterEach(() => {
+        delete navigator.setAppBadge
+        delete navigator.clearAppBadge
+        delete window.matchMedia
+      })
+
+      it('asks once a minute while the window is hidden, and at once when it comes back', async () => {
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        expect(server.query).toHaveBeenCalledTimes(1)
+
+        setHidden(true)
+        // Not with the beat of fifteen seconds…
+        await vi.advanceTimersByTimeAsync(APP_BADGE_HIDDEN_INTERVAL_MS - 1)
+        expect(server.query).toHaveBeenCalledTimes(1)
+        // …but once a minute.
+        await vi.advanceTimersByTimeAsync(1)
+        expect(server.query).toHaveBeenCalledTimes(2)
+        await vi.advanceTimersByTimeAsync(APP_BADGE_HIDDEN_INTERVAL_MS)
+        expect(server.query).toHaveBeenCalledTimes(3)
+
+        setHidden(false)
+        await vi.advanceTimersByTimeAsync(0)
+        expect(server.query).toHaveBeenCalledTimes(4)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_INTERVAL_MS)
+        expect(server.query).toHaveBeenCalledTimes(5)
+      })
+
+      it('plans the next question after an answer that lands while the window is hidden', async () => {
+        const release = server.hold()
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        setHidden(true)
+        release()
+        await vi.advanceTimersByTimeAsync(APP_BADGE_HIDDEN_INTERVAL_MS - 1)
+        expect(server.query).toHaveBeenCalledTimes(1)
+        await vi.advanceTimersByTimeAsync(1)
+        expect(server.query).toHaveBeenCalledTimes(2)
+      })
+
+      it('starts in a window that opens hidden, a minute later', async () => {
+        hidden = true
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(APP_BADGE_HIDDEN_INTERVAL_MS - 1)
+        expect(server.query).not.toHaveBeenCalled()
+        await vi.advanceTimersByTimeAsync(1)
+        expect(server.afterIds()).toEqual([null])
+      })
+
+      it('keeps a longer pause after failures while hidden', async () => {
+        server.answer(new Error('1'), new Error('2'), new Error('3'), new Error('4'))
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        await vi.advanceTimersByTimeAsync(2 * CHAT_POLL_INTERVAL_MS)
+        await vi.advanceTimersByTimeAsync(4 * CHAT_POLL_INTERVAL_MS)
+        expect(server.query).toHaveBeenCalledTimes(3)
+        // The pause is now 120 s, longer than the minute out of sight.
+        setHidden(true)
+        await vi.advanceTimersByTimeAsync(CHAT_POLL_BACKOFF_MAX_MS - 1)
+        expect(server.query).toHaveBeenCalledTimes(3)
+        await vi.advanceTimersByTimeAsync(1)
+        expect(server.query).toHaveBeenCalledTimes(4)
+      })
+
+      it('takes the number off the icon when the beat stops', async () => {
+        startChatUpdates(server.client)
+        await vi.advanceTimersByTimeAsync(0)
+        navigator.clearAppBadge.mockClear()
+
+        stopChatUpdates()
+
+        expect(navigator.clearAppBadge).toHaveBeenCalledTimes(1)
+      })
+
+      it('takes it off also where the beat never ran in this page', () => {
+        stopChatUpdates()
+        expect(navigator.clearAppBadge).toHaveBeenCalledTimes(1)
+      })
     })
 
     it('plans nothing after an answer that lands while the page is hidden', async () => {

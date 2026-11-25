@@ -46,6 +46,10 @@ const i18n = createI18n({
   messages: {
     en: {
       'copied-to-clipboard': 'copied-to-clipboard',
+      navigation: {
+        adminCreations: '{n} creation waits | {n} creations wait',
+        adminSupportTickets: '{n} request waits | {n} requests wait',
+      },
     },
   },
 })
@@ -709,6 +713,163 @@ describe('Navbar', () => {
 
         expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
         expect(opener().find('[data-test="creation-dot-label"]').exists()).toBe(false)
+      })
+    })
+
+    /**
+     * What waits for the moderation ("Meine Gruppen" MG3), under the opener's lines: the creations
+     * at the left, the support requests at the right (Bernd, 24.11.2026). The same two numbers as
+     * at "Admin" in the menu behind it, through the real beat. Where they stand on the screen is
+     * measured in the built wallet; here what is drawn, for whom, and what it says.
+     */
+    describe('and what waits for the moderation', () => {
+      const beatBrings = async (moderationWaiting, unreadConversations = 0) => {
+        startChatUpdates({
+          query: vi.fn(async () => ({
+            data: {
+              newChatMessagesSince: {
+                latestId: 1,
+                unreadConversations,
+                messages: [],
+                hasMore: false,
+              },
+              moderationWaiting,
+            },
+          })),
+        })
+        await flushPromises()
+      }
+      const creations = () => opener().find('[data-test="navbar-moderation-creations"]')
+      const requests = () => opener().find('[data-test="navbar-moderation-support"]')
+      const sentences = () =>
+        ['navbar-moderation-creations-label', 'navbar-moderation-support-label']
+          .map((name) => opener().find(`[data-test="${name}"]`))
+          .filter((found) => found.exists())
+          .map((found) => found.text())
+
+      it('shows both under the lines, the creations at the left and the requests at the right', async () => {
+        await beatBrings({ creations: 3, supportTickets: 2 })
+        wrapper = mountComponent({ role: 'ADMIN' })
+
+        // On the symbol, as the dot is, so it is the symbol they hang from.
+        const marks = opener().findAll('.navbar-toggler-icon .navbar-moderation-mark')
+        expect(marks).toHaveLength(2)
+        expect(creations().classes()).toContain('navbar-moderation-mark-creations')
+        expect(creations().text()).toBe('3')
+        expect(requests().classes()).toContain('navbar-moderation-mark-support')
+        expect(requests().text()).toBe('2')
+        for (const mark of [creations(), requests()]) {
+          expect(mark.attributes('aria-hidden')).toBe('true')
+        }
+        // The mouse sees on each mark what it counts, as at "Admin".
+        expect(creations().attributes('title')).toBe('3 creations wait')
+        expect(requests().attributes('title')).toBe('2 requests wait')
+        // The ear hears both, each with its full stop, after the word "menu".
+        expect(sentences()).toEqual(['3 creations wait.', '2 requests wait.'])
+        for (const name of [
+          'navbar-moderation-creations-label',
+          'navbar-moderation-support-label',
+        ]) {
+          expect(opener().find(`[data-test="${name}"]`).classes()).toContain('visually-hidden')
+        }
+      })
+
+      it('shows only what waits: each number in its own place', async () => {
+        await beatBrings({ creations: 0, supportTickets: 1 })
+        wrapper = mountComponent({ role: 'MODERATOR' })
+        expect(creations().exists()).toBe(false)
+        expect(requests().text()).toBe('1')
+        expect(sentences()).toEqual(['1 request waits.'])
+
+        stopChatUpdates()
+        await beatBrings({ creations: 1, supportTickets: 0 })
+        wrapper = mountComponent({ role: 'MODERATOR' })
+        expect(creations().text()).toBe('1')
+        expect(requests().exists()).toBe(false)
+        expect(sentences()).toEqual(['1 creation waits.'])
+      })
+
+      it('says "99+" past 99, as the menu does', async () => {
+        await beatBrings({ creations: 100, supportTickets: 99 })
+        wrapper = mountComponent({ role: 'ADMIN' })
+
+        expect(creations().text()).toBe('99+')
+        expect(requests().text()).toBe('99')
+        // the sentence keeps the real number
+        expect(sentences()[0]).toBe('100 creations wait.')
+      })
+
+      it('shows nothing while nothing waits', async () => {
+        await beatBrings({ creations: 0, supportTickets: 0 })
+        wrapper = mountComponent({ role: 'ADMIN' })
+
+        expect(opener().findAll('.navbar-moderation-mark')).toHaveLength(0)
+        expect(sentences()).toEqual([])
+      })
+
+      // The menu shows "Admin" only with a role: a figure on the opener must lead to one there.
+      it('shows nothing without a role, whatever the beat says', async () => {
+        await beatBrings({ creations: 3, supportTickets: 2 })
+        wrapper = mountComponent({ role: null })
+
+        expect(opener().findAll('.navbar-moderation-mark')).toHaveLength(0)
+        expect(sentences()).toEqual([])
+      })
+
+      it("lights no dot: the dot stays the member's own", async () => {
+        await beatBrings({ creations: 3, supportTickets: 2 })
+        wrapper = mountComponent({ role: 'ADMIN' })
+        expect(opener().find('[data-test="chat-unread-dot"]').exists()).toBe(false)
+
+        stopChatUpdates()
+        await beatBrings({ creations: 3, supportTickets: 2 }, 1)
+        wrapper = mountComponent({ role: 'ADMIN' })
+        // both at once: the dot at the top, the figures below
+        expect(opener().findAll('[data-test="chat-unread-dot"]')).toHaveLength(1)
+        expect(opener().findAll('.navbar-moderation-mark')).toHaveLength(2)
+      })
+
+      it("goes with the beat: the numbers were the member's", async () => {
+        await beatBrings({ creations: 3, supportTickets: 2 })
+        wrapper = mountComponent({ role: 'ADMIN' })
+        expect(opener().findAll('.navbar-moderation-mark')).toHaveLength(2)
+
+        stopChatUpdates()
+        await flushPromises()
+
+        expect(opener().findAll('.navbar-moderation-mark')).toHaveLength(0)
+        expect(sentences()).toEqual([])
+      })
+
+      /**
+       * ⛔ Under the lines, not on them, and nothing moves: jsdom lays nothing out, so the
+       * stylesheet says it -- read without its comments. The symbol's lowest line is drawn at 23px,
+       * 2px thick; the left mark grows to the left, the right one to the right.
+       */
+      it('hangs below the lowest line and grows outwards, in the stylesheet', () => {
+        const style = readFileSync(
+          join(dirname(fileURLToPath(import.meta.url)), 'Navbar.module.scss'),
+          'utf8',
+        ).replace(/\/\*[\s\S]*?\*\//g, '')
+        const rule = (selector) =>
+          style.match(new RegExp(`:global\\(${selector}\\)\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+        const px = (body, property) =>
+          Number(body.match(new RegExp(`(?:^|[;\\s])${property}:\\s*([\\d.]+)px`))?.[1])
+
+        const mark = rule('\\.navbar-moderation-mark')
+        expect(mark).toMatch(/position:\s*absolute/)
+        expect(mark).toMatch(/background:\s*#c08935/)
+        expect(mark).toMatch(/border-radius:\s*0\.525rem/)
+        expect(px(mark, 'top')).toBeGreaterThanOrEqual(25)
+
+        const left = rule('\\.navbar-moderation-mark-creations')
+        const right = rule('\\.navbar-moderation-mark-support')
+        expect(left).not.toMatch(/(^|[;\s])left:/)
+        expect(right).not.toMatch(/(^|[;\s])right:/)
+        // the left one ends before the middle of the 30px symbol, the right one begins after it
+        expect(30 - px(left, 'right')).toBeLessThan(px(right, 'left'))
+        expect(30 - px(left, 'right')).toBeLessThanOrEqual(15)
+        expect(px(right, 'left')).toBeGreaterThanOrEqual(15)
       })
     })
 

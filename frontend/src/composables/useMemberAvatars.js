@@ -482,6 +482,10 @@ export const fetchMemberAvatars = async (apolloClient, users) => {
           // nothing evicts it before logout. Measured at 2.1 MB of dead payload over
           // eight pages, on top of the copy this module already keeps.
           fetchPolicy: 'no-cache',
+          // ⛔ Faces follow a list that was asked anew -- after a message arrived, also while an
+          // installed wallet is out of sight (utils/appBadge) -- and are never the member's own
+          // doing: an unattended wallet must reach its idle logout (plugins/apolloProvider.js).
+          context: { renewSession: false },
         }),
       ),
     )
