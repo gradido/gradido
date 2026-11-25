@@ -608,6 +608,7 @@
     "email-already-sent": "Nous t'avons déjà envoyé un e-mail il y a moins de 10 minutes.",
     "empty-transactionlist": "Il y a eu une erreur lors de la transmission du numéro de ta transaction.",
     "no-account": "Malheureusement nous n'avons pas pu trouver de compte (actif) correspondant aux données transmises.",
+    "no-storage": "Gradido a besoin du stockage du navigateur. Autorise les cookies et les données de site pour cette page, puis recharge-la.",
     "no-transactionlist": "Il y a malheureusement eu une erreur. Aucune transaction n'a été envoyée depuis l'serveur.",
     "no-user": "Pas d'utilisateur pour cet identifiant.",
     "session-expired": "La session a expiré pour des raisons de sécurité.",
@@ -849,6 +850,7 @@
         "min": "La description de l'activité doit comporter au moins {min} caractères.",
         "required": "La description de l'activité est un champ obligatoire."
       },
+      "email": "Le champ {fieldName} doit être une adresse e-mail valide",
       "gddSendAmount": "Le champ {_field_} doit comprendre un nombre entre {min} et {max} avec un maximum de deux chiffres après la virgule",
       "hours": {
         "decimal-places": "Les heures ne doivent pas comporter plus de deux décimales.",
@@ -1287,6 +1289,12 @@
     "support": "Aide",
     "thank-you-greeting": "Mot de remerciement",
     "transactions": "Tes transactions"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "next": "Aller à la page suivante",
+    "page": "Aller à la page {page}",
+    "previous": "Aller à la page précédente"
   },
   "public-profile": {
     "address": "Adresse Gradido",

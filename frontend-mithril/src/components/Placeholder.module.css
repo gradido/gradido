@@ -1,0 +1,71 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* The shape and the shimmer of the old wallet's SkeletonLoaderElement. New here: it appears
+   only after 150 ms, so an answer faster than that shows none; it follows the theme; and the
+   shimmer stands still for whoever asked for less motion. */
+.shape {
+  position: relative;
+  overflow: hidden;
+  height: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 0.25rem;
+  background: var(--bs-secondary-bg, #e9ecef);
+  opacity: 0;
+  animation: appear 0s 150ms forwards;
+}
+
+.shape::after {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgb(255 255 255 / 0%) 0%,
+    rgb(255 255 255 / 20%) 20%,
+    rgb(255 255 255 / 50%) 60%,
+    rgb(255 255 255 / 0%) 100%
+  );
+  animation: shimmer 2s infinite;
+  content: '';
+}
+
+/* on a dark ground the white shimmer would glare */
+:global([data-bs-theme='dark']) .shape::after {
+  opacity: 0.2;
+}
+
+/* a list row: the picture, and two lines beside it */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.picture {
+  flex: none;
+  width: 61px;
+  height: 61px;
+  border-radius: 50%;
+}
+
+.lines {
+  flex: 1;
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape::after {
+    animation: none;
+  }
+}

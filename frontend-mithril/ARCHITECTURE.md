@@ -14,7 +14,7 @@ code is cut.
 | Layer | Where | Size | What it really does |
 | --- | --- | --- | --- |
 | Views | `components/`, `pages/`, `layouts/` | 226 files, 54,800 lines | Markup, and most of the behaviour: a page asks the server, keeps the answer, validates, navigates. |
-| Composables | `composables/` | 67 files, 9,000 lines | Three different things under one name: wrappers Vue or Apollo need (32), real logic (28), and module-level state that outlives a component (7, the large ones). |
+| Composables | `composables/` | 68 files, 9,000 lines | Three different things under one name: wrappers Vue or Apollo need (32), real logic (28), and module-level state that outlives a component (8, seven of them large). |
 | Utils | `utils/` | 94 files, 11,100 lines | Pure logic, 88 of them without Vue. The healthiest layer. |
 | Store | `store/` | 580 lines | One Pinia store: who is signed in, their settings, some passing UI state. Written whole to `localStorage` on every change. |
 | Server | `plugins/apollo*`, `graphql/` | 139 operations | Apollo with a normalised cache; 81 places ask, 92 change. |
@@ -51,6 +51,14 @@ component, and the same five functions. No thread store.
 (15 s, backing off to 120 s, paused while the tab is hidden), `no-cache`, `renewSession: false`,
 and four lists of listeners. It ports as a store, nearly unchanged.
 
+Its question carries three fields that are not the chat's, so that the menu needs no timer of
+its own: `supportTicketsMenu`, `countContributionsInProgress` and `moderationWaiting` (the
+marks at "Support", at "Schöpfen" and the two at "Admin": creations above the symbol, support
+requests below). Each is handed on to a module that only keeps the numbers
+(`useSupportTicketsMenu`, `useContributionsInProgress`, `useModerationWaiting`) and has a
+`forget…` for the sign-out. In Mithril the numbers are fields of the beat's store, which the
+menu reads; the three modules go.
+
 **The three picture caches are one design, three times.** `useMemberAvatars` (503 lines,
 `localStorage`, 200 entries), `useKeptPictures` (302, keys in `localStorage`, pictures in
 memory), `useChatImages` / `memoryPictures` (memory only, three requests at once). Each has a
@@ -73,7 +81,7 @@ functions, one per module that keeps state. Every new module has to be added to 
 src/
   main.ts              start: styles, theme, language, routes
   routes.ts            the route table, and what may open a page
-  graphql/client.ts    request(): the one way to the server
+  graphql/             client.ts: request(), the one way to the server; the documents it sends, as gql in .ts
   data/                Thing.schema.ts (valibot) and Thing.logic.ts (pure), each with its *.test.ts
   store/               state that outlives a page (Session.ts, …); Resource.ts and DeviceStore.ts, what it is built with
   browser/             what wraps a facility of the browser and knows nothing of Gradido's data
@@ -86,8 +94,8 @@ tests/                 Playwright specs and fixtures
   what it is, `Thing.logic.ts` holds logic on it that is too simple for an interaction of its
   own. Nothing else goes there.
 - `browser/` holds what wraps a facility of the browser: `timer.ts` (`repeatWhileVisible`, and
-  any timer with other properties beside it), and with their steps the clipboard, the viewport,
-  the reload on a stale chunk, the check for a new version.
+  any timer with other properties beside it), `viewport.ts`, `clipboard.ts`, and
+  `newVersion.ts` (the reload on a stale chunk, the check for a new version).
 - A file of functions is named after what they have in common (`timer.ts`), not after one of
   them: a second function of the kind goes into the same file, and its name says how it differs.
   No file for a single function where a group is in sight.
@@ -114,7 +122,6 @@ this.contributions = answer.value.listContributions
 - `request` returns `Result<T>` for what can go wrong while the wallet is right: no network, an
   error of the server, an answer that does not fit the schema. A mistake of the caller (no
   document, variables the document does not declare) throws, as everywhere in this repository.
-  So does a token of the server the wallet cannot read (below, "A token that cannot be read").
 - The schema describes what the page uses of the answer, with defaults where the server may
   send null. An answer that does not fit is a failure like any other, and is reported once in
   `request` — not checked field by field afterwards.
@@ -132,7 +139,7 @@ one kind kept as another.
 | --- | --- | --- | --- |
 | **View** | while the component is on screen | a field of the component | the open tab, what is typed, the page of a list, a list a single page shows, the chat thread |
 | **Shared fact** | while the member is signed in, each answer ten minutes at most | a file in `store/`, a `Resource` | first-creation status, alias status, balance, reachable communities, the member's own matching entries |
-| **Session** | until sign-out, across reloads | `store/Session.ts` | `session.state.member` (who is signed in, with their settings), `session.state.language`, `authToken.state` |
+| **Session** | until sign-out, across reloads | `store/Session.ts` | `session.state.member` (who is signed in, with their settings), `session.state.language`, `session.state.redirectPath`, `authToken.state` |
 | **Device** | until deleted, per member or per device | a `DeviceStore` in `store/` | theme, calculator settings, drafts, window size |
 
 Mithril redraws after every event handler and every `request`. A store is therefore an
@@ -217,7 +224,18 @@ never gets this far: `browser/requireStorage.ts`, the first import of `main.ts`,
 could not keep a session there either.
 
 A value kept per member gets its key from the member: `<name>:<gradidoID>` in the old wallet,
-three of them with something after it. That part is written with the first value that needs it.
+three of them with something after it. A `MemberStore` (`store/MemberStore.ts`) hands out the
+`DeviceStore` of the member signed in:
+
+```ts
+const windowLarge = new MemberStore('chat-window-large', windowLargeSchema, DeviceStoreBasicType.String)
+windowLarge.forSignedInMember().state           // under chat-window-large:<gradidoID>
+rightSide.forSignedInMember('overview').set(…)  // under right-side:<gradidoID>:overview
+```
+
+Every part of the key is joined with a colon. Asked while nobody is signed in, it throws. The
+entries stay when a member signs out: a session that runs out must cost no draft and no
+setting. Whether some of them belong in IndexedDB is #4323.
 
 It replaces the 33 hand-written `try { JSON.parse(localStorage…) }` with their `typeof` chains.
 The stored keys and shapes of today stay readable: a member must not lose a draft by the switch.
@@ -230,7 +248,8 @@ without the part). The new one has one way, for a `Resource` and for a page's ow
 alike:
 
 - **Content that is on its way is a `Placeholder`**: a grey shape with a faint shimmer, in the
-  form and the size of what comes — `line`, `block` or `row` (a list row with its avatar). The
+  shape and the size of what comes — a line, a block, a row of a list, or a row with its
+  picture (`PlaceholderType`). The
   space is taken at once, so nothing moves when the answer arrives.
 - **It is seen only after 150 ms.** The shape fades in by a CSS delay; an answer faster than
   that shows no placeholder at all, instead of a flicker.
@@ -243,8 +262,12 @@ alike:
 - The shimmer stands still under `prefers-reduced-motion`, and the region says `aria-busy`
   while it waits.
 
-`Placeholder` takes over the styles of the old `SkeletonLoaderElement`. The old wallet is not
-changed for this. For the specs: `samePicture` is taken once the content is there, which is the
+`m(Placeholder, { type: PlaceholderType.Row, width?, height? })` (`components/Placeholder.ts`) draws the shape,
+with the styles of the old `SkeletonLoaderElement` in a sheet of its own
+(`Placeholder.module.css`): beside the delay it follows the theme, which the old one did not.
+`BusyButton` (`components/BusyButton.ts`) is the locked button: it calls `onclick` and stays
+locked, with its spinner, while the promise that returns is open. The button of a form is
+drawn and locked by the `Form` (`busy`): a form is sent by Enter too. The old wallet is not changed for this. For the specs: `samePicture` is taken once the content is there, which is the
 same in both wallets; the wait itself has pictures of its own, checked in, for the projects
 `new` and `new-phone` only.
 
@@ -281,33 +304,60 @@ token came from:
 
 - Out of `localStorage`, at the start or from another tab: the wallet is signed out, instead
   of not starting at all. What lies there is not the wallet's to trust.
-- From the server, with an answer: `request` throws, and the token there was stays. The server
-  sends something the wallet does not understand, and that is to be seen as soon as possible,
-  not at the next reload as a sign-out nobody can explain. With the toasts (step 2b of
-  `todo.md`) the throw becomes a toast in the member's language and the way to the sign-in.
+- From the server, with an answer: the server sends something the wallet does not understand,
+  and that is to be seen as soon as possible, not at the next reload as a sign-out nobody can
+  explain. A session that runs ends at once, and the sign-in page says in a toast that it
+  could not be renewed; a sign-in fails, and its page says so like any other failure.
+
+**A toast for the page loaded next.** What ends a session ends in a reload, and a toast shown
+before it would be gone. `toastErrorAfterReload(text)` keeps it in `sessionStorage`, which is
+this tab's and survives the reload, and `Toasts` shows it when it is mounted. Used where
+`request` ends a session: the revoked certificate, the token it cannot read.
 
 **No flash of the wrong theme or language**, which the reload must not cost:
 
 - The theme is set by the script in `index.html` before the first paint, from
   `gradido-theme-mode`. That key is the device's and is never removed at a sign-out.
+  `store/Theme.ts` follows it from then on (`theme.state` is the mode, `theme.dark` what is
+  shown, `theme.set(mode)` the switch): it marks `body` (`.dark-mode`, `data-bs-theme`) and
+  reads the colour of the installed app's bar off the styles (`--bg`). The mode is kept under
+  that key only; the old wallet held a second copy in its state.
 - The language stays in the wallet's stored state across a sign-out, as today. `main.ts` reads
   it, fetches its texts, and only then mounts: nothing is drawn in another language first.
 - A spec signs out in dark mode and in a language other than the browser's, and holds the first
   frame of the sign-in page to both (step 3 of `todo.md`).
 
-What has to reach the next page (why the session ended, the address to return to) crosses in
-`sessionStorage` through the hand-over helper. What is kept on the device per member stays, as
+What has to reach the page loaded next crosses in storage: why the session ended in
+`sessionStorage` (`toastErrorAfterReload`), the address to return to in the session's state
+(`redirectPath`). What one page leaves for the next without a reload (a link to pass on, a
+recipient to send to) is a `HandOver` (`store/HandOver.ts`): `put`, and `take` once. It lives
+in memory, so a sign-out ends it with everything else. What is kept on the device per member stays, as
 today; what must not stay for the next member on this device is removed in one place,
 `logout` in `Session.ts`, by key.
 
 ### Components
 
-- A component is a class with `view`, as in the admin. Its arguments are `attrs`; what it tells
-  its parent is a function in `attrs` (`onsaved`, `onclose`). No events, no `expose`: a parent
-  that has to reach into a child holds the state itself and hands it down.
-- Plain Bootstrap markup is written as markup (`m('.row', m('.col-md-6', …))`). A component
-  exists where there is behaviour: `Modal`, `Dropdown`, `Tabs`, `Collapse`, `Carousel`,
-  `Popover`, `Pagination`, `Toasts`, `Field`.
+- A building block is a class, `class Modal implements m.ClassComponent<Attrs>`, drawn with
+  `m(Modal, attrs, children)`, whether it carries state or not: one form, and state comes
+  later without a change to its callers. A generic one is drawn with its type argument,
+  `m(Form<typeof sendSchema>, …)`, `m(ThemedSelect<Language>, …)`: through `m()` TypeScript
+  does not find it by itself, and a callback would be handed `unknown`.
+  What a building block tells its caller is a function in its arguments (`onsaved`,
+  `onclose`). No events, no `expose`: a parent that has to reach into a child holds the state
+  itself and hands it down.
+- Plain Bootstrap markup is written as markup (`m('.row', m('.col-md-6', …))`). A building
+  block exists where there is behaviour, or markup of bootstrap-vue-next the styles rely on.
+- A window (`Modal`) is open as long as it is drawn. It draws itself at the end of `<body>`
+  as a root of its own, so that no parent clips it; it keeps the keyboard inside, closes on
+  Escape and a click beside it, and gives the focus back.
+- **A building block has the roles, names and keys of its WAI-ARIA pattern**
+  (w3.org/WAI/ARIA/apg/patterns), held by `tests/blocks/keyboard.spec.ts`: `Modal` a dialog
+  named by its title (`ConfirmModal` an alert dialog, the focus at the button that does not),
+  `Dropdown` a menu button (↓ ↑ Home End over the entries, Tab closes and goes on),
+  `ThemedSelect` a menu of radio entries, `Tabs` with the arrows moving the focus and Enter
+  showing the tab, `Pagination` a menubar (← → Home End) with `aria-current="page"`. A toast
+  is an `alert` where it is an error and a `status` else. An icon without an `aria-label` is
+  hidden from a screen reader.
 - Values that the old wallet handed down through `provide` / `inject` (six, all for the video
   call) are attributes or a store.
 - A page reads its route through `m.route.param()`, and the flags the layout needs from the
@@ -327,37 +377,85 @@ One schema per form, one `Field` per input. The schema gives the type of the val
 and the key of the message; the field shows the message once it was touched, as today.
 
 ```ts
-const form = formOf(sendSchema, { identifier: '', amount: '', memo: '' })
-
-m(Field, { form, name: 'amount', label: t('form.amount'), inputmode: 'decimal' })
-m('button.btn', { disabled: !form.valid, onclick: () => form.submit(send) })
+const submitBusyButton = m(BusyButton, { class: 'btn-primary' }, t('form.send_now'))
+m(Form<typeof sendSchema>, { schema: sendSchema, submitBusyButton, onsubmit: send }, [
+  m(Field, { label: t('form.amount'), name: 'amount', schema: sendSchema.entries.amount }),
+  m(Field, { label: t('form.memo'), name: 'memo', schema: sendSchema.entries.memo }),
+])
 ```
 
-- `form.values`, `form.errors`, `form.valid`, `form.touched`; `submit` parses, and calls with
-  the parsed values only where they fit.
-- The rules come from `shared/browser` where they exist there (`emailSchema`, `passwordSchema`,
-  `aliasSchema`), and from one `data/Form.schema.ts` for amount, memo, message.
+- `Field` (`components/Field.ts`) holds its value (`defaultValue` is what stands there at first),
+  checks it against its own schema and says itself what is wrong with it. Its schema is the
+  entry of the form's, so the two cannot run apart. It draws label, input and sentence in the
+  markup bootstrap-vue-next drew (`.b-form-group`, `.form-control.is-valid`,
+  `.invalid-feedback`). A page that reckons while the member types hears it by `oninput`.
+- `Form` (`components/Form.ts`) is the `<form>` around the fields, with the button that
+  sends it, which the page hands it (`submitBusyButton`). After each draw it looks for its fields among what was drawn (a component is one by `extends FormField`), also those another component drew, and locks the
+  button until each `isValid()`. A pointer over the locked button, or a finger on it, lets
+  every field say what is wrong with it (`setTouched()`). Sent by the button or by Enter:
+  the values of the inputs, by their `name`, go through the form's schema to `onsubmit`; the
+  button is locked, with its spinner, until that is settled.
+- `Form<typeof sendSchema>`: through `m()` TypeScript loses the type argument of a class,
+  so it is named. Then `onsubmit` knows its values, and a schema of another form does not
+  compile.
+- A rule over two fields (the two passwords are the same) is the page's: it hears the one by
+  `oninput` and builds the schema of the other from it.
+- What is typed lives in the field: a field that is no longer drawn has lost it, and what
+  stands there at first counts at the first draw only. A form whose values come from the
+  server is drawn once they are here.
+- A field is green as soon as what was entered fits, and red, with its sentence, only once it
+  was left. One rule for every form: the old wallet had two.
+- A rule's sentence is written in the schema as `() => t('form.validation.memo.min', { min })`:
+  in the member's language when the value is checked, and with a key `texts.test.ts` can read.
+- The rules of the fields stand in one `data/Form.schema.ts` (amount, memo, message, support
+  request, subject, e-mail, a new password), with the bounds of `shared/browser`. A schema of
+  `shared/browser` itself carries an English sentence for the server's log, which valibot
+  does not let a caller replace: where a field needs its sentence in the member's language,
+  the rule is written out here.
+- An amount is typed with a comma or a point as its decimal sign, in every language, and
+  with or without grouping (`1.234,56`, `1 000`). One sign with three digits behind it is a
+  thousand only where the language shown groups with it (`1.000` in German, `1,000` in
+  English); else it is refused as three decimals. No amount is guessed.
+- An amount is a text field (`inputmode: 'decimal'`), read by `amountSchema`, never
+  `type: 'number'`: there Firefox refuses a comma, and Chromium and Safari read `1,5` as 15
+  where the language of the machine is English.
+  `tests/browsers/amount.spec.ts` holds the text field in Chromium, Firefox and WebKit, in
+  every language the wallet has.
 - A rule that asks the server (the user name is taken) is not part of the schema: the page asks
-  after the schema passed, and sets the field's error.
-- Messages stay the i18n keys of today, so the texts under the fields do not change.
+  after the schema passed, and hands the field the sentence -- an attribute `Field` gets with
+  the first form that needs it.
+- The sentences stay the texts of today. Those the old wallet took from vee-validate's own
+  dictionary (`required`, `email`, `min`, `max`) get keys in the wallet's files with the first
+  form that needs them.
 
 ### Routes
 
-One table. Each row: path, the page (as `() => import(…)`), and the flags of today's `meta`
-(`requiresAuth`, the layout's flags). `routes.ts` turns it into Mithril's `RouteResolver`s:
+One table, `ROUTES` in `routes.ts`. Each row: the address, the page (as `() => import(…)`),
+and the flags of today's `meta` (`requiresAuth`, the layout's flags). Mithril knows no part of
+an address that may be missing, so `/login/:code?` is two rows. `routeResolvers` turns the
+table into Mithril's `RouteResolver`s:
 
-- `onmatch` runs the guard — the steps of `guards.js` in their order (without the publisher
-  id, which is not ported), as one pure
-  function `whereTo(route, session) → path | null` in `data/Guard.logic.ts`, tested with the
-  cases of `guards.test.js`;
-- `render` wraps the page in its layout, so the layout stays mounted from page to page.
+- `onmatch` asks the guard — the steps of `guards.js` in their order (without the publisher
+  id, which is not ported), as one pure function `whereTo(navigation, visitor) → path | null`
+  in `data/Guard.logic.ts`, tested with the cases of `guards.test.js`. What the guard needs
+  done beside its answer is done in `onmatch`: a sign-in that ran out is put away, and the
+  address asked for is kept in `session.state.redirectPath`, with query and hash, for after
+  the sign-in.
+- Whether a session runs is `sessionRuns()` of `store/Session.ts`: a token, and more than five
+  seconds before its `endsAt`, which `authTokenSchema` reads off the token's lifetime and the
+  moment this device received it.
+- "The wallet starts here" holds until the first page has opened, so that `/`, which only
+  leads on to the sign-in, still counts as the start.
+- `render` wraps the page in its layout, so the layout stays mounted from page to page (with
+  the layouts, step 4 of `todo.md`).
 
 ### Stores that are more than a value
 
 | Store | Replaces | Shape |
 | --- | --- | --- |
 | `Session.ts` | `useWalletStore.js`, `store.js` | `session` (member, language) and `authToken` (the token both apps share), each a `DeviceStore` parsed by its schema; `login`, `logout` |
-| `chatBeat.ts` | `useChatUpdates.js` | timer, unread counts, `onMessages` / `onEdited` / `onReacted` / `watchRead` |
+| `Theme.ts` | `themeMode`, `darkMode`, `applyTheme` of the store, the watcher in `App.tsx` | `theme`, a `DeviceStore` on `gradido-theme-mode` that shows what it holds |
+| `chatBeat.ts` | `useChatUpdates.js`, `useSupportTicketsMenu.js`, `useContributionsInProgress.js`, `useModerationWaiting.js` | timer, unread counts, the menu's marks, `onMessages` / `onEdited` / `onReacted` / `watchRead` |
 | `pictures.ts` | `useMemberAvatars`, `useKeptPictures`, `useChatImages`, `memoryPictures` | `pictureCache({ fetch, atOnce, max, persistKey? })`, used three times |
 | `firstLoginWindow.ts` | `useFirstLoginWindow.js` | `wanted`, `undecided`, `held`, and `onScreen()` from the logic file |
 | `contactWindow.ts` | `useContactWindow`, `useContactsPanelHost` | which conversation is open; the window is drawn once, by the layout |
@@ -367,8 +465,10 @@ The chat thread is not in this list: it is view state of `ChatThread` (above).
 
 ### Texts, styles, tests
 
-- **Texts:** `t`, `n`, `d` from one `i18n.ts`; a language is fetched when chosen. The keys and
-  the JSON files stay.
+- **Texts:** `t`, `n`, `d` from one `i18n.ts`. English is bundled and stands in for a text
+  another language lacks; a language is fetched when chosen (`setLocale`), and `main.ts` draws
+  only once it is there. The keys and the JSON files stay; a key is written as a literal, and
+  `texts.test.ts` holds each against `en.json`.
 - **Styles:** the files of the old wallet, through `@frontend`, with the classes they are
   written for. A `*.module.scss` is imported by the component that replaces its Vue component.
 - **Tests:** logic and schemas with `bun test` beside the file. Behaviour and picture with
@@ -405,7 +505,7 @@ nothing to look up and nothing to skip. Fewer lines are also fewer bytes to down
 - **A test per behaviour**, not per function, and none that reads source files as text.
 
 The helpers this document introduces had to pass the first rule themselves: `request` (about
-170 callers), the device values (33), `Resource` (about 10 facts), `formOf` and `Field` (about 10
+170 callers), the device values (33), `Resource` (about 10 facts), `Form` and `Field` (about 10
 forms), `repeatWhileVisible` (5). A helper that turns out to have one caller in the end is put back inline.
 
 Every pull request names in its description the lines of the old code it replaces and the lines
@@ -428,7 +528,7 @@ it adds, tests apart. Where it is not clearly less, it says why.
 | `watch` that mirrors a prop or a store | nothing: `view` reads the source |
 | `watch` that starts something | the handler that caused the change |
 | `computed` | a getter or a function called in `view` |
-| vee-validate, yup | `formOf(schema)` and `Field` |
+| vee-validate, yup | `Form` and `Field`, each with its valibot schema |
 | `store.setX(v)` | `session.set({ ...session.state, x: v })` |
 | `useToast` (53 files) | `toastError`, `toastSuccess` from `Toasts` |
 

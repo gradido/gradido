@@ -608,6 +608,7 @@
     "email-already-sent": "Já te enviámos um e-mail há menos de 10 minutos.",
     "empty-transactionlist": "Ocorreu um erro na transmissão do número das tuas transações.",
     "no-account": "Infelizmente não encontrámos uma conta (ativada) para os dados indicados.",
+    "no-storage": "O Gradido precisa do armazenamento do navegador. Permite os cookies e os dados de sites para esta página e recarrega-a.",
     "no-transactionlist": "Infelizmente ocorreu um erro. Não foram transmitidas transações pelo servidor.",
     "no-user": "Nenhum utilizador com estes dados de acesso.",
     "session-expired": "A sessão foi terminada por motivos de segurança.",
@@ -849,6 +850,7 @@
         "min": "A descrição da atividade deve ter pelo menos {min} caracteres.",
         "required": "A descrição da atividade é obrigatória."
       },
+      "email": "O campo {fieldName} deve ser um email válido",
       "gddSendAmount": "O campo {_field_} deve ser um número entre {min} e {max} com no máximo duas casas decimais.",
       "hours": {
         "decimal-places": "As horas devem conter no máximo duas casas decimais.",
@@ -1287,6 +1289,12 @@
     "support": "Suporte",
     "thank-you-greeting": "Postal de agradecimento",
     "transactions": "As tuas transações"
+  },
+  "pagination": {
+    "label": "Paginação",
+    "next": "Ir para a página seguinte",
+    "page": "Ir para a página {page}",
+    "previous": "Ir para a página anterior"
   },
   "public-profile": {
     "address": "Endereço Gradido",

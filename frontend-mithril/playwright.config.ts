@@ -37,6 +37,16 @@ const environment = (port: number) => ({
 // so that no run tests an older state.
 const BUILT = 'test-build'
 
+// Specs of a building block on its own, on a page built beside the wallet (tests/blocks): they
+// have nothing to say about the old wallet, and run against the Mithril wallet from the start.
+const BLOCKS = 'blocks/*.spec.ts'
+
+// What a browser may do in its own way, where the wallet must not fail (tests/browsers): typing
+// an amount with a comma. On each engine members use, against the Mithril wallet. Few specs:
+// each runs on every engine and in every language the wallet has.
+const BROWSERS = 'browsers/*.spec.ts'
+const ENGINES = { chromium: 'Desktop Chrome', firefox: 'Desktop Firefox', webkit: 'Desktop Safari' }
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -61,6 +71,12 @@ export default defineConfig({
   // The wallet is used on a phone first, and lays itself out anew for a desk: each spec on both,
   // against each wallet. `new` and `new-phone` take only what is ported.
   projects: [
+    ...Object.entries(ENGINES).map(([engine, device]) => ({
+      name: `browsers-${engine}`,
+      use: { ...devices[device], baseURL: `http://localhost:${NEW_PORT}/` },
+      testMatch: BROWSERS,
+    })),
+    ...[
     { name: 'old', use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${OLD_PORT}/` } },
     { name: 'old-phone', use: { ...devices['Pixel 7'], baseURL: `http://localhost:${OLD_PORT}/` } },
     { name: 'new', use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${NEW_PORT}/` } },
@@ -69,12 +85,13 @@ export default defineConfig({
     project.name.startsWith('new')
       ? {
           ...project,
-          testMatch: PORTED_TO_MITHRIL.length > 0 ? PORTED_TO_MITHRIL : /^$/,
+          testMatch: [...PORTED_TO_MITHRIL, BLOCKS],
           // the old wallet first: it takes the pictures the new one is compared with
           dependencies: [project.name.replace('new', 'old')],
         }
-      : project,
+      : { ...project, testIgnore: [BLOCKS, BROWSERS] },
   ),
+  ],
   webServer: [
     {
       // not `bun run dev`: that watches the styles as well; `test:compare` has compiled them
@@ -85,7 +102,11 @@ export default defineConfig({
       env: environment(OLD_PORT),
     },
     {
-      command: `bunx vite build --outDir ${BUILT} --emptyOutDir && bunx vite preview --outDir ${BUILT} --port ${NEW_PORT} --strictPort`,
+      command: [
+        `bunx vite build --outDir ${BUILT} --emptyOutDir`,
+        `bunx vite build tests/blocks --config vite.config.ts --base /blocks/ --outDir ../../${BUILT}/blocks`,
+        `bunx vite preview --outDir ${BUILT} --port ${NEW_PORT} --strictPort`,
+      ].join(' && '),
       url: `http://localhost:${NEW_PORT}/`,
       reuseExistingServer: false,
       env: environment(NEW_PORT),
