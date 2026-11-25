@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import { beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import * as v from 'valibot'
-import { otherTabStores } from '../../test/browserStub'
+import { otherTabStores, requestAnimationFrame } from '../../test/browserStub'
 
 // after the stub: DeviceStore listens to the window as soon as it is loaded
 const { DeviceStore, DeviceStoreBasicType } = await import('./DeviceStore')
@@ -142,6 +142,15 @@ describe('DeviceStore', () => {
       prefs.set({ decimals: 3 })
       otherTabStores('gradido-theme-mode', 'dark')
       expect(prefs.state).toEqual({ decimals: 3 })
+    })
+
+    // the change happens outside of Mithril, which would not draw it
+    it('draws anew', () => {
+      const prefs = new DeviceStore(KEY, prefsSchema, AsObject)
+      requestAnimationFrame.mockClear()
+      otherTabStores(KEY, '{"decimals":5}')
+      expect(prefs.state).toEqual({ decimals: 5 })
+      expect(requestAnimationFrame).toHaveBeenCalledTimes(1)
     })
   })
 })

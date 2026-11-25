@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { browserUrls, validate } from 'config-schema'
 import dotenv from 'dotenv'
+import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
 import commonjs from 'vite-plugin-commonjs'
 import EnvironmentPlugin from 'vite-plugin-environment'
@@ -96,6 +97,8 @@ export default defineConfig(({ command }) => {
       }),
       // the old wallet's .graphql documents, each operation under its own name
       vitePluginGraphqlLoader(),
+      // `~icons/<set>/<name>` is the icon's SVG as text (components/icon.ts)
+      Icons({ compiler: 'raw' }),
       // the old wallet's config is CommonJS (../frontend/src/config), read by this file too
       commonjs(),
     ],

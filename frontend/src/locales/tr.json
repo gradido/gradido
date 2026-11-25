@@ -608,6 +608,7 @@
     "email-already-sent": "Son 10 dakika içinde sana zaten bir e-posta gönderdik.",
     "empty-transactionlist": "İşlem sayısının iletiminde bir hata oluştu.",
     "no-account": "Ne yazık ki bu verilere ait (etkinleştirilmiş) bir hesap bulamadık.",
+    "no-storage": "Gradido, tarayıcının depolama alanına ihtiyaç duyar. Lütfen bu sayfa için çerezlere ve site verilerine izin ver ve sayfayı yeniden yükle.",
     "no-transactionlist": "Maalesef bir hata oluştu. Sunucudan hiçbir işlem gönderilmedi.",
     "no-user": "Bu kimlik bilgilerine sahip kullanıcı yok.",
     "session-expired": "Oturum güvenlik nedeniyle kapatıldı.",
@@ -849,6 +850,7 @@
         "min": "Faaliyet açıklaması en az {min} karakter olmalı.",
         "required": "Faaliyet açıklaması zorunlu bir alandır."
       },
+      "email": "{fieldName} alanının geçerli bir e-posta olması gerekir",
       "gddSendAmount": "{_field_} alanı, {min} ile {max} arasında, en fazla iki ondalık basamaklı bir sayı olmalıdır.",
       "hours": {
         "decimal-places": "Saatler en fazla iki ondalık basamak içermeli.",
@@ -1287,6 +1289,12 @@
     "support": "Destek",
     "thank-you-greeting": "Teşekkür mesajı",
     "transactions": "İşlemlerin"
+  },
+  "pagination": {
+    "label": "Sayfalama",
+    "next": "Sonraki sayfaya git",
+    "page": "{page}. sayfaya git",
+    "previous": "Önceki sayfaya git"
   },
   "public-profile": {
     "address": "Gradido adresi",

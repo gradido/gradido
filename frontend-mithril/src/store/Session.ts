@@ -17,9 +17,19 @@ const sessionStateSchema = v.fallback(
   v.object({
     member: v.fallback(v.nullable(memberSchema), null),
     language: v.fallback(v.nullable(v.string()), null),
+    // The page asked for while nobody was signed in, with its query and hash: where the sign-in
+    // goes on to. A sign-out puts the overview back.
+    redirectPath: v.fallback(v.string(), '/overview'),
   }),
-  { member: null, language: null },
+  { member: null, language: null, redirectPath: '/overview' },
 )
+
+// What the wallet reads out of the token's middle part; `exp` and `iat` in seconds.
+const tokenPayloadSchema = v.object({
+  sub: uuidv4Schema,
+  exp: v.number(),
+  iat: v.optional(v.number()),
+})
 
 /**
  * What is kept there: the token, and in `at` when this device received it, by this device's
@@ -30,7 +40,8 @@ const sessionStateSchema = v.fallback(
  * `at` would better be called `receivedAt`. The name stays as long as the admin and the old
  * wallet read this entry: each takes it only with a number in `at`.
  * `at` is to be set exactly at the place where the token arrives from the server.
- * `tokenMemberId` is read out of the token here, so an invalid token in localStorage is null.
+ * `tokenMemberId` and `endsAt` are read out of the token here, so an invalid token in
+ * localStorage is null.
  */
 export const authTokenSchema = v.fallback(
   v.nullable(
@@ -43,12 +54,19 @@ export const authTokenSchema = v.fallback(
         /**
          * `tokenMemberId`: the gradidoID of the member `token` was issued to (its `sub`),
          * lowercased -- read, not verified: the server verifies every request.
-         * A token whose middle part is not base64 of JSON, or whose `sub` is no gradidoID, is no
+         * `endsAt`: when the session ends by this device's clock (ms since the epoch), the
+         * token's lifetime counted from `at`. A token without `iat` keeps its `exp`.
+         * A token whose middle part is not base64 of JSON, or lacks one of the two, is no
          * token at all: null, the wallet starts signed out.
          */
         try {
           const payload = input.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-          return { ...input, tokenMemberId: v.parse(uuidv4Schema, JSON.parse(atob(payload)).sub) }
+          const { sub, exp, iat } = v.parse(tokenPayloadSchema, JSON.parse(atob(payload)))
+          return {
+            ...input,
+            tokenMemberId: sub,
+            endsAt: iat === undefined ? exp * 1000 : input.at + (exp - iat) * 1000,
+          }
         } catch {
           return null
         }
@@ -100,6 +118,14 @@ export function logout() {
 }
 
 export function login(member: Member) {
-  session.set({ member, language: session.state.language })
+  session.set({ ...session.state, member })
   // auth token is set in client
+}
+
+/**
+ * Whether a session runs: a token, and more than five seconds before it ends. One that ends
+ * within them would be over before the first answer.
+ */
+export function sessionRuns() {
+  return authToken.state !== null && authToken.state.endsAt - Date.now() > 5000
 }
