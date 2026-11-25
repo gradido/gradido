@@ -139,7 +139,7 @@ export class Support implements ClassComponent {
   // group, whether or not the admin knows the choice yet (MG2); for a moderator with a scope all
   // they see. Who switched the support off (MG5) opens on everything: nothing of it is theirs.
   private group =
-    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+    this.moderator && !isSwitchedOff(this.moderator, adminStore.handledSupportGroups, 'support')
       ? supportGroupFilterOptions(this.moderator, [], null)[0].value
       : ''
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
@@ -180,12 +180,12 @@ export class Support implements ClassComponent {
         // "" is offered beside a choice only, to whoever may choose. Picked while the page still
         // knew one that was cleared on another device, the same list is called by the row that now
         // means everything. A moderator of groups and of no group begins on "" (SUA-026): his stays.
-        const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+        const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups, 'support')
         if (
           this.group === '' &&
           mayChooseGroups(this.moderator) &&
           !off &&
-          !chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
+          !chosenGroupsOf(this.moderator, adminStore.handledSupportGroups, 'support')
         ) {
           this.group = HANDLED_FILTER
         } else if (off && this.group === HANDLED_FILTER) {
@@ -342,8 +342,8 @@ export class Support implements ClassComponent {
     const phone = isPhone()
     const pending = this.decision
     const asked = pending ? DECISIONS[pending.decision] : null
-    const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups)
-    const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups)
+    const chosen = chosenGroupsOf(this.moderator, adminStore.handledSupportGroups, 'support')
+    const off = isSwitchedOff(this.moderator, adminStore.handledSupportGroups, 'support')
     // `creation-confirm` as well: the rules of the creation page's search row and tabs hold here
     return m('.support-tickets.creation-confirm', [
       // the page's name, the menu's word, as the start page and "Meine Gruppen" have theirs

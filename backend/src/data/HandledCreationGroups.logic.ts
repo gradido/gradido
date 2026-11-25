@@ -35,11 +35,12 @@ export const parseHandledCreationGroups = (
 
 /**
  * The rule of "Meine Gruppen", decided here and nowhere else: whoever sees every group and ticked
- * something handles exactly what they ticked, and an administrator who switched the column off
- * (`off`, MG5) nothing. For everybody else null, no restriction beyond what they see anyway: nothing
+ * something handles exactly what they ticked, and whoever may switch the column off and did
+ * (`off`, MG5) nothing -- the creations everybody who chooses, the support an administrator
+ * (maySwitchSupportOff). For everybody else null, no restriction beyond what they see anyway: nothing
  * ticked, or a moderator with an assigned scope -- their scope is their list (MG1). A choice saved
  * before a scope was assigned stays in the row and counts again once the scope is taken away; a
- * switch that is off does not outlive the administrator's role, the ticks behind it do.
+ * support switched off does not outlive the administrator's role, the ticks behind it do.
  */
 export const handledCreationGroupsOf = (
   stored: string | null | undefined,

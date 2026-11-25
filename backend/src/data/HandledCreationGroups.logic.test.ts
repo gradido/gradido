@@ -88,15 +88,16 @@ describe('handledCreationGroupsOf', () => {
     expect(handledCreationGroupsOf(null, administrator)).toBeNull()
   })
 
-  // MG5: an administrator may handle nothing of the kind, the ticks kept behind it
-  it('follows "off" of an administrator', () => {
+  // MG5: who may switch it off handles nothing of the kind, the ticks kept behind it
+  it('follows "off" where it may be switched off', () => {
     expect(
       handledCreationGroupsOf('{"groupIds":[3],"untagged":false,"off":true}', administrator),
     ).toEqual({ groupIds: [3], untagged: false, off: true })
   })
 
-  // ... whose role became a moderator's: the ticks count, and where none stands, everything does
-  it('follows no "off" of a moderator, the ticks behind it alone', () => {
+  // ... and a column a moderator may not switch off (the support, maySwitchSupportOff): what an
+  // administrator's role left there -- the ticks count, and where none stands, everything does
+  it('follows no "off" where it may not be switched off, the ticks behind it alone', () => {
     expect(
       handledCreationGroupsOf('{"groupIds":[3],"untagged":true,"off":true}', moderator),
     ).toEqual({ groupIds: [3], untagged: true, off: false })

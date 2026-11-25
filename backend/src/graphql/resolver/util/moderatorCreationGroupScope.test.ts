@@ -21,12 +21,15 @@ jest.mock('./findContributions', () => ({
 
 type ScopeModule = typeof import('./moderatorCreationGroupScope')
 let countContributionsWaitingForModeration: ScopeModule['countContributionsWaitingForModeration']
+let handledCreationGroupsOfRole: ScopeModule['handledCreationGroupsOfRole']
 let handledSupportGroupsOfRole: ScopeModule['handledSupportGroupsOfRole']
 
 beforeAll(async () => {
-  ;({ countContributionsWaitingForModeration, handledSupportGroupsOfRole } = await import(
-    './moderatorCreationGroupScope'
-  ))
+  ;({
+    countContributionsWaitingForModeration,
+    handledCreationGroupsOfRole,
+    handledSupportGroupsOfRole,
+  } = await import('./moderatorCreationGroupScope'))
 })
 
 // reset, not only clear: a `mock…Once` a test left unused must not answer in the next one
@@ -82,6 +85,24 @@ describe('countContributionsWaitingForModeration', () => {
     })
     expect(mockParseModeratorScope).toHaveBeenCalledWith('["choir"]')
     expect(handedOn().slice(4)).toEqual([['choir'], null])
+  })
+})
+
+// MG5: the creations every role that chooses may switch off for itself -- moderators take turns
+// (Bernd, 25.11.2026)
+describe('handledCreationGroupsOfRole', () => {
+  it('reads "off" of the creations of every role who sees every group', () => {
+    const holder = {
+      visibleCreationGroups: null,
+      handledCreationGroups: JSON.stringify({ groupIds: [3], untagged: true, off: true }),
+    }
+    for (const role of ['ADMIN', 'MODERATOR', 'MODERATOR_AI']) {
+      expect(handledCreationGroupsOfRole({ role, ...holder })).toEqual({
+        groupIds: [3],
+        untagged: true,
+        off: true,
+      })
+    }
   })
 })
 
