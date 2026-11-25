@@ -21,3 +21,15 @@ it('writes its attributes onto the svg', () => {
     '<svg aria-hidden="true" class="me-2" viewBox="0 0 16 16"><path d="M0 0"/></svg>',
   )
 })
+
+it('writes a value with a quote or an ampersand so that it stays one value', () => {
+  expect(icon(svg, { 'aria-label': 'Sent to "Bibi" & Bob' }).children).toBe(
+    '<svg role="img" aria-label="Sent to &quot;Bibi&quot; &amp; Bob" viewBox="0 0 16 16"><path d="M0 0"/></svg>',
+  )
+})
+
+it('writes a dollar sign as it is', () => {
+  expect(icon(svg, { 'aria-label': 'Fee in $& more' }).children).toBe(
+    '<svg role="img" aria-label="Fee in $&amp; more" viewBox="0 0 16 16"><path d="M0 0"/></svg>',
+  )
+})

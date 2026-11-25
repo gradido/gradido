@@ -32,6 +32,8 @@ export type Language = v.InferOutput<typeof languageSchema>
 /** The language shown. */
 export let locale: Language = 'en'
 let texts: Texts = en
+// the language asked for last, shown once its texts are here
+let asked: Language = locale
 
 /**
  * Shows the wallet in `language` once its texts are here: of what the browser names
@@ -40,7 +42,12 @@ let texts: Texts = en
  */
 export async function setLocale(language: string) {
   const known = v.parse(languageSchema, language.split('-')[0])
+  asked = known
   const fetched = await LANGUAGES[known].fetch().catch(() => undefined)
+  // another language was asked for meanwhile: that one is shown, whichever arrives first
+  if (asked !== known) {
+    return
+  }
   locale = fetched ? known : 'en'
   texts = fetched?.default ?? en
 }

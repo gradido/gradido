@@ -28,8 +28,9 @@ const ENTRY = '[role^="menuitem"]'
  * chosen says `aria-disabled`, not `disabled`: the keyboard still reaches it.
  *
  * As the menu opens the focus goes to its first entry (to its last with ↑ on the button); ↓ and
- * ↑ go round the entries, Home and End to the ends. It closes on a choice, on Escape and on a
- * click beside it, and the focus goes back to the button; Tab closes it and goes on. The menu
+ * ↑ go round the entries, Home and End to the ends. It closes on a choice and on Escape, and
+ * the focus goes back to the button; Tab closes it and goes on, and a click beside it closes
+ * it and leaves the focus where the click put it. The menu
  * opens below the button, or above it where the window has more room there and the menu does
  * not fit below; it is never higher than the room it opens into.
  */
@@ -46,16 +47,20 @@ export class Dropdown implements m.ClassComponent<Attrs> {
     document.addEventListener('click', this.#closeBeside, true)
   }
 
-  readonly #close = () => {
+  readonly #close = (focusButton = true) => {
     this.#open = false
-    this.#dom?.querySelector<HTMLElement>('.dropdown-toggle')?.focus()
+    if (focusButton) {
+      this.#dom?.querySelector<HTMLElement>('.dropdown-toggle')?.focus()
+    }
     document.removeEventListener('click', this.#closeBeside, true)
   }
 
   // a listener on the document, outside of Mithril's handlers: it redraws itself
   readonly #closeBeside = (event: MouseEvent) => {
     if (event.target instanceof Node && !this.#dom?.contains(event.target)) {
-      this.#close()
+      // The focus stays where the click put it (a field beside the menu). Where it put it
+      // nowhere, the focus is still at an entry, which is about to be hidden: to the button.
+      this.#close(this.#dom?.contains(document.activeElement))
       m.redraw()
     }
   }

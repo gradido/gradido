@@ -40,7 +40,8 @@ const send = mock(
       })
     }),
 )
-mock.module('mithril', () => ({ default: { request: send } }))
+const redraw = mock()
+mock.module('mithril', () => ({ default: { request: send, redraw } }))
 mock.module('@frontend/config', () => ({ default: { GRAPHQL_URI: 'http://backend/graphql' } }))
 
 const { request } = await import('./client')
@@ -137,6 +138,16 @@ describe('request', () => {
       })
       expect((await answered).success).toBe(false)
       expect(appOutdated.value).toBe(true)
+    })
+
+    it('draws the bar that says so, also for a question asked in the background', async () => {
+      redraw.mockClear()
+      const answered = request(balance, {}, balanceSchema, { background: true })
+      asked[0].answer({
+        errors: [{ message: 'Cannot query', extensions: { code: 'GRAPHQL_VALIDATION_FAILED' } }],
+      })
+      await answered
+      expect(redraw).toHaveBeenCalled()
     })
 
     it('ends the session where its certificate was revoked', async () => {

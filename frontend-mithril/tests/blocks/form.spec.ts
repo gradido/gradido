@@ -72,3 +72,21 @@ test('sends by Enter what its schema gives out, once, and is locked until the an
   await expect(send).toBeEnabled()
   await expect(send.locator('.spinner-border')).toHaveCount(0)
 })
+
+test('sends nothing by Enter straight after a field stopped fitting', async ({ page }) => {
+  const errors: Error[] = []
+  page.on('pageerror', (error) => errors.push(error))
+  await page.getByLabel('Memo').fill('Danke!')
+  await page.getByLabel('Amount').fill('1.5')
+  await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled()
+
+  // typed and sent before the form has drawn again
+  await page.getByLabel('Memo').evaluate((memo: HTMLInputElement) => {
+    memo.value = 'Hi'
+    memo.dispatchEvent(new Event('input', { bubbles: true }))
+    memo.form?.requestSubmit()
+  })
+  await expect(page.getByRole('button', { name: 'Send' })).toBeDisabled()
+  await expect(page.getByTestId('sent')).toHaveText('[]')
+  expect(errors).toEqual([])
+})

@@ -93,7 +93,9 @@ export class Form<const TSchema extends v.GenericSchema>
         onsubmit: async (event: SubmitEvent & { currentTarget: HTMLFormElement }) => {
           event.preventDefault()
           this.#touchAll()
-          if (!this.#valid || this.#sending) {
+          // asked of the fields now: `#valid` is as of the last draw, and Enter may come
+          // before the next
+          if (this.#sending || !this.#fields.every((field) => field.isValid())) {
             return
           }
           // throws where the fields let through what the form's schema does not: the two

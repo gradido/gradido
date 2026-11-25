@@ -45,7 +45,8 @@ const grouped = (sign: string) => new RegExp(`^-?[1-9]\\d{0,2}(\\${sign}\\d{3})+
  */
 function ungrouped(typed: string) {
   // a space or an apostrophe before three digits only ever groups (French, Russian, Swiss)
-  const text = typed.replace(/(?<=\d)[\s'’](?=\d{3}(?!\d))/g, '')
+  // (no looking behind: Safari before 16.4 refuses the whole file for it)
+  const text = typed.replace(/(\d)[\s'’](?=\d{3}(?!\d))/g, '$1')
   const signs: string[] = text.match(/[.,]/g) ?? []
   const last = signs.at(-1)
   const other = signs.find((sign) => sign !== last)
@@ -94,9 +95,10 @@ export function amountSchema(max: number, of: keyof typeof AMOUNT_TEXTS = 'amoun
   )
 }
 
-/** What a transaction is for. */
+/** What a transaction is for. Blanks around it are neither counted nor sent, as in every text. */
 export const memoSchema = v.pipe(
   v.string(),
+  v.trim(),
   v.nonEmpty(() => t('form.validation.memo.required')),
   v.minLength(MEMO_MIN_CHARS, () => t('form.validation.memo.min', { min: MEMO_MIN_CHARS })),
   v.maxLength(MEMO_MAX_CHARS, () => t('form.validation.memo.max', { max: MEMO_MAX_CHARS })),
@@ -105,6 +107,7 @@ export const memoSchema = v.pipe(
 /** A message to a contribution or in a conversation. */
 export const messageSchema = v.pipe(
   v.string(),
+  v.trim(),
   v.nonEmpty(() => t('form.validation.memo.required')),
   v.minLength(MESSAGE_MIN_CHARS, () => t('form.validation.memo.min', { min: MESSAGE_MIN_CHARS })),
   v.maxLength(MESSAGE_MAX_CHARS, () => t('form.validation.memo.max', { max: MESSAGE_MAX_CHARS })),
@@ -128,6 +131,7 @@ export const supportTicketTextSchema = v.pipe(
 /** The subject of a transaction. */
 export const subjectSchema = v.pipe(
   v.string(),
+  v.trim(),
   v.nonEmpty(() => t('form.validation.subject.required')),
   v.minLength(5, () => t('form.validation.subject.min', { min: 5 })),
   v.maxLength(100, () => t('form.validation.subject.max', { max: 100 })),

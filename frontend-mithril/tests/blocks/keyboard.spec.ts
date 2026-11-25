@@ -49,6 +49,13 @@ test('a select is a menu button: arrows go round its entries, Escape and Tab clo
   await expect(button).toHaveAttribute('aria-expanded', 'false')
   await expect(page.getByRole('button', { name: 'after' })).toBeFocused()
 
+  // a click beside closes, and the focus stays where the click put it
+  await button.click()
+  await expect(entry('Red')).toBeFocused()
+  await page.getByRole('button', { name: 'before' }).click()
+  await expect(button).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('button', { name: 'before' })).toBeFocused()
+
   // a choice closes, and the button has the focus and the new name
   await button.focus()
   await page.keyboard.press('ArrowUp')
@@ -124,4 +131,39 @@ test('a window keeps Tab inside also where its last button is not in the tab ord
   await expect(first).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   await expect(shown).toBeFocused()
+})
+
+test('Tab goes on from a button inside a window that only the arrows reach', async ({ page }) => {
+  await page.goto('blocks/?modal=last')
+  await page.getByRole('button', { name: 'open' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Pages' })
+  const second = dialog.getByRole('menuitem', { name: 'Go to page 2' })
+
+  await dialog.getByRole('menuitem', { name: 'Go to page 1' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(second).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'last' })).toBeFocused()
+
+  // and back: to the stop before it, not to the end of the window
+  await second.focus()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('menuitem', { name: 'Go to page 1' })).toBeFocused()
+
+  // from the window itself, which has the focus as it opens
+  await dialog.focus()
+  await page.keyboard.press('Shift+Tab')
+  await expect(dialog.getByRole('button', { name: 'last' })).toBeFocused()
+})
+
+test('Tab stays inside from a button behind the last stop of a window', async ({ page }) => {
+  await page.goto('blocks/?modal')
+  await page.getByRole('button', { name: 'open' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Pages' })
+
+  await dialog.getByRole('menuitem', { name: 'Go to page 1' }).focus()
+  await page.keyboard.press('End')
+  await expect(dialog.getByRole('menuitem', { name: 'Go to next page' })).toBeFocused()
+  await page.keyboard.press('Tab')
+  await expect(dialog.getByRole('button', { name: 'first' })).toBeFocused()
 })

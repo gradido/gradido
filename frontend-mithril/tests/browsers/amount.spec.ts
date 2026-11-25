@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 // An amount is typed with a comma or a point, whatever the language of the browser: sending
 // and creating rest on it. The wallet draws the field as text and reads the number itself
 // (`amountSchema`). A `type: 'number'` field is no way: Firefox refuses a comma there, and
-// Safari in English reads `1,5` as 15.
+// Chromium and Safari read `1,5` as 15 where the language of the machine is English.
 
 // A browser in each language the wallet has (frontend/src/locales), which the wallet then
 // shows, and the sign that language groups thousands with: French and Russian take a space.

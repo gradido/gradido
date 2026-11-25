@@ -417,7 +417,8 @@ m(Form<typeof sendSchema>, { schema: sendSchema, submitBusyButton, onsubmit: sen
   thousand only where the language shown groups with it (`1.000` in German, `1,000` in
   English); else it is refused as three decimals. No amount is guessed.
 - An amount is a text field (`inputmode: 'decimal'`), read by `amountSchema`, never
-  `type: 'number'`: there Firefox refuses a comma, and Safari in English reads `1,5` as 15.
+  `type: 'number'`: there Firefox refuses a comma, and Chromium and Safari read `1,5` as 15
+  where the language of the machine is English.
   `tests/browsers/amount.spec.ts` holds the text field in Chromium, Firefox and WebKit, in
   every language the wallet has.
 - A rule that asks the server (the user name is taken) is not part of the schema: the page asks

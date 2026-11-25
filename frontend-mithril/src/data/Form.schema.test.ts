@@ -113,6 +113,14 @@ describe('the texts', () => {
   it('a memo has 5 to 512 characters', () => {
     expect(read(memoSchema, 'Danke')).toBe('Danke')
     expect(firstOf(memoSchema, '')).toBe('The message is required.')
+    // blanks say nothing, and none around what is said is counted or sent
+    expect(firstOf(memoSchema, '      ')).toBe('The message is required.')
+    expect(read(memoSchema, '  Hi   ')).toEqual([
+      'The message should be at least 5 characters long.',
+    ])
+    expect(read(memoSchema, ' Danke ')).toBe('Danke')
+    expect(firstOf(messageSchema, '      ')).toBe('The message is required.')
+    expect(typeof firstOf(subjectSchema, '      ')).toBe('string')
     expect(read(memoSchema, 'Hi')).toEqual(['The message should be at least 5 characters long.'])
     expect(read(memoSchema, 'a'.repeat(513))).toEqual([
       'The message should not be longer than 512 characters.',

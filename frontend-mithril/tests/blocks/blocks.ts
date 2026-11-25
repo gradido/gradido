@@ -131,7 +131,8 @@ const BLOCKS: Record<string, m.Component> = {
         tabs: ['Sent', 'Received', 'Open'].map((title) => ({ title, content: `${title} pane` })),
       }),
   },
-  // a window whose last button is reached by the arrow keys only (the pager's ›)
+  // a window whose last button is reached by the arrow keys only (the pager's ›);
+  // `?modal=last` with a button after it
   modal: {
     view: () => [
       m('button', { type: 'button', onclick: () => (asking = true) }, 'open'),
@@ -139,8 +140,20 @@ const BLOCKS: Record<string, m.Component> = {
         m(Modal, { label: 'Pages', onclose: () => (asking = false) }, [
           m('button', { type: 'button' }, 'first'),
           m(Pagination, { limit: 3, pages: 3, page: 1, onpage: () => undefined }),
+          location.search.endsWith('=last') && m('button', { type: 'button' }, 'last'),
         ]),
     ],
+  },
+  // two windows: what has the focus in the upper one goes
+  modals: {
+    view: () =>
+      m(Modal, { label: 'Lower', onclose: () => undefined }, [
+        m('button', { type: 'button' }, 'lower'),
+        m(Modal, { label: 'Upper', onclose: () => undefined }, [
+          m('button', { type: 'button' }, 'stays'),
+          !asking && m('button', { type: 'button', onclick: () => (asking = true) }, 'goes'),
+        ]),
+      ]),
   },
   confirm: {
     view: () => [

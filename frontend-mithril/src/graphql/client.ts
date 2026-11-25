@@ -80,6 +80,8 @@ export async function request<const TSchema extends v.GenericSchema>(
   // AppOutdatedBar offers the reload.
   if (answer.errors?.some(({ extensions }) => extensions?.code === 'GRAPHQL_VALIDATION_FAILED')) {
     appOutdated.value = true
+    // a question asked in the background draws nothing by itself
+    m.redraw()
   }
   if (answer.errors?.[0]?.message === REVOKED && askingAuthToken === authToken.state?.token) {
     // logout loads the page anew, at the sign-in: said there

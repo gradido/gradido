@@ -57,6 +57,20 @@ export class Pagination implements m.ClassComponent<Attrs> {
     }
   }
 
+  // The focus stays with the pager where a draw takes away what had it: an arrow that led to
+  // the last page leads nowhere now, and is no button any more. It goes to the page shown.
+  #hadFocus = false
+
+  onbeforeupdate(_vnode: m.Vnode<Attrs>, old: m.VnodeDOM<Attrs>) {
+    this.#hadFocus = old.dom.contains(document.activeElement)
+  }
+
+  onupdate({ dom }: m.VnodeDOM<Attrs>) {
+    if (this.#hadFocus && !dom.contains(document.activeElement)) {
+      dom.querySelector<HTMLElement>('[aria-current]')?.focus()
+    }
+  }
+
   view({ attrs: { page, pages, onpage, limit, class: classes } }: m.Vnode<Attrs>) {
     const arrow = (to: number, text: string, label: string) =>
       to < 1 || to > pages
@@ -98,6 +112,8 @@ export class Pagination implements m.ClassComponent<Attrs> {
         m(
           'li.page-item',
           {
+            // by its page: as the pages shown move on, a button keeps its page and its focus
+            key: shown.page,
             role: 'none',
             class: `${shown.page === page ? 'active' : ''} ${shown.smHidden ? 'bv-d-sm-down-none' : ''}`,
           },

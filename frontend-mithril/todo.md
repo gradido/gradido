@@ -64,7 +64,7 @@ and those two steps correct it.
    (unless `background`). Every `m.redraw()` is held by a Playwright spec that fails without
    it; one no spec needs goes. Still to check, with the first page that draws each:
    `Modal.ts`, `Dropdown.ts`, `BusyButton.ts`, `Form.ts` (after a throw), `Toasts.ts` (two), `DeviceStore.ts`,
-   `Theme.ts`, `browser/viewport.ts`, `browser/newVersion.ts`.
+   `Theme.ts`, `browser/viewport.ts`, `browser/newVersion.ts`, `graphql/client.ts`.
 9. **A building block no page draws yet** has its spec in `tests/blocks/`: `blocks.ts` mounts
    it on a page of its own, built beside the wallet (`/blocks/?form`), and the spec runs
    against the Mithril wallet only (`form.spec.ts`).

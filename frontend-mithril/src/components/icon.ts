@@ -9,7 +9,9 @@ import m from 'mithril'
 export function icon(svg: string, attributes: Record<string, string> = {}) {
   const named = 'aria-label' in attributes ? { role: 'img' } : { 'aria-hidden': 'true' }
   const written = Object.entries({ ...named, ...attributes }).map(
-    ([name, value]) => `${name}="${value}" `,
+    // a text of a language file may hold a quote or an ampersand
+    ([name, value]) => `${name}="${value.replaceAll('&', '&amp;').replaceAll('"', '&quot;')}" `,
   )
-  return m.trust(svg.replace('<svg ', `<svg ${written.join('')}`))
+  // a function: in a text, `replace` would read a `$` of a value as a pattern
+  return m.trust(svg.replace('<svg ', () => `<svg ${written.join('')}`))
 }

@@ -26,3 +26,10 @@ test('a click beside the window closes it, a text marked out of it does not', as
   await page.mouse.click(20, 20)
   await expect(dialog).toHaveCount(0)
 })
+
+test('of two windows the upper one keeps the focus where what had it is gone', async ({ page }) => {
+  await page.goto('blocks/?modals')
+  await page.getByRole('button', { name: 'goes' }).click()
+  await expect(page.getByRole('button', { name: 'goes' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'stays' })).toBeFocused()
+})

@@ -78,3 +78,24 @@ test('never hides the page shown on a small screen, also with two places', async
   // with three places the page before the last still gives way
   await expect(page.locator('.bv-d-sm-down-none')).toHaveText(['11'])
 })
+
+test('keeps the focus at the page chosen by the keyboard', async ({ page }) => {
+  await page.goto('blocks/?pagination=5/12/3')
+  const pager = page.getByRole('menubar')
+
+  // the pages shown move on: the focus stays with page 5, now the one shown
+  await pager.getByLabel('Go to page 5').focus()
+  await page.keyboard.press('Enter')
+  await expect(pager.locator('[aria-current="page"]')).toHaveText('5')
+  await expect(pager.getByLabel('Go to page 5')).toBeFocused()
+
+  // the arrow that led to the last page leads nowhere now: the focus goes to that page
+  await pager.getByLabel('Go to page 7').click()
+  await expect(pager.locator('[aria-current="page"]')).toHaveText('7')
+  for (const shown of ['8', '9', '10', '11', '12']) {
+    await pager.getByLabel('Go to next page').focus()
+    await page.keyboard.press('Enter')
+    await expect(pager.locator('[aria-current="page"]')).toHaveText(shown)
+  }
+  await expect(pager.getByLabel('Go to page 12')).toBeFocused()
+})

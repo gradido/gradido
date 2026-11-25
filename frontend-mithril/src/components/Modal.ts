@@ -59,8 +59,7 @@ export class Modal implements m.ClassComponent<Attrs> {
 
   // Escape closes; Tab and Shift+Tab go round inside the window.
   readonly #onkeydown = (event: KeyboardEvent) => {
-    // of two windows, the keys are for the upper one
-    if ([...document.querySelectorAll('.modal')].at(-1)?.parentElement !== this.#container) {
+    if (!this.#isUpper()) {
       return
     }
     if (event.key === 'Escape' && !this.#drawn.attrs.noCloseOnEscape) {
@@ -68,15 +67,31 @@ export class Modal implements m.ClassComponent<Attrs> {
       // the listener sits on the document, outside of Mithril's handlers
       m.redraw()
     } else if (event.key === 'Tab') {
+      // The browser goes from stop to stop; here only what would leave the window is turned
+      // round. The focus may be at what is no stop itself (the window, an entry the arrows
+      // reach): behind the last stop, or before the first, counts as at it.
       const tabbable = this.#tabbable()
-      const first = tabbable.at(0)
-      const last = tabbable.at(-1)
-      const inside = tabbable.some((element) => element === document.activeElement)
-      if (!inside || document.activeElement === (event.shiftKey ? first : last)) {
+      const end = event.shiftKey ? tabbable.at(0) : tabbable.at(-1)
+      const active = document.activeElement
+      const beyond = event.shiftKey
+        ? Node.DOCUMENT_POSITION_PRECEDING
+        : Node.DOCUMENT_POSITION_FOLLOWING
+      if (
+        !end ||
+        !active ||
+        !this.#container.contains(active) ||
+        active === end ||
+        end.compareDocumentPosition(active) & beyond
+      ) {
         event.preventDefault()
-        ;(event.shiftKey ? last : first)?.focus()
+        ;(event.shiftKey ? tabbable.at(-1) : tabbable.at(0))?.focus()
       }
     }
+  }
+
+  // of two windows, the keys and the focus are for the upper one
+  #isUpper() {
+    return [...document.querySelectorAll('.modal')].at(-1)?.parentElement === this.#container
   }
 
   #tabbable() {
@@ -94,9 +109,12 @@ export class Modal implements m.ClassComponent<Attrs> {
     m.mount(this.#container, {
       view: () => this.#window(),
       onupdate: () => {
-        // what had the keyboard is gone: it stays in the window, at its first place
-        if (document.activeElement === document.body) {
-          this.#tabbable().at(0)?.focus()
+        // what had the keyboard is gone: it stays in the window, at its first stop, or at
+        // the window itself where it has none
+        if (document.activeElement === document.body && this.#isUpper()) {
+          const stop =
+            this.#tabbable().at(0) ?? this.#container.querySelector<HTMLElement>('.modal')
+          stop?.focus()
         }
       },
     })

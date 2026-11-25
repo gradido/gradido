@@ -30,6 +30,19 @@ describe('setLocale', () => {
     expect(locale).toBe('en')
   })
 
+  it('shows the language asked for last, also where an earlier one arrives after it', async () => {
+    const { fetch } = LANGUAGES.de
+    const german = Promise.withResolvers<Awaited<ReturnType<typeof fetch>>>()
+    LANGUAGES.de.fetch = () => german.promise
+    const slow = setLocale('de')
+    await setLocale('fr')
+    german.resolve(await fetch())
+    await slow
+    LANGUAGES.de.fetch = fetch
+    expect(locale).toBe('fr')
+    expect(t('settings.language.success')).not.toBe('Deine Sprache wurde erfolgreich geändert.')
+  })
+
   it('is English where the texts cannot be fetched', async () => {
     const { fetch } = LANGUAGES.de
     LANGUAGES.de.fetch = () => Promise.reject(new Error('no network'))
