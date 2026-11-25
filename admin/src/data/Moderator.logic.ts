@@ -21,14 +21,6 @@ export const supportIsTheirs = (moderator: Moderator | null): boolean =>
 export const mayChooseGroups = (moderator: Moderator | null): boolean =>
   Boolean(moderator?.role) && moderator?.seesAllCreationGroups === true
 
-/**
- * Whether the signed-in moderator may switch the creations or the support off for themself in "Meine
- * Gruppen" (MG5): an administrator. What a moderator handles, an administrator assigns. The server
- * decides the same (maySwitchHandledGroupsOff).
- */
-export const maySwitchOff = (moderator: Moderator | null): boolean =>
-  mayChooseGroups(moderator) && moderator?.role === 'ADMIN'
-
 /** Whether `kept` is a choice of the signed-in moderator's, who may choose. */
 const isOfModerator = (moderator: Moderator | null, kept: KeptHandledCreationGroups | null) =>
   Boolean(kept) && mayChooseGroups(moderator) && kept?.of === moderator?.gradidoID
@@ -50,8 +42,11 @@ export const chosenGroupsOf = (
     ? { groupIds: kept.groupIds, untagged: kept.untagged, off: false }
     : null
 
-/** Whether the signed-in administrator switched the column of `kept` off (MG5). */
+/**
+ * Whether the signed-in moderator switched the column of `kept` off (MG5): whoever may choose may,
+ * administrators and moderators alike, who take turns (Bernd, 25.11.2026).
+ */
 export const isSwitchedOff = (
   moderator: Moderator | null,
   kept: KeptHandledCreationGroups | null,
-): boolean => maySwitchOff(moderator) && isOfModerator(moderator, kept) && kept?.off === true
+): boolean => isOfModerator(moderator, kept) && kept?.off === true

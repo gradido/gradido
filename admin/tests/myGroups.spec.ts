@@ -264,8 +264,9 @@ test('saves each tick at once, says so quietly, and asks the number at "Schöpfu
   // no toast for a tick: the quiet line says it
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
+  // sentFor hands out a copy: asked anew in each round, or the poll waits on a list that never grows
+  await expect.poll(() => graphql.sentFor('adminListContributions').length).toBe(2)
   const counted = graphql.sentFor('adminListContributions')
-  await expect.poll(() => counted.length).toBe(2)
   const handled = {
     statusFilter: ['IN_PROGRESS', 'PENDING'],
     hideResubmission: true,
@@ -326,8 +327,8 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   await expect(page.getByTestId('my-groups-head')).toHaveText(de.creation)
   await expect(row(page, 'Potsdam').getByRole('checkbox')).toHaveCount(1)
   await expect(rule(page)).toHaveText(sentence(de.creation, 'some'))
-  // what a moderator handles an administrator assigns: no switch (MG5)
-  await expect(page.getByTestId('my-groups-handle')).toHaveCount(0)
+  // a moderator switches their creations off and on themself (MG5, 25.11.2026)
+  await expect(handleSwitch(page)).toBeChecked()
   await box(page, 'GD-Hohestraße').check()
 
   await expect(page.getByTestId('my-groups-saved')).toHaveText(de.myGroups.saved)
@@ -346,19 +347,32 @@ test('asks no number at "Support" after a save for a moderator without the suppo
   ])
 })
 
-// MG5: the switch is an administrator's; a moderator with the support has both columns, and no switch
-test('offers a moderator with the support both columns and no switch (MG5)', async ({
+// MG5: moderators take turns (25.11.2026): a moderator with the support switches either column off
+// as an administrator does
+test('offers a moderator with the support both columns and both switches (MG5)', async ({
   page,
   graphql,
 }) => {
   const withSupport = { ...moderator, role: 'MODERATOR', handlesSupportTickets: true }
-  graphql.answer(signedInAnswers(withSupport))
+  graphql.answer({ ...signedInAnswers(withSupport), ...answersWith([3], true) })
   await signIn(page, '/my-groups', withSupport)
 
   await expect(rows(page)).toHaveCount(5)
   await expect(row(page, 'Potsdam').getByRole('checkbox')).toHaveCount(2)
-  await expect(page.getByTestId('my-groups-handle')).toHaveCount(0)
-  await expect(page.getByRole('switch')).toHaveCount(0)
+  await expect(page.getByRole('switch')).toHaveCount(2)
+
+  await handleSwitch(page, de.navbar.support).uncheck()
+  await expect(rule(page)).toContainText(sentence(de.navbar.support, 'offSupport'))
+  await expect(supportBox(page, 'Potsdam')).toBeDisabled()
+  await expect(box(page, 'Potsdam')).toBeEnabled()
+  await expect
+    .poll(() => graphql.sentFor('setHandledGroups').map(({ variables }) => variables))
+    .toEqual([
+      {
+        creation: { groupIds: [3], untagged: true, off: false },
+        support: { groupIds: [3], untagged: true, off: true },
+      },
+    ])
 })
 
 // One save at a time: ticks made while one is out go with the next, with the ticks of that moment,
