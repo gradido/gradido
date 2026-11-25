@@ -608,6 +608,7 @@
     "email-already-sent": "Ya te hemos enviado un correo electrónico hace menos de 10 minutos.",
     "empty-transactionlist": "Ha habido un error en la transmisión del número de tus transacciones.",
     "no-account": "Lamentablemente no hemos podido encontrar una cuenta (activada) con estos datos.",
+    "no-storage": "Gradido necesita el almacenamiento del navegador. Permite las cookies y los datos de sitios para esta página y vuelve a cargarla.",
     "no-transactionlist": "Lamentablemente, hubo un error. No se ha transmitido ninguna transacción desde el servidor.",
     "no-user": "No hay usuario con estas referencias.",
     "session-expired": "La sesión se cerró por razones de seguridad.",
@@ -849,6 +850,7 @@
         "min": "La descripción de la actividad debe tener al menos {min} caracteres.",
         "required": "La descripción de la actividad es un campo obligatorio."
       },
+      "email": "El campo {fieldName} debe ser un correo electrónico válido",
       "gddSendAmount": "El campo {_field_} debe ser un número entre {min} y {max} con un máximo de dos decimales",
       "hours": {
         "decimal-places": "Las horas no deben tener más de dos decimales.",

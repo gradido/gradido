@@ -15,7 +15,7 @@
       "@/*": ["./src/*"],
       "@frontend/*": ["../frontend/src/*"]
     },
-    "types": ["vite/client", "bun"]
+    "types": ["vite/client", "bun", "unplugin-icons/types/raw"]
   },
   "include": ["src/**/*.ts"]
 }

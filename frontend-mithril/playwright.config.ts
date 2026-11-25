@@ -37,6 +37,10 @@ const environment = (port: number) => ({
 // so that no run tests an older state.
 const BUILT = 'test-build'
 
+// Specs of a building block on its own, on a page built beside the wallet (tests/blocks): they
+// have nothing to say about the old wallet, and run against the Mithril wallet from the start.
+const BLOCKS = 'blocks/*.spec.ts'
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
@@ -69,11 +73,11 @@ export default defineConfig({
     project.name.startsWith('new')
       ? {
           ...project,
-          testMatch: PORTED_TO_MITHRIL.length > 0 ? PORTED_TO_MITHRIL : /^$/,
+          testMatch: [...PORTED_TO_MITHRIL, BLOCKS],
           // the old wallet first: it takes the pictures the new one is compared with
           dependencies: [project.name.replace('new', 'old')],
         }
-      : project,
+      : { ...project, testIgnore: BLOCKS },
   ),
   webServer: [
     {
@@ -85,7 +89,11 @@ export default defineConfig({
       env: environment(OLD_PORT),
     },
     {
-      command: `bunx vite build --outDir ${BUILT} --emptyOutDir && bunx vite preview --outDir ${BUILT} --port ${NEW_PORT} --strictPort`,
+      command: [
+        `bunx vite build --outDir ${BUILT} --emptyOutDir`,
+        `bunx vite build tests/blocks --config vite.config.ts --base /blocks/ --outDir ../../${BUILT}/blocks`,
+        `bunx vite preview --outDir ${BUILT} --port ${NEW_PORT} --strictPort`,
+      ].join(' && '),
       url: `http://localhost:${NEW_PORT}/`,
       reuseExistingServer: false,
       env: environment(NEW_PORT),

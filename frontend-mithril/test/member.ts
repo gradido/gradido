@@ -2,9 +2,12 @@
 export const BIBI = '1b2c3d4e-5f60-4a7b-8c9d-0e1f2a3b4c5d'
 export const BOB = '7a6b5c4d-3e2f-4a1b-8c0d-9e8f7a6b5c4d'
 
-/** A token naming `sub`, written as the server writes one: base64url, without padding. */
+/**
+ * A token naming `sub`, written as the server writes one: base64url, without padding. It lasts
+ * ten minutes (`exp - iat`), unless `more` says otherwise.
+ */
 export function tokenOf(sub: string | undefined, more = {}) {
-  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub, ...more }))
+  return `eyJhbGciOiJIUzI1NiJ9.${btoa(JSON.stringify({ sub, iat: 0, exp: 600, ...more }))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/=+$/, '')}.signature`

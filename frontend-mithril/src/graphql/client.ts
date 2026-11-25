@@ -3,6 +3,8 @@ import { type DocumentNode, print } from 'graphql'
 import m from 'mithril'
 import type { Result } from 'shared/browser'
 import * as v from 'valibot'
+import { toastErrorAfterReload } from '@/components/Toasts'
+import { t } from '@/i18n'
 import { appOutdated } from '@/store/appOutdated'
 import { authToken, authTokenSchema, logout, session } from '@/store/Session'
 
@@ -28,8 +30,7 @@ const REVOKED = '403.13 - Client certificate revoked'
  *
  * A failure the wallet is not to blame for -- no network, an error of the server, an answer that
  * does not fit -- is returned. A mistake of the caller throws: a variable `document` does not
- * declare. So does a token of the server the wallet cannot read: the two no longer fit, and that
- * is to be seen at once.
+ * declare.
  *
  * `renewSession: false`: a question the member did not ask (the chat's beat, a panel). The renewed
  * token is not taken, or a tab left open would never be signed out. `background`: no redraw.
@@ -81,7 +82,8 @@ export async function request<const TSchema extends v.GenericSchema>(
     appOutdated.value = true
   }
   if (answer.errors?.[0]?.message === REVOKED && askingAuthToken === authToken.state?.token) {
-    // TODO: check if error toast is shown, that session was timedout
+    // logout loads the page anew, at the sign-in: said there
+    toastErrorAfterReload(t('error.session-expired'))
     logout()
   } else if (
     token &&
@@ -92,12 +94,13 @@ export async function request<const TSchema extends v.GenericSchema>(
     // Or on login, without previous user
     const parsedAuthToken = v.parse(authTokenSchema, { token, at: Date.now() })
     if (!parsedAuthToken) {
-      // TODO: replace with toast translated into the current language, and redirect to login page
-      if (!askingUserId) {
-        throw new Error('Invalid Login Response')
-      } else {
-        throw new Error('Invalid auth token refresh Response')
+      // The server sends a token the wallet cannot read: the two no longer fit. A session that
+      // runs ends at the sign-in, which says so; a sign-in fails, and its page says so.
+      if (askingUserId) {
+        toastErrorAfterReload(t('error.session-renewal-failed'))
+        logout()
       }
+      return { success: false, error: new Error('the server sent a token the wallet cannot read') }
     }
     authToken.set(parsedAuthToken)
   }

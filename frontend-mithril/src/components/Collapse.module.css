@@ -1,0 +1,31 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* A grid row slides from nothing to the height of its content without anybody measuring it.
+   Shut, the box is hidden too, once it has slid: nothing in it takes the focus or is read. */
+.collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  /* Bootstrap's time for a collapse */
+  transition:
+    grid-template-rows 0.35s ease,
+    visibility 0s 0.35s;
+}
+
+.open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* what the row cuts off while it slides */
+.clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapse {
+    transition: none;
+  }
+}

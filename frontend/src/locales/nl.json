@@ -608,6 +608,7 @@
     "email-already-sent": "Wij hebben jou minder dan 10 minuten geleden een email gestuurd.",
     "empty-transactionlist": "Er was een fout met de overdracht van het aantal van jouw transacties.",
     "no-account": "Helaas kunnen we geen (geactiveerde) rekening met deze gegevens vinden.",
+    "no-storage": "Gradido heeft de opslag van de browser nodig. Sta cookies en sitegegevens voor deze pagina toe en laad ze opnieuw.",
     "no-transactionlist": "  Helaas was er een fout. Door de server werden er geen transacties overgedragen.",
     "no-user": "Geen gebruiker met deze login gegevens.",
     "session-expired": "De sessie werd om veiligheidsredenen beëindigd.",
@@ -849,6 +850,7 @@
         "min": "De omschrijving van de activiteit moet minstens {min} tekens lang zijn.",
         "required": "De omschrijving van de activiteit is een verplicht veld."
       },
+      "email": "{fieldName} moet een geldig e-mailadres zijn",
       "gddSendAmount": "Het veld {_field_} moet een getal tussen {min} en {max} met maximaal twee cijfers achter de komma zijn",
       "hours": {
         "decimal-places": "De uren mogen maximaal twee decimalen bevatten.",

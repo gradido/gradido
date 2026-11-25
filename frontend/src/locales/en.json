@@ -608,6 +608,7 @@
     "email-already-sent": "We already sent you an email less than 10 minutes ago.",
     "empty-transactionlist": "There was an error with the transmission of the number of your transactions.",
     "no-account": "Unfortunately we could not find an (activated) account to the given data.",
+    "no-storage": "Gradido needs the browser's storage. Please allow cookies and site data for this page and reload it.",
     "no-transactionlist": "Unfortunately, there was an error. No transactions have been sent from the server.",
     "no-user": "No user with these credentials.",
     "session-expired": "The session was closed for security reasons.",
@@ -849,6 +850,7 @@
         "min": "The job description should be at least {min} characters long.",
         "required": "The job description is required."
       },
+      "email": "The {fieldName} field must be a valid email",
       "gddSendAmount": "The {_field_} field must be a number between {min} and {max} with at most two digits after the decimal point.",
       "hours": {
         "decimal-places": "The hours should contain a maximum of two decimal places.",

@@ -59,6 +59,15 @@ and those two steps correct it.
    same step for both wallets.
 7. **A change to the old wallet's behaviour during the rewrite** goes into `frontend/`, and into
    `frontend-mithril/` where the page is ported (`AGENTS.md`).
+8. **No `m.redraw()` on trust.** Mithril draws anew by itself after an event handler it
+   attached, after the promise such a handler returns is fulfilled, and after `m.request`
+   (unless `background`). Every `m.redraw()` is held by a Playwright spec that fails without
+   it; one no spec needs goes. Still to check, with the first page that draws each:
+   `Modal.ts`, `Dropdown.ts` (two), `BusyButton.ts`, `Form.ts` (after a throw), `Toasts.ts` (two), `DeviceStore.ts`,
+   `Theme.ts`, `browser/viewport.ts`, `browser/newVersion.ts`.
+9. **A building block no page draws yet** has its spec in `tests/blocks/`: `blocks.ts` mounts
+   it on a page of its own, built beside the wallet (`/blocks/?form`), and the spec runs
+   against the Mithril wallet only (`form.spec.ts`).
 
 ## Decisions to take in step 2
 
@@ -69,13 +78,13 @@ and those two steps correct it.
   brought together, and where they differ the wallet's file wins. Copied in 2a:
   the admin's `utils/authToken.ts`, as far as the session uses it, which became part of
   `store/Session.ts` (the hand-over to the admin comes with its step), and
-  `store/appOutdated.ts`. To copy with their steps: `Modal`, `ConfirmModal`,
-  `Dropdown`, `Tabs`, `Pagination`, `Tooltip`, `Toasts`, `ThemedSelect`, `MemberAvatar`,
-  `MemberAvatarZoom`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`, `viewport.ts`,
-  `RelativeTime.logic`.
-- **Styles of bootstrap-vue-next.** The old wallet loads `bootstrap-vue-next.css`. Take over
-  only the rules whose classes the Mithril wallet emits (`b-toast-*`, `b-avatar*`,
-  `b-pagination-pills`, `bv-d-sm-down-none`), into one small file, and drop the import.
+  `store/appOutdated.ts`. Copied in 2b: `Modal`, `ConfirmModal`, `Dropdown`, `Tabs`,
+  `Pagination`, `Toasts`, `AppOutdatedBar`, `icon`, `i18n.ts`, `theme.ts`, `viewport.ts`
+  (`ThemedSelect` is the wallet's own). To copy with their steps: `MemberAvatar`,
+  `MemberAvatarZoom`, `RelativeTime.logic`. Not needed: `Tooltip`.
+- **Styles of bootstrap-vue-next: done.** The old wallet loads `bootstrap-vue-next.css`. The
+  Mithril wallet loads `components/bootstrapVueNext.css` in its place: the rules whose classes
+  it emits (`b-avatar*`, `b-pagination-pills`, `bv-d-sm-down-none`).
 - **Icons.** About 135 icons of six sets (bi 63, mdi 65, ion 2, tabler 2, fa 1, humbleicons 1)
   through `unplugin-icons` with `compiler: 'raw'`, as in the admin. Install the six
   `@iconify-json/*` sets, not `@iconify/json`.
@@ -110,41 +119,68 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   member changed meanwhile, `403.13` → sign out and `/login`, `GRAPHQL_VALIDATION_FAILED` →
   outdated. No cache: `possibleTypes`, the merge policies and the 18 field-set specs in
   `graphql/` go with it; the schema check of the fixture replaces them.
-- `Resource`, the device values, `formOf` and `Field` as `ARCHITECTURE.md` describes them.
-- `Placeholder` (`line`, `block`, `row`) and the locked button with its spinner: the one way a
-  wait is shown, a deliberate change from the old wallet (`ARCHITECTURE.md`, "Waiting"). Its
-  pictures are checked in and run for `new` and `new-phone` only; `samePicture` gets a sibling
-  for that.
-- The store as one object with plain fields (`session` in `Session.ts`, a `DeviceStore`): the 37 fields of `useWalletStore.js` behind
+- Done: `Resource`, the device values, and `Form` and `Field` (`components/`) as
+  `ARCHITECTURE.md` describes them. The markup of `Field` is the one read off the old
+  wallet's sign-in form; its picture is held with that page (step 3). To come with their first
+  form: the textarea, the password field with its eye, a sentence the server says about a
+  field (the user name is taken), and the texts of vee-validate's dictionary.
+- Done: `Placeholder` (line, block, row, row with picture) and `BusyButton`, the locked button with its
+  spinner: the one way a wait is shown, a deliberate change from the old wallet
+  (`ARCHITECTURE.md`, "Waiting"). Looked at in the browser in both themes. To come with the
+  first page that waits (step 4, the balance): what stands in a placeholder's place where the
+  question failed (a short message and "try again"), and the pictures of the wait, checked in
+  and run for `new` and `new-phone` only, with a sibling of `samePicture` for that.
+- Done for the member, the language, `redirectPath` and the theme (`store/Theme.ts`); every
+  other field comes with its first caller.
+  The store as one object with plain fields (`session` in `Session.ts`, a `DeviceStore`): the 37 fields of `useWalletStore.js` behind
   one valibot schema for the `login` / `verifyLogin` user (replaces 25 `?? null` and about 35
   one-line setters). `tokenTime`, `darkMode` are derived; `transactionToHighlightId` is not
   persisted. The keys stay: `gradido-frontend`, `auth-token`, `gradido-theme-mode`. Signing out
   reloads the page instead of calling 20 `forget*` functions.
-- One helper for "a value per member in `localStorage`, read through a schema" (written by hand
-  in 10 composables and 9 utils), one for the four hand-overs (`useEntryDraft`, `useLinkDraft`,
-  `usePassOnDraft`, `useSendReturn`), one `memberKey` (`<name>:<gradidoID>` today, three with
-  something after it; keep each stored format readable).
-- `i18n`: a copy of the admin's — English is bundled and stands in for a missing key, any other language
-  is fetched when it is asked for, and the wallet is drawn only once it is there (the old wallet
-  bundles all ten) with the number and
-  date formats once (ten identical copies today, 440 lines) and one language list.
-- `m.redraw()` in the one `storage` listener of `store/DeviceStore.ts`: a change from another
-  tab happens outside of Mithril, and nothing draws it yet. Left out of 2a on purpose, to be
-  seen in the browser with the first page that draws a store (a tab on the sign-in page while
-  another tab signs in).
-- With `Toasts`, the two `TODO` in `graphql/client.ts`: a token of the server the wallet cannot
-  read throws today (`Invalid Login Response`, `Invalid auth token refresh Response`); it
-  becomes a toast in the member's language and the way to the sign-in. And a session that ended
-  with a revoked certificate says so in a toast before the sign-in opens.
-- The notice of `browser/requireStorage.ts` (the browser refuses localStorage) through `i18n`,
-  in all ten languages instead of the two sentences written into the file in 2a. The language
-  is the browser's: the member's own lies in the storage that is refused. Any language but
-  English is fetched first, so the check becomes: try the storage, on failure load the language
-  and show the notice, otherwise start the wallet.
-- Routes and guards (`routes.js`, `guards.js`, 890 lines) as one table with the meta the layout
-  reads, and the guard steps in their order. Keep: `/authenticate`, the first
-  navigation with a running session, the event-matching link, `requiresAuth`,
-  `creationAllowed`, `requiresFindable`. `guards.test.js` (1,330 lines) is the specification.
+- Done: `MemberStore` (`store/MemberStore.ts`) for "a value per member in `localStorage`, read
+  through a schema" (written by hand in 10 composables and 9 utils): `forSignedInMember()`
+  hands out the `DeviceStore` under `<name>:<gradidoID>`, and what three of them carry behind
+  the ID are further parts of the key, each after a colon as today, so each stored format
+  stays readable. `HandOver` (`store/HandOver.ts`) for what
+  one page leaves for the next (`useEntryDraft`, `useLinkDraft`, `usePassOnDraft`,
+  `useSendReturn`): taken once, optionally only for a while. Without their check of the
+  owner: a sign-out loads the page anew, and memory does not outlive that. Each value and
+  each hand-over is declared with its first caller.
+- Done: `i18n.ts` (`t`, `d`, `n`, `setLocale`, `LANGUAGES`), a copy of the admin's put right —
+  English is bundled and stands in for a missing key, any other language is fetched when it is
+  asked for, and the wallet is drawn only once it is there (the old wallet bundles all ten),
+  with the number and date formats once (ten copies today, 440 lines) and one language list.
+  The plural forms follow vue-i18n's rule and the Russian one of `utils/pluralRules.js`.
+  One difference to the picture: the Dutch `long` date loses its weekday, which only the Dutch
+  copy of the formats had. To come with its first caller: a text with a slot for markup in the
+  middle (`<i18n-t>` / `I18nText` today, 29 places).
+- Done: `m.redraw()` in the one `storage` listener of `store/DeviceStore.ts`: a change from
+  another tab happens outside of Mithril. To be seen in the browser with the first page that
+  draws a store (a tab on the sign-in page while another tab signs in).
+- Done: `components/Toasts.ts` (`toastSuccess`, `toastError`, `toastInfo`), mounted by
+  `main.ts` beside the pages, in the markup bootstrap-vue-next drew: its box and colours were
+  measured against the old wallet's. Not taken over: the fade of 150 ms as a toast comes and
+  goes. `toastErrorAfterReload` hands a toast to the page loaded next, for a session that
+  ends: a revoked certificate, and a token of the server the wallet cannot read while a session
+  runs (at a sign-in, `request` fails and the page says so). Its Playwright spec comes with the
+  sign-in page (step 3), the first that shows a toast.
+- Done: the notice of `browser/requireStorage.ts` (the browser refuses localStorage) through
+  `i18n`, in all ten languages (`error.no-storage`). The language is the browser's: the
+  member's own lies in the storage that is refused. The check throws at once, so that nothing
+  after it loads, and the notice appears when its language is fetched.
+- Done, the frame of routes and guards (`routes.js`, `guards.js`, 890 lines): `routes.ts` is
+  one table (address, page as `import()`, `requiresAuth`) turned into Mithril's resolvers, and
+  `data/Guard.logic.ts` decides as one pure function `whereTo`, with the cases of
+  `guards.test.js` (1,330 lines) as its tests. In it: the start with a running session,
+  `requiresAuth` (an expired sign-in is put away, the address kept in `session.redirectPath`
+  for after the sign-in), `creationAllowed`. `sessionRuns` reads the end of the session off the
+  token (`endsAt` in `authTokenSchema`), which replaces `tokenTime`. Each of the other steps
+  comes with the first page it guards, in its place in the order: `/authenticate` and the
+  redeem code of a start on `/login/:code` (step 3), the event-matching link, `requiresFindable`,
+  the conversation to come back to (the chat). So do the rows of the table, the flags the
+  layout reads (step 4), the rows that only lead on (`/` → `/login`) and the scroll to an
+  anchor. An address is matched as Mithril does it: exact in case, and without a slash at its
+  end, where vue-router took both.
 - Not ported: the publisher id. Elopage is gone and its code is being removed (#4309); this is
   that issue's first step for the new wallet. `?pid=` in an address is ignored, the store has no
   field for it, `login`, `createUser` and `updateUserInfos` are sent without it (the server
@@ -160,40 +196,79 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   milliseconds, which the inspector keeps (it asks twice a second). New: the clock pauses
   while the tab is hidden, and asks at once when the tab is seen again. The chat keeps its own
   beat of 15 s. Step 23 ends the wallet's reading of the older variable.
-- The balance as a `Resource`, refreshed by whatever changes it. The counter of answers in
-  `DashboardLayout`, by which the first-creation window tells a new balance from an old one,
-  goes: the window refreshes and waits for that answer.
-- GraphQL documents that ask nearly the same become one each, with one schema: the member of
-  `login` and `verifyLogin` (one fragment), the four lists of creation groups (`{ id tag name }`),
-  `transactionsQuery` and `transactionsUserCountQuery`, `openCreations` and
-  `openCreationsAmounts`. New documents in `frontend-mithril/src/graphql`; the old wallet's stay
-  untouched until it goes. The server is not changed.
+- With the layout (step 4): the balance as a `Resource`, refreshed by whatever changes it. It
+  is the answer to the booking list, as today, not a question of its own: whatever changes the
+  balance changes the list, the server reads the balance off the last booking either way, and
+  every further request is parsed, checked for its token and answered with a new one. The
+  number of members is not asked with it. (Asking the GDT amount apart: later.) The counter of
+  answers in `DashboardLayout`, by which the first-creation window tells a new balance from an
+  old one, goes: the window refreshes and waits for that answer.
+- Done: GraphQL documents that ask nearly the same are one each, with one schema: the member
+  of `login` and `verifyLogin` (one fragment, `graphql/member.ts`), the four lists of creation
+  groups (`graphql/creationGroups.ts`), `openCreations` for `openCreations` and
+  `openCreationsAmounts`. They are `.ts` files with `gql`: typed, and a test can import them.
+  `graphql/documents.test.ts` holds each against `backend/schema.graphql`, and against its
+  valibot schema: every field the schema reads is asked for. A new document gets its row
+  there. To come with the booking list (step 4): `transactionsQuery` and
+  `transactionsUserCountQuery` as one, which carries the balance and not the number of members. The old wallet's documents stay untouched until it
+  goes. The server is not changed.
 - `jwt-decode` and `uuid` are not installed: the token is read as `AuthTokenStore` in `store/Session.ts` already reads it,
   a gradido ID is checked by `uuidv4Schema` of `shared/browser`.
-- The clipboard as today: `nativeClipboard` for pictures, loaded before
-  `clipboard-polyfill/overwrite-globals`, which stays for text. Their order is held by a test.
-- A test for the texts, in place of the ESLint plugin that goes with ESLint (step 22): every
-  key a `t('…')` in `src` names exists in `en.json`, and every key of `en.json` is named
-  somewhere — in `frontend-mithril/src` or, until the old wallet goes (step 22), in
-  `frontend/src`, whose keys the shared file still holds. Keys are written as literals so that
-  it can read them. The admin has no such check (its script only sorts); the test is written so
-  that the admin can run it too.
-- Theme, viewport, outdated bar, stale-chunk reload and new-version check
-  (`reloadOnStaleChunk`, `newVersionCheck`), `nativeClipboard`.
-- Building blocks: copies of the admin's (see the decision above), and the missing ones on Bootstrap's own
-  JS: `Collapse`, `Carousel`, `Popover`. One `Field` (label, input, feedback) driven by a
-  valibot schema, in place of `LabeledInput`, `ValidatedInput`, `InputEmail`, `InputPassword`,
-  `InputPasswordConfirmation`, `InputUsername`, `AccountFields` and vee-validate + yup. One
-  result block for `Message`, `SuccessMessage`, `TransactionResultSendError`,
-  `SendEmailResultError`, `RecipientNotFound`. One copy button for `ClipboardCopy`,
-  `GradidoAddressCopy`, `ChatVideoLinkCopy`. One modal for `BModal` (22 files) and `AppModal`.
-- Form schemas from `validationSchemas.js` and `validation-rules.js` in valibot, with the
-  bounds from `shared/browser` (`RESERVED_ALIAS`, memo 5..512, message, support ticket). One amount
-  rule for the three there are (`validationSchemas.amount`, `ContributionForm` hours,
-  `filters/amount.parseAmount`).
+- Done: the clipboard (`browser/clipboard.ts`). `copyText(text, copied)` copies through
+  `clipboard-polyfill` and says so in a toast, also where it could not; `takesPicture()` and
+  `copyPicture(png)` use the browser's own clipboard. The polyfill is called, not installed
+  over `navigator.clipboard` (`overwrite-globals`): the browser's own stays as it is, so there
+  is no order of two imports to hold with a test. A test holds instead that no other file
+  reaches for `navigator.clipboard`: only `copyText` copies on a page without TLS.
+- Done, the first half of the test for the texts (`texts.test.ts`), in place of the ESLint
+  plugin that goes with ESLint (step 22): every key a `t('…')` in `src` names exists in
+  `en.json`, and keys are written as literals so that it can read them. The second half —
+  every key of `en.json` is named somewhere — stays with the old wallet's ESLint rule until
+  step 22: 112 keys are put together at run time there (`pageTitle.${…}`, the first-creation
+  catalog), and the rule's list of exceptions would have to be kept twice. A key only the
+  Mithril wallet reads is named in that list (`frontend/.eslintrc.js`) until then.
+- Done: the theme (`store/Theme.ts`: a `DeviceStore` on `gradido-theme-mode` that marks
+  `body` and names the colour of the installed app's bar; seen in the browser for the switch,
+  another tab and the system's preference), the viewport (`browser/viewport.ts`, `isPhone()`)
+  and the icons (`unplugin-icons` with the `raw` compiler and `components/icon.ts`, as in the
+  admin; the sets the old wallet draws from).
+- Done: `browser/newVersion.ts` (`reloadOnStaleChunk`, `watchForNewVersion`) and
+  `components/AppOutdatedBar.ts`, mounted by `main.ts` above the pages. The check runs on
+  `repeatWhileVisible`: every quarter of an hour while the tab is seen, and when it is seen
+  again. Not taken over: `pageshow` and every change of page as further triggers, which were
+  for iOS before 13. The build files are read off the page's text, not its DOM, so that the
+  test needs no DOM.
+- Done, the building blocks more than one page needs (`components/`): `Modal` (for `BModal`,
+  22 files, and `AppModal`), `ConfirmModal`, `Dropdown`, `ThemedSelect`, `Tabs`, `Pagination`,
+  `Collapse` (slides by CSS, without Bootstrap's JS), beside `Field`, `Toasts`, `Placeholder`, `BusyButton`.
+  Each draws the markup bootstrap-vue-next drew in the old wallet, read off a browser for the
+  attributes the wallet passes; the drawn `Pagination` is held to it by a spec (`tests/blocks/pagination.spec.ts`, 123 cases). They were
+  tried in a browser (keys, focus, Escape, a click beside); the picture of each is held with
+  the first page that draws it. One difference: a modal says `aria-modal`. A dropdown opens
+  upwards where the window has more room there and the menu does not fit below, and is never
+  higher than that room, as bootstrap-vue-next's did through floating-ui.
+  To come with the page that needs them, because one page does or the markup is the page's:
+  `Carousel` and `Popover` (one use each, the sign-in layout, step 3); the password field
+  with its eye and its list of rules, the textarea, the user name field (step 3 and the
+  settings) in place of `InputPassword`, `InputPasswordConfirmation`, `InputUsername`,
+  `AccountFields`; one result block for `Message`, `SuccessMessage`,
+  `TransactionResultSendError`, `SendEmailResultError`, `RecipientNotFound`; the markup of
+  `ClipboardCopy`, `GradidoAddressCopy`, `ChatVideoLinkCopy` around `copyText`; `MemberAvatar`
+  and its zoom with the pictures (step 4). Not needed: `Tooltip`, the wallet has none.
+- Done: the rules of `validationSchemas.js` and `validation-rules.js` in valibot
+  (`data/Form.schema.ts`), with the bounds from `shared/browser`: amount (one rule, also for
+  the hours of a contribution, with their own sentences), memo, message, support request,
+  subject, e-mail, a new password. The e-mail's sentence, which the old wallet took from
+  vee-validate's dictionary, is a key of the wallet now (`form.validation.email`, the
+  dictionary's words in all ten languages). To come with their form: the recipient (with the
+  Gradido address, the send page), the user name (its `min` and `max` sentences, and the
+  rule that asks the server), the date and the memo of a contribution, "the two passwords
+  are the same" (a rule of the form, not of a field).
   `ContributionForm`'s hours keep their rule as it is: a number of at most two decimals, from
   0.01 to the hours left, with a comma taken as a point.
-- Classes the styles rely on, to be emitted as they are: `.b-toast-{success,danger,warning}`,
+- Classes the styles rely on, to be emitted as they are: `.gdd-toaster`, `.gdd-toaster-title`,
+  `.gdd-toaster-body` (the rules for `.b-toast-{success,danger,warning}` in
+  `gradido-template.scss` match nothing bootstrap-vue-next 0.26 draws, and go with it),
   `.b-avatar`, `.b-avatar-custom`, `.b-pagination-pills`, `.bv-d-sm-down-none`, and Bootstrap's
   own modal, tab, dropdown, carousel, popover and navbar structure.
 
@@ -217,7 +292,7 @@ that click stays on `old` only.
 | 12 | Redeem and thanks: `TransactionLink`, `LinkInformations/*`, `ThankYouGreeting`, `MyThankYouCard`, `ThankYouCardPayment`, `ThankYouGreeting/*` | 14 / 4,340 | ~80 | The print and cheque code is canvas and moves as it is; `thankYouCheque`, `avatarColor`, `qrCode` exist a second time in the admin — one copy. |
 | 13 | Send: `Send`, `GddSend/*`, `CommunitySwitch` | 12 / 2,750 | ~50 | `Send` reads the communities the form loaded from Apollo's cache: hand them over. |
 | 14 | Overview: `Overview`, `ShowFriends`, `Overview/*`, `ThanksNudge`, the contact panels of the right side | 8 / 1,940 | ~45 | |
-| 15 | Chat, reading: `ContactWindow`, `ChatThread`, `ChatBubble`, message text, file card, search, note, unread, `useChatUpdates`, `useChatWindow*`, `chatMarkdown` | ~25 / 8,500 | ~110 | The thread lives in Apollo's cache today (five `cache.updateQuery`) but nothing else reads it: an array in the component, patched by the pure functions that exist. The beat: 15 s, backing off to 120 s. The openers of steps 4–14 become real; their specs join `PORTED_TO_MITHRIL`. |
+| 15 | Chat, reading: `ContactWindow`, `ChatThread`, `ChatBubble`, message text, file card, search, note, unread, `useChatUpdates`, `useChatWindow*`, `chatMarkdown` | ~25 / 8,500 | ~110 | The thread lives in Apollo's cache today (five `cache.updateQuery`) but nothing else reads it: an array in the component, patched by the pure functions that exist. The beat: 15 s, backing off to 120 s. The openers of steps 4–14 become real, and so do the marks of the menu the beat brings (unread, "Support", "Schöpfen", the two at "Admin"), which step 4 draws without numbers; their specs join `PORTED_TO_MITHRIL`. |
 | 16 | Chat, writing: `ChatComposeBar`, `ChatForwardDialog`, `ChatMessageMenu`, `ChatTransferCoin`, drafts, file links, `useFieldOutOfSight` | ~12 / 3,500 | ~60 | Android keyboard and `visualViewport`: test on a device, Playwright does not show it. |
 | 17 | Chat, video: `ChatVideoCall`, `ChatVideoApp*`, `utils/chatVideo*` | ~10 / 2,900 | ~45 | The six `provide` / `inject` become plain arguments. |
 | 18 | Contacts and groups: `Contacts`, `Contacts/*`, `ChatGroups/*` | 11 / 3,200 | ~55 | `ContactWindow` and `ChatGroupWindow` share size, note and video: one window base. One avatar row for `ContactRow`, `ChatGroupRow`, `ContactTiles`, `ContactsStrip`, `ContactsPanel`. |
@@ -250,6 +325,8 @@ by then: they go without a successor.
 the Vue-only utils, `main.js`, `App.tsx`, `i18n.js`, the Vue, Apollo, vee-validate, yup,
 bootstrap-vue-next, ESLint and Prettier dependencies and their config files (about 150).
 What `frontend-mithril` imports through `@frontend` stays.
+With ESLint goes its rule for texts nobody reads: `texts.test.ts` gets its second half (every
+key of `en.json` is named in `src`, with the keys put together at run time listed by prefix).
 
 **23. One folder** — moves only: a moved file keeps its content, but for the import paths and
 the build configuration the move itself changes, in the same pull request. Each of them leaves

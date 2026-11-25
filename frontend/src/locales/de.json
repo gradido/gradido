@@ -608,6 +608,7 @@
     "email-already-sent": "Wir haben Dir bereits eine E-Mail vor weniger als 10 Minuten geschickt.",
     "empty-transactionlist": "Es gab einen Fehler mit der Übermittlung der Anzahl Deiner Transaktionen.",
     "no-account": "Leider konnten wir keinen (aktivierten) Account mit diesen Daten finden.",
+    "no-storage": "Gradido braucht den Speicher des Browsers. Bitte erlaube Cookies und Websitedaten für diese Seite und lade sie neu.",
     "no-transactionlist": "Es gab leider einen Fehler. Es wurden keine Transaktionen vom Server übermittelt.",
     "no-user": "Kein Benutzer mit diesen Anmeldedaten.",
     "session-expired": "Die Sitzung wurde aus Sicherheitsgründen beendet.",
@@ -849,6 +850,7 @@
         "min": "Die Tätigkeitsbeschreibung sollte mindestens {min} Zeichen lang sein.",
         "required": "Die Tätigkeitsbeschreibung ist ein Pflichtfeld."
       },
+      "email": "{fieldName} muss eine gültige E-Mail-Adresse sein",
       "gddSendAmount": "Das Feld {_field_} muss eine Zahl zwischen {min} und {max} mit höchstens zwei Nachkommastellen sein.",
       "hours": {
         "decimal-places": "Die Stunden sollten maximal zwei Nachkommastellen enthalten.",

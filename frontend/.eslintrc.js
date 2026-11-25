@@ -141,6 +141,10 @@ module.exports = {
           'error.session-renewal-failed',
           'firstCreation.whyMore',
           'chatThread.forwardedFrom',
+          // Read by the Mithril wallet only (frontend-mithril/src), whose texts are these files
+          // until the old wallet goes.
+          'error.no-storage',
+          'form.validation.email',
         ],
         enableFix: false,
       },

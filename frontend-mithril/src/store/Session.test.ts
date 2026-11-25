@@ -15,9 +15,8 @@ const keptToken = () => JSON.parse(localStorage.getItem(AUTH_TOKEN_KEY) ?? 'null
 // What the wallet finds at its start: a member kept from a session whose token is gone -- the
 // admin interface signed out, and knows nothing of the wallet's entry.
 localStorage.setItem(STATE_KEY, JSON.stringify({ member: member(BIBI), language: 'de' }))
-const { AuthTokenStore, authToken, authTokenSchema, login, logout, session } = await import(
-  './Session'
-)
+const { AuthTokenStore, authToken, authTokenSchema, login, logout, session, sessionRuns } =
+  await import('./Session')
 /** What the store holds for `token`: with the gradidoID read out of it. */
 const parsed = (token: string, at = NOW) => v.parse(authTokenSchema, { token, at })
 const memberAtStart = session.state.member
@@ -44,29 +43,35 @@ beforeEach(() => {
 describe('the session', () => {
   it('drops at its start a member kept without a token, keeps the language, opens nothing', () => {
     expect(memberAtStart).toBeNull()
-    expect(JSON.parse(keptAtStart ?? '')).toEqual({ member: null, language: 'de' })
+    expect(JSON.parse(keptAtStart ?? '')).toEqual({
+      member: null,
+      language: 'de',
+      redirectPath: '/overview',
+    })
     expect(openedAtStart).toBe(0)
   })
 
-  it('login keeps the member, and the language as it is', () => {
-    session.set({ member: null, language: 'en' })
+  it('login keeps the member, and the language and the page to go on to as they are', () => {
+    session.set({ member: null, language: 'en', redirectPath: '/send?art=email' })
     login(member(BIBI))
     expect(session.state.member?.gradidoID).toBe(BIBI)
     expect(JSON.parse(localStorage.getItem(STATE_KEY) ?? '')).toMatchObject({
       member: { gradidoID: BIBI },
       language: 'en',
+      redirectPath: '/send?art=email',
     })
   })
 
   it('logout removes the token and the member, keeps the language, and opens the sign-in', () => {
     authToken.set(parsed(tokenOf(BIBI)))
-    session.set({ member: member(BIBI), language: 'de' })
+    session.set({ member: member(BIBI), language: 'de', redirectPath: '/send' })
     logout()
     expect(authToken.state).toBeNull()
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull()
     expect(JSON.parse(localStorage.getItem(STATE_KEY) ?? '')).toEqual({
       member: null,
       language: 'de',
+      redirectPath: '/overview',
     })
     expect(location.assign).toHaveBeenCalledWith('/login')
   })
@@ -79,6 +84,7 @@ describe('AuthTokenStore', () => {
         token: tokenOf(BIBI),
         at: NOW,
         tokenMemberId: BIBI,
+        endsAt: NOW + 600_000,
       })
     })
 
@@ -93,7 +99,8 @@ describe('AuthTokenStore', () => {
     })
 
     // what lies in localStorage must not keep the wallet from starting
-    it('has none for a token that cannot be read, or names no gradido ID', () => {
+    it('has none for a token that cannot be read, names no gradido ID, or has no end', () => {
+      expect(tabWith(tokenOf(BIBI, { exp: undefined })).state).toBeNull()
       expect(tabWith('no-dots').state).toBeNull()
       expect(tabWith('header.%%%.signature').state).toBeNull()
       expect(tabWith(`header.${btoa('no json')}.signature`).state).toBeNull()
@@ -117,7 +124,12 @@ describe('AuthTokenStore', () => {
       const renewed = tokenOf(BIBI.toUpperCase(), { note: '??>>' })
       expect(renewed).toMatch(/\.[^.]*[-_][^.]*\./)
       store.set(parsed(renewed, NOW + 1000))
-      expect(keptToken()).toEqual({ token: renewed, at: NOW + 1000, tokenMemberId: BIBI })
+      expect(keptToken()).toEqual({
+        token: renewed,
+        at: NOW + 1000,
+        tokenMemberId: BIBI,
+        endsAt: NOW + 601_000,
+      })
       expect(location.reload).not.toHaveBeenCalled()
     })
 
@@ -185,5 +197,28 @@ describe('AuthTokenStore', () => {
       expect(location.reload).not.toHaveBeenCalled()
       expect(location.assign).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('sessionRuns', () => {
+  it('is no where no token is kept', () => {
+    expect(sessionRuns()).toBe(false)
+  })
+
+  // counted from when this device received the token, with the token's own lifetime
+  it("is yes until five seconds before the token ends, by this device's clock", () => {
+    authToken.set(parsed(tokenOf(BIBI, { iat: 1_000_000, exp: 1_000_600 })))
+    setSystemTime(new Date(NOW + 594_999))
+    expect(sessionRuns()).toBe(true)
+    setSystemTime(new Date(NOW + 595_000))
+    expect(sessionRuns()).toBe(false)
+  })
+
+  it('takes the end the token names where it does not say when it was issued', () => {
+    authToken.set(parsed(tokenOf(BIBI, { iat: undefined, exp: NOW / 1000 + 60 })))
+    setSystemTime(new Date(NOW + 54_999))
+    expect(sessionRuns()).toBe(true)
+    setSystemTime(new Date(NOW + 55_000))
+    expect(sessionRuns()).toBe(false)
   })
 })

@@ -3,17 +3,24 @@ import { mock } from 'bun:test'
 
 // As much of a browser as DeviceStore and Session ask for. A test imports this before them:
 // both read localStorage and listen to the window as soon as they are loaded.
-const stored = new Map<string, string>()
-const tab = new EventTarget()
-export const location = { reload: mock(), assign: mock() }
-Object.assign(globalThis, {
-  localStorage: {
+function storage(stored: Map<string, string>) {
+  return {
     getItem: (key: string) => stored.get(key) ?? null,
     setItem: (key: string, value: string) => stored.set(key, value),
     removeItem: (key: string) => stored.delete(key),
     clear: () => stored.clear(),
-  },
+  }
+}
+const stored = new Map<string, string>()
+const tab = new EventTarget()
+export const location = { reload: mock(), assign: mock() }
+// Mithril takes it when it is loaded, for `m.redraw`: drawn at once, and counted
+export const requestAnimationFrame = mock((draw: () => void) => draw())
+Object.assign(globalThis, {
+  localStorage: storage(stored),
+  sessionStorage: storage(new Map()),
   location,
+  requestAnimationFrame,
   window: tab,
 })
 

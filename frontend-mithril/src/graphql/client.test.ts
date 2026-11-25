@@ -61,6 +61,7 @@ beforeEach(() => {
   asked = []
   send.mockClear()
   localStorage.clear()
+  sessionStorage.clear()
   authToken.set(null, false)
   session.set(undefined, false)
   appOutdated.value = false
@@ -146,6 +147,10 @@ describe('request', () => {
       expect(authToken.state).toBeNull()
       expect(session.state.member).toBeNull()
       expect(location.assign).toHaveBeenCalledWith('/login')
+      // said by the sign-in page, loaded anew
+      expect(sessionStorage.getItem('gradido-toast-after-reload')).toBe(
+        'The session was closed for security reasons.',
+      )
     })
 
     it('leaves the session of the next member alone where the certificate of the one before was revoked', async () => {
@@ -168,7 +173,12 @@ describe('request', () => {
       setSystemTime(new Date(NOW + 1000))
       asked[0].answer({ data: { balance: 1 } }, renewed)
       await answered
-      expect(authToken.state).toEqual({ token: renewed, at: NOW + 1000, tokenMemberId: BIBI })
+      expect(authToken.state).toEqual({
+        token: renewed,
+        at: NOW + 1000,
+        tokenMemberId: BIBI,
+        endsAt: NOW + 599_000,
+      })
       expect(location.reload).not.toHaveBeenCalled()
     })
 
@@ -186,7 +196,12 @@ describe('request', () => {
       const answered = request(balance, {}, balanceSchema, { renewSession: false })
       asked[0].answer({ data: { balance: 1 } }, tokenOf(BIBI))
       await answered
-      expect(authToken.state).toEqual({ token: tokenOf(BIBI), at: NOW, tokenMemberId: BIBI })
+      expect(authToken.state).toEqual({
+        token: tokenOf(BIBI),
+        at: NOW,
+        tokenMemberId: BIBI,
+        endsAt: NOW + 600_000,
+      })
       expect(location.reload).not.toHaveBeenCalled()
       expect(location.assign).not.toHaveBeenCalled()
     })
@@ -221,19 +236,29 @@ describe('request', () => {
       expect(authToken.state?.token).toBe(tokenOf(BOB))
     })
 
-    // the server and the wallet no longer fit: to be seen at once
-    it('throws where it cannot be read or names no gradido ID, and keeps the token there was', async () => {
+    // the server and the wallet no longer fit
+    it('fails a sign-in where it cannot be read or names no gradido ID', async () => {
       const signingIn = request(balance, {}, balanceSchema)
       asked[0].answer({ data: { balance: 1 } }, 'header.%%%.signature')
-      await expect(signingIn).rejects.toThrow('Invalid Login Response')
+      expect(await signingIn).toEqual({
+        success: false,
+        error: new Error('the server sent a token the wallet cannot read'),
+      })
       expect(authToken.state).toBeNull()
+      expect(sessionStorage.getItem('gradido-toast-after-reload')).toBeNull()
+    })
 
+    it('ends a session that runs where it cannot be read, and says so at the sign-in', async () => {
       signIn(BIBI)
       const renewing = request(balance, {}, balanceSchema)
-      asked[1].answer({ data: { balance: 1 } }, tokenOf('dlt-connector'))
-      await expect(renewing).rejects.toThrow('Invalid auth token refresh Response')
-      expect(authToken.state?.token).toBe(tokenOf(BIBI))
-      expect(location.assign).not.toHaveBeenCalled()
+      asked[0].answer({ data: { balance: 1 } }, tokenOf('dlt-connector'))
+      expect((await renewing).success).toBe(false)
+      expect(authToken.state).toBeNull()
+      expect(session.state.member).toBeNull()
+      expect(location.assign).toHaveBeenCalledWith('/login')
+      expect(sessionStorage.getItem('gradido-toast-after-reload')).toBe(
+        'Your session could not be renewed. Please log in again.',
+      )
     })
   })
 })

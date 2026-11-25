@@ -1,3 +1,4 @@
+import m from 'mithril'
 import * as v from 'valibot'
 
 const deviceStores = new Map<string, DeviceStore<v.GenericSchema>>()
@@ -14,6 +15,8 @@ window.addEventListener('storage', ({ key, storageArea }) => {
     // localStorage.clear was called in another tab
     deviceStores.forEach((value) => value.set(value.load(), false))
   }
+  // a change from another tab happens outside of Mithril
+  m.redraw()
 })
 
 export enum DeviceStoreBasicType {
