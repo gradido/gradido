@@ -60,7 +60,6 @@ describe('Register', () => {
     walletStore({
       email: 'peter@lustig.de',
       language: 'en',
-      publisherId: 'test-publisher-id',
       eventMatchingEntry: null,
     })
 
@@ -274,7 +273,6 @@ describe('Register', () => {
           firstName: 'Max',
           lastName: 'Mustermann',
           language: 'en',
-          publisherId: 'test-publisher-id',
           redeemCode: undefined,
           // The store's own default: no project the member came in for.
           project: null,

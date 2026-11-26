@@ -23,7 +23,6 @@ export function useSignIn() {
     const result = await mutate({
       email,
       password,
-      publisherId: store.publisherId,
       project: store.project,
     })
     if (!result?.data) {

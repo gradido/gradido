@@ -45,7 +45,6 @@ export const createUserSchema = v.object({
   firstName: firstNameSchema,
   lastName: lastNameSchema,
   language: defaultLanguageSchema,
-  publisherId: v.nullish(v.number()),
   redeemCode: blankAsNull(v.string()),
   // the community of the redeem code, where it is another one: the link is not looked up here
   redeemCodeCommunityUuid: blankAsNull(uuidv4Schema),

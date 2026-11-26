@@ -24,7 +24,7 @@
         "URL_PROTOCOL", "LOG*", "DLT_*", "EMAIL*", "FEDERATION_*", "HOME_COMMUNITY_SEED",
         "ANTHROPIC_*", "BACKEND_PORT", "CHAT_VIDEO_SERVERS", "CREA_STUB",
         "FUNCTION_TESTS_ENABLED", "GDT_*", "GMS_*", "HUMHUB_*", "JWT_*", "KLICKT*",
-        "MATCHING_ACTIVE", "WEBHOOK_ELOPAGE_SECRET"
+        "MATCHING_ACTIVE"
       ]
     },
     "build": {

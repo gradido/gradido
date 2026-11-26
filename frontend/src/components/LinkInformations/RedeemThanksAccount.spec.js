@@ -35,7 +35,7 @@ const link = (overrides = {}) => ({
   id: 7,
   amount: '20',
   memo: 'Danke fürs Reparieren der Gartenbank — sie steht wieder wie neu.',
-  senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
+  senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma' },
   // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
   senderAvatar: null,
   ...overrides,

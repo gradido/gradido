@@ -56,7 +56,6 @@ const apolloQueryMock = vi.fn().mockResolvedValue({
 const fakeStore = (state, set, act) => {
   const setting = (field) => (value) => set(field, value)
   const done = {
-    setPublisherId: setting('publisherId'),
     setToken: setting('token'),
     setEmail: setting('email'),
     setEventMatchingEntry: setting('eventMatchingEntry'),
@@ -92,18 +91,6 @@ describe('navigation guards', () => {
     store.creationAllowed = null
     store.gmsAllowed = null
     store.userLocation = null
-  })
-
-  describe('publisher ID', () => {
-    it('sets the pid in the store when present', async () => {
-      await router.push({ path: '/register', query: { pid: '42' } })
-      expect(storeSetMock).toHaveBeenCalledWith('publisherId', '42')
-    })
-
-    it('does not set the pid when not present', async () => {
-      await router.push({ path: '/forgot-password' })
-      expect(storeSetMock).not.toHaveBeenCalledWith('publisherId', expect.anything())
-    })
   })
 
   describe('authenticate', () => {

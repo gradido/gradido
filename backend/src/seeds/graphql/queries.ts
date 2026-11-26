@@ -11,8 +11,6 @@ export const verifyLogin = gql`
       klickTipp {
         newsletterState
       }
-      hasElopage
-      publisherId
       role
     }
   }
@@ -68,7 +66,6 @@ export const adminEmailStatus = gql`
     adminEmailStatus(userId: $userId) {
       gdtEmail
       currentConfirmed
-      elopageBuysOnCurrent
       pendingEmail
       pendingSince
     }
@@ -296,7 +293,6 @@ export const queryTransactionLink = gql`
       validUntil
       user {
         firstName
-        publisherId
       }
     }
   }
