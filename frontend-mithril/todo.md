@@ -192,9 +192,8 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
   end, where vue-router took both.
 - Not ported: the publisher id. Elopage is gone and its code is being removed (#4309); this is
   that issue's first step for the new wallet. `?pid=` in an address is ignored, the store has no
-  field for it, `login`, `createUser` and `updateUserInfos` are sent without it (the server
-  takes it as optional). From the switch (step 20) a link with `?pid=` stores nothing any more:
-  accepted in #4309. Its field leaves the shared GraphQL documents in step 23.
+  field for it, and since #4309 the server neither takes nor answers it (`users.publisher_id` is
+  dropped, migration 0179).
 - `repeatWhileVisible(ms, fn)` (`browser/timer.ts`): the one helper for what runs on a clock — it pauses while the tab is hidden
   and stops with the component or store that started it. For the chat's beat (with its
   back-off), the new-version check, the session's countdown, the e-mail confirmation, and the

@@ -3,12 +3,10 @@ import { request as httpRequest, IncomingHttpHeaders, Server } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { cleanDB, testEnvironmentWithApp } from '@test/helpers'
 import { listenOnFreePort } from '@test/listenOnFreePort'
-import { getLogger } from 'config-schema/test/testSetup'
-import { AppDatabase, LoginElopageBuys } from 'database'
+import { AppDatabase } from 'database'
 import { GRADIDO_REALM } from 'shared'
 import { verifyGmsHandshakeJWTToken } from '@/apis/gms/GmsClient'
 import { CONFIG } from '@/config'
-import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 
 // The real client, with the check of a token wrapped so that one test can have it throw.
 jest.mock('@/apis/gms/GmsClient', () => {
@@ -167,66 +165,5 @@ describe('the http server of the backend', () => {
     const answer = await ask(`/hook/gms/${CONFIG.GMS_WEBHOOK_SECRET}?token=x`)
     expect(answer.status).toBe(500)
     expect(answer.body).toBe('Internal Server Error')
-  })
-
-  it('refuses an elopage hook whose JSON cannot be read or is no object, and files nothing', async () => {
-    const save = jest.spyOn(LoginElopageBuys, 'save')
-    for (const body of ['{', 'null', '42', '"text"', 'true']) {
-      const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-      })
-      expect({ body, status: answer.status }).toEqual({ body, status: 400 })
-    }
-    expect(save).not.toHaveBeenCalled()
-    save.mockRestore()
-  })
-
-  // A buyer without an address: filing throws after the answer is out, with nobody waiting.
-  it('writes to the log what filing an elopage hook throws, instead of leaving it unhandled', async () => {
-    const elopageLogger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.webhook.elopage`)
-    const logged = new Promise<unknown[]>((resolve) => {
-      elopageLogger.error.mockImplementationOnce((...args: unknown[]) => resolve(args))
-    })
-    jest.spyOn(LoginElopageBuys, 'save').mockImplementationOnce(async (buy: any) => buy)
-    const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:
-        'payer[first_name]=Theodora&publisher[id]=691&product_id=43944&product[price]=40.0' +
-        '&membership[id]=43944&event=payment.successful',
-    })
-    expect(answer.status).toBe(200)
-    expect(await logged).toEqual(['Elopage Hook: not processed', expect.any(TypeError)])
-  })
-
-  it('reads the nested fields of the form elopage posts', async () => {
-    const saved = new Promise<LoginElopageBuys>((resolve) => {
-      jest.spyOn(LoginElopageBuys, 'save').mockImplementationOnce(async (buy: any) => {
-        resolve(buy)
-        return buy
-      })
-    })
-    const answer = await ask(`/hook/elopage/${CONFIG.WEBHOOK_ELOPAGE_SECRET}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:
-        'order_id=849951&payer[email]=theodora%40example.org&payer[first_name]=Theodora' +
-        '&publisher[id]=691&publisher[email]=publisher%40example.org&product_id=1' +
-        '&product[price]=40.0&product[affiliate_program_id]=111&membership[id]=43944' +
-        '&payment_state=paid&success_date=2019-12-06&event=payment.successful',
-    })
-    expect(answer.status).toBe(200)
-    expect(answer.body).toHaveLength(0)
-    expect(await saved).toMatchObject({
-      orderId: 849951,
-      payerEmail: 'theodora@example.org',
-      publisherId: 691,
-      productPrice: 4000,
-      affiliateProgramId: 111,
-      elopageUserId: 43944,
-      payed: true,
-    })
   })
 })

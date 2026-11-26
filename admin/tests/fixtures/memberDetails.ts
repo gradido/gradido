@@ -15,7 +15,6 @@ export const memberDetailsAnswers = {
   adminEmailStatus: ({ userId }: { userId: number }) => ({
     gdtEmail: `member${userId}@example.org`,
     currentConfirmed: true,
-    elopageBuysOnCurrent: false,
     pendingEmail: null,
     pendingSince: null,
   }),

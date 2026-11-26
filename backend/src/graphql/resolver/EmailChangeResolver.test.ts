@@ -574,7 +574,6 @@ describe('EmailChangeResolver', () => {
           adminEmailStatus: {
             gdtEmail: 'bibi@bloxberg.de',
             currentConfirmed: true,
-            elopageBuysOnCurrent: false,
             pendingEmail: null,
           },
         },

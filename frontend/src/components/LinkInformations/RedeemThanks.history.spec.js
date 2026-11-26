@@ -49,7 +49,6 @@ const link = () => ({
   senderUser: {
     gradidoID: '76378cbb-5a5c-4e4b-9a3b-1f2d3c4b5a69',
     alias: 'Oma-Emma',
-    publisherId: null,
   },
   communities: [],
 })

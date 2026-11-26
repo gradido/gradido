@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { and, asc, eq, getColumns, inArray, isNull, sql } from 'drizzle-orm'
+import { and, eq, getColumns, inArray, isNull, sql } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { Email, OptInType, Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -153,26 +153,6 @@ export async function dbFindUserContactWithUserByEmail(
     .leftJoin(usersTable, eq(usersTable.emailId, userContactsTable.id))
     .where(withDeleted ? whereWithDeleted : whereWithoutDeleted)
   return rows[0]
-}
-
-/**
- * Every address this member has CONFIRMED, oldest first. A pending change is left out on
- * purpose: an address that was merely typed in must not answer anything on the member's
- * behalf - not even whether it ever bought something.
- */
-export async function dbFindConfirmedUserContactEmails(userId: number): Promise<string[]> {
-  const rows = await drizzleDb()
-    .select({ email: userContactsTable.email })
-    .from(userContactsTable)
-    .where(
-      and(
-        eq(userContactsTable.userId, userId),
-        eq(userContactsTable.emailChecked, true),
-        isNull(userContactsTable.deletedAt),
-      ),
-    )
-    .orderBy(asc(userContactsTable.createdAt))
-  return rows.map((row) => row.email)
 }
 
 export async function dbIsUserContactFieldExist<K extends keyof UserContactInsert>(

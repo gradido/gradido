@@ -85,7 +85,6 @@ export const useWalletStore = defineStore('wallet', {
     humhubAllowed: null,
     gmsPublishLocation: null,
     project: null,
-    publisherId: null,
     eventMatchingEntry: null,
     hideAmountGDD: null,
     hideAmountGDT: null,
@@ -183,11 +182,6 @@ export const useWalletStore = defineStore('wallet', {
     setProject(project) {
       this.project = project
     },
-    setPublisherId(publisherId) {
-      let pubId = parseInt(publisherId)
-      if (isNaN(pubId)) pubId = null
-      this.publisherId = pubId
-    },
     // What an event link offered somebody who was not signed in (`/project?interest=…`,
     // utils/eventMatchingLink): the entry "I love ‹summary›", as `{ summary, details, remote,
     // keptAt }`, or null. Written where the wallet is entered (routes/guards.js), for the sign-in
@@ -271,7 +265,6 @@ export const useWalletStore = defineStore('wallet', {
       this.setTransfersInChat(data.transfersInChat ?? null)
       this.setHumhubAllowed(data.humhubAllowed)
       this.setGmsPublishLocation(data.gmsPublishLocation)
-      this.setPublisherId(data.publisherId)
       this.setRole(data.role ?? null)
       this.setHideAmountGDD(data.hideAmountGDD)
       this.setHideAmountGDT(data.hideAmountGDT)
@@ -327,7 +320,6 @@ export const useWalletStore = defineStore('wallet', {
       this.setHumhubAllowed(null)
       this.setGmsPublishLocation(null)
       this.setProject(null)
-      this.setPublisherId(null)
       this.setEventMatchingEntry(null)
       this.setRole(null)
       this.setHideAmountGDD(false)

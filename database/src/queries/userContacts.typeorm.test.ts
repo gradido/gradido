@@ -10,11 +10,7 @@ import { bibiBloxberg } from '../seeds/users/bibi-bloxberg'
 import { peterLustig } from '../seeds/users/peter-lustig'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { DbUser } from './user'
-import {
-  dbFindConfirmedUserContactEmails,
-  dbPurgeExpiredEmailChanges,
-  dbReleaseUnconfirmedEmailChangeFor,
-} from './userContacts'
+import { dbPurgeExpiredEmailChanges, dbReleaseUnconfirmedEmailChangeFor } from './userContacts'
 import {
   dbDeleteUserContact,
   dbEmailTaken,
@@ -92,10 +88,6 @@ describe('userContacts.typeorm.queries', () => {
     it('never lets one code stand in for the other', async () => {
       expect(await dbFindPendingEmailChangeByCode('2222')).toBeNull()
       expect(await dbFindPendingEmailChangeByVetoCode('1111')).toBeNull()
-    })
-
-    it('is not among the confirmed addresses while unconfirmed', async () => {
-      expect(await dbFindConfirmedUserContactEmails(bibi.id)).toEqual(['bibi@bloxberg.de'])
     })
 
     it('holds the address against everybody else', async () => {

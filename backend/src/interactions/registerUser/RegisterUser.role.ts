@@ -90,7 +90,7 @@ export class RegisterUserRole<
   // a variant that locks the member's row (guarantorHoldsPlace) needs that lock to be the
   // first statement of the transaction - see dbLockUserRowDrizzle.
   public async prepareUser(): Promise<UserInsert> {
-    const { firstName, lastName, language, publisherId } = this.user
+    const { firstName, lastName, language } = this.user
     const gradidoId = uuidv4()
     return {
       gradidoId,
@@ -104,7 +104,6 @@ export class RegisterUserRole<
       lastName,
       passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
       language,
-      publisherId,
       // enable humhub from now on for new user
       humhubAllowed: true,
     }

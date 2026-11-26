@@ -47,7 +47,6 @@ describe('useSignIn', () => {
     apollo.updateUserInfos = step('updateUserInfos', { data: { updateUserInfos: true } })
     cache.clear = step('clear the cache')
     session.store = {
-      publisherId: 2896,
       project: 'probe',
       preLoginLanguage: null,
       login: step('store: login', (member) => {
@@ -68,7 +67,6 @@ describe('useSignIn', () => {
     expect(apollo.login).toHaveBeenCalledWith({
       email: 'sarah@provence.fr',
       password: 'Aa12345_',
-      publisherId: 2896,
       project: 'probe',
     })
   })

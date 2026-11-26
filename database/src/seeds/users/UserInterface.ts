@@ -17,7 +17,6 @@ export interface UserInterface {
   emailChecked?: boolean
   language?: string
   deletedAt?: Date
-  publisherId?: number
   role?: string
   accountState?: AccountState
   referrerId?: number

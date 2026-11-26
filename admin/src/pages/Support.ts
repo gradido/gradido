@@ -4,6 +4,7 @@ import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
   adminListSupportTickets,
+  adminListSupportTicketsCount,
   adminReassignSupportTicket,
   supportTicketsMenu,
 } from '@/graphql/supportTickets.graphql'
@@ -34,6 +35,7 @@ import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.lo
 import {
   type ListedSupportTicket,
   supportSwitchSchema,
+  supportTicketCountSchema,
   supportTicketListSchema,
 } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
@@ -121,7 +123,7 @@ const DECISIONS = {
  * newest first (K2), searched by text or by a member and filtered by group (K4); a request opens
  * below its row to be read and answered, and an open one is closed with the tick or deleted from
  * its row (K3), or handed on to another group (K4). After every write -- done or refused -- the
- * page asks for its list and for the count of the open tab anew: what a request is now, the
+ * page asks for its list and for its counts anew: what a request is now, the
  * server says. The search and the tab are
  * kept for each moderator on this device (lastSearch.ts); the group filter opens on "Meine Gruppen"
  * (MG2) -- for a moderator with a scope on all they see -- and is not kept.
@@ -151,6 +153,13 @@ export class Support implements ClassComponent {
   private page = 1
   private tickets: ListedSupportTicket[] = []
   private count = 0
+  // The number at "Offen", as on the creation page: the open requests the search, the group and the
+  // box let through, on all pages -- the answer of the open tab's list, beside another tab a count
+  // of its own. Where it is the badges' count (MG2), it starts from theirs.
+  private openCount =
+    this.query === '' && this.group === HANDLED_FILTER ? adminStore.openSupportTickets : 0
+  // the question about it last asked: an answer to one before is dropped
+  private openAsked = 0
   // the question last asked: an answer to one before is dropped
   private asked = 0
   // the row button the moderator is asked about
@@ -193,11 +202,17 @@ export class Support implements ClassComponent {
           // here: a kept one stays on trial, for this list to judge (coderabbit on #4318).
           this.group = ''
           this.load(1)
+          if (this.tab !== 0) {
+            this.countOpen()
+          }
         }
       }
     })
     this.load(this.page)
     askOpenSupportTickets()
+    if (this.tab !== 0) {
+      this.countOpen()
+    }
     this.askSwitch()
   }
 
@@ -239,6 +254,10 @@ export class Support implements ClassComponent {
    */
   private async load(page: number) {
     const asked = ++this.asked
+    // the open tab's list answers the number at "Offen", by its own mark: also where the page has
+    // asked for another list since
+    const opens = this.tab === 0
+    const openAsked = opens ? ++this.openAsked : 0
     const answer = await graphqlRequest(adminListSupportTickets, {
       statuses: TABS[this.tab].states,
       currentPage: page,
@@ -247,17 +266,20 @@ export class Support implements ClassComponent {
       creationGroup: this.group,
       hideResubmission: this.tab === 0 && this.hideResubmission,
     })
+    const list = answer.success
+      ? v.parse(supportTicketListSchema, answer.value).adminListSupportTickets
+      : null
+    if (list && opens && openAsked === this.openAsked) {
+      this.openCount = list.count
+    }
     if (asked !== this.asked) {
       return
     }
-    if (!answer.success) {
+    if (!list) {
       toastError(t('support.loadFailed'))
       return
     }
-    const { count, tickets } = v.parse(
-      supportTicketListSchema,
-      answer.value,
-    ).adminListSupportTickets
+    const { count, tickets } = list
     if (this.keptOnTrial && count === 0) {
       // "Meine Gruppen" switched off finds nothing, whatever the search (MG5): then the choice asks
       // for another list, and that one judges it
@@ -281,18 +303,47 @@ export class Support implements ClassComponent {
     askMemberAvatars(tickets.flatMap((ticket) => ticket.user ?? []))
   }
 
-  // A narrower or another list starts at its first page: a later one may not be in it. The one
-  // way to load (load), page 1.
+  /**
+   * The number at "Offen" asked on its own, beside another tab: the count of the open tab's list,
+   * for a page of one -- the server has no count of its own for a search and a group --, and
+   * nothing of that one request.
+   */
+  private async countOpen() {
+    const openAsked = ++this.openAsked
+    const answer = await graphqlRequest(adminListSupportTicketsCount, {
+      statuses: TABS[0].states,
+      currentPage: 1,
+      pageSize: 1,
+      query: this.query,
+      creationGroup: this.group,
+      hideResubmission: this.hideResubmission,
+    })
+    if (answer.success && openAsked === this.openAsked) {
+      this.openCount = v.parse(supportTicketCountSchema, answer.value).adminListSupportTickets.count
+    }
+  }
+
+  // The search, the group or the box changed: the list from its first page -- a later one may not
+  // be in a narrower list --, and beside another tab the number at "Offen" asked anew.
   private searchAnew() {
     this.keptOnTrial = false
     keepLastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID, this.query)
     this.load(1)
+    if (this.tab !== 0) {
+      this.countOpen()
+    }
   }
 
-  /** After a write: the page as it is now, and the count of the open tab. */
+  /**
+   * After a write: the page as it is now, the count of the badges, and beside another tab the
+   * number at "Offen".
+   */
   private written() {
     this.load(this.page)
     askOpenSupportTickets()
+    if (this.tab !== 0) {
+      this.countOpen()
+    }
   }
 
   // The question closes before the yes is acted on (ConfirmModal): what was asked comes along.
@@ -421,11 +472,12 @@ export class Support implements ClassComponent {
             this.tab = tab
             keepLastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, tab)
             // the tab before goes at once, its pages too: none of them may be asked for in this one;
-            // the search and the group stay
+            // the search, the group and the box stay, and with them the number at "Offen"
             this.tickets = []
             this.count = 0
             this.page = 1
-            this.searchAnew()
+            this.keptOnTrial = false
+            this.load(1)
           },
           // on a phone the symbol stands above the word (App.css) and the number at the corner of
           // the tab (CreationConfirm.css)
@@ -435,8 +487,8 @@ export class Support implements ClassComponent {
               ' ',
               m('span.tab-word', t(word)),
               ' ',
-              index === 0 && adminStore.openSupportTickets > 0
-                ? m('span.badge.text-bg-danger.tab-badge', adminStore.openSupportTickets)
+              index === 0 && this.openCount > 0
+                ? m('span.badge.text-body.bg-body-secondary.tab-badge', this.openCount)
                 : null,
             ],
           })),
