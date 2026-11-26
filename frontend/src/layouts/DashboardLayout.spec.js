@@ -131,7 +131,6 @@ describe('DashboardLayout', () => {
   const createWalletStore = (gradidoID = null) => {
     logoutSpy = vi.fn()
     const pinia = walletStore({
-      publisherId: 123,
       firstName: 'User',
       lastName: 'Example',
       token: 'valid-token',

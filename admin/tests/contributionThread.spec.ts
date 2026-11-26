@@ -341,6 +341,35 @@ test('changes the text of the contribution, and the list comes anew', async ({ p
   await expect(card(page)).toHaveCount(0)
 })
 
+// Beside another tab the list asked anew does not count the open ones: the number at "Offen" is
+// counted with it -- a search may no longer find the changed text (Bernd, 26.11.2026).
+test('counts the number at "Offen" anew after the text changed on the tab "Alle"', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminUpdateContribution: updated })
+  await page.addInitScript(
+    (id) =>
+      localStorage.setItem(
+        'gradido-admin-last-search',
+        JSON.stringify({ [id]: { '/creation-confirm#tab': 4 } }),
+      ),
+    moderator.gradidoID,
+  )
+  const counted = () =>
+    graphql
+      .sentFor('adminListContributions')
+      .filter((sent) => !(sent.variables as Record<string, unknown>).paginated).length
+  await openRow(page, 1)
+  const before = counted()
+
+  await formTab(page, de.moderator.memo).click()
+  await field(page).fill('A changed memo')
+  await save(page).click()
+  await expect(page.getByRole('alert')).toContainText(de.message.request)
+  await expect.poll(counted).toBe(before + 1)
+})
+
 test('sends nothing for a resubmission without a day', async ({ page, graphql }) => {
   await openRow(page, 1)
 

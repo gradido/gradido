@@ -131,7 +131,6 @@ export const createUser = gql`
     $lastName: String!
     $email: String!
     $language: String!
-    $publisherId: Int
     $redeemCode: String
     $project: String
     $referrerAlias: String
@@ -145,7 +144,6 @@ export const createUser = gql`
       firstName: $firstName
       lastName: $lastName
       language: $language
-      publisherId: $publisherId
       redeemCode: $redeemCode
       project: $project
       referrerAlias: $referrerAlias
@@ -467,8 +465,8 @@ export const redeemTransactionLink = gql`
 `
 
 export const login = gql`
-  mutation ($email: String!, $password: String!, $publisherId: Int) {
-    login(email: $email, password: $password, publisherId: $publisherId) {
+  mutation ($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
       gradidoID
       alias
       emailChecked
@@ -484,8 +482,6 @@ export const login = gql`
       humhubPublishName
       gmsPublishLocation
       userLocation
-      hasElopage
-      publisherId
       role
       hideAmountGDD
       hideAmountGDT

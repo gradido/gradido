@@ -6,7 +6,6 @@ export const adminEmailStatus = gql`
     adminEmailStatus(userId: $userId) {
       gdtEmail
       currentConfirmed
-      elopageBuysOnCurrent
       pendingEmail
       pendingSince
     }

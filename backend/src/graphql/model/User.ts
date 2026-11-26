@@ -73,10 +73,8 @@ export class User {
       this.deletedAt = dbUser.deletedAt
       this.createdAt = dbUser.createdAt
       this.language = dbUser.language
-      this.publisherId = dbUser.publisherId
 
       this.klickTipp = null
-      this.hasElopage = null
       this.humhubAllowed = dbUser.humhubAllowed
       this.gmsAllowed = dbUser.gmsAllowed
       this.gmsPublishName = dbUser.gmsPublishName
@@ -258,8 +256,8 @@ export class User {
   // The member's own profile picture as base64, without a data URI prefix, or null when
   // they have not set one. It does not come from the user row — it lives in its own
   // table, so somebody has to put it here: the login joins it in with the row
-  // (dbFindUserLoginByEmail), verifyLogin reads it separately, the way hasElopage and
-  // klickTipp are read there.
+  // (dbFindUserLoginByEmail), verifyLogin reads it separately, the way klickTipp is
+  // read there.
   //
   // The SMALL rendition, 128x128 -- the everyday picture, the one every list and booking
   // row shows. The full 512x512 crop is not a field on this type at all, and that has not
@@ -300,15 +298,8 @@ export class User {
   @Field(() => Date, { nullable: true })
   avatarUpdatedAt: Date | null
 
-  // This is not the users publisherId, but the one of the users who recommend him
-  @Field(() => Int, { nullable: true })
-  publisherId: number | null
-
   @Field(() => KlickTipp, { nullable: true })
   klickTipp: KlickTipp | null
-
-  @Field(() => Boolean, { nullable: true })
-  hasElopage: boolean | null
 
   // 0..1 role: user_roles.user_id is UNIQUE (migration 0135). Null for a usual member.
   @Field(() => String, { nullable: true })

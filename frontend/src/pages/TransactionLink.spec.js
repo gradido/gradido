@@ -150,7 +150,7 @@ describe('TransactionLink', () => {
               validUntil: transactionLinkValidExpireDate(),
               redeemedAt: '2022-03-18T10:08:43.000Z',
               deletedAt: now,
-              user: { firstName: 'Bibi', publisherId: 0, gradidoID: 'other-user-id' },
+              user: { firstName: 'Bibi', gradidoID: 'other-user-id' },
             },
           },
         },

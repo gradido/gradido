@@ -309,16 +309,15 @@ describe('Pinia store', () => {
         gmsAllowed: true,
         humhubAllowed: false,
         gmsPublishLocation: 'GMS_LOCATION_TYPE_EXACT',
-        publisherId: 1234,
         role: 'ADMIN',
         hideAmountGDD: false,
         hideAmountGDT: true,
         darkMode: true,
       }
 
-      it('calls twenty-three setters', () => {
+      it('calls twenty-two setters', () => {
         wallet.login(commitedData)
-        expect(calls).toHaveLength(23)
+        expect(calls).toHaveLength(22)
       })
 
       /**
@@ -582,9 +581,9 @@ describe('Pinia store', () => {
         expect(localStorage.getItem('gradido-kept-pictures')).toBeNull()
       })
 
-      it('calls twenty-seven setters', () => {
+      it('calls twenty-six setters', () => {
         wallet.logout()
-        expect(calls).toHaveLength(27)
+        expect(calls).toHaveLength(26)
       })
 
       /**

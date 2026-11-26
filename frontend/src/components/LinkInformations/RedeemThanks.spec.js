@@ -88,7 +88,7 @@ const link = (overrides = {}) => ({
   validUntil: '2026-07-12T09:30:00.000Z',
   redeemedAt: null,
   deletedAt: null,
-  senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma', publisherId: null },
+  senderUser: { gradidoID: GRADIDO_ID, alias: 'Oma-Emma' },
   // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
   senderAvatar: null,
   communities: [HOME, WIEN],

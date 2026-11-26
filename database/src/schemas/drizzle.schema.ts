@@ -42,7 +42,6 @@ export const tableCollations: Record<string, string> = {
   dlt_transactions: 'utf8mb4_general_ci',
   events: 'utf8mb4_general_ci',
   federated_communities: 'utf8mb4_general_ci',
-  login_elopage_buys: 'utf8mb4_general_ci',
   pending_transactions: 'utf8mb4_general_ci',
   user_aliases: 'utf8mb4_general_ci',
   user_contacts: 'utf8mb4_general_ci',
@@ -584,32 +583,6 @@ export const eventMatchingArrivalsTable = mysqlTable(
 export type EventMatchingArrivalSelect = typeof eventMatchingArrivalsTable.$inferSelect
 export type EventMatchingArrivalInsert = typeof eventMatchingArrivalsTable.$inferInsert
 
-// ⚠️ `payer_email` and `publisher_email` are utf8mb3_bin: compared byte by byte, so
-// case-sensitive.
-export const loginElopageBuysTable = mysqlTable('login_elopage_buys', {
-  id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-  elopageUserId: int('elopage_user_id').default(sql`NULL`),
-  affiliateProgramId: int('affiliate_program_id').default(sql`NULL`),
-  publisherId: int('publisher_id').default(sql`NULL`),
-  orderId: int('order_id').default(sql`NULL`),
-  productId: int('product_id').default(sql`NULL`),
-  productPrice: int('product_price').notNull(),
-  payerEmail: varchar('payer_email', { length: 255 })
-    .charSet('utf8mb3')
-    .collate('utf8mb3_bin')
-    .notNull(),
-  publisherEmail: varchar('publisher_email', { length: 255 })
-    .charSet('utf8mb3')
-    .collate('utf8mb3_bin')
-    .notNull(),
-  payed: tinyint().notNull(),
-  successDate: datetime('success_date', { mode: 'date' }).notNull(),
-  event: varchar({ length: 255 }).notNull(),
-})
-
-export type LoginElopageBuySelect = typeof loginElopageBuysTable.$inferSelect
-export type LoginElopageBuyInsert = typeof loginElopageBuysTable.$inferInsert
-
 // Mirrors the table as the migrations leave it, not the TypeORM entity: the entity reads
 // `type_id` and the gdd4 columns as not null and `linked_user_gradido_id` as nullable, the
 // table has it the other way round.
@@ -839,7 +812,6 @@ export const usersTable = mysqlTable(
     language: varchar({ length: 4 }).default(sql`'de'`).notNull(),
     referrerId: int('referrer_id', { unsigned: true }).default(sql`NULL`),
     contributionLinkId: int('contribution_link_id', { unsigned: true }).default(sql`NULL`),
-    publisherId: int('publisher_id', { unsigned: true }).default(0),
     hideAmountGdd: boolean('hideAmountGDD').default(false),
     hideAmountGdt: boolean('hideAmountGDT').default(false),
     gmsAllowed: boolean('gms_allowed').default(false).notNull(),

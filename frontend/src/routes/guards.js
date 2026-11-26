@@ -39,16 +39,6 @@ const conversationWith = (partner) => ({
 })
 
 const addNavigationGuards = (router, store, apollo) => {
-  // handle publisherId
-  router.beforeEach((to, from, next) => {
-    const publisherId = to.query.pid
-    if (publisherId) {
-      store.setPublisherId(publisherId)
-      delete to.query.pid
-    }
-    next()
-  })
-
   // store token on authenticate
   //
   // ⭐ And go on to the page named in `redirect`, where there is one -- written for somebody who

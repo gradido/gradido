@@ -149,7 +149,6 @@ Für alle Benutzer:
 Kontoübersicht
 Startseite
 Überweisung
-Mitgliederbereich (externer Link zu elopage: https://elopage.com/s/gradido/sign_in)
 Rechts oben:
 Profil
 Abmelden
@@ -293,7 +292,6 @@ Für alle Benutzer:
 Kontoübersicht
 Startseite
 Überweisung
-Mitgliederbereich (externer Link zu elopage: https://elopage.com/s/gradido/sign_in)
 Rechts oben:
 Profil
 Abmelden

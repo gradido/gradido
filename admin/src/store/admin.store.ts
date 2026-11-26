@@ -106,7 +106,7 @@ export const setOpenCreations = (openCreations: number) => {
   save()
 }
 
-/** The support requests of the open tab (Support-Anfragen K3), for the badges. */
+/** The open support requests of "Meine Gruppen" (Support-Anfragen K3, MG2), for the badges. */
 export const setOpenSupportTickets = (openSupportTickets: number) => {
   adminStore.openSupportTickets = openSupportTickets
   save()
