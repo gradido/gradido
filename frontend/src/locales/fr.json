@@ -870,6 +870,7 @@
         "min": "Le message doit comporter au moins {min} caractères.",
         "required": "Le message est un champ obligatoire."
       },
+      "minLength": "Le champ {fieldName} doit contenir au minimum {min} caractères",
       "requiredField": "Le champ {fieldName} est obligatoire",
       "subject": {
         "max": "L'objet ne doit pas dépasser {max} caractères.",

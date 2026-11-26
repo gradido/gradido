@@ -1,0 +1,31 @@
+// Bootstrap 5.3.3 configuration (functions, variables, mixins, maps). These come
+// before custom/variables so our overrides win, and before the full Bootstrap
+// import below.
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/maps";
+@import "custom/variables";
+@import "design-tokens";
+@import "gradido-template";
+@import "gradido-template-dark";
+
+// The full Bootstrap 5.3.3 package. It already pulls in every component that used
+// to be listed individually here (alert, badge, dropdown, buttons, card, modal,
+// pagination, ... plus bootstrap-grid and bootstrap-reboot), so importing those a
+// second time only emitted byte-identical duplicate rules. Import the package once.
+@import "bootstrap/scss/bootstrap";
+
+// Bootstrap-vue (2.21.1) scss
+
+
+@import "auth-navbar";
+@import "navbar";
+
+// The eye inside the password field and the PIN. After Bootstrap, or its button states win
+// every tie with the eye's rules (see the file's head).
+@import "reveal-field";
+
+// Map Bootstrap's native dark color mode onto our tokens. Must stay last so it
+// wins the cascade over Bootstrap's own [data-bs-theme=dark] block.
+@import "color-mode-bridge";

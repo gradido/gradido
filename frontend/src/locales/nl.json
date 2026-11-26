@@ -870,6 +870,7 @@
         "min": "Het bericht moet minstens {min} tekens lang zijn.",
         "required": "Het bericht is een verplicht veld."
       },
+      "minLength": "{fieldName} moet minimaal {min} karakters zijn",
       "requiredField": "{fieldName} is verplicht",
       "subject": {
         "max": "Het onderwerp mag niet langer zijn dan {max} tekens.",

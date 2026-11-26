@@ -870,6 +870,7 @@
         "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
         "required": "Die Nachricht ist ein Pflichtfeld."
       },
+      "minLength": "{fieldName} muss mindestens {min} Zeichen lang sein",
       "requiredField": "{fieldName} ist ein Pflichtfeld",
       "subject": {
         "max": "Der Betreff darf höchstens {max} Zeichen lang sein.",

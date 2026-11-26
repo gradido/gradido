@@ -58,7 +58,7 @@
    here: the shared ThemedSelect keeps its size in the six other places it is used. */
 .list-sort :global(.themed-select-toggle) {
   --bs-btn-font-size: 14px;
-  --bs-btn-font-weight: 500;
+  --bs-btn-font-weight: 400;
   --bs-btn-padding-y: 6px;
   --bs-btn-padding-x: 12px;
 }

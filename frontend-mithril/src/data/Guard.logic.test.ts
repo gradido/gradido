@@ -4,6 +4,7 @@ import { type Navigation, type Visitor, whereTo } from './Guard.logic'
 
 const to = (path: string, more: Partial<Navigation> = {}): Navigation => ({
   path,
+  query: '',
   requiresAuth: false,
   isStart: false,
   forProject: false,
@@ -13,9 +14,21 @@ const member: Visitor = { sessionRuns: true, creationAllowed: null }
 const nobody: Visitor = { sessionRuns: false, creationAllowed: null }
 
 describe('whereTo', () => {
+  it('leads from the root of the wallet to the sign-in', () => {
+    expect(whereTo(to('/'), nobody)).toBe('/login')
+    expect(whereTo(to('/', { isStart: true }), member)).toBe('/login')
+  })
+
   describe('a start with a running session', () => {
     it('goes on from the sign-in page to the overview', () => {
       expect(whereTo(to('/login', { isStart: true }), member)).toBe('/overview')
+    })
+
+    it('goes on to the link whose code the address of the sign-in carries, with its query', () => {
+      const withCode = to('/login/c0de', { isStart: true, query: '?codeCommunityUuid=abc' })
+      expect(whereTo(withCode, member)).toBe('/redeem/c0de?codeCommunityUuid=abc')
+      expect(whereTo(withCode, nobody)).toBeNull()
+      expect(whereTo({ ...withCode, isStart: false }, member)).toBeNull()
     })
 
     it('keeps the form for a sign-in for a project', () => {

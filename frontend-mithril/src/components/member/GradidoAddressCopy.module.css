@@ -1,0 +1,33 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a comment to
+   it -- the build fails with "Invalid empty selector". */
+
+/* The copy control is a button so that it can be reached with the keyboard, and a button
+   brings none of the link appearance with it. Colour is inherited from whatever wraps it;
+   the underline on hover is what the house does for every link ($link-hover-decoration),
+   said here because a button is not covered by that rule. */
+.copy-clipboard-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+
+  /* A button centres its text; once the address takes two lines they follow the place
+     around them instead (right in the top bar, centred under a code). */
+  text-align: inherit;
+  overflow-wrap: anywhere;
+}
+
+/* Each part stays whole and moves to the next line as one. Only a part that is wider than
+   the place itself breaks inside (a long host, a Gradido ID on a very narrow phone). Under
+   the button's class: the scoped rule this was had one level more (the scope attribute). */
+.copy-clipboard-button :global(.address-part) {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.copy-clipboard-button:hover {
+  text-decoration: underline;
+}

@@ -20,8 +20,11 @@ const sessionStateSchema = v.fallback(
     // The page asked for while nobody was signed in, with its query and hash: where the sign-in
     // goes on to. A sign-out puts the overview back.
     redirectPath: v.fallback(v.string(), '/overview'),
+    // A language chosen while nobody was signed in: the next sign-in keeps it, and saves it
+    // to the account, instead of taking the account's.
+    preLoginLanguage: v.fallback(v.nullable(v.string()), null),
   }),
-  { member: null, language: null, redirectPath: '/overview' },
+  { member: null, language: null, redirectPath: '/overview', preLoginLanguage: null },
 )
 
 // What the wallet reads out of the token's middle part; `exp` and `iat` in seconds.
@@ -118,7 +121,12 @@ export function logout() {
 }
 
 export function login(member: Member) {
-  session.set({ ...session.state, member })
+  session.set({
+    ...session.state,
+    member,
+    language: session.state.preLoginLanguage ?? member.language,
+    preLoginLanguage: null,
+  })
   // auth token is set in client
 }
 

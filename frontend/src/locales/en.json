@@ -870,6 +870,7 @@
         "min": "The message should be at least {min} characters long.",
         "required": "The message is required."
       },
+      "minLength": "The {fieldName} field must be at least {min} characters",
       "requiredField": "The {fieldName} field is required",
       "subject": {
         "max": "The subject should not be longer than {max} characters.",

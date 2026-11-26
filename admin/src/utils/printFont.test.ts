@@ -65,7 +65,7 @@ describe('printFontReady', () => {
 
     await printFontReady(['Startguthaben'])
 
-    expect(seen).toEqual([40, 40, 40, 40])
+    expect(seen).toEqual([10, 10, 10])
   })
 
   it('declares what the wallet declares, with the addresses of the wallet root', async () => {
@@ -91,7 +91,7 @@ describe('printFontReady', () => {
   })
 
   // ⛔ The text decides which subsets of the font are fetched.
-  it('asks for the four weights with every text', async () => {
+  it('asks for the three weights with every text', async () => {
     const load = mock<Load>(async () => [])
     withFonts(load)
 
@@ -99,7 +99,6 @@ describe('printFontReady', () => {
 
     expect(load.mock.calls.map(([font]) => font)).toEqual([
       '400 16px "Open Sans"',
-      '500 16px "Open Sans"',
       '600 16px "Open Sans"',
       '700 16px "Open Sans"',
     ])
@@ -223,10 +222,10 @@ describe('the starting-bonus cheque', () => {
       }),
     ).resolves.toBe('data:image/png;base64,cheque')
 
-    expect(order.slice(0, 4).map(({ step }) => step)).toEqual(['load', 'load', 'load', 'load'])
-    expect(order.slice(0, 4).every(({ declared }) => declared)).toBe(true)
+    expect(order.slice(0, 3).map(({ step }) => step)).toEqual(['load', 'load', 'load'])
+    expect(order.slice(0, 3).every(({ declared }) => declared)).toBe(true)
     expect(order[0].text).toContain('Сообщество Градидо')
     expect(order[0].text).toContain('www.gradido.net')
-    expect(order.slice(4).some(({ step }) => step === 'measureText')).toBe(true)
+    expect(order.slice(3).some(({ step }) => step === 'measureText')).toBe(true)
   })
 })

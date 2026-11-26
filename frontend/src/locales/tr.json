@@ -870,6 +870,7 @@
         "min": "Mesaj en az {min} karakter olmalı.",
         "required": "Mesaj zorunlu bir alandır."
       },
+      "minLength": "{fieldName} alanına en az {min} karakter girilmelidir",
       "requiredField": "{fieldName} alanı zorunludur",
       "subject": {
         "max": "Konu en fazla {max} karakter olmalı.",

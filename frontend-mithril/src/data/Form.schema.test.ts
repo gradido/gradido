@@ -7,7 +7,9 @@ import {
   emailFieldSchema,
   memoSchema,
   messageSchema,
+  nameFieldSchema,
   newPasswordSchema,
+  requiredFieldSchema,
   subjectSchema,
   supportTicketTextSchema,
 } from './Form.schema'
@@ -164,6 +166,31 @@ describe('emailFieldSchema', () => {
   it('names the field in its sentences', () => {
     expect(firstOf(email, '')).toBe('The Email field is required')
     expect(read(email, 'bibi')).toEqual(['The Email field must be a valid email'])
+  })
+})
+
+describe('nameFieldSchema', () => {
+  const firstName = nameFieldSchema('First name', 3)
+
+  it('takes a name of the least length, as it is typed', () => {
+    expect(read(firstName, 'Bib')).toBe('Bib')
+  })
+
+  it('says of an empty field that it is required, of a short name its least length', () => {
+    expect(firstOf(firstName, '')).toBe('The First name field is required')
+    expect(read(firstName, 'Bi')).toEqual(['The First name field must be at least 3 characters'])
+  })
+
+  it('takes no name longer than the server keeps', () => {
+    expect(v.is(firstName, 'a'.repeat(255))).toBe(true)
+    expect(v.is(firstName, 'a'.repeat(256))).toBe(false)
+  })
+})
+
+describe('requiredFieldSchema', () => {
+  it('takes whatever is typed, and names the field where nothing is', () => {
+    expect(read(requiredFieldSchema('Password'), ' a b ')).toBe(' a b ')
+    expect(read(requiredFieldSchema('Password'), '')).toEqual(['The Password field is required'])
   })
 })
 

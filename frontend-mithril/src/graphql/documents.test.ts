@@ -13,6 +13,19 @@ import * as v from 'valibot'
 import { creationGroupSchema } from '@/data/CreationGroup.schema'
 import { memberSchema } from '@/data/Member.schema'
 import { openCreationsSchema } from '@/data/OpenCreation.schema'
+import { projectBrandingBannerSchema } from '@/data/ProjectBranding.schema'
+import {
+  authenticateHumhubAutoLogin,
+  confirmEmail,
+  confirmEmailChange,
+  createUser,
+  forgotPassword,
+  projectBrandingBanner,
+  queryOptIn,
+  revokeEmailChange,
+  setPassword,
+  updateLanguage,
+} from './account'
 import {
   communityCreationGroups,
   creationGroups,
@@ -44,6 +57,20 @@ const DOCUMENTS: Record<string, [DocumentNode, v.GenericSchema]> = {
     v.object({ suggestedCreationGroup: v.nullable(creationGroupSchema) }),
   ],
   openCreations: [openCreations, openCreationsSchema],
+  // asked for what they do: nothing of the answer is read
+  createUser: [createUser, v.unknown()],
+  forgotPassword: [forgotPassword, v.unknown()],
+  queryOptIn: [queryOptIn, v.unknown()],
+  setPassword: [setPassword, v.unknown()],
+  confirmEmail: [confirmEmail, v.unknown()],
+  confirmEmailChange: [confirmEmailChange, v.unknown()],
+  revokeEmailChange: [revokeEmailChange, v.unknown()],
+  updateLanguage: [updateLanguage, v.unknown()],
+  projectBrandingBanner: [projectBrandingBanner, projectBrandingBannerSchema],
+  authenticateHumhubAutoLogin: [
+    authenticateHumhubAutoLogin,
+    v.object({ authenticateHumhubAutoLogin: v.string() }),
+  ],
 }
 
 // A valibot schema as far as this test looks into it.

@@ -145,6 +145,7 @@ module.exports = {
           // until the old wallet goes.
           'error.no-storage',
           'form.validation.email',
+          'form.validation.minLength',
           'pagination.label',
           'pagination.next',
           'pagination.page',

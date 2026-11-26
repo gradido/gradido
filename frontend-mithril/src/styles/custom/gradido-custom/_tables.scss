@@ -1,0 +1,26 @@
+// Tables
+@use "sass:color";
+
+$table-cell-padding: 1rem ;
+$table-cell-padding-sm: 0.5rem ;
+$table-bg: transparent ;
+$table-accent-bg: rgba($black, 0.05) ;
+$table-hover-bg: $gray-100 ;
+$table-active-bg: $table-hover-bg ;
+$table-border-width: $border-width ;
+$table-border-color: $gray-200 ;
+$table-head-bg: $gray-100 ;
+$table-head-color: $gray-600 ;
+$table-head-spacer-y: 0.75rem ;
+$table-head-font-size: 0.65rem ;
+$table-head-font-weight: $font-weight-bold ;
+$table-head-text-transform: uppercase ;
+$table-head-letter-spacing: 1px ;
+$table-body-font-size: 0.8125rem ;
+$table-dark-bg: $default ;
+$table-dark-accent-bg: rgba($white, 0.05) ;
+$table-dark-hover-bg: rgba($white, 0.075) ;
+$table-dark-border-color: color.adjust($default, $lightness: 7%) ;
+$table-dark-color: $body-bg ;
+$table-dark-head-bg: color.adjust($default, $lightness: 4%) ;
+$table-dark-head-color: color.adjust($default, $lightness: 35%) ;

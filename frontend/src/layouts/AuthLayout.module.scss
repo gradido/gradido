@@ -58,8 +58,11 @@
   }
 }
 
+/* `clip`, not `hidden`: a box that hides its overflow can still be scrolled to it. The rows
+   reach 12px past the right edge (their gutter), and focusing a field near it moved the whole
+   page 12px to the left, where it stayed (seen in the pictures of tests/register.spec.ts). */
 .authTemplate {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .bgTxtBox {

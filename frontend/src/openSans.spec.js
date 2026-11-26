@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // Open Sans ships with the wallet, in three places that cannot import each other: the files
@@ -46,40 +46,28 @@ const SUBSETS = [
 ]
 
 describe('the declaration of Open Sans', () => {
-  it('has forty faces of one family', () => {
-    expect(faces).toHaveLength(40)
+  it('has ten faces of one family', () => {
+    expect(faces).toHaveLength(10)
     expect(new Set(faces.map(({ family }) => family))).toEqual(new Set(["'Open Sans'"]))
   })
 
-  // ⛔ Not a range. Every file carries the whole weight axis, but `font-weight: 300 800`
-  // would draw a text that asks for 500 in 500 instead of 400 -- bolder than it has been.
-  it('declares four weights one by one, each for all ten subsets', () => {
-    for (const weight of ['300', '400', '600', '700']) {
-      expect(faces.filter((face) => face.weight === weight)).toHaveLength(10)
-    }
+  // ⛔ One face per file: Firefox and WebKit fetch a file once for every face of it a page
+  // uses. Ending at 700: whatever asks for more is drawn in 700, as it always was.
+  it('declares every face for the weights 300 to 700', () => {
+    expect(faces.map(({ weight }) => weight)).toEqual(SUBSETS.map(() => '300 700'))
   })
 
   // ⛔ The ranges overlap, and among faces that match equally the later rule draws the
   // character. A sorted list would move characters to another file.
-  it('keeps the order the family was served in: subset by subset, weight by weight', () => {
+  it('keeps the order the family was served in', () => {
     expect(faces.map(({ address }) => address)).toEqual(
-      ['300', '400', '600', '700'].flatMap(() =>
-        SUBSETS.map((subset) => `/fonts/open-sans/open-sans-${subset}.woff2`),
-      ),
-    )
-    expect(faces.map(({ weight }) => weight)).toEqual(
-      ['300', '400', '600', '700'].flatMap((weight) => SUBSETS.map(() => weight)),
+      SUBSETS.map((subset) => `/fonts/open-sans/open-sans-${subset}.woff2`),
     )
   })
 
-  it('gives every face of a subset the same range, and no font-display', () => {
-    for (const subset of SUBSETS) {
-      const ranges = faces
-        .filter(({ address }) => address.endsWith(`-${subset}.woff2`))
-        .map(({ range }) => range)
-      expect(ranges).toHaveLength(4)
-      expect(new Set(ranges).size).toBe(1)
-      expect(ranges[0]).toMatch(/^U\+/)
+  it('gives every face a range, and no font-display', () => {
+    for (const { range } of faces) {
+      expect(range).toMatch(/^U\+/)
     }
     expect(declaration).not.toMatch(/font-display/)
   })
@@ -106,6 +94,50 @@ describe('the declaration of Open Sans', () => {
     const main = read('./main.js').replace(/^\s*\/\/.*$/gm, '')
     expect(main).toMatch(/^import '\.\/assets\/fonts\/open-sans\/open-sans\.css'$/m)
     expect(readdirSync(resolve(here, FONT_DIR)).filter((name) => name.endsWith('.css'))).toEqual([])
+  })
+})
+
+// Inside the declared range a weight is drawn as asked. The wallet is drawn in 300, 400, 600
+// and 700; a style that asks for 500 would draw bolder than every other place that did.
+describe('the weights the wallet asks for', () => {
+  const files = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory()
+        ? files(join(dir, entry.name))
+        : /\.(s?css|vue|tsx?|js)$/.test(entry.name) && !/\.spec\.|\.test\./.test(entry.name)
+          ? [join(dir, entry.name)]
+          : [],
+    )
+  // Both wallets: the Mithril one draws with these styles and its own. Not read: gradido.css,
+  // which is compiled (Bootstrap's `.fw-medium` stands in it, which no page uses), and the
+  // declarations of the fonts, which ask for nothing.
+  const sources = [here, resolve(here, '../../frontend-mithril/src')]
+    .filter((dir) => existsSync(dir))
+    .flatMap(files)
+    .filter((file) => !/assets\/(css\/gradido\.css|fonts\/)/.test(file))
+  const asked = sources.flatMap((file) =>
+    [
+      ...withoutComments(readFileSync(file, 'utf8')).matchAll(
+        /font-weight:\s*(\d+)|\.font = `(\d+) |\bfw-(medium|semibold|bold|normal|light)\b/g,
+      ),
+    ].map(([, css, canvas, utility]) => ({
+      file: relative(here, file),
+      weight:
+        css ??
+        canvas ??
+        { medium: '500', semibold: '600', bold: '700', normal: '400', light: '300' }[utility],
+    })),
+  )
+
+  it('are really read', () => {
+    expect(asked.length).toBeGreaterThan(100)
+  })
+
+  it('are the four the wallet is drawn in', () => {
+    expect(asked.filter(({ weight }) => !['300', '400', '600', '700'].includes(weight))).toEqual([
+      // the community's name, in Afacad, whose axis has 525
+      { file: 'components/Menu/Navbar.module.scss', weight: '525' },
+    ])
   })
 })
 

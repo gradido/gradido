@@ -1,0 +1,7 @@
+// Form validation
+@use "sass:color";
+
+$form-feedback-valid-bg: color.adjust($success, $lightness: 15%) ;
+$form-feedback-valid-color: $success ;
+$form-feedback-invalid-bg: color.adjust($warning, $lightness: 15%) ;
+$form-feedback-invalid-color: $warning ;

@@ -12,7 +12,7 @@ afterEach(() => {
 })
 
 describe('printFontReady', () => {
-  it('asks for the four weights the drawers use, by the family name alone', async () => {
+  it('asks for the three weights the drawers use, by the family name alone', async () => {
     const load = vi.fn(async () => [])
     withFonts(load)
 
@@ -20,7 +20,6 @@ describe('printFontReady', () => {
 
     expect(load.mock.calls.map(([font]) => font)).toEqual([
       '400 16px "Open Sans"',
-      '500 16px "Open Sans"',
       '600 16px "Open Sans"',
       '700 16px "Open Sans"',
     ])
@@ -34,7 +33,7 @@ describe('printFontReady', () => {
 
     await printFontReady(['Ελένη', 'Привет', 'gradido.net'])
 
-    expect(load).toHaveBeenCalledTimes(4)
+    expect(load).toHaveBeenCalledTimes(3)
     for (const [, text] of load.mock.calls) {
       expect(text).toContain('Ελένη')
       expect(text).toContain('Привет')
@@ -51,7 +50,7 @@ describe('printFontReady', () => {
 
     load.mockClear()
     await printFontReady([null, ''])
-    expect(load).toHaveBeenCalledTimes(4)
+    expect(load).toHaveBeenCalledTimes(3)
     expect(load.mock.calls[0][1]).toBe(' ')
   })
 
