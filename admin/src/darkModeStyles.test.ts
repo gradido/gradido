@@ -267,7 +267,7 @@ describe('the dark mode of the admin', () => {
     const DARK_COLOURS_AT_MOST: Record<string, number> = {
       [APP]: 43,
       // The four tints of a row (ground, striped, under the pointer, border) and their muted
-      // grey, the faint whites of the group select, the light edge between two cards on a phone,
+      // grey, the faint whites of the group select, the light edge between two contributions,
       // and the small Crea logo's edge, the big Crea button's.
       [SWEEP.rows]: 22,
       // The yellow of the prefix, as a dark tint.
@@ -389,12 +389,12 @@ describe('the dark mode of the admin', () => {
   // parts the cards by brightness now: black at 60 % on the light grounds, at least 3 : 1 as WCAG
   // asks of a boundary (coderabbit, #4195), the white of the line below the top bar on the dark ones.
   it('the edge between two cards on a phone stands out from every ground', () => {
-    // The first cell of a card; an opened card's details (one cell across) keep their edge.
-    const FIRST_CELL =
-      '.open-creations-table .b-table-stacked-lg > tbody > tr > td:first-child:not([colspan])'
+    // The cells of a row, at the desk and on a phone; an opened row's details (one cell across)
+    // keep their edge.
+    const CELL = '.open-creations-table > table > tbody > tr > td:not([colspan])'
     const all = rules(read(SWEEP.rows))
-    const light = declarationsOf(all, FIRST_CELL)['border-top-color']
-    const dark = declarationsOf(all, `${DARK} ${FIRST_CELL}`)['border-top-color']
+    const light = declarationsOf(all, CELL)['border-top'].split(/ (?![^(]*\))/)[2]
+    const dark = declarationsOf(all, `${DARK} ${CELL}`)['border-top-color']
     expect(light).toBe('rgb(0 0 0 / 60%)')
     expect(dark).toBe('rgb(255 255 255 / 45%)')
     expect(read(join(here, 'components', 'NavBar.scss'))).toContain(dark)
@@ -437,6 +437,27 @@ describe('the dark mode of the admin', () => {
         }
       }
     }
+  })
+
+  // Bernd, 26.11.2026: at the desk too the line between two contributions was fainter than the
+  // lines inside one (under the name, above "confirmed by"). It is the phone's edge now, 3px above
+  // every row; on a phone it stays above a card's first cell only.
+  it('the edge between two contributions is 3px, at the desk as on a phone', () => {
+    const all = rules(read(SWEEP.rows))
+    const edge = declarationsOf(
+      all,
+      '.open-creations-table > table > tbody > tr > td:not([colspan])',
+    )
+    expect(edge['border-top'].split(/ (?![^(]*\))/).slice(0, 2)).toEqual(['3px', 'solid'])
+    // the phone's rules: those after its media query
+    const css = read(SWEEP.rows)
+    const phone = rules(css.slice(css.indexOf('@media (width < 992px)')))
+    expect(
+      declarationsOf(
+        phone,
+        '.open-creations-table .b-table-stacked-lg > tbody > tr > td:not(:first-child)',
+      ),
+    ).toEqual({ 'border-top-width': '0' })
   })
 
   // Bernd, 24.10.2026: the small Crea logo of a row takes the edge of the big Crea button at the
