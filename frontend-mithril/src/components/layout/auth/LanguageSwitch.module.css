@@ -31,14 +31,12 @@
 }
 
 .lsMenu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
   z-index: 1060;
   min-width: 180px;
   max-height: 280px;
-  overflow-y: auto;
-  margin: 0;
+
+  /* 4px under the button: the Dropdown sets `top` */
+  margin: 4px 0 0;
   padding: 4px;
   list-style: none;
 
@@ -53,6 +51,12 @@
 
 .lsItem {
   display: flex;
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
   align-items: center;
   justify-content: space-between;
   gap: 10px;

@@ -29,8 +29,8 @@ export class ThemedSelect<TValue> implements m.ClassComponent<Attrs<TValue>> {
       {
         class: `themed-select ${chosen ? '' : 'themed-select-placeholder'}`,
         buttonContent: chosen?.text ?? attrs.placeholder,
-        buttonClass: 'btn-md btn-outline-secondary themed-select-toggle',
-        menuClass: 'themed-select-menu',
+        buttonClass: 'btn btn-md btn-outline-secondary dropdown-toggle themed-select-toggle',
+        menuClass: 'dropdown-menu themed-select-menu',
         disabled: attrs.disabled,
         'data-test': attrs['data-test'],
       },

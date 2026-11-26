@@ -105,6 +105,42 @@ test('closes the list of languages by a click beside it', async ({ page, graphql
   await expect(page.locator('.ls-menu')).toBeHidden()
 })
 
+test('lets a keyboard choose a language, as in a menu', async ({
+  page,
+  graphql: _backend,
+}, info) => {
+  test.skip(
+    info.project.name.startsWith('old'),
+    'the old wallet reaches the languages by pointer only',
+  )
+  await page.goto('login')
+  const entry = (name: string) => page.getByRole('menuitemradio', { name })
+  await page.locator('.ls-trigger').focus()
+  await page.keyboard.press('Enter')
+  // the one shown, first, has the focus
+  await expect(entry('Deutsch')).toBeFocused()
+  await expect(entry('Deutsch')).toHaveAttribute('aria-checked', 'true')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.ls-menu')).toBeHidden()
+  await expect(page.locator('.ls-trigger')).toBeFocused()
+
+  await page.keyboard.press('ArrowDown')
+  await expect(entry('Deutsch')).toBeFocused()
+  await page.keyboard.press('End')
+  await expect(entry('Русский')).toBeFocused()
+  await page.keyboard.press('Home')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await expect(entry('Français')).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.ls-menu')).toBeHidden()
+  await expect(page.locator('.ls-trigger')).toBeFocused()
+  // a language fetched first: the page is drawn in it once it is there, without another touch
+  await expect(page.locator('.ls-current')).toHaveText('Français')
+  await expect(page.locator('form button[type="submit"]')).toHaveText(text('login', {}, 'fr'))
+})
+
 test('sets the size of the letters in the card', async ({ page, graphql: _backend }, info) => {
   await page.goto('login')
   const card = page.locator('.page-font-size')

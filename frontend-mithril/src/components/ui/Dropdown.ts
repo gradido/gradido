@@ -4,8 +4,9 @@ import './Dropdown.css'
 interface Attrs {
   /** what the button shows */
   buttonContent: m.Children
-  /** classes of the button beside `btn` and `dropdown-toggle`: its colour and size */
+  /** the button's classes; Bootstrap's grey button with its caret where not set */
   buttonClass?: string
+  /** the menu's classes; Bootstrap's `dropdown-menu` where not set */
   menuClass?: string
   /** classes of the dropdown itself */
   class?: string
@@ -51,7 +52,7 @@ export class Dropdown implements m.ClassComponent<Attrs> {
   readonly #close = (focusButton = true) => {
     this.#open = false
     if (focusButton) {
-      this.#dom?.querySelector<HTMLElement>('.dropdown-toggle')?.focus()
+      document.getElementById(`${this.#id}-button`)?.focus()
     }
     document.removeEventListener('click', this.#closeBeside, true)
   }
@@ -73,7 +74,7 @@ export class Dropdown implements m.ClassComponent<Attrs> {
   // After the draw and before the paint: an open menu can be measured, and is never seen in
   // the wrong place. The view leaves `top`, `bottom` and `maxHeight` alone, so they stay.
   onupdate({ dom, attrs }: m.VnodeDOM<Attrs>) {
-    const menu = dom.querySelector<HTMLElement>('.dropdown-menu')
+    const menu = dom.querySelector<HTMLElement>('[role="menu"]')
     if (!this.#open || !menu) {
       return
     }
@@ -83,7 +84,10 @@ export class Dropdown implements m.ClassComponent<Attrs> {
     const up = !attrs.noFlip && menu.offsetHeight > below && button.top > below
     menu.style.top = up ? 'auto' : '100%'
     menu.style.bottom = up ? '100%' : 'auto'
-    menu.style.maxHeight = `${up ? button.top : below}px`
+    // a height of the menu's own stylesheet stays where the room is larger
+    const room = up ? button.top : below
+    const own = Number.parseFloat(getComputedStyle(menu).maxHeight)
+    menu.style.maxHeight = `${Number.isNaN(own) ? room : Math.min(own, room)}px`
     if (this.#focusOnOpen) {
       const entries = [...menu.querySelectorAll<HTMLElement>(ENTRY)]
       entries.at(this.#focusOnOpen === 'first' ? 0 : -1)?.focus()
@@ -142,40 +146,42 @@ export class Dropdown implements m.ClassComponent<Attrs> {
       { class: attrs.class, 'data-test': attrs['data-test'], onkeydown: this.#onkeydown },
       [
         m(
-          'button.btn.dropdown-toggle',
+          'button',
           {
             type: 'button',
-            class: `${attrs.buttonClass ?? 'btn-md btn-secondary'} ${show}`,
+            class: `${attrs.buttonClass ?? 'btn btn-md btn-secondary dropdown-toggle'} ${show}`,
             id: `${this.#id}-button`,
             disabled: attrs.disabled,
             'aria-label': attrs.label,
             'aria-expanded': String(this.#open),
             'aria-haspopup': 'menu',
-            'aria-controls': `${this.#id}-menu`,
+            'aria-controls': this.#open ? `${this.#id}-menu` : undefined,
             onclick: () => (this.#open ? this.#close() : this.#openMenu('first')),
           },
           attrs.buttonContent,
         ),
-        m(
-          'ul.dropdown-menu.overflow-auto',
-          {
-            class: `${attrs.menuClass ?? ''} ${attrs.end ? 'dropdown-menu-end' : ''} ${show}`,
-            id: `${this.#id}-menu`,
-            role: 'menu',
-            'aria-labelledby': `${this.#id}-button`,
-            style: {
-              position: 'absolute',
-              ...(attrs.end ? { right: 0, left: 'auto' } : { left: 0 }),
+        // drawn only while open: a menu of other classes than Bootstrap's is not hidden by them
+        this.#open &&
+          m(
+            'ul.overflow-auto',
+            {
+              class: `${attrs.menuClass ?? 'dropdown-menu'} ${attrs.end ? 'dropdown-menu-end' : ''} ${show}`,
+              id: `${this.#id}-menu`,
+              role: 'menu',
+              'aria-labelledby': `${this.#id}-button`,
+              style: {
+                position: 'absolute',
+                ...(attrs.end ? { right: 0, left: 'auto' } : { left: 0 }),
+              },
+              // a choice closes the menu; an entry that cannot be chosen does not
+              onclick: (event: MouseEvent & { target: Element }) => {
+                if (event.target.closest(`${ENTRY}:not([aria-disabled="true"])`)) {
+                  this.#close()
+                }
+              },
             },
-            // a choice closes the menu; an entry that cannot be chosen does not
-            onclick: (event: MouseEvent & { target: Element }) => {
-              if (event.target.closest(`${ENTRY}:not([aria-disabled="true"])`)) {
-                this.#close()
-              }
-            },
-          },
-          children,
-        ),
+            children,
+          ),
       ],
     )
   }
