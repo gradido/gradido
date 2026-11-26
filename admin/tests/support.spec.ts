@@ -106,6 +106,18 @@ const card = (page: Page) => page.locator('.row-details-card')
 const tab = (page: Page, name: string) => page.getByRole('tab', { name })
 const asked = (graphql: { sentFor: (field: string) => { variables: object }[] }, field: string) =>
   graphql.sentFor(field).map((sent) => sent.variables)
+// The page's lists, and apart from them the counts of the open tab while another one is shown: the
+// list's count, for a page of one.
+const listQuestions = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
+  asked(graphql, 'adminListSupportTickets') as Record<string, unknown>[]
+const listAsked = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
+  listQuestions(graphql).filter((sent) => sent.pageSize !== 1)
+const openCounted = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
+  listQuestions(graphql).filter((sent) => sent.pageSize === 1)
+// the number at "Offen", and the one at "Support" in the menu
+const openNumber = (page: Page) => tab(page, de.support.tab.open).locator('.tab-badge')
+const menuBadge = (page: Page) =>
+  page.locator('nav.navbar').getByRole('link', { name: de.navbar.support }).locator('.badge')
 const open = async (page: Page) => {
   await signIn(page, '/support')
   await expect(rows(page)).toHaveCount(6)
@@ -235,10 +247,12 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql })
 
   const kept = await page.evaluate((key) => localStorage.getItem(key), KEPT)
   expect(JSON.parse(kept ?? '{}')[moderator.gradidoID]).toEqual({ '/support#tab': 1 })
+  // the tab changed without a count of the open one
+  expect(openCounted(graphql)).toEqual([])
   await page.reload()
   await expect(tab(page, de.support.tab.closed)).toHaveAttribute('aria-selected', 'true')
   await expect(rows(page)).toHaveCount(2)
-  expect(asked(graphql, 'adminListSupportTickets').at(-1)).toEqual({
+  expect(listAsked(graphql).at(-1)).toEqual({
     statuses: ['CLOSED'],
     currentPage: 1,
     pageSize: 25,
@@ -246,6 +260,9 @@ test('keeps the tab for the moderator on this device', async ({ page, graphql })
     creationGroup: '*handled',
     hideResubmission: false,
   })
+  // opened beside the open tab: its number counted apart, once
+  await expect(openNumber(page)).toHaveText('30')
+  expect(openCounted(graphql)).toHaveLength(1)
 })
 
 test('opens a request with its member, the remark and the whole thread, to read', async ({
@@ -500,8 +517,8 @@ test.describe('on a phone', () => {
     page,
   }) => {
     await open(page)
-    const badge = tab(page, de.support.tab.open).locator('.tab-badge')
-    await expect(badge).toHaveText('6')
+    const badge = openNumber(page)
+    await expect(badge).toHaveText('30')
     await expect(badge).toHaveCSS('position', 'absolute')
     // in the tab's upper right corner, not on a line of its own below the word
     const tabBox = await tab(page, de.support.tab.open).boundingBox()
@@ -739,7 +756,6 @@ test('lets no answer to an earlier count put back a count from before a write', 
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
   await expect(entry.locator('.badge')).toHaveText('5')
-  await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
 })
 
 test('empties the field with "Abbrechen", and sends nothing', async ({ page, graphql }) => {
@@ -860,17 +876,21 @@ test('says in words when a decision is refused, and asks for the list anew', asy
   await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
 })
 
-test('counts the open requests at the menu entry and at the open tab', async ({
+// The menu counts the open requests of "Meine Gruppen" (MG2), the open tab what its list holds
+// (Bernd, 26.11.2026): calm beside the menu's red.
+test('counts "Meine Gruppen" at the menu entry and the list at the open tab', async ({
   page,
   graphql,
 }) => {
-  const entry = page.locator('nav.navbar').getByRole('link', { name: de.navbar.support })
+  const entry = menuBadge(page)
   await open(page)
-  await expect(entry.locator('.badge')).toHaveText('6')
-  await expect(entry.locator('.badge')).toHaveClass(/text-bg-danger/)
-  await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('6')
+  await expect(entry).toHaveText('6')
+  await expect(entry).toHaveClass(/text-bg-danger/)
+  await expect(openNumber(page)).toHaveText('30')
+  await expect(openNumber(page)).toHaveClass(/bg-body-secondary/)
+  await expect(openNumber(page)).not.toHaveClass(/text-bg-danger/)
 
-  // after a write, the count as it is now
+  // after a write, both as they are now: the menu's count, and the list
   graphql.answer({ adminCloseSupportTicket: true })
   graphql.answer({
     adminCountOpenSupportTickets: {
@@ -881,12 +901,14 @@ test('counts the open requests at the menu entry and at the open tab', async ({
       elsewhereOnResubmission: 0,
       off: false,
     },
+    adminListSupportTickets: ticketList([...tickets.slice(1), own], 29),
   })
   await row(page, 0).getByRole('button', { name: de.support.close }).click()
   await dialog(page).getByRole('button', { name: de.support.confirmClose.yes }).click()
-  await expect(entry.locator('.badge')).toHaveText('5')
-  await expect(tab(page, de.support.tab.open).locator('.badge')).toHaveText('5')
+  await expect(entry).toHaveText('5')
+  await expect(openNumber(page)).toHaveText('29')
 
+  // nothing open in "Meine Gruppen": the menu shows no number, the tab what its list holds
   graphql.answer({
     adminCountOpenSupportTickets: {
       forModeration: 0,
@@ -898,8 +920,44 @@ test('counts the open requests at the menu entry and at the open tab', async ({
     },
   })
   await page.reload()
-  await expect(rows(page)).toHaveCount(6)
-  await expect(entry.locator('.badge')).toHaveCount(0)
+  await expect(rows(page)).toHaveCount(5)
+  await expect(entry).toHaveCount(0)
+  await expect(openNumber(page)).toHaveText('29')
+})
+
+// Beside another tab the number at "Offen" stays as the open tab counted it, and follows the search
+// in a count of its own: the list's count, for a page of one (Bernd, 26.11.2026).
+test('keeps the number at "Offen" beside another tab, and counts it there with the search', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    adminListSupportTickets: (variables: { query: string; statuses: string[] }) =>
+      variables.query === 'Garten'
+        ? ticketList([tickets[0]], 1)
+        : (byTab as (asked: object) => unknown)(variables),
+  })
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await expect(openNumber(page)).toHaveText('30')
+  // the tab changed without a count
+  expect(openCounted(graphql)).toEqual([])
+
+  await page.getByPlaceholder(de.user_memo_search).fill('Garten')
+  await expect(openNumber(page)).toHaveText('1')
+  expect(openCounted(graphql)).toEqual([
+    {
+      statuses: ['OPEN', 'IN_PROGRESS'],
+      currentPage: 1,
+      pageSize: 1,
+      query: 'Garten',
+      creationGroup: '*handled',
+      hideResubmission: true,
+    },
+  ])
+  // the menu counts "Meine Gruppen", whatever the page shows
+  await expect(menuBadge(page)).toHaveText('6')
 })
 
 test('steps back a page where the last request of the last page goes', async ({
@@ -938,8 +996,6 @@ test('steps back a page where the last request of the last page goes', async ({
 // K4: the search, the group filter and the magnifier, as on the creation page
 const groupFilter = (page: Page) => page.getByTestId('support-group-filter')
 const searchField = (page: Page) => page.getByPlaceholder(de.user_memo_search)
-const listAsked = (graphql: { sentFor: (field: string) => { variables: object }[] }) =>
-  asked(graphql, 'adminListSupportTickets') as Record<string, unknown>[]
 const OPEN_TAB = {
   statuses: ['OPEN', 'IN_PROGRESS'],
   currentPage: 1,
@@ -1624,6 +1680,29 @@ test('hands an open request on to another group once asked, then asks for the li
   // whether the request is still in the list is the server's to say
   await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
   await expect.poll(() => asked(graphql, 'adminCountOpenSupportTickets').length).toBe(2)
+})
+
+// A write beside another tab: the number at "Offen" is counted anew, as the menu's is.
+test('counts the number at "Offen" anew after handing a request on beside another tab', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({ adminReassignSupportTicket: true })
+  await open(page)
+  await tab(page, de.support.tab.all).click()
+  await expect(rows(page)).toHaveCount(9)
+  expect(openCounted(graphql)).toEqual([])
+
+  graphql.answer({
+    adminListSupportTickets: (variables: { pageSize: number }) =>
+      variables.pageSize === 1
+        ? ticketList([tickets[1]], 29)
+        : (byTab as (asked: object) => unknown)(variables),
+  })
+  await pickGroup(page, 0, '#kueche')
+  await dialog(page).getByRole('button', { name: de.support.reassignConfirm }).click()
+  await expect(openNumber(page)).toHaveText('29')
+  expect(openCounted(graphql)).toHaveLength(1)
 })
 
 test('hands on from "(ohne Gruppe)" and to it, a deleted member\'s request too', async ({

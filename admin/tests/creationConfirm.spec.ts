@@ -61,6 +61,10 @@ test.beforeEach(async ({ graphql }) => {
 const rows = (page: Page) => page.locator('.open-creations-table > table > tbody > tr')
 const row = (page: Page, index: number) => rows(page).nth(index)
 const tab = (page: Page, name: string) => page.getByRole('tab', { name })
+// the number at "Offen", and the one at "Schöpfung" in the menu
+const openNumber = (page: Page) => page.locator('.tab-badge')
+const menuBadge = (page: Page) =>
+  page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge')
 const groupFilter = (page: Page) => page.getByTestId('creation-group-filter')
 const dialog = (page: Page) => page.getByRole('dialog')
 const kept = (page: Page) => page.evaluate((key) => localStorage.getItem(key), KEPT)
@@ -93,8 +97,12 @@ test('lists the open contributions, asking once', async ({ page, graphql }) => {
     de.details,
     de.save,
   ])
-  // the count of the whole list, on the tab and in the menu
-  await expect(page.locator('.tab-badge')).toHaveText('60')
+  // the count of the whole list, on the tab and -- the list being theirs -- in the menu; the tab's
+  // calm beside the menu's red, which counts what waits for the moderator (Bernd, 26.11.2026)
+  await expect(openNumber(page)).toHaveText('60')
+  await expect(menuBadge(page)).toHaveText('60')
+  await expect(openNumber(page)).toHaveClass(/bg-body-secondary/)
+  await expect(openNumber(page)).not.toHaveClass(/text-bg-danger/)
   await expect(row(page, 0).locator('td').nth(3)).toHaveText(/First1 Last1\s+member1/)
   await expect(row(page, 0).locator('td').nth(4)).toContainText('100 GDD')
   await expect(row(page, 0).getByTestId('member-avatar')).toHaveText('ME')
@@ -219,7 +227,7 @@ test('shows the other states on their tabs, each from its first page', async ({
     question([...OPEN, 'CONFIRMED', 'DENIED', 'DELETED'], { hideResubmission: false }),
   ])
   // the badge counts the open ones only
-  await expect(page.locator('.tab-badge')).toHaveText('60')
+  await expect(openNumber(page)).toHaveText('60')
   expect(JSON.parse((await kept(page)) ?? '{}')[moderator.gradidoID]).toEqual({
     '/creation-confirm#tab': 4,
   })
@@ -275,10 +283,11 @@ test('opens on the search and tab kept, and counts the open ones apart', async (
 
   await expect(rows(page)).toHaveCount(1)
   await expect(page.locator('.test-input-criteria')).toHaveValue('member1')
-  await expect(page.locator('.tab-badge')).toHaveText('42')
+  // the tab counts what the search finds, the menu "Meine Gruppen" (MG1)
+  await expect(openNumber(page)).toHaveText('1')
+  await expect(menuBadge(page)).toHaveText('42')
   expect(listQuestions(graphql)).toEqual(
     expect.arrayContaining([
-      // the badges count "Meine Gruppen" (MG1)
       { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
       question(OPEN, { query: 'member1' }),
     ]),
@@ -460,39 +469,38 @@ test('leads from the filter to "Meine Gruppen", and leaves the filter as it is',
 })
 
 // The number at "Schöpfung" counts one thing (MG1): the open ones in "Meine Gruppen", the
-// resubmissions hidden -- what the start page counts --, whatever list the page shows.
+// resubmissions hidden -- what the start page counts --, whatever list the page shows. The number at
+// "Offen" counts the list (Bernd, 26.11.2026): here 2 in "Garten", 3 with its resubmissions.
 const counted = (variables: Variables) => {
   const filter = variables.filter as Variables
-  return filter.creationGroup === 'garten' ? 2 : filter.hideResubmission === false ? 75 : 60
+  const shown = filter.hideResubmission === false
+  return filter.creationGroup === 'garten' ? (shown ? 3 : 2) : shown ? 75 : 60
 }
 const countedList = (variables: Variables) =>
   variables.paginated
     ? contributionList([...contributions, own], counted(variables))
     : { contributionCount: counted(variables) }
-const menuBadge = (page: Page) =>
-  page.locator('nav.navbar').getByRole('link', { name: de.creation }).locator('.badge')
-
-test('keeps the number at "Schöpfung" while a group or the resubmissions are shown', async ({
+test('keeps the number at "Schöpfung" while the tab counts what a group and the resubmissions leave', async ({
   page,
   graphql,
 }) => {
   graphql.answer({ adminListContributions: countedList })
   await open(page)
   await expect(menuBadge(page)).toHaveText('60')
+  await expect(openNumber(page)).toHaveText('60')
 
   await groupFilter(page).locator('.dropdown-toggle').click()
   await groupFilter(page).locator('.dropdown-item', { hasText: 'Garten' }).click()
-  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await expect(openNumber(page)).toHaveText('2')
   await page.locator('#hide-resubmission').uncheck()
-  await expect.poll(() => listQuestions(graphql).length).toBe(3)
+  await expect(openNumber(page)).toHaveText('3')
 
   await expect(menuBadge(page)).toHaveText('60')
-  await expect(page.locator('.tab-badge')).toHaveText('60')
-  // nothing else counted: the list of the badges set them as it loaded
+  // nothing else counted: the list answers the number at its tab, the badges keep theirs
   expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([])
 })
 
-test('counts the number at "Schöpfung" anew after a decision on another list', async ({
+test('counts both numbers anew after a decision on another list, in two questions', async ({
   page,
   graphql,
 }) => {
@@ -504,14 +512,122 @@ test('counts the number at "Schöpfung" anew after a decision on another list', 
 
   graphql.answer({
     adminListContributions: (variables: Variables) =>
-      variables.paginated ? countedList(variables) : { contributionCount: 59 },
+      variables.paginated
+        ? countedList(variables)
+        : {
+            contributionCount: (variables.filter as Variables).creationGroup === 'garten' ? 1 : 59,
+          },
   })
   await row(page, 0).getByRole('button', { name: de.save, exact: true }).click()
   await dialog(page).getByRole('button', { name: de.overlay.confirm.yes }).click()
 
   await expect(menuBadge(page)).toHaveText('59')
+  await expect(openNumber(page)).toHaveText('1')
+  const counts = listQuestions(graphql).filter((sent) => !sent.paginated)
+  expect(counts).toEqual(
+    expect.arrayContaining([
+      { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+      {
+        filter: { statusFilter: OPEN, query: '', hideResubmission: true, creationGroup: 'garten' },
+      },
+    ]),
+  )
+  expect(counts).toHaveLength(2)
+})
+
+// Beside another tab the number at "Offen" stays as the open tab counted it, and follows the search
+// and the group in a count of its own (Bernd, 26.11.2026).
+test('keeps the number at "Offen" beside another tab, and counts it there with the search', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    adminListContributions: (variables: Variables) =>
+      variables.paginated
+        ? contributionList([...contributions, own], 60)
+        : { contributionCount: (variables.filter as Variables).query === 'garden' ? 4 : 99 },
+  })
+  await open(page)
+  await tab(page, de.contributions.confirms).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await expect(openNumber(page)).toHaveText('60')
+
+  await page.locator('.test-input-criteria').fill('garden')
+  await expect(openNumber(page)).toHaveText('4')
+  await expect(menuBadge(page)).toHaveText('60')
+  // the tab changed without a count: the one count is the search's
   expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([
-    { filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' } },
+    {
+      filter: {
+        statusFilter: OPEN,
+        query: 'garden',
+        hideResubmission: true,
+        creationGroup: '*handled',
+      },
+    },
+  ])
+})
+
+// Beside another tab an earlier count, answered late, does not put back its number: the question
+// last asked decides.
+test('keeps the number of the search last typed, also where an earlier count answers late', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminListContributions: (variables: Variables) => {
+      const filter = variables.filter as Variables
+      if (variables.paginated) {
+        return contributionList([...contributions, own], 60)
+      }
+      if (filter.query === 'gar') {
+        return new Promise((resolve) => held.push(resolve))
+      }
+      return { contributionCount: filter.query === 'garden' ? 4 : 99 }
+    },
+  })
+  await open(page)
+  await tab(page, de.contributions.confirms).click()
+  await expect.poll(() => listQuestions(graphql).length).toBe(2)
+  await page.locator('.test-input-criteria').fill('gar')
+  await expect.poll(() => held.length).toBe(1)
+  await page.locator('.test-input-criteria').fill('garden')
+  await expect(openNumber(page)).toHaveText('4')
+
+  const late = page.waitForResponse((response) =>
+    (response.request().postData() ?? '').includes('"query":"gar"'),
+  )
+  held[0]({ contributionCount: 17 })
+  await late
+  // two frames: the late answer is read and drawn
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await expect(openNumber(page)).toHaveText('4')
+})
+
+// Opened on another tab without a search, the number at "Offen" is the badges' count: one question
+// sets both (MG1).
+test('counts the open ones once where the page opens on another tab without a search', async ({
+  page,
+  graphql,
+}) => {
+  await keep(page, { '/creation-confirm#tab': 1 })
+  graphql.answer({
+    adminListContributions: (variables: Variables) =>
+      variables.paginated
+        ? contributionList([listedContribution(1, 1, { contributionStatus: 'CONFIRMED' })], 1)
+        : { contributionCount: 42 },
+  })
+  await signIn(page, '/creation-confirm')
+  await expect(rows(page)).toHaveCount(1)
+
+  await expect(openNumber(page)).toHaveText('42')
+  await expect(menuBadge(page)).toHaveText('42')
+  expect(listQuestions(graphql).filter((sent) => !sent.paginated)).toEqual([
+    {
+      filter: { statusFilter: OPEN, query: '', hideResubmission: true, creationGroup: '*handled' },
+    },
   ])
 })
 
@@ -570,7 +686,7 @@ test('names the whole list where the choice was cleared elsewhere as it was pick
 })
 
 // The badges' list sets them from its answer also where a search went out meanwhile: the
-// question's mark decides, not the page's own (MG1).
+// question's mark decides, not the page's own (MG1). The number at "Offen" is the search's by then.
 test('sets the number at "Schöpfung" from the first list, also once a search is typed', async ({
   page,
   graphql,
@@ -594,8 +710,9 @@ test('sets the number at "Schöpfung" from the first list, also once a search is
 
   held[0](contributionList([...contributions, own], 42))
 
-  await expect(page.locator('.tab-badge')).toHaveText('42')
-  // the late answer set the badges only: the rows stay the search's
+  await expect(menuBadge(page)).toHaveText('42')
+  // the late answer set the badges only: the rows and the number at "Offen" stay the search's
+  await expect(openNumber(page)).toHaveText('1')
   await expect(rows(page)).toHaveCount(1)
   await expect(rows(page).first()).toContainText('First7')
   await expect(page.locator('.test-input-criteria')).toHaveValue('garden')
@@ -630,11 +747,12 @@ test('offers a scoped moderator only the groups they look after', async ({ page,
   await expect(page.getByRole('columnheader', { name: de.crea.column })).toHaveCount(0)
 })
 
-// After a decision the badges are counted anew (MG1): the server's count, one fewer.
+// After a decision the badges are counted anew (MG1): the server's count, one fewer -- on their list
+// in the question that counts the number at "Offen" too.
 const afterOneDecision = (variables: Variables) =>
   variables.paginated ? contributionList([...contributions, own], 60) : { contributionCount: 59 }
 const COUNTED_ANEW = {
-  filter: { statusFilter: OPEN, hideResubmission: true, creationGroup: '*handled' },
+  filter: { statusFilter: OPEN, query: '', hideResubmission: true, creationGroup: '*handled' },
 }
 
 for (const [decision, button, mutation, toast] of [
@@ -665,7 +783,7 @@ for (const [decision, button, mutation, toast] of [
     await expect(rows(page)).toHaveCount(3)
     await expect(dialog(page)).toHaveCount(0)
     await expect(page.getByRole('alert')).toContainText(toast)
-    await expect(page.locator('.tab-badge')).toHaveText('59')
+    await expect(openNumber(page)).toHaveText('59')
     expect(graphql.sentFor(mutation).map((sent) => sent.variables)).toEqual([{ id: 1 }])
     // the list stays, the badges are counted anew (MG1)
     expect(listQuestions(graphql)).toEqual([question(OPEN), COUNTED_ANEW])
@@ -682,7 +800,7 @@ test('keeps a contribution whose decision is refused', async ({ page, graphql })
   await expect(page.getByRole('alert')).toContainText('Contribution already confirmed')
   await expect(dialog(page)).toHaveCount(0)
   await expect(rows(page)).toHaveCount(4)
-  await expect(page.locator('.tab-badge')).toHaveText('60')
+  await expect(openNumber(page)).toHaveText('60')
 })
 
 test('sends a decision once, however often it is pressed', async ({ page, graphql }) => {
@@ -695,7 +813,7 @@ test('sends a decision once, however often it is pressed', async ({ page, graphq
 
   await expect(rows(page)).toHaveCount(3)
   expect(graphql.sentFor('denyContribution')).toHaveLength(1)
-  await expect(page.locator('.tab-badge')).toHaveText('59')
+  await expect(openNumber(page)).toHaveText('59')
 })
 
 test('sends nothing where the decision is called off', async ({ page, graphql }) => {

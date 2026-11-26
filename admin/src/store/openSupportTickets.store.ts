@@ -13,12 +13,13 @@ const NO_RIGHT = '401 Unauthorized'
 let lastAsked = 0
 
 /**
- * Asks for the two halves of the open support tab (K3) and sets the badges in the bar and on the
- * tab to their sum (adminStore.openSupportTickets) -- where no later question was asked in the
- * meantime: a slow answer must not put back a count from before a write. Both halves count "Meine
- * Gruppen" (MG2), whatever list the support page shows, so the badges count what the start page
- * counts. Answers the counts, or null where the count failed: the badges then keep what they
- * showed. The start page, the support page and the page of the choice ask for it.
+ * Asks for the two halves of the open support tab (K3) and sets the badges in the bar to their sum
+ * (adminStore.openSupportTickets) -- where no later question was asked in the meantime: a slow
+ * answer must not put back a count from before a write. Both halves count "Meine Gruppen" (MG2),
+ * whatever list the support page shows, so the badges count what the start page counts; the
+ * number at the page's tab "Offen" counts its own list (Support.ts). Answers the counts, or null
+ * where the count failed: the badges then keep what they showed. The start page, the support page
+ * and the page of the choice ask for it.
  *
  * ⛔ No mark of the choice (askingHandledCreationGroups): on the start page this question and the
  * creation's run side by side, and the choice that comes with the creation's answer would not be

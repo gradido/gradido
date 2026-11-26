@@ -1,6 +1,9 @@
 // AI-GENERATED — not an architecture reference
 import { adminDeleteContribution } from '@/graphql/adminDeleteContribution'
-import { adminListContributions } from '@/graphql/adminListContributions.graphql'
+import {
+  adminListContributions,
+  adminListContributionsCount,
+} from '@/graphql/adminListContributions.graphql'
 import { adminUpdateContribution } from '@/graphql/adminUpdateContribution'
 import { confirmContribution } from '@/graphql/confirmContribution'
 import {
@@ -35,7 +38,11 @@ import {
   OPEN_STATES,
   offersBulkResubmission,
 } from '@/data/Contribution.logic'
-import { contributionListSchema, type ListedContribution } from '@/data/Contribution.schema'
+import {
+  contributionCountSchema,
+  contributionListSchema,
+  type ListedContribution,
+} from '@/data/Contribution.schema'
 import {
   creationGroupsAndHandledSchema,
   type NumberedCreationGroup,
@@ -142,6 +149,12 @@ export class CreationConfirm implements ClassComponent {
   private page = 1
   private contributions: ListedContribution[] = []
   private count = 0
+  // The number at "Offen": the open contributions the search, the group and the box let through,
+  // on all pages (Bernd, 26.11.2026). The answer of the open tab's list; beside another tab a count
+  // of its own. Where it is the badges' count, it starts from theirs.
+  private openCount = this.countsTheBadges() ? adminStore.openCreations : 0
+  // the question about it last asked: an answer to one before is dropped
+  private openAsked = 0
   // A kept search that finds nothing any more gives way to the whole list -- on the first answer
   // only: a search given here stays, also where it finds nothing.
   private keptOnTrial = this.query !== ''
@@ -160,11 +173,10 @@ export class CreationConfirm implements ClassComponent {
   private choice: Promise<void> = Promise.resolve()
 
   oninit() {
-    // Where the page opens on another list than the badges count -- a kept search or tab, the
-    // first group choice of a scoped moderator --, they are counted apart.
-    if (!this.showsTheBadgesList()) {
-      askOpenCreations()
-    }
+    // What the open tab's list does not answer is counted apart (countAnew): the badges where the
+    // page opens on another list than theirs -- a kept search, the first group choice of a scoped
+    // moderator --, and the number at "Offen" where it opens on another tab.
+    this.countAnew()
     // The groups and the choice: the first list does not wait for them. The choice changes the
     // words of the filter, and whether "(mit und ohne Gruppe)" stands for "" or HANDLED_FILTER.
     const of = this.moderator?.gradidoID
@@ -192,6 +204,9 @@ export class CreationConfirm implements ClassComponent {
           this.group = ''
           this.page = 1
           this.load()
+          if (this.tab !== 0) {
+            this.countOpen()
+          }
         }
       }
     })
@@ -206,19 +221,20 @@ export class CreationConfirm implements ClassComponent {
     document.removeEventListener('copy', copyWithoutHashtags)
   }
 
-  // Whether the list shown is the one the badges count: the open tab, no search, the resubmissions
-  // hidden, "Meine Gruppen" -- what the start page counts (MG1). Only that list sets them.
-  private showsTheBadgesList() {
-    return (
-      this.tab === 0 && this.query === '' && this.hideResubmission && this.group === HANDLED_FILTER
-    )
+  // Whether the open contributions the page counts are the badges' (MG1): no search, the
+  // resubmissions hidden, "Meine Gruppen" -- what the start page counts. Only then does an answer
+  // about them set the badges too.
+  private countsTheBadges() {
+    return this.query === '' && this.hideResubmission && this.group === HANDLED_FILTER
   }
 
   private async load() {
     const asked = ++this.asked
-    const badgesList = this.showsTheBadgesList()
-    // the badges' list sets them as it loads, unless a later question about them went out (MG1)
-    const badgeAsked = badgesList ? askingOpenCreations() : 0
+    // The open tab's list answers the number at "Offen", and the badges where it is their count:
+    // each by its own mark, also where the page has asked for another list since (MG1).
+    const opens = this.tab === 0
+    const openAsked = opens ? ++this.openAsked : 0
+    const badgeAsked = opens && this.countsTheBadges() ? askingOpenCreations() : 0
     const answer = await graphqlRequest(adminListContributions, {
       filter: {
         statusFilter: TABS[this.tab].states,
@@ -239,10 +255,11 @@ export class CreationConfirm implements ClassComponent {
       contributionListSchema,
       answer.value,
     ).adminListContributions
-    // The badges count their list, never the few a search, a group or the resubmissions leave --
-    // also where this page has asked for another list since: their mark decides, not the page's.
-    if (badgesList) {
+    if (badgeAsked) {
       answerOpenCreations(badgeAsked, contributionCount)
+    }
+    if (opens && openAsked === this.openAsked) {
+      this.openCount = contributionCount
     }
     if (asked !== this.asked) {
       return
@@ -264,20 +281,57 @@ export class CreationConfirm implements ClassComponent {
     askMemberAvatars(contributionList.flatMap((contribution) => contribution.user ?? []))
   }
 
-  // Something the open count may follow changed on the server: the badges' list sets them as it
-  // loads, on any other they are counted anew (MG1).
+  // What the open tab's list does not answer, counted apart -- at the opening, and after a write
+  // the list follows or need not follow: the badges where the page counts another list than theirs
+  // (MG1), and beside another tab the number at "Offen".
   private countAnew() {
-    if (!this.showsTheBadgesList()) {
+    if (!this.countsTheBadges()) {
       askOpenCreations()
+    }
+    if (this.tab !== 0) {
+      this.countOpen()
     }
   }
 
-  // a narrower or another list starts at its first page: a later one may not be in it
+  /**
+   * The number at "Offen" asked on its own: beside another tab, and after a decision, which leaves
+   * the list as it is. Where it is the badges' count, they are set with it: one question, not two.
+   * A failed one leaves both as they were.
+   */
+  private async countOpen() {
+    const openAsked = ++this.openAsked
+    const badgeAsked = this.countsTheBadges() ? askingOpenCreations() : 0
+    const answer = await graphqlRequest(adminListContributionsCount, {
+      filter: {
+        statusFilter: OPEN_STATES,
+        query: this.query,
+        hideResubmission: this.hideResubmission,
+        creationGroup: this.group,
+      },
+    })
+    if (!answer.success) {
+      return
+    }
+    const count = v.parse(contributionCountSchema, answer.value).adminListContributions
+      .contributionCount
+    if (badgeAsked) {
+      answerOpenCreations(badgeAsked, count)
+    }
+    if (openAsked === this.openAsked) {
+      this.openCount = count
+    }
+  }
+
+  // The search, the group or the box changed: the list from its first page -- a later one may not
+  // be in a narrower list --, and beside another tab the number at "Offen" asked anew.
   private searchAnew() {
     this.keptOnTrial = false
     this.page = 1
     keepLastSearch(LAST_SEARCH_PAGE, this.moderator?.gradidoID, this.query)
     this.load()
+    if (this.tab !== 0) {
+      this.countOpen()
+    }
   }
 
   private async decide() {
@@ -301,9 +355,13 @@ export class CreationConfirm implements ClassComponent {
       return
     }
     this.contributions = this.contributions.filter(({ id }) => id !== contribution.id)
-    // Counted anew, also on the badges' list: one fewer could take the contribution off a count
-    // that already left it out, or that it was never in (MG1).
-    askOpenCreations()
+    // The list stays, a row fewer: the number at "Offen" and the badges are counted anew, also on
+    // the badges' list -- one fewer could take the contribution off a count that already left it
+    // out, or that it was never in (MG1). Two questions where the page counts another list.
+    if (!this.countsTheBadges()) {
+      askOpenCreations()
+    }
+    this.countOpen()
     toastSuccess(t(DECISIONS[decision].done))
   }
 
@@ -446,7 +504,10 @@ export class CreationConfirm implements ClassComponent {
             this.tab = tab
             keepLastTab(LAST_SEARCH_PAGE, this.moderator?.gradidoID, tab)
             this.contributions = []
-            this.searchAnew()
+            // the same search, group and box: the number at "Offen" stays as it was counted
+            this.keptOnTrial = false
+            this.page = 1
+            this.load()
           },
           // on a phone the symbol stands above the word and the number at the corner (App.css)
           tabs: TABS.map(({ icon, tone, word }, index) => ({
@@ -455,8 +516,8 @@ export class CreationConfirm implements ClassComponent {
               ' ',
               m('span.tab-word', t(word)),
               ' ',
-              index === 0 && adminStore.openCreations > 0
-                ? m('span.badge.text-bg-danger.tab-badge', adminStore.openCreations)
+              index === 0 && this.openCount > 0
+                ? m('span.badge.text-body.bg-body-secondary.tab-badge', this.openCount)
                 : null,
             ],
           })),
