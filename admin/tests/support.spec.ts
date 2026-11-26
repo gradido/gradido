@@ -944,8 +944,13 @@ test('keeps the number at "Offen" beside another tab, and counts it there with t
   // the tab changed without a count
   expect(openCounted(graphql)).toEqual([])
 
+  const counting = page.waitForRequest((request) =>
+    /"pageSize":1[,}]/.test(request.postData() ?? ''),
+  )
   await page.getByPlaceholder(de.user_memo_search).fill('Garten')
   await expect(openNumber(page)).toHaveText('1')
+  // the number alone: no words or addresses of a request come along for it
+  expect((await counting).postData()).not.toMatch(/tickets|userEmail/)
   expect(openCounted(graphql)).toEqual([
     {
       statuses: ['OPEN', 'IN_PROGRESS'],
@@ -1680,6 +1685,75 @@ test('hands an open request on to another group once asked, then asks for the li
   // whether the request is still in the list is the server's to say
   await expect.poll(() => asked(graphql, 'adminListSupportTickets').length).toBe(2)
   await expect.poll(() => asked(graphql, 'adminCountOpenSupportTickets').length).toBe(2)
+})
+
+// An answer to an earlier question, coming late, does not put back its number: the question asked
+// last decides -- on the open tab its list, beside another tab the count.
+test('keeps the number of the search last typed, also where the first list answers late', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminListSupportTickets: (variables: { query: string; pageSize: number }) => {
+      if (variables.query === '' && variables.pageSize !== 1 && held.length === 0) {
+        return new Promise((resolve) => held.push(resolve))
+      }
+      return variables.query === 'Garten'
+        ? ticketList([tickets[0]], 1)
+        : (byTab as (asked: object) => unknown)(variables)
+    },
+  })
+  await signIn(page, '/support')
+  await expect.poll(() => held.length).toBe(1)
+  await page.getByPlaceholder(de.user_memo_search).fill('Garten')
+  await expect(rows(page)).toHaveCount(1)
+  await expect(openNumber(page)).toHaveText('1')
+
+  const late = page.waitForResponse((response) =>
+    (response.request().postData() ?? '').includes('"query":""'),
+  )
+  held[0](ticketList([...tickets, own], 30))
+  await late
+  // two frames: the late answer is read and drawn
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await expect(openNumber(page)).toHaveText('1')
+  await expect(rows(page)).toHaveCount(1)
+})
+
+test('keeps the number of the search last typed beside another tab, also where an earlier count answers late', async ({
+  page,
+  graphql,
+}) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    adminListSupportTickets: (variables: { query: string; pageSize: number }) => {
+      if (variables.pageSize !== 1) {
+        return (byTab as (asked: object) => unknown)(variables)
+      }
+      if (variables.query === 'Gar') {
+        return new Promise((resolve) => held.push(resolve))
+      }
+      return ticketList([tickets[0]], variables.query === 'Garten' ? 1 : 30)
+    },
+  })
+  await open(page)
+  await tab(page, de.support.tab.closed).click()
+  await expect(rows(page)).toHaveCount(2)
+  await page.getByPlaceholder(de.user_memo_search).fill('Gar')
+  await expect.poll(() => held.length).toBe(1)
+  await page.getByPlaceholder(de.user_memo_search).fill('Garten')
+  await expect(openNumber(page)).toHaveText('1')
+
+  const late = page.waitForResponse((response) =>
+    (response.request().postData() ?? '').includes('"query":"Gar"'),
+  )
+  held[0](ticketList([tickets[0]], 17))
+  await late
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+  await expect(openNumber(page)).toHaveText('1')
 })
 
 // A write beside another tab: the number at "Offen" is counted anew, as the menu's is.

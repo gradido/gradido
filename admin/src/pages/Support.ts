@@ -4,6 +4,7 @@ import {
   adminCloseSupportTicket,
   adminDeleteSupportTicket,
   adminListSupportTickets,
+  adminListSupportTicketsCount,
   adminReassignSupportTicket,
   supportTicketsMenu,
 } from '@/graphql/supportTickets.graphql'
@@ -34,6 +35,7 @@ import { refusalWords, supportGroupFilterOptions } from '@/data/SupportTicket.lo
 import {
   type ListedSupportTicket,
   supportSwitchSchema,
+  supportTicketCountSchema,
   supportTicketListSchema,
 } from '@/data/SupportTicket.schema'
 import { graphqlRequest } from '@/graphql/client'
@@ -303,11 +305,12 @@ export class Support implements ClassComponent {
 
   /**
    * The number at "Offen" asked on its own, beside another tab: the count of the open tab's list,
-   * for a page of one -- the server has no count of its own for a search and a group.
+   * for a page of one -- the server has no count of its own for a search and a group --, and
+   * nothing of that one request.
    */
   private async countOpen() {
     const openAsked = ++this.openAsked
-    const answer = await graphqlRequest(adminListSupportTickets, {
+    const answer = await graphqlRequest(adminListSupportTicketsCount, {
       statuses: TABS[0].states,
       currentPage: 1,
       pageSize: 1,
@@ -316,7 +319,7 @@ export class Support implements ClassComponent {
       hideResubmission: this.hideResubmission,
     })
     if (answer.success && openAsked === this.openAsked) {
-      this.openCount = v.parse(supportTicketListSchema, answer.value).adminListSupportTickets.count
+      this.openCount = v.parse(supportTicketCountSchema, answer.value).adminListSupportTickets.count
     }
   }
 

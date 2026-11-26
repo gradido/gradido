@@ -541,10 +541,13 @@ test('keeps the number at "Offen" beside another tab, and counts it there with t
   page,
   graphql,
 }) => {
+  // the confirmed list counts 3: a number taken from it would show
+  const confirmed = (variables: Variables) =>
+    ((variables.filter as Variables).statusFilter as string[]).includes('CONFIRMED')
   graphql.answer({
     adminListContributions: (variables: Variables) =>
       variables.paginated
-        ? contributionList([...contributions, own], 60)
+        ? contributionList([...contributions, own], confirmed(variables) ? 3 : 60)
         : { contributionCount: (variables.filter as Variables).query === 'garden' ? 4 : 99 },
   })
   await open(page)

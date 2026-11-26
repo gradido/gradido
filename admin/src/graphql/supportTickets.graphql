@@ -55,6 +55,29 @@ query adminListSupportTickets(
   }
 }
 
+# How many requests the open tab holds with this search, group and box, while another tab is shown
+# (the number at "Offen"): the list's count alone, for a page of one. The server counts no search of
+# its own, and no words or addresses of a request come along for a number.
+query adminListSupportTicketsCount(
+  $statuses: [SupportTicketStatus!]!
+  $currentPage: Int!
+  $pageSize: Int!
+  $query: String!
+  $creationGroup: String!
+  $hideResubmission: Boolean!
+) {
+  adminListSupportTickets(
+    statuses: $statuses
+    currentPage: $currentPage
+    pageSize: $pageSize
+    query: $query
+    creationGroup: $creationGroup
+    hideResubmission: $hideResubmission
+  ) {
+    count
+  }
+}
+
 # An opened request: its thread, the notes among it, and the moderation's remark on its member --
 # one round trip, as for an opened contribution (adminListContributionMessages.ts).
 query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
@@ -79,7 +102,7 @@ query adminListSupportTicketMessages($supportTicketId: Int!, $userId: Int!) {
 }
 
 # The two halves of the open tab within the moderator's groups (K3), in "Meine Gruppen" (MG2): what
-# the badges in the bar and on the tab, and the start page, add up -- and apart from them what waits
+# the badges in the bar and the start page add up -- and apart from them what waits
 # for a resubmission (K4), which the start page names in a line of its own; and what is open and
 # waiting beyond "Meine Gruppen" (0 where nothing is chosen). A document of its own: the start page
 # asks for it beside the creation's counts, and either may fail without the other.

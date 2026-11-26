@@ -541,7 +541,14 @@ export class CreationConfirm implements ClassComponent {
         },
         onassign: (contributionId: number, tags: string[]) => this.assign(contributionId, tags),
         hideResubmission: this.tab === 0 && this.hideResubmission,
-        onlist: () => this.load(),
+        // the text changed, or a resubmission hides the contribution: the list as it is now, and
+        // beside another tab the number at "Offen" -- a search may no longer find it
+        onlist: () => {
+          this.load()
+          if (this.tab !== 0) {
+            this.countOpen()
+          }
+        },
         onresubmission: (saved: ResubmissionSaved) => this.resubmissionSaved(saved),
         oncrea: (contribution: ListedContribution) => {
           this.crea = contribution
