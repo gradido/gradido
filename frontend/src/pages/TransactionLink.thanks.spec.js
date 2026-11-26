@@ -147,7 +147,7 @@ const memberLink = (overrides = {}) => ({
   validUntil: '2099-07-12T09:30:00.000Z',
   redeemedAt: null,
   deletedAt: null,
-  senderUser: { __typename: 'User', gradidoID: SENDER, alias: 'Oma-Emma', publisherId: null },
+  senderUser: { __typename: 'User', gradidoID: SENDER, alias: 'Oma-Emma' },
   // As the server answers for a member without a face to show (TransactionLink.senderAvatar).
   senderAvatar: null,
   communities: [HOME],
@@ -245,7 +245,6 @@ const signedOut = { token: null, tokenTime: null, gradidoID: null, firstName: nu
 const newStore = (session) => {
   const pinia = walletStore({
     language: 'de',
-    publisherId: 2896,
     project: null,
     preLoginLanguage: null,
     email: null,
@@ -807,7 +806,6 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
           firstName: 'Sarah',
           lastName: 'Bernard',
           language: 'de',
-          publisherId: 2896,
           redeemCode: CODE,
           redeemCodeCommunityUuid: null,
           project: null,
@@ -835,7 +833,6 @@ describe('TransactionLink: a member’s redeem link is received as a thank-you',
         expect(apollo.login).toHaveBeenCalledWith({
           email: 'sarah@provence.fr',
           password: PASSWORD,
-          publisherId: 2896,
           project: null,
         })
         expect(store.token).toBe('token-of-the-new-session')

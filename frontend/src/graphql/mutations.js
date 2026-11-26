@@ -188,7 +188,6 @@ export const createUser = gql`
     $lastName: String!
     $email: String!
     $language: String!
-    $publisherId: Int
     $redeemCode: String
     $redeemCodeCommunityUuid: String
     $project: String
@@ -202,7 +201,6 @@ export const createUser = gql`
       firstName: $firstName
       lastName: $lastName
       language: $language
-      publisherId: $publisherId
       redeemCode: $redeemCode
       redeemCodeCommunityUuid: $redeemCodeCommunityUuid
       project: $project
@@ -306,8 +304,8 @@ export const createContributionMessage = gql`
 `
 
 export const login = gql`
-  mutation ($email: String!, $password: String!, $publisherId: Int, $project: String) {
-    login(email: $email, password: $password, publisherId: $publisherId, project: $project) {
+  mutation ($email: String!, $password: String!, $project: String) {
+    login(email: $email, password: $password, project: $project) {
       gradidoID
       # The other half of the pair that names a member: every query about a member asks
       # about both, the member's own picture included.
@@ -325,8 +323,6 @@ export const login = gql`
       humhubAllowed
       gmsPublishLocation
       userLocation
-      hasElopage
-      publisherId
       # The three fields the wallet used to fetch with a verifyLogin of its own right
       # after signing in. They are here now because the login resolver reads them in the
       # same breath as the user row (the picture is joined onto it) and puts the member it

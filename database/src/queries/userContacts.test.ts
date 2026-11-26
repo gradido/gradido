@@ -15,7 +15,6 @@ import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 import { DbUser } from './user'
 import {
   dbConfirmRegistrationContact,
-  dbFindConfirmedUserContactEmails,
   dbFindUserContact,
   dbFindUserContactByCodeAndTypes,
   dbFindUserContactWithUserByEmail,
@@ -113,16 +112,6 @@ describe('userContacts.queries', () => {
       emailChecked: true,
       optInType: OptInType.EMAIL_OPT_IN_REGISTER,
       deletedAt: new Date(),
-    })
-  })
-
-  describe('dbFindConfirmedUserContactEmails', () => {
-    it('lists the confirmed addresses oldest first - nothing typed in, nothing deleted', async () => {
-      expect(await dbFindConfirmedUserContactEmails(bibi.id)).toEqual([
-        'bibi-first@bloxberg.de',
-        'bibi@bloxberg.de',
-      ])
-      expect(await dbFindConfirmedUserContactEmails(peter.id)).toEqual(['peter@lustig.de'])
     })
   })
 

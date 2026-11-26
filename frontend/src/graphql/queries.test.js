@@ -44,8 +44,6 @@ describe.each([
     'humhubAllowed',
     'gmsPublishLocation',
     'userLocation',
-    'hasElopage',
-    'publisherId',
     'role',
     'hideAmountGDD',
     'hideAmountGDT',

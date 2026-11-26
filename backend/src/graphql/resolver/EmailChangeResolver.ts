@@ -16,7 +16,6 @@ import {
   AppDatabase,
   User as DbUser,
   UserContact as DbUserContact,
-  dbCountElopageBuysByEmail,
   dbDeleteUserContact,
   dbEmailTaken,
   dbFindLatestEventForAffectedUser,
@@ -771,7 +770,6 @@ export class EmailChangeResolver {
     return new AdminEmailStatus({
       gdtEmail: oldest?.email ?? user.emailContact.email,
       currentConfirmed: user.emailContact.emailChecked,
-      elopageBuysOnCurrent: (await dbCountElopageBuysByEmail(user.emailContact.email)) > 0,
       pendingEmail: pending?.email ?? null,
       pendingSince: pending ? issuedAt(pending) : null,
     })

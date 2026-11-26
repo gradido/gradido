@@ -46,7 +46,6 @@ const communityDbUser: dbUser = {
   // emailChecked: false,
   language: '',
   userRole: null,
-  publisherId: 0,
   // default password encryption type
   passwordEncryptionType: PasswordEncryptionType.NO_PASSWORD,
   hasId: function (): boolean {
