@@ -364,6 +364,8 @@ test('counts the number at "Offen" anew after the text changed on the tab "Alle"
   const before = counted()
 
   await formTab(page, de.moderator.memo).click()
+  // the tab shows the text: before, the field found may still be the one of "Nachricht"
+  await expect(field(page)).toHaveValue('Memo of contribution 2')
   await field(page).fill('A changed memo')
   await save(page).click()
   await expect(page.getByRole('alert')).toContainText(de.message.request)
