@@ -365,18 +365,13 @@ else
   bunx turbo build --env-mode=loose --concurrency=1
 fi
 
-# build inspector and dlt-connector
+# build inspector, dlt-connector is built with the workspace above
 if [ "$DLT_ACTIVE" = true ]; then
   log_step 'build inspector'
   cd $PROJECT_ROOT/inspector
   bun install --frozen-lockfile
   bun run build
 
-  log_step 'build dlt-connector'
-  cd $PROJECT_ROOT/dlt-connector
-  bun install --frozen-lockfile
-  bun run build
-  
   cd $PROJECT_ROOT
 fi
 
