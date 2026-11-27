@@ -15,6 +15,7 @@
     "core",
     "database",
     "dht-node",
+    "dlt-connector",
     "federation",
     "frontend",
     "frontend-mithril",
