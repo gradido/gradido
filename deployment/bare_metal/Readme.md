@@ -23,9 +23,8 @@ This deployment includes built-in **rate limiting** for public-facing endpoints 
 | `/graphql`                 | backend  | 20 requests/s  | 40    | 20               | Main backend GraphQL API       |
 | `/hook`                    | backend  | 20 requests/s  | 20    | 20               | Internal backend webhooks      |
 | `/hooks/`                  | backend  | 20 requests/s  | 20    | 20               | Reverse proxy for webhooks     |
-| `/api/<version>` | api   | 30 requests/s  | 60    | 30               | Federation GraphQL API            |
+| `/peer-api`                | api      | 30 requests/s  | 60    | 30               | Federation peer API            |
 
-- `<version>`: placeholder for federation api version
 - All zones use `$binary_remote_addr` for client identification.
 - `nodelay` ensures burst requests are not delayed (they are either accepted or rejected).
 - Global connection zone: `limit_conn_zone $binary_remote_addr zone=addr:10m;`

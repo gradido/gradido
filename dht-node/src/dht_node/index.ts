@@ -1,8 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto'
 import DHT from '@hyperswarm/dht'
+import { httpUrlSchema } from 'config-schema'
 import {
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   dbInsertHomeCommunity,
   dbReplaceHomeCommunitySigningKeys,
   dbSelectHomeCommunity,
@@ -15,8 +14,10 @@ import {
   HomeCommunityUpdateInput,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { validateCommunity } from './validateCommunity'
 
 const KEY_SECRET_SEEDBYTES = 32
 
@@ -24,12 +25,9 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
+// the most a url may be long, as the communities table holds it
+const MAX_URL_LENGTH = 255
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
-
-type CommunityApi = {
-  api: string
-  url: string
-}
 
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
 
@@ -53,9 +51,10 @@ export const startDHT = async (topic: string): Promise<void> => {
 
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-
-    const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
-    logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+    // what this community announces to every peer it finds: its federation endpoint
+    const homeUrl = `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`
+    // peers asked for their community infos since the last SUCCESSTIME refresh
+    const validatedPeers = new Set<string>()
 
     const node = new DHT({ keyPair })
 
@@ -65,9 +64,9 @@ export const startDHT = async (topic: string): Promise<void> => {
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       socket.on('data', async (data: Buffer) => {
         try {
-          if (data.length > 1141) {
+          if (data.length > MAX_URL_LENGTH) {
             logger.warn(
-              `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
+              `received more than max allowed length of data buffer: ${data.length} against ${MAX_URL_LENGTH} max allowed`,
             )
             return
           }
@@ -75,58 +74,19 @@ export const startDHT = async (topic: string): Promise<void> => {
             logger.warn(`received non ascii character, content as hex: ${data.toString('hex')}`)
             return
           }
-          logger.info(`data: ${data.toString('ascii')}`)
-          const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
-
-          // TODO better to introduce the validation by https://github.com/typestack/class-validator
-          if (!recApiVersions || !Array.isArray(recApiVersions) || recApiVersions.length >= 5) {
-            logger.warn(
-              `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
-                recApiVersions,
-              )}`,
-            )
+          const url = data.toString('ascii')
+          logger.info(`data: ${url}`)
+          if (!v.is(httpUrlSchema, url)) {
+            logger.warn(`received invalid url: ${url}`)
             return
           }
-          for (const recApiVersion of recApiVersions) {
-            if (
-              !recApiVersion.api ||
-              typeof recApiVersion.api !== 'string' ||
-              !recApiVersion.url ||
-              typeof recApiVersion.url !== 'string'
-            ) {
-              logger.warn(
-                `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
-              )
-              return
-            }
-            // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
-            if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
-              logger.warn(
-                `received apiVersion with content longer than max length: ${JSON.stringify(
-                  recApiVersion,
-                )}`,
-              )
-              return
-            }
-
-            const variables = {
-              apiVersion: recApiVersion.api,
-              endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey,
-              lastAnnouncedAt: new Date(),
-            }
-            // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-            await DbFederatedCommunity.createQueryBuilder()
-              .insert()
-              .into(DbFederatedCommunity)
-              .values(variables)
-              .orUpdate({
-                conflict_target: ['id', 'publicKey', 'apiVersion'],
-                overwrite: ['end_point', 'last_announced_at'],
-              })
-              .execute()
-            logger.info(`federation community upserted successfully...`)
+          const remotePubKey = socket.remotePublicKey.toString('hex')
+          // one request per peer and SUCCESSTIME, however often it connects
+          if (validatedPeers.has(remotePubKey)) {
+            return
           }
+          validatedPeers.add(remotePubKey)
+          await validateCommunity(url, socket.remotePublicKey)
         } catch (e) {
           logger.error('Error on receiving data from socket:', e)
         }
@@ -146,6 +106,7 @@ export const startDHT = async (topic: string): Promise<void> => {
     setInterval(async () => {
       logger.info('Refreshing successful nodes')
       successfulRequests = []
+      validatedPeers.clear()
     }, SUCCESSTIME)
 
     setInterval(async () => {
@@ -193,7 +154,7 @@ export const startDHT = async (topic: string): Promise<void> => {
         })
 
         socket.on('open', function () {
-          socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
+          socket.write(Buffer.from(homeUrl))
           successfulRequests.push(remotePubKey)
         })
       })
@@ -201,31 +162,6 @@ export const startDHT = async (topic: string): Promise<void> => {
   } catch (err) {
     logger.error('DHT unexpected error:', err)
   }
-}
-
-async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.map((api) => {
-    return {
-      api,
-      url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-    }
-  })
-  try {
-    // first remove previous existing homeCommunity entries
-    await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-    for (const homeApiVersion of homeApiVersions) {
-      const homeCom = DbFederatedCommunity.create()
-      homeCom.foreign = false
-      homeCom.apiVersion = homeApiVersion.api
-      homeCom.endPoint = homeApiVersion.url
-      homeCom.publicKey = Buffer.from(pubKey, 'hex')
-      await DbFederatedCommunity.insert(homeCom)
-      logger.info(`federation home-community inserted successfully:`, homeApiVersion)
-    }
-  } catch (err) {
-    throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
-  }
-  return homeApiVersions
 }
 
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
@@ -258,7 +194,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
         ...updatableFields,
         publicKey: keyPair.publicKey,
         privateKey: keyPair.secretKey,
-        communityUuid: await newCommunityUuid(),
+        communityUuid: uuidv4(),
         creationDate: new Date(),
         publicJwtKey: jwtKeyPair.publicKey,
         privateJwtKey: jwtKeyPair.privateKey,
@@ -297,14 +233,4 @@ async function replaceFillSeedKeys(storedPublicKey: Buffer, keyPair: KeyPair): P
   logger.warn(
     `home-community key replaced, now derived from the hex-decoded seed: ${storedPublicKey.toString('hex')} -> ${keyPair.publicKey.toString('hex')}`,
   )
-}
-
-const newCommunityUuid = async (): Promise<string> => {
-  while (true) {
-    const communityUuid = uuidv4()
-    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
-      return communityUuid
-    }
-    logger.info('CommunityUuid creation conflict...', communityUuid)
-  }
 }

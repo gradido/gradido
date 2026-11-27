@@ -4,7 +4,7 @@
 // ModerationWaitingResolver.test.ts.
 //
 // Written to run under jest (today) and `bun test --isolate` (later) alike, as AGENTS.md asks and
-// validateCommunities.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
+// dht-node/src/dht_node/validateCommunity.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
 // out its own fakes, and the module under test is imported in `beforeAll`.
 import type { Context } from '@/server/context'
 

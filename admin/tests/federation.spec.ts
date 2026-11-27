@@ -22,7 +22,7 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   const home = rows(page).nth(0)
   await expect(home).toHaveClass(/list-group-item-primary/)
   await expect(rows(page).nth(1)).toHaveClass(/list-group-item-warning/)
-  // verified: one of its federations was verified after it was last announced
+  // verified: the own community always, a foreign one while it answered lately
   await expect(home.locator('[style*="--bs-success"]').first()).toBeVisible()
   await expect(rows(page).nth(1).locator('[style*="--bs-danger"]').first()).toBeVisible()
   await expect(home.getByRole('link', { name: 'http://localhost/api/' })).toHaveAttribute(
@@ -31,8 +31,8 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   )
   await expect(home).toContainText(`${'a'.repeat(26)}…`)
   await expect(home).toContainText('Home')
-  await expect(home).toContainText('vor 2 Tagen')
   await expect(home).toContainText('vor 10 Monaten')
+  await expect(rows(page).nth(1)).toContainText('vor 2 Tagen')
   expect(graphql.sentFor('allCommunities')).toEqual([{ field: 'allCommunities', variables: {} }])
 })
 
@@ -87,21 +87,23 @@ test('opens the details of a foreign community on a click, and closes them', asy
   await expect(details).toHaveCount(0)
 })
 
-test('shows the federations of a community, each with its dates', async ({ page }) => {
+test('shows a foreign community verified lately as reachable, with the date on it', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    allCommunities: [
+      homeCommunity,
+      { ...foreignCommunity, verifiedAt: '2026-11-09T11:55:00.000Z' },
+    ],
+  })
   await signIn(page, '/federation')
-  const home = rows(page).nth(0)
-  await home.getByText('Home', { exact: true }).click()
+  const foreign = rows(page).nth(1)
 
-  const federations = home.locator('.federation-visualize-item')
-  await expect(federations).toHaveCount(2)
-  await expect(federations.nth(0)).toContainText('1_0')
-  await expect(federations.nth(0)).toContainText('vor 1 Tag')
-  await expect(federations.nth(0).locator('[style*="--bs-success"]')).toHaveCount(1)
-  await expect(federations.nth(1).locator('[style*="--bs-danger"]')).toHaveCount(1)
-  // the date itself on the relative one
-  await federations.nth(0).getByText('vor 1 Tag').hover()
+  await expect(foreign.locator('[style*="--bs-success"]').first()).toBeVisible()
+  await foreign.getByText('vor 5 Minuten').hover()
   await expect(
-    page.getByRole('tooltip').filter({ hasText: '2026-11-08T12:00:00.000Z' }),
+    page.getByRole('tooltip').filter({ hasText: '2026-11-09T11:55:00.000Z' }),
   ).toBeVisible()
 })
 

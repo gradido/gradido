@@ -5,11 +5,13 @@ import { Community } from '@model/Community'
 import {
   dbFindCommunityByUuid,
   dbSelectAuthorizedCommunities,
+  dbSelectCommunities,
   dbSelectReachableCommunities,
   dbUpdateHomeCommunity,
   getHomeCommunityDrizzle,
 } from 'database'
 import {
+  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   getChangedFields,
   HomeCommunityUpdateInput,
   isLocationPointsEqual,
@@ -17,9 +19,7 @@ import {
 } from 'shared'
 import { Args, Authorized, Mutation, Query, Resolver } from 'type-graphql'
 import { RIGHTS } from '@/auth/RIGHTS'
-import { CONFIG } from '@/config'
 import { LogError } from '@/server/LogError'
-import { getAllCommunities } from './util/communities'
 import { Location2Point } from './util/Location2Point'
 
 @Resolver()
@@ -28,15 +28,13 @@ export class CommunityResolver {
   @Query(() => [AdminCommunityView])
   async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
     // communityUUID could be oneTimePassCode (uint32 number)
-    return (await getAllCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
+    return (await dbSelectCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
   }
 
   @Authorized([RIGHTS.COMMUNITIES])
   @Query(() => [Community])
   async reachableCommunities(): Promise<Community[]> {
-    const dbCommunities = await dbSelectReachableCommunities(
-      CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER * 2,
-    )
+    const dbCommunities = await dbSelectReachableCommunities(FEDERATION_AUTHENTICATION_TIMEOUT_MS)
     return dbCommunities.map((dbCom) => new Community(dbCom))
   }
 

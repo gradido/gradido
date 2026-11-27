@@ -3,7 +3,7 @@
 // database in UserNoteResolver.test.ts.
 //
 // Written to run under jest (today) and `bun test --isolate` (later) alike, as AGENTS.md asks and
-// validateCommunities.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
+// dht-node/src/dht_node/validateCommunity.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
 // out its own fakes (bun has no `jest.requireActual`), and the module under test is imported in
 // `beforeAll`, after every mock is registered. LogError is one of the fakes: what the resolver
 // hands it is the resolver's decision, what LogError writes is LogError's.

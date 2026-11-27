@@ -430,26 +430,13 @@ type AdminCommunityView {
   publicKey: String!
   uuid: String
   authenticatedAt: DateTime
+  verifiedAt: DateTime
   name: String
   description: String
   gmsApiKey: String
   location: Location
   hieroTopicId: String
   creationDate: DateTime
-  createdAt: DateTime
-  updatedAt: DateTime
-  federatedCommunities: [FederatedCommunity!]
-}
-
-type FederatedCommunity {
-  id: Int!
-  foreign: Boolean!
-  publicKey: String!
-  apiVersion: String!
-  endPoint: String!
-  lastAnnouncedAt: DateTime
-  verifiedAt: DateTime
-  lastErrorAt: DateTime
   createdAt: DateTime
   updatedAt: DateTime
 }

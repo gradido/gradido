@@ -2,7 +2,7 @@
 // Unit tests: which weeks the series has, which count each row asks from which Monday, and how
 // the weeks a count answers are laid on the weeks of the series. The counts themselves are
 // replaced; what they count is tested against the database in `database`.
-// Written to run under jest and `bun test --isolate` alike (see validateCommunities.test.ts).
+// Written to run under jest and `bun test --isolate` alike (see dht-node validateCommunity.test.ts).
 import type { WeeklyCount } from 'database'
 
 // The values of the enum the figures read, as the enum spells them.

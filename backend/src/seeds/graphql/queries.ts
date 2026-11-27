@@ -249,22 +249,13 @@ export const allCommunities = gql`
       publicKey
       uuid
       authenticatedAt
+      verifiedAt
       name
       description
       gmsApiKey
       creationDate
       createdAt
       updatedAt
-      federatedCommunities {
-        id
-        apiVersion
-        endPoint
-        lastAnnouncedAt
-        verifiedAt
-        lastErrorAt
-        createdAt
-        updatedAt
-      }
     }
   }
 `

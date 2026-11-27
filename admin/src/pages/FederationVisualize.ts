@@ -50,7 +50,7 @@ export class FederationVisualize implements ClassComponent {
           m('.col-1.ms-1', t('federation.verified')),
           m('.col.ms-3', t('federation.url')),
           m('.col.ms-3', t('federation.name')),
-          m('.col-2', t('federation.lastAnnouncedAt')),
+          m('.col-2', t('federation.verifiedAt')),
           m('.col-2', t('federation.createdAt')),
         ]),
         this.communities.map((community) =>

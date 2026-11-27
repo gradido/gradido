@@ -200,10 +200,12 @@ export const ALIAS_QUOTA_WINDOW_MS = 365 * 24 * 60 * 60 * 1000
 export const PASSWORD_HASH_MAX_EXPECTED_WAIT_MS = 3500
 
 // authentication
-// 10 minutes
+// A foreign community counts as reachable for this long after it last answered its community
+// infos correctly. The dht-node asks a peer at most once per its SUCCESSTIME (2 minutes), each
+// time the peer connects; 10 minutes leave room for a few rounds that went wrong.
 export const FEDERATION_AUTHENTICATION_TIMEOUT_MS = 60 * 1000 * 10
 // a request to another community, until its whole answer is read: without it, a community that
-// accepts the connection and never answers holds a batch of validateCommunities for the 300 s of
+// accepts the connection and never answers holds the dht-node's check of it for the 300 s of
 // fetch's own limit, and one that does not accept it for the 10 s of the connect timeout
 export const FEDERATION_REQUEST_TIMEOUT_MS = 5000
 export const FEDERATION_REQUEST_TIMEOUT_S = 5

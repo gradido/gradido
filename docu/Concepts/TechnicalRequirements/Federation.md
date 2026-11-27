@@ -272,7 +272,7 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
            | communityApiVersion.apiversion            | keep existing value         |
            | communityApiVersion.validFrom             | exchangedData.API.validFrom |
            | communityApiVersion.verifiedAt            | keep existing value         |
-   3. After all received data is stored successfully, the *backend* verifies the announced community in its next round, see [Verification of a community by its signed community infos](#verification-of-a-community-by-its-signed-community-infos). The *DHT-Node* starts no further stage.
+   3. Implemented today: a node sends nothing but its federation url (`<FEDERATION_COMMUNITY_URL>/api/`), with no api versions: the peer api carries its version in the route (`/peer-api/v1/…`), a missing route answers 404. The *DHT-Node* receiving it verifies the announced community right away, see [Verification of a community by its signed community infos](#verification-of-a-community-by-its-signed-community-infos). Nothing of the announcement is stored before that, and there is no further stage.
 
 ### Verification of a community by its signed community infos
 
@@ -280,7 +280,7 @@ For the first federation release the *DHT-Node* will be part of the *apollo serv
 
 #### What has to be proven
 
-The DHT already proves one thing: the socket of *hyperswarm dht* is encrypted with the Noise protocol, and `socket.remotePublicKey` is the key of the node on the other side. The url and api version a node announces over that socket therefore come from the owner of that key. What the DHT cannot prove is that the server answering at that url outside the DHT is the same community. This is the only thing left to verify: the server at the announced url holds the private key of the announced public key.
+The DHT already proves one thing: the socket of *hyperswarm dht* is encrypted with the Noise protocol, and `socket.remotePublicKey` is the key of the node on the other side. The url a node announces over that socket therefore come from the owner of that key. What the DHT cannot prove is that the server answering at that url outside the DHT is the same community. This is the only thing left to verify: the server at the announced url holds the private key of the announced public key.
 
 The identity of a community is its url, its public key and its uuid together. The first verified answer binds the three to each other (trust on first use, as SSH does with `known_hosts`); afterwards none of them can change without the others, see step 5 below.
 
@@ -288,33 +288,34 @@ The uuid is an identifier, not a secret. It is part of every user address, of tr
 
 #### Sequence
 
-1. The *backend* (`validateCommunities`) reads in batches of 100 the announced entries of `federated_communities` that are not verified since their last announcement.
-2. For each entry of a batch, all in parallel, it sends one request to the federation-module at the announced url:
+1. The *DHT-Node* (`validateCommunity` in `dht-node/src/dht_node/validateCommunity.ts`) receives the url a peer announces over the DHT socket. It checks that it is ascii, an url and at most 255 characters long, and asks each peer at most once per refresh of its successful peers (`SUCCESSTIME`, 2 minutes), however often the peer connects.
+2. It sends one request to the federation-module at the announced url:
 
    `GET https://<foreign.url>/peer-api/v1/communityInfos?exchangeId=<128 random bits as hex>`
 
-   A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up for this round. A batch therefore takes as long as its slowest community, at most the timeout: a round over 1000 communities takes a few seconds, and no more than about 50 seconds however many of them do not answer.
+   A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up until it connects again.
 3. The federation-module of the foreign community answers with its community infos (uuid, name, description, creation date, public key, public JWT key, hiero topic id) and the `exchangeId` of the request, and signs the answer with the Ed25519 key of its home community as an HTTP Message Signature ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421)):
    * covered components: `@status`, `content-type`, `content-digest`, and of the request answered `@method;req` and `@path;req`
    * the body, and with it the `exchangeId`, is covered through `content-digest` (BLAKE2b-256, in the format of [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530))
    * signature parameters: `keyid` (the public key as hex, the same key the DHT announces), `alg="ed25519"` and `created`
 
-   Only an answer that passed the response schema is signed. A request without an `exchangeId` of exactly 32 hex characters, and an answer that does not fit the schema, get a 422 without signature. Error answers carry no signature and no data; the backend never takes community infos from them.
-4. The backend accepts the answer only if
+   Only an answer that passed the response schema is signed. A request without an `exchangeId` of exactly 32 hex characters, and an answer that does not fit the schema, get a 422 without signature. Error answers carry no signature and no data; the DHT-Node never takes community infos from them.
+4. The DHT-Node accepts the answer only if
    * it carries exactly one signature, and that one names the **announced** public key as `keyid` and verifies against it, not against a key the answer names,
-   * the `exchangeId` in the body is the one of its own request (checked by `validateCommunities`),
+   * the `exchangeId` in the body is the one of its own request (checked by `validateCommunity`),
    * method and path are those of its own request,
    * the digest matches the body,
    * the public key in the community infos is the announced one,
    * the uuid is not the one of the own home community.
 
-   Any other answer, and no answer within the timeout, leaves the entry unverified; it is asked again in the next round.
-5. For each accepted answer, in one transaction:
-   * the entry in `federated_communities` gets `verified_at`,
-   * a community not known by its uuid is inserted with `authenticated_at` set: the signed answer is the authentication,
-   * a known community whose name, description or hiero topic id changed is updated; only these three fields can change this way,
-   * a known community answering with another public key or another url is not changed, the difference is logged. How an admin confirms a legitimate change of url or key is not designed yet; until then such a community keeps its stored url and key,
-   * the unique keys of `communities` (`uuid_key`, `public_key_key`, `url_key`) refuse a new community that claims the uuid, key or url of another one; the refusal is logged and the next community is processed.
+   Any other answer, and no answer within the timeout, writes nothing; the peer is asked again after the next refresh. A community the admin sees has therefore answered correctly at least once.
+5. For an accepted answer:
+   * a community not known by its uuid is inserted with `authenticated_at` and `verified_at` set: the signed answer is the authentication,
+   * a known community gets `verified_at`; one whose name, description or hiero topic id changed is updated as well, only these three fields can change this way,
+   * a known community answering with another public key or another url is not changed and not verified, the difference is logged. How an admin confirms a legitimate change of url or key is not designed yet; until then such a community keeps its stored url and key,
+   * the unique keys of `communities` (`uuid_key`, `public_key_key`, `url_key`) refuse a new community that claims the uuid, key or url of another one; the refusal is logged.
+
+   A foreign community counts as reachable (`reachableCommunities`) while its `verified_at` is younger than `FEDERATION_AUTHENTICATION_TIMEOUT_MS` (10 minutes).
 
 The `exchangeId` makes an answer fresh: it answers this one request and no other, so a recorded answer cannot be replayed. Every signature also carries `created`, and it is accepted only for `FEDERATION_REQUEST_TIMEOUT_S` (5 seconds) after that, with 1 second of clock skew. The clocks of the community servers therefore have to run as exactly as possible: activating a time synchronization service is part of the server setup. Binding method and path keeps a signed answer of another route of the same community from passing as this one. Scheme, host and port are not covered, because a proxy in front of the federation-module changes them.
 
@@ -334,7 +335,7 @@ The former authentication sent several GraphQL requests in both directions: the 
 * **Hand-built cryptography.** Encrypting and signing the payloads and the one-time code was an own protocol, harder to review than a standard.
 * **Slow.** The backend verified one entry after the other, with one entry per api version and several requests each. With 1000 communities a round took 10 to 15 minutes, and every community that did not answer added the 10 seconds of the connect timeout, or up to 5 minutes if it accepted the connection and never answered. With 10 % of them not answering, a round took about 45 minutes.
 
-  Now one request per community, 100 in parallel, with a timeout of 5 seconds: a round over 1000 communities takes about 5 to 10 seconds, about a hundred times faster, and no more than about 50 seconds however many of them do not answer. Each community also answers one request per round instead of about four, signed with Ed25519 instead of RSA. All figures are estimates for a round-trip time of about 100 ms, not measurements.
+  Now one request per community, sent by the DHT-Node as soon as the community announces itself, with a timeout of 5 seconds. There is no round any more that waits for the slowest community: one that does not answer holds up only its own request. Each community also answers one request instead of about four, signed with Ed25519 instead of RSA.
 
 Nothing of what the handshake checked is lost:
 

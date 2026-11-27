@@ -145,7 +145,7 @@ Three levels, each testing what only it can see. None replaces another.
 
 ## Unit tests that run under Jest and Bun
 
-`backend` and `dht-node` still run Jest, the target is Bun. A unit test is written so it runs under both without change. Reference implementation: `backend/src/federation/validateCommunities.test.ts`. The rules:
+`backend` and `dht-node` still run Jest, the target is Bun. A unit test is written so it runs under both without change. Reference implementation: `dht-node/src/dht_node/validateCommunity.test.ts`. The rules:
 
 - Use only what both offer: `jest.fn`, `jest.mock`, `mockReturnValue…`, `mockResolvedValue…`, `mockImplementation…`, the `…Once` variants. Bun has **no `jest.requireActual` and no `jest.mocked`**.
 - A `jest.mock` factory therefore returns its own fakes, never a spread of the real module. With Jest the factory replaces the **whole** module, so it must supply everything the module under test imports from it — including enum values it reads (only the values used, not the whole enum). A real module that pulls in `database` (e.g. `core`) is mocked as well, or the test needs a database after all.

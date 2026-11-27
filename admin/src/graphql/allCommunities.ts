@@ -9,6 +9,7 @@ export const allCommunities = gql`
       publicKey
       uuid
       authenticatedAt
+      verifiedAt
       name
       description
       gmsApiKey
@@ -17,16 +18,6 @@ export const allCommunities = gql`
       createdAt
       updatedAt
       hieroTopicId
-      federatedCommunities {
-        id
-        apiVersion
-        endPoint
-        lastAnnouncedAt
-        verifiedAt
-        lastErrorAt
-        createdAt
-        updatedAt
-      }
     }
   }
 `

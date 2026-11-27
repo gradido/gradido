@@ -14,7 +14,6 @@ import {
   URL_PROTOCOL,
 } from 'config-schema'
 import * as v from 'valibot'
-import { ApiVersionType } from '../dht_node/ApiVersionType'
 
 // What the environment can set, and the value used where it does not. CONFIG is read straight
 // out of process.env with this, so the keys are the variable names.
@@ -48,18 +47,6 @@ const environment = v.object({
   FEDERATION_DHT_SEED,
   FEDERATION_COMMUNITY_URL: v.optional(
     v.pipe(httpUrlSchema, v.description('Community URL for federation, defaults to COMMUNITY_URL')),
-  ),
-  // comma separated in the environment, a list of known versions here
-  FEDERATION_COMMUNITY_APIS: v.optional(
-    v.pipe(
-      v.string(),
-      v.transform((input) => input.split(',').map((api) => api.trim())),
-      v.array(v.enum(ApiVersionType, 'unknown federation api version')),
-      v.description(
-        'Federation API versions this community announces, comma separated, defaults to 1_0',
-      ),
-    ),
-    '1_0',
   ),
 })
 

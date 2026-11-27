@@ -21,7 +21,7 @@ fi
 # Stop Services
 pm2 stop gradido-backend
 pm2 stop gradido-dht-node
-pm2 stop gradido-federation-1_0
+pm2 stop gradido-federation
 
 # Backup data
 mysqldump --databases --single-transaction --quick --hex-blob --lock-tables=false > ${SCRIPT_DIR}/backup/mariadb-backup-$(date +%Y-%m-%d_%H-%M-%S).sql -u ${DB_USER} -p${DB_PASSWORD} ${DB_DATABASE}
@@ -29,4 +29,4 @@ mysqldump --databases --single-transaction --quick --hex-blob --lock-tables=fals
 # Start Services
 pm2 start gradido-backend
 pm2 start gradido-dht-node
-pm2 start gradido-federation-1_0
+pm2 start gradido-federation
