@@ -93,13 +93,6 @@ export class ConfirmRegisterMailFormular implements ClassComponent<Attrs> {
     return m('.mt-4', { 'data-test': 'email-replace' }, [
       m('.fw-bold', t('unregister_mail.replace.title')),
       m('.small.text-muted.mb-2', t('unregister_mail.replace.hint')),
-      status?.elopageBuysOnCurrent
-        ? m(
-            '.alert.alert-warning.small',
-            { 'data-test': 'email-replace-warning' },
-            t('unregister_mail.replace.elopage_warning', { email: member.email ?? '' }),
-          )
-        : null,
       m('.input-group', { role: 'group' }, [
         m('input.form-control', {
           type: 'email',

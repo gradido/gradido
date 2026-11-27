@@ -375,10 +375,10 @@ describe('user.queries', () => {
     it('writes the one named column and leaves the rest of the row alone', async () => {
       const before = await DbUser.findOneByOrFail({ id: bibi.id })
 
-      await dbUserUpdateField(bibi.id, 'publisherId', 9876)
+      await dbUserUpdateField(bibi.id, 'language', 'nl')
 
       const stored = await DbUser.findOneByOrFail({ id: bibi.id })
-      expect(stored.publisherId).toBe(9876)
+      expect(stored.language).toBe('nl')
       expect(stored.firstName).toBe(before.firstName)
       expect(stored.alias).toBe(before.alias)
       expect(stored.password.toString()).toBe(before.password.toString())
@@ -426,11 +426,9 @@ describe('user.queries', () => {
     it('touches nobody else', async () => {
       const peter = await userFactory(peterLustig)
 
-      await dbUserUpdateField(bibi.id, 'publisherId', 1111)
+      await dbUserUpdateField(bibi.id, 'language', 'tr')
 
-      expect((await DbUser.findOneByOrFail({ id: peter.id })).publisherId).toBe(
-        peterLustig.publisherId ?? 0,
-      )
+      expect((await DbUser.findOneByOrFail({ id: peter.id })).language).toBe(peterLustig.language)
     })
   })
 

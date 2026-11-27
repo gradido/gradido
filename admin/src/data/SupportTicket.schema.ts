@@ -41,6 +41,10 @@ export const supportTicketListSchema = v.object({
   }),
 })
 
+export const supportTicketCountSchema = v.object({
+  adminListSupportTickets: v.object({ count: v.number() }),
+})
+
 /** The answer to an opened request: its thread, and the remark on its member. */
 export const supportThreadSchema = v.object({
   userRemark: v.nullable(userRemarkSchema),

@@ -7,7 +7,6 @@ export const emailStatusSchema = v.object({
     v.object({
       gdtEmail: v.nullable(v.string()),
       currentConfirmed: v.boolean(),
-      elopageBuysOnCurrent: v.boolean(),
       pendingEmail: v.nullable(v.string()),
       pendingSince: v.nullable(v.string()),
     }),

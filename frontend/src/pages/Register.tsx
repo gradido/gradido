@@ -50,7 +50,6 @@ export const Register = defineComponent({
     const { params, query } = useRoute()
 
     const showPageMessage = ref(false)
-    const publisherId = ref(store.publisherId)
     // vue-router hands the absent optional parameter over as '' when the page is reached by its
     // path (/register?referrer=…&guarantor=…, the way a QR code or a link arrives), and as nothing
     // when it is reached by its name: both mean "no code", and neither goes out as one.
@@ -98,7 +97,6 @@ export const Register = defineComponent({
           firstName: formValues.firstname,
           lastName: formValues.lastname,
           language: store.language,
-          publisherId: publisherId.value,
           redeemCode: redeemCode.value,
           // the link's community, where it is another one (the redeem page's switch)
           redeemCodeCommunityUuid: query.codeCommunityUuid || undefined,

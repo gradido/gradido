@@ -16,7 +16,6 @@ const confirmed = member(3)
 const status = {
   gdtEmail: 'member1@example.org',
   currentConfirmed: false,
-  elopageBuysOnCurrent: false,
   pendingEmail: null,
   pendingSince: null,
 }
@@ -140,7 +139,6 @@ test.describe('the address', () => {
       adminEmailStatus: {
         ...status,
         gdtEmail: 'first@example.org',
-        elopageBuysOnCurrent: true,
         pendingEmail: 'next@example.org',
         pendingSince: '2026-11-01T10:00:00.000Z',
       },
@@ -156,7 +154,6 @@ test.describe('the address', () => {
         .replace('{email}', 'next@example.org')
         .replace('{date}', 'Sonntag, 1. November 2026 um 11:00'),
     )
-    await expect(pane(page).getByTestId('email-replace-warning')).toBeVisible()
   })
 
   test('offers no correction where the server has the address confirmed', async ({

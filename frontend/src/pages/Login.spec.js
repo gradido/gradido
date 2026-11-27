@@ -62,7 +62,6 @@ describe('Login', () => {
   // setRedirectPath stay as they are (no way back is the way to the overview).
   const createWalletStore = () => {
     const pinia = walletStore({
-      publisherId: 12345,
       redirectPath: '/overview',
       eventMatchingEntry: null,
     })
@@ -207,7 +206,6 @@ describe('Login', () => {
         expect(mockMutate).toHaveBeenCalledWith({
           email: 'user@example.org',
           password: '1234',
-          publisherId: 12345,
           // The store's own default: no project the member came in for.
           project: null,
         })

@@ -139,7 +139,6 @@ import { registerUser } from '@/interactions/registerUser/registerUser.context'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { acceptAvatarRenditions } from './util/acceptAvatarRenditions'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
@@ -226,9 +225,6 @@ export class UserResolver {
     // Support-Anfragen K6: whether they handle support requests, as isAuthorized decided it for
     // this very request (roleOfHolder) -- the admin shows "Support" by it.
     user.handlesSupportTickets = context.role?.hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS) ?? false
-    // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage(context)
-
     // The member's own profile picture. The login gets it joined onto the user row
     // (dbFindUserLoginByEmail); here the row comes off the context, which is the TypeORM
     // entity and cannot carry it, so it is read on its own.
@@ -251,7 +247,7 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
   async login(
-    @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
+    @Args() { email, password, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
     const logger = createLogger('login')
@@ -363,14 +359,6 @@ export class UserResolver {
 
     const user = new User(dbUser)
 
-    // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage(context)
-    logger.debug('user.hasElopage', user.hasElopage)
-    if (!user.hasElopage && publisherId) {
-      await dbUserUpdateField(user.id, 'publisherId', publisherId)
-      user.publisherId = publisherId
-    }
-
     context.setHeaders.push({
       key: 'token',
       value: encode(dbUser.gradidoId),
@@ -425,9 +413,6 @@ export class UserResolver {
     const shortRedeemCode = args.redeemCode?.substring(0, 6)
     const infos = []
     infos.push(`language=${args.language}`)
-    if (args.publisherId) {
-      infos.push(`publisherId=${args.publisherId}`)
-    }
     if (args.redeemCode) {
       infos.push(`redeemCode=${shortRedeemCode}`)
     }
@@ -1206,17 +1191,6 @@ export class UserResolver {
 
     await dbDeleteUserAvatar(user.id)
     return true
-  }
-
-  @Authorized([RIGHTS.HAS_ELOPAGE])
-  @Query(() => Boolean)
-  async hasElopage(@Ctx() context: Context): Promise<boolean> {
-    const dbUser = getUser(context)
-    const logger = createLogger('hasElopage')
-    logger.addContext('user', dbUser.id)
-    const elopageBuys = await hasElopageBuys(dbUser.id)
-    logger.info(`has Elopage (ablify): ${elopageBuys}`)
-    return elopageBuys
   }
 
   /**
