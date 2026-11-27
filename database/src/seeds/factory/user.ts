@@ -104,7 +104,6 @@ function userRowOf(user: UserInterface, communityUuid: string): UserInsert & { g
     createdAt: user.createdAt ?? new Date(),
     deletedAt: user.deletedAt ?? null,
     accountState: user.accountState ? user.accountState : defaultAccountState,
-    publisherId: user.publisherId ?? 0,
     humhubAllowed: true,
     alias: user.alias,
     referrerId: user.referrerId,

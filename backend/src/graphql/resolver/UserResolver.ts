@@ -47,6 +47,7 @@ import {
   dbFindAdminUsersPage,
   dbFindAliasesByUser,
   dbFindAuthenticatedForeignCommunityByIdentifier,
+  dbFindCommunityByUuid,
   dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
@@ -76,8 +77,6 @@ import {
   emailContactByUserIdQuery,
   FirstCreationStatus,
   findUserByIdentifier,
-  getCommunityByUuid,
-  getHomeCommunity,
   getHomeCommunityDrizzle,
   UserLoggingView,
 } from 'database'
@@ -140,7 +139,6 @@ import { registerUser } from '@/interactions/registerUser/registerUser.context'
 import { encryptPassword, fakeVerifyPassword, verifyPassword } from '@/password/PasswordEncryptor'
 import { Context, getClientTimezoneOffset, getUser } from '@/server/context'
 import { LogError } from '@/server/LogError'
-import { hasElopageBuys } from '@/util/hasElopageBuys'
 import { durationInMinutesFromDates, getTimeDurationObject, printTimeDuration } from '@/util/time'
 import { acceptAvatarRenditions } from './util/acceptAvatarRenditions'
 import { authenticateGmsUserPlayground } from './util/authenticateGmsUserPlayground'
@@ -227,9 +225,6 @@ export class UserResolver {
     // Support-Anfragen K6: whether they handle support requests, as isAuthorized decided it for
     // this very request (roleOfHolder) -- the admin shows "Support" by it.
     user.handlesSupportTickets = context.role?.hasRight(RIGHTS.MANAGE_SUPPORT_TICKETS) ?? false
-    // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage(context)
-
     // The member's own profile picture. The login gets it joined onto the user row
     // (dbFindUserLoginByEmail); here the row comes off the context, which is the TypeORM
     // entity and cannot carry it, so it is read on its own.
@@ -252,7 +247,7 @@ export class UserResolver {
   @Authorized([RIGHTS.LOGIN])
   @Mutation(() => User)
   async login(
-    @Args() { email, password, publisherId, project }: UnsecureLoginArgs,
+    @Args() { email, password, project }: UnsecureLoginArgs,
     @Ctx() context: Context,
   ): Promise<User> {
     const logger = createLogger('login')
@@ -364,14 +359,6 @@ export class UserResolver {
 
     const user = new User(dbUser)
 
-    // Elopage Status & Stored PublisherId
-    user.hasElopage = await this.hasElopage(context)
-    logger.debug('user.hasElopage', user.hasElopage)
-    if (!user.hasElopage && publisherId) {
-      await dbUserUpdateField(user.id, 'publisherId', publisherId)
-      user.publisherId = publisherId
-    }
-
     context.setHeaders.push({
       key: 'token',
       value: encode(dbUser.gradidoId),
@@ -426,9 +413,6 @@ export class UserResolver {
     const shortRedeemCode = args.redeemCode?.substring(0, 6)
     const infos = []
     infos.push(`language=${args.language}`)
-    if (args.publisherId) {
-      infos.push(`publisherId=${args.publisherId}`)
-    }
     if (args.redeemCode) {
       infos.push(`redeemCode=${shortRedeemCode}`)
     }
@@ -941,13 +925,7 @@ export class UserResolver {
         await removeUserFromGms(user)
       } else if (CONFIG.GMS_ACTIVE && updateUserInGMS && user.gmsAllowed) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
-        const homeCom = await getHomeCommunity()
-        if (!homeCom) {
-          logger.error('no home community found, please start the dht-node first')
-          throw new Error(
-            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-          )
-        }
+        const homeCom = await getHomeCommunityDrizzle()
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
           // A member the GMS does not hold is built there from scratch, so their live
@@ -1215,17 +1193,6 @@ export class UserResolver {
     return true
   }
 
-  @Authorized([RIGHTS.HAS_ELOPAGE])
-  @Query(() => Boolean)
-  async hasElopage(@Ctx() context: Context): Promise<boolean> {
-    const dbUser = getUser(context)
-    const logger = createLogger('hasElopage')
-    logger.addContext('user', dbUser.id)
-    const elopageBuys = await hasElopageBuys(dbUser.id)
-    logger.info(`has Elopage (ablify): ${elopageBuys}`)
-    return elopageBuys
-  }
-
   /**
    * Asked before the member types anything, so the page can name a date on a disabled
    * button instead of letting somebody choose a name and then refusing it - and so the
@@ -1306,15 +1273,7 @@ export class UserResolver {
 
     let result = new GmsUserAuthenticationResult()
     if (context.token) {
-      const homeCom = await getHomeCommunity()
-      if (!homeCom) {
-        logger.error(
-          "couldn't authenticate for gms, no home community found, please start the dht-node first",
-        )
-        throw new Error(
-          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-        )
-      }
+      const homeCom = await getHomeCommunityDrizzle()
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
@@ -1379,15 +1338,7 @@ export class UserResolver {
 
     const result = new UserLocationResult()
     if (context.token) {
-      const homeCom = await getHomeCommunity()
-      if (!homeCom) {
-        logger.error(
-          "couldn't load home community location, no home community found, please start the dht-node first",
-        )
-        throw new Error(
-          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-        )
-      }
+      const homeCom = await getHomeCommunityDrizzle()
       // null where the instance never had coordinates set -- reported, not thrown. A
       // missing admin setting must not take this query down: every member of the
       // instance reads it, including those who have a position of their own, and the
@@ -2052,7 +2003,7 @@ export class UserResolver {
   async communityName(@Root() user: User): Promise<string | null> {
     const community = !user.foreign
       ? await getHomeCommunityDrizzle()
-      : await getCommunityByUuid(user.communityUuid)
+      : await dbFindCommunityByUuid(user.communityUuid)
     return community?.name ?? null
   }
 }

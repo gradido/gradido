@@ -4,7 +4,7 @@ import { GdtEntry } from '@model/GdtEntry'
 import { GdtEntryList } from '@model/GdtEntryList'
 import { User as DbUser, dbFindOldestUserContact } from 'database'
 import { getLogger } from 'log4js'
-import { Arg, Args, Authorized, Ctx, Float, Int, Query, Resolver } from 'type-graphql'
+import { Args, Authorized, Ctx, Float, Query, Resolver } from 'type-graphql'
 import { apiGet, apiPost } from '@/apis/HttpRequest'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CONFIG } from '@/config'
@@ -79,19 +79,5 @@ export class GdtResolver {
       logger.error('Could not query GDT Server', err)
       return null
     }
-  }
-
-  @Authorized([RIGHTS.EXIST_PID])
-  @Query(() => Int)
-  async existPid(@Arg('pid', () => Int) pid: number): Promise<number> {
-    if (!CONFIG.GDT_ACTIVE) {
-      return 0
-    }
-    // load user
-    const resultPID = await apiGet(`${CONFIG.GDT_API_URL}/publishers/checkPidApi/${pid}`)
-    if (!resultPID.success) {
-      throw new LogError(resultPID.data)
-    }
-    return resultPID.data.pid
   }
 }

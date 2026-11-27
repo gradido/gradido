@@ -3,13 +3,12 @@
 import { useFakeTimersForDrizzle } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
-  Community as DbCommunity,
   User as DbUser,
   dbClearGmsRegistration,
   dbFindUsersWithEmailContactByIds,
   dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
   MatchingEntrySelect,
 } from 'database'
 import {
@@ -42,7 +41,7 @@ jest.mock('database', () => {
   return {
     __esModule: true,
     ...actual,
-    getHomeCommunity: jest.fn(),
+    getHomeCommunityDrizzle: jest.fn(),
     dbClearGmsRegistration: jest.fn(),
     dbFindUsersWithEmailContactByIds: jest.fn(),
     dbSelectActiveMatchingEntriesByUserIds: jest.fn(),
@@ -58,7 +57,7 @@ const deleteEntryMock = deleteGmsMatchingEntry as jest.Mock
 const logger = getLogger(
   `${LOG4JS_BASE_CATEGORY_NAME}.graphql.resolver.util.syncMatchingEntryToGms`,
 )
-const homeCommunityMock = getHomeCommunity as jest.Mock
+const homeCommunityMock = getHomeCommunityDrizzle as jest.Mock
 const clearRegistrationMock = dbClearGmsRegistration as jest.Mock
 const markRegisteredMock = dbMarkUsersGmsRegistered as jest.Mock
 const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
@@ -66,7 +65,7 @@ const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
 const accountNowMock = dbFindUsersWithEmailContactByIds as jest.Mock
 
 const API_KEY = 'gms-test-key'
-const HOME_COM = { gmsApiKey: API_KEY } as DbCommunity
+const HOME_COM = { gmsApiKey: API_KEY }
 const MEMBER_UUID = '3a2f6f1e-6c1a-4e1a-9d3e-2f1b7c8d9e01'
 const ENTRY_UUID = 'b6f0c1d2-3e4a-4b5c-8d9e-0f1a2b3c4d5e'
 

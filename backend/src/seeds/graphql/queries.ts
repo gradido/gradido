@@ -11,8 +11,6 @@ export const verifyLogin = gql`
       klickTipp {
         newsletterState
       }
-      hasElopage
-      publisherId
       role
     }
   }
@@ -68,7 +66,6 @@ export const adminEmailStatus = gql`
     adminEmailStatus(userId: $userId) {
       gdtEmail
       currentConfirmed
-      elopageBuysOnCurrent
       pendingEmail
       pendingSince
     }
@@ -229,21 +226,6 @@ export const reachableCommunities = gql`
   }
 `
 
-export const getCommunityByIdentifierQuery = gql`
-  query ($communityIdentifier: String!) {
-    communityByIdentifier(communityIdentifier: $communityIdentifier) {
-      id
-      foreign
-      name
-      description
-      url
-      creationDate
-      uuid
-      authenticatedAt
-    }
-  }
-`
-
 export const getHomeCommunityQuery = gql`
   query {
     homeCommunity {
@@ -296,7 +278,6 @@ export const queryTransactionLink = gql`
       validUntil
       user {
         firstName
-        publisherId
       }
     }
   }

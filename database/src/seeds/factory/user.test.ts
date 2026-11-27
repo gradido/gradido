@@ -1,10 +1,16 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, PasswordEncryptionType } from 'shared'
 import { AppDatabase, drizzleDb } from '../../AppDatabase'
-import { ALIAS_ORIGIN_ADOPTED, Community } from '../../entity'
+import { ALIAS_ORIGIN_ADOPTED } from '../../entity'
 import { AccountState, RoleNames } from '../../enum'
 import { dbDeleteAllRowsExceptMigrations } from '../../queries/informationSchemaTables'
-import { userAliasesTable, userContactsTable, userRolesTable, usersTable } from '../../schemas'
+import {
+  CommunitiesSelect,
+  userAliasesTable,
+  userContactsTable,
+  userRolesTable,
+  usersTable,
+} from '../../schemas'
 import { createCommunity } from '../community'
 import { UserInterface } from '../users/UserInterface'
 import { buildSeedUserRows, userFactory, userFactoryDrizzle } from './user'
@@ -131,7 +137,7 @@ describe('userFactory', () => {
     lastName: 'A',
     emailChecked: true,
   }
-  let homeCommunity: Community
+  let homeCommunity: CommunitiesSelect
 
   beforeAll(async () => {
     await db.init()

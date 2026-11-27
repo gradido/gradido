@@ -58,6 +58,9 @@ import {
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
   getLastTransaction,
+  typeOrmLocalUserToDbUserCommunity,
+  typeOrmUserToDbUserCommunity,
+  typeOrmUserToUserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -177,7 +180,8 @@ export class TransactionLinkResolver {
     @Args() { amount, memo, greeting: greetingInput }: TransactionLinkArgs,
     @Ctx() context: Context,
   ): Promise<TransactionLink> {
-    const user = getUser(context)
+    const userLegacy = getUser(context)
+    const user = await typeOrmUserToDbUserCommunity(userLegacy)
 
     // A thank-you greeting is this link with a motif, a first line and a name. Checked before
     // anything is read or written: the line has to be the beginning of the memo.
@@ -206,14 +210,18 @@ export class TransactionLinkResolver {
     const holdAvailableAmount = amount.requiredBeforeDecay(Duration.days(CODE_VALID_DAYS_DURATION))
 
     // validate amount
-    const sendBalance = await calculateBalance(user.id, holdAvailableAmount.negated(), createdDate)
+    const sendBalance = await calculateBalance(
+      userLegacy.id,
+      holdAvailableAmount.negated(),
+      createdDate,
+    )
 
     if (!sendBalance) {
-      throw new LogError('User has not enough GDD', user.id)
+      throw new LogError('User has not enough GDD', userLegacy.id)
     }
 
     const transactionLink = DbTransactionLink.create()
-    transactionLink.userId = user.id
+    transactionLink.userId = userLegacy.id
     transactionLink.amount = amount
     transactionLink.memo = memo
     transactionLink.holdAvailableAmount = holdAvailableAmount
@@ -268,8 +276,8 @@ export class TransactionLinkResolver {
     })
     await dbInsertEvent({
       type: EventType.TRANSACTION_LINK_CREATE,
-      affectedUserId: user.id,
-      actingUserId: user.id,
+      affectedUserId: userLegacy.id,
+      actingUserId: userLegacy.id,
       involvedTransactionLinkId: transactionLink.id,
       amountGdd4: amount,
     })
@@ -286,7 +294,7 @@ export class TransactionLinkResolver {
     }
     return new TransactionLink(
       transactionLink,
-      new User(user),
+      new User(userLegacy),
       undefined,
       undefined,
       greeting ? new ThankYouGreeting(greeting) : null,
@@ -299,18 +307,19 @@ export class TransactionLinkResolver {
     @Arg('id', () => Int) id: number,
     @Ctx() context: Context,
   ): Promise<boolean> {
-    const user = getUser(context)
+    const userLegacy = getUser(context)
+    const user = await typeOrmLocalUserToDbUserCommunity(userLegacy)
 
     const transactionLink = await DbTransactionLink.findOne({ where: { id } })
     if (!transactionLink) {
       throw new LogError('Transaction link not found', id)
     }
 
-    if (transactionLink.userId !== user.id) {
+    if (transactionLink.userId !== userLegacy.id) {
       throw new LogError(
         'Transaction link cannot be deleted by another user',
         transactionLink.userId,
-        user.id,
+        userLegacy.id,
       )
     }
     if (transactionLink.redeemedBy) {
@@ -326,7 +335,7 @@ export class TransactionLinkResolver {
     // deleted link never answers with a greeting, nor with a picture.
     await removeThankYouGreeting(transactionLink.code)
 
-    transactionLink.user = user
+    transactionLink.user = userLegacy
     const dltTransactionPromise = redeemDeferredTransferTransaction(
       transactionLink,
       transactionLink.amount.toString(),
@@ -337,8 +346,8 @@ export class TransactionLinkResolver {
 
     await dbInsertEvent({
       type: EventType.TRANSACTION_LINK_DELETE,
-      affectedUserId: user.id,
-      actingUserId: user.id,
+      affectedUserId: userLegacy.id,
+      actingUserId: userLegacy.id,
       involvedTransactionLinkId: transactionLink.id,
     })
     // wait for dlt transaction to be created
@@ -561,7 +570,11 @@ export class TransactionLinkResolver {
           let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
           const moderator = await moderatorPromise
           if (moderator) {
-            dltTransactionPromise = contributionTransaction(contribution, moderator, now)
+            dltTransactionPromise = contributionTransaction(
+              contribution,
+              typeOrmUserToUserSelect(moderator),
+              now,
+            )
           }
 
           await queryRunner.manager.insert(DbContribution, contribution)

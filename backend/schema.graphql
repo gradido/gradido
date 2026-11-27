@@ -3,7 +3,6 @@
 type Query {
   listGDTEntries(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): GdtEntryList!
   gdtBalance: Float
-  existPid(pid: Int!): Int!
   balance: Balance!
   chatGroups: [ChatGroup!]!
   chatGroupMembers(groupUuid: String!): [ChatGroupMember!]!
@@ -19,7 +18,6 @@ type Query {
   allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): [AdminCommunityView!]!
   reachableCommunities: [Community!]!
   authorizedCommunities: [Community!]!
-  communityByIdentifier(communityIdentifier: String!): Community!
   homeCommunity: Community!
   contactList(ref: MemberAvatarRefInput, search: String, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): ContactList!
   contactRefs: [MemberRef!]!
@@ -87,7 +85,6 @@ type Query {
   avatarFull: String
   memberAvatars(refs: [MemberAvatarRefInput!]!): [MemberAvatar!]!
   memberAvatarFull(ref: MemberAvatarRefInput!): String
-  hasElopage: Boolean!
   aliasStatus: AliasStatus!
   authenticateGmsUserSearch: GmsUserAuthenticationResult!
   gmsDashboardUrl: String
@@ -195,9 +192,7 @@ type User {
   aboutMe: String
   avatar: String
   avatarUpdatedAt: DateTime
-  publisherId: Int
   klickTipp: KlickTipp
-  hasElopage: Boolean
   role: String
   visibleCreationGroups: [String!]!
   seesAllCreationGroups: Boolean!
@@ -769,7 +764,6 @@ type PendingEmailChange {
 type AdminEmailStatus {
   gdtEmail: String!
   currentConfirmed: Boolean!
-  elopageBuysOnCurrent: Boolean!
   pendingEmail: String
   pendingSince: DateTime
 }
@@ -1227,12 +1221,12 @@ type Mutation {
   setHandledGroups(support: HandledGroupsInput!, creation: HandledGroupsInput!): HandledGroups!
   setUserNote(about: UserNoteSubjectInput!, note: String!): Boolean!
   setUserRemark(userId: Int!, remark: String!): UserRemark
-  login(email: String!, password: String!, publisherId: Int, project: String): User!
+  login(email: String!, password: String!, project: String): User!
   logout: Boolean!
-  createUser(alias: String, email: String!, firstName: String!, lastName: String!, language: String, publisherId: Int, redeemCode: String, redeemCodeCommunityUuid: String, project: String, referrerAlias: String, guarantorCode: String, password: String, eventMatchingEntry: EventMatchingEntryInput): Boolean!
+  createUser(alias: String, email: String!, firstName: String!, lastName: String!, language: String, redeemCode: String, redeemCodeCommunityUuid: String, project: String, referrerAlias: String, guarantorCode: String, password: String, eventMatchingEntry: EventMatchingEntryInput): Boolean!
   forgotPassword(email: String!): Boolean!
   setPassword(password: String!, code: String!): Boolean!
-  updateUserInfos(firstName: String, lastName: String, alias: String, language: String, publisherId: Int, password: String, passwordNew: String, hideAmountGDD: Boolean, hideAmountGDT: Boolean, humhubAllowed: Boolean, gmsAllowed: Boolean, avatarVisibleToMembers: Boolean, transfersInChat: Boolean, gmsPublishName: PublishNameType, humhubPublishName: PublishNameType, gmsLocation: Location, gmsPublishLocation: GmsPublishLocationType, aboutMe: String): Boolean!
+  updateUserInfos(firstName: String, lastName: String, alias: String, language: String, password: String, passwordNew: String, hideAmountGDD: Boolean, hideAmountGDT: Boolean, humhubAllowed: Boolean, gmsAllowed: Boolean, avatarVisibleToMembers: Boolean, transfersInChat: Boolean, gmsPublishName: PublishNameType, humhubPublishName: PublishNameType, gmsLocation: Location, gmsPublishLocation: GmsPublishLocationType, aboutMe: String): Boolean!
   setUserAvatar(avatarFull: String!, avatarSmall: String!): Boolean!
   removeUserAvatar: Boolean!
   adoptAlias: Boolean!

@@ -1,6 +1,5 @@
 export * from './ChatMessage.logic'
 export * from './ChatMessageImage.logic'
-export * from './community.logic'
 export * from './JpegImage.logic'
 export * from './SenderAvatar.logic'
 export * from './ThankYouGreetingPicture.logic'

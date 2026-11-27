@@ -5,7 +5,7 @@ import {
   dbFindUnconfirmedVouchedAccounts,
   dbInsertEvent,
   EventType,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { aliasSchema } from 'shared'
 import { Authorized, Ctx, Query, Resolver } from 'type-graphql'
@@ -47,10 +47,7 @@ export class GuarantorCodeResolver {
     if (!v.safeParse(aliasSchema, user.alias).success) {
       return null
     }
-    const homeCom = await getHomeCommunity()
-    if (!homeCom?.communityUuid) {
-      throw new LogError('No home community')
-    }
+    const homeCom = await getHomeCommunityDrizzle()
     const unconfirmedGuests = await dbFindUnconfirmedVouchedAccounts(user.id)
     if (unconfirmedGuests.length >= GUARANTOR_LIMIT) {
       return { code: null, alias: user.alias, expiresAt: null, remainingMs: 0, unconfirmedGuests }

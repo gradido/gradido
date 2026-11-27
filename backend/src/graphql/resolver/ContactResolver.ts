@@ -13,7 +13,7 @@ import {
   dbInsertFavorite,
   dbSelectContactsByUserId,
   dbSelectFavoritesByUserId,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
   UnreadReceivedTransfers,
 } from 'database'
 import { GraphQLResolveInfo } from 'graphql'
@@ -106,7 +106,7 @@ export class ContactResolver {
         offset: (currentPage - 1) * pageSize,
         order,
       }),
-      getHomeCommunity(),
+      getHomeCommunityDrizzle(),
       dbSelectFavoritesByUserId(user.id),
     ])
     const favorites = new Set(
@@ -148,7 +148,7 @@ export class ContactResolver {
         // loads no community relation). The contact row shows the community, as the
         // mockup does, in a line of its own -- so the name is set here, and the row keeps
         // it out of the name link (ContactRow.vue).
-        model.communityName = home?.name ?? null
+        model.communityName = home.name
       }
       localUsers.set(row.id, model)
     }
@@ -232,7 +232,7 @@ export class ContactResolver {
         row.lastAt,
         row.bookings,
         favorites.has(favoriteKey(model.communityUuid, model.gradidoID)),
-        isSameCommunity(model.communityUuid, home?.communityUuid),
+        isSameCommunity(model.communityUuid, home.communityUuid),
         row.origin,
         // Their messages and their transfers the member has not seen, as one count: the dot at
         // the person says that something of theirs waits (Chat E-086).

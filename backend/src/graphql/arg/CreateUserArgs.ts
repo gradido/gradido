@@ -1,5 +1,5 @@
-import { IsEmail, IsInt, IsString, ValidateNested } from 'class-validator'
-import { ArgsType, Field, Int } from 'type-graphql'
+import { IsEmail, IsString, ValidateNested } from 'class-validator'
+import { ArgsType, Field } from 'type-graphql'
 import { EventMatchingEntryInput } from '@/graphql/input/EventMatchingEntryInput'
 
 @ArgsType()
@@ -23,10 +23,6 @@ export class CreateUserArgs {
   @Field(() => String, { nullable: true })
   @IsString()
   language?: string | null
-
-  @Field(() => Int, { nullable: true })
-  @IsInt()
-  publisherId?: number | null
 
   @Field(() => String, { nullable: true })
   @IsString()

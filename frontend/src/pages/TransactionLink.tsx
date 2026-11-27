@@ -436,7 +436,6 @@ export const TransactionLink = defineComponent({
             firstName,
             lastName,
             language: store.language,
-            publisherId: store.publisherId,
             redeemCode: redeemCode.value,
             // the link's community, where it is another one: the link is not here
             redeemCodeCommunityUuid: query.codeCommunityUuid ?? null,

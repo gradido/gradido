@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import { inspect } from 'node:util'
 import {
   ApolloServerTestClient,
@@ -17,11 +16,13 @@ import {
 } from 'core'
 import {
   AppDatabase,
+  CommunitiesSelect,
   chatConversationMembersTable,
   chatConversationsTable,
   chatMessagesTable,
-  Community as DbCommunity,
+  createCommunity,
   Event as DbEvent,
+  dbDeleteForeignCommunity,
   dbUpsertForeignMemberAvatarDates,
   EventType,
   foreignReceive,
@@ -106,35 +107,31 @@ let user: User[]
 let bob: User
 let peter: User
 
-let homeCom: DbCommunity
-let foreignCom: DbCommunity
+let homeCom: CommunitiesSelect
+let foreignCom: CommunitiesSelect
 
 describe('send coins', () => {
   beforeAll(async () => {
-    homeCom = DbCommunity.create()
-    homeCom.communityUuid = uuidv4()
-    homeCom.creationDate = new Date('2000-01-01')
-    homeCom.description = 'homeCom description'
-    homeCom.foreign = false
-    homeCom.name = 'homeCom name'
-    homeCom.privateKey = Buffer.from('homeCom privateKey')
-    homeCom.publicEncryptionKey = randomBytes(32)
-    homeCom.publicKey = Buffer.from('homeCom publicKey')
-    homeCom.url = 'homeCom url'
-    homeCom = await DbCommunity.save(homeCom)
+    homeCom = await createCommunity(false, {
+      communityUuid: uuidv4(),
+      creationDate: new Date('2000-01-01'),
+      description: 'homeCom description',
+      name: 'homeCom name',
+      privateKey: Buffer.from('homeCom privateKey'),
+      publicKey: Buffer.from('homeCom publicKey'),
+      url: 'homeCom url',
+    })
 
-    foreignCom = DbCommunity.create()
-    foreignCom.communityUuid = uuidv4()
-    foreignCom.creationDate = new Date('2000-06-06')
-    foreignCom.description = 'foreignCom description'
-    foreignCom.foreign = true
-    foreignCom.name = 'foreignCom name'
-    foreignCom.privateKey = Buffer.from('foreignCom privateKey')
-    foreignCom.publicEncryptionKey = randomBytes(32)
-    foreignCom.publicKey = Buffer.from('foreignCom publicKey')
-    foreignCom.url = 'foreignCom_url'
-    foreignCom.authenticatedAt = new Date('2000-06-12')
-    foreignCom = await DbCommunity.save(foreignCom)
+    foreignCom = await createCommunity(true, {
+      communityUuid: uuidv4(),
+      creationDate: new Date('2000-06-06'),
+      description: 'foreignCom description',
+      name: 'foreignCom name',
+      privateKey: Buffer.from('foreignCom privateKey'),
+      publicKey: Buffer.from('foreignCom publicKey'),
+      url: 'foreignCom_url',
+      authenticatedAt: new Date('2000-06-12'),
+    })
 
     peter = await userFactory(testEnv, peterLustig)
     bob = await userFactory(testEnv, bobBaumeister)
@@ -1252,7 +1249,7 @@ describe('sendEmail', () => {
     const peerUuid = uuidv4()
     const peerMember = uuidv4()
 
-    let peer: DbCommunity
+    let peer: CommunitiesSelect
     let sendSpy: jest.SpyInstance | undefined
     let sent: ChatMessageWireInput[] = []
     // What this server had filed for each message while it was on its way.
@@ -1284,17 +1281,13 @@ describe('sendEmail', () => {
     const filedWithBody = async (body: string) => (await messages()).filter((m) => m.body === body)
 
     beforeAll(async () => {
-      peer = await DbCommunity.create({
-        foreign: true,
+      peer = await createCommunity(true, {
         url: 'http://chat-peer.invalid/api/',
-        publicEncryptionKey: randomBytes(32),
-        publicKey: randomBytes(32),
         communityUuid: peerUuid,
         authenticatedAt: new Date(),
         name: 'Chat peer',
         description: 'the other side of the border',
-        creationDate: new Date(),
-      }).save()
+      })
       await loginAs('bob@baumeister.de')
     })
 
@@ -1309,7 +1302,7 @@ describe('sendEmail', () => {
     })
 
     afterAll(async () => {
-      await DbCommunity.delete({ id: peer.id })
+      await dbDeleteForeignCommunity(peer.id)
     })
 
     it('files its own copy under the uuid the message carries, and marks it delivered', async () => {
