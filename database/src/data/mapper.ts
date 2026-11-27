@@ -62,3 +62,12 @@ export async function typeOrmUserToDbUserCommunity(user: User): Promise<DbUserCo
     community: userCom,
   }
 }
+export async function typeOrmLocalUserToDbUserCommunity(user: User): Promise<DbUserCommunity> {
+  if (user.foreign) {
+    throw new Error(`don't call with foreign user`)
+  }
+  return {
+    ...typeOrmUserToUserSelect(user),
+    community: await getHomeCommunityDrizzle(),
+  }
+}
