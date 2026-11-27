@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
 
-import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -13,9 +12,9 @@ import { getLogger } from 'config-schema/test/testSetup'
 import { ApiClient, SENDER_AVATARS_MAX_PER_REQUEST } from 'core'
 import {
   AppDatabase,
+  createCommunity,
   creationFactory,
   DBInsertFailed,
-  Community as DbCommunity,
   Event as DbEvent,
   TransactionLink as DbTransactionLink,
   DbUser,
@@ -582,17 +581,13 @@ describe('queryTransactionLink, a link of another community', () => {
   let askSpy: jest.SpyInstance
 
   beforeAll(async () => {
-    await DbCommunity.create({
-      foreign: true,
+    await createCommunity(true, {
       url: 'http://link-peer.invalid/api/',
-      publicEncryptionKey: randomBytes(32),
-      publicKey: randomBytes(32),
       communityUuid: PEER,
       authenticatedAt: new Date(),
       name: 'Link peer',
       description: 'where the link lives',
-      creationDate: new Date(),
-    }).save()
+    })
   })
   afterEach(() => askSpy?.mockRestore())
 

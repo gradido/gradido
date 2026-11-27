@@ -45,6 +45,7 @@ import {
   findUserByIdentifier,
   getLastTransaction,
   typeOrmUserToDbLoginUser,
+  typeOrmUserToDbUserCommunity,
   UserLoggingView,
 } from 'database'
 import { getLogger, Logger } from 'log4js'
@@ -153,29 +154,30 @@ export const executeTransaction = async (
    */
   passOnOf?: number | null,
 ): Promise<boolean> => {
+  // Temporary, a step of the TypeORM refactoring: the DLT connector takes Drizzle rows, the
+  // members here are still entities. Also read with the DLT off, which costs little: the home
+  // community comes from the cache, only a member of another community costs a read. Before
+  // the lock on purpose, so that a community that cannot be found leaves no lock behind.
+  const dltSender = transactionLink ? null : await typeOrmUserToDbUserCommunity(sender)
+  const dltRecipient = await typeOrmUserToDbUserCommunity(recipient)
+
   // acquire lock
   // const releaseLock = await TRANSACTIONS_LOCK.acquire()
   const mutex = new Mutex(db.getRedisClient(), 'TRANSACTIONS_LOCK')
   await mutex.acquire()
 
+  // ⛔ Only after the lock: bookings are dated in the order the lock lets them in. A date taken
+  // while waiting is older than the booking let in before it, and the decay between the two
+  // would run backwards.
   const receivedCallDate = new Date()
-  let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
-  if (!transactionLink) {
-    dltTransactionPromise = transferTransaction(
-      sender,
-      recipient,
-      amount.toString(),
-      memo,
-      receivedCallDate,
-    )
-  } else {
-    dltTransactionPromise = redeemDeferredTransferTransaction(
-      transactionLink,
-      amount.toString(),
-      receivedCallDate,
-      recipient,
-    )
-  }
+  const dltTransactionPromise: Promise<DbDltTransaction | null> = transactionLink
+    ? redeemDeferredTransferTransaction(
+        transactionLink,
+        amount.toString(),
+        receivedCallDate,
+        dltRecipient,
+      )
+    : transferTransaction(dltSender!, dltRecipient, amount.toString(), memo, receivedCallDate)
 
   try {
     // Through the log views, as other log lines name a member: not the two rows as they were

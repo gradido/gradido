@@ -19,7 +19,6 @@ type Query {
   allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): [AdminCommunityView!]!
   reachableCommunities: [Community!]!
   authorizedCommunities: [Community!]!
-  communityByIdentifier(communityIdentifier: String!): Community!
   homeCommunity: Community!
   contactList(ref: MemberAvatarRefInput, search: String, currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): ContactList!
   contactRefs: [MemberRef!]!

@@ -3,12 +3,11 @@ import {
   Contribution as DbContribution,
   DltTransaction as DbDltTransaction,
   TransactionLink as DbTransactionLink,
-  User as DbUser,
+  DbUserCommunity,
   DltTransactionType,
+  dbFindCommunityByUuid,
   dbGetUserById,
-  getCommunityByUuid,
-  getHomeCommunity,
-  UserLoggingView,
+  getHomeCommunityDrizzle,
   UserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -111,23 +110,18 @@ export async function registerAddressTransaction(
 
 export async function contributionTransaction(
   contribution: DbContribution,
-  signingUser: DbUser,
+  signingUser: UserSelect,
   createdAt: Date,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_ACTIVE) {
     return Promise.resolve(null)
   }
   try {
-    const homeCommunity = await getHomeCommunity()
-    if (!homeCommunity) {
-      logger.error('home community not found')
-      return null
-    }
     const draft = TransactionDraft.createContribution(
       contribution,
       createdAt,
       signingUser,
-      homeCommunity,
+      await getHomeCommunityDrizzle(),
     )
     return await executeDltTransaction(draft, DltTransactionType.CREATION)
   } catch (error) {
@@ -137,8 +131,8 @@ export async function contributionTransaction(
 }
 
 export async function transferTransaction(
-  senderUser: DbUser,
-  recipientUser: DbUser,
+  senderUser: DbUserCommunity,
+  recipientUser: DbUserCommunity,
   amount: string,
   memo: string,
   createdAt: Date,
@@ -148,14 +142,6 @@ export async function transferTransaction(
   }
   // load community if not already loaded, maybe they are remote communities
   try {
-    if (!senderUser.community) {
-      senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
-    }
-    if (!recipientUser.community) {
-      recipientUser.community = await getCommunityByUuid(recipientUser.communityUuid)
-    }
-    logger.info(`sender user: ${new UserLoggingView(senderUser)}`)
-    logger.info(`recipient user: ${new UserLoggingView(recipientUser)}`)
     const draft = TransactionDraft.createTransfer(
       senderUser,
       recipientUser,
@@ -171,7 +157,7 @@ export async function transferTransaction(
 }
 
 export async function deferredTransferTransaction(
-  senderUser: DbUser,
+  senderUser: DbUserCommunity,
   transactionLink: DbTransactionLink,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_ACTIVE) {
@@ -179,9 +165,6 @@ export async function deferredTransferTransaction(
   }
   // load community if not already loaded
   try {
-    if (!senderUser.community) {
-      senderUser.community = await getCommunityByUuid(senderUser.communityUuid)
-    }
     const draft = TransactionDraft.createDeferredTransfer(senderUser, transactionLink)
     return await executeDltTransaction(draft, DltTransactionType.DEFERRED_TRANSFER)
   } catch (error) {
@@ -194,7 +177,7 @@ export async function redeemDeferredTransferTransaction(
   transactionLink: DbTransactionLink,
   amount: string,
   createdAt: Date,
-  recipientUser: DbUser,
+  recipientUser: DbUserCommunity,
   deleteLink: boolean = false,
 ): Promise<DbDltTransaction | null> {
   if (!CONFIG.DLT_ACTIVE) {
@@ -206,18 +189,17 @@ export async function redeemDeferredTransferTransaction(
       logger.debug('load sender user')
       transactionLink.user = await dbGetUserById(transactionLink.userId, true, false)
     }
-    if (!transactionLink.user.community) {
+    let senderUserCom: CommunitiesSelect | null = await getHomeCommunityDrizzle()
+    if (transactionLink.user.foreign) {
       logger.debug('load sender community')
-      transactionLink.user.community = await getCommunityByUuid(transactionLink.user.communityUuid)
+      senderUserCom = await dbFindCommunityByUuid(transactionLink.user.communityUuid)
+      if (!senderUserCom) {
+        throw new Error(`Missing community for foreing user: ${transactionLink.user.id}`)
+      }
     }
-    if (!recipientUser.community) {
-      logger.debug('load recipient community')
-      recipientUser.community = await getCommunityByUuid(recipientUser.communityUuid)
-    }
-    logger.debug(`sender: ${new UserLoggingView(transactionLink.user)}`)
-    logger.debug(`recipient: ${new UserLoggingView(recipientUser)}`)
     const draft = TransactionDraft.redeemDeferredTransfer(
       transactionLink,
+      senderUserCom,
       amount,
       createdAt,
       recipientUser,

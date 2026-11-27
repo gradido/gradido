@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import { request as httpRequest } from 'node:http'
 import { AddressInfo } from 'node:net'
 import { GmsPublishLocationType } from '@enum/GmsPublishLocationType'
@@ -33,8 +32,9 @@ import {
   AppDatabase,
   CommunitiesSelect,
   contributionLinkFactory,
-  Community as DbCommunity,
+  createCommunity,
   Event as DbEvent,
+  dbDeleteForeignCommunity,
   dbInsertMatchingEntry,
   dbInsertUserAlias,
   transactionLinkFactory as dbTransactionLinkFactory,
@@ -330,17 +330,13 @@ describe('UserResolver', () => {
         await userFactory(testEnv, { ...stephenHawking, alias: 'BlackHoles' })
         // A member of another community, whose name exists only over there: a cached copy,
         // `foreign` like every row storeForeignUser writes.
-        const otherCommunity = await DbCommunity.create({
-          foreign: true,
+        const otherCommunity = await createCommunity(true, {
           url: 'http://other.invalid/api/',
-          publicEncryptionKey: randomBytes(32),
-          publicKey: randomBytes(32),
           communityUuid: uuidv4(),
           authenticatedAt: new Date(),
           name: 'Other community',
           description: 'a name that exists only over there',
-          creationDate: new Date(),
-        }).save()
+        })
         await dbUserFactory(
           {
             alias: 'FarAway',
@@ -3984,35 +3980,26 @@ describe('UserResolver', () => {
   })
 
   describe('user', () => {
-    let homeCom1: DbCommunity
-    let foreignCom1: DbCommunity
-
     beforeAll(async () => {
-      homeCom1 = DbCommunity.create()
-      homeCom1.foreign = false
-      homeCom1.url = 'http://localhost/api'
-      homeCom1.publicEncryptionKey = randomBytes(32)
-      homeCom1.publicKey = Buffer.from('publicKey-HomeCommunity')
-      homeCom1.privateKey = Buffer.from('privateKey-HomeCommunity')
-      homeCom1.communityUuid = uuidv4() // 'HomeCom-UUID'
-      homeCom1.authenticatedAt = new Date()
-      homeCom1.name = 'HomeCommunity-name'
-      homeCom1.description = 'HomeCommunity-description'
-      homeCom1.creationDate = new Date()
-      await DbCommunity.insert(homeCom1)
+      await createCommunity(false, {
+        url: 'http://localhost/api',
+        publicKey: Buffer.from('publicKey-HomeCommunity'),
+        privateKey: Buffer.from('privateKey-HomeCommunity'),
+        communityUuid: uuidv4(), // 'HomeCom-UUID'
+        authenticatedAt: new Date(),
+        name: 'HomeCommunity-name',
+        description: 'HomeCommunity-description',
+      })
 
-      foreignCom1 = DbCommunity.create()
-      foreignCom1.foreign = true
-      foreignCom1.url = 'http://stage-2.gradido.net/api'
-      foreignCom1.publicEncryptionKey = randomBytes(32)
-      foreignCom1.publicKey = Buffer.from('publicKey-stage-2_Community')
-      foreignCom1.privateKey = Buffer.from('privateKey-stage-2_Community')
-      foreignCom1.communityUuid = uuidv4() // 'Stage2-Com-UUID'
-      foreignCom1.authenticatedAt = new Date()
-      foreignCom1.name = 'Stage-2_Community-name'
-      foreignCom1.description = 'Stage-2_Community-description'
-      foreignCom1.creationDate = new Date()
-      await DbCommunity.insert(foreignCom1)
+      await createCommunity(true, {
+        url: 'http://stage-2.gradido.net/api',
+        publicKey: Buffer.from('publicKey-stage-2_Community'),
+        privateKey: Buffer.from('privateKey-stage-2_Community'),
+        communityUuid: uuidv4(), // 'Stage2-Com-UUID'
+        authenticatedAt: new Date(),
+        name: 'Stage-2_Community-name',
+        description: 'Stage-2_Community-description',
+      })
     })
 
     afterAll(async () => {
@@ -5238,7 +5225,7 @@ describe('UserResolver', () => {
           { gradidoID: peerMember, communityUuid: peerUuid },
         ]
 
-        let peer: DbCommunity
+        let peer: CommunitiesSelect
         // each question as [route, body]
         let questions: [string, unknown][] = []
         let requests: jest.SpyInstance[] = []
@@ -5282,17 +5269,13 @@ describe('UserResolver', () => {
         }
 
         beforeAll(async () => {
-          peer = await DbCommunity.create({
-            foreign: true,
+          peer = await createCommunity(true, {
             url: 'http://peer.invalid/api/',
-            publicEncryptionKey: randomBytes(32),
-            publicKey: randomBytes(32),
             communityUuid: peerUuid,
             authenticatedAt: new Date(),
             name: 'Peer community',
             description: 'the other side of the border',
-            creationDate: new Date(),
-          }).save()
+          })
           await setSwitch(true)
         })
 
@@ -5310,7 +5293,7 @@ describe('UserResolver', () => {
 
         afterAll(async () => {
           await setSwitch(false)
-          await DbCommunity.delete({ id: peer.id })
+          await dbDeleteForeignCommunity(peer.id)
         })
 
         it("hands back another community's faces under that community's uuid", async () => {

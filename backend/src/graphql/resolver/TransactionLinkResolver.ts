@@ -58,6 +58,8 @@ import {
   findModeratorCreatingContributionLink,
   findTransactionLinkByCode,
   getLastTransaction,
+  typeOrmUserToDbUserCommunity,
+  typeOrmUserToUserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -259,7 +261,10 @@ export class TransactionLinkResolver {
         throw new LogError('Unable to save thank-you greeting picture', filed.error.name)
       }
     }
-    const dltTransactionPromise = deferredTransferTransaction(user, transactionLink)
+    const dltTransactionPromise = deferredTransferTransaction(
+      await typeOrmUserToDbUserCommunity(user),
+      transactionLink,
+    )
     await DbTransactionLink.save(transactionLink).catch(async (e) => {
       if (greeting) {
         await removeThankYouGreeting(transactionLink.code)
@@ -331,7 +336,7 @@ export class TransactionLinkResolver {
       transactionLink,
       transactionLink.amount.toString(),
       transactionLink.deletedAt!,
-      user,
+      await typeOrmUserToDbUserCommunity(user),
       true,
     )
 
@@ -561,7 +566,11 @@ export class TransactionLinkResolver {
           let dltTransactionPromise: Promise<DbDltTransaction | null> = Promise.resolve(null)
           const moderator = await moderatorPromise
           if (moderator) {
-            dltTransactionPromise = contributionTransaction(contribution, moderator, now)
+            dltTransactionPromise = contributionTransaction(
+              contribution,
+              typeOrmUserToUserSelect(moderator),
+              now,
+            )
           }
 
           await queryRunner.manager.insert(DbContribution, contribution)

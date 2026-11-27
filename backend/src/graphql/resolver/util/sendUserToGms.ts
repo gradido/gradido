@@ -1,5 +1,5 @@
 import {
-  Community as DbCommunity,
+  CommunitiesSelect,
   User as DbUser,
   dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
@@ -75,7 +75,7 @@ function chunkByEntryCount(snapshots: GmsMatchingEntrySnapshot[]): GmsMatchingEn
  */
 export async function sendUsersToGms(
   users: DbUser[],
-  homeCom: DbCommunity,
+  homeCom: CommunitiesSelect,
   withMatchingEntries = false,
 ): Promise<boolean> {
   if (homeCom.gmsApiKey === null) {

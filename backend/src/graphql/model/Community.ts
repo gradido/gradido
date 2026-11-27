@@ -1,23 +1,10 @@
-import { Community as DbCommunity } from 'database'
+import { CommunitiesSelect } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 @ObjectType()
 export class Community {
   // what it reads: a TypeORM row and a Drizzle one alike
-  constructor(
-    dbCom: Pick<
-      DbCommunity,
-      | 'id'
-      | 'foreign'
-      | 'name'
-      | 'description'
-      | 'url'
-      | 'creationDate'
-      | 'communityUuid'
-      | 'authenticatedAt'
-      | 'hieroTopicId'
-    >,
-  ) {
+  constructor(dbCom: CommunitiesSelect) {
     this.id = dbCom.id
     this.foreign = dbCom.foreign
     this.name = dbCom.name

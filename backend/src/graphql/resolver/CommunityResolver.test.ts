@@ -1,14 +1,14 @@
-import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import {
   AppDatabase,
+  CommunitiesSelect,
   createCommunity,
+  createFederatedCommunity,
   createVerifiedFederatedCommunity,
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   dbSelectHomeCommunity,
-  getHomeCommunity,
+  FederatedCommunitiesSelect,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
 import { v4 as uuidv4 } from 'uuid'
@@ -21,7 +21,6 @@ import {
 } from '@/seeds/graphql/mutations'
 import {
   allCommunities,
-  getCommunityByIdentifierQuery,
   getHomeCommunityQuery,
   reachableCommunities,
 } from '@/seeds/graphql/queries'
@@ -113,12 +112,12 @@ const ed25519KeyPairStaticHex = [
 
 describe('CommunityResolver', () => {
   describe('allCommunities for admin', () => {
-    let homeCom1: DbFederatedCommunity
-    let homeCom2: DbFederatedCommunity
-    let homeCom3: DbFederatedCommunity
-    let foreignCom1: DbFederatedCommunity
-    let foreignCom2: DbFederatedCommunity
-    let foreignCom3: DbFederatedCommunity
+    let homeCom1: FederatedCommunitiesSelect
+    let homeCom2: FederatedCommunitiesSelect
+    let homeCom3: FederatedCommunitiesSelect
+    let foreignCom1: FederatedCommunitiesSelect
+    let foreignCom2: FederatedCommunitiesSelect
+    let foreignCom3: FederatedCommunitiesSelect
 
     beforeAll(async () => {
       // create admin and login as admin
@@ -144,29 +143,26 @@ describe('CommunityResolver', () => {
 
     describe('only home-community entries (different apis)', () => {
       beforeEach(async () => {
-        homeCom1 = DbFederatedCommunity.create()
-        homeCom1.foreign = false
-        homeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        homeCom1.apiVersion = '1_0'
-        homeCom1.endPoint = 'http://localhost/api'
-        homeCom1.createdAt = new Date()
-        await DbFederatedCommunity.insert(homeCom1)
+        homeCom1 = await createFederatedCommunity({
+          foreign: false,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
+          apiVersion: '1_0',
+          endPoint: 'http://localhost/api',
+        })
 
-        homeCom2 = DbFederatedCommunity.create()
-        homeCom2.foreign = false
-        homeCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        homeCom2.apiVersion = '1_1'
-        homeCom2.endPoint = 'http://localhost/api'
-        homeCom2.createdAt = new Date()
-        await DbFederatedCommunity.insert(homeCom2)
+        homeCom2 = await createFederatedCommunity({
+          foreign: false,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
+          apiVersion: '1_1',
+          endPoint: 'http://localhost/api',
+        })
 
-        homeCom3 = DbFederatedCommunity.create()
-        homeCom3.foreign = false
-        homeCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        homeCom3.apiVersion = '2_0'
-        homeCom3.endPoint = 'http://localhost/api'
-        homeCom3.createdAt = new Date()
-        await DbFederatedCommunity.insert(homeCom3)
+        homeCom3 = await createFederatedCommunity({
+          foreign: false,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
+          apiVersion: '2_0',
+          endPoint: 'http://localhost/api',
+        })
       })
 
       it('returns only home-community entries', async () => {
@@ -224,82 +220,70 @@ describe('CommunityResolver', () => {
       })
     })
     describe('with 6 federated community entries', () => {
-      let comHomeCom1: DbCommunity
-      let comForeignCom1: DbCommunity
-      let comForeignCom2: DbCommunity
-      let foreignCom4: DbFederatedCommunity
+      let comHomeCom1: CommunitiesSelect
+      let comForeignCom1: CommunitiesSelect
+      let comForeignCom2: CommunitiesSelect
+      let foreignCom4: FederatedCommunitiesSelect
 
       beforeEach(async () => {
-        comHomeCom1 = DbCommunity.create()
-        comHomeCom1.foreign = false
-        comHomeCom1.url = 'http://localhost'
-        comHomeCom1.publicEncryptionKey = randomBytes(32)
-        comHomeCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex')
-        comHomeCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex')
-        comHomeCom1.communityUuid = 'HomeCom-UUID'
-        comHomeCom1.authenticatedAt = new Date()
-        comHomeCom1.name = 'HomeCommunity-name'
-        comHomeCom1.description = 'HomeCommunity-description'
-        comHomeCom1.creationDate = new Date()
-        await DbCommunity.insert(comHomeCom1)
+        comHomeCom1 = await createCommunity(false, {
+          url: 'http://localhost',
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
+          privateKey: Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex'),
+          communityUuid: 'HomeCom-UUID',
+          authenticatedAt: new Date(),
+          name: 'HomeCommunity-name',
+          description: 'HomeCommunity-description',
+        })
 
-        comForeignCom1 = DbCommunity.create()
-        comForeignCom1.foreign = true
-        comForeignCom1.url = 'http://stage-2.gradido.net'
-        comForeignCom1.publicEncryptionKey = randomBytes(32)
-        comForeignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
-        comForeignCom1.privateKey = Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex')
-        // community_uuid is NOT NULL since migration 0162; not authenticated all the same
-        comForeignCom1.communityUuid = 'Stage2-Com-UUID'
-        comForeignCom1.name = 'Stage-2_Community-name'
-        comForeignCom1.description = 'Stage-2_Community-description'
-        comForeignCom1.creationDate = new Date()
-        await DbCommunity.insert(comForeignCom1)
+        comForeignCom1 = await createCommunity(true, {
+          url: 'http://stage-2.gradido.net',
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex'),
+          privateKey: Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex'),
+          // community_uuid is NOT NULL since migration 0162; not authenticated all the same
+          communityUuid: 'Stage2-Com-UUID',
+          authenticatedAt: null,
+          name: 'Stage-2_Community-name',
+          description: 'Stage-2_Community-description',
+        })
 
-        comForeignCom2 = DbCommunity.create()
-        comForeignCom2.foreign = true
-        comForeignCom2.url = 'http://stage-3.gradido.net'
-        comForeignCom2.publicEncryptionKey = randomBytes(32)
-        comForeignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
-        comForeignCom2.privateKey = Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex')
-        comForeignCom2.communityUuid = 'Stage3-Com-UUID'
-        comForeignCom2.authenticatedAt = new Date()
-        comForeignCom2.name = 'Stage-3_Community-name'
-        comForeignCom2.description = 'Stage-3_Community-description'
-        comForeignCom2.creationDate = new Date()
-        await DbCommunity.insert(comForeignCom2)
+        comForeignCom2 = await createCommunity(true, {
+          url: 'http://stage-3.gradido.net',
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex'),
+          privateKey: Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex'),
+          communityUuid: 'Stage3-Com-UUID',
+          authenticatedAt: new Date(),
+          name: 'Stage-3_Community-name',
+          description: 'Stage-3_Community-description',
+        })
 
-        foreignCom1 = DbFederatedCommunity.create()
-        foreignCom1.foreign = true
-        foreignCom1.publicKey = Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex')
-        foreignCom1.apiVersion = '1_0'
-        foreignCom1.endPoint = 'http://remotehost/api'
-        foreignCom1.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom1)
+        foreignCom1 = await createFederatedCommunity({
+          foreign: true,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex'),
+          apiVersion: '1_0',
+          endPoint: 'http://remotehost/api',
+        })
 
-        foreignCom2 = DbFederatedCommunity.create()
-        foreignCom2.foreign = true
-        foreignCom2.publicKey = Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex')
-        foreignCom2.apiVersion = '1_1'
-        foreignCom2.endPoint = 'http://remotehost/api'
-        foreignCom2.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom2)
+        foreignCom2 = await createFederatedCommunity({
+          foreign: true,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex'),
+          apiVersion: '1_1',
+          endPoint: 'http://remotehost/api',
+        })
 
-        foreignCom3 = DbFederatedCommunity.create()
-        foreignCom3.foreign = true
-        foreignCom3.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
-        foreignCom3.apiVersion = '2_0'
-        foreignCom3.endPoint = 'http://remotehost/api'
-        foreignCom3.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom3)
+        foreignCom3 = await createFederatedCommunity({
+          foreign: true,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex'),
+          apiVersion: '2_0',
+          endPoint: 'http://remotehost/api',
+        })
 
-        foreignCom4 = DbFederatedCommunity.create()
-        foreignCom4.foreign = true
-        foreignCom4.publicKey = Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex')
-        foreignCom4.apiVersion = '1_0'
-        foreignCom4.endPoint = 'http://remotehost/api'
-        foreignCom4.createdAt = new Date()
-        await DbFederatedCommunity.insert(foreignCom4)
+        foreignCom4 = await createFederatedCommunity({
+          foreign: true,
+          publicKey: Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex'),
+          apiVersion: '1_0',
+          endPoint: 'http://remotehost/api',
+        })
       })
 
       it('return communities structured for admin ', async () => {
@@ -444,9 +428,9 @@ describe('CommunityResolver', () => {
   })
 
   describe('reachableCommunities', () => {
-    let homeCom1: DbCommunity
-    let foreignCom1: DbCommunity
-    let foreignCom2: DbCommunity
+    let homeCom1: CommunitiesSelect
+    let foreignCom1: CommunitiesSelect
+    let foreignCom2: CommunitiesSelect
 
     afterAll(async () => {
       await cleanDB()
@@ -464,8 +448,7 @@ describe('CommunityResolver', () => {
 
     describe('with one home-community entry', () => {
       beforeEach(async () => {
-        homeCom1 = await createCommunity(false, false)
-        await DbCommunity.insert(homeCom1)
+        homeCom1 = await createCommunity(false)
       })
 
       it('returns 1 home-community entry', async () => {
@@ -487,18 +470,11 @@ describe('CommunityResolver', () => {
 
     describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
-        foreignCom1 = await createCommunity(true, false)
-        foreignCom2 = await createCommunity(true, false)
-        const com1FedCom = await createVerifiedFederatedCommunity('1_0', 100, foreignCom1, false)
-        const com1FedCom2 = await createVerifiedFederatedCommunity('1_1', 100, foreignCom1, false)
-        const com2FedCom = await createVerifiedFederatedCommunity('1_0', 10000, foreignCom2, false)
-        await Promise.all([
-          DbCommunity.insert(foreignCom1),
-          DbCommunity.insert(foreignCom2),
-          DbFederatedCommunity.insert(com1FedCom),
-          DbFederatedCommunity.insert(com1FedCom2),
-          DbFederatedCommunity.insert(com2FedCom),
-        ])
+        foreignCom1 = await createCommunity(true)
+        foreignCom2 = await createCommunity(true)
+        await createVerifiedFederatedCommunity('1_0', 100, foreignCom1)
+        await createVerifiedFederatedCommunity('1_1', 100, foreignCom1)
+        await createVerifiedFederatedCommunity('1_0', 10000, foreignCom2)
       })
 
       it('returns 2 community entries', async () => {
@@ -523,41 +499,14 @@ describe('CommunityResolver', () => {
       })
     })
 
-    describe('search community by uuid', () => {
-      let homeCom: DbCommunity | null
+    describe('homeCommunity', () => {
+      let homeCom: CommunitiesSelect | null
       beforeAll(async () => {
         await cleanDB()
 
-        homeCom = await createCommunity(false, false)
-        foreignCom1 = await createCommunity(true, false)
-        foreignCom2 = await createCommunity(true, false)
-
-        await Promise.all([
-          DbCommunity.insert(homeCom),
-          DbCommunity.insert(foreignCom1),
-          DbCommunity.insert(foreignCom2),
-        ])
-      })
-
-      it('finds the home-community by uuid', async () => {
-        await expect(
-          query({
-            query: getCommunityByIdentifierQuery,
-            variables: { communityIdentifier: homeCom?.communityUuid },
-          }),
-        ).resolves.toMatchObject({
-          data: {
-            communityByIdentifier: {
-              id: homeCom?.id,
-              foreign: homeCom?.foreign,
-              name: homeCom?.name,
-              description: homeCom?.description,
-              url: homeCom?.url,
-              creationDate: homeCom?.creationDate?.toISOString(),
-              uuid: homeCom?.communityUuid,
-            },
-          },
-        })
+        homeCom = await createCommunity(false)
+        foreignCom1 = await createCommunity(true)
+        foreignCom2 = await createCommunity(true)
       })
 
       it('finds the home-community', async () => {
@@ -583,24 +532,18 @@ describe('CommunityResolver', () => {
   })
 
   describe('update community', () => {
-    let homeCom: DbCommunity
-    let foreignCom1: DbCommunity
-    let foreignCom2: DbCommunity
+    let homeCom: CommunitiesSelect
+    let foreignCom2: CommunitiesSelect
 
     beforeAll(async () => {
       await cleanDB()
 
       // create admin and login as admin
       await userFactoryDrizzle(peterLustig)
-      homeCom = (await getHomeCommunity())!
-      foreignCom1 = await createCommunity(true, false)
-      foreignCom2 = await createCommunity(true, false)
-
-      await Promise.all([
-        DbCommunity.insert(foreignCom1),
-        DbCommunity.insert(foreignCom2),
-        mutate({ mutation: login, variables: peterLoginData }),
-      ])
+      homeCom = await getHomeCommunityDrizzle()
+      await createCommunity(true)
+      foreignCom2 = await createCommunity(true)
+      await mutate({ mutation: login, variables: peterLoginData })
     })
 
     afterAll(async () => {

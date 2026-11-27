@@ -1,23 +1,17 @@
 import { Paginated } from '@arg/Paginated'
 import {
   AppDatabase,
+  CommunitiesSelect,
+  communitiesTable,
   Community as DbCommunity,
   FederatedCommunity as DbFederatedCommunity,
-  getHomeCommunity,
+  dbFindCommunityByUuid,
+  drizzleDb,
+  getHomeCommunityDrizzle,
 } from 'database'
-import { FindOneOptions, IsNull, Not } from 'typeorm'
-
+import { asc, isNotNull } from 'drizzle-orm'
+import { CommunityIdentifier } from 'shared'
 import { LogError } from '@/server/LogError'
-
-function findWithCommunityIdentifier(communityIdentifier: string): FindOneOptions<DbCommunity> {
-  return {
-    where: [
-      { communityUuid: communityIdentifier },
-      { name: communityIdentifier },
-      { url: communityIdentifier },
-    ],
-  }
-}
 
 /**
  * The community uuid a member reference is meant for.
@@ -33,92 +27,46 @@ export async function resolveCommunityUuid(
   if (communityUuid) {
     return communityUuid
   }
-  const home = await getHomeCommunity()
-  if (!home?.communityUuid) {
-    throw new LogError('Home community has no uuid, cannot address a member without one')
+  return (await getHomeCommunityDrizzle()).communityUuid
+}
+
+/**
+ * Whether the identifier (uuid, url, name or public key) names this community. Asked of the
+ * cached home community, without regard to case, as the database compared it.
+ */
+export async function isHomeCommunity(communityIdentifier: CommunityIdentifier): Promise<boolean> {
+  const homeCom = await getHomeCommunityDrizzle()
+  if (typeof communityIdentifier === 'string') {
+    const lowerCommunityIdentifier = communityIdentifier.toLowerCase()
+    return (
+      homeCom.communityUuid.toLowerCase() === lowerCommunityIdentifier ||
+      homeCom.url.toLowerCase() === lowerCommunityIdentifier ||
+      homeCom.name?.toLowerCase() === lowerCommunityIdentifier
+    )
   }
-  return home.communityUuid
+  return homeCom.publicKey.equals(communityIdentifier)
 }
 
 /**
- * Checks if a community with the given identifier exists and is not foreign.
- * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
- * @returns A promise that resolves to true if a non-foreign community exists with the given identifier, otherwise false.
- */
-export async function isHomeCommunity(communityIdentifier: string): Promise<boolean> {
-  // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
-  // It essentially converts any truthy value to true and any falsy value to false.
-  return !!(await DbCommunity.findOne({
-    where: [
-      { foreign: false, communityUuid: communityIdentifier },
-      { foreign: false, name: communityIdentifier },
-      { foreign: false, url: communityIdentifier },
-    ],
-  }))
-}
-
-/**
- * TODO: Check if it is needed, because currently it isn't used at all
- * Retrieves the URL of the community with the given identifier.
- * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
- * @returns A promise that resolves to the URL of the community or throw if no community with this identifier was found
- */
-export async function getCommunityUrl(communityIdentifier: string): Promise<string> {
-  return (await DbCommunity.findOneOrFail(findWithCommunityIdentifier(communityIdentifier))).url
-}
-
-/**
- * TODO: Check if it is needed, because currently it isn't used at all
- * Checks if a community with the given identifier exists and has an authenticatedAt property set.
- * @param communityIdentifier The identifier (URL, UUID, or name) of the community.
- * @returns A promise that resolves to true if a community with an authenticatedAt property exists with the given identifier,
- *          otherwise false.
- */
-export async function isCommunityAuthenticated(communityIdentifier: string): Promise<boolean> {
-  // The !! operator in JavaScript or TypeScript is a shorthand for converting a value to a boolean.
-  // It essentially converts any truthy value to true and any falsy value to false.
-  return !!(await DbCommunity.findOne(findWithCommunityIdentifier(communityIdentifier)))
-    ?.authenticatedAt
-}
-
-/**
- * Retrieves the name of the community with the given identifier.
- * @param communityIdentifier The identifier (URL, UUID) of the community.
+ * Retrieves the name of the community with the given uuid.
+ * @param communityUuid The uuid of the community.
  * @returns A promise that resolves to the name of the community. If the community does not exist or has no name,
  *          an empty string is returned.
  */
-export async function getCommunityName(communityIdentifier: string): Promise<string> {
-  const community = await DbCommunity.findOne({
-    where: [{ communityUuid: communityIdentifier }, { url: communityIdentifier }],
-  })
-
-  return community?.name ? community.name : ''
-}
-export async function getCommunityByUuid(communityUuid: string): Promise<DbCommunity | null> {
-  return await DbCommunity.findOne({
-    where: [{ communityUuid }],
-  })
-}
-export async function getCommunityByPublicKey(publicKey: Buffer): Promise<DbCommunity | null> {
-  return await DbCommunity.findOne({
-    where: [{ publicKey: publicKey }],
-  })
+export async function getCommunityName(communityUuid: string): Promise<string> {
+  const homeCom = await getHomeCommunityDrizzle()
+  if (homeCom.communityUuid.toLowerCase() === communityUuid.toLowerCase()) {
+    return homeCom.name ?? ''
+  }
+  return (await dbFindCommunityByUuid(communityUuid))?.name ?? ''
 }
 
-export async function getAuthenticatedCommunities(): Promise<DbCommunity[]> {
-  const dbCommunities: DbCommunity[] = await DbCommunity.find({
-    where: { communityUuid: Not(IsNull()) }, //, authenticatedAt: Not(IsNull()) },
-    order: {
-      name: 'ASC',
-    },
-  })
-  return dbCommunities
-}
-
-export async function getCommunityByIdentifier(
-  communityIdentifier: string,
-): Promise<DbCommunity | null> {
-  return await DbCommunity.findOne(findWithCommunityIdentifier(communityIdentifier))
+export async function getAuthenticatedCommunities(): Promise<CommunitiesSelect[]> {
+  return await drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(isNotNull(communitiesTable.communityUuid))
+    .orderBy(asc(communitiesTable.name))
 }
 
 /**
