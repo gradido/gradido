@@ -99,4 +99,24 @@ describe('Resource', () => {
     fact.ensureLoaded(0)
     expect(request).toHaveBeenCalledTimes(2)
   })
+
+  it('asks anew with other variables, and drops the answer to the last ones', async () => {
+    const fact = new Resource(document, schema)
+    const first = fact.ensureLoaded(undefined, { of: 'a' })
+    const second = fact.ensureLoaded(undefined, { of: 'b' })
+    expect(request).toHaveBeenCalledTimes(2)
+    answers[0](answer(1))
+    await first
+    expect(fact.value).toBeUndefined()
+    answers[1](answer(2))
+    await second
+    expect(fact.value).toEqual({ balance: 2 })
+    expect(fact.loading).toBe(false)
+    // the same again counts as asked
+    await fact.ensureLoaded(undefined, { of: 'b' })
+    expect(request).toHaveBeenCalledTimes(2)
+    fact.ensureLoaded(undefined, { of: 'a' })
+    expect(fact.value).toBeUndefined()
+    expect(fact.loading).toBe(true)
+  })
 })

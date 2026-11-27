@@ -169,6 +169,10 @@ firstCreation.ensureLoaded(0)  // asks for the current one; value stays on scree
 
 // a fact that changes faster names its own limit
 export const reachableCommunities = new Resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
+
+// a question with variables: other ones are another fact, and `value` is none until it is answered
+projectBranding.ensureLoaded(undefined, { project })
+projectBranding.loading         // a question is on its way
 ```
 
 On every visit after the first in a session the last value is drawn at once, without a loading

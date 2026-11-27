@@ -8,7 +8,7 @@ import { isPhone } from '@/browser/viewport'
 import { MemberAvatar } from '@/components/member/MemberAvatar'
 import { icon } from '@/components/ui/icon'
 import { locale, t } from '@/i18n'
-import { askProjectBranding, projectBranding } from '@/store/projectBranding'
+import { projectBranding, projectOfAddress } from '@/store/projectBranding'
 import { session, sessionRuns } from '@/store/Session'
 import { theme } from '@/store/Theme'
 import facebook from '~icons/bi/facebook'
@@ -40,7 +40,10 @@ export class AuthLayout implements m.ClassComponent {
   #sizes?: Element
 
   oninit() {
-    askProjectBranding(new URLSearchParams(location.search).get('project') ?? undefined)
+    const project = projectOfAddress()
+    if (project) {
+      projectBranding.ensureLoaded(undefined, { project })
+    }
   }
 
   onremove() {
@@ -385,7 +388,8 @@ export class AuthLayout implements m.ClassComponent {
   }
 
   view({ children }: m.Vnode) {
-    const { banner, asking } = projectBranding
+    const banner = projectOfAddress() ? projectBranding.value?.projectBrandingBanner : undefined
+    const asking = projectBranding.loading
     return m(
       '.auth-template',
       { class: classes.authTemplate },

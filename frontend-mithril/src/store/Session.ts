@@ -116,9 +116,14 @@ if (!authToken.state && session.state.member) {
   logout()
 }
 
-/** Ends the session, and loads the wallet anew at `leaveTo`: nothing of it stays in memory. */
+/**
+ * Ends the session, and loads the wallet anew at `leaveTo`: nothing of it stays in memory. A
+ * language chosen while nobody was signed in stays for the next sign-in, also where a token
+ * nobody signed in with is put away; after a sign-in there is none.
+ */
 export function logout(leaveTo = '/login') {
-  session.set(v.parse(sessionStateSchema, { language: session.state.language }))
+  const { language, preLoginLanguage } = session.state
+  session.set(v.parse(sessionStateSchema, { language, preLoginLanguage }))
   authToken.set(null, true, leaveTo)
 }
 

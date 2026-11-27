@@ -84,9 +84,18 @@ async function authenticate() {
   if (token && new URL(CONFIG.ADMIN_AUTH_URL, location.href).origin !== location.origin) {
     authToken.set(v.parse(authTokenSchema, { token, at: Date.now() }))
   }
+  const asked = authToken.state?.tokenMemberId
   const answer = authToken.state
     ? await request(verifyLogin, {}, v.object({ verifyLogin: memberSchema }))
     : undefined
+  // Another tab may have signed somebody in or out meanwhile: the answer is then of a token
+  // that is gone, and neither signs in nor out. By member, not by token: a renewal of the
+  // same member's token keeps the answer.
+  // shortcut: where it led on to then is not decided yet, the way stops here; decide with step 4.
+  const holder = authToken.state?.tokenMemberId
+  if (answer?.success ? holder !== answer.value.verifyLogin.gradidoID : holder !== asked) {
+    return
+  }
   if (answer?.success) {
     const member = answer.value.verifyLogin
     // a language chosen before is saved to the account, as the sign-in itself does it

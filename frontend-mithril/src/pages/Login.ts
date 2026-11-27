@@ -17,7 +17,7 @@ import { authenticateHumhubAutoLogin, updateLanguage } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { login as loginDocument } from '@/graphql/member'
 import { setLocale, t } from '@/i18n'
-import { projectBranding, projectBrandingKnown } from '@/store/projectBranding'
+import { knownProject } from '@/store/projectBranding'
 import { login, session } from '@/store/Session'
 
 // ⛔ One half of a contract with the backend, which cannot be imported here: what `login`
@@ -36,11 +36,10 @@ export class Login implements m.ClassComponent {
 
   async #signIn(email: string, password: string) {
     // the project of the address goes along once the server said it knows it
-    await projectBrandingKnown()
-    const { project } = projectBranding
+    const project = await knownProject()
     const answer = await request(
       loginDocument,
-      { email, password, project: project ?? null },
+      { email, password, project },
       v.object({ login: memberSchema }),
     )
     if (!answer.success) {

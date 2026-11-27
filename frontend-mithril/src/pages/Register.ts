@@ -19,7 +19,7 @@ import { guarantorCodeState } from '@/data/Guarantor.logic'
 import { createUser } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { locale, t } from '@/i18n'
-import { projectBranding, projectBrandingKnown } from '@/store/projectBranding'
+import { knownProject } from '@/store/projectBranding'
 import classes from './Register.module.css'
 
 /**
@@ -88,7 +88,7 @@ export class Register implements m.ClassComponent {
             onsubmit: async ({ firstname, lastname, email, newPassword }) => {
               this.#guarantorRefusal = undefined
               // the project of the address goes along once the server said it knows it
-              await projectBrandingKnown()
+              const project = await knownProject()
               const answer = await request(
                 createUser,
                 {
@@ -99,7 +99,7 @@ export class Register implements m.ClassComponent {
                   redeemCode: typeof code === 'string' ? code : null,
                   redeemCodeCommunityUuid:
                     typeof codeCommunityUuid === 'string' ? codeCommunityUuid : null,
-                  project: projectBranding.project ?? null,
+                  project,
                   referrerAlias: referrerAlias ?? null,
                   guarantorCode: vouched ? guarantor : null,
                   password: newPassword ?? null,
