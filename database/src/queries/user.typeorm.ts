@@ -8,15 +8,16 @@ import {
   Order,
   Result,
   searchWords,
+  urlSchema,
   uuidv4Schema,
   VoidResult,
 } from 'shared'
-import { EntityManager, In, IsNull, Like, Not, Raw } from 'typeorm'
+import { EntityManager, FindOptionsWhere, In, IsNull, Like, Not, Raw } from 'typeorm'
 import * as v from 'valibot'
-import { User as DbUser, UserContact as DbUserContact } from '../entity'
+import { Community as DbCommunity, User as DbUser, UserContact as DbUserContact } from '../entity'
 import { AccountState, ASSIGNABLE_ROLE_NAMES } from '../enum'
 import { DBNotFoundError } from '../errorTypes'
-import { findWithCommunityIdentifier, LOG4JS_QUERIES_CATEGORY_NAME } from './index'
+import { LOG4JS_QUERIES_CATEGORY_NAME } from './index'
 import { dbFindUserIdsWithEveryWord } from './user'
 import { dbFindAliasOwner } from './userAliases'
 
@@ -75,6 +76,19 @@ export async function dbGetUserWithRoleById(id: number): Promise<Result<DbUser, 
   return user
     ? { success: true, value: user }
     : { success: false, error: new DBNotFoundError('users', `id = ${id}`) }
+}
+
+function findWithCommunityIdentifier(communityIdentifier: string): FindOptionsWhere<DbCommunity> {
+  const where: FindOptionsWhere<DbCommunity> = {}
+  // pre filter identifier type to reduce db query complexity
+  if (v.safeParse(urlSchema, communityIdentifier).success) {
+    where.url = communityIdentifier
+  } else if (v.safeParse(uuidv4Schema, communityIdentifier).success) {
+    where.communityUuid = communityIdentifier
+  } else {
+    where.name = communityIdentifier
+  }
+  return where
 }
 
 /**

@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -6,7 +5,13 @@ import {
   testEnvironment,
 } from '@test/helpers'
 import { CONFIG as CORE_CONFIG } from 'core'
-import { AppDatabase, creationFactory, Community as DbCommunity, nMonthsBefore } from 'database'
+import {
+  AppDatabase,
+  CommunitiesSelect,
+  createCommunity,
+  creationFactory,
+  nMonthsBefore,
+} from 'database'
 import { GraphQLError } from 'graphql'
 // import { TRANSACTIONS_LOCK } from 'database'
 import { Mutex } from 'redis-semaphore'
@@ -88,21 +93,19 @@ describe('semaphore fullstack', () => {
   let bibisTransactionLinkCode = ''
   let bibisOpenContributionId = -1
   let bobsOpenContributionId = -1
-  let homeCom: DbCommunity
+  let homeCom: CommunitiesSelect
 
   beforeAll(async () => {
     const now = new Date()
-    homeCom = DbCommunity.create()
-    homeCom.communityUuid = uuidv4()
-    homeCom.creationDate = new Date('2000-01-01')
-    homeCom.description = 'homeCom description'
-    homeCom.foreign = false
-    homeCom.name = 'homeCom name'
-    homeCom.privateKey = Buffer.from('homeCom privateKey')
-    homeCom.publicEncryptionKey = randomBytes(32)
-    homeCom.publicKey = Buffer.from('homeCom publicKey')
-    homeCom.url = 'homeCom url'
-    homeCom = await DbCommunity.save(homeCom)
+    homeCom = await createCommunity(false, {
+      communityUuid: uuidv4(),
+      creationDate: new Date('2000-01-01'),
+      description: 'homeCom description',
+      name: 'homeCom name',
+      privateKey: Buffer.from('homeCom privateKey'),
+      publicKey: Buffer.from('homeCom publicKey'),
+      url: 'homeCom url',
+    })
 
     await userFactoryDrizzle(bibiBloxberg)
     await userFactoryDrizzle(peterLustig)

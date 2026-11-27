@@ -42,7 +42,10 @@ jest.mock('database', () => {
   return {
     __esModule: true,
     ...originalModule,
-    getHomeCommunity: jest.fn(async () => ({ communityUuid: HOME, name: 'Gradido Akademie' })),
+    getHomeCommunityDrizzle: jest.fn(async () => ({
+      communityUuid: HOME,
+      name: 'Gradido Akademie',
+    })),
     dbFindChatGroupByUuid: jest.fn(),
     dbSelectChatConversationMember: jest.fn(),
     dbSelectChatConversationMembers: jest.fn(),

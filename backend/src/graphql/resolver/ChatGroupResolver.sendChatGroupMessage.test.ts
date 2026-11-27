@@ -48,7 +48,10 @@ jest.mock('database', () => {
     dbSelectChatGroupUuids: jest.fn(async () => new Map([[9, GROUP]])),
     dbFindUsersByIds: jest.fn(),
     dbFindMemberAvatarTimestamps: jest.fn(async () => new Map()),
-    getHomeCommunity: jest.fn(async () => ({ communityUuid: HOME, name: 'Gradido Akademie' })),
+    getHomeCommunityDrizzle: jest.fn(async () => ({
+      communityUuid: HOME,
+      name: 'Gradido Akademie',
+    })),
   }
 })
 

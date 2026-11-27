@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import {
-  Community as DbCommunity,
+  CommunitiesSelect,
   User as DbUser,
   dbClearGmsRegistration,
   dbFindUsersWithEmailContactByIds,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
   MatchingEntrySelect,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -35,12 +35,14 @@ const RESTORE_WAIT_MS = 30_000
 /** What a delete that is being tried again is asked before every try, and told at its end. */
 type Wanted = { stillWanted: () => boolean; over: () => void }
 
-async function findGmsApiKey(): Promise<{ community: DbCommunity; apiKey: string } | undefined> {
+async function findGmsApiKey(): Promise<
+  { community: CommunitiesSelect; apiKey: string } | undefined
+> {
   if (!CONFIG.GMS_ACTIVE) {
     return undefined
   }
-  const community = await getHomeCommunity()
-  if (!community?.gmsApiKey) {
+  const community = await getHomeCommunityDrizzle()
+  if (!community.gmsApiKey) {
     logger.warn('no home community with a gms api key, cannot reach the GMS')
     return undefined
   }

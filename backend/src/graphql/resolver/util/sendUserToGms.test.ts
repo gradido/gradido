@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import {
-  Community as DbCommunity,
+  CommunitiesSelect,
   User as DbUser,
   dbMarkUsersGmsRegistered,
   dbSelectActiveMatchingEntriesByUserIds,
@@ -29,7 +29,7 @@ const selectEntriesMock = dbSelectActiveMatchingEntriesByUserIds as jest.Mock
 // The one statement sendUsersToGms writes itself: marking the batch as published.
 const markRegisteredMock = dbMarkUsersGmsRegistered as jest.Mock
 
-const HOME_COM = { gmsApiKey: 'gms-test-key' } as DbCommunity
+const HOME_COM = { gmsApiKey: 'gms-test-key' } as CommunitiesSelect
 
 function member(id: number, gradidoID: string): DbUser {
   return {
@@ -329,7 +329,7 @@ describe('sendUsersToGms', () => {
 
   it('refuses to publish without an api key', async () => {
     await expect(
-      sendUsersToGms([WITH_ENTRIES], { gmsApiKey: null } as DbCommunity),
+      sendUsersToGms([WITH_ENTRIES], { gmsApiKey: null } as CommunitiesSelect),
     ).rejects.toThrow('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   })
 })

@@ -4,8 +4,8 @@
  * Whether two community uuids name the same community.
  *
  * ⛔ Named `isSameCommunity`, not `isHomeCommunity`: `graphql/resolver/util/communities.ts`
- * already exports an `isHomeCommunity`, it resolves an identifier against the database, and
- * `TransactionResolver` calls it twice before money moves. Two functions of one name
+ * already exports an `isHomeCommunity`, it compares against the cached home community without
+ * regard to case, and `TransactionResolver` calls it twice before money moves. Two functions of one name
  * answering one question by two mechanisms is how a caller ends up with the wrong one.
  *
  * Missing on either side is "cannot say", and that answers false. Every caller uses this to

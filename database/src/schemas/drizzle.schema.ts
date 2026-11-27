@@ -130,6 +130,7 @@ export const communitiesTable = mysqlTable(
 )
 
 export type CommunitiesSelect = typeof communitiesTable.$inferSelect
+export const communitiesSelectSchema = createSelectSchema(communitiesTable)
 export type CommunitiesInsert = typeof communitiesTable.$inferInsert
 
 export const federatedCommunitiesTable = mysqlTable(
