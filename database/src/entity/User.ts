@@ -162,9 +162,6 @@ export class User extends BaseEntity {
   })
   contributionLinkId?: number | null
 
-  @Column({ name: 'publisher_id', type: 'int', unsigned: true, nullable: true, default: 0 })
-  publisherId: number | null
-
   @Column({ name: 'gms_allowed', type: 'bool', default: false })
   gmsAllowed: boolean
 

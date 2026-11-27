@@ -11,7 +11,7 @@ import {
   dbSelectChatGroupsByMember,
   dbSelectContactsByUserId,
   dbSelectUsersByUuids,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { Context, newRequestBudget } from '@/server/context'
 import { ChatGroupResolver } from './ChatGroupResolver'
@@ -32,7 +32,7 @@ jest.mock('database', () => {
   return {
     __esModule: true,
     ...originalModule,
-    getHomeCommunity: jest.fn(),
+    getHomeCommunityDrizzle: jest.fn(),
     dbSelectContactsByUserId: jest.fn(),
     dbSelectUsersByUuids: jest.fn(),
     dbFindUsersWithEmailContactByIds: jest.fn(),
@@ -87,7 +87,7 @@ const contact = (gradidoId: string, communityUuid: string | null = HOME): Contac
   lastBookingAt: null,
 })
 
-const home = getHomeCommunity as jest.Mock
+const home = getHomeCommunityDrizzle as jest.Mock
 const contacts = dbSelectContactsByUserId as jest.Mock
 const byUuids = dbSelectUsersByUuids as jest.Mock
 const withEmail = dbFindUsersWithEmailContactByIds as jest.Mock

@@ -1,11 +1,11 @@
 // AI-GENERATED — not an architecture reference
 import {
-  Community as DbCommunity,
+  CommunitiesSelect,
   dbIsMatchingKeyingActive,
   dbSelectMatchingEntriesNeedingKeying,
   dbSelectPublishableMatchingEntry,
   dbWriteMatchingEntryKeying,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
   type MatchingEntryToKey,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -334,7 +334,7 @@ export class MatchingKeyingRun {
    */
   private async keyGroup(
     client: AnthropicClient,
-    gms: { community: DbCommunity; apiKey: string },
+    gms: { community: CommunitiesSelect; apiKey: string },
     pending: MatchingEntryToKey[],
     givenUpOn: Set<string>,
     failedInARow: number,
@@ -435,7 +435,7 @@ export class MatchingKeyingRun {
    */
   private async keyEntry(
     client: AnthropicClient,
-    gms: { community: DbCommunity; apiKey: string },
+    gms: { community: CommunitiesSelect; apiKey: string },
     row: MatchingEntryToKey,
     vocabulary: readonly string[],
     cacheSystem: boolean,
@@ -544,7 +544,7 @@ export class MatchingKeyingRun {
    * GMS with the next repair run. Nothing in this file retries it.
    */
   private async publish(
-    gms: { community: DbCommunity; apiKey: string },
+    gms: { community: CommunitiesSelect; apiKey: string },
     uuid: string,
   ): Promise<'sent' | 'refused' | 'failed'> {
     // ⛔ The consent read stands OUTSIDE the try below, and that placement is the
@@ -581,12 +581,12 @@ export class MatchingKeyingRun {
   }
 
   /** The home community's GMS credentials, or nothing when there is no GMS to talk to. */
-  private async gmsAccess(): Promise<{ community: DbCommunity; apiKey: string } | undefined> {
+  private async gmsAccess(): Promise<{ community: CommunitiesSelect; apiKey: string } | undefined> {
     if (!CONFIG.GMS_ACTIVE) {
       return undefined
     }
-    const community = await getHomeCommunity()
-    if (!community?.gmsApiKey) {
+    const community = await getHomeCommunityDrizzle()
+    if (!community.gmsApiKey) {
       logger.warn('no home community with a gms api key, cannot reach the GMS')
       return undefined
     }

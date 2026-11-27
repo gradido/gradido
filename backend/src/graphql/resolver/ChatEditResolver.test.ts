@@ -1,5 +1,3 @@
-// AI-GENERATED — not an architecture reference
-import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -17,10 +15,12 @@ import {
 } from 'core'
 import {
   AppDatabase,
+  CommunitiesSelect,
   chatMessagesTable,
-  Community as DbCommunity,
+  createCommunity,
   User as DbUser,
   UserContact as DbUserContact,
+  dbDeleteForeignCommunity,
   User,
 } from 'database'
 import { eq } from 'drizzle-orm'
@@ -438,7 +438,7 @@ describe('editChatMessage to a member of another community', () => {
   const peerRef = { communityUuid: peerUuid, gradidoID: peerMember }
 
   type Answer = { data?: unknown; error?: { status: number; value: string } }
-  let peer: DbCommunity
+  let peer: CommunitiesSelect
   let sendSpy: jest.SpyInstance | undefined
   let editSpy: jest.SpyInstance | undefined
   // Each change the other server got.
@@ -477,17 +477,13 @@ describe('editChatMessage to a member of another community', () => {
   }
 
   beforeAll(async () => {
-    peer = await DbCommunity.create({
-      foreign: true,
+    peer = await createCommunity(true, {
       url: 'http://chat-peer.invalid/api/',
-      publicEncryptionKey: randomBytes(32),
-      publicKey: randomBytes(32),
       communityUuid: peerUuid,
       authenticatedAt: new Date(),
       name: 'Chat peer',
       description: 'the other side of the border',
-      creationDate: new Date(),
-    }).save()
+    })
     await loginAs('bob@baumeister.de')
   })
 
@@ -499,7 +495,7 @@ describe('editChatMessage to a member of another community', () => {
   afterEach(restore)
 
   afterAll(async () => {
-    await DbCommunity.delete({ id: peer.id })
+    await dbDeleteForeignCommunity(peer.id)
     resetToken()
   })
 

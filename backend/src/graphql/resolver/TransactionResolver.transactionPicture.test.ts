@@ -15,6 +15,7 @@ import {
   dbSelectTransactionPictureImageForMember,
   findUserByIdentifier,
   TransactionPictureNotFiled,
+  typeOrmUserToDbUserCommunity,
 } from 'database'
 import { CHAT_IMAGE_MAX_BYTES, GradidoUnit } from 'shared'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
@@ -46,6 +47,7 @@ jest.mock('database', () => {
     dbSelectTransactionPictureImageForMember: jest.fn(),
     // the member here is a stub, not an entity; the translation has its own test in database
     typeOrmUserToDbLoginUser: jest.fn((user) => user),
+    typeOrmUserToDbUserCommunity: jest.fn(async (user) => user),
   }
 })
 jest.mock('core', () => {
@@ -90,6 +92,9 @@ const removePicture = dbDeleteTransactionPictureWithoutBooking as jest.MockedFun
 >
 const photoFor = dbSelectTransactionPictureImageForMember as jest.MockedFunction<
   typeof dbSelectTransactionPictureImageForMember
+>
+const toUserCommunity = typeOrmUserToDbUserCommunity as jest.MockedFunction<
+  typeof typeOrmUserToDbUserCommunity
 >
 const dlt = transferTransaction as jest.MockedFunction<typeof transferTransaction>
 const acrossTheBorder = processXComCompleteTransaction as jest.MockedFunction<
@@ -534,6 +539,17 @@ describe('executeTransaction called by the two other callers', () => {
     expect(inserted).toHaveLength(2)
     expect(inserted.map((row) => row.transactionPictureId)).toEqual([null, null])
     expect(inserted.map((row) => row.thankYouCardId)).toEqual([7, 7])
+  })
+
+  it('holds no lock where the community of a member cannot be found', async () => {
+    toUserCommunity.mockRejectedValueOnce(new Error('Missing community of foreign user: 815'))
+
+    await expect(
+      executeTransaction(new GradidoUnit(500000n), 'memo memo', emma, dave, logger),
+    ).rejects.toThrow('Missing community of foreign user: 815')
+
+    // the communities are read before the lock is taken, so there is none to release
+    expect(steps).toEqual([])
   })
 })
 

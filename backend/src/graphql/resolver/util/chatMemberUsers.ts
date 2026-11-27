@@ -5,7 +5,7 @@ import {
   dbFindMemberAvatarTimestamps,
   dbFindUsersByIds,
   dbSelectUsersByUuids,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 
 /** A member's pair as one key, the way the chat tables compare it: without regard to case. */
@@ -34,7 +34,7 @@ export async function chatMemberUsers(pairs: ChatMemberRef[]): Promise<Map<strin
   const [rows, avatarDates, home] = await Promise.all([
     dbFindUsersByIds(ids, { withDeleted: true }),
     dbFindMemberAvatarTimestamps(ids),
-    getHomeCommunity(),
+    getHomeCommunityDrizzle(),
   ])
   const users = new Map<string, User>()
   for (const row of rows) {
@@ -42,7 +42,7 @@ export async function chatMemberUsers(pairs: ChatMemberRef[]): Promise<Map<strin
     model.avatarUpdatedAt = avatarDates.get(row.id) ?? null
     // A group lives within this community in P5, and so do its members. A row the federation
     // filed for a member of another one (P6) is left without a name rather than given ours.
-    model.communityName = row.foreign ? null : (home?.name ?? null)
+    model.communityName = row.foreign ? null : home.name
     users.set(chatMemberKey({ communityUuid: row.communityUuid, gradidoId: row.gradidoID }), model)
   }
   return users

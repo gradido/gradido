@@ -1,9 +1,8 @@
 import {
   CommunitiesSelect,
-  Community as DbCommunity,
   Contribution as DbContribution,
   TransactionLink as DbTransactionLink,
-  User as DbUser,
+  DbUserCommunity,
   UserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
@@ -56,8 +55,8 @@ export class TransactionDraft {
   static createContribution(
     contribution: DbContribution,
     createdAt: Date,
-    signingUser: DbUser,
-    community: DbCommunity,
+    signingUser: UserSelect,
+    community: CommunitiesSelect,
   ): TransactionDraft | null {
     if (community.hieroTopicId) {
       const draft = new TransactionDraft()
@@ -69,7 +68,7 @@ export class TransactionDraft {
       draft.linkedUser = new AccountIdentifier(
         community.hieroTopicId,
         community.communityUuid!,
-        new CommunityAccountIdentifier(signingUser.gradidoID),
+        new CommunityAccountIdentifier(signingUser.gradidoId),
       )
       draft.type = TransactionType.GRDT_TRANSACTION_CREATION
       draft.createdAt = createdAt.toISOString()
@@ -84,15 +83,12 @@ export class TransactionDraft {
   }
 
   static createTransfer(
-    sendingUser: DbUser,
-    receivingUser: DbUser,
+    sendingUser: DbUserCommunity,
+    receivingUser: DbUserCommunity,
     amount: string,
     memo: string,
     createdAt: Date,
   ): TransactionDraft | null {
-    if (!sendingUser.community || !receivingUser.community) {
-      throw new Error(`missing community for user ${sendingUser.id} and/or ${receivingUser.id}`)
-    }
     const senderUserTopic = sendingUser.community.hieroTopicId
     const receiverUserTopic = receivingUser.community.hieroTopicId
     if (!senderUserTopic || !receiverUserTopic) {
@@ -104,12 +100,12 @@ export class TransactionDraft {
     draft.user = new AccountIdentifier(
       senderUserTopic,
       sendingUser.community.communityUuid!,
-      new CommunityAccountIdentifier(sendingUser.gradidoID),
+      new CommunityAccountIdentifier(sendingUser.gradidoId),
     )
     draft.linkedUser = new AccountIdentifier(
       receiverUserTopic,
       receivingUser.community.communityUuid!,
-      new CommunityAccountIdentifier(receivingUser.gradidoID),
+      new CommunityAccountIdentifier(receivingUser.gradidoId),
     )
     draft.type = TransactionType.GRDT_TRANSACTION_TRANSFER
     draft.createdAt = createdAt.toISOString()
@@ -119,12 +115,9 @@ export class TransactionDraft {
   }
 
   static createDeferredTransfer(
-    sendingUser: DbUser,
+    sendingUser: DbUserCommunity,
     transactionLink: DbTransactionLink,
   ): TransactionDraft | null {
-    if (!sendingUser.community) {
-      throw new Error(`missing community for user ${sendingUser.id}`)
-    }
     const senderUserTopic = sendingUser.community.hieroTopicId
     if (!senderUserTopic) {
       throw new Error(`missing topicId for community ${sendingUser.community.id}`)
@@ -135,7 +128,7 @@ export class TransactionDraft {
     draft.user = new AccountIdentifier(
       senderUserTopic,
       sendingUser.community.communityUuid!,
-      new CommunityAccountIdentifier(sendingUser.gradidoID),
+      new CommunityAccountIdentifier(sendingUser.gradidoId),
     )
     draft.linkedUser = new AccountIdentifier(
       senderUserTopic,
@@ -152,19 +145,14 @@ export class TransactionDraft {
 
   static redeemDeferredTransfer(
     transactionLink: DbTransactionLink,
+    senderUserCommunity: CommunitiesSelect,
     amount: string,
     createdAt: Date,
-    recipientUser: DbUser,
+    recipientUser: DbUserCommunity,
   ): TransactionDraft | null {
-    if (!transactionLink.user.community) {
-      throw new Error(`missing community for user ${transactionLink.user.id}`)
-    }
-    if (!recipientUser.community) {
-      throw new Error(`missing community for user ${recipientUser.id}`)
-    }
-    const senderUserTopic = transactionLink.user.community.hieroTopicId
+    const senderUserTopic = senderUserCommunity.hieroTopicId
     if (!senderUserTopic) {
-      throw new Error(`missing topicId for community ${transactionLink.user.community.id}`)
+      throw new Error(`missing topicId for community ${senderUserCommunity.id}`)
     }
     const recipientUserTopic = recipientUser.community.hieroTopicId
     if (!recipientUserTopic) {
@@ -175,13 +163,13 @@ export class TransactionDraft {
     const draft = new TransactionDraft()
     draft.user = new AccountIdentifier(
       senderUserTopic,
-      transactionLink.user.community.communityUuid!,
+      transactionLink.user.communityUuid!,
       transactionLink.code,
     )
     draft.linkedUser = new AccountIdentifier(
       recipientUserTopic,
       recipientUser.community.communityUuid!,
-      new CommunityAccountIdentifier(recipientUser.gradidoID),
+      new CommunityAccountIdentifier(recipientUser.gradidoId),
     )
     draft.type = TransactionType.GRDT_TRANSACTION_REDEEM_DEFERRED_TRANSFER
     draft.createdAt = createdAtOnlySeconds.toISOString()

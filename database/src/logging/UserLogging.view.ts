@@ -42,7 +42,6 @@ export class UserLoggingView extends AbstractLoggingView {
         : undefined,
       referrerId: this.self.referrerId,
       contributionLinkId: this.self.contributionLinkId,
-      publisherId: this.self.publisherId,
       contributions: this.self.contributions
         ? this.self.contributions.map((contribution) =>
             new ContributionLoggingView(contribution).toJSON(),

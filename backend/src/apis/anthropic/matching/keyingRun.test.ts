@@ -10,7 +10,7 @@ jest.mock('database', () => ({
   dbSelectMatchingEntriesNeedingKeying: jest.fn(),
   dbSelectPublishableMatchingEntry: jest.fn(),
   dbWriteMatchingEntryKeying: jest.fn(),
-  getHomeCommunity: jest.fn(),
+  getHomeCommunityDrizzle: jest.fn(),
 }))
 jest.mock('@/apis/gms/GmsClient', () => ({
   getGmsMatchingVocabulary: jest.fn(),
@@ -26,7 +26,7 @@ import {
   dbSelectMatchingEntriesNeedingKeying,
   dbSelectPublishableMatchingEntry,
   dbWriteMatchingEntryKeying,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import {
   getGmsMatchingVocabulary,
@@ -34,7 +34,7 @@ import {
   putGmsMatchingEntry,
 } from '@/apis/gms/GmsClient'
 
-const homeCommunity = getHomeCommunity as jest.Mock
+const homeCommunity = getHomeCommunityDrizzle as jest.Mock
 const keyingActive = dbIsMatchingKeyingActive as jest.Mock
 const pending = dbSelectMatchingEntriesNeedingKeying as jest.Mock
 const vocabulary = getGmsMatchingVocabulary as jest.Mock
@@ -296,7 +296,7 @@ describe('the matching keying run and the switch it hangs on', () => {
   it('stops before spending when the community has no GMS registration', async () => {
     CONFIG.MATCHING_ACTIVE = true
     oneEntryWaiting()
-    homeCommunity.mockResolvedValue(undefined)
+    homeCommunity.mockResolvedValue({ id: 1, gmsApiKey: null })
 
     // Without the vocabulary there is nothing to keep two communities using one word,
     // which is the whole point of keying. Better to wait than to coin in the dark.

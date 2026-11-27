@@ -1,12 +1,12 @@
-// AI-GENERATED — not an architecture reference
-import { randomBytes } from 'node:crypto'
 import { ApolloServerTestClient, cleanDB, testEnvironment } from '@test/helpers'
 import { getLogger } from 'config-schema/test/testSetup'
 import { ApiClient, MemberAvatarsQuestion } from 'core'
 import {
   AppDatabase,
-  Community as DbCommunity,
+  CommunitiesSelect,
+  createCommunity,
   User as DbUser,
+  dbDeleteForeignCommunity,
   dbUpsertForeignMemberAvatarDates,
   foreignMemberAvatarDatesTable,
 } from 'database'
@@ -91,28 +91,20 @@ const peerDoesNotAnswer = () => peerAnswers(() => null)
 beforeAll(async () => {
   testEnv = await testEnvironment(logger)
   await cleanDB()
-  await DbCommunity.create({
-    foreign: false,
+  await createCommunity(false, {
     url: 'http://home.invalid/api/',
-    publicEncryptionKey: randomBytes(32),
-    publicKey: randomBytes(32),
     communityUuid: uuidv4(),
     name: 'Home community',
     description: 'this side of the border',
-    creationDate: new Date(),
-  }).save()
+  })
   peerUuid = uuidv4()
-  await DbCommunity.create({
-    foreign: true,
+  await createCommunity(true, {
     url: 'http://peer.invalid/api/',
-    publicEncryptionKey: randomBytes(32),
-    publicKey: randomBytes(32),
     communityUuid: peerUuid,
     authenticatedAt: new Date(),
     name: 'Peer community',
     description: 'the other side of the border',
-    creationDate: new Date(),
-  }).save()
+  })
 })
 
 beforeEach(() => {
@@ -312,30 +304,26 @@ describe('refreshForeignMemberAvatarDates', () => {
   })
 
   describe('whom it does not ask', () => {
-    let stranger: DbCommunity
+    let stranger: CommunitiesSelect
 
     beforeAll(async () => {
       await clearDates()
       await DbUser.delete({ foreign: true })
       // Everything the question needs -- keys, a uuid, members stored of it -- except the
       // completed handshake. The other side would refuse; asking would only cost the time limit.
-      stranger = await DbCommunity.create({
-        foreign: true,
+      stranger = await createCommunity(true, {
         url: 'http://stranger.invalid/api/',
-        publicEncryptionKey: randomBytes(32),
-        publicKey: randomBytes(32),
         communityUuid: uuidv4(),
         authenticatedAt: null,
         name: 'Stranger community',
         description: 'never shook hands',
-        creationDate: new Date(),
-      }).save()
+      })
       await storedMember(stranger.communityUuid as string)
     })
 
     afterAll(async () => {
       await DbUser.delete({ foreign: true })
-      await DbCommunity.delete({ id: stranger.id })
+      await dbDeleteForeignCommunity(stranger.id)
     })
 
     it('asks neither a community without stored members nor one without the handshake', async () => {

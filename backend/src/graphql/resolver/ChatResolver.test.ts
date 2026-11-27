@@ -1,5 +1,3 @@
-// AI-GENERATED — not an architecture reference
-import { randomBytes } from 'node:crypto'
 import {
   ApolloServerTestClient,
   cleanDB,
@@ -20,12 +18,14 @@ import {
 } from 'core'
 import {
   AppDatabase,
+  CommunitiesSelect,
   chatMessageImagesTable,
   chatMessagesTable,
-  Community as DbCommunity,
+  createCommunity,
   Event as DbEvent,
   User as DbUser,
   UserContact as DbUserContact,
+  dbDeleteForeignCommunity,
   dbEnsureDirectChatConversation,
   dbFindDirectChatConversation,
   dbInsertEvent,
@@ -1134,8 +1134,8 @@ describe('sendChatMessage to a member of another community', () => {
   // A community this server knows, before the two have authenticated each other.
   const strangerUuid = uuidv4()
 
-  let peer: DbCommunity
-  let stranger: DbCommunity
+  let peer: CommunitiesSelect
+  let stranger: CommunitiesSelect
   let sendSpy: jest.SpyInstance | undefined
   let sent: ChatMessageWireInput[] = []
   // What this server had filed for each message while it was on its way.
@@ -1154,28 +1154,20 @@ describe('sendChatMessage to a member of another community', () => {
   }
 
   beforeAll(async () => {
-    peer = await DbCommunity.create({
-      foreign: true,
+    peer = await createCommunity(true, {
       url: 'http://chat-peer.invalid/api/',
-      publicEncryptionKey: randomBytes(32),
-      publicKey: randomBytes(32),
       communityUuid: peerUuid,
       authenticatedAt: new Date(),
       name: 'Chat peer',
       description: 'the other side of the border',
-      creationDate: new Date(),
-    }).save()
-    stranger = await DbCommunity.create({
-      foreign: true,
+    })
+    stranger = await createCommunity(true, {
       url: 'http://chat-stranger.invalid/api/',
-      publicEncryptionKey: randomBytes(32),
-      publicKey: randomBytes(32),
       communityUuid: strangerUuid,
       authenticatedAt: null,
       name: 'Chat stranger',
       description: 'not authenticated yet',
-      creationDate: new Date(),
-    }).save()
+    })
     await loginAs('bob@baumeister.de')
   })
 
@@ -1190,8 +1182,8 @@ describe('sendChatMessage to a member of another community', () => {
   })
 
   afterAll(async () => {
-    await DbCommunity.delete({ id: peer.id })
-    await DbCommunity.delete({ id: stranger.id })
+    await dbDeleteForeignCommunity(peer.id)
+    await dbDeleteForeignCommunity(stranger.id)
     resetToken()
   })
 
