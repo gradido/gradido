@@ -10,6 +10,7 @@ import {
 import { getLogger } from 'log4js'
 import {
   createKeyPair as createJWTKeyPair,
+  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   getChangedFields,
   HomeCommunityUpdateInput,
 } from 'shared'
@@ -113,10 +114,11 @@ export const startDHT = async (topic: string): Promise<void> => {
     setInterval(async () => {
       logger.info('Refreshing successful nodes')
       successfulRequests = []
-      // only the peers that may be asked again: the others keep their deadline
+      // only the peers not seen for as long as a community stays reachable without an answer: a
+      // peer still announcing itself keeps its entry, and with it its deadline
       const now = Date.now()
-      for (const [remotePubKey, { lastAttemptAt }] of peers) {
-        if (now - lastAttemptAt >= SUCCESSTIME) {
+      for (const [remotePubKey, { lastSeenAt }] of peers) {
+        if (now - lastSeenAt >= FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
           peers.delete(remotePubKey)
         }
       }
