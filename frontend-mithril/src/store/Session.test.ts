@@ -94,6 +94,13 @@ describe('the session', () => {
     })
     expect(location.assign).toHaveBeenCalledWith('/login')
   })
+
+  it('logout opens the page it is told to instead', () => {
+    authToken.set(parsed(tokenOf(BIBI)))
+    logout('/redeem/abc')
+    expect(authToken.state).toBeNull()
+    expect(location.assign).toHaveBeenCalledWith('/redeem/abc')
+  })
 })
 
 describe('AuthTokenStore', () => {

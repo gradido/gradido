@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import m from 'mithril'
-import * as v from 'valibot'
 import { MailLinkAction } from '@/components/layout/auth/MailLinkAction'
+import { confirmEmailSchema } from '@/data/Account.schema'
 import { confirmEmail } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { t } from '@/i18n'
@@ -17,7 +17,8 @@ export class ConfirmEmail implements m.ClassComponent {
       title: t('assistedRegistration.confirm.title'),
       text: t('assistedRegistration.confirm.text'),
       button: t('assistedRegistration.confirm.button'),
-      act: () => request(confirmEmail, { code: m.route.param('confirmationCode') }, v.unknown()),
+      act: () =>
+        request(confirmEmail, { code: m.route.param('confirmationCode') }, confirmEmailSchema),
       done: t('assistedRegistration.confirm.done'),
       refused: (message) =>
         LINK_REFUSALS.some((refusal) => message.includes(refusal))

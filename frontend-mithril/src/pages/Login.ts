@@ -10,13 +10,14 @@ import { authLink } from '@/components/layout/auth/authLink'
 import { BusyButton } from '@/components/ui/BusyButton'
 import { Message } from '@/components/ui/Message'
 import { toastError } from '@/components/ui/Toasts'
+import { updateLanguageSchema } from '@/data/Account.schema'
 import { emailFieldSchema, requiredFieldSchema } from '@/data/Form.schema'
 import { memberSchema } from '@/data/Member.schema'
 import { authenticateHumhubAutoLogin, updateLanguage } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { login as loginDocument } from '@/graphql/member'
 import { setLocale, t } from '@/i18n'
-import { projectBranding } from '@/store/projectBranding'
+import { projectBranding, projectBrandingKnown } from '@/store/projectBranding'
 import { login, session } from '@/store/Session'
 
 // ⛔ One half of a contract with the backend, which cannot be imported here: what `login`
@@ -29,12 +30,13 @@ const NO_PASSWORD_YET = {
 
 /** The sign-in: address and password, and on to the page that was asked for. */
 export class Login implements m.ClassComponent {
-  // why this account cannot sign in yet: said in the form's place, with the way to a password
-  #noPasswordYet?: string
+  // why this account cannot sign in yet: said in the form's place, with the way to a password,
+  // in the language shown
+  #noPasswordYet?: () => string
 
   async #signIn(email: string, password: string) {
-    // read before the sign-in takes it
-    const { preLoginLanguage } = session.state
+    // the project of the address goes along once the server said it knows it
+    await projectBrandingKnown()
     const { project } = projectBranding
     const answer = await request(
       loginDocument,
@@ -45,7 +47,7 @@ export class Login implements m.ClassComponent {
       const { message } = answer.error
       const noPasswordYet = Object.entries(NO_PASSWORD_YET).find(([said]) => message.includes(said))
       if (noPasswordYet) {
-        this.#noPasswordYet = noPasswordYet[1]()
+        this.#noPasswordYet = noPasswordYet[1]
         toastError(t('error.no-account'))
       } else if (message.includes('No user with this credentials')) {
         toastError(t('error.no-user'))
@@ -55,12 +57,14 @@ export class Login implements m.ClassComponent {
       return
     }
     const member = answer.value.login
+    // read as the answer came, before the sign-in takes it: a choice made meanwhile counts
+    const { preLoginLanguage } = session.state
     login(member)
     await setLocale(session.state.language ?? member.language)
     // a language chosen on this page counts, and is saved to the account
     if (preLoginLanguage && preLoginLanguage !== member.language) {
       // not said where it fails: the language shown is the chosen one all the same
-      await request(updateLanguage, { locale: preLoginLanguage }, v.unknown())
+      await request(updateLanguage, { locale: preLoginLanguage }, updateLanguageSchema)
     }
     // Released before the page changes under it: the home-screen app of an iPhone kept
     // offering the saved password after every later tap.
@@ -96,7 +100,7 @@ export class Login implements m.ClassComponent {
           '.container',
           m(Message, {
             headline: t('message.errorTitle'),
-            subtitle: this.#noPasswordYet,
+            subtitle: this.#noPasswordYet(),
             buttonText: t('settings.password.reset'),
             linkTo: '/forgot-password',
           }),

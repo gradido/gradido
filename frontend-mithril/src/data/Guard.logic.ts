@@ -25,7 +25,7 @@ export type Visitor = {
  * Where a navigation goes instead of the page asked for; null where that page may open. The
  * steps of the old wallet's guards, in their order.
  */
-export function whereTo(to: Navigation, visitor: Visitor): string | null {
+export function smartRedirect(to: Navigation, visitor: Visitor): string | null {
   // the wallet has no page of its own at its root
   if (to.path === '/') {
     return '/login'

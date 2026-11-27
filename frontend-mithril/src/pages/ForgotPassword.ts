@@ -6,6 +6,7 @@ import { Form } from '@/components/form/Form'
 import { BusyButton } from '@/components/ui/BusyButton'
 import { Message } from '@/components/ui/Message'
 import { toastError } from '@/components/ui/Toasts'
+import { forgotPasswordSchema } from '@/data/Account.schema'
 import { emailFieldSchema } from '@/data/Form.schema'
 import { forgotPassword } from '@/graphql/account'
 import { request } from '@/graphql/client'
@@ -54,9 +55,16 @@ export class ForgotPassword implements m.ClassComponent {
             role: 'form',
             schema,
             onsubmit: async ({ email }) => {
-              this.#sent = (await request(forgotPassword, { email }, v.unknown())).success
-              if (!this.#sent) {
+              const answer = await request(forgotPassword, { email }, forgotPasswordSchema)
+              if (answer.success) {
+                this.#sent = true
+              } else if (/email already sent/i.test(answer.error.message)) {
+                // the mail of a few minutes ago is still the one to use
+                this.#sent = false
                 toastError(t('error.email-already-sent'))
+              } else {
+                // the form stays: it can be sent again
+                toastError(`${t('error.unknown-error')} ${answer.error.message}`)
               }
             },
             submitBusyButton: m(

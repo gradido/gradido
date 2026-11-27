@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 
 import m from 'mithril'
-import * as v from 'valibot'
 import { Dropdown } from '@/components/ui/Dropdown'
 import { icon } from '@/components/ui/icon'
 import { toastError, toastSuccess } from '@/components/ui/Toasts'
+import { updateLanguageSchema } from '@/data/Account.schema'
 import { updateLanguage } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { LANGUAGES, type Language, locale, setLocale, t } from '@/i18n'
@@ -21,12 +21,17 @@ import classes from './LanguageSwitch.module.css'
  */
 export class LanguageSwitch implements m.ClassComponent<{ class?: string }> {
   async #choose(language: Language) {
-    if (language === locale) {
+    // Asked for even where it is shown: it takes the place of a choice still on its way.
+    const shown = locale
+    if (!(await setLocale(language))) {
+      // another choice came after this one, and is the one kept
       return
     }
-    await setLocale(language)
     // the texts came after the click's redraw
     m.redraw()
+    if (language === shown) {
+      return
+    }
     const signedIn = session.state.member !== null && sessionRuns()
     session.set({
       ...session.state,
@@ -34,7 +39,7 @@ export class LanguageSwitch implements m.ClassComponent<{ class?: string }> {
       preLoginLanguage: signedIn ? session.state.preLoginLanguage : language,
     })
     if (signedIn) {
-      const saved = await request(updateLanguage, { locale: language }, v.unknown())
+      const saved = await request(updateLanguage, { locale: language }, updateLanguageSchema)
       if (saved.success) {
         toastSuccess(t('settings.language.success'))
       } else {

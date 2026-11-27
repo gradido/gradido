@@ -160,6 +160,30 @@ test('sets the size of the letters in the card', async ({ page, graphql: _backen
   await expect(page.locator('.popover')).toBeHidden()
 })
 
+test('lets a keyboard set the size of the letters', async ({ page, graphql: _backend }, info) => {
+  test.skip(info.project.name.startsWith('old'), 'the old wallet reaches the sizes by pointer only')
+  await page.goto('login')
+  const sign = page.getByRole('button', { name: text('auth.textSize') })
+  await sign.focus()
+  await page.keyboard.press('Enter')
+  await expect(sign).toHaveAttribute('aria-expanded', 'true')
+  const sizes = page.getByRole('group', { name: text('auth.textSize') })
+  await expect(sizes.getByRole('button', { name: text('100') })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  // 85, 100, 125
+  for (let tab = 0; tab < 3; tab++) {
+    await page.keyboard.press('Tab')
+  }
+  await expect(sizes.getByRole('button', { name: text('125') })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.page-font-size')).toHaveCSS('font-size', '20px')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.popover')).toBeHidden()
+  await expect(sign).toBeFocused()
+})
+
 test('shows the three triads one after the other, twice, and stops where somebody types', async ({
   page,
   graphql: _backend,
@@ -203,6 +227,22 @@ test('shows the three triads one after the other, twice, and stops where somebod
   await page.clock.runFor(7000)
   await expect(page.getByTestId('triad-slogan')).toBeVisible()
   await expect(page.getByTestId('triad-design')).toHaveCount(0)
+})
+
+test('turns the pictures also where the device asks for less motion', async ({
+  page,
+  graphql: _backend,
+}, info) => {
+  test.skip(isPhone(info.project.name), 'no room for the picture on a phone')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  await page.goto('login')
+  const shown = page.locator('.carousel-item.active .caption-first-text')
+  await expect(shown).toHaveText(text('auth.left.gratitude'))
+  await page.clock.runFor(13_000)
+  await expect(shown).toHaveText(text('auth.left.dignity'))
+  await page.clock.runFor(13_000)
+  await expect(shown).toHaveText(text('auth.left.donation'))
 })
 
 test('shows three pictures with their words on the desk, one after the other', async ({

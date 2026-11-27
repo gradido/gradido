@@ -10,6 +10,16 @@ import {
   validate,
 } from 'graphql'
 import * as v from 'valibot'
+import {
+  confirmEmailChangeSchema,
+  confirmEmailSchema,
+  createUserSchema,
+  forgotPasswordSchema,
+  queryOptInSchema,
+  revokeEmailChangeSchema,
+  setPasswordSchema,
+  updateLanguageSchema,
+} from '@/data/Account.schema'
 import { creationGroupSchema } from '@/data/CreationGroup.schema'
 import { memberSchema } from '@/data/Member.schema'
 import { openCreationsSchema } from '@/data/OpenCreation.schema'
@@ -57,15 +67,14 @@ const DOCUMENTS: Record<string, [DocumentNode, v.GenericSchema]> = {
     v.object({ suggestedCreationGroup: v.nullable(creationGroupSchema) }),
   ],
   openCreations: [openCreations, openCreationsSchema],
-  // asked for what they do: nothing of the answer is read
-  createUser: [createUser, v.unknown()],
-  forgotPassword: [forgotPassword, v.unknown()],
-  queryOptIn: [queryOptIn, v.unknown()],
-  setPassword: [setPassword, v.unknown()],
-  confirmEmail: [confirmEmail, v.unknown()],
-  confirmEmailChange: [confirmEmailChange, v.unknown()],
-  revokeEmailChange: [revokeEmailChange, v.unknown()],
-  updateLanguage: [updateLanguage, v.unknown()],
+  createUser: [createUser, createUserSchema],
+  forgotPassword: [forgotPassword, forgotPasswordSchema],
+  queryOptIn: [queryOptIn, queryOptInSchema],
+  setPassword: [setPassword, setPasswordSchema],
+  confirmEmail: [confirmEmail, confirmEmailSchema],
+  confirmEmailChange: [confirmEmailChange, confirmEmailChangeSchema],
+  revokeEmailChange: [revokeEmailChange, revokeEmailChangeSchema],
+  updateLanguage: [updateLanguage, updateLanguageSchema],
   projectBrandingBanner: [projectBrandingBanner, projectBrandingBannerSchema],
   authenticateHumhubAutoLogin: [
     authenticateHumhubAutoLogin,

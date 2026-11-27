@@ -1,8 +1,11 @@
+// AI-GENERATED — not an architecture reference
 import CONFIG from '@frontend/config'
 import { safeWalletPath } from '@frontend/utils/safeWalletPath'
 import m from 'mithril'
 import * as v from 'valibot'
+import { updateLanguageSchema } from '@/data/Account.schema'
 import { memberSchema } from '@/data/Member.schema'
+import { updateLanguage } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { verifyLogin } from '@/graphql/member'
 import { setLocale } from '@/i18n'
@@ -68,13 +71,16 @@ export const ROUTES: Record<string, Route> = {
  * The way in for a member the admin interface hands over (`/authenticate`). Where the two
  * share an origin they share the token, which is there already; from another origin it
  * comes in the address (`?token=`). The server says whose it is, and the way goes on to the
- * page of the wallet `?redirect=` names, else to the overview.
+ * page of the wallet `?redirect=` names, else to the overview. Where it takes the token for
+ * none, the way goes on to that page all the same: one for members asks for the sign-in and
+ * goes on there after it, as any link into the wallet does.
  */
 async function authenticate() {
   // From the address itself: Mithril decodes a query twice, and the page to go on to has a
   // query of its own. And its parameters are those of the page shown, not of this way in.
   const query = new URLSearchParams(location.search)
   const token = query.get('token')
+  const page = safeWalletPath(query.get('redirect'))
   if (token && new URL(CONFIG.ADMIN_AUTH_URL, location.href).origin !== location.origin) {
     authToken.set(v.parse(authTokenSchema, { token, at: Date.now() }))
   }
@@ -82,14 +88,23 @@ async function authenticate() {
     ? await request(verifyLogin, {}, v.object({ verifyLogin: memberSchema }))
     : undefined
   if (answer?.success) {
-    login(answer.value.verifyLogin)
-    await setLocale(session.state.language ?? answer.value.verifyLogin.language)
-    m.route.set(safeWalletPath(query.get('redirect')) ?? '/overview', null, { replace: true })
-  } else {
-    // a token the server does not take is none
-    if (authToken.state) {
-      logout()
+    const member = answer.value.verifyLogin
+    // a language chosen before is saved to the account, as the sign-in itself does it
+    const { preLoginLanguage } = session.state
+    login(member)
+    await setLocale(session.state.language ?? member.language)
+    if (preLoginLanguage && preLoginLanguage !== member.language) {
+      // not said where it fails: the language shown is the chosen one all the same
+      await request(updateLanguage, { locale: preLoginLanguage }, updateLanguageSchema)
     }
-    m.route.set('/login', null, { replace: true })
+    m.route.set(page ?? '/overview', null, { replace: true })
+  } else {
+    // A token the server does not take is none. The sign-out loads the wallet anew, at the
+    // page named: one for members asks for the sign-in there and goes on to it after.
+    if (authToken.state) {
+      logout(page ?? '/login')
+    } else {
+      m.route.set(page ?? '/login', null, { replace: true })
+    }
   }
 }

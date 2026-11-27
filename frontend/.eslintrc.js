@@ -143,6 +143,7 @@ module.exports = {
           'chatThread.forwardedFrom',
           // Read by the Mithril wallet only (frontend-mithril/src), whose texts are these files
           // until the old wallet goes.
+          'auth.textSize',
           'error.no-storage',
           'form.validation.email',
           'form.validation.minLength',

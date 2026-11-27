@@ -12,18 +12,29 @@ export const projectBranding: { project?: string; banner?: string | null; asking
   asking: false,
 }
 
+// the lookup asked last: an earlier one that answers after it says nothing any more
+let latest: Promise<void> = Promise.resolve()
+
 /** Asks the server for the banner of `project`; without one, nothing is for a project. */
-export async function askProjectBranding(project: string | undefined) {
+export function askProjectBranding(project: string | undefined) {
   projectBranding.project = undefined
   projectBranding.banner = undefined
-  if (!project) {
-    return
-  }
-  projectBranding.asking = true
-  const answer = await request(projectBrandingBanner, { project }, projectBrandingBannerSchema)
-  projectBranding.asking = false
-  if (answer.success) {
-    projectBranding.project = project
-    projectBranding.banner = answer.value.projectBrandingBanner
-  }
+  projectBranding.asking = project !== undefined
+  const lookup: Promise<void> = project
+    ? request(projectBrandingBanner, { project }, projectBrandingBannerSchema).then((answer) => {
+        if (lookup !== latest) {
+          return
+        }
+        projectBranding.asking = false
+        if (answer.success) {
+          projectBranding.project = project
+          projectBranding.banner = answer.value.projectBrandingBanner
+        }
+      })
+    : Promise.resolve()
+  latest = lookup
+  return lookup
 }
+
+/** Settles once the project asked for last is known: a sign-in sent before would go without it. */
+export const projectBrandingKnown = () => latest

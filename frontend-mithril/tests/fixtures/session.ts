@@ -12,6 +12,8 @@ export const bibi = (more = {}) => ({
   publisherId: null,
   // never null from the server: the old wallet reads into it
   klickTipp: { newsletterState: false },
+  // asked for by the old wallet's verifyLogin
+  aboutMe: null,
   ...more,
 })
 
@@ -32,10 +34,11 @@ export async function signIn(
 }
 
 /**
- * Does `how` and waits for the page for members it leads to. Watched from before: the old
- * wallet's shell asks at once (the balance, the chat's beat, …), is told that nothing of it is
- * mocked, and leaves the page again. None of that is what a spec of the sign-in is about, so
- * what was asked there is let go.
+ * Does `how` and waits for the page for members it leads to: waited for after `how`, so that
+ * the address shown before it does not count. The old wallet's shell asks at once (the
+ * balance, the chat's beat, …) and is told that nothing of it is mocked. None of that is what a
+ * spec of the sign-in is about, so what was asked from the landing on is let go; what was
+ * asked on the way there is kept for the fixture to report.
  */
 export async function landAt(
   page: Page,
@@ -43,12 +46,13 @@ export async function landAt(
   address: RegExp,
   how: () => Promise<unknown>,
 ) {
-  const landed = page.waitForURL(address)
   await how()
-  await landed
+  await page.waitForURL(address)
+  const { length: unanswered } = graphql.unanswered
+  const { length: objections } = graphql.objections
   await page.waitForLoadState('networkidle')
-  graphql.unanswered.length = 0
-  graphql.objections.length = 0
+  graphql.unanswered.length = unanswered
+  graphql.objections.length = objections
 }
 
 /** Signs in and waits for the page the sign-in leads to. */

@@ -49,6 +49,19 @@ test('says so where the mail was sent already', async ({ page, graphql }) => {
   await expect(page.locator('.test-message-subtitle')).toHaveText(text('error.email-already-sent'))
 })
 
+test('keeps the form where the mail could not be asked for', async ({ page, graphql }, info) => {
+  test.skip(info.project.name.startsWith('old'), 'the old wallet says the mail was sent already')
+  graphql.answer({ forgotPassword: new Failure('database on fire') })
+  await page.goto('forgot-password')
+  await page.locator('#email-input-field').fill('bibi@bloxberg.de')
+  await expect(page.locator('form button[type="submit"]')).toBeEnabled()
+  await page.locator('form button[type="submit"]').click()
+  await expect(page.locator(toast)).toHaveText(`${text('error.unknown-error')} database on fire`)
+  // to be sent again
+  await expect(page.locator('form button[type="submit"]')).toBeEnabled()
+  await expect(page.getByTestId('forgot-password-error')).toHaveCount(0)
+})
+
 test('says why, to whoever comes from a link that ran out', async ({ page, graphql: _backend }) => {
   await page.goto('forgot-password/reset-password')
   await expect(page.getByTestId('forgot-password-subtitle')).toHaveText(
@@ -108,6 +121,31 @@ test('gives a new account its first password, and takes a link’s code on to th
   await page.getByTestId('submit-new-password-btn').click()
   await page.locator('.test-message-button').click()
   await expect(page).toHaveURL(/\/login$/)
+})
+
+test('lets the sign-in after it say nothing until the pointer goes to its button', async ({
+  page,
+  graphql,
+}, info) => {
+  test.skip(
+    info.project.name !== 'new',
+    'there the button of the sign-in comes where the pointer is',
+  )
+  graphql.answer({ queryOptIn: true, setPassword: true })
+  await page.goto('checkEmail/0pt1n')
+  await typeBoth(page)
+  await page.getByTestId('submit-new-password-btn').click()
+  // its upper left corner: where the button of the sign-in is drawn after it
+  const button = await page.locator('.test-message-button').boundingBox()
+  await page.mouse.click(button!.x + 10, button!.y + 5)
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.locator('form button[type="submit"]')).toBeDisabled()
+  await page.mouse.move(button!.x + 11, button!.y + 6)
+  await expect(page.locator('.is-invalid')).toHaveCount(0)
+
+  await page.mouse.move(20, 20)
+  await page.mouse.move(button!.x + 11, button!.y + 6)
+  await expect(page.locator('.is-invalid')).toHaveCount(2)
 })
 
 test('leads to a new mail where the link is not known any more', async ({ page, graphql }) => {

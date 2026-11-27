@@ -18,6 +18,7 @@ const resolvers = routeResolvers(
     '/login': { page: Page },
     '/login/:code': { page: Page },
     '/send': { page: Page, requiresAuth: true },
+    '/authenticate': { leadsOn: async () => undefined },
   },
   Page,
 )
@@ -72,6 +73,8 @@ describe('routeResolvers', () => {
     authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW }))
     // nothing has opened so far: every way led elsewhere
     expect(openedBefore()).toBe(false)
+    // a way that leads on opens no page: back from the page it leads to leaves the wallet
+    await open('/authenticate')
     expect(await open('/send')).toBe(Page)
     expect(goneTo).not.toHaveBeenCalled()
     expect(session.state.redirectPath).toBe('/overview')

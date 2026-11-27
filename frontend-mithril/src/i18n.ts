@@ -40,16 +40,18 @@ let asked: Language = locale
  * (`de-AT`), its language (`de`). One the wallet does not speak, or whose texts cannot be
  * fetched, is English.
  */
+/** Shows `language` once it is here; false where another was asked for meanwhile. */
 export async function setLocale(language: string) {
   const known = v.parse(languageSchema, language.split('-')[0])
   asked = known
   const fetched = await LANGUAGES[known].fetch().catch(() => undefined)
   // another language was asked for meanwhile: that one is shown, whichever arrives first
   if (asked !== known) {
-    return
+    return false
   }
   locale = fetched ? known : 'en'
   texts = fetched?.default ?? en
+  return true
 }
 
 function textOf(all: Texts, key: string) {

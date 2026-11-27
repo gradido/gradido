@@ -13,12 +13,13 @@ import { authLink } from '@/components/layout/auth/authLink'
 import { BusyButton } from '@/components/ui/BusyButton'
 import { Message } from '@/components/ui/Message'
 import { toastError } from '@/components/ui/Toasts'
+import { createUserSchema } from '@/data/Account.schema'
 import { emailFieldSchema, nameFieldSchema, newPasswordSchema } from '@/data/Form.schema'
 import { guarantorCodeState } from '@/data/Guarantor.logic'
 import { createUser } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { locale, t } from '@/i18n'
-import { projectBranding } from '@/store/projectBranding'
+import { projectBranding, projectBrandingKnown } from '@/store/projectBranding'
 import classes from './Register.module.css'
 
 /**
@@ -27,7 +28,9 @@ import classes from './Register.module.css'
  * and the account can be used at once.
  */
 export class Register implements m.ClassComponent {
-  #done = false
+  // sent: as the registration was made, vouched for or not -- a code that runs out meanwhile
+  // does not change what was done
+  #done?: 'vouched' | 'plain'
   // what the server said to the guarantor code: said beside the button, not in a toast
   #guarantorRefusal?: 'failed' | 'limit'
 
@@ -44,7 +47,7 @@ export class Register implements m.ClassComponent {
         { class: classes.registerForm },
         m(
           '.container',
-          vouched
+          this.#done === 'vouched'
             ? m(Message, {
                 headline: t('message.title'),
                 subtitle: t('message.registerGuarantor'),
@@ -84,6 +87,8 @@ export class Register implements m.ClassComponent {
             schema,
             onsubmit: async ({ firstname, lastname, email, newPassword }) => {
               this.#guarantorRefusal = undefined
+              // the project of the address goes along once the server said it knows it
+              await projectBrandingKnown()
               const answer = await request(
                 createUser,
                 {
@@ -99,10 +104,10 @@ export class Register implements m.ClassComponent {
                   guarantorCode: vouched ? guarantor : null,
                   password: newPassword ?? null,
                 },
-                v.unknown(),
+                createUserSchema,
               )
               if (answer.success) {
-                this.#done = true
+                this.#done = vouched ? 'vouched' : 'plain'
               } else if (
                 vouched &&
                 answer.error.message.includes('Guarantor code invalid or expired')

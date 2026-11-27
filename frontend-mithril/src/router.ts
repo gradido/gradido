@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import m from 'mithril'
-import { whereTo } from '@/data/Guard.logic'
+import { smartRedirect } from '@/data/Guard.logic'
 import { authToken, logout, session, sessionRuns } from '@/store/Session'
 
 export type Route =
@@ -41,7 +41,7 @@ export function routeResolvers(
           const runs = sessionRuns()
           const address = asked.split('#')[0]
           const queryAt = `${address}?`.indexOf('?')
-          const instead = whereTo(
+          const instead = smartRedirect(
             {
               path: address.slice(0, queryAt),
               query: address.slice(queryAt),
@@ -52,8 +52,12 @@ export function routeResolvers(
             { sessionRuns: runs, creationAllowed: session.state.member?.creationAllowed ?? null },
           )
           if (instead === null) {
+            // a way that leads on opens no page of its own: back from the next leads past it
+            if ('leadsOn' in route) {
+              return route.leadsOn()
+            }
             opened++
-            return 'leadsOn' in route ? route.leadsOn() : route.page
+            return route.page
           }
           if (route.requiresAuth && !runs) {
             // A sign-in that ran out is no sign-in. Put away first: the sign-out puts the

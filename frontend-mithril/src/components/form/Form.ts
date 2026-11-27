@@ -34,7 +34,7 @@ type Drawn = { state?: unknown; children?: unknown; instance?: unknown }
 
 /**
  * The `<form>` around its fields, with the button that sends it. The button is locked until
- * every field fits; a pointer over it, or a finger on it, lets every field say what is wrong
+ * every field fits; a pointer that goes to it, or a finger on it, lets every field say what is wrong
  * with it, also one never entered. Sent by the button or by Enter: the values of the inputs,
  * by their `name`, go through `schema` to `onsubmit`, and the browser does not load the page
  * anew. Every other attribute goes to the form.
@@ -47,6 +47,14 @@ export class Form<const TSchema extends v.GenericSchema>
   #fields: FormField[] = []
   #valid = false
   #sending = false
+  // The place of the button, and whether the pointer was seen outside it since the form came.
+  // A pointer resting where the button is drawn (the sign-in, under the button of the page
+  // before) did not go to it: its enter tells nothing.
+  #place?: Element
+  #pointerCame = false
+  #moved = (event: PointerEvent) => {
+    this.#pointerCame ||= !(event.target instanceof Node && this.#place?.contains(event.target))
+  }
 
   // The fields among what was drawn, also those another component drew.
   #fieldsIn(drawn: unknown): FormField[] {
@@ -75,6 +83,11 @@ export class Form<const TSchema extends v.GenericSchema>
 
   oncreate(vnode: m.VnodeDOM<Attrs<TSchema>>) {
     this.#check(vnode)
+    document.addEventListener('pointermove', this.#moved)
+  }
+
+  onremove() {
+    document.removeEventListener('pointermove', this.#moved)
   }
 
   onupdate(vnode: m.VnodeDOM<Attrs<TSchema>>) {
@@ -123,7 +136,10 @@ export class Form<const TSchema extends v.GenericSchema>
         'span.d-inline-block',
         {
           class: submitPlaceClass,
-          onpointerenter: () => this.#touchAll(),
+          oncreate: ({ dom }: m.VnodeDOM) => {
+            this.#place = dom
+          },
+          onpointerenter: () => this.#pointerCame && this.#touchAll(),
           onpointerdown: () => this.#touchAll(),
         },
         {

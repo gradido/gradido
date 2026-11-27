@@ -38,6 +38,8 @@ test('lets every field say what is wrong with it under a pointer or a finger on 
   if (isMobile) {
     await page.getByRole('button', { name: 'Send' }).tap({ force: true })
   } else {
+    // from elsewhere on the page: a pointer already resting where the button came says nothing
+    await page.mouse.move(0, 0)
     await page.getByRole('button', { name: 'Send' }).hover({ force: true })
   }
   await expect(page.getByLabel('Memo')).toHaveClass(/is-invalid/)

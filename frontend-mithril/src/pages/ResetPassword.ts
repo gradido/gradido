@@ -8,6 +8,7 @@ import { authLink } from '@/components/layout/auth/authLink'
 import { BusyButton } from '@/components/ui/BusyButton'
 import { Message } from '@/components/ui/Message'
 import { toastError } from '@/components/ui/Toasts'
+import { queryOptInSchema, setPasswordSchema } from '@/data/Account.schema'
 import { newPasswordSchema } from '@/data/Form.schema'
 import { queryOptIn, setPassword } from '@/graphql/account'
 import { request } from '@/graphql/client'
@@ -26,11 +27,17 @@ const NEW_MAIL = '/forgot-password/reset-password'
 export class ResetPassword implements m.ClassComponent {
   // what is said in the form's place once the password was sent
   #message?: m.Children
+  // left before the server answered: what it says of the link is no longer this page's
+  #left = false
+
+  onremove() {
+    this.#left = true
+  }
 
   async oninit() {
     // a link the server does not know any more is told so before a password is typed
-    const known = await request(queryOptIn, { optIn: m.route.param('optin') }, v.unknown())
-    if (!known.success) {
+    const known = await request(queryOptIn, { optIn: m.route.param('optin') }, queryOptInSchema)
+    if (!known.success && !this.#left) {
       toastError(known.error.message)
       m.route.set(NEW_MAIL)
     }
@@ -55,7 +62,7 @@ export class ResetPassword implements m.ClassComponent {
             const answer = await request(
               setPassword,
               { code: optin, password: newPassword },
-              v.unknown(),
+              setPasswordSchema,
             )
             if (answer.success) {
               this.#message = m(Message, {

@@ -80,9 +80,15 @@ export class AuthCarousel implements m.ClassComponent {
     const nextPicture =
       this.#next === undefined ? undefined : dom.querySelectorAll('img')[this.#next]
     if (nextPicture?.complete && nextPicture.naturalWidth > 0 && !this.#moving) {
-      // read, so that the browser has set the next picture beside before the two move
-      dom.getBoundingClientRect()
-      this.#moving = true
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // Bootstrap moves nothing then, and no transition ends: the next one is shown at once
+        this.#shown = this.#next ?? this.#shown
+        this.#next = undefined
+      } else {
+        // read, so that the browser has set the next picture beside before the two move
+        dom.getBoundingClientRect()
+        this.#moving = true
+      }
       m.redraw()
     }
   }

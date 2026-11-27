@@ -92,10 +92,11 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
     super(AUTH_TOKEN_KEY, authTokenSchema, DeviceStoreBasicType.Object)
     this.#lastSeenMemberId = this.state?.tokenMemberId
   }
-  set(value: AuthToken, save = true) {
+  /** A sign-out (`value` none) loads the wallet anew at `leaveTo`. */
+  set(value: AuthToken, save = true, leaveTo = '/login') {
     // logout
     if (this.state && !value) {
-      location.assign('/login')
+      location.assign(leaveTo)
     }
     if (value) {
       if (this.state && value.tokenMemberId !== this.#lastSeenMemberId) {
@@ -115,9 +116,10 @@ if (!authToken.state && session.state.member) {
   logout()
 }
 
-export function logout() {
+/** Ends the session, and loads the wallet anew at `leaveTo`: nothing of it stays in memory. */
+export function logout(leaveTo = '/login') {
   session.set(v.parse(sessionStateSchema, { language: session.state.language }))
-  authToken.set(null)
+  authToken.set(null, true, leaveTo)
 }
 
 export function login(member: Member) {

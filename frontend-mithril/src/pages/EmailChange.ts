@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 import m from 'mithril'
-import * as v from 'valibot'
 import { MailLinkAction } from '@/components/layout/auth/MailLinkAction'
+import { confirmEmailChangeSchema, revokeEmailChangeSchema } from '@/data/Account.schema'
 import { confirmEmailChange, revokeEmailChange } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { t } from '@/i18n'
@@ -31,8 +31,8 @@ export class EmailChange implements m.ClassComponent {
           }),
       act: () =>
         revoking
-          ? request(revokeEmailChange, { vetoCode: changeCode }, v.unknown())
-          : request(confirmEmailChange, { code: changeCode }, v.unknown()),
+          ? request(revokeEmailChange, { vetoCode: changeCode }, revokeEmailChangeSchema)
+          : request(confirmEmailChange, { code: changeCode }, confirmEmailChangeSchema),
       refused: (message) =>
         message.includes('Invalid or expired code')
           ? revoking

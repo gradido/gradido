@@ -47,11 +47,23 @@ export class AuthLayout implements m.ClassComponent {
     document.removeEventListener('click', this.#closeSizesBeside)
   }
 
+  #closeSizes() {
+    this.#sizesOpen = false
+    document.removeEventListener('click', this.#closeSizesBeside)
+  }
+
+  // Escape closes the sizes, and the focus goes back to the button that opened them
+  readonly #escapeSizes = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && this.#sizesOpen) {
+      this.#closeSizes()
+      document.getElementById('popover-target-1')?.focus()
+    }
+  }
+
   // a listener on the document, outside of Mithril's handlers: it redraws itself
   readonly #closeSizesBeside = (event: MouseEvent) => {
     if (event.target instanceof Node && !this.#sizes?.contains(event.target)) {
-      this.#sizesOpen = false
-      document.removeEventListener('click', this.#closeSizesBeside)
+      this.#closeSizes()
       m.redraw()
     }
   }
@@ -219,14 +231,20 @@ export class AuthLayout implements m.ClassComponent {
   #textSizes() {
     return [
       m(
-        '#popover-target-1.pointer',
+        // a button as wide as the div it was: the popover's arrow points at its middle
+        'button#popover-target-1.pointer.d-block.w-100.text-end.p-0.border-0.bg-transparent',
         {
+          type: 'button',
+          'aria-label': t('auth.textSize'),
+          'aria-expanded': String(this.#sizesOpen),
+          'aria-controls': this.#sizesOpen ? 'text-sizes' : undefined,
+          onkeydown: this.#escapeSizes,
           onclick: () => {
-            this.#sizesOpen = !this.#sizesOpen
             if (this.#sizesOpen) {
-              document.addEventListener('click', this.#closeSizesBeside)
+              this.#closeSizes()
             } else {
-              document.removeEventListener('click', this.#closeSizesBeside)
+              this.#sizesOpen = true
+              document.addEventListener('click', this.#closeSizesBeside)
             }
           },
         },
@@ -246,9 +264,11 @@ export class AuthLayout implements m.ClassComponent {
       ),
       this.#sizesOpen
         ? m(
-            '.popover.b-popover.b-popover-dark.fade.show.login-size-controller.bs-popover-top',
+            '#text-sizes.popover.b-popover.b-popover-dark.fade.show.login-size-controller.bs-popover-top',
             {
-              role: 'tooltip',
+              role: 'group',
+              'aria-label': t('auth.textSize'),
+              onkeydown: this.#escapeSizes,
               style: { position: 'absolute', left: '0', top: '0' },
               oncreate: (popover: m.VnodeDOM) => this.#placeTextSizes(popover),
             },
@@ -267,14 +287,19 @@ export class AuthLayout implements m.ClassComponent {
                     ] as const
                   ).map(([percent, rem], index) =>
                     m(
-                      'span.pointer',
-                      {
-                        class: index ? 'separator-start ms-2 ps-2' : undefined,
-                        onclick: () => {
-                          this.#textSizeRem = rem
+                      'span',
+                      { class: index ? 'separator-start ms-2 ps-2' : undefined },
+                      m(
+                        'button.pointer.p-0.border-0.bg-transparent.text-reset',
+                        {
+                          type: 'button',
+                          'aria-pressed': String((this.#textSizeRem ?? 1) === rem),
+                          onclick: () => {
+                            this.#textSizeRem = rem
+                          },
                         },
-                      },
-                      percent,
+                        percent,
+                      ),
                     ),
                   ),
                 ),

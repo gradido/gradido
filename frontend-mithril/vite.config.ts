@@ -3,6 +3,7 @@ import { execFileSync, execSync, spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { browserUrls, validate } from 'config-schema'
 import dotenv from 'dotenv'
 import { PurgeCSS } from 'purgecss'
@@ -42,7 +43,7 @@ function compileSass(file: string, watch: (read: string) => void) {
     silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
   })
   for (const read of compiled.loadedUrls) {
-    watch(read.pathname)
+    watch(fileURLToPath(read))
   }
   return compiled.css
 }
