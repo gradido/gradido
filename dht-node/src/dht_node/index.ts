@@ -31,6 +31,9 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
 
+// when a peer last sent its url, and when it was last asked for its community infos (ms)
+type PeerSeen = { lastSeenAt: number; lastAttemptAt: number }
+
 function isAscii(buffer: Buffer): boolean {
   for (const byte of buffer) {
     if (byte > 127) {
@@ -53,8 +56,8 @@ export const startDHT = async (topic: string): Promise<void> => {
     const TOPIC = DHT.hash(Buffer.from(topic))
     // what this community announces to every peer it finds: its federation endpoint
     const homeUrl = `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`
-    // peers asked for their community infos since the last SUCCESSTIME refresh
-    const validatedPeers = new Set<string>()
+    // the peers that sent their url, by their public key as hex
+    const peers = new Map<string, PeerSeen>()
 
     const node = new DHT({ keyPair })
 
@@ -81,11 +84,15 @@ export const startDHT = async (topic: string): Promise<void> => {
             return
           }
           const remotePubKey = socket.remotePublicKey.toString('hex')
-          // one request per peer and SUCCESSTIME, however often it connects
-          if (validatedPeers.has(remotePubKey)) {
+          const now = Date.now()
+          const peer = peers.get(remotePubKey)
+          // one request per peer and SUCCESSTIME, however often it connects; a request still
+          // running counts as made
+          if (peer && now - peer.lastAttemptAt < SUCCESSTIME) {
+            peer.lastSeenAt = now
             return
           }
-          validatedPeers.add(remotePubKey)
+          peers.set(remotePubKey, { lastSeenAt: now, lastAttemptAt: now })
           await validateCommunity(url, socket.remotePublicKey)
         } catch (e) {
           logger.error('Error on receiving data from socket:', e)
@@ -106,7 +113,13 @@ export const startDHT = async (topic: string): Promise<void> => {
     setInterval(async () => {
       logger.info('Refreshing successful nodes')
       successfulRequests = []
-      validatedPeers.clear()
+      // only the peers that may be asked again: the others keep their deadline
+      const now = Date.now()
+      for (const [remotePubKey, { lastAttemptAt }] of peers) {
+        if (now - lastAttemptAt >= SUCCESSTIME) {
+          peers.delete(remotePubKey)
+        }
+      }
     }, SUCCESSTIME)
 
     setInterval(async () => {

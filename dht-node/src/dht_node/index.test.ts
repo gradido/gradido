@@ -281,8 +281,6 @@ describe('federation', () => {
             describe('with receiving an url', () => {
               beforeEach(async () => {
                 jest.clearAllMocks()
-                // the peers asked so far are forgotten with the successful ones
-                jest.advanceTimersByTime(120000)
                 await socketEventMocks.data(Buffer.from(url))
               })
 
@@ -291,13 +289,41 @@ describe('federation', () => {
                 expect(validateCommunity).toHaveBeenCalledWith(url, remotePublicKey)
               })
 
-              it('asks the same peer once only until the successful ones are refreshed', async () => {
+              it('asks the same peer again only once SUCCESSTIME has passed since it was asked', async () => {
                 await socketEventMocks.data(Buffer.from(url))
                 expect(validateCommunity).toHaveBeenCalledTimes(1)
 
-                jest.advanceTimersByTime(120000)
+                // the refresh of the successful nodes comes in between: the peer keeps its deadline
+                jest.advanceTimersByTime(119999)
+                await socketEventMocks.data(Buffer.from(url))
+                expect(validateCommunity).toHaveBeenCalledTimes(1)
+
+                jest.advanceTimersByTime(1)
                 await socketEventMocks.data(Buffer.from(url))
                 expect(validateCommunity).toHaveBeenCalledTimes(2)
+              })
+
+              it('asks no peer again whose request is still running when the refresh comes', async () => {
+                const answers: (() => void)[] = []
+                ;(validateCommunity as jest.Mock).mockImplementationOnce(
+                  () => new Promise<void>((resolve) => answers.push(resolve)),
+                )
+                // another peer, asked halfway to the next refresh
+                jest.advanceTimersByTime(60000)
+                const otherKey = Buffer.from('other-public-key')
+                serverEventMocks.connection({ remotePublicKey: otherKey, on: socketOnMock })
+                const running = socketEventMocks.data(Buffer.from(url))
+                expect(validateCommunity).toHaveBeenLastCalledWith(url, otherKey)
+
+                // the refresh of the successful nodes, its request still unanswered
+                jest.advanceTimersByTime(60000)
+                await socketEventMocks.data(Buffer.from(url))
+                expect(validateCommunity).toHaveBeenCalledTimes(2)
+
+                for (const answer of answers) {
+                  answer()
+                }
+                await running
               })
             })
           })
