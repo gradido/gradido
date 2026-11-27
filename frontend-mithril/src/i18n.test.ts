@@ -35,9 +35,10 @@ describe('setLocale', () => {
     const german = Promise.withResolvers<Awaited<ReturnType<typeof fetch>>>()
     LANGUAGES.de.fetch = () => german.promise
     const slow = setLocale('de')
-    await setLocale('fr')
+    expect(await setLocale('fr')).toBe(true)
     german.resolve(await fetch())
-    await slow
+    // and says so: the caller keeps nothing of the earlier one
+    expect(await slow).toBe(false)
     LANGUAGES.de.fetch = fetch
     expect(locale).toBe('fr')
     expect(t('settings.language.success')).not.toBe('Deine Sprache wurde erfolgreich geändert.')

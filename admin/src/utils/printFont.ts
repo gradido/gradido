@@ -27,7 +27,7 @@ import declaration from '../assets/fonts/open-sans/open-sans.css?raw'
 const STYLE_ID = 'print-font-open-sans'
 
 // The weights the drawer asks for, as in the wallet's file.
-const WEIGHTS = [400, 500, 600, 700]
+const WEIGHTS = [400, 600, 700]
 
 const declareOnce = () => {
   if (document.getElementById(STYLE_ID)) {

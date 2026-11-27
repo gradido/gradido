@@ -6,7 +6,15 @@ dotenv.config()
 
 // Every spec runs against the old wallet first: there it describes how the wallet behaves today.
 // It runs against the Mithril wallet once its page is ported, and then has to pass there too.
-const PORTED_TO_MITHRIL: string[] = []
+const PORTED_TO_MITHRIL: string[] = [
+  'auth.spec.ts',
+  'authenticate.spec.ts',
+  'login.spec.ts',
+  'mailLinks.spec.ts',
+  'password.spec.ts',
+  'publicPages.spec.ts',
+  'register.spec.ts',
+]
 
 // Ports of their own, so that a dev server on 3000 is neither reused nor in the way, and apart
 // from the admin's specs (18080, 18081). From the environment or .env where several checkouts run

@@ -107,6 +107,8 @@ const mockGraphql = async (page: Page) => {
   const sent: SentRequest[] = []
   const unanswered: string[] = []
   const objections: string[] = []
+  // what the server sends with every answer to a member signed in: the token, renewed
+  let token: string | undefined
 
   await page.route('**/graphql', async (route) => {
     const { query, variables: sentVariables = {} } = route.request().postDataJSON()
@@ -145,13 +147,20 @@ const mockGraphql = async (page: Page) => {
     if (errors.some(({ extensions }) => extensions?.code === VALIDATION_FAILED)) {
       await route.fulfill({ status: 400, json: { errors } })
     } else {
-      await route.fulfill({ json: errors.length > 0 ? { data, errors } : { data } })
+      await route.fulfill({
+        json: errors.length > 0 ? { data, errors } : { data },
+        headers: token ? { token, 'access-control-expose-headers': 'token' } : undefined,
+      })
     }
   })
 
   return {
     /** Sets the answers for the root fields named, on top of those set before. */
     answer: (more: Record<string, Answer>) => Object.assign(answers, more),
+    /** From here on every answer carries `renewed` in its `token` header, as the server's do. */
+    renewToken: (renewed: string) => {
+      token = renewed
+    },
     /** The requests sent so far. */
     sent: () => [...sent],
     /** The requests sent so far for `field`. */

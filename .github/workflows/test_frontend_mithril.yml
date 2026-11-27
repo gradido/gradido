@@ -76,8 +76,8 @@ jobs:
           bun install --filter frontend-mithril --filter frontend --frozen-lockfile
           bun install --global --no-save turbo@^2
 
-      # what both wallets import at runtime (see the job above for why not ^build), and the
-      # styles both load: gradido.css is compiled, not checked in
+      # what both wallets import at runtime (see the job above for why not ^build), and the old
+      # wallet's styles for the pictures it takes: gradido.css is compiled, not checked in
       - name: build what the wallets import
         run: |
           turbo build --filter=config-schema

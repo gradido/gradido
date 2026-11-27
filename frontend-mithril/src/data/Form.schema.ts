@@ -8,7 +8,7 @@ import {
 import * as v from 'valibot'
 import { locale, t } from '@/i18n'
 
-// The rules of the wallet's form fields, for the schema of a form (`components/Form.ts`). A
+// The rules of the wallet's form fields, for the schema of a form (`components/form/Form.ts`). A
 // rule's sentence is a function: it is said in the language shown when the value is checked.
 
 // The sentences of an amount and of a number of hours, which follow the same rule.
@@ -149,6 +149,25 @@ export function emailFieldSchema(fieldName: string) {
     v.toLowerCase(),
     v.nonEmpty(() => t('form.validation.requiredField', { fieldName })),
     v.rfcEmail(() => t('form.validation.email', { fieldName })),
+  )
+}
+
+/** A field that must not stay empty, and takes whatever is typed: the password of a sign-in. */
+export function requiredFieldSchema(fieldName: string) {
+  return v.pipe(
+    v.string(),
+    v.nonEmpty(() => t('form.validation.requiredField', { fieldName })),
+  )
+}
+
+/** A first or last name, of `min` characters at least. */
+export function nameFieldSchema(fieldName: string, min: number) {
+  return v.pipe(
+    // shared's `firstNameSchema` step by step: its own sentence is English
+    v.string(),
+    v.nonEmpty(() => t('form.validation.requiredField', { fieldName })),
+    v.minLength(min, () => t('form.validation.minLength', { fieldName, min })),
+    v.maxLength(255),
   )
 }
 

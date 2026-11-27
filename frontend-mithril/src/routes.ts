@@ -1,62 +1,110 @@
+// AI-GENERATED — not an architecture reference
 import CONFIG from '@frontend/config'
+import { safeWalletPath } from '@frontend/utils/safeWalletPath'
 import m from 'mithril'
-import { whereTo } from '@/data/Guard.logic'
-import { authToken, logout, session, sessionRuns } from '@/store/Session'
+import * as v from 'valibot'
+import { memberSchema } from '@/data/Member.schema'
+import { request } from '@/graphql/client'
+import { verifyLogin } from '@/graphql/member'
+import { ConfirmEmail } from '@/pages/ConfirmEmail'
+import { EmailChange } from '@/pages/EmailChange'
+import { ForgotPassword } from '@/pages/ForgotPassword'
+import { Login } from '@/pages/Login'
+import { NotFound } from '@/pages/NotFound'
+import { PublicProfile } from '@/pages/PublicProfile'
+import { Register } from '@/pages/Register'
+import { RegisterCommunity } from '@/pages/RegisterCommunity'
+import { ResetPassword } from '@/pages/ResetPassword'
+import type { Route } from '@/router'
+import { authToken, authTokenSchema, logout } from '@/store/Session'
+import { signInAs } from '@/store/signIn'
 
-export type Route = {
-  /** The page, fetched when its address is opened: every page is a chunk of its own. */
-  page: () => Promise<m.ComponentTypes>
-  /** For members only: anybody else is led to the sign-in, and comes back after it. */
-  requiresAuth?: true
+// A page of a later step of todo.md, which a page ported already leads to: the address
+// exists, with its guard, and says which build answers.
+const notPortedYet = {
+  view: () => m('main', `Gradido ${CONFIG.APP_VERSION} (Mithril)`),
 }
+
+const signIn = { page: Login }
+const register = { page: Register }
+const forgotPassword = { page: ForgotPassword }
+const resetPassword = { page: ResetPassword }
+const emailChange = { page: EmailChange }
 
 /**
  * Every address of the wallet. `:name` takes one part of an address, `:name...` the rest of
- * it; Mithril knows no part that may be missing, so such an address has two rows.
+ * it; Mithril knows no part that may be missing, so such an address has a row for each length.
+ * The pages are imported, not fetched when opened: one bundle, and a page opens without a
+ * further request. Fetched apart: the languages (i18n.ts).
  */
 export const ROUTES: Record<string, Route> = {
-  // No page is ported yet (todo.md): every address answers with the build it is.
-  '/:path...': {
-    page: async () => ({ view: () => m('main', `Gradido ${CONFIG.APP_VERSION} (Mithril)`) }),
-  },
+  // never opened: the guard leads on to the sign-in
+  '/': signIn,
+  '/login': signIn,
+  // with the code of a link to redeem, which the sign-in goes on to
+  '/login/:code': signIn,
+  '/register': register,
+  '/register/:code': register,
+  '/register-community': { page: RegisterCommunity },
+  '/forgot-password': forgotPassword,
+  // from a link that ran out: the page says so
+  '/forgot-password/:comingFrom': forgotPassword,
+  '/reset-password/:optin': resetPassword,
+  // a new account's first password; the code of a link to redeem and its community go on
+  '/checkEmail/:optin': resetPassword,
+  '/checkEmail/:optin/:code': resetPassword,
+  '/checkEmail/:optin/:code/:codeCommunityUuid': resetPassword,
+  '/email-change/revoke/:changeCode': emailChange,
+  '/email-change/:changeCode': emailChange,
+  '/confirm-email/:confirmationCode': { page: ConfirmEmail },
+  '/u/:alias': { page: PublicProfile },
+  '/authenticate': { leadsOn: authenticate },
+  '/overview': { page: notPortedYet, requiresAuth: true },
+  '/send/:communityIdentifier/:userIdentifier': { page: notPortedYet, requiresAuth: true },
+  '/redeem/:code': { page: notPortedYet },
+  '/:path...': { page: NotFound },
 }
 
-// until the first page has opened: what comes before it is still the wallet's start
-let started = false
-
-/** The rows as Mithril takes them: each asks the guard (data/Guard.logic.ts) before its page. */
-export function routeResolvers(routes: Record<string, Route>): Record<string, m.RouteResolver> {
-  return Object.fromEntries(
-    Object.entries(routes).map(([pattern, route]) => [
-      pattern,
-      {
-        onmatch(params, asked) {
-          const runs = sessionRuns()
-          const instead = whereTo(
-            {
-              path: asked.split(/[?#]/)[0],
-              requiresAuth: route.requiresAuth === true,
-              isStart: !started,
-              forProject: 'project' in params,
-            },
-            { sessionRuns: runs, creationAllowed: session.state.member?.creationAllowed ?? null },
-          )
-          if (instead === null) {
-            started = true
-            return route.page()
-          }
-          if (route.requiresAuth && !runs) {
-            // A sign-in that ran out is no sign-in. Put away first: the sign-out puts the
-            // overview back as the page to go on to.
-            if (authToken.state) {
-              logout()
-            }
-            // with query and hash: a link out of a mail is made of them
-            session.set({ ...session.state, redirectPath: asked })
-          }
-          m.route.set(instead, null, { replace: true })
-        },
-      } satisfies m.RouteResolver,
-    ]),
-  )
+/**
+ * The way in for a member the admin interface hands over (`/authenticate`). Where the two
+ * share an origin they share the token, which is there already; from another origin it
+ * comes in the address (`?token=`). The server says whose it is, and the way goes on to the
+ * page of the wallet `?redirect=` names, else to the overview. Where it takes the token for
+ * none, the way goes on to that page all the same: one for members asks for the sign-in and
+ * goes on there after it, as any link into the wallet does.
+ */
+async function authenticate() {
+  // From the address itself: Mithril decodes a query twice, and the page to go on to has a
+  // query of its own. And its parameters are those of the page shown, not of this way in.
+  const query = new URLSearchParams(location.search)
+  const token = query.get('token')
+  const page = safeWalletPath(query.get('redirect'))
+  if (token && new URL(CONFIG.ADMIN_AUTH_URL, location.href).origin !== location.origin) {
+    authToken.set(v.parse(authTokenSchema, { token, at: Date.now() }))
+  }
+  const asked = authToken.state?.tokenMemberId
+  const answer = authToken.state
+    ? await request(verifyLogin, {}, v.object({ verifyLogin: memberSchema }))
+    : undefined
+  // Another tab may have signed somebody in or out meanwhile: the answer is then of a token
+  // that is gone, and neither signs in nor out. By member, not by token: a renewal of the
+  // same member's token keeps the answer.
+  // shortcut: where it led on to then is not decided yet, the way stops here; decide with step 4.
+  const holder = authToken.state?.tokenMemberId
+  if (answer?.success ? holder !== answer.value.verifyLogin.gradidoID : holder !== asked) {
+    return
+  }
+  if (answer?.success) {
+    // as the sign-in itself does it, with a language chosen before
+    await signInAs(answer.value.verifyLogin)
+    m.route.set(page ?? '/overview', null, { replace: true })
+  } else {
+    // A token the server does not take is none. The sign-out loads the wallet anew, at the
+    // page named: one for members asks for the sign-in there and goes on to it after.
+    if (authToken.state) {
+      logout(page ?? '/login')
+    } else {
+      m.route.set(page ?? '/login', null, { replace: true })
+    }
+  }
 }

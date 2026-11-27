@@ -6,7 +6,7 @@ const writeText = mock((_text: string) => Promise.resolve())
 const toastSuccess = mock()
 const toastError = mock()
 mock.module('clipboard-polyfill', () => ({ writeText }))
-mock.module('@/components/Toasts', () => ({ toastSuccess, toastError }))
+mock.module('@/components/ui/Toasts', () => ({ toastSuccess, toastError }))
 
 const { copyText } = await import('./clipboard')
 

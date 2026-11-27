@@ -1,72 +1,79 @@
 // AI-GENERATED — not an architecture reference
-import { beforeEach, describe, expect, it, mock, setSystemTime } from 'bun:test'
-import * as v from 'valibot'
-import { location } from '../test/browserStub'
-import { BIBI, member, tokenOf } from '../test/member'
+import { describe, expect, it, mock } from 'bun:test'
+import { location, otherTabStores } from '../test/browserStub'
+import { BIBI, BOB, member, tokenOf } from '../test/member'
 
-const goneTo = mock()
-mock.module('mithril', () => ({ default: { route: { set: goneTo } } }))
-mock.module('@frontend/config', () => ({ default: {} }))
-
-const { routeResolvers } = await import('./routes')
-const { authToken, authTokenSchema, login, session } = await import('@/store/Session')
-
-const NOW = 1760000000000
-const Page = { view: () => null }
-const resolvers = routeResolvers({
-  '/login': { page: async () => Page },
-  '/send': { page: async () => Page, requiresAuth: true },
+// the answer to `verifyLogin`, held until the test gives it
+let answer: (value: unknown) => void = mock()
+mock.module('@/graphql/client', () => ({
+  request: mock(() => new Promise((resolve) => (answer = resolve))),
+}))
+// the pages are of no matter here, and load icons Bun does not know
+for (const page of [
+  'ConfirmEmail',
+  'EmailChange',
+  'ForgotPassword',
+  'Login',
+  'NotFound',
+  'PublicProfile',
+  'Register',
+  'RegisterCommunity',
+  'ResetPassword',
+]) {
+  mock.module(`@/pages/${page}`, () => ({ [page]: {} }))
+}
+const routeSet = mock()
+const m = (await import('mithril')).default
+m.route.set = routeSet
+Object.assign(location, {
+  search: '',
+  href: 'http://localhost/authenticate',
+  origin: 'http://localhost',
 })
-/** What opening `address` gives: the page, or nothing where the guard led elsewhere. */
-const open = (pattern: string, address = pattern) =>
-  resolvers[pattern].onmatch?.({}, address, pattern)
 
-beforeEach(() => {
-  localStorage.clear()
-  authToken.set(null, false)
-  session.set(undefined, false)
-  goneTo.mockClear()
-  location.assign.mockClear()
-  setSystemTime(new Date(NOW))
+const { ROUTES } = await import('./routes')
+const { authToken, session } = await import('./store/Session')
+const verified = (gradidoID: string) => ({
+  success: true,
+  value: { verifyLogin: member(gradidoID) },
 })
 
-describe('routeResolvers', () => {
-  // first: no page has opened yet, so this is the wallet's start
-  it('goes on from the sign-in page to the overview where the wallet starts with a session', async () => {
-    authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW }))
-    expect(await open('/login')).toBeUndefined()
-    expect(goneTo).toHaveBeenCalledWith('/overview', null, { replace: true })
-  })
+const tokenFor = (gradidoID: string, iat = 1) =>
+  JSON.stringify({ token: tokenOf(gradidoID, { iat, exp: 9e9 }), at: Date.now() })
+const authenticate = () => {
+  const route = ROUTES['/authenticate']
+  return 'leadsOn' in route ? route.leadsOn() : undefined
+}
 
-  it('leads nobody to a page for members, and keeps the address for after the sign-in', async () => {
-    expect(await open('/send', '/send?art=email#top')).toBeUndefined()
-    expect(goneTo).toHaveBeenCalledWith('/login', null, { replace: true })
-    expect(session.state.redirectPath).toBe('/send?art=email#top')
-    // nobody was signed in: nobody is signed out
-    expect(location.assign).not.toHaveBeenCalled()
-  })
-
-  // the sign-out puts the overview back, so it comes first
-  it('puts a sign-in that ran out away before it keeps the address', async () => {
-    authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW - 600_000 }))
-    login(member(BIBI))
-    await open('/send', '/send?art=email')
-    expect(authToken.state).toBeNull()
+describe('/authenticate', () => {
+  it('signs nobody in where another tab signed somebody else in meanwhile', async () => {
+    otherTabStores('auth-token', tokenFor(BIBI))
+    const way = authenticate()
+    otherTabStores('auth-token', tokenFor(BOB))
+    answer(verified(BIBI))
+    await way
     expect(session.state.member).toBeNull()
-    expect(session.state.redirectPath).toBe('/send?art=email')
+    expect(authToken.state?.tokenMemberId).toBe(BOB)
+    expect(routeSet).not.toHaveBeenCalled()
   })
 
-  it('opens the page while the session runs, and leaves the way on alone', async () => {
-    authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW }))
-    expect(await open('/send')).toBe(Page)
-    expect(goneTo).not.toHaveBeenCalled()
-    expect(session.state.redirectPath).toBe('/overview')
+  it('signs nobody out where another tab signed somebody else in meanwhile', async () => {
+    otherTabStores('auth-token', tokenFor(BIBI))
+    const way = authenticate()
+    otherTabStores('auth-token', tokenFor(BOB))
+    answer({ success: false, error: { message: '401 Unauthorized' } })
+    await way
+    expect(location.assign).not.toHaveBeenCalled()
+    expect(authToken.state?.tokenMemberId).toBe(BOB)
   })
 
-  // The test above opened a page: the wallet has started. Before it, the same address led on
-  // to the overview (data/Guard.logic.test.ts).
-  it('keeps the sign-in form on a way in from inside the running wallet', async () => {
-    authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW }))
-    expect(await open('/login')).toBe(Page)
+  it('signs in where the token of the same member was renewed meanwhile', async () => {
+    otherTabStores('auth-token', tokenFor(BIBI))
+    const way = authenticate()
+    otherTabStores('auth-token', tokenFor(BIBI, 2))
+    answer(verified(BIBI))
+    await way
+    expect(session.state.member?.gradidoID).toBe(BIBI)
+    expect(routeSet).toHaveBeenCalledWith('/overview', null, { replace: true })
   })
 })

@@ -1,0 +1,521 @@
+html > body {
+  background-color: var(--bg);
+  height: 100%;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.bg-gradido-gradient {
+  background: rgb(4 112 6);
+  background: linear-gradient(90deg, rgb(4 112 6 / 100%) 22%, rgb(197 141 56 / 100%) 98%) !important;
+  color: white !important;
+}
+
+// The badge of the balance card that is NOT the open one. It had no surface at all: the
+// `light` variant it asked for brings `text-bg-light`, which this stylesheet does not
+// carry, so the badge's white text stood alone -- invisible on the light page, a bare
+// word on the dark one. Flat, no gradient, in the tone of the unselected navigation
+// icons, which is the same in both modes (Bernd, 04.10.2026). White on it: 4.42 : 1,
+// just under the 4.5 for small text -- kept for the exact icon tone (Bernd, #4056).
+.bg-gradido-muted {
+  background: var(--icon-muted) !important;
+  color: white !important;
+}
+
+.hover-icon:hover {
+  background-color: rgb(220 216 217);
+  border-radius: 29px;
+  padding: 1px;
+}
+
+.hover-font-bold:hover {
+  font-weight: bold;
+}
+
+.word-break {
+  word-break: break-word;
+}
+
+// A separator between two neighbouring entries, drawn on the one that follows. It is a
+// line, not a character: nothing lands in the text, so a screen reader passes over it
+// instead of announcing a pipe between every menu entry. currentColor makes it take the
+// colour of whatever text surrounds it, so the same class fits the light footer and the
+// dark size popover without a value to keep in sync.
+.separator-start {
+  border-left: 1px solid color-mix(in srgb, currentcolor 40%, transparent);
+}
+
+.shadow-default {
+  box-shadow: rgb(0 0 0 / 14%) 0 4px 10px;
+}
+
+.c-grey {
+  color: var(--text) !important;
+}
+
+.c-blau {
+  color: var(--info) !important;
+}
+
+.app-box-shadow {
+  box-shadow: 20pt 20pt 50pt 0 #3838384f !important;
+}
+
+/* Button */
+.btn {
+  border-radius: 25px;
+}
+
+.btn-gradido {
+  display: inline-block !important;
+  padding: 0.6em 3em !important;
+  letter-spacing: 0.05em;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
+  background: rgb(249 205 105);
+  background: linear-gradient(135deg, rgb(249 205 105 / 100%) 2%, rgb(197 141 56 / 100%) 55%);
+  box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
+}
+
+.btn-gradido:hover {
+  color: #fff;
+  box-shadow: 0 5px 10px rgb(0 0 0 / 20%);
+}
+
+.btn-gradido:focus {
+  outline: none;
+}
+
+.btn-gradido-disable {
+  padding: 0.6em 3em !important;
+  letter-spacing: 0.05em;
+  color: #fff !important;
+  transition: all 0.5s ease !important;
+  background: rgb(97 97 97);
+  background: linear-gradient(135deg, rgb(180 180 180 / 100%) 46%, rgb(180 180 180 / 100%) 99%);
+  box-shadow: rgb(0 0 0 / 40%) 0 30px 90px;
+  border-radius: 26px !important;
+  padding-right: 50px !important;
+  padding-left: 50px !important;
+  border-style: none !important;
+}
+
+.btn-gradido-disable:hover {
+  color: #fff;
+}
+
+/* A form's golden button is grey while it is locked: the grey of `btn-gradido-disable`. */
+form .btn-gradido[type='submit']:disabled {
+  background: #b4b4b4;
+}
+
+.btn-outline-gradido {
+  color: rgb(140 121 88);
+  border: 1px solid #f5b805;
+  box-shadow: 10px 10px 50px 10px rgb(56 56 56 / 31%);
+}
+
+.btn-outline-gradido:hover {
+  box-shadow: 10px 10px 50px 10px rgb(56 56 56 / 0%);
+}
+
+.form-control,
+.form-select {
+  border-radius: 17px;
+  height: 50px;
+}
+
+.input-group .rounded-end {
+  border-top-right-radius: 17px !important;
+  border-bottom-right-radius: 17px !important;
+}
+
+.rounded-26 {
+  border-radius: 26px;
+}
+
+.rounded-20 {
+  border-radius: 20px;
+}
+
+.rounded-like-card {
+  border-radius: 23pt;
+}
+
+.alert {
+  border-radius: 26px;
+  box-shadow: rgb(0 0 0 / 14%) 0 24px 80px;
+}
+
+.alert-success {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+// Toasts use the Gradido colours as solid fills in both light and dark mode,
+// replacing the pale Bootstrap pastels: green success, red warning/error, gold
+// info. Success and error carry white text; the gold info toast keeps dark text
+// for readability (matching the gdd-toaster-body / -darken body classes).
+.b-toast-danger .toast .toast-header,
+.b-toast-danger .toast .toast-body {
+  color: #fff;
+  background-color: #c62828;
+  border-color: #a81f1f;
+}
+
+.b-toast-success .toast .toast-header,
+.b-toast-success .toast .toast-body {
+  color: #fff;
+  background-color: #047006;
+  border-color: #035c05;
+}
+
+.b-toast-warning .toast .toast-header,
+.b-toast-warning .toast .toast-body {
+  color: #2c2c2c;
+  background-color: #c58d38;
+  border-color: #a97a2f;
+}
+
+// Close (x) is dark by default; invert it to white on the green/red toasts.
+.b-toast-success .toast .btn-close,
+.b-toast-danger .toast .btn-close {
+  filter: invert(1) grayscale(1) brightness(1.6);
+}
+
+/**
+ * The red button ("Karte sperren", "Kartenfunktion ausschalten"). Two things were wrong at
+ * once, and they looked like one: Bootstrap picks the label colour from the fill's luminance
+ * and chose BLACK on Argon's #f5365c -- which reads as unfinished next to every other button
+ * in the wallet, all of which carry white. (Bernd, 24.08.2026: "die Schrift weiß machen".)
+ *
+ * ⚠️ Measured first, because the wish and the arithmetic disagreed: white on #f5365c is
+ * 3.77:1, black 5.56:1 -- so on THAT red, black really is the better contrast. The
+ * disagreement was never about the label, it was about the fill: #f5365c is Argon's, not
+ * ours. On our own --danger (#c62828) white reaches 5.62:1, better than the black it
+ * replaces. Taking our own colour makes the wish and the measurement agree.
+ *
+ * ⚠️ `!important`, like `.btn-primary` right below. This file is imported BEFORE
+ * `bootstrap/scss/bootstrap` (see gradido.scss), so at equal specificity Bootstrap's own
+ * `.btn-danger` wins and this block would have done nothing at all. Measured in the built
+ * stylesheet, not assumed -- the first attempt was silently overruled.
+ */
+.btn-danger {
+  --bs-btn-bg: var(--danger) !important;
+  --bs-btn-border-color: var(--danger) !important;
+  --bs-btn-color: #fff !important;
+  --bs-btn-hover-bg: var(--danger) !important;
+  --bs-btn-hover-border-color: var(--danger) !important;
+  --bs-btn-hover-color: #fff !important;
+  --bs-btn-active-bg: var(--danger) !important;
+  --bs-btn-active-border-color: var(--danger) !important;
+  --bs-btn-active-color: #fff !important;
+  --bs-btn-disabled-bg: var(--danger) !important;
+  --bs-btn-disabled-border-color: var(--danger) !important;
+  --bs-btn-disabled-color: #fff !important;
+}
+
+// .btn-primary pim {
+.btn-primary {
+  background-color: #5a7b02 !important;
+  border-color: #5e72e4 !important;
+  border-radius: 25px !important;
+  color: #fff !important;
+}
+
+.gradido-font-large {
+  font-size: large;
+  height: auto !important;
+}
+
+.font2em {
+  font-size: 1.5em;
+}
+
+.zindex-1 {
+  z-index: -1;
+}
+
+.zindex1 {
+  z-index: 1;
+}
+
+.zindex10 {
+  z-index: 10;
+}
+
+.zindex100 {
+  z-index: 100;
+}
+
+.zindex1000 {
+  z-index: 1000;
+}
+
+.zindex10000 {
+  z-index: 10000;
+}
+
+.zindex100000 {
+  z-index: 100000;
+}
+
+.opacity-1 {
+  opacity: 1;
+}
+
+.opacity-05 {
+  opacity: 0.5;
+}
+
+.gradido-global-color-blue {
+  color: #0e79bc;
+}
+
+.gradido-global-color-accent {
+  color: #047006;
+}
+
+.gradido-global-border-color-accent {
+  border-color: #047006 !important;
+}
+
+.gradido-global-border-color-danger {
+  border-color: rgb(140 5 5) !important;
+}
+
+.gradido-global-color-gray {
+  color: #858383;
+}
+
+.gradido-custom-background {
+  background-color: #ebebeba3 !important;
+  border-radius: 25pt !important;
+}
+
+.gradido-bg-f5 {
+  background-color: #f5f5f5 !important;
+}
+
+.gradido-bg-orange {
+  background-color: rgb(197 141 56) !important;
+}
+
+.gradido-width-300 {
+  width: 300px;
+}
+
+.gradido-width-96 {
+  width: 96%;
+}
+
+.gradido-border-radius {
+  border-radius: 26px!important;
+  overflow: hidden;
+}
+
+.gradido-no-border-radius {
+  border-radius: 0;
+}
+
+.gradido-no-border {
+  border: 0;
+}
+
+.gradido-font-15rem {
+  font-size: 1.5rem;
+}
+
+.list-group-item {
+  background-color: rgb(255 255 255 / 0%);
+}
+
+.pulse {
+  box-shadow: 0 0 0 #c58d38;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 #c58d387e;
+  }
+
+  70% {
+    box-shadow: 0 0 0 20px rgb(204 169 44 / 0%);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgb(204 169 44 / 0%);
+  }
+}
+
+.transparent-button {
+  background-color: transparent;
+  border: none;
+}
+
+.text-color-gdd-yellow {
+  color: rgb(197 141 56);
+}
+
+.gdd-toaster-body {
+  color: rgb(255 255 255);
+}
+
+.gdd-toaster-body-darken {
+  color: #2c2c2c;
+}
+
+// The e-mail and password fields, and the thank-you card's PIN. The eye inside the password
+// field and the PIN takes the same corners (_reveal-field.scss).
+$rounded-input-radius: 17px;
+
+input.rounded-input {
+  border-radius: $rounded-input-radius;
+}
+
+.fs-7 {
+  font-size: 14px !important;
+}
+
+.vue3-avatar.container {
+  padding: 0 !important;
+}
+
+.avatar {
+  font-family: inherit !important;
+  font-weight: normal !important;
+}
+
+/* Hides what is typed WITHOUT the field being a password field, so no password manager
+   fills it, offers to save it, or overwrites somebody's login with six digits.
+   See `utils/pinMasking.js`; the type falls back to `password` where this is unsupported. */
+.pin-masked {
+  -webkit-text-security: disc;
+}
+
+// The edge of an empty box, switch or radio (Bootstrap's .form-check-input) in light mode: the
+// muted text colour, as the dark mode has it (gradido-template-dark). Bootstrap's own edge,
+// --bs-border-color, stood at 1.19:1 against white and was barely there (Bernd, 26.09.2026);
+// this one stands at 4.69:1. `:not(:checked)` puts the rule above Bootstrap's `.form-check-input`
+// although this file comes first, and leaves Bootstrap's focus and validation edges in force:
+// they tie with it and come after it.
+.form-check-input:not(:checked) {
+  border-color: var(--text-muted);
+}
+
+ .form-control.is-invalid, .form-control.is-valid, .was-validated .form-control {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* The page frame (the old wallet's App.vue). */
+/* The pages take their font from `body` (`--bs-body-font-family`, _fonts.scss): Open Sans,
+   which ships with the wallet (assets/fonts/open-sans/), as do the dialogs and toasts that
+   hang on `body` outside this element. From May 2022 to October 2026 a rule here kept the
+   pages in the device's sans-serif instead. */
+#app {
+  font-size: 1rem;
+}
+
+/* ⛔ No `min-width`. There was one since 2022 (500px, then 360px, then 330px), from when a
+   floor made a narrower screen scroll sideways to the rest. Under the clip below it could
+   only cut the rest off: at 320px wide (the first iPhone SE) the column stood 330px wide
+   from the 6px edge, and the right 16px of every card lay behind the screen. */
+.app-content {
+  max-width: 1320px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* ⚠️ `clip`, on every width: the grid assumes 12px of room at the edge -- every row reaches
+   half a gutter past its parent and its columns pad it back. On a phone the page edge is
+   6px (below), so the rows' empty padding stood 6px off the screen; on the desk the page
+   has no edge at all, and from 1025px until `.app-content` stops at 1320px and centres
+   (about 1344px) the rows stood 12px off the right edge. Either way the page could be
+   pushed sideways, and nothing that is drawn lies out there.
+   `clip`, not `hidden`: it opens no scroll container, so the sticky headers keep sticking.
+   It also means a page that really is too wide gets cut at the edge instead of scrolling,
+   so the document's `scrollWidth` no longer shows it: measure the elements against the
+   viewport (getBoundingClientRect) instead. */
+#app > #app {
+  overflow-x: clip;
+}
+
+@media screen and (width <= 500px) {
+  #app {
+    font-size: 0.85rem;
+  }
+}
+
+/* The page edge below the desk layout: 6px, the measure the map had already found for
+   itself. Boxes reach that far, and their text keeps its distance through their own
+   padding, so a phone gives its width to the fields instead of to the margin (Bernd,
+   21.09.2026: "Auf dem Handy verschenken wir seitlich immer noch viel zu viel Platz").
+
+   ⛔ Once, on App.vue's root. index.html's mount point is an #app as well, so a bare
+   `#app` here reached both and every page stood 30px in from the edge -- twice the
+   15px anyone had written.
+
+   `--page-text-inset` is the 24px a box would have given what stands on the page rather
+   than in it (the top row of the sign-in pages). Nothing above this width, where the page
+   has no edge of its own to make up for. */
+@media screen and (width <= 1024.98px) {
+  #app > #app {
+    --page-text-inset: 24px;
+
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+
+/* bootstrap-vue-next's avatar, as its stylesheet (0.26) draws it. */
+.b-avatar {
+  display: inline-flex;
+  position: relative;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  max-width: 100%;
+  height: 2.5rem;
+  overflow: visible;
+  font-weight: 400;
+  font-size: inherit;
+  line-height: 1;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.b-avatar .b-avatar-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  mask-image: radial-gradient(#fff, #000);
+}
+
+.b-avatar .b-avatar-img img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}

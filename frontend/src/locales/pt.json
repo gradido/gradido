@@ -40,6 +40,7 @@
       "oneDonation": "És um presente para a comunidade. 1000 obrigado por estares connosco.",
       "oneGratitude": "Uns pelos outros, por todas as pessoas, pela natureza."
     },
+    "textSize": "Tamanho do texto",
     "toAccount": "Ir para a minha conta",
     "triads": {
       "design": {
@@ -870,6 +871,7 @@
         "min": "A mensagem deve ter pelo menos {min} caracteres.",
         "required": "A mensagem é obrigatória."
       },
+      "minLength": "O campo {fieldName} deve conter pelo menos {min} caracteres",
       "requiredField": "O campo {fieldName} é obrigatório",
       "subject": {
         "max": "O assunto não deve ter mais de {max} caracteres.",

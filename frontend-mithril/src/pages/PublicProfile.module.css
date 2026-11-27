@@ -1,0 +1,39 @@
+/* AI-GENERATED — not an architecture reference */
+
+/* Block comments only: lightningcss parses this sheet and a double slash is not a
+   comment to it -- the build fails with "Invalid empty selector".
+
+   One column, as wide as the wider label, both buttons filling it: that is the whole of
+   "the same size". An inline grid so the page's `text-center` centres it.
+
+   Through `:global` (`:deep` while this was the page's scoped style block), and that is not a
+   matter of taste: a rule on a class of this module does not reach the button, whose class is
+   the plain one the page writes. Scoped, a rule written straight onto a button did not reach it
+   either: Vue stamps its scope attribute on the root element of a *direct* child component, and
+   these buttons are two removed -- BButton renders a router-link, which renders the anchor.
+
+   The rules stand as they do in pages/EventMatchingLanding.module.scss, rule for rule:
+   EventMatchingLanding.spec.js holds the two copies together. */
+.profile-actions {
+  display: inline-grid;
+  gap: 0.75rem;
+}
+
+.profile-actions :global(.profile-action) {
+  width: 100%;
+}
+
+/* The thumb gets the whole width. There the house button's 50px of side padding only takes
+   room from the label: on a 390px phone it leaves 150px, and the French "Envoyer des
+   Gradido" needs 155px, so the first button broke onto two lines beside a second one that did
+   not. Same override as on the matching map. */
+@media screen and (width <= 767px) {
+  .profile-actions {
+    display: grid;
+  }
+
+  .profile-actions :global(.profile-action) {
+    padding-right: 1.25rem !important;
+    padding-left: 1.25rem !important;
+  }
+}
