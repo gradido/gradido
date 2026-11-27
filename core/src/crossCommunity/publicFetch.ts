@@ -69,11 +69,21 @@ export async function publicFetch(
     url.protocol === 'https:' ? [https.request, peerHttpsAgent] : [http.request, peerHttpAgent]
 
   return new Promise<Response>((resolve, reject) => {
-    // as fetch: an aborted signal rejects with its reason, a TimeoutError for the time limit
+    // given up already: no request at all, so nothing to destroy before its error has a handler
+    if (request.signal.aborted) {
+      reject(request.signal.reason)
+      return
+    }
+    // as fetch: an aborted signal rejects with its reason, a TimeoutError for the time limit, and
+    // after the head it breaks the body off with it
+    let incoming: http.IncomingMessage | undefined
     const abort = () => {
       reject(request.signal.reason)
+      incoming?.destroy(request.signal.reason)
       outgoing.destroy()
     }
+    // the answer is over: a later abort must not touch the connection, kept for the next request
+    const done = () => request.signal.removeEventListener('abort', abort)
     const outgoing = send(
       {
         protocol: url.protocol,
@@ -85,34 +95,43 @@ export async function publicFetch(
         agent,
         lookup,
       },
-      (incoming) => {
-        request.signal.removeEventListener('abort', abort)
-        const status = incoming.statusCode ?? 0
-        const responseHeaders = new Headers()
-        for (const [name, value] of Object.entries(incoming.headers)) {
-          for (const one of Array.isArray(value) ? value : value === undefined ? [] : [value]) {
-            responseHeaders.append(name, one)
+      (response) => {
+        incoming = response
+        incoming.once('end', done).once('error', done).once('close', done)
+        // Node takes any status of three digits and any header value, Response does not: what it
+        // refuses fails this request, thrown here it would end the whole process
+        try {
+          const status = incoming.statusCode ?? 0
+          if (status < 200 || status > 599) {
+            throw new RangeError(`status ${status} is no answer`)
           }
+          const responseHeaders = new Headers()
+          for (const [name, value] of Object.entries(incoming.headers)) {
+            for (const one of Array.isArray(value) ? value : value === undefined ? [] : [value]) {
+              responseHeaders.append(name, one)
+            }
+          }
+          const responseBody = NULL_BODY_STATUSES.includes(status)
+            ? null
+            : // the web stream of node:stream, of the same kind as the one Response takes
+              (Readable.toWeb(incoming) as unknown as ReadableStream<Uint8Array>)
+          if (!responseBody) {
+            incoming.resume()
+          }
+          resolve(new Response(responseBody, { status, headers: responseHeaders }))
+        } catch (error) {
+          done()
+          incoming.destroy()
+          reject(error)
         }
-        const responseBody = NULL_BODY_STATUSES.includes(status)
-          ? null
-          : // the web stream of node:stream, of the same kind as the one Response takes
-            (Readable.toWeb(incoming) as unknown as ReadableStream<Uint8Array>)
-        if (!responseBody) {
-          incoming.resume()
-        }
-        resolve(new Response(responseBody, { status, headers: responseHeaders }))
       },
     )
-    if (request.signal.aborted) {
-      abort()
-      return
-    }
-    request.signal.addEventListener('abort', abort, { once: true })
+    // before anything can destroy it: the error of a request without a handler ends the process
     outgoing.on('error', (error) => {
-      request.signal.removeEventListener('abort', abort)
+      done()
       reject(error)
     })
+    request.signal.addEventListener('abort', abort, { once: true })
     outgoing.end(body)
   })
 }

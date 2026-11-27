@@ -83,7 +83,7 @@ The uuid is an identifier, not a secret. It is part of every user address, of tr
 
    `GET https://<foreign.url>/peer-api/v1/communityInfos?exchangeId=<128 random bits as hex>`
 
-   A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up until it connects again. How a request reaches another community is described in [Requests to other communities](#requests-to-other-communities).
+   A community that has not answered completely within 5 seconds (`FEDERATION_REQUEST_TIMEOUT_MS`) is given up. It is asked again the first time it sends its url once 2 minutes (`SUCCESSTIME`) have passed since this request; a connection before that sends no new request. How a request reaches another community is described in [Requests to other communities](#requests-to-other-communities).
 3. The federation-module of the foreign community answers with its community infos (uuid, name, description, creation date, public key, public JWT key, public encryption key, hiero topic id) and the `exchangeId` of the request, and signs the answer with the Ed25519 key of its home community as an HTTP Message Signature ([RFC 9421](https://www.rfc-editor.org/rfc/rfc9421)):
    * covered components: `@status`, `content-type`, `content-digest`, and of the request answered `@method;req` and `@path;req`
    * the body, and with it the `exchangeId`, is covered through `content-digest` (BLAKE2b-256, in the format of [RFC 9530](https://www.rfc-editor.org/rfc/rfc9530))
@@ -98,7 +98,7 @@ The uuid is an identifier, not a secret. It is part of every user address, of tr
    * the public key in the community infos is the announced one,
    * the uuid is not the one of the own home community.
 
-   Any other answer, and no answer within the timeout, writes nothing; the community is asked again when it connects after the 2 minutes.
+   Any other answer, and no answer within the timeout, writes nothing; the community is asked again only as step 1 allows, when it sends its url 2 minutes or more after the last request.
 5. For an accepted answer:
    * a community not known by its uuid is inserted with `authenticated_at` and `verified_at` set: the signed answer is the authentication,
    * a known community gets `verified_at`; one whose name, description or hiero topic id changed is updated as well, only these three fields can change this way,

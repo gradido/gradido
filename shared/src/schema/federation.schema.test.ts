@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import * as v from 'valibot'
-import { publicHttpUrlSchema } from './federation.schema'
+import { isPublicHostname, publicHttpUrlSchema } from './federation.schema'
 
 const accepts = (url: string) => v.is(publicHttpUrlSchema, url)
 
@@ -46,11 +46,26 @@ describe('publicHttpUrlSchema', () => {
     ['IPv6 unspecified', 'http://[::]/'],
     ['IPv4 inside IPv6', 'http://[::ffff:127.0.0.1]/'],
     ['NAT64', 'http://[64:ff9b::7f00:1]/'],
+    ['local-use NAT64', 'http://[64:ff9b:1::a00:1]/'],
     ['6to4', 'http://[2002:7f00:1::]/'],
     ['unique local', 'http://[fd12:3456::1]/'],
     ['IPv6 link-local', 'http://[fe80::1]/'],
     ['IPv6 multicast', 'http://[ff02::1]/'],
   ])('refuses %s', (_, url) => {
     expect(accepts(url)).toBe(false)
+  })
+})
+
+describe('isPublicHostname', () => {
+  // as a lookup hands the addresses out: without brackets
+  it.each(['64:ff9b::7f00:1', '64:ff9b:1::a00:1', '64:ff9b:1:ffff::1'])(
+    'refuses the NAT64 address %s a name resolves to',
+    (address) => {
+      expect(isPublicHostname(address)).toBe(false)
+    },
+  )
+
+  it('accepts a public IPv6 address next to the local-use NAT64 prefix', () => {
+    expect(isPublicHostname('64:ff9b:2::1')).toBe(true)
   })
 })

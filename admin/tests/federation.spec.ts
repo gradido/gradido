@@ -133,6 +133,30 @@ test('pages through the communities, 25 to a page', async ({ page, graphql }) =>
     ])
 })
 
+test('drops the answer to a page left before it came', async ({ page, graphql }) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    allCommunities: ({ currentPage }: { currentPage: number }) =>
+      currentPage === 2
+        ? new Promise((resolve) => held.push(resolve))
+        : listOf([homeCommunity, foreignCommunity], 30),
+  })
+  await signIn(page, '/federation')
+  await expect(rows(page)).toHaveCount(2)
+  const pager = page.locator('.pagination')
+
+  await pager.getByText('2', { exact: true }).click()
+  await expect.poll(() => held.length).toBe(1)
+  await pager.getByText('1', { exact: true }).click()
+  await expect.poll(() => graphql.sentFor('allCommunities').length).toBe(3)
+  held[0](listOf([foreignCommunity], 30))
+
+  // the late answer of page 2 changes nothing: page 1 stays, with both
+  await expect(page.locator('.page-item.active')).toHaveText('1')
+  await page.waitForTimeout(200)
+  await expect(rows(page)).toHaveCount(2)
+})
+
 test('edits the GMS key of the own community', async ({ page, graphql }) => {
   graphql.answer({ updateHomeCommunity: { uuid: homeCommunity.uuid } })
   await signIn(page, '/federation')

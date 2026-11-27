@@ -115,4 +115,56 @@ describe('publicFetch', () => {
 
     await expect(publicFetch(request, allowAll)).rejects.toMatchObject({ name: 'TimeoutError' })
   })
+
+  it('breaks the body off with the reason of the signal, once the head came', async () => {
+    answer = (response) => {
+      response.writeHead(200, { 'content-type': 'application/json' })
+      // the head and a part, the rest never
+      response.write('{"answer":')
+    }
+    const controller = new AbortController()
+    const response = await publicFetch(
+      new Request(`http://localhost:${port}/`, { signal: controller.signal }),
+      allowAll,
+    )
+    const reason = new Error('given up')
+    controller.abort(reason)
+
+    await expect(response.text()).rejects.toBe(reason)
+  })
+
+  it('keeps the connection of an answer read to its end, when the signal aborts later', async () => {
+    const controller = new AbortController()
+    const first = new Request(`http://localhost:${port}/`, { signal: controller.signal })
+    await (await publicFetch(first, allowAll)).text()
+    controller.abort()
+
+    await (await publicFetch(new Request(`http://localhost:${port}/`), allowAll)).text()
+
+    expect(new Set(socketPorts).size).toBe(1)
+  })
+
+  it.each([600, 999])(
+    'fails on a status %d that is no answer, and the process goes on',
+    async (status) => {
+      answer = (response) => {
+        response.writeHead(status)
+        response.end('x')
+      }
+
+      await expect(
+        publicFetch(new Request(`http://localhost:${port}/`), allowAll),
+      ).rejects.toBeInstanceOf(RangeError)
+    },
+  )
+
+  it('sends nothing for a signal aborted before, and fails with its reason', async () => {
+    const reason = new Error('given up before')
+    const request = new Request(`http://localhost:${port}/`, { signal: AbortSignal.abort(reason) })
+
+    await expect(publicFetch(request, allowAll)).rejects.toBe(reason)
+    // what a request sent would have needed to arrive
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(received).toEqual([])
+  })
 })

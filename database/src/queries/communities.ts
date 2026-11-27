@@ -235,7 +235,7 @@ export async function dbSelectReachableCommunities(
 
 /**
  * A page of every community, the home community first, then the newest, and how many there are
- * in all.
+ * in all. Of those created at the same moment, the one inserted last comes first.
  */
 export async function dbSelectCommunities({
   pageSize = 25,
@@ -249,7 +249,12 @@ export async function dbSelectCommunities({
     drizzleDb()
       .select()
       .from(communitiesTable)
-      .orderBy(asc(communitiesTable.foreign), desc(communitiesTable.createdAt))
+      // the id last: rows created in the same millisecond keep one order across the pages
+      .orderBy(
+        asc(communitiesTable.foreign),
+        desc(communitiesTable.createdAt),
+        desc(communitiesTable.id),
+      )
       .limit(pageSize)
       .offset((currentPage - 1) * pageSize),
   ])

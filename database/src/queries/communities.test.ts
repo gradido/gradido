@@ -365,6 +365,24 @@ describe('community.queries', () => {
       // all of them, not only those of the page
       expect(count).toBe(3)
     })
+
+    it('pages through communities created at the same moment, each once, the last inserted first', async () => {
+      const createdAt = new Date('2026-02-01T00:00:00Z')
+      const home = await createCommunity(false, { createdAt })
+      const ids = [
+        (await createCommunity(true, { createdAt })).id,
+        (await createCommunity(true, { createdAt })).id,
+        (await createCommunity(true, { createdAt })).id,
+      ]
+
+      const paged: number[] = []
+      for (let currentPage = 1; currentPage <= 4; currentPage++) {
+        const { communities } = await dbSelectCommunities({ pageSize: 1, currentPage })
+        paged.push(...communities.map((com) => com.id))
+      }
+
+      expect(paged).toEqual([home.id, ...ids.reverse()])
+    })
   })
 
   describe('dbSelectAuthorizedCommunities', () => {

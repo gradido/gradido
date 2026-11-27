@@ -19,16 +19,22 @@ export class FederationVisualize implements ClassComponent {
   private communities: Community[] = []
   private count = 0
   private page = 1
+  // the question last asked: an answer to one before is dropped
+  private asked = 0
 
   oninit() {
     this.load()
   }
 
   private async load() {
+    const asked = ++this.asked
     const answer = await graphqlRequest(allCommunities, {
       currentPage: this.page,
       pageSize: PAGE_SIZE,
     })
+    if (asked !== this.asked) {
+      return
+    }
     if (!answer.success) {
       toastError(answer.error.message)
       return
