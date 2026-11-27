@@ -68,8 +68,6 @@ export const verifyLogin = gql`
       humhubAllowed
       gmsPublishLocation
       userLocation
-      hasElopage
-      publisherId
       role
       hideAmountGDD
       hideAmountGDT
@@ -215,7 +213,6 @@ export const queryTransactionLink = gql`
         senderUser {
           gradidoID
           alias
-          publisherId
         }
         greeting {
           motif

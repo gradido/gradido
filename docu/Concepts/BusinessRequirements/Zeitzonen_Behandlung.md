@@ -245,10 +245,6 @@ Zusätzlich wird als Parameter ein *creationDate* vom User mitgeliefert, das dem
 
 ### GdtResolver
 
-#### - existPid
-
-nothing to do
-
 #### - gdtBalance
 
 nothing to do
@@ -335,10 +331,6 @@ nothing to do
 In dieser Methode wird am Ende in der Methode *sendResetPasswordEmailMailer()* die Zeit berechnet, wie lange der OptIn-Code im Link gültig ist, default 1440 min oder 24 h.
 
 Es ist keine User-TimeOffset zu berücksichten, da der OptInCode direkt als Parameter im Aufruf von queryOptIn verwendet und dann dort mit der BE-Time verglichen wird.
-
-#### - hasElopage
-
-nothing to do
 
 #### - login
 

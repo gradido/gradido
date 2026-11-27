@@ -41,7 +41,6 @@ let testEnv: {
 const peterLoginData = {
   email: 'peter@lustig.de',
   password: 'Aa12345_',
-  publisherId: 1234,
 }
 
 beforeAll(async () => {

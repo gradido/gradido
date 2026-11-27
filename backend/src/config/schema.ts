@@ -183,12 +183,6 @@ const environment = v.object({
     10,
   ),
 
-  // Elopage
-  WEBHOOK_ELOPAGE_SECRET: v.optional(
-    v.pipe(nonEmptyStringSchema, v.description("isn't really used any more")),
-    'secret',
-  ),
-
   FEDERATION_VALIDATE_COMMUNITY_TIMER: v.optional(
     v.pipe(
       integerSchema,

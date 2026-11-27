@@ -6,7 +6,6 @@ import { getLogger, Logger } from 'log4js'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { openIdConnectRoutes } from '@/openIDConnect'
-import { elopageWebhookRoutes } from '@/webhook/elopage'
 import { gmsWebhookRoutes } from '@/webhook/gms'
 import { context as serverContext } from './context'
 import { cors } from './cors'
@@ -70,9 +69,6 @@ export async function createServer(apolloLogger: Logger): Promise<ServerDef> {
         return status(500, 'Internal Server Error')
       }
     })
-
-    // Elopage Webhook
-    .use(elopageWebhookRoutes)
 
     // GMS Webhook
     .use(gmsWebhookRoutes)

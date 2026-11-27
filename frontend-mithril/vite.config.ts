@@ -75,7 +75,6 @@ export default defineConfig(({ command }) => {
         GMS_ACTIVE: CONFIG.GMS_ACTIVE,
         MATCHING_ACTIVE: CONFIG.MATCHING_ACTIVE,
         HUMHUB_ACTIVE: CONFIG.HUMHUB_ACTIVE,
-        DEFAULT_PUBLISHER_ID: null,
         PORT: null,
         COMMUNITY_HOST: null,
         URL_PROTOCOL: null,

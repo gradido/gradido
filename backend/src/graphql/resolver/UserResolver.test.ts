@@ -231,7 +231,6 @@ describe('UserResolver', () => {
       firstName: 'Peter',
       lastName: 'Lustig',
       language: 'de',
-      publisherId: 1234,
     }
 
     let result: any
@@ -1229,7 +1228,6 @@ describe('UserResolver', () => {
       firstName: 'Peter',
       lastName: 'Lustig',
       language: 'de',
-      publisherId: 1234,
     }
 
     let result: any
@@ -1642,7 +1640,6 @@ describe('UserResolver', () => {
     const variables = {
       email: 'bibi@bloxberg.de',
       password: 'Aa12345_',
-      publisherId: 1234,
     }
 
     let result: any
@@ -1695,7 +1692,6 @@ describe('UserResolver', () => {
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
                 gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 gradidoID: expect.any(String),
-                hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
                 humhubAllowed: true,
@@ -1705,7 +1701,6 @@ describe('UserResolver', () => {
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
-                publisherId: 1234,
                 role: null,
                 userLocation: null,
                 // Own view only, and answered here because the login names the member it
@@ -1772,7 +1767,6 @@ describe('UserResolver', () => {
         const variables = {
           email: stephenHawking.email,
           password: 'Aa12345_',
-          publisherId: 1234,
         }
         result = await mutate({ mutation: login, variables })
       })
@@ -1804,7 +1798,6 @@ describe('UserResolver', () => {
         const variables = {
           email: garrickOllivander.email,
           password: 'Aa12345_',
-          publisherId: 1234,
         }
         result = await mutate({ mutation: login, variables })
       })
@@ -1971,8 +1964,6 @@ describe('UserResolver', () => {
                   klickTipp: {
                     newsletterState: false,
                   },
-                  hasElopage: false,
-                  publisherId: 1234,
                   role: null,
                 },
               },
@@ -2680,7 +2671,6 @@ describe('UserResolver', () => {
       const variables = {
         email: 'bibi@bloxberg.de',
         password: 'Aa12345_',
-        publisherId: 1234,
       }
 
       let bibi: User
@@ -2733,7 +2723,6 @@ describe('UserResolver', () => {
                 gmsPublishLocation: 'GMS_LOCATION_TYPE_APPROXIMATE',
                 gmsPublishName: 'PUBLISH_NAME_ALIAS_OR_INITALS',
                 gradidoID: expect.any(String),
-                hasElopage: false,
                 hideAmountGDD: false,
                 hideAmountGDT: false,
                 humhubAllowed: true,
@@ -2743,7 +2732,6 @@ describe('UserResolver', () => {
                 },
                 language: 'de',
                 lastName: 'Bloxberg',
-                publisherId: 1234,
                 role: null,
                 userLocation: null,
                 // Same three as in the login block above: this literal lists every
