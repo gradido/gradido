@@ -153,7 +153,7 @@ describe('federation', () => {
     })
 
     it('stores the home community in community table ', async () => {
-      const result = await dbSelectCommunities()
+      const result = await dbSelectCommunities().then(({ communities }) => communities)
       expect(result).toEqual([
         expect.objectContaining({
           id: expect.any(Number),
@@ -324,12 +324,14 @@ describe('federation', () => {
         beforeEach(async () => {
           DHT.mockClear()
           jest.clearAllMocks()
-          homeCommunity = (await dbSelectCommunities())[0]
+          homeCommunity = (await dbSelectCommunities().then(({ communities }) => communities))[0]
           await startDHT(TEST_TOPIC)
         })
 
         it('does not change home community in community table', async () => {
-          await expect(dbSelectCommunities()).resolves.toEqual([homeCommunity])
+          await expect(
+            dbSelectCommunities().then(({ communities }) => communities),
+          ).resolves.toEqual([homeCommunity])
         })
       })
 
@@ -338,12 +340,14 @@ describe('federation', () => {
           CONFIG.COMMUNITY_NAME = 'Renamed Gradido Test Community'
           DHT.mockClear()
           jest.clearAllMocks()
-          homeCommunity = (await dbSelectCommunities())[0]
+          homeCommunity = (await dbSelectCommunities().then(({ communities }) => communities))[0]
           await startDHT(TEST_TOPIC)
         })
 
         it('keeps the JWT key pair', async () => {
-          await expect(dbSelectCommunities()).resolves.toEqual([
+          await expect(
+            dbSelectCommunities().then(({ communities }) => communities),
+          ).resolves.toEqual([
             {
               ...homeCommunity,
               name: 'Renamed Gradido Test Community',
@@ -357,7 +361,7 @@ describe('federation', () => {
         beforeEach(async () => {
           DHT.mockClear()
           jest.clearAllMocks()
-          homeCommunity = (await dbSelectCommunities())[0]
+          homeCommunity = (await dbSelectCommunities().then(({ communities }) => communities))[0]
           const otherKeyPair = {
             publicKey: Buffer.alloc(32, 'otherPublicKey'),
             secretKey: Buffer.alloc(64, 'otherSecretKey'),
@@ -372,7 +376,9 @@ describe('federation', () => {
             'FEDERATION_DHT_SEED does not belong to the existing home community',
           )
           expect(DHT).not.toHaveBeenCalled()
-          await expect(dbSelectCommunities()).resolves.toEqual([homeCommunity])
+          await expect(
+            dbSelectCommunities().then(({ communities }) => communities),
+          ).resolves.toEqual([homeCommunity])
         })
       })
 
@@ -388,7 +394,7 @@ describe('federation', () => {
             fillSeedKeyPair.publicKey,
             fillSeedKeyPair.secretKey,
           )
-          homeCommunity = (await dbSelectCommunities())[0]
+          homeCommunity = (await dbSelectCommunities().then(({ communities }) => communities))[0]
           DHT.keyPair.mockImplementation((seed: Buffer) =>
             seed.equals(Buffer.alloc(32, CONFIG.FEDERATION_DHT_SEED))
               ? fillSeedKeyPair
@@ -402,7 +408,9 @@ describe('federation', () => {
         })
 
         it('replaces it once with the key of the decoded seed', async () => {
-          await expect(dbSelectCommunities()).resolves.toEqual([
+          await expect(
+            dbSelectCommunities().then(({ communities }) => communities),
+          ).resolves.toEqual([
             {
               ...homeCommunity,
               publicKey: keyPairMock.publicKey,
@@ -424,12 +432,14 @@ describe('federation', () => {
           CONFIG.COMMUNITY_DESCRIPTION = 'Another Community to test the federation'
           DHT.mockClear()
           jest.clearAllMocks()
-          homeCommunity = (await dbSelectCommunities())[0]
+          homeCommunity = (await dbSelectCommunities().then(({ communities }) => communities))[0]
           await startDHT(TEST_TOPIC)
         })
 
         it('updates URL, name, description and updated at columns  ', async () => {
-          await expect(dbSelectCommunities()).resolves.toEqual([
+          await expect(
+            dbSelectCommunities().then(({ communities }) => communities),
+          ).resolves.toEqual([
             {
               ...homeCommunity,
               url: 'https://test2.gradido.net/api/',

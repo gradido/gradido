@@ -5,9 +5,15 @@ import { expect, Failure, test } from './fixtures/graphql'
 import { signedInAnswers, signIn } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
+// the communities as allCommunities answers them: a page, and how many there are in all
+const listOf = (communities: object[], count = communities.length) => ({ count, communities })
+
 test.beforeEach(async ({ page, graphql }) => {
   await page.clock.setFixedTime(new Date('2026-11-09T12:00:00.000Z'))
-  graphql.answer({ ...signedInAnswers(), allCommunities: [homeCommunity, foreignCommunity] })
+  graphql.answer({
+    ...signedInAnswers(),
+    allCommunities: listOf([homeCommunity, foreignCommunity]),
+  })
   await serveWalletAssets(page)
 })
 
@@ -33,7 +39,9 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   await expect(home).toContainText('Home')
   await expect(home).toContainText('vor 10 Monaten')
   await expect(rows(page).nth(1)).toContainText('vor 2 Tagen')
-  expect(graphql.sentFor('allCommunities')).toEqual([{ field: 'allCommunities', variables: {} }])
+  expect(graphql.sentFor('allCommunities')).toEqual([
+    { field: 'allCommunities', variables: { currentPage: 1, pageSize: 25 } },
+  ])
 })
 
 test('says how long ago without "about", in the words of the browser', async ({
@@ -41,7 +49,10 @@ test('says how long ago without "about", in the words of the browser', async ({
   graphql,
 }) => {
   graphql.answer({
-    allCommunities: [{ ...homeCommunity, createdAt: '2026-11-09T09:00:00.000Z' }, foreignCommunity],
+    allCommunities: listOf([
+      { ...homeCommunity, createdAt: '2026-11-09T09:00:00.000Z' },
+      foreignCommunity,
+    ]),
   })
   await signIn(page, '/federation')
 
@@ -92,10 +103,10 @@ test('shows a foreign community verified lately as reachable, with the date on i
   graphql,
 }) => {
   graphql.answer({
-    allCommunities: [
+    allCommunities: listOf([
       homeCommunity,
       { ...foreignCommunity, verifiedAt: '2026-11-09T11:55:00.000Z' },
-    ],
+    ]),
   })
   await signIn(page, '/federation')
   const foreign = rows(page).nth(1)
@@ -105,6 +116,21 @@ test('shows a foreign community verified lately as reachable, with the date on i
   await expect(
     page.getByRole('tooltip').filter({ hasText: '2026-11-09T11:55:00.000Z' }),
   ).toBeVisible()
+})
+
+test('pages through the communities, 25 to a page', async ({ page, graphql }) => {
+  graphql.answer({ allCommunities: listOf([homeCommunity, foreignCommunity], 30) })
+  await signIn(page, '/federation')
+  await expect(rows(page)).toHaveCount(2)
+
+  await page.locator('.pagination').getByText('2', { exact: true }).click()
+
+  await expect
+    .poll(() => graphql.sentFor('allCommunities').map(({ variables }) => variables))
+    .toEqual([
+      { currentPage: 1, pageSize: 25 },
+      { currentPage: 2, pageSize: 25 },
+    ])
 })
 
 test('edits the GMS key of the own community', async ({ page, graphql }) => {

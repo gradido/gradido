@@ -1,5 +1,5 @@
 import { CommunitiesSelect } from 'database'
-import { Field, ObjectType } from 'type-graphql'
+import { Field, Int, ObjectType } from 'type-graphql'
 import { Point } from 'typeorm'
 
 import { Point2Location } from '@/graphql/resolver/util/Location2Point'
@@ -69,4 +69,13 @@ export class AdminCommunityView {
 
   @Field(() => Date, { nullable: true })
   updatedAt: Date | null
+}
+
+@ObjectType()
+export class AdminCommunityListResult {
+  @Field(() => Int)
+  count: number
+
+  @Field(() => [AdminCommunityView])
+  communities: AdminCommunityView[]
 }

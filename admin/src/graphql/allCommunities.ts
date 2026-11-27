@@ -2,22 +2,25 @@
 import gql from 'graphql-tag'
 
 export const allCommunities = gql`
-  query {
-    allCommunities {
-      foreign
-      url
-      publicKey
-      uuid
-      authenticatedAt
-      verifiedAt
-      name
-      description
-      gmsApiKey
-      location
-      creationDate
-      createdAt
-      updatedAt
-      hieroTopicId
+  query ($currentPage: Int!, $pageSize: Int!) {
+    allCommunities(currentPage: $currentPage, pageSize: $pageSize) {
+      count
+      communities {
+        foreign
+        url
+        publicKey
+        uuid
+        authenticatedAt
+        verifiedAt
+        name
+        description
+        gmsApiKey
+        location
+        creationDate
+        createdAt
+        updatedAt
+        hieroTopicId
+      }
     }
   }
 `

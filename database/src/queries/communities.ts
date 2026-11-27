@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, isNotNull, or } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, isNotNull, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
@@ -233,20 +233,27 @@ export async function dbSelectReachableCommunities(
     .orderBy(asc(communitiesTable.foreign), asc(communitiesTable.name))
 }
 
-// every community, the home community first, then the newest; a page of them
+/**
+ * A page of every community, the home community first, then the newest, and how many there are
+ * in all.
+ */
 export async function dbSelectCommunities({
   pageSize = 25,
   currentPage = 1,
 }: {
   pageSize?: number
   currentPage?: number
-} = {}): Promise<CommunitiesSelect[]> {
-  return drizzleDb()
-    .select()
-    .from(communitiesTable)
-    .orderBy(asc(communitiesTable.foreign), desc(communitiesTable.createdAt))
-    .limit(pageSize)
-    .offset((currentPage - 1) * pageSize)
+} = {}): Promise<{ count: number; communities: CommunitiesSelect[] }> {
+  const [[total], communities] = await Promise.all([
+    drizzleDb().select({ count: count() }).from(communitiesTable),
+    drizzleDb()
+      .select()
+      .from(communitiesTable)
+      .orderBy(asc(communitiesTable.foreign), desc(communitiesTable.createdAt))
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize),
+  ])
+  return { count: total.count, communities }
 }
 
 // the home community and every community that made it through the handshake at least once

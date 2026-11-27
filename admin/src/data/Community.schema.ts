@@ -24,4 +24,7 @@ const communitySchema = v.object({
 
 export type Community = v.InferOutput<typeof communitySchema>
 
-export const allCommunitiesSchema = v.object({ allCommunities: v.array(communitySchema) })
+/** A page of the communities, and how many there are in all. */
+export const allCommunitiesSchema = v.object({
+  allCommunities: v.object({ count: v.number(), communities: v.array(communitySchema) }),
+})

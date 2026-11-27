@@ -1,6 +1,6 @@
 import { Paginated } from '@arg/Paginated'
 import { EditCommunityInput } from '@input/EditCommunityInput'
-import { AdminCommunityView } from '@model/AdminCommunityView'
+import { AdminCommunityListResult, AdminCommunityView } from '@model/AdminCommunityView'
 import { Community } from '@model/Community'
 import {
   dbFindCommunityByUuid,
@@ -25,10 +25,10 @@ import { Location2Point } from './util/Location2Point'
 @Resolver()
 export class CommunityResolver {
   @Authorized([RIGHTS.COMMUNITY_WITH_API_KEYS])
-  @Query(() => [AdminCommunityView])
-  async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityView[]> {
-    // communityUUID could be oneTimePassCode (uint32 number)
-    return (await dbSelectCommunities(paginated)).map((dbCom) => new AdminCommunityView(dbCom))
+  @Query(() => AdminCommunityListResult)
+  async allCommunities(@Args() paginated: Paginated): Promise<AdminCommunityListResult> {
+    const { count, communities } = await dbSelectCommunities(paginated)
+    return { count, communities: communities.map((dbCom) => new AdminCommunityView(dbCom)) }
   }
 
   @Authorized([RIGHTS.COMMUNITIES])

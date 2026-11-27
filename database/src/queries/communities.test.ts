@@ -348,11 +348,10 @@ describe('community.queries', () => {
       const older = await createCommunity(true, { createdAt: new Date('2026-02-01T00:00:00Z') })
       const newer = await createCommunity(true, { createdAt: new Date('2026-03-01T00:00:00Z') })
 
-      expect((await dbSelectCommunities()).map((com) => com.id)).toEqual([
-        home.id,
-        newer.id,
-        older.id,
-      ])
+      const { count, communities } = await dbSelectCommunities()
+
+      expect(communities.map((com) => com.id)).toEqual([home.id, newer.id, older.id])
+      expect(count).toBe(3)
     })
 
     it('hands out the page asked for', async () => {
@@ -360,9 +359,11 @@ describe('community.queries', () => {
       const older = await createCommunity(true, { createdAt: new Date('2026-02-01T00:00:00Z') })
       await createCommunity(true, { createdAt: new Date('2026-03-01T00:00:00Z') })
 
-      const page = await dbSelectCommunities({ pageSize: 2, currentPage: 2 })
+      const { count, communities } = await dbSelectCommunities({ pageSize: 2, currentPage: 2 })
 
-      expect(page.map((com) => com.id)).toEqual([older.id])
+      expect(communities.map((com) => com.id)).toEqual([older.id])
+      // all of them, not only those of the page
+      expect(count).toBe(3)
     })
   })
 

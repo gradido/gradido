@@ -15,7 +15,7 @@ type Query {
   chatVideoServers: [ChatVideoServerRow!]!
   communityFigures(since: DateTime!): CommunityFigures!
   communityFigureSeries(since: DateTime!): CommunityFigureSeries!
-  allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): [AdminCommunityView!]!
+  allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): AdminCommunityListResult!
   reachableCommunities: [Community!]!
   authorizedCommunities: [Community!]!
   homeCommunity: Community!
@@ -422,6 +422,11 @@ type CommunityFigureSeries {
 type CommunityFigureSeriesRow {
   key: String!
   counts: [Int!]!
+}
+
+type AdminCommunityListResult {
+  count: Int!
+  communities: [AdminCommunityView!]!
 }
 
 type AdminCommunityView {

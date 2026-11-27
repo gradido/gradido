@@ -145,25 +145,37 @@ describe('CommunityResolver', () => {
         })
       })
 
+      const view = (com: CommunitiesSelect) => ({
+        foreign: com.foreign,
+        url: com.url,
+        publicKey: com.publicKey.toString('hex'),
+        uuid: com.communityUuid,
+        authenticatedAt: com.authenticatedAt?.toISOString() ?? null,
+        verifiedAt: com.verifiedAt?.toISOString() ?? null,
+        name: com.name,
+        description: com.description,
+        gmsApiKey: null,
+        creationDate: com.creationDate?.toISOString(),
+        createdAt: com.createdAt.toISOString(),
+        updatedAt: null,
+      })
+
       it('returns the home community first, then the foreign ones, the newest first', async () => {
-        const view = (com: CommunitiesSelect) => ({
-          foreign: com.foreign,
-          url: com.url,
-          publicKey: com.publicKey.toString('hex'),
-          uuid: com.communityUuid,
-          authenticatedAt: com.authenticatedAt?.toISOString() ?? null,
-          verifiedAt: com.verifiedAt?.toISOString() ?? null,
-          name: com.name,
-          description: com.description,
-          gmsApiKey: null,
-          creationDate: com.creationDate?.toISOString(),
-          createdAt: com.createdAt.toISOString(),
-          updatedAt: null,
-        })
         await expect(query({ query: allCommunities })).resolves.toMatchObject({
           data: {
-            allCommunities: [view(homeCom), view(newerForeignCom), view(olderForeignCom)],
+            allCommunities: {
+              count: 3,
+              communities: [view(homeCom), view(newerForeignCom), view(olderForeignCom)],
+            },
           },
+        })
+      })
+
+      it('returns the page asked for, and how many there are in all', async () => {
+        await expect(
+          query({ query: allCommunities, variables: { currentPage: 2, pageSize: 2 } }),
+        ).resolves.toMatchObject({
+          data: { allCommunities: { count: 3, communities: [view(olderForeignCom)] } },
         })
       })
     })
