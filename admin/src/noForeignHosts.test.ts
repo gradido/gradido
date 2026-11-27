@@ -131,8 +131,8 @@ describe('the styles under src', () => {
 
   it('are really read: all of them, and the addresses in them', () => {
     expect(files.length).toBeGreaterThan(25)
-    // The forty faces of Open Sans, which the cheque is drawn in, are forty addresses.
-    expect(addresses.length).toBeGreaterThan(40)
+    // The ten faces of Open Sans, which the cheque is drawn in, are ten addresses.
+    expect(addresses.length).toBeGreaterThan(10)
     expect(addresses).toContainEqual({
       file: 'assets/fonts/open-sans/open-sans.css',
       address: '/fonts/open-sans/open-sans-latin.woff2',

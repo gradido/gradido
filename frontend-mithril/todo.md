@@ -13,21 +13,20 @@ steps, not to be kept up to date.
 - The workspace: Vite, TypeScript, Biome, `bun test`, Turbo, the CI workflow
   (`.github/workflows/test_frontend_mithril.yml`).
 - `@frontend` → `frontend/src`, `frontend/public` served as it is, settings from `frontend/.env`.
-  The global styles are the very file the old wallet loads (`frontend/src/assets/css/gradido.css`,
-  built by its `compile-scss`); `*.module.scss` files compile through the alias with the same
-  options as in the old wallet.
+  The styles are the wallet's own (rule 6): the global ones in `src/styles/`, copies of the
+  old wallet's Sass, which Vite compiles (`vite.config.ts`, the `sass` plugin).
 - `index.html`: a copy of the old one, held equal by `src/indexHtml.drift.test.ts`.
 - Playwright against both wallets, on a desk and on a phone (`old`, `old-phone`, `new`,
   `new-phone`), the backend answered from `backend/schema.graphql` (`tests/fixtures/graphql.ts`),
   and `samePicture` (`tests/fixtures/picture.ts`): the old wallet takes a picture, the new one is
   held to it.
-- `src/main.ts` is a placeholder. No page is ported.
+- The base (step 2) and the sign-in pages (step 3). `/overview`, `/send/…` and `/redeem/…`
+  are rows that only name the build, until their steps.
 
 ## Rules for every step
 
 How the new wallet is cut — folders, the way to the server, the four kinds of state, forms,
-the end of a session — is in `ARCHITECTURE.md`. It is a draft until steps 2 and 3 are merged,
-and those two steps correct it.
+the end of a session — is in `ARCHITECTURE.md`, corrected with steps 2 and 3.
 
 1. **Specs first, against the old wallet.** Write the Playwright specs of the step, with
    `samePicture` at every state worth a picture (desk and phone come for free through the
@@ -50,13 +49,18 @@ and those two steps correct it.
 5. **Compact.** As `ARCHITECTURE.md` says under "How the code is written": no function for
    one line used once, no layer that only passes on, no component for plain Bootstrap markup
    (`div.row`, `button.btn`), nothing for later, comments only for the why. The pull request
-   names the lines it replaces and the lines it adds. Every page stays its own chunk
-   (`import()` in the route), as today.
+   names the lines it replaces and the lines it adds. The pages are one bundle,
+   imported by `routes.ts`; fetched apart only what is large and needed by few: the
+   languages, and maplibre with the map (step 8).
 6. **The picture stays** — but for the wait, which is shown one way everywhere
    (`ARCHITECTURE.md`, "Waiting"); take `samePicture` once the content is there. Emit the
-   classes the styles are written for (list under step 2). A style file is reused through
-   `@frontend`; it is changed only where the markup behind it really changes, and then in the
-   same step for both wallets.
+   classes the styles are written for (list under step 2). The styles are the new wallet's
+   own, not shared: a step copies the style files its components need next to them, as
+   `.css` (a `*.module.scss` of the old wallet is CSS: with lightningcss as Vite's transformer
+   no Sass runs for it, in either wallet). It leaves out the rules the new markup does not
+   need, and puts right what it finds wrong — in the old wallet too, while that runs, so that
+   `samePicture` still compares like with like. The specs hold the two pictures equal, not a
+   file both read.
 7. **A change to the old wallet's behaviour during the rewrite** goes into `frontend/`, and into
    `frontend-mithril/` where the page is ported (`AGENTS.md`).
 8. **No `m.redraw()` on trust.** Mithril draws anew by itself after an event handler it
@@ -88,8 +92,8 @@ and those two steps correct it.
   (`ThemedSelect` is the wallet's own). To copy with their steps: `MemberAvatar`,
   `MemberAvatarZoom`, `RelativeTime.logic`. Not needed: `Tooltip`.
 - **Styles of bootstrap-vue-next: done.** The old wallet loads `bootstrap-vue-next.css`. The
-  Mithril wallet loads `components/bootstrapVueNext.css` in its place: the rules whose classes
-  it emits (`b-avatar*`, `b-pagination-pills`, `bv-d-sm-down-none`).
+  Mithril wallet carries the rules whose classes it emits: the avatar's in
+  `styles/gradido-template.scss`, the pager's in `components/ui/Pagination.css`.
 - **Icons.** About 135 icons of six sets (bi 63, mdi 65, ion 2, tabler 2, fa 1, humbleicons 1)
   through `unplugin-icons` with `compiler: 'raw'`, as in the admin. Install the six
   `@iconify-json/*` sets, not `@iconify/json`.
@@ -162,19 +166,19 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
 - Done: `m.redraw()` in the one `storage` listener of `store/DeviceStore.ts`: a change from
   another tab happens outside of Mithril. To be seen in the browser with the first page that
   draws a store (a tab on the sign-in page while another tab signs in).
-- Done: `components/Toasts.ts` (`toastSuccess`, `toastError`, `toastInfo`), mounted by
+- Done: `components/ui/Toasts.ts` (`toastSuccess`, `toastError`, `toastInfo`), mounted by
   `main.ts` beside the pages, in the markup bootstrap-vue-next drew: its box and colours were
   measured against the old wallet's. Not taken over: the fade of 150 ms as a toast comes and
   goes. `toastErrorAfterReload` hands a toast to the page loaded next, for a session that
   ends: a revoked certificate, and a token of the server the wallet cannot read while a session
-  runs (at a sign-in, `request` fails and the page says so). Its Playwright spec comes with the
-  sign-in page (step 3), the first that shows a toast.
+  runs (at a sign-in, `request` fails and the page says so). Held by `tests/auth.spec.ts` ("says at the
+  sign-in why a session ended").
 - Done: the notice of `browser/requireStorage.ts` (the browser refuses localStorage) through
   `i18n`, in all ten languages (`error.no-storage`). The language is the browser's: the
   member's own lies in the storage that is refused. The check throws at once, so that nothing
   after it loads, and the notice appears when its language is fetched.
 - Done, the frame of routes and guards (`routes.js`, `guards.js`, 890 lines): `routes.ts` is
-  one table (address, page as `import()`, `requiresAuth`) turned into Mithril's resolvers, and
+  one table (address, page, `requiresAuth`), which `router.ts` turns into Mithril's resolvers, and
   `data/Guard.logic.ts` decides as one pure function `whereTo`, with the cases of
   `guards.test.js` (1,330 lines) as its tests. In it: the start with a running session,
   `requiresAuth` (an expired sign-in is put away, the address kept in `session.redirectPath`
@@ -234,10 +238,10 @@ the merged GraphQL documents, why a session ended (the hand-over to the sign-in 
 - Done: the theme (`store/Theme.ts`: a `DeviceStore` on `gradido-theme-mode` that marks
   `body` and names the colour of the installed app's bar; seen in the browser for the switch,
   another tab and the system's preference), the viewport (`browser/viewport.ts`, `isPhone()`)
-  and the icons (`unplugin-icons` with the `raw` compiler and `components/icon.ts`, as in the
+  and the icons (`unplugin-icons` with the `raw` compiler and `components/ui/icon.ts`, as in the
   admin; the sets the old wallet draws from).
 - Done: `browser/newVersion.ts` (`reloadOnStaleChunk`, `watchForNewVersion`) and
-  `components/AppOutdatedBar.ts`, mounted by `main.ts` above the pages. The check runs on
+  `components/layout/AppOutdatedBar.ts`, mounted by `main.ts` above the pages. The check runs on
   `repeatWhileVisible`: every quarter of an hour while the tab is seen, and when it is seen
   again. Not taken over: `pageshow` and every change of page as further triggers, which were
   for iOS before 13. The build files are read off the page's text, not its DOM, so that the
@@ -285,7 +289,7 @@ that click stays on `old` only.
 
 | # | Step | Old (files / lines) | Files in the PR | Notes |
 | --- | --- | --- | --- | --- |
-| 3 | Sign-in pages and their layout: `AuthLayout`, `Auth/*`, Login, Register, RegisterCommunity, ForgotPassword, ResetPassword, ConfirmEmail, EmailChange, PublicProfile, NotFound | 16 / 3,260 | ~60 | `NotFoundPage` is 1,200 lines of inline SVG: one `.svg` file. The two backend sentences Login matches stay pinned by a test. |
+| 3 | **Done.** Sign-in pages and their layout: `AuthLayout`, `Auth/*`, Login, Register, RegisterCommunity, ForgotPassword, ResetPassword, ConfirmEmail, EmailChange, PublicProfile, NotFound | 16 / 3,260 | ~60 | Left for the step that needs each: the event-matching entry (5) and `/project-matching` with their pages, the layout's `hideGreeting` flag with the first page that sets it, the pages behind `/overview` (14), `/send/…` (13) and `/redeem/…` (12). Not taken over: the carousel's swipe and its pause under the pointer. `/authenticate` without a token leads to the sign-in (old: an empty page). "Back" on the not-found page goes by a count of the pages opened (`openedBefore`), until `navigation.canGoBack` is in the browsers members use. |
 | 4 | The shell: `DashboardLayout`, templates, `Menu/*`, `MobileSidebar`, `Breadcrumb`, footer, `ContentHeader`, `RightSide` (without the contact panels), `SessionLogoutTimeout`, `EmailConfirmation*`, `AdminWayBackBar` | 28 / 4,600 | ~90 | The settings menu is in the DOM twice today (desk, phone): draw it once, by the width, if the picture stays the same without a change to the styles; else twice, reading one `Resource`. Body scroll lock of the phone menu. |
 | 5 | First steps: `FirstCreation`, `AliasFirstChoice`, `EventMatchingHomeInvitation`, `useFirstLoginWindow` | 5 / 1,900 | ~35 | Which window comes first is the logic to keep. |
 | 6 | Contributions, support, information: three pages, `Contributions/`, `ContributionMessages/`, `Support/` | 19 / 2,960 | ~70 | Depends on the base only. The lists poll with `AUTO_POLL_INTERVAL`. |
@@ -293,7 +297,7 @@ that click stays on `old` only.
 | 8 | Map core: `mapEngine`, `mapTiles`, `mapStyle`, `placeName`, `geoSearch*`, `GeoSearchField`, `UserLocationMap` | 16 / 1,800 | ~35 | Needed by settings and matching. maplibre lives in `oncreate` / `onremove`. |
 | 9 | Settings: `settings/*`, `MyGradidoCard`, `UserSettings/*` | 24 / 3,300 (+3,200 utils) | ~90 | `gradidoCard.js` and `thankYouCard.js` are canvas code and move as they are. |
 | 10 | Pictures: `ChatImageEditor`, `ChatImageView`, `EmojiPicker`, `ChatReactionChoice`, `AvatarZoom`, `AvatarCropper`, `ThankYouGreetingPhoto`, the image utils, and **one** picture cache for `useChatImages`, `useMemberAvatars`, `useKeptPictures`, `memoryPictures` | ~20 / 4,700 | ~60 | The admin's `memberAvatars.store` does in 72 lines what `useMemberAvatars` does in 503. |
-| 11 | Transactions: page, `GddTransactionList`, `GdtTransactionList`, `Transactions/`, `DecayInformations/` (five files → one with variants), `TransactionRows/`, `TransactionLinks/` | 22 / 3,030 | ~70 | `date-fns` stays for its one use (`DurationRow`), so the words stay exactly as they are ("etwa 1 Monat") — in all ten languages, none reads English any more. Its English is bundled with this page; another language's locale is fetched with the page (`() => import('date-fns/locale/de')`, one loader per language), in the route's `onmatch` beside the page itself, so the row is never drawn in English first. |
+| 11 | Transactions: page, `GddTransactionList`, `GdtTransactionList`, `Transactions/`, `DecayInformations/` (five files → one with variants), `TransactionRows/`, `TransactionLinks/` | 22 / 3,030 | ~70 | `date-fns` stays for its one use (`DurationRow`), so the words stay exactly as they are ("etwa 1 Monat") — in all ten languages, none reads English any more. Its English is bundled; another language's locale is fetched apart (`() => import('date-fns/locale/de')`, one loader per language), in the route's `onmatch` before the page is drawn, so the row is never drawn in English first. |
 | 12 | Redeem and thanks: `TransactionLink`, `LinkInformations/*`, `ThankYouGreeting`, `MyThankYouCard`, `ThankYouCardPayment`, `ThankYouGreeting/*` | 14 / 4,340 | ~80 | The print and cheque code is canvas and moves as it is; `thankYouCheque`, `avatarColor`, `qrCode` exist a second time in the admin — one copy. |
 | 13 | Send: `Send`, `GddSend/*`, `CommunitySwitch` | 12 / 2,750 | ~50 | `Send` reads the communities the form loaded from Apollo's cache: hand them over. |
 | 14 | Overview: `Overview`, `ShowFriends`, `Overview/*`, `ThanksNudge`, the contact panels of the right side | 8 / 1,940 | ~45 | |
@@ -336,12 +340,11 @@ key of `en.json` is named in `src`, with the keys put together at run time liste
 **23. One folder** — moves only: a moved file keeps its content, but for the import paths and
 the build configuration the move itself changes, in the same pull request. Each of them leaves
 both the build and the specs passing.
-(a) styles: `assets/scss`, the `*.module.scss` and `.css` files next to their Mithril
-components (about 200), `compile-scss` becomes a step of the one build; (b) `locales`,
+(The styles have moved with their steps, rule 6.) (a) `locales`,
 `graphql`, `config` (as ESM TypeScript, without `vite-plugin-commonjs`), the remaining utils,
 `public` (about 200); with the last of them the `@frontend` alias goes, once nothing imports
 through it, and the old wallet's `index.html` together with `src/indexHtml.drift.test.ts`,
-which has nothing left to compare. (c)
+which has nothing left to compare. (b)
 `frontend-mithril` → `frontend`. **This rename is larger than 250 files** and cannot be cut
 without breaking the build in between: review it with `git diff -M --stat` (renames only), not
 with CodeRabbit. Then the workflow becomes `test_frontend.yml`, with its `_skipped` companion,
@@ -351,8 +354,9 @@ files, `shared/src/const/frontendReadable.ts`, the path filters in `test_backend
 
 ## After the switch, not before
 
-- `gradido.css` is 322 kB (44 kB gzipped): all of Bootstrap plus the template. Compile only the
-  Bootstrap parts in use. A change of the picture's source, so not during the port.
+- `gradido.css` is 318 kB (47 kB gzipped) of Sass compiled: all of Bootstrap plus the template.
+  The build cuts it to 74 kB (16 kB gzipped) with PurgeCSS. Compile only the Bootstrap parts in
+  use, and the build gets faster too. A change of the picture's source, so not during the port.
 - The placeholder build is already 115 kB of JavaScript (27 kB gzipped), nearly all of it the
   config parsed once more in the browser (`config-schema`, valibot): hand the browser the parsed
   values instead.

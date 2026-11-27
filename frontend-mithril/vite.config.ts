@@ -1,10 +1,13 @@
 // AI-GENERATED — not an architecture reference
-import { execSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { execFileSync, execSync, spawnSync } from 'node:child_process'
+import { existsSync, readdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { browserUrls, validate } from 'config-schema'
 import dotenv from 'dotenv'
+import { PurgeCSS } from 'purgecss'
+import * as sass from 'sass'
 import Icons from 'unplugin-icons/vite'
 import { defineConfig } from 'vite'
 import commonjs from 'vite-plugin-commonjs'
@@ -21,6 +24,29 @@ dotenv.config({ path: '../frontend/.env' })
 
 const require = createRequire(import.meta.url)
 const frontend = path.resolve(__dirname, '../frontend')
+// grass is a binary of its own (cargo install grass); without it Dart Sass compiles
+const hasGrass = spawnSync('grass', ['--version']).status === 0
+
+/** In grass where it is installed (0.2 s against Dart Sass's 1 s), as the old wallet's compile-scss. */
+function compileSass(file: string, watch: (read: string) => void) {
+  const nodeModules = path.resolve(__dirname, '../node_modules')
+  if (hasGrass) {
+    // grass names no file it read: every file beside it is watched
+    for (const read of readdirSync(path.dirname(file), { recursive: true })) {
+      watch(path.join(path.dirname(file), String(read)))
+    }
+    return execFileSync('grass', ['--quiet', '-I', nodeModules, file]).toString()
+  }
+  const compiled = sass.compile(file, {
+    loadPaths: [nodeModules],
+    // as the old wallet's compile-scss: Bootstrap 5.3 is written with @import
+    silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
+  })
+  for (const read of compiled.loadedUrls) {
+    watch(fileURLToPath(read))
+  }
+  return compiled.css
+}
 
 export default defineConfig(({ command }) => {
   // both read by the config of the old wallet (../frontend/src/config) before it parses the environment
@@ -96,20 +122,40 @@ export default defineConfig(({ command }) => {
       }),
       // the old wallet's .graphql documents, each operation under its own name
       vitePluginGraphqlLoader(),
-      // `~icons/<set>/<name>` is the icon's SVG as text (components/icon.ts)
+      // `~icons/<set>/<name>` is the icon's SVG as text (components/ui/icon.ts)
       Icons({ compiler: 'raw' }),
       // the old wallet's config is CommonJS (../frontend/src/config), read by this file too
       commonjs(),
-    ],
-    // As the old wallet builds its styles, so that the same rules reach the browser. The scss
-    // options are for the components' own *.module.scss; gradido.scss is compiled ahead (main.ts).
-    css: {
-      transformer: 'lightningcss' as const,
-      preprocessorOptions: {
-        scss: {
-          additionalData: `@use "@frontend/assets/scss/custom/gradido-custom/color" as *;`,
+      // The global styles (styles/gradido.scss) are Sass, written against Bootstrap's sources.
+      // With lightningcss as the transformer Vite runs no preprocessor, so Sass runs here,
+      // before it; the styles of the components are plain CSS.
+      {
+        name: 'sass',
+        enforce: 'pre' as const,
+        async transform(_code: string, id: string) {
+          if (!id.endsWith('.scss')) {
+            return undefined
+          }
+          const css = compileSass(id, (file) => this.addWatchFile(file))
+          if (command !== 'build') {
+            return { code: css, map: null }
+          }
+          // Out go the rules whose classes no page names: most of Bootstrap. So a class is
+          // written whole, never put together (`btn-${variant}`). Here, before the bundle,
+          // so the file's name is the hash of what is left.
+          const [purged] = await new PurgeCSS().purge({
+            content: [path.resolve(__dirname, 'index.html'), path.resolve(__dirname, 'src/**/*.ts')],
+            skippedContentGlobs: ['**/*.test.ts'],
+            css: [{ raw: css }],
+          })
+          return { code: purged.css, map: null }
         },
       },
+    ],
+    // The styles are copies of the old wallet's; the specs hold the two pictures equal
+    // (tests/fixtures/picture.ts).
+    css: {
+      transformer: 'lightningcss' as const,
     },
     build: {
       outDir: path.resolve(__dirname, './build'),

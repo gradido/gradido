@@ -20,8 +20,11 @@ const sessionStateSchema = v.fallback(
     // The page asked for while nobody was signed in, with its query and hash: where the sign-in
     // goes on to. A sign-out puts the overview back.
     redirectPath: v.fallback(v.string(), '/overview'),
+    // A language chosen while nobody was signed in: the next sign-in keeps it, and saves it
+    // to the account, instead of taking the account's.
+    preLoginLanguage: v.fallback(v.nullable(v.string()), null),
   }),
-  { member: null, language: null, redirectPath: '/overview' },
+  { member: null, language: null, redirectPath: '/overview', preLoginLanguage: null },
 )
 
 // What the wallet reads out of the token's middle part; `exp` and `iat` in seconds.
@@ -89,10 +92,11 @@ export class AuthTokenStore extends DeviceStore<typeof authTokenSchema> {
     super(AUTH_TOKEN_KEY, authTokenSchema, DeviceStoreBasicType.Object)
     this.#lastSeenMemberId = this.state?.tokenMemberId
   }
-  set(value: AuthToken, save = true) {
+  /** A sign-out (`value` none) loads the wallet anew at `leaveTo`. */
+  set(value: AuthToken, save = true, leaveTo = '/login') {
     // logout
     if (this.state && !value) {
-      location.assign('/login')
+      location.assign(leaveTo)
     }
     if (value) {
       if (this.state && value.tokenMemberId !== this.#lastSeenMemberId) {
@@ -112,13 +116,24 @@ if (!authToken.state && session.state.member) {
   logout()
 }
 
-export function logout() {
-  session.set(v.parse(sessionStateSchema, { language: session.state.language }))
-  authToken.set(null)
+/**
+ * Ends the session, and loads the wallet anew at `leaveTo`: nothing of it stays in memory. A
+ * language chosen while nobody was signed in stays for the next sign-in, also where a token
+ * nobody signed in with is put away; after a sign-in there is none.
+ */
+export function logout(leaveTo = '/login') {
+  const { language, preLoginLanguage } = session.state
+  session.set(v.parse(sessionStateSchema, { language, preLoginLanguage }))
+  authToken.set(null, true, leaveTo)
 }
 
 export function login(member: Member) {
-  session.set({ ...session.state, member })
+  session.set({
+    ...session.state,
+    member,
+    language: session.state.preLoginLanguage ?? member.language,
+    preLoginLanguage: null,
+  })
   // auth token is set in client
 }
 

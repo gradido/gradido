@@ -40,6 +40,7 @@
       "oneDonation": "Du bist ein Geschenk für die Gemeinschaft. 1000 Dank, weil Du bei uns bist.",
       "oneGratitude": "Für einander, für alle Menschen, für die Natur."
     },
+    "textSize": "Schriftgröße",
     "toAccount": "Zum Konto",
     "triads": {
       "design": {
@@ -870,6 +871,7 @@
         "min": "Die Nachricht sollte mindestens {min} Zeichen lang sein.",
         "required": "Die Nachricht ist ein Pflichtfeld."
       },
+      "minLength": "{fieldName} muss mindestens {min} Zeichen lang sein",
       "requiredField": "{fieldName} ist ein Pflichtfeld",
       "subject": {
         "max": "Der Betreff darf höchstens {max} Zeichen lang sein.",

@@ -53,7 +53,7 @@ export class MemberAvatar implements ClassComponent<Attrs> {
       src
         ? m('img', { class: classes.memberAvatarImage, src, alt: '' })
         : m(
-            'span.fw-medium',
+            'span.fw-normal',
             { style: { fontSize: `${size * 0.4}px`, lineHeight: '1', color: palette.text } },
             initials,
           ),

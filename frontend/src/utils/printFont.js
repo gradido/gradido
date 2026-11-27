@@ -26,9 +26,8 @@
  * byte-identical in both.
  */
 
-// The weights the drawers ask for. 500 is drawn in the face declared for 400 -- asking for it
-// by its own number keeps this list a copy of what the drawers say, not of how it resolves.
-const WEIGHTS = [400, 500, 600, 700]
+// The weights the drawers ask for.
+const WEIGHTS = [400, 600, 700]
 
 /**
  * Resolves when Open Sans can draw the given texts.

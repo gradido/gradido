@@ -47,24 +47,42 @@ describe('the session', () => {
       member: null,
       language: 'de',
       redirectPath: '/overview',
+      preLoginLanguage: null,
     })
     expect(openedAtStart).toBe(0)
   })
 
-  it('login keeps the member, and the language and the page to go on to as they are', () => {
-    session.set({ member: null, language: 'en', redirectPath: '/send?art=email' })
+  it('login keeps the member and the page to go on to, and takes the language of the account', () => {
+    session.set({
+      member: null,
+      language: 'en',
+      redirectPath: '/send?art=email',
+      preLoginLanguage: null,
+    })
     login(member(BIBI))
     expect(session.state.member?.gradidoID).toBe(BIBI)
     expect(JSON.parse(localStorage.getItem(STATE_KEY) ?? '')).toMatchObject({
       member: { gradidoID: BIBI },
-      language: 'en',
+      language: 'de',
       redirectPath: '/send?art=email',
     })
   })
 
+  it('login keeps a language chosen before it, once', () => {
+    session.set({ member: null, language: 'fr', redirectPath: '/overview', preLoginLanguage: 'fr' })
+    login(member(BIBI))
+    expect(session.state.language).toBe('fr')
+    expect(session.state.preLoginLanguage).toBeNull()
+  })
+
   it('logout removes the token and the member, keeps the language, and opens the sign-in', () => {
     authToken.set(parsed(tokenOf(BIBI)))
-    session.set({ member: member(BIBI), language: 'de', redirectPath: '/send' })
+    session.set({
+      member: member(BIBI),
+      language: 'de',
+      redirectPath: '/send',
+      preLoginLanguage: null,
+    })
     logout()
     expect(authToken.state).toBeNull()
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull()
@@ -72,8 +90,24 @@ describe('the session', () => {
       member: null,
       language: 'de',
       redirectPath: '/overview',
+      preLoginLanguage: null,
     })
     expect(location.assign).toHaveBeenCalledWith('/login')
+  })
+
+  it('logout keeps a language chosen while nobody was signed in, for the next sign-in', () => {
+    // a token lay there, but nobody had signed in with it: the server did not take it
+    authToken.set(parsed(tokenOf(BIBI)))
+    session.set({ ...session.state, language: 'fr', preLoginLanguage: 'fr' })
+    logout()
+    expect(session.state).toMatchObject({ member: null, language: 'fr', preLoginLanguage: 'fr' })
+  })
+
+  it('logout opens the page it is told to instead', () => {
+    authToken.set(parsed(tokenOf(BIBI)))
+    logout('/redeem/abc')
+    expect(authToken.state).toBeNull()
+    expect(location.assign).toHaveBeenCalledWith('/redeem/abc')
   })
 })
 

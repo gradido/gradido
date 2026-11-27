@@ -1,0 +1,37 @@
+// Buttons
+
+$btn-padding-y: $input-btn-padding-y ;
+$btn-padding-x: $input-btn-padding-x + 0.5 ;
+$btn-line-height: $input-btn-line-height ;
+$btn-padding-y-sm: $input-btn-padding-y-sm ;
+$btn-padding-x-sm: $input-btn-padding-x-sm ;
+$btn-line-height-sm: $input-btn-line-height-sm ;
+$btn-padding-y-lg: $input-btn-padding-y-lg ;
+$btn-padding-x-lg: $input-btn-padding-x-lg ;
+$btn-line-height-lg: $input-btn-line-height-lg ;
+$btn-border-width: $input-btn-border-width ;
+$btn-font-weight: 600 ;
+$btn-text-transform: none;
+$btn-letter-spacing: 0.025em ;
+$btn-box-shadow: 0 4px 6px rgb(50 50 93 / 11%), 0 1px 3px rgb(0 0 0 / 8%) ;
+$btn-hover-box-shadow: 0 7px 14px rgb(50 50 93 / 10%), 0 3px 6px rgb(0 0 0 / 8%) ;
+$btn-focus-box-shadow: $btn-hover-box-shadow ;
+$btn-focus-width: $input-btn-focus-width ;
+$btn-active-box-shadow: 0 0 0 0 rgb(255 255 255 / 0%);;
+$btn-hover-translate-y: -1px ;
+
+
+
+// The label of an outlined button. #4385b1 read at 4.02:1 on a white card, under the 4.5:1 a
+// label of this size needs (measured on "Link kopieren" and "E-Mail-Adresse ändern",
+// 04.10.2026). #397196 reads at 5.28:1 on white, at 5.04:1 on the ground the button takes under
+// the pointer and the focus (#f7fafc), and at 4.59:1 on the greyest ground such a button stands
+// on: the card of the sign-in pages (#ebebeba3 over the page, #efefef). The dark mode sets a
+// label of its own (gradido-template-dark.scss); outlinedButtonLabel.spec.js holds both.
+.btn-outline-secondary {
+  color: #397196 !important;
+}
+
+.btn-success {
+  color: #fff!important;
+}

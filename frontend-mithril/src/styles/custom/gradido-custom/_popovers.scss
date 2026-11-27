@@ -1,0 +1,19 @@
+// Popovers
+
+$popover-font-size: $font-size-sm ;
+$popover-max-width: 276px ;
+$popover-border-width: 1px ;
+$popover-border-color: rgba($black, 0.05) ;
+$popover-border-radius: $border-radius-lg ;
+$popover-box-shadow: 0 0.5rem 2rem 0 rgba($black, 0.2) ;
+$popover-header-bg: $popover-bg ;
+$popover-header-color: $headings-color ;
+$popover-header-padding-y: 0.5rem ;
+$popover-header-padding-x: 0.95rem ;
+$popover-body-color: $body-color ;
+$popover-body-padding-y: $popover-header-padding-y ;
+$popover-body-padding-x: $popover-header-padding-x ;
+$popover-arrow-width: 1.5rem ;
+$popover-arrow-height: 0.75rem ;
+$popover-arrow-color: $popover-bg ;
+$popover-arrow-outer-color: transparent ;

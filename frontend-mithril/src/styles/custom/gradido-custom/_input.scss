@@ -1,0 +1,45 @@
+// Input
+@use "sass:color";
+
+$input-padding-y: $input-btn-padding-y ;
+$input-padding-x: $input-btn-padding-x ;
+$input-line-height: $input-btn-line-height ;
+$input-padding-y-sm: $input-btn-padding-y-sm ;
+$input-padding-x-sm: $input-btn-padding-x-sm ;
+$input-line-height-sm: $input-btn-line-height-sm ;
+$input-padding-y-lg: $input-btn-padding-y-lg ;
+$input-padding-x-lg: $input-btn-padding-x-lg ;
+$input-line-height-lg: $input-btn-line-height-lg ;
+$input-border-radius: $border-radius ;
+$input-border-radius-xl: $border-radius-xl ;
+$input-border-radius-lg: $border-radius-lg ;
+$input-border-radius-sm: $border-radius-sm ;
+
+// Bootstrap's own default is var(--bs-secondary-bg), which follows the colour mode;
+// pinning it to the $gray-200 literal here compiled .form-control:disabled to a fixed
+// #e9ecef that no variable can reach, so a disabled text field stayed light on the dark
+// canvas. Its neighbour .form-select:disabled was never affected: $form-select-disabled-bg
+// took its value from $input-disabled-bg while that was still the variable, before this
+// line ran -- which is why the send form showed a dark community select above three light
+// fields whenever the balance was zero and disabled them.
+// In light mode --bs-secondary-bg IS #e9ecef, so nothing there changes.
+$input-disabled-bg: var(--#{$prefix}secondary-bg) ;
+$input-muted-bg: #f7fafe ;
+$input-focus-muted-bg: color.adjust($input-muted-bg, $lightness: 1%) ;
+$input-alternative-box-shadow: 0 1px 3px rgb(50 50 93 / 15%), 0 1px 0 rgb(0 0 0 / 2%) ;
+$input-focus-alternative-box-shadow: 0 4px 6px rgb(50 50 93 / 11%),0 1px 3px rgb(0 0 0 / 8%) ;
+$input-color: $gray-600 ;
+$input-border-color: #cad1d7 ;
+$input-border-width: $input-btn-border-width ;
+$input-box-shadow: 0 0 0 0 rgb(255 255 255 / 0%); // 0 1px 3px 0 $gray-400 ;
+
+$input-focus-bg: $white ;
+$input-focus-border-color: rgb(50 151 211 / 25%) ;
+$input-focus-color: $input-color ;
+$input-focus-width: 0 ;
+$input-focus-box-shadow: 0 0 0 0 rgb(255 255 255 / 0%); // 0 1px 3px 0 $gray-500 ;
+
+$input-placeholder-color: $gray-500 ;
+$input-focus-placeholder-color: $gray-500 ;
+$input-height-border: $input-border-width * 2 !default;
+$input-transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) ;

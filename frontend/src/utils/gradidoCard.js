@@ -291,7 +291,7 @@ const drawPicture = (ctx, { image, initials, colorSeed, x, y }) => {
   ctx.fill()
 
   ctx.fillStyle = palette.text
-  ctx.font = `500 ${Math.round(PICTURE * 0.4)}px ${FONT}`
+  ctx.font = `400 ${Math.round(PICTURE * 0.4)}px ${FONT}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(initialsText(initials), x + radius, y + radius + 1)
