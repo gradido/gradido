@@ -1,0 +1,12 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "env": [
+        "NODE_ENV", "LOG*", "BACKEND_PORT", "COMMUNITY_URL", "CONNECT_*", "DLT_*",
+        "FEDERATION_COMMUNITY_URL", "GRADIDO_BLOCKCHAIN_*", "HIERO_*", "HOME_COMMUNITY_SEED",
+        "JWT_SECRET", "MYSQL_*"
+      ]
+    }
+  }
+}
