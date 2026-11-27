@@ -119,6 +119,7 @@ COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modul
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/build/shared_native.node ./node_modules/shared-native/build/
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/index.cjs ./node_modules/shared-native/
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/package.json ./node_modules/shared-native/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/types ./node_modules/shared-native/types
 
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/core/build/templates ./templates
 
