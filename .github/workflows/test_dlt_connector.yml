@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'dlt-connector/**'
+      - 'config-schema/**'
+      - 'shared/**'
+      - 'shared-native/**'
       - 'docker-compose.*'
       - '.bun-version'
       - '.github/workflows/test_dlt_connector.yml'
@@ -38,13 +41,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
+      # zig toolchain and build cache of shared-native, see test_dht_node.yml
+      - name: Cache Zig toolchain & packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.zig-build
+          key: zig-toolchain-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/package.json', 'shared-native/build.zig.zon') }}
+
+      - name: Cache Zig build cache
+        uses: actions/cache@v4
+        with:
+          path: shared-native/.zig-cache
+          key: zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('shared-native/build.zig', 'shared-native/build.zig.zon', 'shared-native/napi/**') }}
+          restore-keys: |
+            zig-cache-v1-${{ runner.os }}-${{ runner.arch }}-
+
       - name: install bun 
         uses: oven-sh/setup-bun@v2
         with:
           bun-version-file: '.bun-version'
 
       - name: install dependencies
-        run: bun install --filter shared --frozen-lockfile && cd dlt-connector && bun install --frozen-lockfile
+        run: |
+          bun install --filter dlt-connector --frozen-lockfile
+          bun install --global --no-save turbo@^2
 
       - name: typecheck && unit test
         run: |
@@ -53,5 +73,5 @@ jobs:
           export HOME_COMMUNITY_SEED=$(openssl rand -hex 32)
           export HIERO_OPERATOR_KEY=$(openssl rand -hex 32)
           export HIERO_OPERATOR_ID="0.0.2"
-          cd dlt-connector && bun typecheck && bun test
+          turbo dlt-connector#typecheck dlt-connector#test
 

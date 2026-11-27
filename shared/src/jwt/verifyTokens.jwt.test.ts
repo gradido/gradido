@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
 import { afterEach, beforeEach, describe, expect, it, setSystemTime } from 'bun:test'
-import { SignJWT } from 'jose'
 import { JWT_LEEWAY_SECONDS } from '../const'
 import { AuthSigningType } from '../enum'
 import { createUserToken } from './createTokens.jwt'
@@ -10,7 +9,6 @@ import {
   signTestToken,
   TEST_AUDIENCE,
   TEST_GRADIDO_ID,
-  TEST_ISSUER,
   TEST_NOW,
   TEST_NOW_SECONDS,
   testAuthContext,
@@ -34,16 +32,9 @@ describe('verifyUserToken', () => {
       expect(verifyUserToken(token, testAuthContext())).toBe(TEST_GRADIDO_ID)
     })
 
-    // the token dlt-connector/src/client/backend/BackendClient.ts builds with jose
-    it('returns "dlt-connector" for the token of the dlt-connector', async () => {
-      const token = await new SignJWT({})
-        .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-        .setIssuedAt(TEST_NOW_SECONDS)
-        .setSubject('dlt-connector')
-        .setIssuer(TEST_ISSUER)
-        .setAudience(TEST_AUDIENCE)
-        .setExpirationTime(TEST_NOW_SECONDS + 600)
-        .sign(new TextEncoder().encode('secret123'))
+    // the token dlt-connector/src/client/backend/BackendClient.ts builds
+    it('returns "dlt-connector" for the token of the dlt-connector', () => {
+      const token = createUserToken('dlt-connector', testAuthContext())
       expect(verifyUserToken(token, testAuthContext())).toBe('dlt-connector')
     })
 

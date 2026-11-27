@@ -16,6 +16,9 @@ on:
   push:
     paths-ignore:
       - 'dlt-connector/**'
+      - 'config-schema/**'
+      - 'shared/**'
+      - 'shared-native/**'
       - 'docker-compose.*'
       - '.bun-version'
       - '.github/workflows/test_dlt_connector.yml'

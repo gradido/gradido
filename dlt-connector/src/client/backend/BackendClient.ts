@@ -1,6 +1,13 @@
 import { GraphQLClient } from 'graphql-request'
-import { SignJWT } from 'jose'
 import { getLogger, Logger } from 'log4js'
+import {
+  AuthContext,
+  AuthSigningType,
+  authContextSchema,
+  createUserToken,
+  Duration,
+  JwtSigner,
+} from 'shared'
 import * as v from 'valibot'
 import { CONFIG } from '../../config'
 import { LOG4JS_BASE_CATEGORY } from '../../config/const'
@@ -25,6 +32,7 @@ export class BackendClient {
   client: GraphQLClient
   logger: Logger
   urlValue: string
+  private authContext: AuthContext
 
   /**
    * The Singleton's constructor should always be private to prevent direct
@@ -34,6 +42,13 @@ export class BackendClient {
     this.logger = getLogger(`${LOG4JS_BASE_CATEGORY}.client.BackendClient`)
     this.urlValue = `http://localhost:${CONFIG.BACKEND_PORT}/graphql`
     this.logger.addContext('url', this.urlValue)
+    // the backend expects its own url with a trailing slash as audience (backend/src/auth/JWT.ts)
+    this.authContext = v.parse(authContextSchema, {
+      issuer: CONFIG.COMMUNITY_URL,
+      audience: ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL),
+      duration: Duration.minutes(10),
+      signer: new JwtSigner(CONFIG.JWT_SECRET, AuthSigningType.HMAC),
+    })
 
     this.client = new GraphQLClient(this.urlValue, {
       headers: {
@@ -120,24 +135,15 @@ export class BackendClient {
     authorization: string
   }> {
     return {
-      authorization: 'Bearer ' + (await this.createJWTToken()),
+      authorization: 'Bearer ' + this.createJWTToken(),
     }
   }
 
-  private async createJWTToken(): Promise<string> {
-    const secret = new TextEncoder().encode(CONFIG.JWT_SECRET)
-    const token = await new SignJWT()
-      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-      .setIssuedAt()
-      .setSubject('dlt-connector')
-      .setIssuer(CONFIG.COMMUNITY_URL)
-      // the backend expects its own url with a trailing slash as audience (backend/src/auth/JWT.ts)
-      .setAudience(ensureUrlEndsWithSlash(CONFIG.COMMUNITY_URL))
-      .setExpirationTime('10m')
-      .sign(secret)
-    return token
+  private createJWTToken(): string {
+    return createUserToken('dlt-connector', this.authContext)
   }
 }
+
 export const ensureUrlEndsWithSlash = (url: string): string => {
   return url.endsWith('/') ? url.replace(/\/*$/, '/') : url.concat('/')
 }

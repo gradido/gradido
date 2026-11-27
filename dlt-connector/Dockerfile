@@ -51,38 +51,36 @@ WORKDIR ${DOCKER_WORKDIR}
 ##################################################################################
 # BUN ############################################################################
 ##################################################################################
-#FROM base as bun-base
+FROM base as bun-base
 
-#RUN apt update && apt install -y --no-install-recommends ca-certificates curl bash unzip
-#COPY .bun-version .bun-version
-#RUN apk update && apk add --no-cache curl tar bash
-#RUN BUN_VERSION=$(cat .bun-version) && \
- #   curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
-# Add bun's global bin directory to PATH
-#ENV PATH="/root/.bun/bin:${PATH}"
+# shared-native is built with zig, its toolchain comes as .tar.xz
+RUN apt update && apt install -y --no-install-recommends ca-certificates xz-utils \
+  && rm -rf /var/lib/apt/lists/*
 
 ##################################################################################
 # Development ####################################################################
 ##################################################################################
-FROM base AS development  
+FROM bun-base AS development
 
 # Run command
-CMD /bin/sh -c "cd dlt-connector && bun install --no-cache --frozen-lockfile  && bun dev"
+CMD /bin/sh -c "bun install --filter dlt-connector --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2 \
+  && turbo dlt-connector#dev --env-mode=loose"
 
 ##################################################################################
 # Basic Image with bun setup and project and source code #########################
 ##################################################################################
-FROM base as base-src
-COPY --chown=app:app ./dlt-connector ./dlt-connector
-COPY --chown=app:app ./shared/src ./shared/src
+FROM bun-base as bun-base-src
+COPY --chown=app:app . .
 
 ##################################################################################
 # Build ##########################################################################
 ##################################################################################
-FROM base-src as build 
+FROM bun-base-src as build
 
-RUN cd dlt-connector && bun install --no-cache --frozen-lockfile 
-RUN cd dlt-connector && bun run build
+RUN bun install --filter dlt-connector --no-cache --frozen-lockfile \
+  && bun install --global --no-cache --no-save turbo@^2
+RUN turbo dlt-connector#build dlt-connector#typecheck --env-mode=loose
 
 ##################################################################################
 # TEST ###########################################################################
@@ -90,18 +88,17 @@ RUN cd dlt-connector && bun run build
 FROM build as test
 
 # Run command
-CMD /bin/sh -c "cd dlt-connector && bun test"
+CMD /bin/sh -c "turbo dlt-connector#test --env-mode=loose"
 
 ##################################################################################
 # install only node modules needed for running bundle ############################
 ##################################################################################
-FROM base-src as production-node-modules
+FROM bun-base-src as production-node-modules
 
-COPY ./scripts ./scripts
 # add node_modules from production_node_modules
-RUN cd dlt-connector && bun install --production --frozen-lockfile --no-cache \
+RUN bun install --filter dlt-connector --production --frozen-lockfile --no-cache \
   && rm -rf /tmp/* ~/.cache node_modules/.cache \
-  && ../scripts/clean-prebuilds.sh
+  && ./scripts/clean-prebuilds.sh
 
 ##################################################################################
 # PRODUCTION (Does contain only "binary"- and static-files to reduce image size) #
@@ -111,7 +108,12 @@ FROM base as production
 # Copy "binary"-files from build image
 COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/dlt-connector/build/index.js ./index.js
 # add node_modules from production_node_modules
-COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/dlt-connector/node_modules ./node_modules
+COPY --chown=app:app --from=production-node-modules ${DOCKER_WORKDIR}/node_modules ./node_modules
+# shared-native is a workspace package: its link points into the build image, so copy the addon itself
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/build/shared_native.node ./node_modules/shared-native/build/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/index.cjs ./node_modules/shared-native/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/package.json ./node_modules/shared-native/
+COPY --chown=app:app --from=build ${DOCKER_WORKDIR}/shared-native/types ./node_modules/shared-native/types
 
 COPY ./dlt-connector/.env .
 COPY ./dlt-connector/log4js-config.json .
