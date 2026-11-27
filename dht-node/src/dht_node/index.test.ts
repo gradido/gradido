@@ -201,6 +201,27 @@ describe('federation', () => {
         })
       })
 
+      describe('lookup', () => {
+        const peerKey = Buffer.from('peer-public-key')
+        const otherKey = Buffer.from('other-public-key')
+        beforeEach(async () => {
+          // only the timers of this start
+          jest.clearAllTimers()
+          jest.clearAllMocks()
+          await startDHT(TEST_TOPIC)
+          // the same peer from two DHT nodes, and this community itself
+          nodeLookupMock.mockResolvedValueOnce([
+            { peers: [{ publicKey: peerKey }, { publicKey: keyPairMock.publicKey }] },
+            { peers: [{ publicKey: peerKey }, { publicKey: otherKey }] },
+          ])
+          await jest.advanceTimersByTimeAsync(20000)
+        })
+
+        it('connects every peer found once, but not itself', () => {
+          expect(nodeConnectMock.mock.calls).toEqual([[peerKey], [otherKey]])
+        })
+      })
+
       describe('server connection event', () => {
         beforeEach(() => {
           serverEventMocks.connection({

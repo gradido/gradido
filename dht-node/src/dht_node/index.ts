@@ -132,47 +132,32 @@ export const startDHT = async (topic: string): Promise<void> => {
     setInterval(async () => {
       const result = await node.lookup(TOPIC)
 
-      const collectedPubKeys: string[] = []
+      // a peer comes back from several DHT nodes, it is connected once per lookup
+      const connected = new Set<string>()
 
       for await (const data of result) {
-        data.peers.forEach((peer: any) => {
-          const pubKey = peer.publicKey.toString('hex')
+        for (const peer of data.peers) {
+          const remotePubKey = peer.publicKey.toString('hex')
           if (
-            pubKey !== pubKeyString &&
-            !successfulRequests.includes(pubKey) &&
-            !errorfulRequests.includes(pubKey) &&
-            !collectedPubKeys.includes(pubKey)
+            remotePubKey === pubKeyString ||
+            successfulRequests.includes(remotePubKey) ||
+            errorfulRequests.includes(remotePubKey) ||
+            connected.has(remotePubKey)
           ) {
-            collectedPubKeys.push(peer.publicKey.toString('hex'))
+            continue
           }
-        })
+          connected.add(remotePubKey)
+          const socket = node.connect(peer.publicKey)
+          socket.once('error', (err: any) => {
+            errorfulRequests.push(remotePubKey)
+            logger.error(`error on peer ${remotePubKey}: ${err.message}`)
+          })
+          socket.on('open', function () {
+            socket.write(Buffer.from(homeUrl))
+            successfulRequests.push(remotePubKey)
+          })
+        }
       }
-
-      if (collectedPubKeys.length) {
-        logger.info(`Found new peers: ${collectedPubKeys}`)
-      }
-
-      collectedPubKeys.forEach((remotePubKey) => {
-        const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
-
-        // socket.once("connect", function () {
-        // console.log("client side emitted connect");
-        // });
-
-        // socket.once("end", function () {
-        // console.log("client side ended");
-        // });
-
-        socket.once('error', (err: any) => {
-          errorfulRequests.push(remotePubKey)
-          logger.error(`error on peer ${remotePubKey}: ${err.message}`)
-        })
-
-        socket.on('open', function () {
-          socket.write(Buffer.from(homeUrl))
-          successfulRequests.push(remotePubKey)
-        })
-      })
     }, POLLTIME)
   } catch (err) {
     logger.error('DHT unexpected error:', err)
