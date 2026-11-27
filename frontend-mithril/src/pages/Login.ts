@@ -10,15 +10,15 @@ import { authLink } from '@/components/layout/auth/authLink'
 import { BusyButton } from '@/components/ui/BusyButton'
 import { Message } from '@/components/ui/Message'
 import { toastError } from '@/components/ui/Toasts'
-import { updateLanguageSchema } from '@/data/Account.schema'
 import { emailFieldSchema, requiredFieldSchema } from '@/data/Form.schema'
 import { memberSchema } from '@/data/Member.schema'
-import { authenticateHumhubAutoLogin, updateLanguage } from '@/graphql/account'
+import { authenticateHumhubAutoLogin } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { login as loginDocument } from '@/graphql/member'
-import { setLocale, t } from '@/i18n'
+import { t } from '@/i18n'
 import { knownProject } from '@/store/projectBranding'
-import { login, session } from '@/store/Session'
+import { session } from '@/store/Session'
+import { signInAs } from '@/store/signIn'
 
 // ⛔ One half of a contract with the backend, which cannot be imported here: what `login`
 // (UserResolver) throws for an account that cannot sign in yet. Held on this side by
@@ -55,16 +55,7 @@ export class Login implements m.ClassComponent {
       }
       return
     }
-    const member = answer.value.login
-    // read as the answer came, before the sign-in takes it: a choice made meanwhile counts
-    const { preLoginLanguage } = session.state
-    login(member)
-    await setLocale(session.state.language ?? member.language)
-    // a language chosen on this page counts, and is saved to the account
-    if (preLoginLanguage && preLoginLanguage !== member.language) {
-      // not said where it fails: the language shown is the chosen one all the same
-      await request(updateLanguage, { locale: preLoginLanguage }, updateLanguageSchema)
-    }
+    await signInAs(answer.value.login)
     // Released before the page changes under it: the home-screen app of an iPhone kept
     // offering the saved password after every later tap.
     if (document.activeElement instanceof HTMLElement) {

@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, mock, setSystemTime, spyOn } from 'bun:test'
 import { parse } from 'graphql'
 import * as v from 'valibot'
-import { location } from '../../test/browserStub'
+import { location, otherTabStores } from '../../test/browserStub'
 import { BIBI, BOB, member, tokenOf } from '../../test/member'
 
 type Options = {
@@ -231,6 +231,17 @@ describe('request', () => {
       })
       expect(location.reload).not.toHaveBeenCalled()
       expect(location.assign).not.toHaveBeenCalled()
+    })
+
+    // /authenticate: a token lies there, nobody is signed in with it yet, and the server is
+    // asked whose it is. Another tab signs Bob in meanwhile.
+    it('is not taken where nobody was signed in, and another token came meanwhile', async () => {
+      authToken.set(v.parse(authTokenSchema, { token: tokenOf(BIBI), at: NOW }))
+      const verified = request(balance, {}, balanceSchema)
+      otherTabStores('auth-token', JSON.stringify({ token: tokenOf(BOB), at: NOW }))
+      asked[0].answer({ data: { balance: 1 } }, renewed)
+      await verified
+      expect(authToken.state?.token).toBe(tokenOf(BOB))
     })
 
     // A question of the sign-in page, answered after the sign-in: it carries no token, and

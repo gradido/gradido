@@ -3,12 +3,9 @@ import CONFIG from '@frontend/config'
 import { safeWalletPath } from '@frontend/utils/safeWalletPath'
 import m from 'mithril'
 import * as v from 'valibot'
-import { updateLanguageSchema } from '@/data/Account.schema'
 import { memberSchema } from '@/data/Member.schema'
-import { updateLanguage } from '@/graphql/account'
 import { request } from '@/graphql/client'
 import { verifyLogin } from '@/graphql/member'
-import { setLocale } from '@/i18n'
 import { ConfirmEmail } from '@/pages/ConfirmEmail'
 import { EmailChange } from '@/pages/EmailChange'
 import { ForgotPassword } from '@/pages/ForgotPassword'
@@ -19,7 +16,8 @@ import { Register } from '@/pages/Register'
 import { RegisterCommunity } from '@/pages/RegisterCommunity'
 import { ResetPassword } from '@/pages/ResetPassword'
 import type { Route } from '@/router'
-import { authToken, authTokenSchema, login, logout, session } from '@/store/Session'
+import { authToken, authTokenSchema, logout } from '@/store/Session'
+import { signInAs } from '@/store/signIn'
 
 // A page of a later step of todo.md, which a page ported already leads to: the address
 // exists, with its guard, and says which build answers.
@@ -97,15 +95,8 @@ async function authenticate() {
     return
   }
   if (answer?.success) {
-    const member = answer.value.verifyLogin
-    // a language chosen before is saved to the account, as the sign-in itself does it
-    const { preLoginLanguage } = session.state
-    login(member)
-    await setLocale(session.state.language ?? member.language)
-    if (preLoginLanguage && preLoginLanguage !== member.language) {
-      // not said where it fails: the language shown is the chosen one all the same
-      await request(updateLanguage, { locale: preLoginLanguage }, updateLanguageSchema)
-    }
+    // as the sign-in itself does it, with a language chosen before
+    await signInAs(answer.value.verifyLogin)
     m.route.set(page ?? '/overview', null, { replace: true })
   } else {
     // A token the server does not take is none. The sign-out loads the wallet anew, at the
