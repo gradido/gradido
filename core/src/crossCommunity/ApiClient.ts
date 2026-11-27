@@ -15,6 +15,7 @@ import {
 import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
+import { publicFetch } from './publicFetch'
 import {
   ChatMessageWireInput,
   CrossGroupTransactionWireInput,
@@ -33,6 +34,14 @@ import {
 
 // What sealing adds to a body (encryptAndHash), the same for every length.
 export const SEAL_OVERHEAD_BYTES = 41
+
+/**
+ * How a request reaches another community: in production only the internet, without following a
+ * redirect (publicFetch); on a developer's machine the communities run on localhost. NODE_ENV and
+ * not CONFIG: the dht-node takes the client without the rest of core.
+ */
+const sendToPeer = (request: Request): Promise<Response> =>
+  process.env.NODE_ENV === 'production' ? publicFetch(request) : fetch(request)
 
 /**
  * Whether a request with this body, sealed, fits what the federation service takes
@@ -159,8 +168,9 @@ export class ApiClient {
     // A signal of the caller still aborts the request, too.
     const timeout = AbortSignal.timeout(this.timeoutMs)
     const signal = options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout
-    const request = new Request(url, { ...options, signal, headers, body })
-    const response = await fetch(request)
+    // a redirect could pass the request on to an address of the local network
+    const request = new Request(url, { ...options, signal, headers, body, redirect: 'error' })
+    const response = await sendToPeer(request)
     if (!fetchOptions.verifyResponse || !response.ok) {
       return response
     }
