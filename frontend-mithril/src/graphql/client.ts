@@ -3,7 +3,7 @@ import { type DocumentNode, print } from 'graphql'
 import m from 'mithril'
 import type { Result } from 'shared/browser'
 import * as v from 'valibot'
-import { toastErrorAfterReload } from '@/components/Toasts'
+import { toastErrorAfterReload } from '@/components/ui/Toasts'
 import { t } from '@/i18n'
 import { appOutdated } from '@/store/appOutdated'
 import { authToken, authTokenSchema, logout, session } from '@/store/Session'
@@ -89,11 +89,14 @@ export async function request<const TSchema extends v.GenericSchema>(
     logout()
   } else if (
     token &&
-    (!askingUserId || (renewSession && session.state.member?.gradidoID === askingUserId))
+    (askingUserId
+      ? renewSession && session.state.member?.gradidoID === askingUserId
+      : askingAuthToken === authToken.state?.token)
   ) {
     // Only while the member who asked is still the one signed in: an answer that arrives after
-    // the session ended would otherwise keep its token for the next one.
-    // Or on login, without previous user
+    // the session ended would otherwise keep its token for the next one. Asked by nobody (a
+    // sign-in, /authenticate): only while the token it was asked with is still the one kept,
+    // else it would take the place of somebody another tab signed in meanwhile.
     const parsedAuthToken = v.parse(authTokenSchema, { token, at: Date.now() })
     if (!parsedAuthToken) {
       // The server sends a token the wallet cannot read: the two no longer fit. A session that

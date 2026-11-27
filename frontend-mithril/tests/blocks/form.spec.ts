@@ -34,11 +34,16 @@ test('lets every field say what is wrong with it under a pointer or a finger on 
   page,
   isMobile,
 }) => {
+  const send = page.getByRole('button', { name: 'Send' })
+  // the form is drawn: it hears the pointer from then on
+  await expect(send).toBeDisabled()
   // the button is locked: neither is waited for to be possible
   if (isMobile) {
-    await page.getByRole('button', { name: 'Send' }).tap({ force: true })
+    await send.tap({ force: true })
   } else {
-    await page.getByRole('button', { name: 'Send' }).hover({ force: true })
+    // from elsewhere on the page: a pointer already resting where the button came says nothing
+    await page.mouse.move(5, 5)
+    await send.hover({ force: true })
   }
   await expect(page.getByLabel('Memo')).toHaveClass(/is-invalid/)
   await expect(page.getByLabel('Amount')).toHaveClass(/is-invalid/)

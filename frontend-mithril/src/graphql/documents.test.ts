@@ -10,9 +10,32 @@ import {
   validate,
 } from 'graphql'
 import * as v from 'valibot'
+import {
+  confirmEmailChangeSchema,
+  confirmEmailSchema,
+  createUserSchema,
+  forgotPasswordSchema,
+  queryOptInSchema,
+  revokeEmailChangeSchema,
+  setPasswordSchema,
+  updateLanguageSchema,
+} from '@/data/Account.schema'
 import { creationGroupSchema } from '@/data/CreationGroup.schema'
 import { memberSchema } from '@/data/Member.schema'
 import { openCreationsSchema } from '@/data/OpenCreation.schema'
+import { projectBrandingBannerSchema } from '@/data/ProjectBranding.schema'
+import {
+  authenticateHumhubAutoLogin,
+  confirmEmail,
+  confirmEmailChange,
+  createUser,
+  forgotPassword,
+  projectBrandingBanner,
+  queryOptIn,
+  revokeEmailChange,
+  setPassword,
+  updateLanguage,
+} from './account'
 import {
   communityCreationGroups,
   creationGroups,
@@ -44,6 +67,19 @@ const DOCUMENTS: Record<string, [DocumentNode, v.GenericSchema]> = {
     v.object({ suggestedCreationGroup: v.nullable(creationGroupSchema) }),
   ],
   openCreations: [openCreations, openCreationsSchema],
+  createUser: [createUser, createUserSchema],
+  forgotPassword: [forgotPassword, forgotPasswordSchema],
+  queryOptIn: [queryOptIn, queryOptInSchema],
+  setPassword: [setPassword, setPasswordSchema],
+  confirmEmail: [confirmEmail, confirmEmailSchema],
+  confirmEmailChange: [confirmEmailChange, confirmEmailChangeSchema],
+  revokeEmailChange: [revokeEmailChange, revokeEmailChangeSchema],
+  updateLanguage: [updateLanguage, updateLanguageSchema],
+  projectBrandingBanner: [projectBrandingBanner, projectBrandingBannerSchema],
+  authenticateHumhubAutoLogin: [
+    authenticateHumhubAutoLogin,
+    v.object({ authenticateHumhubAutoLogin: v.string() }),
+  ],
 }
 
 // A valibot schema as far as this test looks into it.

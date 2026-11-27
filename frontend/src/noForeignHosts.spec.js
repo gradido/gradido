@@ -135,7 +135,6 @@ describe('the styles under src', () => {
 
   it('are really read: all of them, and the addresses in them', () => {
     expect(files.length).toBeGreaterThan(150)
-    // The forty faces of Open Sans alone are forty addresses.
     expect(addresses.length).toBeGreaterThan(40)
     // The case the guard must not trip over is in the tree: an inline SVG names its
     // namespace, which is an http:// address inside a data: address.

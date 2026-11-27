@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { writeText } from 'clipboard-polyfill'
-import { toastError, toastSuccess } from '@/components/Toasts'
+import { toastError, toastSuccess } from '@/components/ui/Toasts'
 import { t } from '@/i18n'
 
 /**

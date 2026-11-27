@@ -1,0 +1,3 @@
+.authFooter :global(.nav-link) {
+  color: #383838 !important;
+}

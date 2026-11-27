@@ -40,6 +40,7 @@
       "oneDonation": "Sen toplum için bir armağansın. Bizimle olduğun için 1000lerce teşekkürler.",
       "oneGratitude": "Birbirimiz, tüm insanlar ve doğa için."
     },
+    "textSize": "Yazı boyutu",
     "toAccount": "Hesabıma git",
     "triads": {
       "design": {
@@ -870,6 +871,7 @@
         "min": "Mesaj en az {min} karakter olmalı.",
         "required": "Mesaj zorunlu bir alandır."
       },
+      "minLength": "{fieldName} alanına en az {min} karakter girilmelidir",
       "requiredField": "{fieldName} alanı zorunludur",
       "subject": {
         "max": "Konu en fazla {max} karakter olmalı.",

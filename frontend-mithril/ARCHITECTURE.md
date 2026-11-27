@@ -1,9 +1,9 @@
 # The wallet in Mithril: architecture
 
-**A draft.** It was written before any page was ported, from reading the old wallet. It is
-corrected once after step 2 (the base) and step 3 (the sign-in pages) of `todo.md`, and binding
-from then on. Until then: where the code of those two steps shows a rule here to be wrong, the
-rule is changed in the same pull request, not worked around.
+**Binding.** It was written before any page was ported, from reading the old wallet, and was
+corrected with step 2 (the base) and step 3 (the sign-in pages) of `todo.md`. Where the code
+of a later step shows a rule here to be wrong, the rule is changed in the same pull request,
+not worked around.
 
 The picture in the browser and what the wallet does stay as they are, with one exception that
 is named where it stands: how a wait is shown ("Waiting"). This is about how the
@@ -80,16 +80,26 @@ functions, one per module that keeps state. Every new module has to be added to 
 ```
 src/
   main.ts              start: styles, theme, language, routes
-  routes.ts            the route table, and what may open a page
+  routes.ts            the route table
+  router.ts            the table as Mithril's resolvers, and what may open a page
   graphql/             client.ts: request(), the one way to the server; the documents it sends, as gql in .ts
   data/                Thing.schema.ts (valibot) and Thing.logic.ts (pure), each with its *.test.ts
   store/               state that outlives a page (Session.ts, …); Resource.ts and DeviceStore.ts, what it is built with
   browser/             what wraps a facility of the browser and knows nothing of Gradido's data
-  components/          building blocks, by feature folder as today
-  pages/               one file per route, loaded on demand
+  components/          what a page is built of, by kind and by field (below)
+  pages/               one file per route
+  styles/              the global styles: Bootstrap and the template, in Sass
 tests/                 Playwright specs and fixtures
 ```
 
+- `components/` has four folders by kind, and one for each field of the wallet. A component
+  goes into the first that fits: `ui/` knows nothing of Gradido (`Modal`, `Tabs`,
+  `BusyButton`), `form/` is part of a form (`Form`, `Field`, `PasswordField`), `layout/` is the
+  frame around the pages, with a folder per layout (`layout/auth/`). Else it goes into the
+  folder of the one field that draws it (`transactions/`, `chat/`, as the steps of `todo.md`
+  bring them), and only when a second field draws it too into the folder of the thing it is
+  about (`member/`: `MemberAvatar`, `GradidoAddressCopy`). Folders are named in lower case,
+  as every folder of `src/`.
 - `data/` is about a thing the wallet deals in (a member, a contribution): `Thing.schema.ts` says
   what it is, `Thing.logic.ts` holds logic on it that is too simple for an interaction of its
   own. Nothing else goes there.
@@ -159,6 +169,10 @@ firstCreation.ensureLoaded(0)  // asks for the current one; value stays on scree
 
 // a fact that changes faster names its own limit
 export const reachableCommunities = new Resource(reachableCommunitiesQuery, communitiesSchema, 60_000)
+
+// a question with variables: other ones are another fact, and `value` is none until it is answered
+projectBranding.ensureLoaded(undefined, { project })
+projectBranding.loading         // a question is on its way
 ```
 
 On every visit after the first in a session the last value is drawn at once, without a loading
@@ -262,10 +276,10 @@ alike:
 - The shimmer stands still under `prefers-reduced-motion`, and the region says `aria-busy`
   while it waits.
 
-`m(Placeholder, { type: PlaceholderType.Row, width?, height? })` (`components/Placeholder.ts`) draws the shape,
+`m(Placeholder, { type: PlaceholderType.Row, width?, height? })` (`components/ui/Placeholder.ts`) draws the shape,
 with the styles of the old `SkeletonLoaderElement` in a sheet of its own
 (`Placeholder.module.css`): beside the delay it follows the theme, which the old one did not.
-`BusyButton` (`components/BusyButton.ts`) is the locked button: it calls `onclick` and stays
+`BusyButton` (`components/ui/BusyButton.ts`) is the locked button: it calls `onclick` and stays
 locked, with its spinner, while the promise that returns is open. The button of a form is
 drawn and locked by the `Form` (`busy`): a form is sent by Enter too. The old wallet is not changed for this. For the specs: `samePicture` is taken once the content is there, which is the
 same in both wallets; the wait itself has pictures of its own, checked in, for the projects
@@ -384,22 +398,26 @@ m(Form<typeof sendSchema>, { schema: sendSchema, submitBusyButton, onsubmit: sen
 ])
 ```
 
-- `Field` (`components/Field.ts`) holds its value (`defaultValue` is what stands there at first),
+- `Field` (`components/form/Field.ts`) holds its value (`defaultValue` is what stands there at first),
   checks it against its own schema and says itself what is wrong with it. Its schema is the
   entry of the form's, so the two cannot run apart. It draws label, input and sentence in the
   markup bootstrap-vue-next drew (`.b-form-group`, `.form-control.is-valid`,
   `.invalid-feedback`). A page that reckons while the member types hears it by `oninput`.
-- `Form` (`components/Form.ts`) is the `<form>` around the fields, with the button that
+- `Form` (`components/form/Form.ts`) is the `<form>` around the fields, with the button that
   sends it, which the page hands it (`submitBusyButton`). After each draw it looks for its fields among what was drawn (a component is one by `extends FormField`), also those another component drew, and locks the
   button until each `isValid()`. A pointer over the locked button, or a finger on it, lets
-  every field say what is wrong with it (`setTouched()`). Sent by the button or by Enter:
-  the values of the inputs, by their `name`, go through the form's schema to `onsubmit`; the
+  every field say what is wrong with it (`setTouched()`). Sent by the button or by Enter —
+  by Enter only while the button is not locked, as a browser does it: a form with a field
+  that does not fit is not sent. The values of the inputs, by their `name`, go through the form's schema to `onsubmit`; the
   button is locked, with its spinner, until that is settled.
 - `Form<typeof sendSchema>`: through `m()` TypeScript loses the type argument of a class,
   so it is named. Then `onsubmit` knows its values, and a schema of another form does not
   compile.
 - A rule over two fields (the two passwords are the same) is the page's: it hears the one by
-  `oninput` and builds the schema of the other from it.
+  `oninput` and builds the schema of the other from it (`components/form/NewPasswordFields.ts`,
+  the two fields of every form that sets a password).
+- Where the button stands in a column of the form's grid, the page names the classes of the
+  place around it (`submitPlaceClass`).
 - What is typed lives in the field: a field that is no longer drawn has lost it, and what
   stands there at first counts at the first draw only. A form whose values come from the
   server is drawn once they are here.
@@ -430,10 +448,13 @@ m(Form<typeof sendSchema>, { schema: sendSchema, submitBusyButton, onsubmit: sen
 
 ### Routes
 
-One table, `ROUTES` in `routes.ts`. Each row: the address, the page (as `() => import(…)`),
-and the flags of today's `meta` (`requiresAuth`, the layout's flags). Mithril knows no part of
-an address that may be missing, so `/login/:code?` is two rows. `routeResolvers` turns the
-table into Mithril's `RouteResolver`s:
+One table, `ROUTES` in `routes.ts`. Each row: the address, the page, and the flags of today's
+`meta` (`requiresAuth`, the layout's flags); an address that only leads on (`/authenticate`)
+has `leadsOn` in place of a page. The pages are imported, not fetched when opened: the wallet
+is one bundle, and fetches apart only what is large and needed by few (the languages,
+maplibre). Mithril knows no part of an address that may be missing, so `/login/:code?` is two
+rows. `routeResolvers` (`router.ts`, apart from the table, so that its test loads no page)
+turns the table into Mithril's `RouteResolver`s:
 
 - `onmatch` asks the guard — the steps of `guards.js` in their order (without the publisher
   id, which is not ported), as one pure function `whereTo(navigation, visitor) → path | null`
@@ -446,8 +467,17 @@ table into Mithril's `RouteResolver`s:
   moment this device received it.
 - "The wallet starts here" holds until the first page has opened, so that `/`, which only
   leads on to the sign-in, still counts as the start.
-- `render` wraps the page in its layout, so the layout stays mounted from page to page (with
-  the layouts, step 4 of `todo.md`).
+- `render` draws the page inside the frame `routeResolvers` was handed (`components/layout/App.ts`),
+  which so stays mounted from page to page. The frame draws the layout by the row's
+  `requiresAuth`: the sign-in layout (`components/layout/auth/AuthLayout.ts`), and the member's
+  with step 4 of `todo.md`. Where `onmatch` led elsewhere Mithril draws a bare `div` in the
+  page's place; nothing is drawn then.
+- Inside `onmatch` the query is read from `location.search`, not from `m.route.param()`:
+  that still holds the parameters of the page shown before, and Mithril decodes a query
+  twice, which breaks an address carried in one (`/authenticate?redirect=`).
+- A page of a later step that a ported page leads to (`/overview`, `/send/…`, `/redeem/…`)
+  has its row and its guard already, and a page that only names the build
+  (`notPortedYet`), until its step replaces it.
 
 ### Stores that are more than a value
 
@@ -469,8 +499,17 @@ The chat thread is not in this list: it is view state of `ChatThread` (above).
   another language lacks; a language is fetched when chosen (`setLocale`), and `main.ts` draws
   only once it is there. The keys and the JSON files stay; a key is written as a literal, and
   `texts.test.ts` holds each against `en.json`.
-- **Styles:** the files of the old wallet, through `@frontend`, with the classes they are
-  written for. A `*.module.scss` is imported by the component that replaces its Vue component.
+- **Styles:** the wallet's own, copied from the old wallet with the step that needs them and
+  held to its picture by the specs, with the classes they are written for. The global ones are
+  Sass in `styles/` (`gradido.scss`, Bootstrap's sources), compiled by the `sass` plugin of
+  `vite.config.ts` (grass where installed, else Dart Sass): with lightningcss as the
+  transformer Vite runs no preprocessor. The build takes out of them, with PurgeCSS, every rule
+  whose class no source names: a class is written whole, never put together
+  (`` `btn-${variant}` ``), and `classNames.test.ts` holds that. A component's own lie beside it
+  as plain `.css` (`AuthLayout.module.css` beside `AuthLayout.ts`).
+  The old wallet draws an `#app` inside the `#app` it is mounted on, and its styles are
+  written for both (`#app.dark-mode`, `#app > #app`): `components/layout/App.ts` draws the inner
+  one.
 - **Tests:** logic and schemas with `bun test` beside the file. Behaviour and picture with
   Playwright against both wallets (`todo.md`, rules 1 and 6). No test mounts a component in a
   made-up DOM.
