@@ -334,6 +334,24 @@ describe('federation', () => {
               })
             })
 
+            describe('in production, with receiving an url of the local network', () => {
+              beforeEach(async () => {
+                jest.clearAllMocks()
+                CONFIG.PRODUCTION = true
+                await socketEventMocks.data(Buffer.from('http://127.0.0.1:4000/api/'))
+              })
+              afterEach(() => {
+                CONFIG.PRODUCTION = false
+              })
+
+              it('logs a warning and asks nobody', () => {
+                expect(logger.warn).toHaveBeenCalledWith(
+                  'received invalid url: http://127.0.0.1:4000/api/',
+                )
+                expect(validateCommunity).not.toHaveBeenCalled()
+              })
+            })
+
             describe('with receiving an url', () => {
               beforeEach(async () => {
                 jest.clearAllMocks()

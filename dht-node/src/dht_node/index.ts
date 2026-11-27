@@ -13,6 +13,7 @@ import {
   FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   getChangedFields,
   HomeCommunityUpdateInput,
+  publicHttpUrlSchema,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
 import * as v from 'valibot'
@@ -93,7 +94,9 @@ export const startDHT = async (topic: string): Promise<void> => {
           }
           const url = data.toString('ascii')
           logger.info(`data: ${url}`)
-          if (!v.is(httpUrlSchema, url)) {
+          // a peer's url points to the internet; on a developer's machine the communities run on
+          // localhost
+          if (!v.is(CONFIG.PRODUCTION ? publicHttpUrlSchema : httpUrlSchema, url)) {
             logger.warn(`received invalid url: ${url}`)
             return
           }
