@@ -32,8 +32,15 @@ const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
 
-// when a peer last sent its url, and when it was last asked for its community infos (ms)
-type PeerSeen = { lastSeenAt: number; lastAttemptAt: number }
+// what this community knows of a peer, times in ms
+type Peer = {
+  // when it last sent its url or came back from a lookup
+  lastSeenAt: number
+  // when it was last asked for its community infos
+  lastAttemptAt?: number
+  // before this, it is not connected to again to be sent our url
+  nextConnectAt?: number
+}
 
 function isAscii(buffer: Buffer): boolean {
   for (const byte of buffer) {
@@ -57,8 +64,14 @@ export const startDHT = async (topic: string): Promise<void> => {
     const TOPIC = DHT.hash(Buffer.from(topic))
     // what this community announces to every peer it finds: its federation endpoint
     const homeUrl = `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`
-    // the peers that sent their url, by their public key as hex
-    const peers = new Map<string, PeerSeen>()
+    // the peers this community has seen, by their public key as hex
+    const peers = new Map<string, Peer>()
+    const seen = (remotePubKey: string, now: number): Peer => {
+      const peer = peers.get(remotePubKey) ?? { lastSeenAt: now }
+      peer.lastSeenAt = now
+      peers.set(remotePubKey, peer)
+      return peer
+    }
 
     const node = new DHT({ keyPair })
 
@@ -84,16 +97,14 @@ export const startDHT = async (topic: string): Promise<void> => {
             logger.warn(`received invalid url: ${url}`)
             return
           }
-          const remotePubKey = socket.remotePublicKey.toString('hex')
           const now = Date.now()
-          const peer = peers.get(remotePubKey)
+          const peer = seen(socket.remotePublicKey.toString('hex'), now)
           // one request per peer and SUCCESSTIME, however often it connects; a request still
           // running counts as made
-          if (peer && now - peer.lastAttemptAt < SUCCESSTIME) {
-            peer.lastSeenAt = now
+          if (peer.lastAttemptAt !== undefined && now - peer.lastAttemptAt < SUCCESSTIME) {
             return
           }
-          peers.set(remotePubKey, { lastSeenAt: now, lastAttemptAt: now })
+          peer.lastAttemptAt = now
           await validateCommunity(url, socket.remotePublicKey)
         } catch (e) {
           logger.error('Error on receiving data from socket:', e)
@@ -108,14 +119,9 @@ export const startDHT = async (topic: string): Promise<void> => {
       await node.announce(TOPIC, keyPair).finished()
     }, ANNOUNCETIME)
 
-    let successfulRequests: string[] = []
-    let errorfulRequests: string[] = []
-
-    setInterval(async () => {
-      logger.info('Refreshing successful nodes')
-      successfulRequests = []
+    setInterval(() => {
       // only the peers not seen for as long as a community stays reachable without an answer: a
-      // peer still announcing itself keeps its entry, and with it its deadline
+      // peer still announcing itself keeps its entry, and with it its deadlines
       const now = Date.now()
       for (const [remotePubKey, { lastSeenAt }] of peers) {
         if (now - lastSeenAt >= FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
@@ -125,36 +131,30 @@ export const startDHT = async (topic: string): Promise<void> => {
     }, SUCCESSTIME)
 
     setInterval(async () => {
-      logger.info('Refreshing errorful nodes')
-      errorfulRequests = []
-    }, ERRORTIME)
-
-    setInterval(async () => {
       const result = await node.lookup(TOPIC)
 
-      // a peer comes back from several DHT nodes, it is connected once per lookup
-      const connected = new Set<string>()
-
       for await (const data of result) {
-        for (const peer of data.peers) {
-          const remotePubKey = peer.publicKey.toString('hex')
-          if (
-            remotePubKey === pubKeyString ||
-            successfulRequests.includes(remotePubKey) ||
-            errorfulRequests.includes(remotePubKey) ||
-            connected.has(remotePubKey)
-          ) {
+        for (const { publicKey } of data.peers) {
+          const remotePubKey = publicKey.toString('hex')
+          if (remotePubKey === pubKeyString) {
             continue
           }
-          connected.add(remotePubKey)
-          const socket = node.connect(peer.publicKey)
+          const now = Date.now()
+          const peer = seen(remotePubKey, now)
+          // a connection on its way counts as made: a peer that comes back from several DHT
+          // nodes is connected once
+          if (peer.nextConnectAt !== undefined && now < peer.nextConnectAt) {
+            continue
+          }
+          peer.nextConnectAt = now + SUCCESSTIME
+          const socket = node.connect(publicKey)
           socket.once('error', (err: any) => {
-            errorfulRequests.push(remotePubKey)
+            peer.nextConnectAt = Date.now() + ERRORTIME
             logger.error(`error on peer ${remotePubKey}: ${err.message}`)
           })
           socket.on('open', function () {
             socket.write(Buffer.from(homeUrl))
-            successfulRequests.push(remotePubKey)
+            peer.nextConnectAt = Date.now() + SUCCESSTIME
           })
         }
       }

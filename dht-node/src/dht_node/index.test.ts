@@ -220,6 +220,41 @@ describe('federation', () => {
         it('connects every peer found once, but not itself', () => {
           expect(nodeConnectMock.mock.calls).toEqual([[peerKey], [otherKey]])
         })
+
+        describe('in the lookups after', () => {
+          // how often the peer was connected to, one lookup every 20 s
+          const connectsTo = (key: Buffer) =>
+            nodeConnectMock.mock.calls.filter(([to]) => to.equals(key)).length
+          // the handler of the socket to peerKey, the first one connected
+          const onFirstSocket = (event: string) =>
+            socketOnMock.mock.calls.filter(([key]) => key === event)[0][1]
+          beforeEach(() => {
+            nodeLookupMock.mockResolvedValue([{ peers: [{ publicKey: peerKey }] }])
+          })
+          afterEach(() => {
+            nodeLookupMock.mockResolvedValue([lookupResultMock])
+          })
+
+          it('connects a peer that took our url again only SUCCESSTIME after', async () => {
+            // the connection opens a while after it was made: the time counts from then
+            await jest.advanceTimersByTimeAsync(60000)
+            onFirstSocket('open')()
+
+            await jest.advanceTimersByTimeAsync(119999)
+            expect(connectsTo(peerKey)).toBe(1)
+            await jest.advanceTimersByTimeAsync(1)
+            expect(connectsTo(peerKey)).toBe(2)
+          })
+
+          it('connects a peer whose connection failed again only ERRORTIME after', async () => {
+            onFirstSocket('error')(new Error('peer gone'))
+
+            await jest.advanceTimersByTimeAsync(239999)
+            expect(connectsTo(peerKey)).toBe(1)
+            await jest.advanceTimersByTimeAsync(1)
+            expect(connectsTo(peerKey)).toBe(2)
+          })
+        })
       })
 
       describe('server connection event', () => {
