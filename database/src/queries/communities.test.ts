@@ -1,15 +1,16 @@
 import { randomBytes } from 'node:crypto'
 import { eq } from 'drizzle-orm'
-import { createKeyPair, Ed25519PublicKey, MissingHomeCommunityError } from 'shared'
+import { createKeyPair, MissingHomeCommunityError } from 'shared'
 import { X25519KeyPair } from 'shared-native'
 import { v4 as uuidv4 } from 'uuid'
-import { Community as DbCommunity } from '..'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { CommunityUniqueKey } from '../enum'
 import { DBUniqueKeyViolation } from '../errorTypes'
 import { CommunitiesInsert, communitiesTable } from '../schemas'
 import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
 import {
+  dbDeleteForeignCommunity,
+  dbFindCommunityByUuid,
   dbFindForeignCommunitiesByUuid,
   dbFindForeignCommunityByPublicKey,
   dbInsertForeignCommunity,
@@ -18,14 +19,12 @@ import {
   dbIsSupportTicketsActive,
   dbReplaceHomeCommunitySigningKeys,
   dbSelectAuthenticatedForeignCommunities,
+  dbSelectAuthorizedCommunities,
   dbSelectHomeCommunity,
+  dbSelectReachableCommunities,
   dbUpdateForeignCommunity,
   dbUpdateHomeCommunity,
-  getCommunityByPublicKeyOrFail,
-  getHomeCommunity,
   getHomeCommunityDrizzle,
-  getHomeCommunityWithFederatedCommunityOrFail,
-  getReachableCommunities,
   HOME_COMMUNITY_CHANGED_CHANNEL,
 } from './communities'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
@@ -44,26 +43,6 @@ describe('community.queries', () => {
   beforeEach(async () => {
     await dbDeleteAllRowsExceptMigrations()
     AppDatabase.getInstance().publish(HOME_COMMUNITY_CHANGED_CHANNEL)
-  })
-  describe('getHomeCommunity', () => {
-    it('should return null if no home community exists', async () => {
-      await createCommunity(true)
-      expect(await getHomeCommunity()).toBeNull()
-    })
-    it('should return the home community', async () => {
-      const homeCom = await createCommunity(false)
-      const community = await getHomeCommunity()
-      expect(community).toBeDefined()
-      expect(community?.name).toBe(homeCom.name)
-      expect(community?.description).toBe(homeCom.description)
-      expect(community?.url).toBe(homeCom.url)
-      expect(community?.creationDate).toStrictEqual(homeCom.creationDate)
-      expect(community?.communityUuid).toBe(homeCom.communityUuid)
-      expect(community?.authenticatedAt).toStrictEqual(homeCom.authenticatedAt)
-      expect(community?.foreign).toBe(homeCom.foreign)
-      expect(community?.publicKey).toStrictEqual(homeCom.publicKey)
-      expect(community?.privateKey).toStrictEqual(homeCom.privateKey)
-    })
   })
   describe('dbSelectHomeCommunity', () => {
     it('returns null if no home community exists', async () => {
@@ -120,7 +99,7 @@ describe('community.queries', () => {
       await expect(
         dbInsertHomeCommunity({ ...input, publicKey: randomBytes(16) }),
       ).rejects.toThrow()
-      expect(await DbCommunity.count()).toBe(0)
+      expect(await drizzleDb().select().from(communitiesTable)).toHaveLength(0)
     })
     it('is visible through the cached getter afterwards', async () => {
       // "no home community" is not cached, the next call reads again
@@ -136,7 +115,7 @@ describe('community.queries', () => {
     it('updates only the given fields and sets updatedAt', async () => {
       const homeCom = await createCommunity(false)
       await dbUpdateHomeCommunity({ name: 'new name', url: 'http://new/api/' })
-      const updated = await DbCommunity.findOneByOrFail({ id: homeCom.id })
+      const updated = await dbFindCommunityByUuid(homeCom.communityUuid)
       expect(updated).toEqual({
         ...homeCom,
         name: 'new name',
@@ -149,14 +128,14 @@ describe('community.queries', () => {
       // as plain JS would hand them in, past the type
       const values = { name: 'new name', publicKey: randomBytes(32), privateKey: randomBytes(64) }
       await dbUpdateHomeCommunity(values)
-      const updated = await DbCommunity.findOneByOrFail({ id: homeCom.id })
+      const updated = await dbFindCommunityByUuid(homeCom.communityUuid)
       expect(updated).toEqual({ ...homeCom, name: 'new name', updatedAt: expect.any(Date) })
     })
     it('leaves other communities alone', async () => {
       const foreign = await createCommunity(true)
       await createCommunity(false)
       await dbUpdateHomeCommunity({ name: 'new name' })
-      expect(await DbCommunity.findOneByOrFail({ id: foreign.id })).toEqual(foreign)
+      expect(await dbFindCommunityByUuid(foreign.communityUuid)).toEqual(foreign)
     })
     it('throws MissingHomeCommunityError without a home community', async () => {
       await createCommunity(true)
@@ -211,7 +190,7 @@ describe('community.queries', () => {
       const publicKey = randomBytes(32)
       const privateKey = randomBytes(64)
       await dbReplaceHomeCommunitySigningKeys(publicKey, privateKey)
-      expect(await DbCommunity.findOneByOrFail({ id: homeCom.id })).toEqual({
+      expect(await dbFindCommunityByUuid(homeCom.communityUuid)).toEqual({
         ...homeCom,
         publicKey,
         privateKey,
@@ -310,12 +289,8 @@ describe('community.queries', () => {
     it('finds the foreign communities through the handshake, and no other', async () => {
       // `createCommunity(true)` is already authenticated; each of the others lacks one part.
       const first = await createCommunity(true)
-      const notAuthenticated = await createCommunity(true)
-      notAuthenticated.authenticatedAt = null
-      await notAuthenticated.save()
-      const home = await createCommunity(false)
-      home.authenticatedAt = new Date()
-      await home.save()
+      await createCommunity(true, { authenticatedAt: null })
+      await createCommunity(false, { authenticatedAt: new Date() })
       const second = await createCommunity(true)
 
       const found = await dbSelectAuthenticatedForeignCommunities()
@@ -330,40 +305,10 @@ describe('community.queries', () => {
     })
   })
 
-  describe('getHomeCommunityWithFederatedCommunityOrFail', () => {
-    it('should return the home community with federated communities', async () => {
-      const homeCom = await createCommunity(false)
-      await createVerifiedFederatedCommunity('1_0', 100, homeCom)
-      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')
-      expect(community).toBeDefined()
-      expect(community?.federatedCommunities).toHaveLength(1)
-    })
-
-    it('should throw if no home community exists', async () => {
-      expect(getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
-    })
-
-    it('should throw if no federated community exists', async () => {
-      await createCommunity(false)
-      expect(getHomeCommunityWithFederatedCommunityOrFail('1_0')).rejects.toThrow()
-    })
-
-    it('load community by public key returned from getHomeCommunityWithFederatedCommunityOrFail', async () => {
-      const homeCom = await createCommunity(false)
-      await createVerifiedFederatedCommunity('1_0', 100, homeCom)
-      const community = await getHomeCommunityWithFederatedCommunityOrFail('1_0')
-      expect(community).toBeDefined()
-      expect(community?.federatedCommunities).toHaveLength(1)
-      const ed25519PublicKey = new Ed25519PublicKey(community.federatedCommunities![0].publicKey)
-      const communityByPublicKey = await getCommunityByPublicKeyOrFail(ed25519PublicKey)
-      expect(communityByPublicKey).toBeDefined()
-      expect(communityByPublicKey?.communityUuid).toBe(homeCom.communityUuid)
-    })
-  })
-  describe('getReachableCommunities', () => {
+  describe('dbSelectReachableCommunities', () => {
     it('home community counts also to reachable communities', async () => {
       await createCommunity(false)
-      expect(await getReachableCommunities(1000)).toHaveLength(1)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
     })
     it('foreign communities authenticated within chosen range', async () => {
       const com1 = await createCommunity(true)
@@ -374,23 +319,24 @@ describe('community.queries', () => {
       // outside of range
       await createVerifiedFederatedCommunity('1_0', 1200, com3)
 
-      const communities = await getReachableCommunities(1000)
-      expect(communities).toHaveLength(2)
-      expect(communities[0].communityUuid).toBe(com1.communityUuid)
-      expect(communities[1].communityUuid).toBe(com2.communityUuid)
+      const communities = await dbSelectReachableCommunities(1000)
+      // both carry the same name, so the order between them is open
+      expect(communities.map((com) => com.communityUuid).sort()).toEqual(
+        [com1.communityUuid, com2.communityUuid].sort(),
+      )
     })
     it('multiple federated community api version, result in one community', async () => {
       const com1 = await createCommunity(true)
       await createVerifiedFederatedCommunity('1_0', 100, com1)
       await createVerifiedFederatedCommunity('1_1', 100, com1)
-      expect(await getReachableCommunities(1000)).toHaveLength(1)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
     })
     it('multiple federated community api version one outside of range, result in one community', async () => {
       const com1 = await createCommunity(true)
       await createVerifiedFederatedCommunity('1_0', 100, com1)
       // outside of range
       await createVerifiedFederatedCommunity('1_1', 1200, com1)
-      expect(await getReachableCommunities(1000)).toHaveLength(1)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
     })
     it('foreign and home community', async () => {
       // home community
@@ -399,12 +345,25 @@ describe('community.queries', () => {
       const com2 = await createCommunity(true)
       await createVerifiedFederatedCommunity('1_0', 400, com1)
       await createVerifiedFederatedCommunity('1_0', 1200, com2)
-      expect(await getReachableCommunities(1000)).toHaveLength(2)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(2)
     })
     it('not verified inside time frame federated community', async () => {
       const com1 = await createCommunity(true)
       await createVerifiedFederatedCommunity('1_0', 1200, com1)
-      expect(await getReachableCommunities(1000)).toHaveLength(0)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(0)
+    })
+  })
+
+  describe('dbSelectAuthorizedCommunities', () => {
+    it('hands out the home community first, then the foreign ones through the handshake', async () => {
+      const foreign = await createCommunity(true)
+      await createCommunity(true, { authenticatedAt: null })
+      const home = await createCommunity(false)
+      const communities = await dbSelectAuthorizedCommunities()
+      expect(communities.map((com) => com.communityUuid)).toEqual([
+        home.communityUuid,
+        foreign.communityUuid,
+      ])
     })
   })
 
@@ -495,9 +454,7 @@ describe('community.queries', () => {
 
   describe('dbUpdateForeignCommunity', () => {
     it('changes what it is given and keeps the rest', async () => {
-      const community = await createCommunity(true)
-      community.publicJwtKey = 'stored-public-jwt-key'
-      await community.save()
+      const community = await createCommunity(true, { publicJwtKey: 'stored-public-jwt-key' })
 
       expect(
         await dbUpdateForeignCommunity(community.id, {
@@ -527,6 +484,23 @@ describe('community.queries', () => {
 
       const [stored] = await communitiesOf(home.publicKey)
       expect(stored.name).toBe(home.name)
+    })
+  })
+
+  describe('dbDeleteForeignCommunity', () => {
+    it('deletes this community and leaves the others', async () => {
+      const home = await createCommunity(false)
+      const gone = await createCommunity(true)
+      const kept = await createCommunity(true)
+      await dbDeleteForeignCommunity(gone.id)
+      const rows = await drizzleDb().select().from(communitiesTable).orderBy(communitiesTable.id)
+      expect(rows.map((row) => row.id)).toEqual([home.id, kept.id])
+    })
+
+    it('leaves the home community alone', async () => {
+      const home = await createCommunity(false)
+      await dbDeleteForeignCommunity(home.id)
+      expect(await dbSelectHomeCommunity()).toMatchObject({ id: home.id })
     })
   })
 

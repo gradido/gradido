@@ -1,4 +1,4 @@
-import { UserContactSelect, UserRoleSelect, UserSelect } from '../schemas'
+import { CommunitiesSelect, UserContactSelect, UserRoleSelect, UserSelect } from '../schemas'
 
 /**
  * A `users` row together with the address in force for it -- the shape almost everything
@@ -23,4 +23,8 @@ export type DbUserContact = UserContactSelect & {
 export type DbLoginUser = DbUser & {
   role: UserRoleSelect | null
   avatar: Buffer | null
+}
+
+export type DbUserCommunity = UserSelect & {
+  community: CommunitiesSelect
 }

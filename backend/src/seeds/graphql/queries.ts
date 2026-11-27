@@ -226,21 +226,6 @@ export const reachableCommunities = gql`
   }
 `
 
-export const getCommunityByIdentifierQuery = gql`
-  query ($communityIdentifier: String!) {
-    communityByIdentifier(communityIdentifier: $communityIdentifier) {
-      id
-      foreign
-      name
-      description
-      url
-      creationDate
-      uuid
-      authenticatedAt
-    }
-  }
-`
-
 export const getHomeCommunityQuery = gql`
   query {
     homeCommunity {

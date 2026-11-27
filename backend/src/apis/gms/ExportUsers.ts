@@ -3,7 +3,7 @@ import {
   AppDatabase,
   dbFindGmsAllowedLocalUserIds,
   dbFindUsersWithEmailContactByIds,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { getLogger } from 'log4js'
 import { delay } from 'shared'
@@ -37,10 +37,7 @@ async function main() {
   const con = AppDatabase.getInstance()
   await con.init()
 
-  const homeCom = await getHomeCommunity()
-  if (!homeCom) {
-    throw new LogError('HomeCommunity not found')
-  }
+  const homeCom = await getHomeCommunityDrizzle()
   if (homeCom.gmsApiKey === null) {
     throw new LogError('HomeCommunity needs GMS-ApiKey to publish user data to GMS.')
   }
