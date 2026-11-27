@@ -4,6 +4,7 @@ import https from 'node:https'
 import { isIP, type LookupFunction } from 'node:net'
 import { Readable } from 'node:stream'
 import { isPublicHostname } from 'shared'
+import { peerHttpAgent, peerHttpsAgent } from '../apis/ConnectionAgents'
 
 /** A peer's host is, or resolves to, an address that is not on the internet. */
 export class NotPublicAddressError extends Error {
@@ -23,7 +24,8 @@ const NULL_BODY_STATUSES = [101, 204, 205, 304]
  * - The host is resolved when the connection is made, and the request fails if any of its
  *   addresses is not public. The connection goes to exactly the address checked: a name that
  *   resolves to another address a moment later (DNS rebinding) changes nothing. Host header and
- *   TLS server name stay the name of the url.
+ *   TLS server name stay the name of the url. A kept-alive connection to the same host and port
+ *   is used again, without a new lookup: it goes to the address checked when it was opened.
  * - A redirect is not followed: it comes back as the answer it is, and the ApiClient takes it
  *   as a failed one. So a public url cannot pass the request on to an address of the local
  *   network.
@@ -63,7 +65,8 @@ export async function publicFetch(
   if (body.length > 0) {
     headers['content-length'] = String(body.length)
   }
-  const send = url.protocol === 'https:' ? https.request : http.request
+  const [send, agent] =
+    url.protocol === 'https:' ? [https.request, peerHttpsAgent] : [http.request, peerHttpAgent]
 
   return new Promise<Response>((resolve, reject) => {
     // as fetch: an aborted signal rejects with its reason, a TimeoutError for the time limit
@@ -79,6 +82,7 @@ export async function publicFetch(
         path: `${url.pathname}${url.search}`,
         method: request.method,
         headers,
+        agent,
         lookup,
       },
       (incoming) => {

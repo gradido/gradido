@@ -36,14 +36,6 @@ import {
 export const SEAL_OVERHEAD_BYTES = 41
 
 /**
- * How a request reaches another community: in production only the internet, without following a
- * redirect (publicFetch); on a developer's machine the communities run on localhost. NODE_ENV and
- * not CONFIG: the dht-node takes the client without the rest of core.
- */
-const sendToPeer = (request: Request): Promise<Response> =>
-  process.env.NODE_ENV === 'production' ? publicFetch(request) : fetch(request)
-
-/**
  * Whether a request with this body, sealed, fits what the federation service takes
  * (FEDERATION_REQUEST_MAX_BYTES). Eden writes the body with JSON.stringify, so this counts what
  * goes over the wire, byte for byte. A chat message with a picture comes close to the limit
@@ -170,7 +162,11 @@ export class ApiClient {
     const signal = options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout
     // a redirect could pass the request on to an address of the local network
     const request = new Request(url, { ...options, signal, headers, body, redirect: 'error' })
-    const response = await sendToPeer(request)
+    // in production only to the internet, without following a redirect; on a developer's machine
+    // the communities run on localhost. NODE_ENV and not CONFIG: the dht-node takes the client
+    // without the rest of core
+    const response =
+      process.env.NODE_ENV === 'production' ? await publicFetch(request) : await fetch(request)
     if (!fetchOptions.verifyResponse || !response.ok) {
       return response
     }
