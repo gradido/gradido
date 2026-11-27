@@ -1,4 +1,4 @@
-import { Community as DbCommunity, TransactionLink as DbTransactionLink } from 'database'
+import { CommunitiesSelect, TransactionLink as DbTransactionLink } from 'database'
 import { GradidoUnit } from 'shared'
 import { Field, Int, ObjectType } from 'type-graphql'
 import { CONFIG } from '@/config'
@@ -13,7 +13,7 @@ export class TransactionLink {
     dbTransactionLink?: DbTransactionLink,
     user?: User,
     redeemedBy?: User,
-    dbCommunities?: DbCommunity[],
+    dbCommunities?: CommunitiesSelect[],
     greeting?: ThankYouGreeting | null,
     senderAvatar?: Buffer | null,
   ) {
@@ -36,7 +36,7 @@ export class TransactionLink {
       this.redeemedBy = redeemedBy
     }
     if (dbCommunities !== undefined) {
-      this.communities = dbCommunities.map((dbCom: DbCommunity) => new Community(dbCom))
+      this.communities = dbCommunities.map((dbCom) => new Community(dbCom))
     }
     this.greeting = greeting ?? null
     this.senderAvatar = senderAvatar ? senderAvatar.toString('base64') : null

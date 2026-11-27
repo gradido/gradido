@@ -9,6 +9,7 @@ import {
   dbInsertEvent,
   EventType,
   getLastTransaction,
+  typeOrmUserToUserSelect,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Mutex } from 'redis-semaphore'
@@ -74,7 +75,11 @@ export const confirmContributionAs = async (
       throw new LogError('Can not confirm contribution since the user was deleted')
     }
     const receivedCallDate = new Date()
-    const dltTransactionPromise = contributionTransaction(contribution, signer, receivedCallDate)
+    const dltTransactionPromise = contributionTransaction(
+      contribution,
+      typeOrmUserToUserSelect(signer),
+      receivedCallDate,
+    )
     const creations = await getUserCreation(contribution.userId, clientTimezoneOffset, false)
     validateContribution(
       creations,

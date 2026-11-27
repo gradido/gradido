@@ -1,27 +1,28 @@
-import { and, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, asc, eq, exists, gte, inArray, isNotNull, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
   CommunityIdentifier,
-  Ed25519PublicKey,
   HomeCommunityInsertInput,
   HomeCommunityUpdateInput,
   homeCommunityInsertSchema,
   homeCommunityUpdateSchema,
   MissingHomeCommunityError,
   Uuidv4,
-  urlSchema,
   uuidv4Schema,
   VoidResult,
 } from 'shared'
-import { FindOptionsOrder, FindOptionsWhere, IsNull, MoreThanOrEqual, Not } from 'typeorm'
 import * as v from 'valibot'
 import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { eqCommunityIdentifier } from '../data'
-import { Community as DbCommunity } from '../entity'
 import { CommunityUniqueKey } from '../enum'
 import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
-import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
+import {
+  CommunitiesInsert,
+  CommunitiesSelect,
+  communitiesTable,
+  federatedCommunitiesTable,
+} from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
 export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
@@ -39,18 +40,6 @@ const homeCommunityCache = new CachedValue(
   // a getter, because AppDatabase and the queries import each other
   { shared: { channel: HOME_COMMUNITY_CHANGED_CHANNEL, pubSub: () => AppDatabase.getInstance() } },
 )
-
-/**
- * Retrieves the home community, i.e., a community that is not foreign.
- * @returns A promise that resolves to the home community, or null if no home community was found
- */
-export async function getHomeCommunity(): Promise<DbCommunity | null> {
-  // TODO: Put in Cache, it is needed nearly always, but needs updating tests
-  // TODO: return only DbCommunity or throw to reduce unnecessary checks, because there should be always a home community
-  return await DbCommunity.findOne({
-    where: { foreign: false },
-  })
-}
 
 /**
  * The home community, cached. Invalidated by every write through dbInsertHomeCommunity or
@@ -134,7 +123,7 @@ export async function dbReplaceHomeCommunitySigningKeys(
   }
 }
 
-export async function dbGetCommunityByUuid(
+export async function dbFindCommunityByUuid(
   communityUuid: string,
 ): Promise<CommunitiesSelect | null> {
   const resultRows = await drizzleDb()
@@ -171,92 +160,6 @@ export async function dbIsMatchingKeyingActive(): Promise<boolean> {
 export async function dbIsSupportTicketsActive(): Promise<boolean> {
   const homeCom = await getHomeCommunityDrizzle()
   return homeCom.supportTicketsActive
-}
-
-export async function getHomeCommunityWithFederatedCommunityOrFail(
-  apiVersion: string,
-): Promise<DbCommunity> {
-  return await DbCommunity.findOneOrFail({
-    where: { foreign: false, federatedCommunities: { apiVersion } },
-    relations: { federatedCommunities: true },
-  })
-}
-
-export async function getCommunityByUuid(communityUuid: string): Promise<DbCommunity | null> {
-  return await DbCommunity.findOne({
-    where: [{ communityUuid }],
-  })
-}
-
-export function findWithCommunityIdentifier(
-  communityIdentifier: string,
-): FindOptionsWhere<DbCommunity> {
-  const where: FindOptionsWhere<DbCommunity> = {}
-  // pre filter identifier type to reduce db query complexity
-  if (v.safeParse(urlSchema, communityIdentifier).success) {
-    where.url = communityIdentifier
-  } else if (v.safeParse(uuidv4Schema, communityIdentifier).success) {
-    where.communityUuid = communityIdentifier
-  } else {
-    where.name = communityIdentifier
-  }
-  return where
-}
-
-export async function getCommunityWithFederatedCommunityByIdentifier(
-  communityIdentifier: string,
-): Promise<DbCommunity | null> {
-  return await DbCommunity.findOne({
-    where: { ...findWithCommunityIdentifier(communityIdentifier) },
-    relations: ['federatedCommunities'],
-  })
-}
-
-export async function getCommunityWithFederatedCommunityWithApiOrFail(
-  publicKey: Ed25519PublicKey,
-  apiVersion: string,
-): Promise<DbCommunity> {
-  return await DbCommunity.findOneOrFail({
-    where: { foreign: true, publicKey: publicKey.asBuffer(), federatedCommunities: { apiVersion } },
-    relations: { federatedCommunities: true },
-  })
-}
-
-export async function getCommunityByPublicKeyOrFail(
-  publicKey: Ed25519PublicKey,
-): Promise<DbCommunity> {
-  return await DbCommunity.findOneOrFail({
-    where: { publicKey: publicKey.asBuffer() },
-  })
-}
-
-// returns all reachable communities
-// home community and all federated communities which have been verified within the last authenticationTimeoutMs
-export async function getReachableCommunities(
-  authenticationTimeoutMs: number,
-  order?: FindOptionsOrder<DbCommunity>,
-): Promise<DbCommunity[]> {
-  return await DbCommunity.find({
-    where: [
-      {
-        authenticatedAt: Not(IsNull()),
-        federatedCommunities: {
-          verifiedAt: MoreThanOrEqual(new Date(Date.now() - authenticationTimeoutMs)),
-        },
-      }, // or
-      { foreign: false },
-    ],
-    order,
-  })
-}
-
-export async function getNotReachableCommunities(
-  order?: FindOptionsOrder<DbCommunity>,
-): Promise<DbCommunity[]> {
-  return await DbCommunity.find({
-    where: { authenticatedAt: IsNull(), foreign: true },
-    order,
-  })
 }
 
 // return map with communityUuid as key
@@ -324,17 +227,49 @@ export async function dbSelectAuthenticatedForeignCommunities(): Promise<Communi
     .orderBy(communitiesTable.id)
 }
 
-// return the home community and all communities which had at least once make it through the first handshake
-export async function getAuthorizedCommunities(
-  order?: FindOptionsOrder<DbCommunity>,
-): Promise<DbCommunity[]> {
-  return await DbCommunity.find({
-    where: [
-      { authenticatedAt: Not(IsNull()) }, // or
-      { foreign: false },
-    ],
-    order,
-  })
+/**
+ * The home community and every foreign one through the handshake that has a federated
+ * community verified within the last `authenticationTimeoutMs`.
+ */
+export async function dbSelectReachableCommunities(
+  authenticationTimeoutMs: number,
+): Promise<CommunitiesSelect[]> {
+  const db = drizzleDb()
+  return db
+    .select()
+    .from(communitiesTable)
+    .where(
+      or(
+        eq(communitiesTable.foreign, false),
+        and(
+          isNotNull(communitiesTable.authenticatedAt),
+          exists(
+            db
+              .select({ id: federatedCommunitiesTable.id })
+              .from(federatedCommunitiesTable)
+              .where(
+                and(
+                  eq(federatedCommunitiesTable.publicKey, communitiesTable.publicKey),
+                  gte(
+                    federatedCommunitiesTable.verifiedAt,
+                    new Date(Date.now() - authenticationTimeoutMs),
+                  ),
+                ),
+              ),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(communitiesTable.foreign), asc(communitiesTable.name))
+}
+
+// the home community and every community that made it through the handshake at least once
+export async function dbSelectAuthorizedCommunities(): Promise<CommunitiesSelect[]> {
+  return drizzleDb()
+    .select()
+    .from(communitiesTable)
+    .where(or(eq(communitiesTable.foreign, false), isNotNull(communitiesTable.authenticatedAt)))
+    .orderBy(asc(communitiesTable.foreign), asc(communitiesTable.name))
 }
 
 // the value a unique key refused, readable in a log
@@ -396,4 +331,10 @@ export async function dbUpdateForeignCommunity(
     .set(foreignCommunity)
     .where(and(eq(communitiesTable.id, id), eq(communitiesTable.foreign, true)))
   return rows[0].affectedRows === 1
+}
+
+export async function dbDeleteForeignCommunity(id: number): Promise<void> {
+  await drizzleDb()
+    .delete(communitiesTable)
+    .where(and(eq(communitiesTable.id, id), eq(communitiesTable.foreign, true)))
 }

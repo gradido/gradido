@@ -47,6 +47,7 @@ import {
   dbFindAdminUsersPage,
   dbFindAliasesByUser,
   dbFindAuthenticatedForeignCommunityByIdentifier,
+  dbFindCommunityByUuid,
   dbFindMemberAvatarFull,
   dbFindMemberAvatarsSmall,
   dbFindOldestChosenAliasSince,
@@ -76,8 +77,6 @@ import {
   emailContactByUserIdQuery,
   FirstCreationStatus,
   findUserByIdentifier,
-  getCommunityByUuid,
-  getHomeCommunity,
   getHomeCommunityDrizzle,
   UserLoggingView,
 } from 'database'
@@ -926,13 +925,7 @@ export class UserResolver {
         await removeUserFromGms(user)
       } else if (CONFIG.GMS_ACTIVE && updateUserInGMS && user.gmsAllowed) {
         logger.debug(`changed user-settings relevant for gms-user update...`)
-        const homeCom = await getHomeCommunity()
-        if (!homeCom) {
-          logger.error('no home community found, please start the dht-node first')
-          throw new Error(
-            `Error updating user, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-          )
-        }
+        const homeCom = await getHomeCommunityDrizzle()
         if (homeCom.gmsApiKey !== null) {
           logger.debug(`send User to Gms...`)
           // A member the GMS does not hold is built there from scratch, so their live
@@ -1280,15 +1273,7 @@ export class UserResolver {
 
     let result = new GmsUserAuthenticationResult()
     if (context.token) {
-      const homeCom = await getHomeCommunity()
-      if (!homeCom) {
-        logger.error(
-          "couldn't authenticate for gms, no home community found, please start the dht-node first",
-        )
-        throw new Error(
-          `Error authenticating for gms, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-        )
-      }
+      const homeCom = await getHomeCommunityDrizzle()
       if (!homeCom.gmsApiKey) {
         throw new LogError('authenticateGmsUserSearch missing HomeCommunity GmsApiKey')
       }
@@ -1353,15 +1338,7 @@ export class UserResolver {
 
     const result = new UserLocationResult()
     if (context.token) {
-      const homeCom = await getHomeCommunity()
-      if (!homeCom) {
-        logger.error(
-          "couldn't load home community location, no home community found, please start the dht-node first",
-        )
-        throw new Error(
-          `Error loading user location, please write the support team: ${CONFIG.COMMUNITY_SUPPORT_MAIL}`,
-        )
-      }
+      const homeCom = await getHomeCommunityDrizzle()
       // null where the instance never had coordinates set -- reported, not thrown. A
       // missing admin setting must not take this query down: every member of the
       // instance reads it, including those who have a position of their own, and the
@@ -2026,7 +2003,7 @@ export class UserResolver {
   async communityName(@Root() user: User): Promise<string | null> {
     const community = !user.foreign
       ? await getHomeCommunityDrizzle()
-      : await getCommunityByUuid(user.communityUuid)
+      : await dbFindCommunityByUuid(user.communityUuid)
     return community?.name ?? null
   }
 }

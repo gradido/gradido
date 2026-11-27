@@ -30,7 +30,7 @@ import {
   dbUpdateChatConversationMemberMuted,
   dbUpdateChatConversationMemberRole,
   dbUpdateChatGroupTitle,
-  getHomeCommunity,
+  getHomeCommunityDrizzle,
 } from 'database'
 import { getLogger } from 'log4js'
 import { Args, Authorized, Ctx, Mutation, Query, Resolver } from 'type-graphql'
@@ -116,7 +116,7 @@ const chatGroupsOf = async (
     .filter((id): id is number => id !== null)
   const [founders, home, previews] = await Promise.all([
     chatMemberUsers(groups.map(founderOf)),
-    getHomeCommunity(),
+    getHomeCommunityDrizzle(),
     chatMessagePreviews(latest, caller, { namingWriters: true }),
   ])
   return groups.map((group) => {
@@ -128,7 +128,7 @@ const chatGroupsOf = async (
     }
     return new ChatGroup(
       group,
-      isSameCommunity(group.homeCommunityUuid, home?.communityUuid) ? (home?.name ?? null) : null,
+      isSameCommunity(group.homeCommunityUuid, home.communityUuid) ? home.name : null,
       founders.get(chatMemberKey(founderOf(group))) ?? null,
       preview,
     )
@@ -367,10 +367,7 @@ export class ChatGroupResolver {
     if (title === null) {
       throw new LogError('CHAT_GROUP_NOT_CREATED: TITLE')
     }
-    const home = await getHomeCommunity()
-    if (!home?.communityUuid) {
-      throw new LogError('Home community has no uuid, cannot open a chat group')
-    }
+    const home = await getHomeCommunityDrizzle()
     const callerUser = getUser(context)
     const caller = callerOf(context)
     const members = await checkedNewMembers(
@@ -487,10 +484,7 @@ export class ChatGroupResolver {
     if (!mayManageChatGroup(me.role)) {
       throw new LogError('CHAT_GROUP_NOT_CHANGED: NOT_ALLOWED', groupUuid)
     }
-    const home = await getHomeCommunity()
-    if (!home?.communityUuid) {
-      throw new LogError('Home community has no uuid, cannot take members into a chat group')
-    }
+    const home = await getHomeCommunityDrizzle()
     const current = await dbSelectChatConversationMembers(group.id)
     const members = await checkedNewMembers(
       callerUser,

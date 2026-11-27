@@ -3,7 +3,7 @@ import { Order, PasswordEncryptionType } from 'shared'
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
 import {
   ALIAS_ORIGIN_CHOSEN,
-  Community as DbCommunity,
+  CommunitiesSelect,
   User as DbUser,
   UserContact as DbUserContact,
   UserRole as DbUserRole,
@@ -46,7 +46,7 @@ afterAll(async () => {
 
 describe('user.typeorm.queries', () => {
   describe('findUserByIdentifier', () => {
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let communityUuid: string
     let communityName: string
     let userBibi: DbUser
@@ -141,7 +141,7 @@ describe('user.typeorm.queries', () => {
   // The point of keeping every name a member ever held: a card printed under the old
   // one still reaches them. This is the path `…/u/alias` takes.
   describe('finding somebody by a name they no longer use', () => {
-    let homeCom: DbCommunity
+    let homeCom: CommunitiesSelect
     let communityUuid: string
     let communityName: string
     let bibi: DbUser
