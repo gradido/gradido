@@ -3,7 +3,7 @@
 // paths with a database run in KeptPictureResolver.test.ts.
 //
 // Written to run under jest (today) and `bun test --isolate` (later) alike, as AGENTS.md asks and
-// validateCommunities.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
+// dht-node/src/dht_node/validateCommunity.test.ts shows: the fakes are declared before `jest.mock`, each factory hands
 // out its own fakes, and the module under test is imported in `beforeAll`. LogError is one of the
 // fakes: what the resolver hands it is what would reach the log -- the resolver writes nothing to
 // a log itself.

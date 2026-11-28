@@ -5,7 +5,7 @@ import { LogError } from '@/server/LogError'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.apis.HttpRequest`)
 
-import { httpAgent, httpsAgent } from './ConnectionAgents'
+import { httpAgent, httpsAgent } from 'core'
 
 export const apiPost = async (url: string, payload: unknown): Promise<any> => {
   logger.trace('POST', url, payload)

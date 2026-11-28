@@ -388,7 +388,6 @@
   "error": "Ошибка",
   "expired": "истёк",
   "federation": {
-    "apiVersion": "Версия API",
     "authenticatedAt": "проверено:",
     "communityUuid": "UUID сообщества:",
     "coordinates": "Координаты:",
@@ -396,8 +395,6 @@
     "gmsApiKey": "Ключ API GMS:",
     "gradidoInstances": "Экземпляры Gradido",
     "hieroTopicId": "Hiero Topic ID:",
-    "lastAnnouncedAt": "Последнее объявление",
-    "lastErrorAt": "Последняя ошибка",
     "name": "Название",
     "publicKey": "PublicKey:",
     "toast_gmsApiKeyAndLocationUpdated": "Ключ API GMS и местоположение успешно обновлены!",

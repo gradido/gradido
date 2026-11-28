@@ -12,11 +12,10 @@ import { createServer } from './server/createServer'
 async function main() {
   const startTime = new Date()
   // init logger
-  const log4jsConfigFileName = CONFIG.LOG4JS_CONFIG_PLACEHOLDER.replace('%v', CONFIG.FEDERATION_API)
   initLogger(
     [defaultCategory('federation', CONFIG.LOG_LEVEL)],
-    `${CONFIG.LOG_FILES_BASE_PATH}_${CONFIG.FEDERATION_API}`,
-    log4jsConfigFileName,
+    CONFIG.LOG_FILES_BASE_PATH,
+    CONFIG.LOG4JS_CONFIG,
   )
 
   // init server

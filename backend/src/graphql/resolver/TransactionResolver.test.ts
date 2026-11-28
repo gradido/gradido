@@ -835,14 +835,6 @@ describe('send coins', () => {
     describe.skip('X-Com send coins via gradido ID', () => {
       beforeAll(async () => {
         CONFIG.FEDERATION_XCOM_SENDCOINS_ENABLED = true
-        fedForeignCom = DbFederatedCommunity.create()
-        fedForeignCom.apiVersion = '1_0'
-        fedForeignCom.foreign = true
-        fedForeignCom.publicKey = Buffer.from('foreignCom publicKey')
-        fedForeignCom.endPoint = 'http://foreignCom_url/api'
-        fedForeignCom.lastAnnouncedAt = new Date('2000-06-09')
-        fedForeignCom.verifiedAt = new Date('2000-06-10')
-        fedForeignCom = await DbFederatedCommunity.save(fedForeignCom)
 
         jest
           .spyOn(SendCoinsClient.prototype, 'voteForSendCoins')

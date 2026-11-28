@@ -241,8 +241,6 @@ server {
         error_log $GRADIDO_LOG_PATH/nginx-error.admin.log warn;
     }
     
-    # Federation
-    $FEDERATION_NGINX_CONF
 
     # TODO this could be a performance optimization
     #location /vue {

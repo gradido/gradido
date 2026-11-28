@@ -75,6 +75,12 @@
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */
   },
+  // core's asset modules: the dht-node reaches core for its ApiClient
+  "include": [
+    "../core/src/types",
+    "src",
+    "test"
+  ],
   "ts-node": {
     "swc": true
   }

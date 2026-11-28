@@ -17,7 +17,6 @@ import { ContributionMessage } from './ContributionMessage'
 import { CreationGroup } from './CreationGroup'
 import { DltTransaction } from './DltTransaction'
 import { Event } from './Event'
-import { FederatedCommunity } from './FederatedCommunity'
 import { Migration } from './Migration'
 import { PendingTransaction } from './PendingTransaction'
 import { Transaction } from './Transaction'
@@ -36,7 +35,6 @@ export {
   CreationGroup,
   DltTransaction,
   Event,
-  FederatedCommunity,
   Migration,
   PendingTransaction,
   Transaction,
@@ -57,7 +55,6 @@ export const entities = [
   ContributionMessage,
   DltTransaction,
   Event,
-  FederatedCommunity,
   CreationGroup,
   Migration,
   PendingTransaction,

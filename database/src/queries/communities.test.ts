@@ -7,12 +7,12 @@ import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { CommunityUniqueKey } from '../enum'
 import { DBUniqueKeyViolation } from '../errorTypes'
 import { CommunitiesInsert, communitiesTable } from '../schemas'
-import { createCommunity, createVerifiedFederatedCommunity } from '../seeds/community'
+import { createCommunity } from '../seeds/community'
 import {
   dbDeleteForeignCommunity,
   dbFindCommunityByUuid,
-  dbFindForeignCommunitiesByUuid,
   dbFindForeignCommunityByPublicKey,
+  dbFindForeignCommunityByUuid,
   dbInsertForeignCommunity,
   dbInsertHomeCommunity,
   dbIsMatchingKeyingActive,
@@ -20,6 +20,7 @@ import {
   dbReplaceHomeCommunitySigningKeys,
   dbSelectAuthenticatedForeignCommunities,
   dbSelectAuthorizedCommunities,
+  dbSelectCommunities,
   dbSelectHomeCommunity,
   dbSelectReachableCommunities,
   dbUpdateForeignCommunity,
@@ -28,6 +29,8 @@ import {
   HOME_COMMUNITY_CHANGED_CHANNEL,
 } from './communities'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
+
+const verifiedBefore = (ms: number) => new Date(Date.now() - ms)
 
 const db = AppDatabase.getInstance()
 
@@ -310,14 +313,11 @@ describe('community.queries', () => {
       await createCommunity(false)
       expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
     })
-    it('foreign communities authenticated within chosen range', async () => {
-      const com1 = await createCommunity(true)
-      const com2 = await createCommunity(true)
-      const com3 = await createCommunity(true)
-      await createVerifiedFederatedCommunity('1_0', 100, com1)
-      await createVerifiedFederatedCommunity('1_0', 500, com2)
+    it('foreign communities verified within chosen range', async () => {
+      const com1 = await createCommunity(true, { verifiedAt: verifiedBefore(100) })
+      const com2 = await createCommunity(true, { verifiedAt: verifiedBefore(500) })
       // outside of range
-      await createVerifiedFederatedCommunity('1_0', 1200, com3)
+      await createCommunity(true, { verifiedAt: verifiedBefore(1200) })
 
       const communities = await dbSelectReachableCommunities(1000)
       // both carry the same name, so the order between them is open
@@ -325,32 +325,63 @@ describe('community.queries', () => {
         [com1.communityUuid, com2.communityUuid].sort(),
       )
     })
-    it('multiple federated community api version, result in one community', async () => {
-      const com1 = await createCommunity(true)
-      await createVerifiedFederatedCommunity('1_0', 100, com1)
-      await createVerifiedFederatedCommunity('1_1', 100, com1)
-      expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
-    })
-    it('multiple federated community api version one outside of range, result in one community', async () => {
-      const com1 = await createCommunity(true)
-      await createVerifiedFederatedCommunity('1_0', 100, com1)
-      // outside of range
-      await createVerifiedFederatedCommunity('1_1', 1200, com1)
-      expect(await dbSelectReachableCommunities(1000)).toHaveLength(1)
-    })
     it('foreign and home community', async () => {
       // home community
       await createCommunity(false)
-      const com1 = await createCommunity(true)
-      const com2 = await createCommunity(true)
-      await createVerifiedFederatedCommunity('1_0', 400, com1)
-      await createVerifiedFederatedCommunity('1_0', 1200, com2)
+      await createCommunity(true, { verifiedAt: verifiedBefore(400) })
+      await createCommunity(true, { verifiedAt: verifiedBefore(1200) })
       expect(await dbSelectReachableCommunities(1000)).toHaveLength(2)
     })
-    it('not verified inside time frame federated community', async () => {
-      const com1 = await createCommunity(true)
-      await createVerifiedFederatedCommunity('1_0', 1200, com1)
+    it('not verified inside time frame', async () => {
+      await createCommunity(true, { verifiedAt: verifiedBefore(1200) })
       expect(await dbSelectReachableCommunities(1000)).toHaveLength(0)
+    })
+    it('never verified', async () => {
+      await createCommunity(true)
+      expect(await dbSelectReachableCommunities(1000)).toHaveLength(0)
+    })
+  })
+
+  describe('dbSelectCommunities', () => {
+    it('hands out the home community first, then the foreign ones, the newest first', async () => {
+      const home = await createCommunity(false, { createdAt: new Date('2026-01-01T00:00:00Z') })
+      const older = await createCommunity(true, { createdAt: new Date('2026-02-01T00:00:00Z') })
+      const newer = await createCommunity(true, { createdAt: new Date('2026-03-01T00:00:00Z') })
+
+      const { count, communities } = await dbSelectCommunities()
+
+      expect(communities.map((com) => com.id)).toEqual([home.id, newer.id, older.id])
+      expect(count).toBe(3)
+    })
+
+    it('hands out the page asked for', async () => {
+      await createCommunity(false, { createdAt: new Date('2026-01-01T00:00:00Z') })
+      const older = await createCommunity(true, { createdAt: new Date('2026-02-01T00:00:00Z') })
+      await createCommunity(true, { createdAt: new Date('2026-03-01T00:00:00Z') })
+
+      const { count, communities } = await dbSelectCommunities({ pageSize: 2, currentPage: 2 })
+
+      expect(communities.map((com) => com.id)).toEqual([older.id])
+      // all of them, not only those of the page
+      expect(count).toBe(3)
+    })
+
+    it('pages through communities created at the same moment, each once, the last inserted first', async () => {
+      const createdAt = new Date('2026-02-01T00:00:00Z')
+      const home = await createCommunity(false, { createdAt })
+      const ids = [
+        (await createCommunity(true, { createdAt })).id,
+        (await createCommunity(true, { createdAt })).id,
+        (await createCommunity(true, { createdAt })).id,
+      ]
+
+      const paged: number[] = []
+      for (let currentPage = 1; currentPage <= 4; currentPage++) {
+        const { communities } = await dbSelectCommunities({ pageSize: 1, currentPage })
+        paged.push(...communities.map((com) => com.id))
+      }
+
+      expect(paged).toEqual([home.id, ...ids.reverse()])
     })
   })
 
@@ -504,37 +535,24 @@ describe('community.queries', () => {
     })
   })
 
-  describe('dbFindForeignCommunitiesByUuid', () => {
-    it('hands out the foreign communities with these uuids, by their uuid', async () => {
-      const first = await createCommunity(true)
-      const second = await createCommunity(true)
+  describe('dbFindForeignCommunityByUuid', () => {
+    it('hands out the foreign community with this uuid', async () => {
+      await createCommunity(true)
+      const foreign = await createCommunity(true)
 
-      const found = await dbFindForeignCommunitiesByUuid([
-        first.communityUuid!,
-        second.communityUuid!,
-      ])
-
-      expect([...found.keys()].sort()).toEqual([first.communityUuid, second.communityUuid].sort())
-      expect(found.get(first.communityUuid!)).toMatchObject({
-        id: first.id,
-        url: first.url,
-        publicKey: first.publicKey,
+      expect(await dbFindForeignCommunityByUuid(foreign.communityUuid)).toMatchObject({
+        id: foreign.id,
+        url: foreign.url,
+        publicKey: foreign.publicKey,
       })
     })
 
-    it('skips other uuids and the home community', async () => {
+    it('hands out nothing for another uuid or the home community', async () => {
       const home = await createCommunity(false)
       await createCommunity(true)
 
-      const found = await dbFindForeignCommunitiesByUuid([home.communityUuid!, uuidv4()])
-
-      expect(found.size).toBe(0)
-    })
-
-    it('hands out nothing for no uuids', async () => {
-      await createCommunity(true)
-
-      expect((await dbFindForeignCommunitiesByUuid([])).size).toBe(0)
+      expect(await dbFindForeignCommunityByUuid(home.communityUuid)).toBeNull()
+      expect(await dbFindForeignCommunityByUuid(uuidv4())).toBeNull()
     })
   })
 

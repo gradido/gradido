@@ -1,4 +1,4 @@
-import { and, asc, eq, exists, gte, inArray, isNotNull, or } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, isNotNull, or } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import {
   CachedValue,
@@ -17,12 +17,7 @@ import { AppDatabase, DrizzleTransaction, drizzleDb } from '../AppDatabase'
 import { eqCommunityIdentifier } from '../data'
 import { CommunityUniqueKey } from '../enum'
 import { DBInsertFailed, DBUniqueKeyViolation, duplicateEntryKey } from '../errorTypes'
-import {
-  CommunitiesInsert,
-  CommunitiesSelect,
-  communitiesTable,
-  federatedCommunitiesTable,
-} from '../schemas'
+import { CommunitiesInsert, CommunitiesSelect, communitiesTable } from '../schemas'
 
 /** Announces a change of the home community row, see `AppDatabase.publish()`. */
 export const HOME_COMMUNITY_CHANGED_CHANNEL = 'home_community_changed'
@@ -162,28 +157,17 @@ export async function dbIsSupportTicketsActive(): Promise<boolean> {
   return homeCom.supportTicketsActive
 }
 
-// return map with communityUuid as key
-export async function dbFindForeignCommunitiesByUuid(
-  communityUuids: Uuidv4[],
-  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
-): Promise<Map<string, CommunitiesSelect>> {
-  const map = new Map<string, CommunitiesSelect>()
-  if (!communityUuids.length) {
-    return map
-  }
-  const rows = await tx
+// the foreign community with this uuid, null where there is none
+export async function dbFindForeignCommunityByUuid(
+  communityUuid: Uuidv4,
+): Promise<CommunitiesSelect | null> {
+  const resultRows = await drizzleDb()
     .select()
     .from(communitiesTable)
     .where(
-      and(
-        inArray(communitiesTable.communityUuid, communityUuids),
-        eq(communitiesTable.foreign, true),
-      ),
+      and(eq(communitiesTable.communityUuid, communityUuid), eq(communitiesTable.foreign, true)),
     )
-  for (const row of rows) {
-    map.set(row.communityUuid, row)
-  }
-  return map
+  return resultRows[0] ?? null
 }
 
 export async function dbFindAuthenticatedForeignCommunityByIdentifier(
@@ -228,14 +212,13 @@ export async function dbSelectAuthenticatedForeignCommunities(): Promise<Communi
 }
 
 /**
- * The home community and every foreign one through the handshake that has a federated
- * community verified within the last `authenticationTimeoutMs`.
+ * The home community and every foreign one through the handshake that answered its community
+ * infos correctly within the last `authenticationTimeoutMs`.
  */
 export async function dbSelectReachableCommunities(
   authenticationTimeoutMs: number,
 ): Promise<CommunitiesSelect[]> {
-  const db = drizzleDb()
-  return db
+  return drizzleDb()
     .select()
     .from(communitiesTable)
     .where(
@@ -243,24 +226,39 @@ export async function dbSelectReachableCommunities(
         eq(communitiesTable.foreign, false),
         and(
           isNotNull(communitiesTable.authenticatedAt),
-          exists(
-            db
-              .select({ id: federatedCommunitiesTable.id })
-              .from(federatedCommunitiesTable)
-              .where(
-                and(
-                  eq(federatedCommunitiesTable.publicKey, communitiesTable.publicKey),
-                  gte(
-                    federatedCommunitiesTable.verifiedAt,
-                    new Date(Date.now() - authenticationTimeoutMs),
-                  ),
-                ),
-              ),
-          ),
+          gte(communitiesTable.verifiedAt, new Date(Date.now() - authenticationTimeoutMs)),
         ),
       ),
     )
     .orderBy(asc(communitiesTable.foreign), asc(communitiesTable.name))
+}
+
+/**
+ * A page of every community, the home community first, then the newest, and how many there are
+ * in all. Of those created at the same moment, the one inserted last comes first.
+ */
+export async function dbSelectCommunities({
+  pageSize = 25,
+  currentPage = 1,
+}: {
+  pageSize?: number
+  currentPage?: number
+} = {}): Promise<{ count: number; communities: CommunitiesSelect[] }> {
+  const [[total], communities] = await Promise.all([
+    drizzleDb().select({ count: count() }).from(communitiesTable),
+    drizzleDb()
+      .select()
+      .from(communitiesTable)
+      // the id last: rows created in the same millisecond keep one order across the pages
+      .orderBy(
+        asc(communitiesTable.foreign),
+        desc(communitiesTable.createdAt),
+        desc(communitiesTable.id),
+      )
+      .limit(pageSize)
+      .offset((currentPage - 1) * pageSize),
+  ])
+  return { count: total.count, communities }
 }
 
 // the home community and every community that made it through the handshake at least once
