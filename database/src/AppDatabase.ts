@@ -82,7 +82,7 @@ export class AppDatabase {
   }
 
   // create database connection, initialize with automatic retry and check for correct database version
-  public async init(typeOrm = true, redis = true, drizzleOrm = true): Promise<void> {
+  public async init(typeOrm = true, redis = true): Promise<void> {
     if (this.dataSource?.isInitialized) {
       return
     }
@@ -143,7 +143,7 @@ export class AppDatabase {
       })
     }
 
-    if (!this.drizzlePool && drizzleOrm) {
+    if (!this.drizzlePool) {
       this.drizzlePool = createPool({
         host: CONFIG.DB_HOST,
         user: CONFIG.DB_USER,
