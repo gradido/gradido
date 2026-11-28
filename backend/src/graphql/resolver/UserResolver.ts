@@ -863,10 +863,7 @@ export class UserResolver {
               logger.warn('alias quota exhausted', picked)
               throw new LogError('ALIAS_QUOTA_EXHAUSTED')
             }
-            const inserted = await dbInsertUserAlias(
-              { userId, alias, origin: 'chosen' },
-              tx,
-            )
+            const inserted = await dbInsertUserAlias({ userId, alias, origin: 'chosen' }, tx)
             if (!inserted.success) {
               // taken by somebody else between the check above and this insert
               logger.warn('alias taken while it was being set', inserted.error)

@@ -158,7 +158,7 @@ describe('user.queries', () => {
       await dbInsertUserAlias({
         userId: peter.id,
         alias: 'Peter-Case',
-        origin:  'chosen',
+        origin: 'chosen',
       })
 
       expect(await aliasExists('peter-case', bibi.id)).toBe(true)
@@ -169,10 +169,7 @@ describe('user.queries', () => {
     // seen through `tx`, not beside it.
     it('asks over the transaction it is given', async () => {
       await drizzleDb().transaction(async (tx) => {
-        await dbInsertUserAlias(
-          { userId: bibi.id, alias: 'bibi-pending', origin:  'chosen' },
-          tx,
-        )
+        await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-pending', origin: 'chosen' }, tx)
 
         expect(await aliasExists('bibi-pending', undefined, tx)).toBe(true)
         expect(await aliasExists('bibi-pending')).toBe(false)
@@ -977,7 +974,7 @@ describe('user.queries', () => {
       const held = await dbInsertUserAlias({
         userId: peter.id,
         alias: 'peter-was',
-        origin:  'chosen',
+        origin: 'chosen',
       })
       expect(held.success).toBe(true)
       expect(await found('r-wa', 'lustig')).toEqual([peter.id])
