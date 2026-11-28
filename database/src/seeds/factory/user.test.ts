@@ -1,7 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import { OptInType, PasswordEncryptionType } from 'shared'
 import { AppDatabase, drizzleDb } from '../../AppDatabase'
-import { ALIAS_ORIGIN_ADOPTED } from '../../entity'
 import { AccountState, RoleNames } from '../../enum'
 import { dbDeleteAllRowsExceptMigrations } from '../../queries/informationSchemaTables'
 import {
@@ -124,7 +123,7 @@ describe('buildSeedUserRows', () => {
     const rows = build([{ alias: 'Seedy', email: 'a@seed.de' }])
 
     expect(rows.users[0].alias).toBe('Seedy')
-    expect(rows.userAliases).toEqual([{ userId: 1, alias: 'Seedy', origin: ALIAS_ORIGIN_ADOPTED }])
+    expect(rows.userAliases).toEqual([{ userId: 1, alias: 'Seedy', origin: 'adopted' }])
   })
 })
 
@@ -166,7 +165,7 @@ describe('userFactory', () => {
     const [row] = await drizzleDb().select().from(usersTable)
     expect(row.emailId).toBe(contact.id)
     expect(await drizzleDb().select().from(userAliasesTable)).toEqual([
-      expect.objectContaining({ userId: user.id, alias: 'SeedAnna', origin: ALIAS_ORIGIN_ADOPTED }),
+      expect.objectContaining({ userId: user.id, alias: 'SeedAnna', origin: 'adopted' }),
     ])
   })
 

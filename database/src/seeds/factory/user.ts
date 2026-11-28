@@ -11,7 +11,7 @@ import {
 import { v4 } from 'uuid'
 import { DrizzleTransaction, drizzleDb } from '../../AppDatabase'
 import { DbUser } from '../../data/relations'
-import { ALIAS_ORIGIN_ADOPTED, Community, User } from '../../entity'
+import { Community, User } from '../../entity'
 import { AccountState } from '../../enum/AccountState'
 import { RoleNames } from '../../enum/RoleNames'
 import { dbSelectHomeCommunity } from '../../queries/communities'
@@ -135,7 +135,7 @@ function userContactRowOf(user: UserInterface, userId: number): UserContactInser
 // Every alias a member holds has its row in `user_aliases`, as registration and migration
 // 0116 write it. `adopted`: a name that is already settled, and costs none of the four picks.
 function userAliasRowOf(user: UserInterface, userId: number): UserAliasInsert {
-  return { userId, alias: user.alias, origin: ALIAS_ORIGIN_ADOPTED }
+  return { userId, alias: user.alias, origin: 'adopted' }
 }
 
 function userRoleOf(user: UserInterface): RoleNames | null {

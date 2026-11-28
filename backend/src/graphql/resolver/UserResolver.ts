@@ -31,7 +31,6 @@ import {
 } from 'core'
 import {
   AccountState,
-  ALIAS_ORIGIN_CHOSEN,
   ASSIGNABLE_ROLE_NAMES,
   aliasOriginIsSettled,
   CommunitiesSelect,
@@ -856,16 +855,16 @@ export class UserResolver {
       await drizzleDb().transaction(
         async (tx: DrizzleTransaction) => {
           await validateAlias(alias, userId, tx)
-          const ownAlready = await dbFindOwnAlias(userId, alias)
+          const ownAlready = await dbFindOwnAlias(userId, alias, tx)
           if (!ownAlready) {
             const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
-            const picked = await dbCountChosenAliasesSince(userId, since)
+            const picked = await dbCountChosenAliasesSince(userId, since, tx)
             if (picked >= ALIAS_QUOTA_PER_WINDOW) {
               logger.warn('alias quota exhausted', picked)
               throw new LogError('ALIAS_QUOTA_EXHAUSTED')
             }
             const inserted = await dbInsertUserAlias(
-              { userId, alias, origin: ALIAS_ORIGIN_CHOSEN },
+              { userId, alias, origin: 'chosen' },
               tx,
             )
             if (!inserted.success) {
