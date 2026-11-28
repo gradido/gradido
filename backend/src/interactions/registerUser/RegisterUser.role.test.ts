@@ -52,8 +52,6 @@ import {
 } from 'core'
 import {
   AccountState,
-  ALIAS_ORIGIN_ASSIGNED,
-  ALIAS_ORIGIN_CHOSEN,
   CommunitiesSelect,
   DBDuplicateEntryError,
   DBInsertFailed,
@@ -291,7 +289,7 @@ describe('RegisterUserRole', () => {
       expect(namesAskedAbout()).toEqual([expect.arrayContaining(['BerndH', 'BerndHue'])])
       expect(insertedUserAlias()).toBe('BerndH')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        { alias: 'BerndH', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        { alias: 'BerndH', userId: USER_ID, origin: 'assigned' },
         tx,
       )
     })
@@ -303,7 +301,7 @@ describe('RegisterUserRole', () => {
 
       expect(insertedUserAlias()).toBe('BerndHue')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        { alias: 'BerndHue', userId: USER_ID, origin: 'assigned' },
         tx,
       )
     })
@@ -328,7 +326,7 @@ describe('RegisterUserRole', () => {
       expect(namesAskedAbout()[0][0]).toBe('bernd-the-gardener')
       expect(insertedUserAlias()).toBe('bernd-the-gardener')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        { alias: 'bernd-the-gardener', userId: USER_ID, origin: ALIAS_ORIGIN_CHOSEN },
+        { alias: 'bernd-the-gardener', userId: USER_ID, origin: 'chosen' },
         tx,
       )
     })
@@ -341,7 +339,7 @@ describe('RegisterUserRole', () => {
 
       expect(insertedUserAlias()).toBe('BerndH')
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        { alias: 'BerndH', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        { alias: 'BerndH', userId: USER_ID, origin: 'assigned' },
         tx,
       )
     })
@@ -363,7 +361,7 @@ describe('RegisterUserRole', () => {
       expect(mocked(dbInsertUserAlias).mock.calls[0][0].alias).toBe('BerndH')
       expect(mocked(dbFindUserAliasesExisting).mock.calls[1][1]).toBeUndefined()
       expect(dbInsertUserAlias).toHaveBeenLastCalledWith(
-        { alias: 'BerndHue', userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        { alias: 'BerndHue', userId: USER_ID, origin: 'assigned' },
         tx,
       )
       expect(dbUserUpdateField).toHaveBeenCalledWith(USER_ID, 'alias', 'BerndHue', tx)
@@ -380,7 +378,7 @@ describe('RegisterUserRole', () => {
       expect(row.alias).toBe(row.gradidoId.slice(0, 18).toLowerCase())
       expect(row.alias).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}$/)
       expect(dbInsertUserAlias).toHaveBeenCalledWith(
-        { alias: row.alias, userId: USER_ID, origin: ALIAS_ORIGIN_ASSIGNED },
+        { alias: row.alias, userId: USER_ID, origin: 'assigned' },
         tx,
       )
     })

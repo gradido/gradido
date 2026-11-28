@@ -1,4 +1,5 @@
 export * from './AccountState'
+export * from './AliasOrigin'
 export * from './CommunityUniqueKey'
 export * from './ContributionCycleType'
 export * from './ContributionStatus'

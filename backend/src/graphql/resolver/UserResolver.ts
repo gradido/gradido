@@ -31,7 +31,6 @@ import {
 } from 'core'
 import {
   AccountState,
-  ALIAS_ORIGIN_CHOSEN,
   ASSIGNABLE_ROLE_NAMES,
   aliasOriginIsSettled,
   CommunitiesSelect,
@@ -63,6 +62,7 @@ import {
   dbFindUserWithContactByEmail,
   dbInsertEvent,
   dbInsertUserAlias,
+  dbLockUserRowDrizzle,
   dbMarkAliasAdopted,
   dbRecoverUser,
   dbReleaseUnconfirmedEmailChangeFor,
@@ -855,19 +855,19 @@ export class UserResolver {
       const userId = user.id
       await drizzleDb().transaction(
         async (tx: DrizzleTransaction) => {
+          // Two changes at once would both count the same picks and both insert, past the
+          // quota: the second waits here and then counts the first one's row.
+          await dbLockUserRowDrizzle(userId, tx)
           await validateAlias(alias, userId, tx)
-          const ownAlready = await dbFindOwnAlias(userId, alias)
+          const ownAlready = await dbFindOwnAlias(userId, alias, tx)
           if (!ownAlready) {
             const since = new Date(Date.now() - ALIAS_QUOTA_WINDOW_MS)
-            const picked = await dbCountChosenAliasesSince(userId, since)
+            const picked = await dbCountChosenAliasesSince(userId, since, tx)
             if (picked >= ALIAS_QUOTA_PER_WINDOW) {
               logger.warn('alias quota exhausted', picked)
               throw new LogError('ALIAS_QUOTA_EXHAUSTED')
             }
-            const inserted = await dbInsertUserAlias(
-              { userId, alias, origin: ALIAS_ORIGIN_CHOSEN },
-              tx,
-            )
+            const inserted = await dbInsertUserAlias({ userId, alias, origin: 'chosen' }, tx)
             if (!inserted.success) {
               // taken by somebody else between the check above and this insert
               logger.warn('alias taken while it was being set', inserted.error)

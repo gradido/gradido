@@ -8,8 +8,6 @@ import {
   sendAssistedRegistrationConfirmEmail,
 } from 'core'
 import {
-  ALIAS_ORIGIN_ASSIGNED,
-  ALIAS_ORIGIN_CHOSEN,
   DBDuplicateEntryError,
   DbUser,
   DrizzleTransaction,
@@ -204,7 +202,7 @@ export class RegisterUserRole<
       {
         alias: dbUser.alias,
         userId: this.userId,
-        origin: dbUser.alias === this.user.alias ? ALIAS_ORIGIN_CHOSEN : ALIAS_ORIGIN_ASSIGNED,
+        origin: dbUser.alias === this.user.alias ? 'chosen' : 'assigned',
       },
       tx,
     )
@@ -222,7 +220,7 @@ export class RegisterUserRole<
           {
             alias: dbUser.alias,
             userId: this.userId,
-            origin: dbUser.alias === this.user.alias ? ALIAS_ORIGIN_CHOSEN : ALIAS_ORIGIN_ASSIGNED,
+            origin: dbUser.alias === this.user.alias ? 'chosen' : 'assigned',
           },
           tx,
         )

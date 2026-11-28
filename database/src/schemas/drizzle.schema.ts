@@ -23,6 +23,7 @@ import {
 import { createSelectSchema } from 'drizzle-orm/valibot'
 import * as v from 'valibot'
 import { AccountState } from '../enum/AccountState'
+import { AliasOrigin } from '../enum/AliasOrigin'
 import { FirstCreationStatus } from '../enum/FirstCreationStatus'
 import { customBinary, customGeometry, customGradidoUnit, customMediumBlob } from './customTypes'
 
@@ -893,14 +894,18 @@ export type UserContactInsert = typeof userContactsTable.$inferInsert
 export const userContactSelectSchema = createSelectSchema(userContactsTable)
 
 // Every name a member owns; `users.alias` marks the current one (see migration 0116).
-// `origin` is one of the AliasOrigin values next to the UserAlias entity.
+// `origin` is one of the AliasOrigin values.
 export const userAliasesTable = mysqlTable(
   'user_aliases',
   {
     id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
     userId: int('user_id', { unsigned: true }).notNull(),
     alias: varchar({ length: 20 }).collate('utf8mb4_unicode_ci').notNull(),
-    origin: varchar({ length: 8 }).collate('utf8mb4_unicode_ci').default('chosen').notNull(),
+    origin: varchar({ length: 8 })
+      .collate('utf8mb4_unicode_ci')
+      .$type<AliasOrigin>()
+      .default('chosen')
+      .notNull(),
     createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
       .default(sql`current_timestamp(3)`)
       .notNull(),

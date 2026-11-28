@@ -9,7 +9,6 @@ import {
 import { v4 } from 'uuid'
 import { clearDatabase } from '../../migration/clear'
 import {
-  ALIAS_ORIGIN_CHOSEN,
   CommunitiesSelect,
   Transaction as DbTransaction,
   User as DbUser,
@@ -141,13 +140,13 @@ describe('user.queries', () => {
 
     it('refuses a name another member left behind', async () => {
       const peter = await userFactory({ ...peterLustig, alias: 'peter-now' })
-      await dbInsertUserAlias({ userId: peter.id, alias: 'peter-was', origin: ALIAS_ORIGIN_CHOSEN })
+      await dbInsertUserAlias({ userId: peter.id, alias: 'peter-was', origin: 'chosen' })
 
       expect(await aliasExists('peter-was', bibi.id)).toBe(true)
     })
 
     it('lets a member take back a name of their own', async () => {
-      await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-was', origin: ALIAS_ORIGIN_CHOSEN })
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-was', origin: 'chosen' })
 
       expect(await aliasExists('bibi-was', bibi.id)).toBe(false)
       // ...and it stays blocked for everybody else.
@@ -159,7 +158,7 @@ describe('user.queries', () => {
       await dbInsertUserAlias({
         userId: peter.id,
         alias: 'Peter-Case',
-        origin: ALIAS_ORIGIN_CHOSEN,
+        origin: 'chosen',
       })
 
       expect(await aliasExists('peter-case', bibi.id)).toBe(true)
@@ -170,10 +169,7 @@ describe('user.queries', () => {
     // seen through `tx`, not beside it.
     it('asks over the transaction it is given', async () => {
       await drizzleDb().transaction(async (tx) => {
-        await dbInsertUserAlias(
-          { userId: bibi.id, alias: 'bibi-pending', origin: ALIAS_ORIGIN_CHOSEN },
-          tx,
-        )
+        await dbInsertUserAlias({ userId: bibi.id, alias: 'bibi-pending', origin: 'chosen' }, tx)
 
         expect(await aliasExists('bibi-pending', undefined, tx)).toBe(true)
         expect(await aliasExists('bibi-pending')).toBe(false)
@@ -978,7 +974,7 @@ describe('user.queries', () => {
       const held = await dbInsertUserAlias({
         userId: peter.id,
         alias: 'peter-was',
-        origin: ALIAS_ORIGIN_CHOSEN,
+        origin: 'chosen',
       })
       expect(held.success).toBe(true)
       expect(await found('r-wa', 'lustig')).toEqual([peter.id])

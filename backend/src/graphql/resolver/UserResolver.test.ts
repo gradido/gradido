@@ -27,14 +27,13 @@ import {
 } from 'core'
 import {
   AccountState,
-  ALIAS_ORIGIN_ASSIGNED,
-  ALIAS_ORIGIN_CHOSEN,
   AppDatabase,
   CommunitiesSelect,
   contributionLinkFactory,
   createCommunity,
   Event as DbEvent,
   dbDeleteForeignCommunity,
+  dbFindOldestChosenAliasSince,
   dbInsertMatchingEntry,
   dbInsertUserAlias,
   transactionLinkFactory as dbTransactionLinkFactory,
@@ -45,10 +44,11 @@ import {
   EventType,
   TransactionLinkInterface,
   User,
-  UserAlias,
   UserContact,
   UserRole,
+  userAliasesTable,
 } from 'database'
+import { asc, eq } from 'drizzle-orm'
 import { GraphQLError } from 'graphql'
 import { gql } from 'graphql-tag'
 import { AVATAR_FULL_MAX_BYTES, AVATAR_SMALL_MAX_BYTES, OptInType } from 'shared'
@@ -3913,7 +3913,7 @@ describe('UserResolver', () => {
             const taken = await dbInsertUserAlias({
               userId: garrick.user.id,
               alias: 'wand-maker',
-              origin: ALIAS_ORIGIN_CHOSEN,
+              origin: 'chosen',
             })
             expect(taken.success).toBe(true)
             await User.update({ id: garrick.user.id }, { alias: 'wand-maker' })
@@ -6247,7 +6247,7 @@ describe('UserResolver', () => {
     })
 
     beforeEach(async () => {
-      await UserAlias.delete({ userId: member.id })
+      await drizzleDb().delete(userAliasesTable).where(eq(userAliasesTable.userId, member.id))
       await User.update({ id: member.id }, { alias: 'BBB' })
     })
 
@@ -6255,9 +6255,13 @@ describe('UserResolver', () => {
       mutate({ mutation: updateUserInfos, variables: { alias } })
 
     const ownedNames = async () =>
-      (await UserAlias.find({ where: { userId: member.id }, order: { id: 'ASC' } })).map(
-        (row) => row.alias,
-      )
+      (
+        await drizzleDb()
+          .select({ alias: userAliasesTable.alias })
+          .from(userAliasesTable)
+          .where(eq(userAliasesTable.userId, member.id))
+          .orderBy(asc(userAliasesTable.id))
+      ).map((row) => row.alias)
 
     it('records the name it takes, not the one it leaves', async () => {
       await changeTo('bibi-one')
@@ -6312,13 +6316,9 @@ describe('UserResolver', () => {
     // A name handed out by the system is a proposal until it is adopted, so it must not
     // eat a pick - otherwise everyone would start the year with three instead of four.
     it('does not spend a pick on a name the system handed out', async () => {
-      await UserAlias.save(
-        UserAlias.create({
-          userId: member.id,
-          alias: 'BBB',
-          origin: ALIAS_ORIGIN_ASSIGNED,
-        }),
-      )
+      await drizzleDb()
+        .insert(userAliasesTable)
+        .values({ userId: member.id, alias: 'BBB', origin: 'assigned' })
 
       await expect(query({ query: aliasStatus })).resolves.toMatchObject({
         data: { aliasStatus: { changesLeft: 4, nextChangeAt: null } },
@@ -6329,13 +6329,9 @@ describe('UserResolver', () => {
     // is what stops it coming back - but it is not a pick and must cost none of the four
     // (NU-010/011). Both halves are the point, so both are asserted.
     it('settles the question when the member keeps the built name, and spends no pick', async () => {
-      await UserAlias.save(
-        UserAlias.create({
-          userId: member.id,
-          alias: 'BBB',
-          origin: ALIAS_ORIGIN_ASSIGNED,
-        }),
-      )
+      await drizzleDb()
+        .insert(userAliasesTable)
+        .values({ userId: member.id, alias: 'BBB', origin: 'assigned' })
 
       await expect(mutate({ mutation: adoptAlias })).resolves.toMatchObject({
         data: { adoptAlias: true },
@@ -6443,10 +6439,10 @@ describe('UserResolver', () => {
         expect(result.data.aliasStatus.changesLeft).toBe(0)
         expect(result.data.aliasStatus.nextChangeAt).not.toBeNull()
 
-        const oldest = await UserAlias.findOneOrFail({
-          where: { userId: member.id, origin: ALIAS_ORIGIN_CHOSEN },
-          order: { createdAt: 'ASC' },
-        })
+        const oldest = await dbFindOldestChosenAliasSince(member.id, new Date(0))
+        if (!oldest) {
+          throw new Error('no chosen alias stored')
+        }
         const expected = new Date(oldest.createdAt.getTime() + 365 * 24 * 60 * 60 * 1000)
         expect(new Date(result.data.aliasStatus.nextChangeAt).getTime()).toBeCloseTo(
           expected.getTime(),

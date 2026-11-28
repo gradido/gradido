@@ -2,7 +2,6 @@
 import { Order, PasswordEncryptionType } from 'shared'
 import { clearLogs, getLogger, printLogs } from '../../../config-schema/test/testSetup.bun'
 import {
-  ALIAS_ORIGIN_CHOSEN,
   CommunitiesSelect,
   User as DbUser,
   UserContact as DbUserContact,
@@ -153,7 +152,7 @@ describe('user.typeorm.queries', () => {
       communityUuid = homeCom.communityUuid!
       communityName = homeCom.name!
       bibi = await userFactory({ ...bibiBloxberg, alias: 'newname' })
-      await dbInsertUserAlias({ userId: bibi.id, alias: 'oldname', origin: ALIAS_ORIGIN_CHOSEN })
+      await dbInsertUserAlias({ userId: bibi.id, alias: 'oldname', origin: 'chosen' })
     })
 
     it('finds them by the name they hold now', async () => {

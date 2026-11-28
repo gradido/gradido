@@ -1,13 +1,17 @@
 // AI-GENERATED — not an architecture reference
 
-import { and, eq, inArray, isNull } from 'drizzle-orm'
+import { and, asc, count, eq, gt, inArray, isNull } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
-import { Order, Result } from 'shared'
-import { EntityManager, FindOptionsWhere, MoreThan } from 'typeorm'
+import { Result } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
-import { ALIAS_ORIGIN_ADOPTED, ALIAS_ORIGIN_CHOSEN, UserAlias as DbUserAlias } from '../entity'
 import { DBDuplicateEntryError, DBInsertFailed, isDuplicateEntry } from '../errorTypes'
-import { UserAliasInsert, UserSelect, userAliasesTable, usersTable } from '../schemas'
+import {
+  UserAliasInsert,
+  UserAliasSelect,
+  UserSelect,
+  userAliasesTable,
+  usersTable,
+} from '../schemas'
 
 /**
  * Every name a member owns lives here; `users.alias` marks the current one. Taking a
@@ -18,8 +22,8 @@ import { UserAliasInsert, UserSelect, userAliasesTable, usersTable } from '../sc
  * Taking a name writes here and to `users.alias`, and both writes share one Drizzle
  * transaction (`tx` on `dbInsertUserAlias`): a row written outside would survive a
  * rollback and leave the member holding a name their account never got - counted
- * against their quota and blocked for everyone else. The reads still on TypeORM take
- * an optional `EntityManager`.
+ * against their quota and blocked for everyone else. The reads take the same optional
+ * `tx`, so a check inside that transaction sees what it has written.
  */
 
 const userAliasInsertFailed = (row: UserAliasInsert) =>
@@ -29,16 +33,36 @@ const userAliasInsertFailed = (row: UserAliasInsert) =>
 export async function dbFindOwnAlias(
   userId: number,
   alias: string,
-  manager?: EntityManager,
-): Promise<DbUserAlias | null> {
-  const where = { userId, alias }
-  return manager ? manager.findOne(DbUserAlias, { where }) : DbUserAlias.findOne({ where })
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<UserAliasSelect | null> {
+  const rows = await tx
+    .select()
+    .from(userAliasesTable)
+    .where(and(eq(userAliasesTable.userId, userId), eq(userAliasesTable.alias, alias)))
+    .limit(1)
+  return rows[0] ?? null
 }
 
 /** Whoever owns this name, or null. */
-export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | null> {
-  return DbUserAlias.findOne({ where: { alias } })
+export async function dbFindAliasOwner(
+  alias: string,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<UserAliasSelect | null> {
+  const rows = await tx
+    .select()
+    .from(userAliasesTable)
+    .where(eq(userAliasesTable.alias, alias))
+    .limit(1)
+  return rows[0] ?? null
 }
+
+/** The picks of this member made after the given moment. */
+const chosenSince = (userId: number, since: Date) =>
+  and(
+    eq(userAliasesTable.userId, userId),
+    eq(userAliasesTable.origin, 'chosen'),
+    gt(userAliasesTable.createdAt, since),
+  )
 
 /**
  * How often this member picked a name since the given moment. Names the system handed
@@ -47,14 +71,13 @@ export async function dbFindAliasOwner(alias: string): Promise<DbUserAlias | nul
 export async function dbCountChosenAliasesSince(
   userId: number,
   since: Date,
-  manager?: EntityManager,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
 ): Promise<number> {
-  const where: FindOptionsWhere<DbUserAlias> = {
-    userId,
-    origin: ALIAS_ORIGIN_CHOSEN,
-    createdAt: MoreThan(since),
-  }
-  return manager ? manager.count(DbUserAlias, { where }) : DbUserAlias.count({ where })
+  const rows = await tx
+    .select({ n: count() })
+    .from(userAliasesTable)
+    .where(chosenSince(userId, since))
+  return rows[0]?.n ?? 0
 }
 
 /**
@@ -64,15 +87,15 @@ export async function dbCountChosenAliasesSince(
 export async function dbFindOldestChosenAliasSince(
   userId: number,
   since: Date,
-): Promise<DbUserAlias | null> {
-  return DbUserAlias.findOne({
-    where: {
-      userId,
-      origin: ALIAS_ORIGIN_CHOSEN,
-      createdAt: MoreThan(since),
-    } as FindOptionsWhere<DbUserAlias>,
-    order: { createdAt: Order.ASC },
-  })
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<UserAliasSelect | null> {
+  const rows = await tx
+    .select()
+    .from(userAliasesTable)
+    .where(chosenSince(userId, since))
+    .orderBy(asc(userAliasesTable.createdAt))
+    .limit(1)
+  return rows[0] ?? null
 }
 
 /** Record that this name now belongs to the member. */
@@ -127,8 +150,15 @@ export async function dbFindLocalUserByAlias(
 }
 
 /** Every name this member owns, current one included. */
-export async function dbFindAliasesByUser(userId: number): Promise<DbUserAlias[]> {
-  return DbUserAlias.find({ where: { userId }, order: { createdAt: Order.ASC } })
+export async function dbFindAliasesByUser(
+  userId: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<UserAliasSelect[]> {
+  return tx
+    .select()
+    .from(userAliasesTable)
+    .where(eq(userAliasesTable.userId, userId))
+    .orderBy(asc(userAliasesTable.createdAt))
 }
 
 /**
@@ -157,8 +187,11 @@ export async function dbFindUserAliasesExisting(
  * four (NU-010/011), which is exactly why `adopted` is its own origin and not `chosen`.
  * Nothing else about the row changes; `created_at` still records when they got it.
  */
-export async function dbMarkAliasAdopted(id: number): Promise<void> {
-  await DbUserAlias.update({ id }, { origin: ALIAS_ORIGIN_ADOPTED })
+export async function dbMarkAliasAdopted(
+  id: number,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx.update(userAliasesTable).set({ origin: 'adopted' }).where(eq(userAliasesTable.id, id))
 }
 
 // One statement for all the rows it is given
