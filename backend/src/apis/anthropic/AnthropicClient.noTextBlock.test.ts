@@ -4,7 +4,7 @@
 // blocks, never their words.
 //
 // Written to run under jest (today) and `bun test --isolate` (later) alike, as
-// validateCommunities.test.ts is: the fakes are declared before `jest.mock`, and the module under
+// dht-node/src/dht_node/validateCommunity.test.ts is: the fakes are declared before `jest.mock`, and the module under
 // test is imported in `beforeAll`, after every mock is registered.
 import type Anthropic from '@anthropic-ai/sdk'
 import type { AnthropicClient as AnthropicClientType } from './AnthropicClient'

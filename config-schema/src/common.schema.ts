@@ -168,15 +168,6 @@ export const LOG4JS_CONFIG = v.pipe(
   v.description('config file name for log4js config file'),
 )
 
-export const LOG4JS_CONFIG_PLACEHOLDER = v.pipe(
-  nonEmptyStringSchema,
-  v.regex(
-    /^[a-zA-Z0-9-_]+(%v)?\.json$/,
-    'LOG4JS_CONFIG_PLACEHOLDER must be a valid filename ending with .json can contain %v as API Version placeholder before ending',
-  ),
-  v.description('config file name for log4js config file'),
-)
-
 export const LOG_FILES_BASE_PATH = v.pipe(
   nonEmptyStringSchema,
   v.regex(

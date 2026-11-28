@@ -259,8 +259,6 @@ server {
     # dlt
     $DLT_NGINX_CONF
     
-    # Federation
-    $FEDERATION_NGINX_CONF
 
     # TODO this could be a performance optimization
     #location /vue {

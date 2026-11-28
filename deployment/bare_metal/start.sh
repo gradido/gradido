@@ -206,7 +206,8 @@ PROCESS_PATTERNS=(
     "gradido-backend"
     "gradido-dht-node"
     "dlt-connector"
-    "gradido-federation-"
+    # also the former one per api version, gradido-federation-1_0
+    "gradido-federation"
 )
 
 # make sure nvm is loaded
@@ -255,27 +256,6 @@ log_step "Install missing dependencies (nvm, correct nodejs version, bun, rust, 
 source ./deployment/bare_metal/install-missing-deps.sh
 
 # Generate gradido.conf from template
-# *** 1st prepare for each apiversion the federation conf for nginx from federation-template
-# *** set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS and create gradido-federation.conf file
-rm -f $NGINX_CONFIG_DIR/gradido.conf.tmp
-rm -f $NGINX_CONFIG_DIR/gradido-federation.conf.locations
-log_step "===================================================================================================="
-IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
-for api in "${API_ARRAY[@]}"
-do
-  export FEDERATION_APIVERSION=$api
-  # calculate port by remove '_' and add value of api to baseport
-  port=${api//_/}
-  FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
-  FEDERATION_PORT=$(($FEDERATION_PORT + $port))
-  export FEDERATION_PORT
-  log_step "create ngingx config: location /api/$FEDERATION_APIVERSION  to  http://127.0.0.1:$FEDERATION_PORT"
-  envsubst '$FEDERATION_APIVERSION, $FEDERATION_PORT' < $NGINX_CONFIG_DIR/gradido-federation.conf.template >> $NGINX_CONFIG_DIR/gradido-federation.conf.locations
-done
-unset FEDERATION_APIVERSION
-unset FEDERATION_PORT
-log_step "===================================================================================================="
-
 export DLT_NGINX_CONF="${DLT_NGINX_CONF:-# dlt disabled}"
 # prepare inspector and gradido dlt node nginx config blocks if enabled
 if [ "$DLT_ACTIVE" = true ] ; then
@@ -285,21 +265,15 @@ if [ "$DLT_ACTIVE" = true ] ; then
   rm $NGINX_CONFIG_DIR/gradido-dlt.conf
 fi
 
-# *** 2nd read gradido-federation.conf file in env variable to be replaced in 3rd step
-export FEDERATION_NGINX_CONF=$(< $NGINX_CONFIG_DIR/gradido-federation.conf.locations)
-
-# *** 3rd generate gradido nginx config including federation modules per api-version
 log_step 'Generate new gradido nginx config'
 case "$URL_PROTOCOL" in
  'https') TEMPLATE_FILE="gradido.conf.ssl.template" ;;
        *) TEMPLATE_FILE="gradido.conf.template" ;;
 esac
-envsubst '$FEDERATION_NGINX_CONF,$DLT_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
-unset FEDERATION_NGINX_CONF
+envsubst '$DLT_NGINX_CONF' < $NGINX_CONFIG_DIR/$TEMPLATE_FILE > $NGINX_CONFIG_DIR/gradido.conf.tmp
 unset DLT_NGINX_CONF
 envsubst "$(env | sed -e 's/=.*//' -e 's/^/\$/g')" < $NGINX_CONFIG_DIR/gradido.conf.tmp > $NGINX_CONFIG_DIR/gradido.conf
 rm $NGINX_CONFIG_DIR/gradido.conf.tmp
-rm $NGINX_CONFIG_DIR/gradido-federation.conf.locations
 
 # Generate update-page.conf from template
 log_step 'Generate new update-page nginx config'
@@ -442,29 +416,14 @@ else
   log_step "====================================================================="
 fi
 
-# set FEDERATION_PORT from FEDERATION_COMMUNITY_APIS
-IFS="," read -a API_ARRAY <<< $FEDERATION_COMMUNITY_APIS
-for api in "${API_ARRAY[@]}"
-do
-  export FEDERATION_API=$api
-  log_step "FEDERATION_API=$FEDERATION_API"
-  export MODULENAME=gradido-federation-$api
-  log_step "MODULENAME=$MODULENAME"
-  # calculate port by remove '_' and add value of api to baseport
-  port=${api//_/}
-  FEDERATION_PORT=${FEDERATION_COMMUNITY_API_PORT:-5000}
-  FEDERATION_PORT=$(($FEDERATION_PORT + $port))
-  export FEDERATION_PORT
-  log_step "===================================================="
-  log_step " start $MODULENAME listening on port=$FEDERATION_PORT"
-  log_step "===================================================="
-  pm2 start --name $MODULENAME \
-    "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
-    --cwd $PROJECT_ROOT/federation \
-    -l $GRADIDO_LOG_PATH/pm2.$MODULENAME.$TODAY.log \
-    --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
-  pm2 save
-done
+# one federation module, the peer api carries its version in the route; nginx passes /peer-api
+# to port 5010, its default
+pm2 start --name gradido-federation \
+  "env TZ=UTC NODE_ENV=production bun ./build/index.js" \
+  --cwd $PROJECT_ROOT/federation \
+  -l $GRADIDO_LOG_PATH/pm2.federation.$TODAY.log \
+  --log-date-format 'YYYY-MM-DD HH:mm:ss.SSS'
+pm2 save
 
 # let nginx showing gradido
 log_step 'Configuring nginx to serve gradido again'

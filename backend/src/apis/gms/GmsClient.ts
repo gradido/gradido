@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ensureUrlEndsWithSlash } from 'core'
+import { ensureUrlEndsWithSlash, httpAgent, httpsAgent } from 'core'
 import { getLogger } from 'log4js'
 import {
   AuthContext,
@@ -14,7 +14,6 @@ import {
   verifyUserToken,
 } from 'shared'
 import * as v from 'valibot'
-import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
 import { LogError } from '@/server/LogError'

@@ -5,9 +5,15 @@ import { expect, Failure, test } from './fixtures/graphql'
 import { signedInAnswers, signIn } from './fixtures/signIn'
 import { serveWalletAssets } from './fixtures/walletAssets'
 
+// the communities as allCommunities answers them: a page, and how many there are in all
+const listOf = (communities: object[], count = communities.length) => ({ count, communities })
+
 test.beforeEach(async ({ page, graphql }) => {
   await page.clock.setFixedTime(new Date('2026-11-09T12:00:00.000Z'))
-  graphql.answer({ ...signedInAnswers(), allCommunities: [homeCommunity, foreignCommunity] })
+  graphql.answer({
+    ...signedInAnswers(),
+    allCommunities: listOf([homeCommunity, foreignCommunity]),
+  })
   await serveWalletAssets(page)
 })
 
@@ -22,7 +28,7 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   const home = rows(page).nth(0)
   await expect(home).toHaveClass(/list-group-item-primary/)
   await expect(rows(page).nth(1)).toHaveClass(/list-group-item-warning/)
-  // verified: one of its federations was verified after it was last announced
+  // verified: the own community always, a foreign one while it answered lately
   await expect(home.locator('[style*="--bs-success"]').first()).toBeVisible()
   await expect(rows(page).nth(1).locator('[style*="--bs-danger"]').first()).toBeVisible()
   await expect(home.getByRole('link', { name: 'http://localhost/api/' })).toHaveAttribute(
@@ -31,9 +37,11 @@ test('lists the communities, the own one first', async ({ page, graphql }) => {
   )
   await expect(home).toContainText(`${'a'.repeat(26)}…`)
   await expect(home).toContainText('Home')
-  await expect(home).toContainText('vor 2 Tagen')
   await expect(home).toContainText('vor 10 Monaten')
-  expect(graphql.sentFor('allCommunities')).toEqual([{ field: 'allCommunities', variables: {} }])
+  await expect(rows(page).nth(1)).toContainText('vor 2 Tagen')
+  expect(graphql.sentFor('allCommunities')).toEqual([
+    { field: 'allCommunities', variables: { currentPage: 1, pageSize: 25 } },
+  ])
 })
 
 test('says how long ago without "about", in the words of the browser', async ({
@@ -41,7 +49,10 @@ test('says how long ago without "about", in the words of the browser', async ({
   graphql,
 }) => {
   graphql.answer({
-    allCommunities: [{ ...homeCommunity, createdAt: '2026-11-09T09:00:00.000Z' }, foreignCommunity],
+    allCommunities: listOf([
+      { ...homeCommunity, createdAt: '2026-11-09T09:00:00.000Z' },
+      foreignCommunity,
+    ]),
   })
   await signIn(page, '/federation')
 
@@ -87,22 +98,63 @@ test('opens the details of a foreign community on a click, and closes them', asy
   await expect(details).toHaveCount(0)
 })
 
-test('shows the federations of a community, each with its dates', async ({ page }) => {
+test('shows a foreign community verified lately as reachable, with the date on it', async ({
+  page,
+  graphql,
+}) => {
+  graphql.answer({
+    allCommunities: listOf([
+      homeCommunity,
+      { ...foreignCommunity, verifiedAt: '2026-11-09T11:55:00.000Z' },
+    ]),
+  })
   await signIn(page, '/federation')
-  const home = rows(page).nth(0)
-  await home.getByText('Home', { exact: true }).click()
+  const foreign = rows(page).nth(1)
 
-  const federations = home.locator('.federation-visualize-item')
-  await expect(federations).toHaveCount(2)
-  await expect(federations.nth(0)).toContainText('1_0')
-  await expect(federations.nth(0)).toContainText('vor 1 Tag')
-  await expect(federations.nth(0).locator('[style*="--bs-success"]')).toHaveCount(1)
-  await expect(federations.nth(1).locator('[style*="--bs-danger"]')).toHaveCount(1)
-  // the date itself on the relative one
-  await federations.nth(0).getByText('vor 1 Tag').hover()
+  await expect(foreign.locator('[style*="--bs-success"]').first()).toBeVisible()
+  await foreign.getByText('vor 5 Minuten').hover()
   await expect(
-    page.getByRole('tooltip').filter({ hasText: '2026-11-08T12:00:00.000Z' }),
+    page.getByRole('tooltip').filter({ hasText: '2026-11-09T11:55:00.000Z' }),
   ).toBeVisible()
+})
+
+test('pages through the communities, 25 to a page', async ({ page, graphql }) => {
+  graphql.answer({ allCommunities: listOf([homeCommunity, foreignCommunity], 30) })
+  await signIn(page, '/federation')
+  await expect(rows(page)).toHaveCount(2)
+
+  await page.locator('.pagination').getByText('2', { exact: true }).click()
+
+  await expect
+    .poll(() => graphql.sentFor('allCommunities').map(({ variables }) => variables))
+    .toEqual([
+      { currentPage: 1, pageSize: 25 },
+      { currentPage: 2, pageSize: 25 },
+    ])
+})
+
+test('drops the answer to a page left before it came', async ({ page, graphql }) => {
+  const held: ((answer: unknown) => void)[] = []
+  graphql.answer({
+    allCommunities: ({ currentPage }: { currentPage: number }) =>
+      currentPage === 2
+        ? new Promise((resolve) => held.push(resolve))
+        : listOf([homeCommunity, foreignCommunity], 30),
+  })
+  await signIn(page, '/federation')
+  await expect(rows(page)).toHaveCount(2)
+  const pager = page.locator('.pagination')
+
+  await pager.getByText('2', { exact: true }).click()
+  await expect.poll(() => held.length).toBe(1)
+  await pager.getByText('1', { exact: true }).click()
+  await expect.poll(() => graphql.sentFor('allCommunities').length).toBe(3)
+  held[0](listOf([foreignCommunity], 30))
+
+  // the late answer of page 2 changes nothing: page 1 stays, with both
+  await expect(page.locator('.page-item.active')).toHaveText('1')
+  await page.waitForTimeout(200)
+  await expect(rows(page)).toHaveCount(2)
 })
 
 test('edits the GMS key of the own community', async ({ page, graphql }) => {

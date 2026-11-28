@@ -227,6 +227,7 @@
         "@types/node": "^24.9.1",
         "@types/uuid": "^8.3.4",
         "config-schema": "*",
+        "core": "*",
         "database": "*",
         "dotenv": "^16.6.1",
         "esbuild": "^0.25.3",
@@ -240,9 +241,9 @@
         "ts-jest": "29.4.0",
         "tsconfig-paths": "^4.1.1",
         "tsx": "^4.19.4",
-        "typeorm": "^0.3.25",
         "typescript": "~5.9.3",
         "uuid": "^8.3.2",
+        "valibot": "1.1.0",
       },
     },
     "dlt-connector": {

@@ -7,12 +7,11 @@ import {
   integerSchema,
   LOG_FILES_BASE_PATH,
   LOG_LEVEL,
-  LOG4JS_CONFIG_PLACEHOLDER,
+  LOG4JS_CONFIG,
   NODE_ENV,
   portSchema,
   URL_PROTOCOL,
 } from 'config-schema'
-import { federationApiSchema } from 'shared'
 import * as v from 'valibot'
 
 // What the environment can set, and the value used where it does not. CONFIG is read straight
@@ -20,7 +19,7 @@ import * as v from 'valibot'
 // out of process.env with this, so the keys are the variable names.
 
 const environment = v.object({
-  LOG4JS_CONFIG_PLACEHOLDER: v.optional(LOG4JS_CONFIG_PLACEHOLDER, 'log4js-config-%v.json'),
+  LOG4JS_CONFIG: v.optional(LOG4JS_CONFIG, 'log4js-config.json'),
   // default log level on production should be info
   // log level for default log4js-config.json, don't change existing log4js-config.json
   LOG_LEVEL: v.optional(LOG_LEVEL, 'info'),
@@ -32,7 +31,6 @@ const environment = v.object({
   URL_PROTOCOL,
   COMMUNITY_URL: v.optional(COMMUNITY_URL),
 
-  FEDERATION_API: federationApiSchema,
   FEDERATION_PORT: v.optional(
     v.pipe(portSchema, v.description('Port number for the federation service, defaults to 5010')),
     5010,

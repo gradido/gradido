@@ -1,8 +1,8 @@
 // AI-GENERATED — not an architecture reference
 import { randomInt } from 'node:crypto'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { httpAgent, httpsAgent } from 'core'
 import { Result } from 'shared'
-import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
 import { ChatVideoServer } from '@/data/ChatVideoServer.logic'
 import {
   boshSessionRequest,

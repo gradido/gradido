@@ -79,6 +79,7 @@ export const foreignCommunityInsertSchema = v.object({
   publicKey: ed25519PublicKeySchema,
   communityUuid: uuidv4Schema,
   authenticatedAt: dateSchema,
+  verifiedAt: dateSchema,
   name: communityNameSchema,
   description: communityDescriptionSchema,
   publicJwtKey: publicJwtKeySchema,

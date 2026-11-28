@@ -5,7 +5,6 @@ import { CommunityLoggingView } from './CommunityLogging.view'
 import { ContributionLoggingView } from './ContributionLogging.view'
 import { ContributionMessageLoggingView } from './ContributionMessageLogging.view'
 import { DltTransactionLoggingView } from './DltTransactionLogging.view'
-import { FederatedCommunityLoggingView } from './FederatedCommunityLogging.view'
 import { PendingTransactionLoggingView } from './PendingTransactionLogging.view'
 import { TransactionLoggingView } from './TransactionLogging.view'
 import { UserContactLoggingView } from './UserContactLogging.view'
@@ -18,7 +17,6 @@ export {
   ContributionLoggingView,
   ContributionMessageLoggingView,
   DltTransactionLoggingView,
-  FederatedCommunityLoggingView,
   PendingTransactionLoggingView,
   TransactionLoggingView,
   UserContactLoggingView,

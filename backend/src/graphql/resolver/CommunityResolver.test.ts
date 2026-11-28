@@ -4,15 +4,12 @@ import {
   AppDatabase,
   CommunitiesSelect,
   createCommunity,
-  createFederatedCommunity,
-  createVerifiedFederatedCommunity,
   dbSelectHomeCommunity,
-  FederatedCommunitiesSelect,
   getHomeCommunityDrizzle,
 } from 'database'
 import { GraphQLError } from 'graphql/error/GraphQLError'
+import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
-import { CONFIG } from '@/config'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
 import {
   login,
@@ -25,8 +22,6 @@ import {
   reachableCommunities,
 } from '@/seeds/graphql/queries'
 import { peterLustig } from '@/seeds/users/peter-lustig'
-
-CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER = 1000
 
 // to do: We need a setup for the tests that closes the connection
 let mutate: ApolloServerTestClient['mutate']
@@ -111,13 +106,6 @@ const ed25519KeyPairStaticHex = [
 
 describe('CommunityResolver', () => {
   describe('allCommunities for admin', () => {
-    let homeCom1: FederatedCommunitiesSelect
-    let homeCom2: FederatedCommunitiesSelect
-    let homeCom3: FederatedCommunitiesSelect
-    let foreignCom1: FederatedCommunitiesSelect
-    let foreignCom2: FederatedCommunitiesSelect
-    let foreignCom3: FederatedCommunitiesSelect
-
     beforeAll(async () => {
       // create admin and login as admin
       await userFactoryDrizzle(peterLustig)
@@ -128,299 +116,66 @@ describe('CommunityResolver', () => {
       await cleanDB()
     })
 
-    describe('with empty list', () => {
-      it('returns no community entry', async () => {
-        // const result: Community[] = await query({ query: getCommunities })
-        // expect(result.length).toEqual(0)
-        await expect(query({ query: allCommunities })).resolves.toMatchObject({
-          data: {
-            allCommunities: [],
-          },
-        })
-      })
-    })
+    describe('with the home community and two foreign ones', () => {
+      let homeCom: CommunitiesSelect
+      let olderForeignCom: CommunitiesSelect
+      let newerForeignCom: CommunitiesSelect
 
-    describe('only home-community entries (different apis)', () => {
-      beforeEach(async () => {
-        homeCom1 = await createFederatedCommunity({
-          foreign: false,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
-          apiVersion: '1_0',
-          endPoint: 'http://localhost/api',
-        })
-
-        homeCom2 = await createFederatedCommunity({
-          foreign: false,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
-          apiVersion: '1_1',
-          endPoint: 'http://localhost/api',
-        })
-
-        homeCom3 = await createFederatedCommunity({
-          foreign: false,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
-          apiVersion: '2_0',
-          endPoint: 'http://localhost/api',
-        })
-      })
-
-      it('returns only home-community entries', async () => {
-        await expect(query({ query: allCommunities })).resolves.toMatchObject({
-          data: {
-            allCommunities: [
-              {
-                foreign: false,
-                url: 'http://localhost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                authenticatedAt: null,
-                createdAt: null,
-                creationDate: null,
-                description: null,
-                gmsApiKey: null,
-                name: null,
-                updatedAt: null,
-                uuid: null,
-                federatedCommunities: [
-                  {
-                    id: homeCom3.id,
-                    apiVersion: '2_0',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom3.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                  {
-                    id: homeCom2.id,
-                    apiVersion: '1_1',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom2.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                  {
-                    id: homeCom1.id,
-                    apiVersion: '1_0',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom1.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                ],
-              },
-            ],
-          },
-        })
-      })
-    })
-    describe('with 6 federated community entries', () => {
-      let comHomeCom1: CommunitiesSelect
-      let comForeignCom1: CommunitiesSelect
-      let comForeignCom2: CommunitiesSelect
-      let foreignCom4: FederatedCommunitiesSelect
-
-      beforeEach(async () => {
-        comHomeCom1 = await createCommunity(false, {
-          url: 'http://localhost',
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[0].public, 'hex'),
-          privateKey: Buffer.from(ed25519KeyPairStaticHex[0].private, 'hex'),
-          communityUuid: 'HomeCom-UUID',
-          authenticatedAt: new Date(),
-          name: 'HomeCommunity-name',
-          description: 'HomeCommunity-description',
-        })
-
-        comForeignCom1 = await createCommunity(true, {
-          url: 'http://stage-2.gradido.net',
+      beforeAll(async () => {
+        // the one the admin signed in with, created first and listed first all the same
+        const home = await dbSelectHomeCommunity()
+        if (!home) {
+          throw new Error('signing in leaves no home community')
+        }
+        homeCom = home
+        olderForeignCom = await createCommunity(true, {
+          url: 'http://stage-2.gradido.net/api/',
           publicKey: Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex'),
-          privateKey: Buffer.from(ed25519KeyPairStaticHex[3].private, 'hex'),
-          // community_uuid is NOT NULL since migration 0162; not authenticated all the same
-          communityUuid: 'Stage2-Com-UUID',
-          authenticatedAt: null,
           name: 'Stage-2_Community-name',
-          description: 'Stage-2_Community-description',
+          // migrated without a verification since
+          verifiedAt: null,
+          createdAt: new Date('2026-02-01T00:00:00.000Z'),
         })
-
-        comForeignCom2 = await createCommunity(true, {
-          url: 'http://stage-3.gradido.net',
+        newerForeignCom = await createCommunity(true, {
+          url: 'http://stage-3.gradido.net/api/',
           publicKey: Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex'),
-          privateKey: Buffer.from(ed25519KeyPairStaticHex[4].private, 'hex'),
-          communityUuid: 'Stage3-Com-UUID',
-          authenticatedAt: new Date(),
           name: 'Stage-3_Community-name',
-          description: 'Stage-3_Community-description',
-        })
-
-        foreignCom1 = await createFederatedCommunity({
-          foreign: true,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[3].public, 'hex'),
-          apiVersion: '1_0',
-          endPoint: 'http://remotehost/api',
-        })
-
-        foreignCom2 = await createFederatedCommunity({
-          foreign: true,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[4].public, 'hex'),
-          apiVersion: '1_1',
-          endPoint: 'http://remotehost/api',
-        })
-
-        foreignCom3 = await createFederatedCommunity({
-          foreign: true,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex'),
-          apiVersion: '2_0',
-          endPoint: 'http://remotehost/api',
-        })
-
-        foreignCom4 = await createFederatedCommunity({
-          foreign: true,
-          publicKey: Buffer.from(ed25519KeyPairStaticHex[5].public, 'hex'),
-          apiVersion: '1_0',
-          endPoint: 'http://remotehost/api',
+          verifiedAt: new Date(),
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
         })
       })
 
-      it('return communities structured for admin ', async () => {
+      const view = (com: CommunitiesSelect) => ({
+        foreign: com.foreign,
+        url: com.url,
+        publicKey: com.publicKey.toString('hex'),
+        uuid: com.communityUuid,
+        authenticatedAt: com.authenticatedAt?.toISOString() ?? null,
+        verifiedAt: com.verifiedAt?.toISOString() ?? null,
+        name: com.name,
+        description: com.description,
+        gmsApiKey: null,
+        creationDate: com.creationDate?.toISOString(),
+        createdAt: com.createdAt.toISOString(),
+        updatedAt: null,
+      })
+
+      it('returns the home community first, then the foreign ones, the newest first', async () => {
         await expect(query({ query: allCommunities })).resolves.toMatchObject({
           data: {
-            allCommunities: [
-              {
-                foreign: false,
-                url: 'http://localhost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[0].public),
-                authenticatedAt: comHomeCom1.authenticatedAt?.toISOString(),
-                createdAt: comHomeCom1.createdAt.toISOString(),
-                creationDate: comHomeCom1.creationDate?.toISOString(),
-                description: comHomeCom1.description,
-                gmsApiKey: null,
-                name: comHomeCom1.name,
-                updatedAt: null,
-                uuid: comHomeCom1.communityUuid,
-                federatedCommunities: [
-                  {
-                    id: homeCom3.id,
-                    apiVersion: '2_0',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom3.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                  {
-                    id: homeCom2.id,
-                    apiVersion: '1_1',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom2.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                  {
-                    id: homeCom1.id,
-                    apiVersion: '1_0',
-                    endPoint: 'http://localhost/api/',
-                    createdAt: homeCom1.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                ],
-              },
-              {
-                foreign: true,
-                url: 'http://remotehost',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[5].public),
-                authenticatedAt: null,
-                createdAt: null,
-                creationDate: null,
-                description: null,
-                gmsApiKey: null,
-                name: null,
-                updatedAt: null,
-                uuid: null,
-                federatedCommunities: [
-                  {
-                    id: foreignCom4.id,
-                    apiVersion: '1_0',
-                    endPoint: 'http://remotehost/api/',
-                    createdAt: foreignCom4.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                  {
-                    id: foreignCom3.id,
-                    apiVersion: '2_0',
-                    endPoint: 'http://remotehost/api/',
-                    createdAt: foreignCom3.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                ],
-              },
-              {
-                foreign: true,
-                url: 'http://stage-3.gradido.net',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[4].public),
-                authenticatedAt: comForeignCom2.authenticatedAt?.toISOString(),
-                createdAt: comForeignCom2.createdAt.toISOString(),
-                creationDate: comForeignCom2.creationDate?.toISOString(),
-                description: comForeignCom2.description,
-                gmsApiKey: null,
-                name: comForeignCom2.name,
-                updatedAt: null,
-                uuid: comForeignCom2.communityUuid,
-                federatedCommunities: [
-                  {
-                    id: foreignCom2.id,
-                    apiVersion: '1_1',
-                    endPoint: 'http://remotehost/api/',
-                    createdAt: foreignCom2.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                ],
-              },
-              {
-                foreign: true,
-                url: 'http://stage-2.gradido.net',
-                publicKey: expect.stringMatching(ed25519KeyPairStaticHex[3].public),
-                authenticatedAt: null,
-                createdAt: comForeignCom1.createdAt.toISOString(),
-                creationDate: comForeignCom1.creationDate?.toISOString(),
-                description: comForeignCom1.description,
-                gmsApiKey: null,
-                name: comForeignCom1.name,
-                updatedAt: null,
-                uuid: comForeignCom1.communityUuid,
-                federatedCommunities: [
-                  {
-                    id: foreignCom1.id,
-                    apiVersion: '1_0',
-                    endPoint: 'http://remotehost/api/',
-                    createdAt: foreignCom1.createdAt.toISOString(),
-                    lastAnnouncedAt: null,
-                    lastErrorAt: null,
-                    updatedAt: null,
-                    verifiedAt: null,
-                  },
-                ],
-              },
-            ],
+            allCommunities: {
+              count: 3,
+              communities: [view(homeCom), view(newerForeignCom), view(olderForeignCom)],
+            },
           },
+        })
+      })
+
+      it('returns the page asked for, and how many there are in all', async () => {
+        await expect(
+          query({ query: allCommunities, variables: { currentPage: 2, pageSize: 2 } }),
+        ).resolves.toMatchObject({
+          data: { allCommunities: { count: 3, communities: [view(olderForeignCom)] } },
         })
       })
     })
@@ -429,7 +184,6 @@ describe('CommunityResolver', () => {
   describe('reachableCommunities', () => {
     let homeCom1: CommunitiesSelect
     let foreignCom1: CommunitiesSelect
-    let foreignCom2: CommunitiesSelect
 
     afterAll(async () => {
       await cleanDB()
@@ -469,11 +223,11 @@ describe('CommunityResolver', () => {
 
     describe('returns 2 filtered communities even with 3 existing entries', () => {
       beforeEach(async () => {
-        foreignCom1 = await createCommunity(true)
-        foreignCom2 = await createCommunity(true)
-        await createVerifiedFederatedCommunity('1_0', 100, foreignCom1)
-        await createVerifiedFederatedCommunity('1_1', 100, foreignCom1)
-        await createVerifiedFederatedCommunity('1_0', 10000, foreignCom2)
+        foreignCom1 = await createCommunity(true, { verifiedAt: new Date(Date.now() - 100) })
+        // verified before the authentication timed out
+        await createCommunity(true, {
+          verifiedAt: new Date(Date.now() - FEDERATION_AUTHENTICATION_TIMEOUT_MS - 1000),
+        })
       })
 
       it('returns 2 community entries', async () => {
@@ -505,7 +259,7 @@ describe('CommunityResolver', () => {
 
         homeCom = await createCommunity(false)
         foreignCom1 = await createCommunity(true)
-        foreignCom2 = await createCommunity(true)
+        await createCommunity(true)
       })
 
       it('finds the home-community', async () => {

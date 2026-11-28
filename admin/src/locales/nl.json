@@ -388,7 +388,6 @@
   "error": "Fout",
   "expired": "verlopen",
   "federation": {
-    "apiVersion": "API-versie",
     "authenticatedAt": "geverifieerd op:",
     "communityUuid": "Community-UUID:",
     "coordinates": "Coördinaten:",
@@ -396,8 +395,6 @@
     "gmsApiKey": "GMS API-sleutel:",
     "gradidoInstances": "Gradido-instanties",
     "hieroTopicId": "Hiero Topic ID:",
-    "lastAnnouncedAt": "Laatste aankondiging",
-    "lastErrorAt": "Laatste fout op",
     "name": "Naam",
     "publicKey": "PublicKey:",
     "toast_gmsApiKeyAndLocationUpdated": "De GMS API-sleutel en de locatie zijn succesvol bijgewerkt!",
