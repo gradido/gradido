@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm'
-import { type FederatedCommunity as FederatedCommunityType } from './FederatedCommunity'
 import { GeometryTransformer } from './transformer/GeometryTransformer'
 import { type User as UserType } from './User'
 
@@ -40,6 +39,9 @@ export class Community extends BaseEntity {
 
   @Column({ name: 'authenticated_at', type: 'datetime', precision: 3, nullable: true })
   authenticatedAt: Date | null
+
+  @Column({ name: 'verified_at', type: 'datetime', precision: 3, nullable: true })
+  verifiedAt: Date | null
 
   @Column({ name: 'name', type: 'varchar', length: 40, nullable: true })
   name: string | null
@@ -101,11 +103,4 @@ export class Community extends BaseEntity {
   )
   @JoinColumn({ name: 'community_uuid', referencedColumnName: 'communityUuid' })
   users: UserType[]
-
-  @OneToMany(
-    () => require('./FederatedCommunity').FederatedCommunity,
-    (federatedCommunity: FederatedCommunityType) => federatedCommunity.community,
-  )
-  @JoinColumn({ name: 'public_key', referencedColumnName: 'publicKey' })
-  federatedCommunities?: FederatedCommunityType[]
 }

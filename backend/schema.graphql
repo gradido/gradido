@@ -15,7 +15,7 @@ type Query {
   chatVideoServers: [ChatVideoServerRow!]!
   communityFigures(since: DateTime!): CommunityFigures!
   communityFigureSeries(since: DateTime!): CommunityFigureSeries!
-  allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): [AdminCommunityView!]!
+  allCommunities(currentPage: Int! = 1, pageSize: Int! = 3, order: Order! = DESC): AdminCommunityListResult!
   reachableCommunities: [Community!]!
   authorizedCommunities: [Community!]!
   homeCommunity: Community!
@@ -424,32 +424,24 @@ type CommunityFigureSeriesRow {
   counts: [Int!]!
 }
 
+type AdminCommunityListResult {
+  count: Int!
+  communities: [AdminCommunityView!]!
+}
+
 type AdminCommunityView {
   foreign: Boolean!
   url: String!
   publicKey: String!
   uuid: String
   authenticatedAt: DateTime
+  verifiedAt: DateTime
   name: String
   description: String
   gmsApiKey: String
   location: Location
   hieroTopicId: String
   creationDate: DateTime
-  createdAt: DateTime
-  updatedAt: DateTime
-  federatedCommunities: [FederatedCommunity!]
-}
-
-type FederatedCommunity {
-  id: Int!
-  foreign: Boolean!
-  publicKey: String!
-  apiVersion: String!
-  endPoint: String!
-  lastAnnouncedAt: DateTime
-  verifiedAt: DateTime
-  lastErrorAt: DateTime
   createdAt: DateTime
   updatedAt: DateTime
 }

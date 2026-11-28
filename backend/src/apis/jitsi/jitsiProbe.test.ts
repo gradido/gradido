@@ -1,6 +1,6 @@
 // AI-GENERATED — not an architecture reference
 import axios, { AxiosRequestConfig, CancelToken } from 'axios'
-import { httpAgent, httpsAgent } from '@/apis/ConnectionAgents'
+import { httpAgent, httpsAgent } from 'core'
 import { ChatVideoServer } from '@/data/ChatVideoServer.logic'
 import { JITSI_PROBE_TIMEOUT_MS, probeJitsiServer } from './jitsiProbe'
 

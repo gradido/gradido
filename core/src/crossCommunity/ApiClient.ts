@@ -15,6 +15,7 @@ import {
 import { Ed25519KeyPair, hashGenericBase64, X25519KeyPair } from 'shared-native'
 import * as v from 'valibot'
 import { apiRoutes } from './apiRoutes'
+import { publicFetch } from './publicFetch'
 import {
   ChatMessageWireInput,
   CrossGroupTransactionWireInput,
@@ -159,8 +160,13 @@ export class ApiClient {
     // A signal of the caller still aborts the request, too.
     const timeout = AbortSignal.timeout(this.timeoutMs)
     const signal = options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout
-    const request = new Request(url, { ...options, signal, headers, body })
-    const response = await fetch(request)
+    // a redirect could pass the request on to an address of the local network
+    const request = new Request(url, { ...options, signal, headers, body, redirect: 'error' })
+    // in production only to the internet, without following a redirect; on a developer's machine
+    // the communities run on localhost. NODE_ENV and not CONFIG: the dht-node takes the client
+    // without the rest of core
+    const response =
+      process.env.NODE_ENV === 'production' ? await publicFetch(request) : await fetch(request)
     if (!fetchOptions.verifyResponse || !response.ok) {
       return response
     }

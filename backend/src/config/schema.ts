@@ -183,15 +183,6 @@ const environment = v.object({
     10,
   ),
 
-  FEDERATION_VALIDATE_COMMUNITY_TIMER: v.optional(
-    v.pipe(
-      integerSchema,
-      v.minValue(1000),
-      v.description('Timer interval in milliseconds for community validation'),
-    ),
-    60000,
-  ),
-
   // The dht-node derives the home community's signing key pair from it and stops its start when
   // the stored one differs. Only the seed reads it here, to write the key pair the dht-node will
   // derive; without it the seed writes a random one, which the dht-node then refuses.

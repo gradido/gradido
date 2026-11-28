@@ -41,7 +41,6 @@ export const tableCollations: Record<string, string> = {
   contribution_links: 'utf8mb4_general_ci',
   dlt_transactions: 'utf8mb4_general_ci',
   events: 'utf8mb4_general_ci',
-  federated_communities: 'utf8mb4_general_ci',
   pending_transactions: 'utf8mb4_general_ci',
   user_aliases: 'utf8mb4_general_ci',
   user_contacts: 'utf8mb4_general_ci',
@@ -58,6 +57,8 @@ export const communitiesTable = mysqlTable(
     privateKey: customBinary('private_key', { length: 64 }).default(sql`NULL`),
     communityUuid: char('community_uuid', { length: 36 }).notNull(),
     authenticatedAt: datetime('authenticated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
+    // the last time a foreign community answered its community infos correctly
+    verifiedAt: datetime('verified_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
     name: varchar({ length: 40 }).default(sql`NULL`),
     description: varchar({ length: 255 }).default(sql`NULL`),
     gmsApiKey: varchar('gms_api_key', { length: 512 }).default(sql`NULL`),
@@ -132,29 +133,6 @@ export const communitiesTable = mysqlTable(
 export type CommunitiesSelect = typeof communitiesTable.$inferSelect
 export const communitiesSelectSchema = createSelectSchema(communitiesTable)
 export type CommunitiesInsert = typeof communitiesTable.$inferInsert
-
-export const federatedCommunitiesTable = mysqlTable(
-  'federated_communities',
-  {
-    id: int({ unsigned: true }).autoincrement().primaryKey().notNull(),
-    // TODO: remove home community entries from this table, because entries are redundant
-    foreign: boolean().default(true).notNull(),
-    publicKey: customBinary('public_key', { length: 32 }).notNull(),
-    apiVersion: varchar('api_version', { length: 10 }).notNull(),
-    endPoint: varchar('end_point', { length: 255 }).notNull(),
-    lastAnnouncedAt: datetime('last_announced_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    verifiedAt: datetime('verified_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    lastErrorAt: datetime('last_error_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-    createdAt: datetime('created_at', { mode: 'date', fsp: 3 })
-      .default(sql`current_timestamp(3)`)
-      .notNull(),
-    updatedAt: datetime('updated_at', { mode: 'date', fsp: 3 }).default(sql`NULL`),
-  },
-  (table) => [uniqueIndex('public_api_key').on(table.publicKey, table.apiVersion)],
-)
-
-export type FederatedCommunitiesSelect = typeof federatedCommunitiesTable.$inferSelect
-export type FederatedCommunitiesInsert = typeof federatedCommunitiesTable.$inferInsert
 
 export const contributionsTable = mysqlTable(
   'contributions',

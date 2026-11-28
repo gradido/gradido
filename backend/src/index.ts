@@ -10,7 +10,6 @@ import { seedChatVideoServers } from './apis/jitsi/seedChatVideoServers'
 import { CONFIG } from './config'
 import { FOREIGN_AVATAR_DATES_REFRESH_MS } from './data/MemberAvatars.logic'
 import { startRefreshForeignMemberAvatarDates } from './federation/refreshForeignMemberAvatarDates'
-import { startValidateCommunities } from './federation/validateCommunities'
 import { createServer } from './server/createServer'
 import { initLogging } from './server/logger'
 
@@ -41,7 +40,6 @@ async function main() {
   await started.raw.ready()
   // biome-ignore lint/suspicious/noConsole: no need for logging the start message
   console.log(`Server is running at http://localhost:${CONFIG.BACKEND_PORT}`)
-  await startValidateCommunities(Number(CONFIG.FEDERATION_VALIDATE_COMMUNITY_TIMER))
   // When the members of other communities last changed their pictures (AS-019): what lets the
   // lists show their faces. The first run comes one interval after the start.
   startRefreshForeignMemberAvatarDates(FOREIGN_AVATAR_DATES_REFRESH_MS)

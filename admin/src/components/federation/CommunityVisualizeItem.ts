@@ -1,10 +1,10 @@
 // AI-GENERATED — not an architecture reference
 import m, { type ClassComponent, type Vnode } from 'mithril'
+import { FEDERATION_AUTHENTICATION_TIMEOUT_MS } from 'shared/browser'
 import { Tooltip } from '@/components/bootstrap/Tooltip'
 import { VariantIcon } from '@/components/VariantIcon'
 import type { Community } from '@/data/Community.schema'
 import { distanceToNow, t } from '@/i18n'
-import { FederationVisualizeItem } from './FederationVisualizeItem'
 import { HomeCommunity } from './HomeCommunity'
 import { phoneLabel } from './phoneLabel'
 
@@ -12,20 +12,21 @@ interface Attrs {
   community: Community
 }
 
-// the last time any of its federations announced itself, in words; nothing where none did
-const lastAnnounced = ({ federatedCommunities }: Community) => {
-  const dates = federatedCommunities.flatMap(({ lastAnnouncedAt }) =>
-    lastAnnouncedAt ? [new Date(lastAnnouncedAt).getTime()] : [],
-  )
-  return dates.length > 0 ? distanceToNow(new Date(Math.max(...dates))) : ''
-}
+// how long ago, with the date itself on it; nothing where there is none
+const dateWithTooltip = (date: string | null) =>
+  date ? m(Tooltip, { title: date }, distanceToNow(new Date(date))) : ''
+
+// the own community is always reached; a foreign one while it answered correctly lately
+const isVerified = ({ foreign, verifiedAt }: Community) =>
+  !foreign ||
+  (verifiedAt !== null &&
+    Date.now() - new Date(verifiedAt).getTime() < FEDERATION_AUTHENTICATION_TIMEOUT_MS)
 
 /** A community in the list: one row, and its details below it once the row is clicked. */
 export class CommunityVisualizeItem implements ClassComponent<Attrs> {
   private details = false
 
   private detailsOf(community: Community) {
-    const variant = community.foreign ? 'warning' : 'primary'
     return m(
       '.row.details',
       m(
@@ -49,37 +50,13 @@ export class CommunityVisualizeItem implements ClassComponent<Attrs> {
               )
             : null,
           community.foreign ? null : m('.list-group-item', m(HomeCommunity, { community })),
-          m(
-            '.list-group-item',
-            m('.list-group', [
-              m('.row.d-none.d-lg-flex', [
-                m('.col.ms-1', t('federation.verified')),
-                m('.col', t('federation.apiVersion')),
-                m('.col', t('federation.createdAt')),
-                m('.col', t('federation.lastAnnouncedAt')),
-                m('.col', t('federation.verifiedAt')),
-                m('.col', t('federation.lastErrorAt')),
-              ]),
-              community.federatedCommunities.map((federation) =>
-                m(
-                  '.list-group-item',
-                  { key: federation.id, class: `list-group-item-${variant}` },
-                  m(FederationVisualizeItem, { federation }),
-                ),
-              ),
-            ]),
-          ),
         ]),
       ),
     )
   }
 
   view({ attrs: { community } }: Vnode<Attrs>) {
-    // verified where one of its federations was verified after it was last announced
-    const verified = community.federatedCommunities.some(
-      ({ verifiedAt, lastAnnouncedAt }) =>
-        new Date(verifiedAt as string) >= new Date(lastAnnouncedAt as string),
-    )
+    const verified = isVerified(community)
     return m('.community-visualize-item', [
       m(
         '.row',
@@ -110,8 +87,8 @@ export class CommunityVisualizeItem implements ClassComponent<Attrs> {
             m(Tooltip, { title: `${community.description}` }, community.name),
           ]),
           m('.col-12.col-lg-2', [
-            phoneLabel(t('federation.lastAnnouncedAt')),
-            lastAnnounced(community),
+            phoneLabel(t('federation.verifiedAt')),
+            dateWithTooltip(community.verifiedAt),
           ]),
           m('.col-12.col-lg-2', [
             phoneLabel(t('federation.createdAt')),

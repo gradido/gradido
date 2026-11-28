@@ -190,12 +190,21 @@ test.describe('the tick in the random choice', () => {
   })
 
   test('says when a server is taken in', async ({ page, graphql }) => {
-    graphql.answer({ updateChatVideoServer: server(2, { active: true }) })
+    // from then on the server holds the tick, and the list read anew says so: else the box went
+    // back unticked as soon as the list came, maybe before check() looked at it
+    const taken = () => servers().map((row) => (row.id === 2 ? { ...row, active: true } : row))
+    graphql.answer({
+      updateChatVideoServer: () => {
+        graphql.answer({ chatVideoServers: taken })
+        return taken()[1]
+      },
+    })
     await open(page)
 
     await page.getByTestId('active-2').check()
 
     await expect(toast(page)).toContainText('meet2.example.org ist jetzt in der Zufallsauswahl.')
+    await expect(page.getByTestId('active-2')).toBeChecked()
     expect(asked(graphql, 'updateChatVideoServer')[0]).toMatchObject({
       id: 2,
       input: { operator: null, roomPrefix: null, note: null, active: true },

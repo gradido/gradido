@@ -388,7 +388,6 @@
   "error": "Hata",
   "expired": "süresi doldu",
   "federation": {
-    "apiVersion": "API Sürümü",
     "authenticatedAt": "doğrulandığı tarih:",
     "communityUuid": "Topluluk UUID:",
     "coordinates": "Koordinatlar:",
@@ -396,8 +395,6 @@
     "gmsApiKey": "GMS API Anahtarı:",
     "gradidoInstances": "Gradido Örnekleri",
     "hieroTopicId": "Hiero Topic ID:",
-    "lastAnnouncedAt": "Son duyuru",
-    "lastErrorAt": "Son hata tarihi",
     "name": "Ad",
     "publicKey": "PublicKey:",
     "toast_gmsApiKeyAndLocationUpdated": "GMS API Anahtarı ve konum başarıyla güncellendi!",

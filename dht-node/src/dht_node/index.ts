@@ -1,8 +1,7 @@
 import { generateKeyPairSync } from 'node:crypto'
 import DHT from '@hyperswarm/dht'
+import { httpUrlSchema } from 'config-schema'
 import {
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   dbInsertHomeCommunity,
   dbReplaceHomeCommunitySigningKeys,
   dbSelectHomeCommunity,
@@ -11,12 +10,16 @@ import {
 import { getLogger } from 'log4js'
 import {
   createKeyPair as createJWTKeyPair,
+  FEDERATION_AUTHENTICATION_TIMEOUT_MS,
   getChangedFields,
   HomeCommunityUpdateInput,
+  publicHttpUrlSchema,
 } from 'shared'
 import { v4 as uuidv4 } from 'uuid'
+import * as v from 'valibot'
 import { CONFIG } from '@/config'
 import { LOG4JS_BASE_CATEGORY_NAME } from '@/config/const'
+import { validateCommunity } from './validateCommunity'
 
 const KEY_SECRET_SEEDBYTES = 32
 
@@ -24,14 +27,21 @@ const POLLTIME = 20000
 const SUCCESSTIME = 120000
 const ERRORTIME = 240000
 const ANNOUNCETIME = 30000
+// the most a url may be long, as the communities table holds it
+const MAX_URL_LENGTH = 255
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.dht_node`)
 
-type CommunityApi = {
-  api: string
-  url: string
-}
-
 type KeyPair = { publicKey: Buffer; secretKey: Buffer }
+
+// what this community knows of a peer, times in ms
+type Peer = {
+  // when it last sent its url or came back from a lookup
+  lastSeenAt: number
+  // when it was last asked for its community infos
+  lastAttemptAt?: number
+  // before this, it is not connected to again to be sent our url
+  nextConnectAt?: number
+}
 
 function isAscii(buffer: Buffer): boolean {
   for (const byte of buffer) {
@@ -53,9 +63,16 @@ export const startDHT = async (topic: string): Promise<void> => {
 
   try {
     const TOPIC = DHT.hash(Buffer.from(topic))
-
-    const ownApiVersions = await writeFederatedHomeCommunityEntries(pubKeyString)
-    logger.info(`ApiList: ${JSON.stringify(ownApiVersions)}`)
+    // what this community announces to every peer it finds: its federation endpoint
+    const homeUrl = `${CONFIG.FEDERATION_COMMUNITY_URL}/api/`
+    // the peers this community has seen, by their public key as hex
+    const peers = new Map<string, Peer>()
+    const seen = (remotePubKey: string, now: number): Peer => {
+      const peer = peers.get(remotePubKey) ?? { lastSeenAt: now }
+      peer.lastSeenAt = now
+      peers.set(remotePubKey, peer)
+      return peer
+    }
 
     const node = new DHT({ keyPair })
 
@@ -65,9 +82,9 @@ export const startDHT = async (topic: string): Promise<void> => {
       logger.info(`server on... with Remote public key: ${socket.remotePublicKey.toString('hex')}`)
       socket.on('data', async (data: Buffer) => {
         try {
-          if (data.length > 1141) {
+          if (data.length > MAX_URL_LENGTH) {
             logger.warn(
-              `received more than max allowed length of data buffer: ${data.length} against 1141 max allowed`,
+              `received more than max allowed length of data buffer: ${data.length} against ${MAX_URL_LENGTH} max allowed`,
             )
             return
           }
@@ -75,58 +92,23 @@ export const startDHT = async (topic: string): Promise<void> => {
             logger.warn(`received non ascii character, content as hex: ${data.toString('hex')}`)
             return
           }
-          logger.info(`data: ${data.toString('ascii')}`)
-          const recApiVersions: CommunityApi[] = JSON.parse(data.toString('ascii'))
-
-          // TODO better to introduce the validation by https://github.com/typestack/class-validator
-          if (!recApiVersions || !Array.isArray(recApiVersions) || recApiVersions.length >= 5) {
-            logger.warn(
-              `received totaly wrong or too much apiVersions-Definition JSON-String: ${JSON.stringify(
-                recApiVersions,
-              )}`,
-            )
+          const url = data.toString('ascii')
+          logger.info(`data: ${url}`)
+          // a peer's url points to the internet; on a developer's machine the communities run on
+          // localhost
+          if (!v.is(CONFIG.PRODUCTION ? publicHttpUrlSchema : httpUrlSchema, url)) {
+            logger.warn(`received invalid url: ${url}`)
             return
           }
-          for (const recApiVersion of recApiVersions) {
-            if (
-              !recApiVersion.api ||
-              typeof recApiVersion.api !== 'string' ||
-              !recApiVersion.url ||
-              typeof recApiVersion.url !== 'string'
-            ) {
-              logger.warn(
-                `received invalid apiVersion-Definition: ${JSON.stringify(recApiVersion)}`,
-              )
-              return
-            }
-            // TODO better to introduce the validation on entity-Level by https://github.com/typestack/class-validator
-            if (recApiVersion.api.length > 10 || recApiVersion.url.length > 255) {
-              logger.warn(
-                `received apiVersion with content longer than max length: ${JSON.stringify(
-                  recApiVersion,
-                )}`,
-              )
-              return
-            }
-
-            const variables = {
-              apiVersion: recApiVersion.api,
-              endPoint: recApiVersion.url,
-              publicKey: socket.remotePublicKey,
-              lastAnnouncedAt: new Date(),
-            }
-            // this will NOT update the updatedAt column, to distingue between a normal update and the last announcement
-            await DbFederatedCommunity.createQueryBuilder()
-              .insert()
-              .into(DbFederatedCommunity)
-              .values(variables)
-              .orUpdate({
-                conflict_target: ['id', 'publicKey', 'apiVersion'],
-                overwrite: ['end_point', 'last_announced_at'],
-              })
-              .execute()
-            logger.info(`federation community upserted successfully...`)
+          const now = Date.now()
+          const peer = seen(socket.remotePublicKey.toString('hex'), now)
+          // one request per peer and SUCCESSTIME, however often it connects; a request still
+          // running counts as made
+          if (peer.lastAttemptAt !== undefined && now - peer.lastAttemptAt < SUCCESSTIME) {
+            return
           }
+          peer.lastAttemptAt = now
+          await validateCommunity(url, socket.remotePublicKey)
         } catch (e) {
           logger.error('Error on receiving data from socket:', e)
         }
@@ -140,92 +122,49 @@ export const startDHT = async (topic: string): Promise<void> => {
       await node.announce(TOPIC, keyPair).finished()
     }, ANNOUNCETIME)
 
-    let successfulRequests: string[] = []
-    let errorfulRequests: string[] = []
-
-    setInterval(async () => {
-      logger.info('Refreshing successful nodes')
-      successfulRequests = []
+    setInterval(() => {
+      // only the peers not seen for as long as a community stays reachable without an answer: a
+      // peer still announcing itself keeps its entry, and with it its deadlines
+      const now = Date.now()
+      for (const [remotePubKey, { lastSeenAt }] of peers) {
+        if (now - lastSeenAt >= FEDERATION_AUTHENTICATION_TIMEOUT_MS) {
+          peers.delete(remotePubKey)
+        }
+      }
     }, SUCCESSTIME)
-
-    setInterval(async () => {
-      logger.info('Refreshing errorful nodes')
-      errorfulRequests = []
-    }, ERRORTIME)
 
     setInterval(async () => {
       const result = await node.lookup(TOPIC)
 
-      const collectedPubKeys: string[] = []
-
       for await (const data of result) {
-        data.peers.forEach((peer: any) => {
-          const pubKey = peer.publicKey.toString('hex')
-          if (
-            pubKey !== pubKeyString &&
-            !successfulRequests.includes(pubKey) &&
-            !errorfulRequests.includes(pubKey) &&
-            !collectedPubKeys.includes(pubKey)
-          ) {
-            collectedPubKeys.push(peer.publicKey.toString('hex'))
+        for (const { publicKey } of data.peers) {
+          const remotePubKey = publicKey.toString('hex')
+          if (remotePubKey === pubKeyString) {
+            continue
           }
-        })
+          const now = Date.now()
+          const peer = seen(remotePubKey, now)
+          // a connection on its way counts as made: a peer that comes back from several DHT
+          // nodes is connected once
+          if (peer.nextConnectAt !== undefined && now < peer.nextConnectAt) {
+            continue
+          }
+          peer.nextConnectAt = now + SUCCESSTIME
+          const socket = node.connect(publicKey)
+          socket.once('error', (err: any) => {
+            peer.nextConnectAt = Date.now() + ERRORTIME
+            logger.error(`error on peer ${remotePubKey}: ${err.message}`)
+          })
+          socket.on('open', function () {
+            socket.write(Buffer.from(homeUrl))
+            peer.nextConnectAt = Date.now() + SUCCESSTIME
+          })
+        }
       }
-
-      if (collectedPubKeys.length) {
-        logger.info(`Found new peers: ${collectedPubKeys}`)
-      }
-
-      collectedPubKeys.forEach((remotePubKey) => {
-        const socket = node.connect(Buffer.from(remotePubKey, 'hex'))
-
-        // socket.once("connect", function () {
-        // console.log("client side emitted connect");
-        // });
-
-        // socket.once("end", function () {
-        // console.log("client side ended");
-        // });
-
-        socket.once('error', (err: any) => {
-          errorfulRequests.push(remotePubKey)
-          logger.error(`error on peer ${remotePubKey}: ${err.message}`)
-        })
-
-        socket.on('open', function () {
-          socket.write(Buffer.from(JSON.stringify(ownApiVersions)))
-          successfulRequests.push(remotePubKey)
-        })
-      })
     }, POLLTIME)
   } catch (err) {
     logger.error('DHT unexpected error:', err)
   }
-}
-
-async function writeFederatedHomeCommunityEntries(pubKey: string): Promise<CommunityApi[]> {
-  const homeApiVersions: CommunityApi[] = CONFIG.FEDERATION_COMMUNITY_APIS.map((api) => {
-    return {
-      api,
-      url: CONFIG.FEDERATION_COMMUNITY_URL + '/api/',
-    }
-  })
-  try {
-    // first remove previous existing homeCommunity entries
-    await DbFederatedCommunity.createQueryBuilder().delete().where({ foreign: false }).execute()
-    for (const homeApiVersion of homeApiVersions) {
-      const homeCom = DbFederatedCommunity.create()
-      homeCom.foreign = false
-      homeCom.apiVersion = homeApiVersion.api
-      homeCom.endPoint = homeApiVersion.url
-      homeCom.publicKey = Buffer.from(pubKey, 'hex')
-      await DbFederatedCommunity.insert(homeCom)
-      logger.info(`federation home-community inserted successfully:`, homeApiVersion)
-    }
-  } catch (err) {
-    throw new Error(`Federation: Error writing federated HomeCommunity-Entries: ${err}`)
-  }
-  return homeApiVersions
 }
 
 async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
@@ -258,7 +197,7 @@ async function writeHomeCommunityEntry(keyPair: KeyPair): Promise<void> {
         ...updatableFields,
         publicKey: keyPair.publicKey,
         privateKey: keyPair.secretKey,
-        communityUuid: await newCommunityUuid(),
+        communityUuid: uuidv4(),
         creationDate: new Date(),
         publicJwtKey: jwtKeyPair.publicKey,
         privateJwtKey: jwtKeyPair.privateKey,
@@ -297,14 +236,4 @@ async function replaceFillSeedKeys(storedPublicKey: Buffer, keyPair: KeyPair): P
   logger.warn(
     `home-community key replaced, now derived from the hex-decoded seed: ${storedPublicKey.toString('hex')} -> ${keyPair.publicKey.toString('hex')}`,
   )
-}
-
-const newCommunityUuid = async (): Promise<string> => {
-  while (true) {
-    const communityUuid = uuidv4()
-    if ((await DbCommunity.count({ where: { communityUuid } })) === 0) {
-      return communityUuid
-    }
-    logger.info('CommunityUuid creation conflict...', communityUuid)
-  }
 }

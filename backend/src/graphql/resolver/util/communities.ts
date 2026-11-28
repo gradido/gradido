@@ -1,17 +1,12 @@
-import { Paginated } from '@arg/Paginated'
 import {
-  AppDatabase,
   CommunitiesSelect,
   communitiesTable,
-  Community as DbCommunity,
-  FederatedCommunity as DbFederatedCommunity,
   dbFindCommunityByUuid,
   drizzleDb,
   getHomeCommunityDrizzle,
 } from 'database'
 import { asc, isNotNull } from 'drizzle-orm'
 import { CommunityIdentifier } from 'shared'
-import { LogError } from '@/server/LogError'
 
 /**
  * The community uuid a member reference is meant for.
@@ -67,57 +62,4 @@ export async function getAuthenticatedCommunities(): Promise<CommunitiesSelect[]
     .from(communitiesTable)
     .where(isNotNull(communitiesTable.communityUuid))
     .orderBy(asc(communitiesTable.name))
-}
-
-/**
- * Simulate RIGHT Join between Communities and Federated Communities
- * select *
- * Community as c
- * RIGHT JOIN FederatedCommunity as f
- * ON(c.public_key = f.public_key)
- * Typeorm don't has right joins
- * @returns
- */
-export async function getAllCommunities({
-  pageSize = 25,
-  currentPage = 1,
-}: Paginated): Promise<DbCommunity[]> {
-  const connection = AppDatabase.getInstance()
-  if (!connection.isConnected()) {
-    throw new LogError('Cannot connect to db')
-  }
-  // foreign: 'ASC',
-  // createdAt: 'DESC',
-  // lastAnnouncedAt: 'DESC',
-  const result = await connection
-    .getDataSource()
-    .getRepository(DbFederatedCommunity)
-    .createQueryBuilder('federatedCommunity')
-    .leftJoinAndSelect('federatedCommunity.community', 'community')
-    .orderBy('federatedCommunity.foreign', 'ASC')
-    .addOrderBy('federatedCommunity.createdAt', 'DESC')
-    .addOrderBy('federatedCommunity.lastAnnouncedAt', 'DESC')
-    .skip((currentPage - 1) * pageSize * 3)
-    .take(pageSize * 3)
-    .getManyAndCount()
-  const communityMap = new Map<string, DbCommunity>()
-  result[0].forEach((value: DbFederatedCommunity) => {
-    const publicKeyHex = value.publicKey.toString('hex')
-    if (!communityMap.has(value.publicKey.toString('hex'))) {
-      let community: DbCommunity = DbCommunity.create()
-      if (value.community) {
-        community = value.community
-      }
-      if (!community.federatedCommunities) {
-        community.federatedCommunities = []
-      }
-      communityMap.set(publicKeyHex, community)
-    }
-    const community = communityMap.get(publicKeyHex)
-    if (!community?.federatedCommunities) {
-      throw new LogError('missing community after set it into map', publicKeyHex)
-    }
-    community.federatedCommunities.push(value)
-  })
-  return Array.from(communityMap.values())
 }

@@ -242,26 +242,20 @@ export const getHomeCommunityQuery = gql`
 `
 
 export const allCommunities = gql`
-  query {
-    allCommunities {
-      foreign
-      url
-      publicKey
-      uuid
-      authenticatedAt
-      name
-      description
-      gmsApiKey
-      creationDate
-      createdAt
-      updatedAt
-      federatedCommunities {
-        id
-        apiVersion
-        endPoint
-        lastAnnouncedAt
+  query ($currentPage: Int, $pageSize: Int) {
+    allCommunities(currentPage: $currentPage, pageSize: $pageSize) {
+      count
+      communities {
+        foreign
+        url
+        publicKey
+        uuid
+        authenticatedAt
         verifiedAt
-        lastErrorAt
+        name
+        description
+        gmsApiKey
+        creationDate
         createdAt
         updatedAt
       }

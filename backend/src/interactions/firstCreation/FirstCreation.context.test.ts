@@ -3,7 +3,7 @@
 // a status read of a member left in SUBMITTED whose contributions are all confirmed. Everything
 // the context calls is replaced; the same flow against the database is in
 // FirstCreationResolver.test.ts. Written to run under jest and `bun test --isolate` alike (see
-// validateCommunities.test.ts).
+// dht-node/src/dht_node/validateCommunity.test.ts).
 import type { User as DbUser } from 'database'
 
 const mockLogger = {

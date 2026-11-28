@@ -1,7 +1,7 @@
 // AI-GENERATED — not an architecture reference
 // Unit tests: which count each figure asks, from which moments, and where its numbers go. The
 // counts themselves are replaced; what they count is tested against the database in `database`.
-// Written to run under jest and `bun test --isolate` alike (see validateCommunities.test.ts).
+// Written to run under jest and `bun test --isolate` alike (see dht-node validateCommunity.test.ts).
 
 // The values of the enum the figures read, as the enum spells them.
 const mockEventType = {

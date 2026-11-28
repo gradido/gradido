@@ -388,7 +388,6 @@
   "error": "Fehler",
   "expired": "abgelaufen",
   "federation": {
-    "apiVersion": "API Version",
     "authenticatedAt": "Verifiziert am:",
     "communityUuid": "Community UUID:",
     "coordinates": "Koordinaten:",
@@ -396,8 +395,6 @@
     "gmsApiKey": "GMS API Key:",
     "gradidoInstances": "Gradido Instanzen",
     "hieroTopicId": "Hiero Topic ID:",
-    "lastAnnouncedAt": "letzte Bekanntgabe",
-    "lastErrorAt": "Letzer Fehler am",
     "name": "Name",
     "publicKey": "PublicKey:",
     "toast_gmsApiKeyAndLocationUpdated": "Der GMS Api Key und die Location wurden erfolgreich aktualisiert!",

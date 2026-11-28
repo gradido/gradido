@@ -388,7 +388,6 @@
   "error": "Σφάλμα",
   "expired": "έληξε",
   "federation": {
-    "apiVersion": "Έκδοση API",
     "authenticatedAt": "επαληθεύτηκε στις:",
     "communityUuid": "UUID κοινότητας:",
     "coordinates": "Συντεταγμένες:",
@@ -396,8 +395,6 @@
     "gmsApiKey": "Κλειδί API GMS:",
     "gradidoInstances": "Στιγμιότυπα Gradido",
     "hieroTopicId": "Hiero Topic ID:",
-    "lastAnnouncedAt": "Τελευταία ανακοίνωση",
-    "lastErrorAt": "Τελευταίο σφάλμα στις",
     "name": "Όνομα",
     "publicKey": "PublicKey:",
     "toast_gmsApiKeyAndLocationUpdated": "Το κλειδί API GMS και η τοποθεσία ενημερώθηκαν με επιτυχία!",
