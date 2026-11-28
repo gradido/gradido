@@ -62,6 +62,7 @@ import {
   dbFindUserWithContactByEmail,
   dbInsertEvent,
   dbInsertUserAlias,
+  dbLockUserRowDrizzle,
   dbMarkAliasAdopted,
   dbRecoverUser,
   dbReleaseUnconfirmedEmailChangeFor,
@@ -854,6 +855,9 @@ export class UserResolver {
       const userId = user.id
       await drizzleDb().transaction(
         async (tx: DrizzleTransaction) => {
+          // Two changes at once would both count the same picks and both insert, past the
+          // quota: the second waits here and then counts the first one's row.
+          await dbLockUserRowDrizzle(userId, tx)
           await validateAlias(alias, userId, tx)
           const ownAlready = await dbFindOwnAlias(userId, alias, tx)
           if (!ownAlready) {
