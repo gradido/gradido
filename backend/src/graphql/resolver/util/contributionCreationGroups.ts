@@ -1,9 +1,10 @@
 import {
+  type CreationGroupRef,
+  type CreationGroupSelect,
   Contribution as DbContribution,
   ContributionCreationGroup as DbContributionCreationGroup,
-  CreationGroup as DbCreationGroup,
+  dbSelectCreationGroupsByTags,
 } from 'database'
-import { In } from 'typeorm'
 import { LogError } from '@/server/LogError'
 
 // Group functions: turn what the caller typed into the canonical CreationGroup rows.
@@ -20,7 +21,7 @@ import { LogError } from '@/server/LogError'
 export const resolveContributionCreationGroups = async (
   tags: string[],
   { strict = false }: { strict?: boolean } = {},
-): Promise<DbCreationGroup[]> => {
+): Promise<CreationGroupSelect[]> => {
   const seen = new Set<string>()
   const normalised: string[] = []
   for (const raw of tags) {
@@ -36,8 +37,7 @@ export const resolveContributionCreationGroups = async (
       normalised.push(tag)
     }
   }
-  const canonical =
-    normalised.length > 0 ? await DbCreationGroup.find({ where: { tag: In(normalised) } }) : []
+  const canonical = await dbSelectCreationGroupsByTags(normalised)
   if (strict) {
     // creation_groups.tag is utf8mb4_unicode_ci, so the lookup already matched regardless of
     // case; compare on the folded spelling or an existing tag reads as unknown.
@@ -58,7 +58,7 @@ export const resolveContributionCreationGroups = async (
 // creation_groups_set_at stamp; on a fresh row that belongs on the entity, before the insert.
 export const linkContributionCreationGroups = async (
   contributionId: number,
-  canonical: DbCreationGroup[],
+  canonical: CreationGroupRef[],
 ): Promise<void> => {
   if (canonical.length === 0) {
     return

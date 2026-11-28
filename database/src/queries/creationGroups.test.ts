@@ -4,7 +4,12 @@
 import { afterAll, beforeAll, describe, expect, it, spyOn } from 'bun:test'
 import { AppDatabase, drizzleDb } from '../AppDatabase'
 import { creationGroupsTable } from '../schemas'
-import { dbSelectCreationGroupByTag, dbSelectCreationGroupIdsIn } from './creationGroups'
+import {
+  dbReplaceUserCreationGroups,
+  dbSelectCreationGroupByTag,
+  dbSelectCreationGroupIdsIn,
+  dbSelectUserCreationGroups,
+} from './creationGroups'
 import { dbDeleteAllRowsExceptMigrations } from './informationSchemaTables'
 
 const appDB = AppDatabase.getInstance()
@@ -71,5 +76,18 @@ describe('dbSelectCreationGroupIdsIn', () => {
     } finally {
       asked.mockRestore()
     }
+  })
+})
+
+describe("a member's personal list", () => {
+  it('answers the groups in the order they were given, and replaces rather than adds', async () => {
+    await dbReplaceUserCreationGroups(4711, [beesId, gardenId])
+    expect((await dbSelectUserCreationGroups(4711)).map(({ id }) => id)).toEqual([beesId, gardenId])
+
+    await dbReplaceUserCreationGroups(4711, [gardenId])
+    expect((await dbSelectUserCreationGroups(4711)).map(({ id }) => id)).toEqual([gardenId])
+
+    await dbReplaceUserCreationGroups(4711, [])
+    expect(await dbSelectUserCreationGroups(4711)).toEqual([])
   })
 })

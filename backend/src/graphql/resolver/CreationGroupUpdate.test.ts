@@ -1,6 +1,13 @@
 import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, testEnvironment } from '@test/helpers'
-import { AppDatabase, CreationGroup, UserRole } from 'database'
+import {
+  AppDatabase,
+  type CreationGroupRef,
+  dbInsertCreationGroup,
+  dbSelectCreationGroupById,
+  dbSelectCreationGroupByTag,
+  UserRole,
+} from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { CreationGroupResolver } from './CreationGroupResolver'
 import { parseModeratorScope } from './util/findContributions'
@@ -24,12 +31,24 @@ afterAll(async () => {
   await db.destroy()
 })
 
-const makeTag = async (tag: string, name: string | null): Promise<CreationGroup> => {
-  const entry = CreationGroup.create()
-  entry.tag = tag
-  entry.name = name
-  await entry.save()
-  return entry
+const reload = async (id: number) => {
+  const group = await dbSelectCreationGroupById(id)
+  if (!group) {
+    throw new Error(`creation group ${id} not found`)
+  }
+  return group
+}
+
+async function makeTag(tag: string, name: string | null): Promise<CreationGroupRef> {
+  const result = await dbInsertCreationGroup({ tag, name })
+  if (!result.success) {
+    throw result.error
+  }
+  return {
+    id: result.value,
+    tag,
+    name: name,
+  }
 }
 
 const makeModerator = async (userId: number, scope: string[]): Promise<void> => {
@@ -45,7 +64,7 @@ describe('editCreationGroup', () => {
   it('changes only the display name, leaving the slug untouched', async () => {
     const tag = await makeTag('gardening', 'Gardening')
     await resolver.editCreationGroup(tag.id, null, 'Community Garden')
-    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await reload(tag.id)
     expect(reloaded.tag).toBe('gardening')
     expect(reloaded.name).toBe('Community Garden')
   })
@@ -58,7 +77,7 @@ describe('editCreationGroup', () => {
     // A leading '#' is stripped, so '#newbrigade' is stored canonically as 'newbrigade'.
     await resolver.editCreationGroup(tag.id, '#newbrigade', null)
 
-    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await reload(tag.id)
     expect(reloaded.tag).toBe('newbrigade')
 
     const scoped = await UserRole.findOneOrFail({ where: { userId: 900001 } })
@@ -126,7 +145,7 @@ describe('creation groups with capitals and accented letters', () => {
       const created = await resolver.addCreationGroup(tag, `Gruppe ${tag}`)
       expect(created.tag).toBe(tag)
 
-      const reloaded = await CreationGroup.findOneOrFail({ where: { id: created.id } })
+      const reloaded = await reload(created.id)
       expect(reloaded.tag).toBe(tag)
       expect(reloaded.name).toBe(`Gruppe ${tag}`)
     }
@@ -135,7 +154,7 @@ describe('creation groups with capitals and accented letters', () => {
   it('renames to an accented slug without losing characters', async () => {
     const tag = await makeTag('plain-slug', 'Plain')
     await resolver.editCreationGroup(tag.id, 'Öffentlichkeitsarbeit', null)
-    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await reload(tag.id)
     expect(reloaded.tag).toBe('Öffentlichkeitsarbeit')
   })
 
@@ -148,14 +167,14 @@ describe('creation groups with capitals and accented letters', () => {
     it('allows dropping an umlaut from its own slug', async () => {
       const tag = await makeTag('Mönchengladbach', 'Mönchengladbach')
       await resolver.editCreationGroup(tag.id, 'Monchengladbach', null)
-      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+      const reloaded = await reload(tag.id)
       expect(reloaded.tag).toBe('Monchengladbach')
     })
 
     it('allows changing only the capitalisation', async () => {
       const tag = await makeTag('feuerwache', 'Feuerwache')
       await resolver.editCreationGroup(tag.id, 'Feuerwache', null)
-      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+      const reloaded = await reload(tag.id)
       expect(reloaded.tag).toBe('Feuerwache')
     })
 
@@ -164,7 +183,7 @@ describe('creation groups with capitals and accented letters', () => {
       const tag = await makeTag('Grünwald', 'Grünwald')
       await resolver.editCreationGroup(tag.id, 'Grunwald', null)
       await resolver.editCreationGroup(tag.id, 'Grünwald', null)
-      const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+      const reloaded = await reload(tag.id)
       expect(reloaded.tag).toBe('Grünwald')
     })
 
@@ -175,7 +194,7 @@ describe('creation groups with capitals and accented letters', () => {
       await expect(resolver.editCreationGroup(mine.id, 'werkstatt', null)).rejects.toThrow(
         'Creation group already exists',
       )
-      const reloaded = await CreationGroup.findOneOrFail({ where: { id: mine.id } })
+      const reloaded = await reload(mine.id)
       expect(reloaded.tag).toBe('kantine')
     })
   })
@@ -193,7 +212,7 @@ describe('reserved slugs', () => {
       await expect(resolver.addCreationGroup(tag, 'Reserved')).rejects.toThrow(
         'Invalid creation group',
       )
-      expect(await CreationGroup.findOne({ where: { tag } })).toBeNull()
+      expect(await dbSelectCreationGroupByTag(tag)).toBeNull()
     }
   })
 
@@ -204,12 +223,35 @@ describe('reserved slugs', () => {
         'Invalid creation group',
       )
     }
-    const reloaded = await CreationGroup.findOneOrFail({ where: { id: tag.id } })
+    const reloaded = await reload(tag.id)
     expect(reloaded.tag).toBe('ordinary')
   })
 
   it('still accepts a slug that merely contains "*" somewhere else', async () => {
     const created = await resolver.addCreationGroup('a*b', 'Odd but harmless')
     expect(created.tag).toBe('a*b')
+  })
+})
+
+describe('addCreationGroup', () => {
+  it('refuses a tag that is taken, also in another spelling, and leaves the group as it was', async () => {
+    const taken = await makeTag('Löschzug', 'Löschzug')
+    for (const spelling of ['Löschzug', 'loschzug']) {
+      await expect(resolver.addCreationGroup(spelling, 'Duplicate')).rejects.toThrow(
+        'Creation group already exists',
+      )
+    }
+    expect((await reload(taken.id)).name).toBe('Löschzug')
+  })
+
+  it('answers the new group as never looked at for legacy hashtags', async () => {
+    const created = await resolver.addCreationGroup('#neuegruppe', '  Neue Gruppe  ')
+    expect(created).toMatchObject({
+      tag: 'neuegruppe',
+      name: 'Neue Gruppe',
+      hashtagsAdoptedAt: null,
+      hashtagsAdoptedCount: null,
+    })
+    expect((await reload(created.id)).tag).toBe('neuegruppe')
   })
 })

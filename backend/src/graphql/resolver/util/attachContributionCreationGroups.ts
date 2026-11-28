@@ -1,6 +1,6 @@
 import {
   ContributionCreationGroup as DbContributionCreationGroup,
-  CreationGroup as DbCreationGroup,
+  dbSelectCreationGroupsByIds,
 } from 'database'
 import { In } from 'typeorm'
 import { CreationGroup } from '@/graphql/model/CreationGroup'
@@ -34,9 +34,7 @@ export const attachContributionCreationGroups = async (
     }
     return
   }
-  const canonical = await DbCreationGroup.find({
-    where: { id: In(links.map((link) => link.creationGroupId)) },
-  })
+  const canonical = await dbSelectCreationGroupsByIds(links.map((link) => link.creationGroupId))
   const structured = creationGroupsByContribution(links, canonical)
 
   for (const contribution of contributions) {

@@ -1,10 +1,10 @@
-import { CreationGroup as DbCreationGroup } from 'database'
+import type { CreationGroupWithoutDates } from 'database'
 import { Field, Int, ObjectType } from 'type-graphql'
 
 // Group functions: a canonical creation group (stored WITHOUT the leading '#').
 @ObjectType()
 export class CreationGroup {
-  constructor(dbCreationGroup: DbCreationGroup) {
+  constructor(dbCreationGroup: CreationGroupWithoutDates) {
     this.id = dbCreationGroup.id
     this.tag = dbCreationGroup.tag
     this.name = dbCreationGroup.name

@@ -3,9 +3,11 @@ import { ContributionType } from '@enum/ContributionType'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  type CreationGroupRef,
   Contribution as DbContribution,
   ContributionCreationGroup as DbContributionCreationGroup,
-  CreationGroup as DbCreationGroup,
+  dbInsertCreationGroup,
+  dbSelectCreationGroupById,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { CreationGroupResolver } from './CreationGroupResolver'
@@ -36,12 +38,16 @@ afterAll(async () => {
   await db.destroy()
 })
 
-const makeGroup = async (tag: string): Promise<DbCreationGroup> => {
-  const entry = DbCreationGroup.create()
-  entry.tag = tag
-  entry.name = tag
-  await entry.save()
-  return entry
+async function makeGroup(tag: string): Promise<CreationGroupRef> {
+  const result = await dbInsertCreationGroup({ tag, name: tag })
+  if (!result.success) {
+    throw result.error
+  }
+  return {
+    id: result.value,
+    tag,
+    name: tag,
+  }
 }
 
 // A contribution written straight to the table, so the fixture cannot be quietly reshaped
@@ -73,7 +79,7 @@ const expectReallyDeleted = async (contribution: DbContribution): Promise<void> 
   expect(await DbContribution.findOne({ where: { id: contribution.id } })).toBeNull()
 }
 
-const linkedContributionIds = async (group: DbCreationGroup): Promise<number[]> => {
+const linkedContributionIds = async (group: CreationGroupRef): Promise<number[]> => {
   const links = await DbContributionCreationGroup.find({ where: { creationGroupId: group.id } })
   return links.map((link) => link.contributionId).sort((a, b) => a - b)
 }
@@ -166,7 +172,7 @@ describe('adoptLegacyHashtags', () => {
   // or a group with nothing to adopt keeps asking to be checked forever.
   it('stamps the group even when it found nothing', async () => {
     const group = await makeGroup('emptycheck')
-    expect(group.hashtagsAdoptedAt).toBeNull()
+    expect((await dbSelectCreationGroupById(group.id))?.hashtagsAdoptedAt).toBeNull()
 
     const updated = await resolver.adoptLegacyHashtags(group.id, true)
 

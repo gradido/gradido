@@ -1,9 +1,11 @@
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  creationGroupsTable,
   Contribution as DbContribution,
-  CreationGroup as DbCreationGroup,
   DbUser,
+  dbSelectCreationGroups,
+  drizzleDb,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
@@ -74,10 +76,12 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  await DbCreationGroup.save([
-    DbCreationGroup.create({ tag: 'windowlive', name: 'Live group' }),
-    DbCreationGroup.create({ tag: 'windowquiet', name: 'Quiet group' }),
-  ])
+  await drizzleDb()
+    .insert(creationGroupsTable)
+    .values([
+      { tag: 'windowlive', name: 'Live group' },
+      { tag: 'windowquiet', name: 'Quiet group' },
+    ])
 
   member = await userFactoryDrizzle(bibiBloxberg)
   resetToken()
@@ -185,7 +189,7 @@ describe('groups offered by the community filter', () => {
   it('leaves the canonical list alone, so a quiet group stays choosable when submitting', async () => {
     // A group missing from the submission field could never be woken up again — nobody
     // could file a contribution for it.
-    const canonical = await DbCreationGroup.find({ order: { tag: 'ASC' } })
+    const canonical = await dbSelectCreationGroups()
     expect(canonical.map((tag) => tag.tag)).toEqual(['windowlive', 'windowquiet'])
   })
 })

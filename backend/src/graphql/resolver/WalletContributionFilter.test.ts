@@ -1,5 +1,5 @@
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
-import { AppDatabase, CreationGroup as DbCreationGroup, DbUser } from 'database'
+import { AppDatabase, DbUser, dbInsertCreationGroup } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { Order } from '@/graphql/enum/Order'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
@@ -50,10 +50,7 @@ beforeAll(async () => {
   // The group has to exist: a contribution is in a group because it is LINKED to one, and
   // there is nothing to link to otherwise. The old version got away without it because the
   // filter matched the memo as a substring, without ever asking the canonical list.
-  const group = DbCreationGroup.create()
-  group.tag = 'walletfiltergroup'
-  group.name = 'Wallet filter group'
-  await group.save()
+  await dbInsertCreationGroup({ tag: 'walletfiltergroup', name: 'Wallet filter group' })
 
   member = await userFactoryDrizzle(bibiBloxberg)
   resetToken()

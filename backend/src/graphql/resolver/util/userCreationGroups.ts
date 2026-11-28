@@ -1,33 +1,16 @@
 import {
-  AppDatabase,
-  CreationGroup as DbCreationGroup,
-  UserCreationGroup as DbUserCreationGroup,
+  type CreationGroupSelect,
+  dbReplaceUserCreationGroups,
+  dbSelectUserCreationGroups,
 } from 'database'
-import { type EntityManager, In } from 'typeorm'
 import { LogError } from '@/server/LogError'
 import { resolveCreationGroups } from './resolveCreationGroups'
-
-const db = AppDatabase.getInstance()
 
 // Group functions: a user's personal creation-group list. The entry with the
 // lowest sort order is the user's main tag (pre-filled on submission). Returned as the
 // canonical CreationGroup rows, in list order.
-export const loadUserCreationGroups = async (userId: number): Promise<DbCreationGroup[]> => {
-  const links = await DbUserCreationGroup.find({
-    where: { userId },
-    order: { sortOrder: 'ASC', id: 'ASC' },
-  })
-  if (links.length === 0) {
-    return []
-  }
-  const tags = await DbCreationGroup.find({
-    where: { id: In(links.map((link) => link.creationGroupId)) },
-  })
-  const byId = new Map(tags.map((tag) => [tag.id, tag]))
-  return links
-    .map((link) => byId.get(link.creationGroupId))
-    .filter((tag): tag is DbCreationGroup => tag !== undefined)
-}
+export const loadUserCreationGroups = (userId: number): Promise<CreationGroupSelect[]> =>
+  dbSelectUserCreationGroups(userId)
 
 // Replace a user's personal list with the given ordered tags (first = main tag). Tags
 // must exist in the canonical creation_groups list; unknown tags are rejected. Duplicates are
@@ -35,7 +18,7 @@ export const loadUserCreationGroups = async (userId: number): Promise<DbCreation
 export const saveUserCreationGroups = async (
   userId: number,
   tags: string[],
-): Promise<DbCreationGroup[]> => {
+): Promise<CreationGroupSelect[]> => {
   const seen = new Set<string>()
   const normalised: string[] = []
   for (const raw of tags) {
@@ -61,7 +44,6 @@ export const saveUserCreationGroups = async (
   // answer with a raw driver error -- in front of the member, for something the code should
   // simply have folded together. The first spelling wins, so the order the member typed is
   // preserved, and that order matters: the lowest one is their main group.
-  const links: DbUserCreationGroup[] = []
   const placed = new Set<number>()
   for (const tag of normalised) {
     const canon = byTag.get(tag)
@@ -72,21 +54,11 @@ export const saveUserCreationGroups = async (
       continue
     }
     placed.add(canon.id)
-    const link = DbUserCreationGroup.create()
-    link.userId = userId
-    link.creationGroupId = canon.id
-    link.sortOrder = links.length
-    links.push(link)
   }
 
   // ⚠️ One transaction, because this is a REPLACEMENT and the delete alone is destructive.
   // Committed separately, a failing save would leave the member with no list at all -- and
   // two calls arriving together could interleave into a mixed one.
-  await db.getDataSource().transaction(async (trx: EntityManager) => {
-    await trx.delete(DbUserCreationGroup, { userId })
-    if (links.length > 0) {
-      await trx.save(links)
-    }
-  })
+  await dbReplaceUserCreationGroups(userId, [...placed])
   return loadUserCreationGroups(userId)
 }
