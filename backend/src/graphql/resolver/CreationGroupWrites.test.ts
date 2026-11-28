@@ -2,10 +2,11 @@ import { RoleNames } from '@enum/RoleNames'
 import { cleanDB, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
-  CreationGroup,
+  type CreationGroupRef,
+  dbInsertCreationGroup,
   dbRemoveUserRoles,
+  dbSelectUserCreationGroups,
   dbUpdateUserRoleSupportDuty,
-  UserCreationGroup,
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
@@ -32,12 +33,16 @@ afterAll(async () => {
   await db.destroy()
 })
 
-const makeGroup = async (tag: string): Promise<CreationGroup> => {
-  const entry = CreationGroup.create()
-  entry.tag = tag
-  entry.name = tag
-  await entry.save()
-  return entry
+async function makeGroup(tag: string): Promise<CreationGroupRef> {
+  const result = await dbInsertCreationGroup({ tag, name: tag })
+  if (!result.success) {
+    throw result.error
+  }
+  return {
+    id: result.value,
+    tag,
+    name: tag,
+  }
 }
 
 const makeModerator = async (userId: number): Promise<void> => {
@@ -60,7 +65,7 @@ describe("a user's personal creation-group list", () => {
     const saved = await saveUserCreationGroups(7001, ['brassband', 'BrassBand', 'choir'])
 
     expect(saved.map((group) => group.tag)).toEqual(['brassband', 'choir'])
-    const links = await UserCreationGroup.find({ where: { userId: 7001 } })
+    const links = await dbSelectUserCreationGroups(7001)
     expect(links).toHaveLength(2)
   })
 
@@ -95,7 +100,7 @@ describe("a user's personal creation-group list", () => {
     const saved = await saveUserCreationGroups(7006, ['Monchengladbach', 'Mönchengladbach'])
 
     expect(saved.map((group) => group.tag)).toEqual(['Mönchengladbach'])
-    expect(await UserCreationGroup.find({ where: { userId: 7006 } })).toHaveLength(1)
+    expect(await dbSelectUserCreationGroups(7006)).toHaveLength(1)
   })
 
   it('replaces the previous list rather than adding to it', async () => {
@@ -106,7 +111,7 @@ describe("a user's personal creation-group list", () => {
     const saved = await saveUserCreationGroups(7003, ['newone'])
 
     expect(saved.map((group) => group.tag)).toEqual(['newone'])
-    expect(await UserCreationGroup.find({ where: { userId: 7003 } })).toHaveLength(1)
+    expect(await dbSelectUserCreationGroups(7003)).toHaveLength(1)
   })
 
   it('empties the list when given nothing', async () => {
@@ -114,7 +119,7 @@ describe("a user's personal creation-group list", () => {
     await saveUserCreationGroups(7004, ['tobecleared'])
 
     expect(await saveUserCreationGroups(7004, [])).toEqual([])
-    expect(await UserCreationGroup.find({ where: { userId: 7004 } })).toHaveLength(0)
+    expect(await dbSelectUserCreationGroups(7004)).toHaveLength(0)
   })
 })
 

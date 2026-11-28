@@ -3,8 +3,8 @@ import { RoleNames } from '@enum/RoleNames'
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
-  CreationGroup as DbCreationGroup,
   DbUser,
+  dbInsertCreationGroup,
   dbUpdateUserRoleHandledGroups,
   UserRole,
 } from 'database'
@@ -143,14 +143,16 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  for (const tag of ['handled-a', 'handled-b']) {
-    const entry = DbCreationGroup.create()
-    entry.tag = tag
-    entry.name = null
-    await entry.save()
+  let result = await dbInsertCreationGroup({ tag: 'handled-a' })
+  if (!result.success) {
+    throw result.error
   }
-  groupA = (await DbCreationGroup.findOneOrFail({ where: { tag: 'handled-a' } })).id
-  groupB = (await DbCreationGroup.findOneOrFail({ where: { tag: 'handled-b' } })).id
+  groupA = result.value
+  result = await dbInsertCreationGroup({ tag: 'handled-b' })
+  if (!result.success) {
+    throw result.error
+  }
+  groupB = result.value
   peter = await userFactoryDrizzle(peterLustig) // administrator
   bibi = await userFactoryDrizzle(bibiBloxberg) // a moderator with the scope B below
   bob = await userFactoryDrizzle(bobBaumeister) // a member without a role

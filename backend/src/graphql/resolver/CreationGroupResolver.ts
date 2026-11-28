@@ -1,6 +1,16 @@
-import { AppDatabase, CreationGroup as DbCreationGroup, UserRole as DbUserRole } from 'database'
+import {
+  DBDuplicateEntryError,
+  type DrizzleTransaction,
+  dbInsertCreationGroup,
+  dbSelectCreationGroupById,
+  dbSelectCreationGroupByTag,
+  dbSelectCreationGroups,
+  dbSelectUserRoleScopesContaining,
+  dbUpdateCreationGroup,
+  dbUpdateUserRoleVisibleCreationGroups,
+  drizzleDb,
+} from 'database'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
-import { type EntityManager, Like } from 'typeorm'
 import { RIGHTS } from '@/auth/RIGHTS'
 import { CreationGroup } from '@/graphql/model/CreationGroup'
 import { LegacyHashtagCounts } from '@/graphql/model/LegacyHashtagCounts'
@@ -12,8 +22,6 @@ import {
 } from './util/contributions'
 import { parseModeratorScope } from './util/findContributions'
 import { adoptLegacyHashtags, countLegacyHashtags } from './util/legacyHashtagAdoption'
-
-const db = AppDatabase.getInstance()
 
 // Normalise a slug into the form it is stored in: strip a leading '#' and trim. Rejected
 // are the empty string, inner whitespace (the classic "# Gruppe" error) and a leading '*'
@@ -36,7 +44,7 @@ export class CreationGroupResolver {
   @Authorized([RIGHTS.LIST_CREATION_GROUPS])
   @Query(() => [CreationGroup])
   async creationGroups(): Promise<CreationGroup[]> {
-    const tags = await DbCreationGroup.find({ order: { tag: 'ASC' } })
+    const tags = await dbSelectCreationGroups()
     return tags.map((tag) => new CreationGroup(tag))
   }
 
@@ -51,7 +59,7 @@ export class CreationGroupResolver {
   @Authorized([RIGHTS.LIST_CREATION_GROUPS])
   @Query(() => [CreationGroup])
   async communityCreationGroups(): Promise<CreationGroup[]> {
-    const tags = await DbCreationGroup.find({ order: { tag: 'ASC' } })
+    const tags = await dbSelectCreationGroups()
     const visible = new Set(await creationGroupsInCommunityWindow(tags.map((tag) => tag.tag)))
     return tags.filter((tag) => visible.has(tag.tag)).map((tag) => new CreationGroup(tag))
   }
@@ -66,7 +74,7 @@ export class CreationGroupResolver {
   @Query(() => [CreationGroup])
   async myContributionCreationGroups(@Ctx() context: Context): Promise<CreationGroup[]> {
     const user = getUser(context)
-    const tags = await DbCreationGroup.find({ order: { tag: 'ASC' } })
+    const tags = await dbSelectCreationGroups()
     const present = new Set(
       await creationGroupsInUserContributions(
         user.id,
@@ -82,16 +90,22 @@ export class CreationGroupResolver {
     @Arg('tag', () => String) tag: string,
     @Arg('name', () => String, { nullable: true }) name?: string | null,
   ): Promise<CreationGroup> {
-    const normalised = normaliseTag(tag)
-    const existing = await DbCreationGroup.findOne({ where: { tag: normalised } })
-    if (existing) {
-      throw new LogError('Creation group already exists', normalised)
+    const entry = { tag: normaliseTag(tag), name: name?.trim() ? name.trim() : null }
+    const result = await dbInsertCreationGroup(entry)
+    if (result.success) {
+      return new CreationGroup({
+        ...entry,
+        id: result.value,
+        hashtagsAdoptedAt: null,
+        hashtagsAdoptedCount: null,
+      })
     }
-    const entry = DbCreationGroup.create()
-    entry.tag = normalised
-    entry.name = name?.trim() ? name.trim() : null
-    await DbCreationGroup.save(entry)
-    return new CreationGroup(entry)
+    // The unique key decides, on the utf8mb4_unicode_ci column: "Feuerwehr" is taken by
+    // "feuerwehr" as well, and two admins adding the same group at once cannot both succeed.
+    if (result.error instanceof DBDuplicateEntryError) {
+      throw new LogError('Creation group already exists', entry.tag)
+    }
+    throw result.error
   }
 
   // Edit an existing group: rename the display name and/or the canonical slug.
@@ -106,10 +120,11 @@ export class CreationGroupResolver {
     @Arg('tag', () => String, { nullable: true }) tag?: string | null,
     @Arg('name', () => String, { nullable: true }) name?: string | null,
   ): Promise<CreationGroup> {
-    const entry = await DbCreationGroup.findOne({ where: { id } })
+    const entry = await dbSelectCreationGroupById(id)
     if (!entry) {
       throw new LogError('Creation group not found', id)
     }
+    const changes: { tag?: string; name?: string | null } = {}
     let renamedFrom: string | null = null
     if (tag !== undefined && tag !== null) {
       const normalised = normaliseTag(tag)
@@ -120,16 +135,16 @@ export class CreationGroupResolver {
         // read as "creation group already exists", which was both wrong and misleading -- it
         // made every purely cosmetic respelling impossible ("feuerwehr" -> "Feuerwehr",
         // "Munchen" -> "München").
-        const clash = await DbCreationGroup.findOne({ where: { tag: normalised } })
+        const clash = await dbSelectCreationGroupByTag(normalised)
         if (clash && clash.id !== entry.id) {
           throw new LogError('Creation group already exists', normalised)
         }
         renamedFrom = entry.tag
-        entry.tag = normalised
+        entry.tag = changes.tag = normalised
       }
     }
     if (name !== undefined) {
-      entry.name = name?.trim() ? name.trim() : null
+      entry.name = changes.name = name?.trim() ? name.trim() : null
     }
     // ⚠️ One transaction, and this is the one that matters most in the feature. The slug and
     // the moderator scopes that quote it have to move together: the scope predicate compares
@@ -141,8 +156,8 @@ export class CreationGroupResolver {
     // call with the same tag stops at `normalised !== entry.tag`, so renamedFrom stays null
     // and the scopes are never revisited. Committing the two separately meant a failure in
     // between could only be undone by hand, in SQL.
-    await db.getDataSource().transaction(async (trx: EntityManager) => {
-      await trx.save(entry)
+    await drizzleDb().transaction(async (trx: DrizzleTransaction) => {
+      await dbUpdateCreationGroup(id, changes, trx)
       if (renamedFrom !== null) {
         await this.renameTagInModeratorScopes(renamedFrom, entry.tag, trx)
       }
@@ -155,7 +170,7 @@ export class CreationGroupResolver {
   @Authorized([RIGHTS.ADOPT_LEGACY_HASHTAGS])
   @Query(() => LegacyHashtagCounts)
   async legacyHashtagCounts(@Arg('id', () => Int) id: number): Promise<LegacyHashtagCounts> {
-    const entry = await DbCreationGroup.findOne({ where: { id } })
+    const entry = await dbSelectCreationGroupById(id)
     if (!entry) {
       throw new LogError('Creation group not found', id)
     }
@@ -175,7 +190,7 @@ export class CreationGroupResolver {
     @Arg('id', () => Int) id: number,
     @Arg('includeLoose', () => Boolean) includeLoose: boolean,
   ): Promise<CreationGroup> {
-    const entry = await DbCreationGroup.findOne({ where: { id } })
+    const entry = await dbSelectCreationGroupById(id)
     if (!entry) {
       throw new LogError('Creation group not found', id)
     }
@@ -184,24 +199,24 @@ export class CreationGroupResolver {
     // The count of THIS run, not a running total: it answers "what did the last look do?".
     // A second run after ticking the loose spelling reports what that second look added.
     entry.hashtagsAdoptedCount = adopted
-    await DbCreationGroup.save(entry)
+    await dbUpdateCreationGroup(entry.id, {
+      hashtagsAdoptedAt: entry.hashtagsAdoptedAt,
+      hashtagsAdoptedCount: adopted,
+    })
     return new CreationGroup(entry)
   }
 
   // Migrate a renamed slug through the moderator scopes stored as JSON tag-string arrays
   // on user_roles.visible_creation_groups. Bounded to the few roles that carry the old tag;
   // the sentinels '*all'/'*untagged' and every other tag are left as they are.
-  // ⚠️ Runs on the caller's entity manager, never on the global connection: it is one half of
+  // ⚠️ Runs on the caller's transaction, never on the global connection: it is one half of
   // the rename and has to roll back with the other half if anything fails.
   private async renameTagInModeratorScopes(
     oldTag: string,
     newTag: string,
-    trx: EntityManager,
+    trx: DrizzleTransaction,
   ): Promise<void> {
-    const roles = await trx.find(DbUserRole, {
-      where: { visibleCreationGroups: Like(`%${oldTag}%`) },
-    })
-    const changed: DbUserRole[] = []
+    const roles = await dbSelectUserRoleScopesContaining(oldTag, trx)
     for (const role of roles) {
       const scope = parseModeratorScope(role.visibleCreationGroups)
       // The LIKE over-matches on purpose -- it cannot do better on a text column -- so
@@ -210,13 +225,11 @@ export class CreationGroupResolver {
       if (!scope || !scope.includes(oldTag)) {
         continue
       }
-      role.visibleCreationGroups = JSON.stringify(
-        scope.map((token) => (token === oldTag ? newTag : token)),
+      await dbUpdateUserRoleVisibleCreationGroups(
+        role.id,
+        JSON.stringify(scope.map((token) => (token === oldTag ? newTag : token))),
+        trx,
       )
-      changed.push(role)
-    }
-    if (changed.length > 0) {
-      await trx.save(changed)
     }
   }
 }

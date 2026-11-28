@@ -3,8 +3,8 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import {
   AppDatabase,
   Contribution as DbContribution,
-  CreationGroup as DbCreationGroup,
   DbUser,
+  dbInsertCreationGroup,
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
@@ -115,10 +115,7 @@ describe('only the group field puts a contribution into a group', () => {
     author = await userFactoryDrizzle(bibiBloxberg)
 
     for (const tag of ['music', 'sports']) {
-      const entry = DbCreationGroup.create()
-      entry.tag = tag
-      entry.name = null
-      await entry.save()
+      await dbInsertCreationGroup({ tag })
     }
 
     await loginAs('bibi@bloxberg.de')

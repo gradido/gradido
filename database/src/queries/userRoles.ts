@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, like } from 'drizzle-orm'
 import { MySql2Database } from 'drizzle-orm/mysql2'
 import { VoidResult } from 'shared'
 import { DrizzleTransaction, drizzleDb } from '../AppDatabase'
@@ -176,4 +176,26 @@ export async function dbInsertUserRoles(
     return
   }
   await tx.insert(userRolesTable).values(userRoles)
+}
+
+/** The moderator scopes whose stored text contains this fragment (a LIKE, so it over-matches). */
+export async function dbSelectUserRoleScopesContaining(
+  fragment: string,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<{ id: number; visibleCreationGroups: string | null }[]> {
+  return tx
+    .select({ id: userRolesTable.id, visibleCreationGroups: userRolesTable.visibleCreationGroups })
+    .from(userRolesTable)
+    .where(like(userRolesTable.visibleCreationGroups, `%${fragment}%`))
+}
+
+export async function dbUpdateUserRoleVisibleCreationGroups(
+  id: number,
+  visibleCreationGroups: string | null,
+  tx: DrizzleTransaction | MySql2Database = drizzleDb(),
+): Promise<void> {
+  await tx
+    .update(userRolesTable)
+    .set({ visibleCreationGroups, updatedAt: new Date() })
+    .where(eq(userRolesTable.id, id))
 }

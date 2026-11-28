@@ -150,7 +150,7 @@ const run = async () => {
   const timeUsed = new MonotonicTimer()
   initLogging()
   const db = AppDatabase.getInstance()
-  await db.init(false, false, true)
+  await db.init(false, false)
   // The rows below count their ids from 1. Before the transaction: TRUNCATE commits implicitly.
   await dbTruncateAllRowsExceptMigrations()
   logger.info('clean database successful...')
