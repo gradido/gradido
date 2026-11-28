@@ -8,6 +8,7 @@ import { CreaModelTestResult, CreaSettings, FirstCreationSigner } from '@model/C
 import {
   User as DbUser,
   dbGetFirstCreationSignerUserId,
+  dbInsertCreaRecords,
   dbInsertEvent,
   dbIsMatchingKeyingActive,
   dbSetFirstCreationSignerUserId,
@@ -17,8 +18,9 @@ import {
 } from 'database'
 import { SALUTATION_MAX_LENGTH } from 'shared'
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql'
+import { v4 as uuidv4 } from 'uuid'
 import { AnthropicClient } from '@/apis/anthropic/AnthropicClient'
-import { metaFromInput, persistCreaRecords } from '@/apis/anthropic/crea/records'
+import { buildCreaRecordRows } from '@/apis/anthropic/crea/records'
 import {
   type CreaEffort,
   defaultCreaModel,
@@ -63,7 +65,15 @@ export class CreaResolver {
     // Persist one record per activity when the caller supplied a contribution
     // reference (the admin UI, DO-4); the thin slice skips persistence (E-007).
     if (input.contributionRef) {
-      await persistCreaRecords(evaluation, metaFromInput(input, CONFIG.ANTHROPIC_MODEL))
+      await dbInsertCreaRecords(
+        buildCreaRecordRows(evaluation, {
+          contributionRef: input.contributionRef as string,
+          communityUuid: input.communityUuid ?? null,
+          personPseudonym: input.personPseudonym ?? null,
+          rawText: input.text,
+          model: CONFIG.ANTHROPIC_MODEL,
+        }).map((row) => ({ ...row, recordUuid: uuidv4() })),
+      )
     }
     return evaluation
   }

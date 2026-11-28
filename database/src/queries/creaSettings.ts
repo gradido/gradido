@@ -1,12 +1,36 @@
 // AI-GENERATED — not an architecture reference
-import { CreaSetting } from '../entity/CreaSetting'
+import { eq } from 'drizzle-orm'
+import { drizzleDb } from '../AppDatabase'
+import { CreaSettingSelect, creaSettingsTable } from '../schemas/drizzle.schema'
 
-// `crea_settings` is a TypeORM table today (migration 0106). These two functions are step 1
-// of the query migration for the one column the first creation owns: moved here, not yet
-// translated to Drizzle. The model/effort/fast-mode half of the row is still read and
-// written from backend/src/apis/anthropic/crea/settings.ts and follows later.
+// `crea_settings` is a single-row singleton (id = 1). Every write is an upsert of its own
+// columns only: the row carries both the moderation settings and the first-creation signer,
+// and writing one half must never put back a stale copy of the other.
 
 const SINGLETON_ID = 1
+
+/** The settings row, or undefined while no admin has ever saved a Crea setting. */
+export async function dbSelectCreaSettings(): Promise<CreaSettingSelect | undefined> {
+  const rows = await drizzleDb()
+    .select()
+    .from(creaSettingsTable)
+    .where(eq(creaSettingsTable.id, SINGLETON_ID))
+  return rows.at(0)
+}
+
+/**
+ * Writes the moderation settings (model, effort, fast mode), creating the row if needed.
+ * One INSERT ... ON DUPLICATE KEY UPDATE, so two admins saving at once cannot race into a
+ * duplicate key, and the signer column stays untouched.
+ */
+export async function dbUpsertCreaModerationSettings(
+  settings: Pick<CreaSettingSelect, 'model' | 'effort' | 'fastMode'>,
+): Promise<void> {
+  await drizzleDb()
+    .insert(creaSettingsTable)
+    .values({ id: SINGLETON_ID, ...settings })
+    .onDuplicateKeyUpdate({ set: settings })
+}
 
 /**
  * Who signs the first creation (ES-005), or null when nobody is configured — and null is
@@ -14,20 +38,18 @@ const SINGLETON_ID = 1
  * not a failure.
  */
 export async function dbGetFirstCreationSignerUserId(): Promise<number | null> {
-  const row = await CreaSetting.findOneBy({ id: SINGLETON_ID })
+  const row = await dbSelectCreaSettings()
   return row?.firstCreationSignerUserId ?? null
 }
 
 /**
- * Sets (or clears) the signer. Column-targeted on purpose: the row also carries the
- * moderation settings, and a `save()` of a loaded entity would write those back from
- * whatever moment it was loaded. One upsert statement (INSERT ... ON DUPLICATE KEY UPDATE
- * of this column only), so the singleton row comes into being atomically when the admin
- * has never saved any Crea setting before - two admins saving at the same moment cannot
- * race an update-then-insert into a duplicate key.
+ * Sets (or clears) the signer. Column-targeted upsert, like the moderation settings above.
  *
  * Plain `void`: with a valid id this always succeeds, there is no expected failure.
  */
 export async function dbSetFirstCreationSignerUserId(userId: number | null): Promise<void> {
-  await CreaSetting.upsert({ id: SINGLETON_ID, firstCreationSignerUserId: userId }, ['id'])
+  await drizzleDb()
+    .insert(creaSettingsTable)
+    .values({ id: SINGLETON_ID, firstCreationSignerUserId: userId })
+    .onDuplicateKeyUpdate({ set: { firstCreationSignerUserId: userId } })
 }

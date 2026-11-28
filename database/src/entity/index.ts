@@ -14,8 +14,6 @@ import { Contribution } from './Contribution'
 import { ContributionCreationGroup } from './ContributionCreationGroup'
 import { ContributionLink } from './ContributionLink'
 import { ContributionMessage } from './ContributionMessage'
-import { CreaRecord } from './CreaRecord'
-import { CreaSetting } from './CreaSetting'
 import { CreationGroup } from './CreationGroup'
 import { DltTransaction } from './DltTransaction'
 import { Event } from './Event'
@@ -35,8 +33,6 @@ export {
   ContributionCreationGroup,
   ContributionLink,
   ContributionMessage,
-  CreaRecord,
-  CreaSetting,
   CreationGroup,
   DltTransaction,
   Event,
@@ -59,8 +55,6 @@ export const entities = [
   ContributionCreationGroup,
   ContributionLink,
   ContributionMessage,
-  CreaRecord,
-  CreaSetting,
   DltTransaction,
   Event,
   FederatedCommunity,

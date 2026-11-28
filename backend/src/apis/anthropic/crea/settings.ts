@@ -1,5 +1,5 @@
 // AI-GENERATED — not an architecture reference
-import { CreaSetting } from 'database'
+import { dbSelectCreaSettings, dbUpsertCreaModerationSettings } from 'database'
 import { CONFIG } from '@/config'
 
 // Global Crea runtime settings (DO-4): the Claude model + effort an admin picks in
@@ -9,8 +9,6 @@ import { CONFIG } from '@/config'
 
 export const CREA_EFFORTS = ['disabled', 'low', 'medium', 'high', 'xhigh', 'max'] as const
 export type CreaEffort = (typeof CREA_EFFORTS)[number]
-
-const SINGLETON_ID = 1
 
 function normalizeEffort(value: string | null | undefined): CreaEffort {
   return CREA_EFFORTS.includes(value as CreaEffort) ? (value as CreaEffort) : 'disabled'
@@ -24,7 +22,7 @@ export interface StoredCreaSettings {
 
 /** The raw stored settings for the admin UI (model null = "use the env default"). */
 export async function readCreaSettings(): Promise<StoredCreaSettings> {
-  const row = await CreaSetting.findOneBy({ id: SINGLETON_ID })
+  const row = await dbSelectCreaSettings()
   return {
     model: row?.model ?? null,
     effort: normalizeEffort(row?.effort),
@@ -38,16 +36,10 @@ export async function writeCreaSettings(
   effort: CreaEffort,
   fastMode: boolean,
 ): Promise<StoredCreaSettings> {
-  let row = await CreaSetting.findOneBy({ id: SINGLETON_ID })
-  if (!row) {
-    row = CreaSetting.create({ id: SINGLETON_ID })
-  }
   const trimmed = model?.trim()
-  row.model = trimmed ? trimmed : null
-  row.effort = effort
-  row.fastMode = fastMode
-  await CreaSetting.save(row)
-  return { model: row.model, effort: normalizeEffort(row.effort), fastMode: row.fastMode }
+  const stored = { model: trimmed ? trimmed : null, effort, fastMode }
+  await dbUpsertCreaModerationSettings(stored)
+  return stored
 }
 
 /** The env-configured fallback model, shown to the admin and used when none is stored. */
