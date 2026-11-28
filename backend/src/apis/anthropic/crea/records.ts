@@ -1,6 +1,5 @@
 // AI-GENERATED — not an architecture reference
 import { type CreaRecordInsert } from 'database'
-import type { CreaContributionInput } from '@/graphql/input/CreaContributionInput'
 import type { CreaEvaluation } from '@/graphql/model/CreaEvaluation'
 import { CREA_BEHAVIOR_VERSION, CREA_RULESET_VERSION, CREA_TAXONOMY_VERSION } from './ruleset'
 
