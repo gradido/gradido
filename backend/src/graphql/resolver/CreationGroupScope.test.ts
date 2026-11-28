@@ -3,8 +3,8 @@ import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@t
 import {
   AppDatabase,
   Contribution as DbContribution,
-  CreationGroup as DbCreationGroup,
   DbUser,
+  dbInsertCreationGroup,
   UserRole,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
@@ -108,10 +108,7 @@ let moderator: DbUser
 describe('adminListContributions — moderator visibility scope', () => {
   beforeAll(async () => {
     for (const tag of ['firefighter', 'music', 'grünwald-süd']) {
-      const entry = DbCreationGroup.create()
-      entry.tag = tag
-      entry.name = null
-      await entry.save()
+      await dbInsertCreationGroup({ tag })
     }
     await userFactoryDrizzle(peterLustig) // administrator
     moderator = await userFactoryDrizzle(bibiBloxberg) // becomes the scoped moderator

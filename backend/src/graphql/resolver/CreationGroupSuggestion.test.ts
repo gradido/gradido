@@ -1,9 +1,10 @@
 import { ApolloServerTestClient, cleanDB, resetToken, testEnvironment } from '@test/helpers'
 import {
   AppDatabase,
+  creationGroupsTable,
   Contribution as DbContribution,
-  CreationGroup as DbCreationGroup,
   DbUser,
+  drizzleDb,
 } from 'database'
 import { getLogger as originalGetLogger } from 'log4js'
 import { userFactoryDrizzle } from '@/seeds/factory/user'
@@ -69,11 +70,13 @@ beforeAll(async () => {
   db = testEnv.db
   await cleanDB()
 
-  await DbCreationGroup.save([
-    DbCreationGroup.create({ tag: 'feuerwehr', name: 'Feuerwehr' }),
-    DbCreationGroup.create({ tag: 'hexen', name: 'Hexen' }),
-    DbCreationGroup.create({ tag: 'chor', name: 'Chor' }),
-  ])
+  await drizzleDb()
+    .insert(creationGroupsTable)
+    .values([
+      { tag: 'feuerwehr', name: 'Feuerwehr' },
+      { tag: 'hexen', name: 'Hexen' },
+      { tag: 'chor', name: 'Chor' },
+    ])
 })
 
 afterAll(async () => {

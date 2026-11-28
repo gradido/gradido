@@ -1,4 +1,4 @@
-import { CreationGroup as DbCreationGroup } from 'database'
+import { type CreationGroupRef, dbSelectCreationGroupByTag } from 'database'
 
 // Resolve typed spellings to canonical creation-group rows, letting the DATABASE decide what
 // counts as the same spelling.
@@ -20,11 +20,11 @@ import { CreationGroup as DbCreationGroup } from 'database'
 // order it was handed and still write the canonical identity.
 export const resolveCreationGroups = async (
   tags: string[],
-): Promise<Map<string, DbCreationGroup>> => {
+): Promise<Map<string, CreationGroupRef>> => {
   const found = await Promise.all(
-    tags.map(async (tag) => [tag, await DbCreationGroup.findOne({ where: { tag } })] as const),
+    tags.map(async (tag) => [tag, await dbSelectCreationGroupByTag(tag)] as const),
   )
-  const resolved = new Map<string, DbCreationGroup>()
+  const resolved = new Map<string, CreationGroupRef>()
   for (const [tag, row] of found) {
     if (row) {
       resolved.set(tag, row)

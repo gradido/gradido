@@ -8,7 +8,7 @@ import { DataSource as DBDataSource, FileLogger } from 'typeorm'
 import { latestDbVersion } from '.'
 import { CONFIG } from './config'
 import { LOG4JS_BASE_CATEGORY_NAME } from './config/const'
-import { entities, Migration } from './entity'
+import { entities } from './entity'
 import { dbSelectLatestMigrationFileName } from './queries/migrations'
 
 const logger = getLogger(`${LOG4JS_BASE_CATEGORY_NAME}.AppDatabase`)
@@ -127,8 +127,6 @@ export class AppDatabase {
       if (!this.dataSource?.isInitialized) {
         throw new Error('Could not connect to database')
       }
-      // check for correct database version
-      await this.checkDBVersion()
     }
 
     if (redis) {
@@ -193,9 +191,7 @@ export class AppDatabase {
           },
         )
       })
-      if (!typeOrm) {
-        await this.checkDBVersionDrizzle()
-      }
+      await this.checkDBVersion()
     }
   }
 
@@ -296,22 +292,10 @@ export class AppDatabase {
   }
 
   private async checkDBVersion(): Promise<void> {
-    const [dbVersion] = await Migration.find({ order: { version: 'DESC' }, take: 1 })
-    if (!dbVersion) {
-      throw new Error('Could not find database version')
-    }
-    this.assertLatestDbVersion(dbVersion.fileName)
-  }
-
-  private async checkDBVersionDrizzle(): Promise<void> {
     const fileName = await dbSelectLatestMigrationFileName()
     if (!fileName) {
       throw new Error('Could not find database version')
     }
-    this.assertLatestDbVersion(fileName)
-  }
-
-  private assertLatestDbVersion(fileName: string): void {
     if (!fileName.startsWith(latestDbVersion)) {
       throw new Error(
         `Wrong database version detected - the backend requires '${latestDbVersion}' but found '${fileName}`,
